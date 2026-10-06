@@ -1,6 +1,6 @@
 # WBD NEXT — 每位 agent 的开发入口
 
-2026-10-06当前：Windows最新ACK后台发送候选已实现，最多每generation一个worker/一个待发位；2records/2ms原决策、FIN确认/challenge/repair同步，默认不做逐包计时。Actions/race10/独立5205/P6未验，未部署。实机仍78b8faf；显式诊断ACK墙钟209s/Owner45.8s但queueoverflow51534/19probe+4343downmissing严格FAIL，不算普通性能。49普通300s/23工况/20NOT_RUN另2诊断；M03未关闭。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：d6cb6ce Windows最新ACK后台发送10定向Actions/race10、12阶段RTT及三平台P6 PASS并同源配套部署；Windows实机stageoff尚未跑，Linux性能路径保持同步不能冒充Windows收益。下一条Normal10/300s seed1480，再独立Game4×3 seed1481；49普通300s/23工况/20NOT_RUN另2诊断、M03未关闭，原78显式诊断FAIL保留。每性能Action一条，先STATUS/latest_log。
 
 本分支是 `next/tlslike-dataplane`，唯一产品方向为单进程、单 TLS-like 数据面。不是 DTLS 兼容分支。所有 agent，包括全新接手者，在修改前执行以下流程。
 

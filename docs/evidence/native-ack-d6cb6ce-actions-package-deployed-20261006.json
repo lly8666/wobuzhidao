@@ -1,0 +1,3983 @@
+{
+  "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+  "qualification": {
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "state": "PASS",
+    "primary_runs": [
+      {
+        "label": "worker-race10",
+        "run": 37478476710,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476710",
+        "jobs": [
+          {
+            "name": "runtimeowner-core",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "foundation",
+        "run": 37478476653,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476653",
+        "jobs": [
+          {
+            "name": "repository-contract",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p4-openwrt-tproxy-privileged",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "active-go-tests (ubuntu-24.04)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p4-linux-shared-tun-privileged (nft)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p2-kernel-fallback",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "active-go-tests (windows-2022)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p4-linux-shared-tun-privileged (iptables)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p5-load",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-soak",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p6-release-candidate",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-fec2020-weaknet-5-30-5",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-weaknet-5-20-5",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-weaknet-5-30-5",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-https-measurement-base",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-load-40",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-fec2020-weaknet-5-20-5",
+            "status": "completed",
+            "conclusion": "skipped"
+          }
+        ]
+      },
+      {
+        "label": "steady",
+        "run": 37478476537,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476537",
+        "jobs": [
+          {
+            "name": "contract",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "steady-core (ubuntu-24.04)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "linux-privileged (iptables)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "linux-privileged (nft)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "steady-core (windows-2022)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "lifecycle-focus",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "gui",
+        "run": 37478476633,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476633",
+        "jobs": [
+          {
+            "name": "gui-portable",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "preflight",
+        "run": 37478476596,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476596",
+        "jobs": [
+          {
+            "name": "seeded-netem-preflight",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "lifecycle",
+        "run": 37478476810,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476810",
+        "jobs": [
+          {
+            "name": "core",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "strict-normal",
+        "run": 37478905656,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478905656",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "resource": {
+          "errors": [],
+          "link_drop_delta": {
+            "biz": {
+              "rx": 0,
+              "tx": 0
+            },
+            "client": {
+              "rx": 0,
+              "tx": 0
+            },
+            "router": {
+              "rx": 0,
+              "tx": 0
+            },
+            "server": {
+              "rx": 0,
+              "tx": 0
+            },
+            "target": {
+              "rx": 0,
+              "tx": 0
+            }
+          },
+          "max_gap_s": 1.001057164,
+          "missing_process_samples": {
+            "client": 0,
+            "server": 0
+          },
+          "packet_socket_by_endpoint": {
+            "biz/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "client/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 53120,
+              "max_rmem_ratio": 0.0506591796875
+            },
+            "router/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "server/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 39488,
+              "max_rmem_ratio": 0.03765869140625
+            },
+            "target/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            }
+          },
+          "packet_socket_command_errors": {},
+          "process_cpu_seconds": {
+            "client": 100.8,
+            "server": 102.35
+          },
+          "samples": 120,
+          "socket_drop_by_endpoint": {
+            "biz/ss_packet": 0,
+            "biz/ss_raw": 0,
+            "biz/ss_udp": 0,
+            "client/ss_packet": 0,
+            "client/ss_raw": 0,
+            "client/ss_udp": 0,
+            "router/ss_packet": 0,
+            "router/ss_raw": 0,
+            "router/ss_udp": 0,
+            "server/ss_packet": 0,
+            "server/ss_raw": 0,
+            "server/ss_udp": 0,
+            "target/ss_packet": 0,
+            "target/ss_raw": 0,
+            "target/ss_udp": 0
+          },
+          "socket_drop_max": 0,
+          "thread_cpu_seconds": {
+            "client": {
+              "5924": 0.0,
+              "5926": 4.06,
+              "5927": 13.35,
+              "5928": 12.52,
+              "5929": 13.17,
+              "5930": 0.0,
+              "5937": 0.0,
+              "5950": 13.11,
+              "5951": 14.43,
+              "5954": 14.99,
+              "6473": 0.0
+            },
+            "server": {
+              "5905": 0.0,
+              "5907": 3.96,
+              "5908": 13.79,
+              "5909": 13.84,
+              "5910": 0.0,
+              "5911": 0.0,
+              "5912": 14.49,
+              "5913": 13.52,
+              "5949": 14.8,
+              "5952": 15.02,
+              "6436": 0.0
+            }
+          }
+        },
+        "latency": {
+          "c2s_qdisc_delay_p50_ns": 300042000,
+          "c2s_qdisc_delay_p95_ns": 300124000,
+          "probe_loss_percent": 0.0,
+          "probe_stage": {
+            "post": {
+              "p95_ns": 609826380,
+              "p99_ns": 611780557,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 606599569,
+              "p99_ns": 611495190,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 613960091,
+              "p99_ns": 615544235,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "queue_pre_p95_ns": 3290419207,
+          "s2c_qdisc_delay_p50_ns": 300042000,
+          "s2c_qdisc_delay_p95_ns": 300126000
+        },
+        "goodput": {
+          "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+          "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+          "path_delay_ms": 300,
+          "raw_metric": "wall_delivered_mbps",
+          "threshold_unchanged": true
+        }
+      },
+      {
+        "label": "strict-game",
+        "run": 37478916115,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478916115",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "resource": {
+          "errors": [],
+          "link_drop_delta": {
+            "biz": {
+              "rx": 0,
+              "tx": 0
+            },
+            "client": {
+              "rx": 0,
+              "tx": 0
+            },
+            "router": {
+              "rx": 0,
+              "tx": 0
+            },
+            "server": {
+              "rx": 0,
+              "tx": 0
+            },
+            "target": {
+              "rx": 0,
+              "tx": 0
+            }
+          },
+          "max_gap_s": 1.000696375,
+          "missing_process_samples": {
+            "client": 0,
+            "server": 0
+          },
+          "packet_socket_by_endpoint": {
+            "biz/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "client/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 40320,
+              "max_rmem_ratio": 0.0384521484375
+            },
+            "router/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "server/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 127296,
+              "max_rmem_ratio": 0.12139892578125
+            },
+            "target/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            }
+          },
+          "packet_socket_command_errors": {},
+          "process_cpu_seconds": {
+            "client": 59.91,
+            "server": 56.72
+          },
+          "samples": 120,
+          "socket_drop_by_endpoint": {
+            "biz/ss_packet": 0,
+            "biz/ss_raw": 0,
+            "biz/ss_udp": 0,
+            "client/ss_packet": 0,
+            "client/ss_raw": 0,
+            "client/ss_udp": 0,
+            "router/ss_packet": 0,
+            "router/ss_raw": 0,
+            "router/ss_udp": 0,
+            "server/ss_packet": 0,
+            "server/ss_raw": 0,
+            "server/ss_udp": 0,
+            "target/ss_packet": 0,
+            "target/ss_raw": 0,
+            "target/ss_udp": 0
+          },
+          "socket_drop_max": 0,
+          "thread_cpu_seconds": {
+            "client": {
+              "5543": 8.24,
+              "5545": 2.19,
+              "5546": 0.0,
+              "5547": 0.0,
+              "5548": 8.66,
+              "5549": 0.0,
+              "5556": 8.46,
+              "5569": 7.01,
+              "5804": 1.63,
+              "6021": 8.68,
+              "6129": 0.0,
+              "6728": 0.0
+            },
+            "server": {
+              "5523": 0.0,
+              "5525": 1.94,
+              "5526": 8.97,
+              "5527": 7.8,
+              "5528": 0.0,
+              "5529": 0.0,
+              "5530": 8.17,
+              "5531": 8.73,
+              "5568": 6.66,
+              "5570": 7.23,
+              "6093": 0.0
+            }
+          }
+        },
+        "latency": {
+          "c2s_qdisc_delay_p50_ns": 300011000,
+          "c2s_qdisc_delay_p95_ns": 300070000,
+          "probe_loss_percent": 0.0,
+          "probe_stage": {
+            "post": {
+              "p95_ns": 601853809,
+              "p99_ns": 603764522,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 600743090,
+              "p99_ns": 601340157,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 600738260,
+              "p99_ns": 601080854,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "queue_pre_p95_ns": 3191695662,
+          "s2c_qdisc_delay_p50_ns": 300010000,
+          "s2c_qdisc_delay_p95_ns": 300067000
+        },
+        "goodput": {
+          "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+          "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+          "path_delay_ms": 300,
+          "raw_metric": "wall_delivered_mbps",
+          "threshold_unchanged": true
+        }
+      },
+      {
+        "label": "strict-normal-baseline",
+        "run": 37478910920,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478910920",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "resource": {
+          "errors": [],
+          "link_drop_delta": {
+            "biz": {
+              "rx": 0,
+              "tx": 0
+            },
+            "client": {
+              "rx": 0,
+              "tx": 0
+            },
+            "router": {
+              "rx": 0,
+              "tx": 0
+            },
+            "server": {
+              "rx": 0,
+              "tx": 0
+            },
+            "target": {
+              "rx": 0,
+              "tx": 0
+            }
+          },
+          "max_gap_s": 1.000132737,
+          "missing_process_samples": {
+            "client": 0,
+            "server": 0
+          },
+          "packet_socket_by_endpoint": {
+            "biz/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "client/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 25664,
+              "max_rmem_ratio": 0.02447509765625
+            },
+            "router/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "server/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 22464,
+              "max_rmem_ratio": 0.02142333984375
+            },
+            "target/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            }
+          },
+          "packet_socket_command_errors": {},
+          "process_cpu_seconds": {
+            "client": 77.05,
+            "server": 77.09
+          },
+          "samples": 120,
+          "socket_drop_by_endpoint": {
+            "biz/ss_packet": 0,
+            "biz/ss_raw": 0,
+            "biz/ss_udp": 0,
+            "client/ss_packet": 0,
+            "client/ss_raw": 0,
+            "client/ss_udp": 0,
+            "router/ss_packet": 0,
+            "router/ss_raw": 0,
+            "router/ss_udp": 0,
+            "server/ss_packet": 0,
+            "server/ss_raw": 0,
+            "server/ss_udp": 0,
+            "target/ss_packet": 0,
+            "target/ss_raw": 0,
+            "target/ss_udp": 0
+          },
+          "socket_drop_max": 0,
+          "thread_cpu_seconds": {
+            "client": {
+              "6018": 10.68,
+              "6020": 2.85,
+              "6021": 12.09,
+              "6022": 11.83,
+              "6023": 0.0,
+              "6024": 0.0,
+              "6031": 0.0,
+              "6043": 10.34,
+              "6044": 8.78,
+              "6045": 11.19,
+              "6636": 0.0
+            },
+            "server": {
+              "5998": 0.0,
+              "6000": 2.85,
+              "6001": 10.55,
+              "6002": 11.37,
+              "6003": 0.0,
+              "6004": 10.92,
+              "6005": 0.0,
+              "6016": 12.06,
+              "6017": 10.86,
+              "6046": 11.45,
+              "6600": 0.0
+            }
+          }
+        },
+        "latency": {
+          "c2s_qdisc_delay_p50_ns": 300014000,
+          "c2s_qdisc_delay_p95_ns": 300044000,
+          "probe_loss_percent": 0.0,
+          "probe_stage": {
+            "post": {
+              "p95_ns": 601388734,
+              "p99_ns": 601759082,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 601914740,
+              "p99_ns": 601949659,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 601391246,
+              "p99_ns": 601585502,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "queue_pre_p95_ns": 601265945,
+          "s2c_qdisc_delay_p50_ns": 300014000,
+          "s2c_qdisc_delay_p95_ns": 300043000
+        },
+        "goodput": {
+          "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+          "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+          "path_delay_ms": 300,
+          "raw_metric": "wall_delivered_mbps",
+          "threshold_unchanged": true
+        }
+      },
+      {
+        "label": "strict-game-baseline",
+        "run": 37478921728,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478921728",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "resource": {
+          "errors": [],
+          "link_drop_delta": {
+            "biz": {
+              "rx": 0,
+              "tx": 0
+            },
+            "client": {
+              "rx": 0,
+              "tx": 0
+            },
+            "router": {
+              "rx": 0,
+              "tx": 0
+            },
+            "server": {
+              "rx": 0,
+              "tx": 0
+            },
+            "target": {
+              "rx": 0,
+              "tx": 0
+            }
+          },
+          "max_gap_s": 1.000487497,
+          "missing_process_samples": {
+            "client": 0,
+            "server": 0
+          },
+          "packet_socket_by_endpoint": {
+            "biz/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "client/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 9792,
+              "max_rmem_ratio": 0.00933837890625
+            },
+            "router/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "server/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 19776,
+              "max_rmem_ratio": 0.01885986328125
+            },
+            "target/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            }
+          },
+          "packet_socket_command_errors": {},
+          "process_cpu_seconds": {
+            "client": 83.12,
+            "server": 79.13
+          },
+          "samples": 120,
+          "socket_drop_by_endpoint": {
+            "biz/ss_packet": 0,
+            "biz/ss_raw": 0,
+            "biz/ss_udp": 0,
+            "client/ss_packet": 0,
+            "client/ss_raw": 0,
+            "client/ss_udp": 0,
+            "router/ss_packet": 0,
+            "router/ss_raw": 0,
+            "router/ss_udp": 0,
+            "server/ss_packet": 0,
+            "server/ss_raw": 0,
+            "server/ss_udp": 0,
+            "target/ss_packet": 0,
+            "target/ss_raw": 0,
+            "target/ss_udp": 0
+          },
+          "socket_drop_max": 0,
+          "thread_cpu_seconds": {
+            "client": {
+              "5908": 0.0,
+              "5910": 4.59,
+              "5911": 10.39,
+              "5912": 11.37,
+              "5913": 11.11,
+              "5914": 0.0,
+              "5921": 0.0,
+              "5933": 12.04,
+              "6169": 11.26,
+              "6183": 10.35,
+              "6599": 0.0
+            },
+            "server": {
+              "5888": 0.0,
+              "5890": 3.83,
+              "5891": 11.0,
+              "5892": 9.97,
+              "5893": 0.0,
+              "5894": 0.0,
+              "5895": 11.64,
+              "5906": 10.61,
+              "5907": 10.57,
+              "5934": 12.04,
+              "6491": 0.0
+            }
+          }
+        },
+        "latency": {
+          "c2s_qdisc_delay_p50_ns": 300033000,
+          "c2s_qdisc_delay_p95_ns": 300111000,
+          "probe_loss_percent": 0.0,
+          "probe_stage": {
+            "post": {
+              "p95_ns": 601563649,
+              "p99_ns": 601877217,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 601410894,
+              "p99_ns": 601637947,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 601454935,
+              "p99_ns": 601663422,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "queue_pre_p95_ns": 601405212,
+          "s2c_qdisc_delay_p50_ns": 300033000,
+          "s2c_qdisc_delay_p95_ns": 300109000
+        },
+        "goodput": {
+          "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+          "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+          "path_delay_ms": 300,
+          "raw_metric": "wall_delivered_mbps",
+          "threshold_unchanged": true
+        }
+      }
+    ],
+    "paired_rtt_checks": [
+      {
+        "mode": "normal",
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 4.684829,
+        "gate_ms": 200.0,
+        "state": "PASS",
+        "lossy_sent": 30,
+        "lossy_received": 30,
+        "baseline_sent": 30,
+        "baseline_received": 30
+      },
+      {
+        "mode": "normal",
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 9.545531,
+        "gate_ms": 500.0,
+        "state": "PASS",
+        "lossy_sent": 30,
+        "lossy_received": 30,
+        "baseline_sent": 30,
+        "baseline_received": 30
+      },
+      {
+        "mode": "normal",
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 12.568845,
+        "gate_ms": 200.0,
+        "state": "PASS",
+        "lossy_sent": 60,
+        "lossy_received": 60,
+        "baseline_sent": 60,
+        "baseline_received": 60
+      },
+      {
+        "mode": "normal",
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 13.958733,
+        "gate_ms": 500.0,
+        "state": "PASS",
+        "lossy_sent": 60,
+        "lossy_received": 60,
+        "baseline_sent": 60,
+        "baseline_received": 60
+      },
+      {
+        "mode": "normal",
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 8.437646,
+        "gate_ms": 200.0,
+        "state": "PASS",
+        "lossy_sent": 30,
+        "lossy_received": 30,
+        "baseline_sent": 30,
+        "baseline_received": 30
+      },
+      {
+        "mode": "normal",
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 10.021475,
+        "gate_ms": 500.0,
+        "state": "PASS",
+        "lossy_sent": 30,
+        "lossy_received": 30,
+        "baseline_sent": 30,
+        "baseline_received": 30
+      },
+      {
+        "mode": "game",
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": -0.667804,
+        "gate_ms": 200.0,
+        "state": "PASS",
+        "lossy_sent": 30,
+        "lossy_received": 30,
+        "baseline_sent": 30,
+        "baseline_received": 30
+      },
+      {
+        "mode": "game",
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": -0.29779,
+        "gate_ms": 500.0,
+        "state": "PASS",
+        "lossy_sent": 30,
+        "lossy_received": 30,
+        "baseline_sent": 30,
+        "baseline_received": 30
+      },
+      {
+        "mode": "game",
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": -0.716675,
+        "gate_ms": 200.0,
+        "state": "PASS",
+        "lossy_sent": 60,
+        "lossy_received": 60,
+        "baseline_sent": 60,
+        "baseline_received": 60
+      },
+      {
+        "mode": "game",
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": -0.582568,
+        "gate_ms": 500.0,
+        "state": "PASS",
+        "lossy_sent": 60,
+        "lossy_received": 60,
+        "baseline_sent": 60,
+        "baseline_received": 60
+      },
+      {
+        "mode": "game",
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 0.29016,
+        "gate_ms": 200.0,
+        "state": "PASS",
+        "lossy_sent": 30,
+        "lossy_received": 30,
+        "baseline_sent": 30,
+        "baseline_received": 30
+      },
+      {
+        "mode": "game",
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 1.887305,
+        "gate_ms": 500.0,
+        "state": "PASS",
+        "lossy_sent": 30,
+        "lossy_received": 30,
+        "baseline_sent": 30,
+        "baseline_received": 30
+      }
+    ],
+    "scope": "Ten scoped incl nativeACKworker-race10 exact-source Actions inclfour independent120s and12 matchedRTT checks;not full70/full18/1800s/P6 or native performance benefit"
+  },
+  "package": {
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "run": 37480766936,
+    "state": "PASS",
+    "run_receipt": {
+      "id": 37480766936,
+      "name": "package-prephysical",
+      "node_id": "WFR_kwLOUCPjHs8AAAAIugcd2A",
+      "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+      "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "path": ".github/workflows/next-p6-package.yml",
+      "display_title": "package-prephysical",
+      "run_number": 28,
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "success",
+      "workflow_id": 373872783,
+      "check_suite_id": 101525232335,
+      "check_suite_node_id": "CS_kwDOUCPjHs8AAAAXo2Aazw",
+      "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37480766936",
+      "pull_requests": [],
+      "created_at": "2026-10-06T14:39:15Z",
+      "updated_at": "2026-10-06T14:40:59Z",
+      "actor": {
+        "login": "lly8666",
+        "id": 30583594,
+        "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+        "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/lly8666",
+        "html_url": "https://github.com/lly8666",
+        "followers_url": "https://api.github.com/users/lly8666/followers",
+        "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+        "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+        "organizations_url": "https://api.github.com/users/lly8666/orgs",
+        "repos_url": "https://api.github.com/users/lly8666/repos",
+        "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/lly8666/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "run_attempt": 1,
+      "referenced_workflows": [],
+      "run_started_at": "2026-10-06T14:39:15Z",
+      "triggering_actor": {
+        "login": "lly8666",
+        "id": 30583594,
+        "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+        "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/lly8666",
+        "html_url": "https://github.com/lly8666",
+        "followers_url": "https://api.github.com/users/lly8666/followers",
+        "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+        "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+        "organizations_url": "https://api.github.com/users/lly8666/orgs",
+        "repos_url": "https://api.github.com/users/lly8666/repos",
+        "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/lly8666/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "jobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936/jobs",
+      "logs_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936/logs",
+      "check_suite_url": "https://api.github.com/repos/lly8666/wobuzhidao/check-suites/101525232335",
+      "artifacts_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936/artifacts",
+      "cancel_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936/cancel",
+      "rerun_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936/rerun",
+      "previous_attempt_url": null,
+      "workflow_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/workflows/373872783",
+      "head_commit": {
+        "id": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "tree_id": "1280f6f1b39ed8998113f7940036aad0a6df0d62",
+        "message": "perf(windows): decouple native ACK writes with one bounded latest-state worker",
+        "timestamp": "2026-10-06T14:22:43Z",
+        "author": {
+          "name": "Codex",
+          "email": "codex@openai.com"
+        },
+        "committer": {
+          "name": "Codex",
+          "email": "codex@openai.com"
+        }
+      },
+      "repository": {
+        "id": 1344529182,
+        "node_id": "R_kgDOUCPjHg",
+        "name": "wobuzhidao",
+        "full_name": "lly8666/wobuzhidao",
+        "private": false,
+        "owner": {
+          "login": "lly8666",
+          "id": 30583594,
+          "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+          "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/lly8666",
+          "html_url": "https://github.com/lly8666",
+          "followers_url": "https://api.github.com/users/lly8666/followers",
+          "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+          "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+          "organizations_url": "https://api.github.com/users/lly8666/orgs",
+          "repos_url": "https://api.github.com/users/lly8666/repos",
+          "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/lly8666/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "html_url": "https://github.com/lly8666/wobuzhidao",
+        "description": null,
+        "fork": false,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao",
+        "forks_url": "https://api.github.com/repos/lly8666/wobuzhidao/forks",
+        "keys_url": "https://api.github.com/repos/lly8666/wobuzhidao/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/lly8666/wobuzhidao/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/lly8666/wobuzhidao/teams",
+        "hooks_url": "https://api.github.com/repos/lly8666/wobuzhidao/hooks",
+        "issue_events_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/lly8666/wobuzhidao/events",
+        "assignees_url": "https://api.github.com/repos/lly8666/wobuzhidao/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/lly8666/wobuzhidao/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/tags",
+        "blobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/lly8666/wobuzhidao/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/lly8666/wobuzhidao/languages",
+        "stargazers_url": "https://api.github.com/repos/lly8666/wobuzhidao/stargazers",
+        "contributors_url": "https://api.github.com/repos/lly8666/wobuzhidao/contributors",
+        "subscribers_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscribers",
+        "subscription_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscription",
+        "commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/lly8666/wobuzhidao/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/lly8666/wobuzhidao/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/lly8666/wobuzhidao/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/lly8666/wobuzhidao/merges",
+        "archive_url": "https://api.github.com/repos/lly8666/wobuzhidao/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/lly8666/wobuzhidao/downloads",
+        "issues_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/lly8666/wobuzhidao/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/lly8666/wobuzhidao/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/lly8666/wobuzhidao/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/lly8666/wobuzhidao/labels{/name}",
+        "releases_url": "https://api.github.com/repos/lly8666/wobuzhidao/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/lly8666/wobuzhidao/deployments"
+      },
+      "head_repository": {
+        "id": 1344529182,
+        "node_id": "R_kgDOUCPjHg",
+        "name": "wobuzhidao",
+        "full_name": "lly8666/wobuzhidao",
+        "private": false,
+        "owner": {
+          "login": "lly8666",
+          "id": 30583594,
+          "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+          "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/lly8666",
+          "html_url": "https://github.com/lly8666",
+          "followers_url": "https://api.github.com/users/lly8666/followers",
+          "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+          "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+          "organizations_url": "https://api.github.com/users/lly8666/orgs",
+          "repos_url": "https://api.github.com/users/lly8666/repos",
+          "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/lly8666/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "html_url": "https://github.com/lly8666/wobuzhidao",
+        "description": null,
+        "fork": false,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao",
+        "forks_url": "https://api.github.com/repos/lly8666/wobuzhidao/forks",
+        "keys_url": "https://api.github.com/repos/lly8666/wobuzhidao/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/lly8666/wobuzhidao/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/lly8666/wobuzhidao/teams",
+        "hooks_url": "https://api.github.com/repos/lly8666/wobuzhidao/hooks",
+        "issue_events_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/lly8666/wobuzhidao/events",
+        "assignees_url": "https://api.github.com/repos/lly8666/wobuzhidao/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/lly8666/wobuzhidao/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/tags",
+        "blobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/lly8666/wobuzhidao/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/lly8666/wobuzhidao/languages",
+        "stargazers_url": "https://api.github.com/repos/lly8666/wobuzhidao/stargazers",
+        "contributors_url": "https://api.github.com/repos/lly8666/wobuzhidao/contributors",
+        "subscribers_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscribers",
+        "subscription_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscription",
+        "commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/lly8666/wobuzhidao/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/lly8666/wobuzhidao/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/lly8666/wobuzhidao/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/lly8666/wobuzhidao/merges",
+        "archive_url": "https://api.github.com/repos/lly8666/wobuzhidao/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/lly8666/wobuzhidao/downloads",
+        "issues_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/lly8666/wobuzhidao/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/lly8666/wobuzhidao/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/lly8666/wobuzhidao/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/lly8666/wobuzhidao/labels{/name}",
+        "releases_url": "https://api.github.com/repos/lly8666/wobuzhidao/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/lly8666/wobuzhidao/deployments"
+      }
+    },
+    "jobs": [
+      {
+        "id": 112327979331,
+        "run_id": 37480766936,
+        "workflow_name": "package-prephysical",
+        "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+        "run_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUCPjHs8AAAAaJ0TxQw",
+        "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/jobs/112327979331",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37480766936/job/112327979331",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-06T14:39:17Z",
+        "started_at": "2026-10-06T14:39:20Z",
+        "completed_at": "2026-10-06T14:39:55Z",
+        "name": "package (ubuntu-24.04, linux, arm64, false)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-06T14:39:20Z",
+            "completed_at": "2026-10-06T14:39:22Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-06T14:39:22Z",
+            "completed_at": "2026-10-06T14:39:23Z"
+          },
+          {
+            "name": "Run actions/setup-go@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-06T14:39:23Z",
+            "completed_at": "2026-10-06T14:39:33Z"
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-06T14:39:33Z",
+            "completed_at": "2026-10-06T14:39:33Z"
+          },
+          {
+            "name": "Build and verify exact-source candidate",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-06T14:39:33Z",
+            "completed_at": "2026-10-06T14:39:49Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-06T14:39:49Z",
+            "completed_at": "2026-10-06T14:39:50Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-06T14:39:50Z",
+            "completed_at": "2026-10-06T14:39:51Z"
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-06T14:39:51Z",
+            "completed_at": "2026-10-06T14:39:51Z"
+          },
+          {
+            "name": "Post Run actions/setup-go@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-06T14:39:51Z",
+            "completed_at": "2026-10-06T14:39:52Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-06T14:39:52Z",
+            "completed_at": "2026-10-06T14:39:52Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-06T14:39:52Z",
+            "completed_at": "2026-10-06T14:39:52Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/lly8666/wobuzhidao/check-runs/112327979331",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000085775,
+        "runner_name": "GitHub Actions 1000085775",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 112327979720,
+        "run_id": 37480766936,
+        "workflow_name": "package-prephysical",
+        "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+        "run_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUCPjHs8AAAAaJ0TyyA",
+        "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/jobs/112327979720",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37480766936/job/112327979720",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-06T14:39:17Z",
+        "started_at": "2026-10-06T14:39:19Z",
+        "completed_at": "2026-10-06T14:40:44Z",
+        "name": "package (windows-2022, windows, amd64, true)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-06T14:39:20Z",
+            "completed_at": "2026-10-06T14:39:22Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-06T14:39:22Z",
+            "completed_at": "2026-10-06T14:39:28Z"
+          },
+          {
+            "name": "Run actions/setup-go@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-06T14:39:28Z",
+            "completed_at": "2026-10-06T14:39:45Z"
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-06T14:39:45Z",
+            "completed_at": "2026-10-06T14:39:45Z"
+          },
+          {
+            "name": "Build and verify exact-source candidate",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-06T14:39:45Z",
+            "completed_at": "2026-10-06T14:40:30Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-06T14:40:30Z",
+            "completed_at": "2026-10-06T14:40:32Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-06T14:40:32Z",
+            "completed_at": "2026-10-06T14:40:33Z"
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-06T14:40:33Z",
+            "completed_at": "2026-10-06T14:40:34Z"
+          },
+          {
+            "name": "Post Run actions/setup-go@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-06T14:40:34Z",
+            "completed_at": "2026-10-06T14:40:39Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-06T14:40:39Z",
+            "completed_at": "2026-10-06T14:40:41Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-06T14:40:41Z",
+            "completed_at": "2026-10-06T14:40:41Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/lly8666/wobuzhidao/check-runs/112327979720",
+        "labels": [
+          "windows-2022"
+        ],
+        "runner_id": 1000085777,
+        "runner_name": "GitHub Actions 1000085777",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 112327979737,
+        "run_id": 37480766936,
+        "workflow_name": "package-prephysical",
+        "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+        "run_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUCPjHs8AAAAaJ0Ty2Q",
+        "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/jobs/112327979737",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37480766936/job/112327979737",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-06T14:39:17Z",
+        "started_at": "2026-10-06T14:39:22Z",
+        "completed_at": "2026-10-06T14:39:55Z",
+        "name": "package (ubuntu-24.04, linux, amd64, true)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-06T14:39:22Z",
+            "completed_at": "2026-10-06T14:39:24Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-06T14:39:24Z",
+            "completed_at": "2026-10-06T14:39:25Z"
+          },
+          {
+            "name": "Run actions/setup-go@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-06T14:39:25Z",
+            "completed_at": "2026-10-06T14:39:36Z"
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-06T14:39:36Z",
+            "completed_at": "2026-10-06T14:39:36Z"
+          },
+          {
+            "name": "Build and verify exact-source candidate",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-06T14:39:36Z",
+            "completed_at": "2026-10-06T14:39:50Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-06T14:39:50Z",
+            "completed_at": "2026-10-06T14:39:51Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-06T14:39:51Z",
+            "completed_at": "2026-10-06T14:39:52Z"
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-06T14:39:52Z",
+            "completed_at": "2026-10-06T14:39:52Z"
+          },
+          {
+            "name": "Post Run actions/setup-go@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-06T14:39:52Z",
+            "completed_at": "2026-10-06T14:39:52Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-06T14:39:52Z",
+            "completed_at": "2026-10-06T14:39:53Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-06T14:39:53Z",
+            "completed_at": "2026-10-06T14:39:53Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/lly8666/wobuzhidao/check-runs/112327979737",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000085776,
+        "runner_name": "GitHub Actions 1000085776",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 112328681006,
+        "run_id": 37480766936,
+        "workflow_name": "package-prephysical",
+        "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+        "run_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37480766936",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUCPjHs8AAAAaJ0-mLg",
+        "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/jobs/112328681006",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37480766936/job/112328681006",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-06T14:40:45Z",
+        "started_at": "2026-10-06T14:40:47Z",
+        "completed_at": "2026-10-06T14:40:58Z",
+        "name": "aggregate",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-06T14:40:48Z",
+            "completed_at": "2026-10-06T14:40:49Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-06T14:40:49Z",
+            "completed_at": "2026-10-06T14:40:51Z"
+          },
+          {
+            "name": "Run actions/download-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-06T14:40:51Z",
+            "completed_at": "2026-10-06T14:40:52Z"
+          },
+          {
+            "name": "Verify separated target receipts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-06T14:40:52Z",
+            "completed_at": "2026-10-06T14:40:52Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-06T14:40:52Z",
+            "completed_at": "2026-10-06T14:40:54Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-06T14:40:54Z",
+            "completed_at": "2026-10-06T14:40:54Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-06T14:40:54Z",
+            "completed_at": "2026-10-06T14:40:54Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/lly8666/wobuzhidao/check-runs/112328681006",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000085778,
+        "runner_name": "GitHub Actions 1000085778",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      }
+    ],
+    "artifact_receipts": [
+      {
+        "id": 11421665534,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQyMTY2NTUzNA==",
+        "name": "candidate-windows-amd64-d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "size_in_bytes": 4063132,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421665534",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421665534/zip",
+        "expired": false,
+        "digest": "sha256:0d2815f5b5491635f33dd7106fe7c0e2f2368f4f06e2958a37429d989d5b6575",
+        "created_at": "2026-10-06T14:40:32Z",
+        "updated_at": "2026-10-06T14:40:32Z",
+        "expires_at": "2027-01-04T14:39:17Z",
+        "workflow_run": {
+          "id": 37480766936,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+          "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        }
+      },
+      {
+        "id": 11421575784,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQyMTU3NTc4NA==",
+        "name": "package-summary-d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "size_in_bytes": 2012,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421575784",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421575784/zip",
+        "expired": false,
+        "digest": "sha256:2c20068654246a262c7a883a03154bbc83141d50ba79bbfa088a5889134611ed",
+        "created_at": "2026-10-06T14:40:54Z",
+        "updated_at": "2026-10-06T14:40:54Z",
+        "expires_at": "2027-01-04T14:39:17Z",
+        "workflow_run": {
+          "id": 37480766936,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+          "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        }
+      },
+      {
+        "id": 11421560472,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQyMTU2MDQ3Mg==",
+        "name": "candidate-linux-arm64-d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "size_in_bytes": 6114646,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421560472",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421560472/zip",
+        "expired": false,
+        "digest": "sha256:254c4228003a8b797517224bc0f7dad78ba0efa62beebf30f100632c384fba97",
+        "created_at": "2026-10-06T14:39:50Z",
+        "updated_at": "2026-10-06T14:39:50Z",
+        "expires_at": "2027-01-04T14:39:17Z",
+        "workflow_run": {
+          "id": 37480766936,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+          "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        }
+      },
+      {
+        "id": 11421271155,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQyMTI3MTE1NQ==",
+        "name": "package-receipt-linux-arm64",
+        "size_in_bytes": 1131,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421271155",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421271155/zip",
+        "expired": false,
+        "digest": "sha256:8172889eb17be42a0f460c340425da6a77dd7a87a74aa64b13bbb7090bacafb2",
+        "created_at": "2026-10-06T14:39:51Z",
+        "updated_at": "2026-10-06T14:39:51Z",
+        "expires_at": "2027-01-04T14:39:17Z",
+        "workflow_run": {
+          "id": 37480766936,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+          "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        }
+      },
+      {
+        "id": 11421087310,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQyMTA4NzMxMA==",
+        "name": "package-receipt-windows-amd64",
+        "size_in_bytes": 1345,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421087310",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421087310/zip",
+        "expired": false,
+        "digest": "sha256:863519beefe429c393045231fe9816414cea7ef4e6d0c684a5d31411d28fa6a3",
+        "created_at": "2026-10-06T14:40:33Z",
+        "updated_at": "2026-10-06T14:40:33Z",
+        "expires_at": "2027-01-04T14:39:17Z",
+        "workflow_run": {
+          "id": 37480766936,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+          "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        }
+      },
+      {
+        "id": 11420733375,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQyMDczMzM3NQ==",
+        "name": "candidate-linux-amd64-d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "size_in_bytes": 6647111,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11420733375",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11420733375/zip",
+        "expired": false,
+        "digest": "sha256:a5ff9dfb1cf0a11ef5f165ab6be3ab7e8210a0c81dfc2ea2e215ebd261b6fe1c",
+        "created_at": "2026-10-06T14:39:51Z",
+        "updated_at": "2026-10-06T14:39:51Z",
+        "expires_at": "2027-01-04T14:39:17Z",
+        "workflow_run": {
+          "id": 37480766936,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+          "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        }
+      },
+      {
+        "id": 11420718540,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQyMDcxODU0MA==",
+        "name": "package-receipt-linux-amd64",
+        "size_in_bytes": 1135,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11420718540",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11420718540/zip",
+        "expired": false,
+        "digest": "sha256:3febab563eb5ad4b5b2f1057adb8d5ed4a706a2e3602ce37b64d1e41f23fc3ed",
+        "created_at": "2026-10-06T14:39:52Z",
+        "updated_at": "2026-10-06T14:39:52Z",
+        "expires_at": "2027-01-04T14:39:17Z",
+        "workflow_run": {
+          "id": 37480766936,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+          "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        }
+      }
+    ],
+    "targets": [
+      {
+        "target": "windows-amd64",
+        "manifest": {
+          "build": {
+            "buildvcs": false,
+            "cgo_enabled": false,
+            "ldflags": "-s -w -X github.com/lly8666/wobuzhidao/internal/buildinfo.Version=next-rc-d6cb6cee4c24 -X github.com/lly8666/wobuzhidao/internal/buildinfo.SourceSHA=d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+            "trimpath": true
+          },
+          "capabilities": {
+            "client": "IMPLEMENTED",
+            "server": "UNSUPPORTED"
+          },
+          "files": [
+            {
+              "binary": true,
+              "path": "wbd-client.exe",
+              "role": "client",
+              "sha256": "8df7989c364fa9457de218dbd536a522c961eee1d20ec5e9fda762682fb2d8df",
+              "size_bytes": 9230336
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "binary": false,
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "binary": false,
+              "path": "windows_client_network.ps1",
+              "role": "windows_network_script",
+              "sha256": "123ea570e6774ff23db3d5ce22b08ee671bb56d60cc454cb690b645821f5b955",
+              "size_bytes": 19627
+            },
+            {
+              "binary": false,
+              "path": "WBD.exe",
+              "role": "windows_gui",
+              "sha256": "b14773f3b7b4e96c55597e7786bf36103d71c3cbf8bc7f3a6e6b6aa6209b3ada",
+              "size_bytes": 77312
+            },
+            {
+              "binary": false,
+              "path": "WBD.exe.config",
+              "role": "windows_gui_runtime_config",
+              "sha256": "ad2eb50175ef5e3e4a0991f98ecabd513abffbfdc3d7d91303f0a05d197d0312",
+              "size_bytes": 202
+            },
+            {
+              "binary": false,
+              "path": "gui-fields.json",
+              "role": "windows_gui_fields",
+              "sha256": "a47e15fdddabe1a230b5a8b0fa1ba0cdafd0e0b398ff373a569b9c7f328b240e",
+              "size_bytes": 4292
+            },
+            {
+              "binary": false,
+              "path": "PARAMETERS.json",
+              "role": "windows_cli_catalog",
+              "sha256": "c297cad86b3ef79c0359e7273f59c6ce6ba73051bd8e171e4ad9a9ce93d83a35",
+              "size_bytes": 26160
+            },
+            {
+              "binary": false,
+              "path": "wintun.dll",
+              "role": "wintun_library",
+              "sha256": "e5da8447dc2c320edc0fc52fa01885c103de8c118481f683643cacc3220dafce",
+              "size_bytes": 427552
+            },
+            {
+              "binary": false,
+              "path": "WINTUN-LICENSE.txt",
+              "role": "wintun_license",
+              "sha256": "183adac21e7d96c508c8fd34d394b7b6708bc81564ad1bad61ab66143a008cd2",
+              "size_bytes": 5431
+            },
+            {
+              "binary": false,
+              "path": "使用说明.md",
+              "role": "windows_portable_guide",
+              "sha256": "fb0c819dc5214fa63693ba52059dedc9222041dabf9b6a1bced3cd00783c7361",
+              "size_bytes": 10948
+            }
+          ],
+          "known_limits": [
+            "PHYSICAL_PASS is NOT_RUN; physical qualification is reserved for P7.",
+            "RELEASE_QUALIFIED is NOT_RUN until P7 physical qualification succeeds.",
+            "Production FEC default remains off; padding default remains off.",
+            "Client IPv4 route-mode defaults to bypass-lan-cn; embedded country snapshot works offline. Manual update requires restart and china-ip-file; no IPv6/domain split qualification.",
+            "Recognized WBD uses the local Go TLS 1.3 server and does not claim full target-site server fingerprint equivalence.",
+            "Windows server is UNSUPPORTED in this release candidate; the bundle contains the Windows client only.",
+            "Real Wintun/Npcap driver and physical-NIC execution are NOT_RUN in hosted P6.",
+            "Portable application files only; Npcap and Wintun driver registration are Windows system operations. Wintun adapter creation installs its signed driver; not a zero-driver-install product.",
+            "GUI targets Windows 10/11 x64 with built-in .NET Framework 4.8; no application runtime installer, WebView cache or single-file runtime extraction."
+          ],
+          "runner": {
+            "github_actions": "true",
+            "go_version": "go version go1.23.12 windows/amd64",
+            "image_os": "win22",
+            "runner_arch": "X64",
+            "runner_os": "Windows"
+          },
+          "schema": "wbd-p6-release-candidate/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "PENDING_VALIDATION",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "amd64",
+            "goos": "windows"
+          },
+          "version": "next-rc-d6cb6cee4c24"
+        },
+        "actions_receipt": {
+          "manifest_sha256": "e001c7ef5cbdfe4b9de2ab2ae907ee7ec3c6aac5a8ba22f832880b2a989eec9a",
+          "schema": "wbd-p6-actions-receipt/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "ACTIONS_PASS",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "amd64",
+            "goos": "windows"
+          },
+          "validated_files": [
+            {
+              "path": "wbd-client.exe",
+              "role": "client",
+              "sha256": "8df7989c364fa9457de218dbd536a522c961eee1d20ec5e9fda762682fb2d8df",
+              "size_bytes": 9230336
+            },
+            {
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "path": "windows_client_network.ps1",
+              "role": "windows_network_script",
+              "sha256": "123ea570e6774ff23db3d5ce22b08ee671bb56d60cc454cb690b645821f5b955",
+              "size_bytes": 19627
+            },
+            {
+              "path": "WBD.exe",
+              "role": "windows_gui",
+              "sha256": "b14773f3b7b4e96c55597e7786bf36103d71c3cbf8bc7f3a6e6b6aa6209b3ada",
+              "size_bytes": 77312
+            },
+            {
+              "path": "WBD.exe.config",
+              "role": "windows_gui_runtime_config",
+              "sha256": "ad2eb50175ef5e3e4a0991f98ecabd513abffbfdc3d7d91303f0a05d197d0312",
+              "size_bytes": 202
+            },
+            {
+              "path": "gui-fields.json",
+              "role": "windows_gui_fields",
+              "sha256": "a47e15fdddabe1a230b5a8b0fa1ba0cdafd0e0b398ff373a569b9c7f328b240e",
+              "size_bytes": 4292
+            },
+            {
+              "path": "PARAMETERS.json",
+              "role": "windows_cli_catalog",
+              "sha256": "c297cad86b3ef79c0359e7273f59c6ce6ba73051bd8e171e4ad9a9ce93d83a35",
+              "size_bytes": 26160
+            },
+            {
+              "path": "wintun.dll",
+              "role": "wintun_library",
+              "sha256": "e5da8447dc2c320edc0fc52fa01885c103de8c118481f683643cacc3220dafce",
+              "size_bytes": 427552
+            },
+            {
+              "path": "WINTUN-LICENSE.txt",
+              "role": "wintun_license",
+              "sha256": "183adac21e7d96c508c8fd34d394b7b6708bc81564ad1bad61ab66143a008cd2",
+              "size_bytes": 5431
+            },
+            {
+              "path": "使用说明.md",
+              "role": "windows_portable_guide",
+              "sha256": "fb0c819dc5214fa63693ba52059dedc9222041dabf9b6a1bced3cd00783c7361",
+              "size_bytes": 10948
+            }
+          ]
+        },
+        "artifact": {
+          "id": 11421665534,
+          "node_id": "MDg6QXJ0aWZhY3QxMTQyMTY2NTUzNA==",
+          "name": "candidate-windows-amd64-d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "size_in_bytes": 4063132,
+          "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421665534",
+          "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421665534/zip",
+          "expired": false,
+          "digest": "sha256:0d2815f5b5491635f33dd7106fe7c0e2f2368f4f06e2958a37429d989d5b6575",
+          "created_at": "2026-10-06T14:40:32Z",
+          "updated_at": "2026-10-06T14:40:32Z",
+          "expires_at": "2027-01-04T14:39:17Z",
+          "workflow_run": {
+            "id": 37480766936,
+            "repository_id": 1344529182,
+            "head_repository_id": 1344529182,
+            "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+            "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+          }
+        },
+        "file_hashes_verified": true
+      },
+      {
+        "target": "linux-arm64",
+        "manifest": {
+          "build": {
+            "buildvcs": false,
+            "cgo_enabled": false,
+            "ldflags": "-s -w -X github.com/lly8666/wobuzhidao/internal/buildinfo.Version=next-rc-d6cb6cee4c24 -X github.com/lly8666/wobuzhidao/internal/buildinfo.SourceSHA=d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+            "trimpath": true
+          },
+          "capabilities": {
+            "client": "IMPLEMENTED",
+            "server": "IMPLEMENTED"
+          },
+          "files": [
+            {
+              "binary": true,
+              "path": "wbd-client",
+              "role": "client",
+              "sha256": "7854b27da21eba9c8326a97d915c493a555530eeb3c4b926b49de03b07a1d95b",
+              "size_bytes": 8454296
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "binary": false,
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "binary": true,
+              "path": "wbd-server",
+              "role": "server",
+              "sha256": "5f8451aec6a5d28ca8ce6a1cc38295adfbfedd9a198037024c6dc95d8481ecbb",
+              "size_bytes": 6422680
+            },
+            {
+              "binary": false,
+              "path": "wbd-server.service",
+              "role": "linux_service",
+              "sha256": "28d54a57c2cce5c9e4459f46bd5466cb08b189ac661f3f007138f86131631cbc",
+              "size_bytes": 926
+            },
+            {
+              "binary": false,
+              "path": "server.example.json",
+              "role": "linux_config_example",
+              "sha256": "1579fd74439b2434e5c64aa44d8f9ddef087ffe1e3d141be88c145ed05e55335",
+              "size_bytes": 495
+            },
+            {
+              "binary": false,
+              "path": "wbdctl",
+              "role": "linux_management",
+              "sha256": "2775817afadf212ed3938108f888435806a5d0520b67f336325b9fd64ddd693a",
+              "size_bytes": 10022
+            },
+            {
+              "binary": false,
+              "path": "LINUX_SERVER.md",
+              "role": "linux_server_guide",
+              "sha256": "3367112a9cdbebdf0bd0bf99857843e72fbef2fcc41f1f7519fb4a5f1ab32df4",
+              "size_bytes": 13990
+            }
+          ],
+          "known_limits": [
+            "PHYSICAL_PASS is NOT_RUN; physical qualification is reserved for P7.",
+            "RELEASE_QUALIFIED is NOT_RUN until P7 physical qualification succeeds.",
+            "Production FEC default remains off; padding default remains off.",
+            "Client IPv4 route-mode defaults to bypass-lan-cn; embedded country snapshot works offline. Manual update requires restart and china-ip-file; no IPv6/domain split qualification.",
+            "Recognized WBD uses the local Go TLS 1.3 server and does not claim full target-site server fingerprint equivalence.",
+            "Physical Linux NIC/TUN end-to-end qualification is NOT_RUN in hosted P6.",
+            "OpenWrt IPv6 TPROXY/capture remains NOT_IMPLEMENTED.",
+            "linux/arm64 is a hosted cross-build unless runner_arch reports ARM64; native physical ARM64 execution remains P7."
+          ],
+          "runner": {
+            "github_actions": "true",
+            "go_version": "go version go1.23.12 linux/amd64",
+            "image_os": "ubuntu24",
+            "runner_arch": "X64",
+            "runner_os": "Linux"
+          },
+          "schema": "wbd-p6-release-candidate/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "PENDING_VALIDATION",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "arm64",
+            "goos": "linux"
+          },
+          "version": "next-rc-d6cb6cee4c24"
+        },
+        "actions_receipt": {
+          "manifest_sha256": "78cbee7412af602169ed3767fa109332a43f14a6ddf77bd538c514f1f4feaee1",
+          "schema": "wbd-p6-actions-receipt/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "ACTIONS_PASS",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "arm64",
+            "goos": "linux"
+          },
+          "validated_files": [
+            {
+              "path": "wbd-client",
+              "role": "client",
+              "sha256": "7854b27da21eba9c8326a97d915c493a555530eeb3c4b926b49de03b07a1d95b",
+              "size_bytes": 8454296
+            },
+            {
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "path": "wbd-server",
+              "role": "server",
+              "sha256": "5f8451aec6a5d28ca8ce6a1cc38295adfbfedd9a198037024c6dc95d8481ecbb",
+              "size_bytes": 6422680
+            },
+            {
+              "path": "wbd-server.service",
+              "role": "linux_service",
+              "sha256": "28d54a57c2cce5c9e4459f46bd5466cb08b189ac661f3f007138f86131631cbc",
+              "size_bytes": 926
+            },
+            {
+              "path": "server.example.json",
+              "role": "linux_config_example",
+              "sha256": "1579fd74439b2434e5c64aa44d8f9ddef087ffe1e3d141be88c145ed05e55335",
+              "size_bytes": 495
+            },
+            {
+              "path": "wbdctl",
+              "role": "linux_management",
+              "sha256": "2775817afadf212ed3938108f888435806a5d0520b67f336325b9fd64ddd693a",
+              "size_bytes": 10022
+            },
+            {
+              "path": "LINUX_SERVER.md",
+              "role": "linux_server_guide",
+              "sha256": "3367112a9cdbebdf0bd0bf99857843e72fbef2fcc41f1f7519fb4a5f1ab32df4",
+              "size_bytes": 13990
+            }
+          ]
+        },
+        "artifact": {
+          "id": 11421560472,
+          "node_id": "MDg6QXJ0aWZhY3QxMTQyMTU2MDQ3Mg==",
+          "name": "candidate-linux-arm64-d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "size_in_bytes": 6114646,
+          "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421560472",
+          "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11421560472/zip",
+          "expired": false,
+          "digest": "sha256:254c4228003a8b797517224bc0f7dad78ba0efa62beebf30f100632c384fba97",
+          "created_at": "2026-10-06T14:39:50Z",
+          "updated_at": "2026-10-06T14:39:50Z",
+          "expires_at": "2027-01-04T14:39:17Z",
+          "workflow_run": {
+            "id": 37480766936,
+            "repository_id": 1344529182,
+            "head_repository_id": 1344529182,
+            "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+            "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+          }
+        },
+        "file_hashes_verified": true
+      },
+      {
+        "target": "linux-amd64",
+        "manifest": {
+          "build": {
+            "buildvcs": false,
+            "cgo_enabled": false,
+            "ldflags": "-s -w -X github.com/lly8666/wobuzhidao/internal/buildinfo.Version=next-rc-d6cb6cee4c24 -X github.com/lly8666/wobuzhidao/internal/buildinfo.SourceSHA=d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+            "trimpath": true
+          },
+          "capabilities": {
+            "client": "IMPLEMENTED",
+            "server": "IMPLEMENTED"
+          },
+          "files": [
+            {
+              "binary": true,
+              "path": "wbd-client",
+              "role": "client",
+              "sha256": "643aebb414089c736cd2d5c60365ae61fb3f49595da6525d722a7e99af2ea525",
+              "size_bytes": 9113752
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "binary": false,
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "binary": false,
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "binary": true,
+              "path": "wbd-server",
+              "role": "server",
+              "sha256": "57e770c75254cb3c38d2465d8583e91064b99fca7811bb17306bba5f82da2879",
+              "size_bytes": 6799512
+            },
+            {
+              "binary": false,
+              "path": "wbd-server.service",
+              "role": "linux_service",
+              "sha256": "28d54a57c2cce5c9e4459f46bd5466cb08b189ac661f3f007138f86131631cbc",
+              "size_bytes": 926
+            },
+            {
+              "binary": false,
+              "path": "server.example.json",
+              "role": "linux_config_example",
+              "sha256": "1579fd74439b2434e5c64aa44d8f9ddef087ffe1e3d141be88c145ed05e55335",
+              "size_bytes": 495
+            },
+            {
+              "binary": false,
+              "path": "wbdctl",
+              "role": "linux_management",
+              "sha256": "2775817afadf212ed3938108f888435806a5d0520b67f336325b9fd64ddd693a",
+              "size_bytes": 10022
+            },
+            {
+              "binary": false,
+              "path": "LINUX_SERVER.md",
+              "role": "linux_server_guide",
+              "sha256": "3367112a9cdbebdf0bd0bf99857843e72fbef2fcc41f1f7519fb4a5f1ab32df4",
+              "size_bytes": 13990
+            }
+          ],
+          "known_limits": [
+            "PHYSICAL_PASS is NOT_RUN; physical qualification is reserved for P7.",
+            "RELEASE_QUALIFIED is NOT_RUN until P7 physical qualification succeeds.",
+            "Production FEC default remains off; padding default remains off.",
+            "Client IPv4 route-mode defaults to bypass-lan-cn; embedded country snapshot works offline. Manual update requires restart and china-ip-file; no IPv6/domain split qualification.",
+            "Recognized WBD uses the local Go TLS 1.3 server and does not claim full target-site server fingerprint equivalence.",
+            "Physical Linux NIC/TUN end-to-end qualification is NOT_RUN in hosted P6.",
+            "OpenWrt IPv6 TPROXY/capture remains NOT_IMPLEMENTED."
+          ],
+          "runner": {
+            "github_actions": "true",
+            "go_version": "go version go1.23.12 linux/amd64",
+            "image_os": "ubuntu24",
+            "runner_arch": "X64",
+            "runner_os": "Linux"
+          },
+          "schema": "wbd-p6-release-candidate/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "PENDING_VALIDATION",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "amd64",
+            "goos": "linux"
+          },
+          "version": "next-rc-d6cb6cee4c24"
+        },
+        "actions_receipt": {
+          "manifest_sha256": "472468dbae2a57f05119f5a0b13a808b90273519c83fa56284bb3f43f7a3bf9d",
+          "schema": "wbd-p6-actions-receipt/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "ACTIONS_PASS",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "amd64",
+            "goos": "linux"
+          },
+          "validated_files": [
+            {
+              "path": "wbd-client",
+              "role": "client",
+              "sha256": "643aebb414089c736cd2d5c60365ae61fb3f49595da6525d722a7e99af2ea525",
+              "size_bytes": 9113752
+            },
+            {
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "path": "wbd-server",
+              "role": "server",
+              "sha256": "57e770c75254cb3c38d2465d8583e91064b99fca7811bb17306bba5f82da2879",
+              "size_bytes": 6799512
+            },
+            {
+              "path": "wbd-server.service",
+              "role": "linux_service",
+              "sha256": "28d54a57c2cce5c9e4459f46bd5466cb08b189ac661f3f007138f86131631cbc",
+              "size_bytes": 926
+            },
+            {
+              "path": "server.example.json",
+              "role": "linux_config_example",
+              "sha256": "1579fd74439b2434e5c64aa44d8f9ddef087ffe1e3d141be88c145ed05e55335",
+              "size_bytes": 495
+            },
+            {
+              "path": "wbdctl",
+              "role": "linux_management",
+              "sha256": "2775817afadf212ed3938108f888435806a5d0520b67f336325b9fd64ddd693a",
+              "size_bytes": 10022
+            },
+            {
+              "path": "LINUX_SERVER.md",
+              "role": "linux_server_guide",
+              "sha256": "3367112a9cdbebdf0bd0bf99857843e72fbef2fcc41f1f7519fb4a5f1ab32df4",
+              "size_bytes": 13990
+            }
+          ]
+        },
+        "artifact": {
+          "id": 11420733375,
+          "node_id": "MDg6QXJ0aWZhY3QxMTQyMDczMzM3NQ==",
+          "name": "candidate-linux-amd64-d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "size_in_bytes": 6647111,
+          "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11420733375",
+          "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11420733375/zip",
+          "expired": false,
+          "digest": "sha256:a5ff9dfb1cf0a11ef5f165ab6be3ab7e8210a0c81dfc2ea2e215ebd261b6fe1c",
+          "created_at": "2026-10-06T14:39:51Z",
+          "updated_at": "2026-10-06T14:39:51Z",
+          "expires_at": "2027-01-04T14:39:17Z",
+          "workflow_run": {
+            "id": 37480766936,
+            "repository_id": 1344529182,
+            "head_repository_id": 1344529182,
+            "head_branch": "qualification/d6cb6ce-native-ack-20261006",
+            "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+          }
+        },
+        "file_hashes_verified": true
+      }
+    ],
+    "aggregate": {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "result": "PASS",
+      "scope": "HOSTED_PACKAGE_ONLY",
+      "physical": "NOT_RUN",
+      "release_qualified": "NOT_RUN",
+      "receipts": [
+        {
+          "manifest_sha256": "78cbee7412af602169ed3767fa109332a43f14a6ddf77bd538c514f1f4feaee1",
+          "schema": "wbd-p6-actions-receipt/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "ACTIONS_PASS",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "arm64",
+            "goos": "linux"
+          },
+          "validated_files": [
+            {
+              "path": "wbd-client",
+              "role": "client",
+              "sha256": "7854b27da21eba9c8326a97d915c493a555530eeb3c4b926b49de03b07a1d95b",
+              "size_bytes": 8454296
+            },
+            {
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "path": "wbd-server",
+              "role": "server",
+              "sha256": "5f8451aec6a5d28ca8ce6a1cc38295adfbfedd9a198037024c6dc95d8481ecbb",
+              "size_bytes": 6422680
+            },
+            {
+              "path": "wbd-server.service",
+              "role": "linux_service",
+              "sha256": "28d54a57c2cce5c9e4459f46bd5466cb08b189ac661f3f007138f86131631cbc",
+              "size_bytes": 926
+            },
+            {
+              "path": "server.example.json",
+              "role": "linux_config_example",
+              "sha256": "1579fd74439b2434e5c64aa44d8f9ddef087ffe1e3d141be88c145ed05e55335",
+              "size_bytes": 495
+            },
+            {
+              "path": "wbdctl",
+              "role": "linux_management",
+              "sha256": "2775817afadf212ed3938108f888435806a5d0520b67f336325b9fd64ddd693a",
+              "size_bytes": 10022
+            },
+            {
+              "path": "LINUX_SERVER.md",
+              "role": "linux_server_guide",
+              "sha256": "3367112a9cdbebdf0bd0bf99857843e72fbef2fcc41f1f7519fb4a5f1ab32df4",
+              "size_bytes": 13990
+            }
+          ]
+        },
+        {
+          "manifest_sha256": "472468dbae2a57f05119f5a0b13a808b90273519c83fa56284bb3f43f7a3bf9d",
+          "schema": "wbd-p6-actions-receipt/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "ACTIONS_PASS",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "amd64",
+            "goos": "linux"
+          },
+          "validated_files": [
+            {
+              "path": "wbd-client",
+              "role": "client",
+              "sha256": "643aebb414089c736cd2d5c60365ae61fb3f49595da6525d722a7e99af2ea525",
+              "size_bytes": 9113752
+            },
+            {
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "path": "wbd-server",
+              "role": "server",
+              "sha256": "57e770c75254cb3c38d2465d8583e91064b99fca7811bb17306bba5f82da2879",
+              "size_bytes": 6799512
+            },
+            {
+              "path": "wbd-server.service",
+              "role": "linux_service",
+              "sha256": "28d54a57c2cce5c9e4459f46bd5466cb08b189ac661f3f007138f86131631cbc",
+              "size_bytes": 926
+            },
+            {
+              "path": "server.example.json",
+              "role": "linux_config_example",
+              "sha256": "1579fd74439b2434e5c64aa44d8f9ddef087ffe1e3d141be88c145ed05e55335",
+              "size_bytes": 495
+            },
+            {
+              "path": "wbdctl",
+              "role": "linux_management",
+              "sha256": "2775817afadf212ed3938108f888435806a5d0520b67f336325b9fd64ddd693a",
+              "size_bytes": 10022
+            },
+            {
+              "path": "LINUX_SERVER.md",
+              "role": "linux_server_guide",
+              "sha256": "3367112a9cdbebdf0bd0bf99857843e72fbef2fcc41f1f7519fb4a5f1ab32df4",
+              "size_bytes": 13990
+            }
+          ]
+        },
+        {
+          "manifest_sha256": "e001c7ef5cbdfe4b9de2ab2ae907ee7ec3c6aac5a8ba22f832880b2a989eec9a",
+          "schema": "wbd-p6-actions-receipt/v1",
+          "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+          "status": {
+            "actions": "ACTIONS_PASS",
+            "implementation": "IMPLEMENTED",
+            "physical": "NOT_RUN",
+            "release_qualified": "NOT_RUN"
+          },
+          "target": {
+            "goarch": "amd64",
+            "goos": "windows"
+          },
+          "validated_files": [
+            {
+              "path": "wbd-client.exe",
+              "role": "client",
+              "sha256": "8df7989c364fa9457de218dbd536a522c961eee1d20ec5e9fda762682fb2d8df",
+              "size_bytes": 9230336
+            },
+            {
+              "path": "china-ipv4.txt",
+              "role": "china_ipv4_snapshot",
+              "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+              "size_bytes": 96521
+            },
+            {
+              "path": "china-ipv4-source.json",
+              "role": "china_ipv4_provenance",
+              "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+              "size_bytes": 505
+            },
+            {
+              "path": "china-ipv4-LICENSE.txt",
+              "role": "china_ipv4_license",
+              "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+              "size_bytes": 1066
+            },
+            {
+              "path": "SPLIT_ROUTING.md",
+              "role": "split_routing_guide",
+              "sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+              "size_bytes": 8046
+            },
+            {
+              "path": "windows_client_network.ps1",
+              "role": "windows_network_script",
+              "sha256": "123ea570e6774ff23db3d5ce22b08ee671bb56d60cc454cb690b645821f5b955",
+              "size_bytes": 19627
+            },
+            {
+              "path": "WBD.exe",
+              "role": "windows_gui",
+              "sha256": "b14773f3b7b4e96c55597e7786bf36103d71c3cbf8bc7f3a6e6b6aa6209b3ada",
+              "size_bytes": 77312
+            },
+            {
+              "path": "WBD.exe.config",
+              "role": "windows_gui_runtime_config",
+              "sha256": "ad2eb50175ef5e3e4a0991f98ecabd513abffbfdc3d7d91303f0a05d197d0312",
+              "size_bytes": 202
+            },
+            {
+              "path": "gui-fields.json",
+              "role": "windows_gui_fields",
+              "sha256": "a47e15fdddabe1a230b5a8b0fa1ba0cdafd0e0b398ff373a569b9c7f328b240e",
+              "size_bytes": 4292
+            },
+            {
+              "path": "PARAMETERS.json",
+              "role": "windows_cli_catalog",
+              "sha256": "c297cad86b3ef79c0359e7273f59c6ce6ba73051bd8e171e4ad9a9ce93d83a35",
+              "size_bytes": 26160
+            },
+            {
+              "path": "wintun.dll",
+              "role": "wintun_library",
+              "sha256": "e5da8447dc2c320edc0fc52fa01885c103de8c118481f683643cacc3220dafce",
+              "size_bytes": 427552
+            },
+            {
+              "path": "WINTUN-LICENSE.txt",
+              "role": "wintun_license",
+              "sha256": "183adac21e7d96c508c8fd34d394b7b6708bc81564ad1bad61ab66143a008cd2",
+              "size_bytes": 5431
+            },
+            {
+              "path": "使用说明.md",
+              "role": "windows_portable_guide",
+              "sha256": "fb0c819dc5214fa63693ba52059dedc9222041dabf9b6a1bced3cd00783c7361",
+              "size_bytes": 10948
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "deployment": {
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "previous_source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "qualification": [
+      {
+        "label": "worker-race10",
+        "run": 37478476710,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476710",
+        "jobs": [
+          {
+            "name": "runtimeowner-core",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "foundation",
+        "run": 37478476653,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476653",
+        "jobs": [
+          {
+            "name": "repository-contract",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p4-openwrt-tproxy-privileged",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "active-go-tests (ubuntu-24.04)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p4-linux-shared-tun-privileged (nft)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p2-kernel-fallback",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "active-go-tests (windows-2022)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p4-linux-shared-tun-privileged (iptables)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "p5-load",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-soak",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p6-release-candidate",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-fec2020-weaknet-5-30-5",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-weaknet-5-20-5",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-weaknet-5-30-5",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-https-measurement-base",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-load-40",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "p5-fec2020-weaknet-5-20-5",
+            "status": "completed",
+            "conclusion": "skipped"
+          }
+        ]
+      },
+      {
+        "label": "steady",
+        "run": 37478476537,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476537",
+        "jobs": [
+          {
+            "name": "contract",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "steady-core (ubuntu-24.04)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "linux-privileged (iptables)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "linux-privileged (nft)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "steady-core (windows-2022)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "lifecycle-focus",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "gui",
+        "run": 37478476633,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476633",
+        "jobs": [
+          {
+            "name": "gui-portable",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "preflight",
+        "run": 37478476596,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476596",
+        "jobs": [
+          {
+            "name": "seeded-netem-preflight",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "lifecycle",
+        "run": 37478476810,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476810",
+        "jobs": [
+          {
+            "name": "core",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "label": "strict-normal",
+        "run": 37478905656,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478905656",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "resource": {
+          "errors": [],
+          "link_drop_delta": {
+            "biz": {
+              "rx": 0,
+              "tx": 0
+            },
+            "client": {
+              "rx": 0,
+              "tx": 0
+            },
+            "router": {
+              "rx": 0,
+              "tx": 0
+            },
+            "server": {
+              "rx": 0,
+              "tx": 0
+            },
+            "target": {
+              "rx": 0,
+              "tx": 0
+            }
+          },
+          "max_gap_s": 1.001057164,
+          "missing_process_samples": {
+            "client": 0,
+            "server": 0
+          },
+          "packet_socket_by_endpoint": {
+            "biz/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "client/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 53120,
+              "max_rmem_ratio": 0.0506591796875
+            },
+            "router/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "server/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 39488,
+              "max_rmem_ratio": 0.03765869140625
+            },
+            "target/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            }
+          },
+          "packet_socket_command_errors": {},
+          "process_cpu_seconds": {
+            "client": 100.8,
+            "server": 102.35
+          },
+          "samples": 120,
+          "socket_drop_by_endpoint": {
+            "biz/ss_packet": 0,
+            "biz/ss_raw": 0,
+            "biz/ss_udp": 0,
+            "client/ss_packet": 0,
+            "client/ss_raw": 0,
+            "client/ss_udp": 0,
+            "router/ss_packet": 0,
+            "router/ss_raw": 0,
+            "router/ss_udp": 0,
+            "server/ss_packet": 0,
+            "server/ss_raw": 0,
+            "server/ss_udp": 0,
+            "target/ss_packet": 0,
+            "target/ss_raw": 0,
+            "target/ss_udp": 0
+          },
+          "socket_drop_max": 0,
+          "thread_cpu_seconds": {
+            "client": {
+              "5924": 0.0,
+              "5926": 4.06,
+              "5927": 13.35,
+              "5928": 12.52,
+              "5929": 13.17,
+              "5930": 0.0,
+              "5937": 0.0,
+              "5950": 13.11,
+              "5951": 14.43,
+              "5954": 14.99,
+              "6473": 0.0
+            },
+            "server": {
+              "5905": 0.0,
+              "5907": 3.96,
+              "5908": 13.79,
+              "5909": 13.84,
+              "5910": 0.0,
+              "5911": 0.0,
+              "5912": 14.49,
+              "5913": 13.52,
+              "5949": 14.8,
+              "5952": 15.02,
+              "6436": 0.0
+            }
+          }
+        },
+        "latency": {
+          "c2s_qdisc_delay_p50_ns": 300042000,
+          "c2s_qdisc_delay_p95_ns": 300124000,
+          "probe_loss_percent": 0.0,
+          "probe_stage": {
+            "post": {
+              "p95_ns": 609826380,
+              "p99_ns": 611780557,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 606599569,
+              "p99_ns": 611495190,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 613960091,
+              "p99_ns": 615544235,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "queue_pre_p95_ns": 3290419207,
+          "s2c_qdisc_delay_p50_ns": 300042000,
+          "s2c_qdisc_delay_p95_ns": 300126000
+        },
+        "goodput": {
+          "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+          "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+          "path_delay_ms": 300,
+          "raw_metric": "wall_delivered_mbps",
+          "threshold_unchanged": true
+        }
+      },
+      {
+        "label": "strict-game",
+        "run": 37478916115,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478916115",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "resource": {
+          "errors": [],
+          "link_drop_delta": {
+            "biz": {
+              "rx": 0,
+              "tx": 0
+            },
+            "client": {
+              "rx": 0,
+              "tx": 0
+            },
+            "router": {
+              "rx": 0,
+              "tx": 0
+            },
+            "server": {
+              "rx": 0,
+              "tx": 0
+            },
+            "target": {
+              "rx": 0,
+              "tx": 0
+            }
+          },
+          "max_gap_s": 1.000696375,
+          "missing_process_samples": {
+            "client": 0,
+            "server": 0
+          },
+          "packet_socket_by_endpoint": {
+            "biz/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "client/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 40320,
+              "max_rmem_ratio": 0.0384521484375
+            },
+            "router/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "server/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 127296,
+              "max_rmem_ratio": 0.12139892578125
+            },
+            "target/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            }
+          },
+          "packet_socket_command_errors": {},
+          "process_cpu_seconds": {
+            "client": 59.91,
+            "server": 56.72
+          },
+          "samples": 120,
+          "socket_drop_by_endpoint": {
+            "biz/ss_packet": 0,
+            "biz/ss_raw": 0,
+            "biz/ss_udp": 0,
+            "client/ss_packet": 0,
+            "client/ss_raw": 0,
+            "client/ss_udp": 0,
+            "router/ss_packet": 0,
+            "router/ss_raw": 0,
+            "router/ss_udp": 0,
+            "server/ss_packet": 0,
+            "server/ss_raw": 0,
+            "server/ss_udp": 0,
+            "target/ss_packet": 0,
+            "target/ss_raw": 0,
+            "target/ss_udp": 0
+          },
+          "socket_drop_max": 0,
+          "thread_cpu_seconds": {
+            "client": {
+              "5543": 8.24,
+              "5545": 2.19,
+              "5546": 0.0,
+              "5547": 0.0,
+              "5548": 8.66,
+              "5549": 0.0,
+              "5556": 8.46,
+              "5569": 7.01,
+              "5804": 1.63,
+              "6021": 8.68,
+              "6129": 0.0,
+              "6728": 0.0
+            },
+            "server": {
+              "5523": 0.0,
+              "5525": 1.94,
+              "5526": 8.97,
+              "5527": 7.8,
+              "5528": 0.0,
+              "5529": 0.0,
+              "5530": 8.17,
+              "5531": 8.73,
+              "5568": 6.66,
+              "5570": 7.23,
+              "6093": 0.0
+            }
+          }
+        },
+        "latency": {
+          "c2s_qdisc_delay_p50_ns": 300011000,
+          "c2s_qdisc_delay_p95_ns": 300070000,
+          "probe_loss_percent": 0.0,
+          "probe_stage": {
+            "post": {
+              "p95_ns": 601853809,
+              "p99_ns": 603764522,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 600743090,
+              "p99_ns": 601340157,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 600738260,
+              "p99_ns": 601080854,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "queue_pre_p95_ns": 3191695662,
+          "s2c_qdisc_delay_p50_ns": 300010000,
+          "s2c_qdisc_delay_p95_ns": 300067000
+        },
+        "goodput": {
+          "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+          "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+          "path_delay_ms": 300,
+          "raw_metric": "wall_delivered_mbps",
+          "threshold_unchanged": true
+        }
+      },
+      {
+        "label": "strict-normal-baseline",
+        "run": 37478910920,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478910920",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "resource": {
+          "errors": [],
+          "link_drop_delta": {
+            "biz": {
+              "rx": 0,
+              "tx": 0
+            },
+            "client": {
+              "rx": 0,
+              "tx": 0
+            },
+            "router": {
+              "rx": 0,
+              "tx": 0
+            },
+            "server": {
+              "rx": 0,
+              "tx": 0
+            },
+            "target": {
+              "rx": 0,
+              "tx": 0
+            }
+          },
+          "max_gap_s": 1.000132737,
+          "missing_process_samples": {
+            "client": 0,
+            "server": 0
+          },
+          "packet_socket_by_endpoint": {
+            "biz/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "client/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 25664,
+              "max_rmem_ratio": 0.02447509765625
+            },
+            "router/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "server/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 22464,
+              "max_rmem_ratio": 0.02142333984375
+            },
+            "target/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            }
+          },
+          "packet_socket_command_errors": {},
+          "process_cpu_seconds": {
+            "client": 77.05,
+            "server": 77.09
+          },
+          "samples": 120,
+          "socket_drop_by_endpoint": {
+            "biz/ss_packet": 0,
+            "biz/ss_raw": 0,
+            "biz/ss_udp": 0,
+            "client/ss_packet": 0,
+            "client/ss_raw": 0,
+            "client/ss_udp": 0,
+            "router/ss_packet": 0,
+            "router/ss_raw": 0,
+            "router/ss_udp": 0,
+            "server/ss_packet": 0,
+            "server/ss_raw": 0,
+            "server/ss_udp": 0,
+            "target/ss_packet": 0,
+            "target/ss_raw": 0,
+            "target/ss_udp": 0
+          },
+          "socket_drop_max": 0,
+          "thread_cpu_seconds": {
+            "client": {
+              "6018": 10.68,
+              "6020": 2.85,
+              "6021": 12.09,
+              "6022": 11.83,
+              "6023": 0.0,
+              "6024": 0.0,
+              "6031": 0.0,
+              "6043": 10.34,
+              "6044": 8.78,
+              "6045": 11.19,
+              "6636": 0.0
+            },
+            "server": {
+              "5998": 0.0,
+              "6000": 2.85,
+              "6001": 10.55,
+              "6002": 11.37,
+              "6003": 0.0,
+              "6004": 10.92,
+              "6005": 0.0,
+              "6016": 12.06,
+              "6017": 10.86,
+              "6046": 11.45,
+              "6600": 0.0
+            }
+          }
+        },
+        "latency": {
+          "c2s_qdisc_delay_p50_ns": 300014000,
+          "c2s_qdisc_delay_p95_ns": 300044000,
+          "probe_loss_percent": 0.0,
+          "probe_stage": {
+            "post": {
+              "p95_ns": 601388734,
+              "p99_ns": 601759082,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 601914740,
+              "p99_ns": 601949659,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 601391246,
+              "p99_ns": 601585502,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "queue_pre_p95_ns": 601265945,
+          "s2c_qdisc_delay_p50_ns": 300014000,
+          "s2c_qdisc_delay_p95_ns": 300043000
+        },
+        "goodput": {
+          "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+          "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+          "path_delay_ms": 300,
+          "raw_metric": "wall_delivered_mbps",
+          "threshold_unchanged": true
+        }
+      },
+      {
+        "label": "strict-game-baseline",
+        "run": 37478921728,
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478921728",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "resource": {
+          "errors": [],
+          "link_drop_delta": {
+            "biz": {
+              "rx": 0,
+              "tx": 0
+            },
+            "client": {
+              "rx": 0,
+              "tx": 0
+            },
+            "router": {
+              "rx": 0,
+              "tx": 0
+            },
+            "server": {
+              "rx": 0,
+              "tx": 0
+            },
+            "target": {
+              "rx": 0,
+              "tx": 0
+            }
+          },
+          "max_gap_s": 1.000487497,
+          "missing_process_samples": {
+            "client": 0,
+            "server": 0
+          },
+          "packet_socket_by_endpoint": {
+            "biz/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "client/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 9792,
+              "max_rmem_ratio": 0.00933837890625
+            },
+            "router/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            },
+            "server/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 1048576,
+              "max_rmem_alloc": 19776,
+              "max_rmem_ratio": 0.01885986328125
+            },
+            "target/ss_packet": {
+              "max_drops": 0,
+              "max_rcv_buf": 0,
+              "max_rmem_alloc": 0,
+              "max_rmem_ratio": 0.0
+            }
+          },
+          "packet_socket_command_errors": {},
+          "process_cpu_seconds": {
+            "client": 83.12,
+            "server": 79.13
+          },
+          "samples": 120,
+          "socket_drop_by_endpoint": {
+            "biz/ss_packet": 0,
+            "biz/ss_raw": 0,
+            "biz/ss_udp": 0,
+            "client/ss_packet": 0,
+            "client/ss_raw": 0,
+            "client/ss_udp": 0,
+            "router/ss_packet": 0,
+            "router/ss_raw": 0,
+            "router/ss_udp": 0,
+            "server/ss_packet": 0,
+            "server/ss_raw": 0,
+            "server/ss_udp": 0,
+            "target/ss_packet": 0,
+            "target/ss_raw": 0,
+            "target/ss_udp": 0
+          },
+          "socket_drop_max": 0,
+          "thread_cpu_seconds": {
+            "client": {
+              "5908": 0.0,
+              "5910": 4.59,
+              "5911": 10.39,
+              "5912": 11.37,
+              "5913": 11.11,
+              "5914": 0.0,
+              "5921": 0.0,
+              "5933": 12.04,
+              "6169": 11.26,
+              "6183": 10.35,
+              "6599": 0.0
+            },
+            "server": {
+              "5888": 0.0,
+              "5890": 3.83,
+              "5891": 11.0,
+              "5892": 9.97,
+              "5893": 0.0,
+              "5894": 0.0,
+              "5895": 11.64,
+              "5906": 10.61,
+              "5907": 10.57,
+              "5934": 12.04,
+              "6491": 0.0
+            }
+          }
+        },
+        "latency": {
+          "c2s_qdisc_delay_p50_ns": 300033000,
+          "c2s_qdisc_delay_p95_ns": 300111000,
+          "probe_loss_percent": 0.0,
+          "probe_stage": {
+            "post": {
+              "p95_ns": 601563649,
+              "p99_ns": 601877217,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 601410894,
+              "p99_ns": 601637947,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 601454935,
+              "p99_ns": 601663422,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "queue_pre_p95_ns": 601405212,
+          "s2c_qdisc_delay_p50_ns": 300033000,
+          "s2c_qdisc_delay_p95_ns": 300109000
+        },
+        "goodput": {
+          "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+          "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+          "path_delay_ms": 300,
+          "raw_metric": "wall_delivered_mbps",
+          "threshold_unchanged": true
+        }
+      }
+    ],
+    "windows_zip_sha256": "92cfd2fa53ecb196c8fefce429cc255b4d2163e9a577a7a2884a1969b8057043",
+    "windows_bundle": "WBD-P7-d6cb6ce/windows-portable",
+    "server_stage": "/opt/wbd/p7-candidates/d6cb6ce",
+    "config_preserved": true,
+    "npcap_not_reinstalled": true,
+    "rollback": "/opt/wbd/wbd-server.rollback-78b8faf"
+  },
+  "scope": "Windows internal latest-ACK worker; ten scoped Actions,12 matched RTT checks and P6 PASS. Linux strict production path remains synchronous: not proof of Windows native performance. No full70/full18/1800s inheritance.",
+  "previous_diagnostic": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json",
+  "native": "NOT_RUN stage-off pending",
+  "lifecycle_fullstack": {
+    "aggregate": {
+      "errors": [],
+      "failed": [],
+      "groups": {
+        "l0_config": {
+          "pass": true,
+          "required": 8,
+          "sample_count": 8
+        },
+        "l1_idle_downlink": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l2_c2s": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l2_s2c": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l3_health": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l4_all_tuple": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l4_old_tuple": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l5_admission": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l5_detach": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l5_syn": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l5_tls": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l6_partial": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l6_race1": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l6_race4": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        },
+        "l7_defaults": {
+          "pass": true,
+          "required": 2,
+          "sample_count": 2
+        }
+      },
+      "missing": [],
+      "required_count": 36,
+      "result": "PASS",
+      "sample_count": 36,
+      "schema": 1,
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+    },
+    "run_receipt": {
+      "id": 37478476654,
+      "name": "next-lifecycle-fullstack",
+      "node_id": "WFR_kwLOUCPjHs8AAAAIueQrbg",
+      "head_branch": "next/tlslike-dataplane",
+      "head_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "path": ".github/workflows/next-lifecycle-fullstack.yml",
+      "display_title": "perf(windows): decouple native ACK writes with one bounded latest-sta…",
+      "run_number": 65,
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "workflow_id": 364641837,
+      "check_suite_id": 101518706880,
+      "check_suite_node_id": "CS_kwDOUCPjHs8AAAAXovyIwA",
+      "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37478476654",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476654",
+      "pull_requests": [],
+      "created_at": "2026-10-06T14:22:57Z",
+      "updated_at": "2026-10-06T14:34:29Z",
+      "actor": {
+        "login": "lly8666",
+        "id": 30583594,
+        "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+        "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/lly8666",
+        "html_url": "https://github.com/lly8666",
+        "followers_url": "https://api.github.com/users/lly8666/followers",
+        "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+        "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+        "organizations_url": "https://api.github.com/users/lly8666/orgs",
+        "repos_url": "https://api.github.com/users/lly8666/repos",
+        "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/lly8666/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "run_attempt": 1,
+      "referenced_workflows": [],
+      "run_started_at": "2026-10-06T14:22:57Z",
+      "triggering_actor": {
+        "login": "lly8666",
+        "id": 30583594,
+        "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+        "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/lly8666",
+        "html_url": "https://github.com/lly8666",
+        "followers_url": "https://api.github.com/users/lly8666/followers",
+        "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+        "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+        "organizations_url": "https://api.github.com/users/lly8666/orgs",
+        "repos_url": "https://api.github.com/users/lly8666/repos",
+        "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/lly8666/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "jobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37478476654/jobs",
+      "logs_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37478476654/logs",
+      "check_suite_url": "https://api.github.com/repos/lly8666/wobuzhidao/check-suites/101518706880",
+      "artifacts_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37478476654/artifacts",
+      "cancel_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37478476654/cancel",
+      "rerun_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37478476654/rerun",
+      "previous_attempt_url": null,
+      "workflow_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/workflows/364641837",
+      "head_commit": {
+        "id": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "tree_id": "1280f6f1b39ed8998113f7940036aad0a6df0d62",
+        "message": "perf(windows): decouple native ACK writes with one bounded latest-state worker",
+        "timestamp": "2026-10-06T14:22:43Z",
+        "author": {
+          "name": "Codex",
+          "email": "codex@openai.com"
+        },
+        "committer": {
+          "name": "Codex",
+          "email": "codex@openai.com"
+        }
+      },
+      "repository": {
+        "id": 1344529182,
+        "node_id": "R_kgDOUCPjHg",
+        "name": "wobuzhidao",
+        "full_name": "lly8666/wobuzhidao",
+        "private": false,
+        "owner": {
+          "login": "lly8666",
+          "id": 30583594,
+          "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+          "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/lly8666",
+          "html_url": "https://github.com/lly8666",
+          "followers_url": "https://api.github.com/users/lly8666/followers",
+          "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+          "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+          "organizations_url": "https://api.github.com/users/lly8666/orgs",
+          "repos_url": "https://api.github.com/users/lly8666/repos",
+          "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/lly8666/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "html_url": "https://github.com/lly8666/wobuzhidao",
+        "description": null,
+        "fork": false,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao",
+        "forks_url": "https://api.github.com/repos/lly8666/wobuzhidao/forks",
+        "keys_url": "https://api.github.com/repos/lly8666/wobuzhidao/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/lly8666/wobuzhidao/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/lly8666/wobuzhidao/teams",
+        "hooks_url": "https://api.github.com/repos/lly8666/wobuzhidao/hooks",
+        "issue_events_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/lly8666/wobuzhidao/events",
+        "assignees_url": "https://api.github.com/repos/lly8666/wobuzhidao/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/lly8666/wobuzhidao/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/tags",
+        "blobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/lly8666/wobuzhidao/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/lly8666/wobuzhidao/languages",
+        "stargazers_url": "https://api.github.com/repos/lly8666/wobuzhidao/stargazers",
+        "contributors_url": "https://api.github.com/repos/lly8666/wobuzhidao/contributors",
+        "subscribers_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscribers",
+        "subscription_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscription",
+        "commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/lly8666/wobuzhidao/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/lly8666/wobuzhidao/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/lly8666/wobuzhidao/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/lly8666/wobuzhidao/merges",
+        "archive_url": "https://api.github.com/repos/lly8666/wobuzhidao/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/lly8666/wobuzhidao/downloads",
+        "issues_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/lly8666/wobuzhidao/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/lly8666/wobuzhidao/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/lly8666/wobuzhidao/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/lly8666/wobuzhidao/labels{/name}",
+        "releases_url": "https://api.github.com/repos/lly8666/wobuzhidao/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/lly8666/wobuzhidao/deployments"
+      },
+      "head_repository": {
+        "id": 1344529182,
+        "node_id": "R_kgDOUCPjHg",
+        "name": "wobuzhidao",
+        "full_name": "lly8666/wobuzhidao",
+        "private": false,
+        "owner": {
+          "login": "lly8666",
+          "id": 30583594,
+          "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+          "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/lly8666",
+          "html_url": "https://github.com/lly8666",
+          "followers_url": "https://api.github.com/users/lly8666/followers",
+          "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+          "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+          "organizations_url": "https://api.github.com/users/lly8666/orgs",
+          "repos_url": "https://api.github.com/users/lly8666/repos",
+          "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/lly8666/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "html_url": "https://github.com/lly8666/wobuzhidao",
+        "description": null,
+        "fork": false,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao",
+        "forks_url": "https://api.github.com/repos/lly8666/wobuzhidao/forks",
+        "keys_url": "https://api.github.com/repos/lly8666/wobuzhidao/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/lly8666/wobuzhidao/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/lly8666/wobuzhidao/teams",
+        "hooks_url": "https://api.github.com/repos/lly8666/wobuzhidao/hooks",
+        "issue_events_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/lly8666/wobuzhidao/events",
+        "assignees_url": "https://api.github.com/repos/lly8666/wobuzhidao/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/lly8666/wobuzhidao/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/tags",
+        "blobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/lly8666/wobuzhidao/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/lly8666/wobuzhidao/languages",
+        "stargazers_url": "https://api.github.com/repos/lly8666/wobuzhidao/stargazers",
+        "contributors_url": "https://api.github.com/repos/lly8666/wobuzhidao/contributors",
+        "subscribers_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscribers",
+        "subscription_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscription",
+        "commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/lly8666/wobuzhidao/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/lly8666/wobuzhidao/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/lly8666/wobuzhidao/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/lly8666/wobuzhidao/merges",
+        "archive_url": "https://api.github.com/repos/lly8666/wobuzhidao/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/lly8666/wobuzhidao/downloads",
+        "issues_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/lly8666/wobuzhidao/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/lly8666/wobuzhidao/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/lly8666/wobuzhidao/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/lly8666/wobuzhidao/labels{/name}",
+        "releases_url": "https://api.github.com/repos/lly8666/wobuzhidao/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/lly8666/wobuzhidao/deployments"
+      }
+    }
+  }
+}

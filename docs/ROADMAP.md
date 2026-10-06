@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-06当前：Windows最新ACK后台发送候选已实现，最多每generation一个worker/一个待发位；2records/2ms原决策、FIN确认/challenge/repair同步，默认不做逐包计时。Actions/race10/独立5205/P6未验，未部署。实机仍78b8faf；显式诊断ACK墙钟209s/Owner45.8s但queueoverflow51534/19probe+4343downmissing严格FAIL，不算普通性能。49普通300s/23工况/20NOT_RUN另2诊断；M03未关闭。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：d6cb6ce Windows最新ACK后台发送10定向Actions/race10、12阶段RTT及三平台P6 PASS并同源配套部署；Windows实机stageoff尚未跑，Linux性能路径保持同步不能冒充Windows收益。下一条Normal10/300s seed1480，再独立Game4×3 seed1481；49普通300s/23工况/20NOT_RUN另2诊断、M03未关闭，原78显式诊断FAIL保留。每性能Action一条，先STATUS/latest_log。
 
 2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
 

@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Windows-only ACK feedback worker candidate NOT_RUN; physical deployed78b8faf stays unchanged. Previous78 scoped9/RTT12/P6 PASS but stageon diagnostic queueoverflow51534/19probe+4343downmissing/p99712.93 FAIL.49ordinary300s/23unique/20NOT_RUN plus2diagnostics; old full70/18/1800s not inherited.",
-  "updated_at": "2026-10-06T22:22:42.653560+08:00",
+  "qualification_scope": "d6cb6ce Windows latest-ACK worker10scoped/12RTT/P6 PASS paired deployed; stage-off native NOT_RUN. Linux strict path unchanged, no Windows benefit claim.49ordinary300s/23unique/20NOT_RUN plus2diagnostics; M03/full70/full18/1800s remain open.",
+  "updated_at": "2026-10-06T22:43:24.669595+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -85,9 +85,9 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Freeze and qualify Windows bounded latestACK worker candidate: Windows/Linux core+race including ten repeated worker races and trueTLS/Game replacement/DORMANT/wake; GUI/preflight/lifecycle; independentNormal/Game5205 and matched lossless (one performanceAction one sample), P6. Only after PASS paired deploy and native explicitstageoff Normal10/Game4 capacity/p99/drop validation. Preserve209s wall diagnostic/4343missing/19probe failures; no CPU claim from enqueue alone, no cache/FEC/MTU enlargement.",
-  "latest_log": "docs/devlog/20261006-223000-windows-bounded-latest-ack-worker.md",
-  "last_tested_source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+  "next_task": "Run one stageoff/profileoff native300s Normal1/10M/FEC20 seed1480 then separate Game4/3M seed1481; exact d6 paired binaries,14helpers b393/guardprobea280. Verify actual workerON/timingOFF, input/app/probes/p99/queue/driver/raw drops/error counters/DNS/owned cleanup; preserve original gates and all FAIL, no performance claim from instrumented78. No concurrent physical runs. M03 and20native configuration gaps remain.",
+  "latest_log": "docs/devlog/20261006-224324-native-ack-qualified-deployed.md",
+  "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -2597,6 +2597,78 @@
       "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37474264106",
       "scope": "client-stage P6 threeplatform hash/manifest/receipt",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476654",
+      "scope": "lifecycle fullstack36 samples + aggregate37jobs",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476710",
+      "scope": "native-ACK scoped worker-race10",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476653",
+      "scope": "native-ACK scoped foundation",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476537",
+      "scope": "native-ACK scoped steady",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476633",
+      "scope": "native-ACK scoped gui",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476596",
+      "scope": "native-ACK scoped preflight",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478476810",
+      "scope": "native-ACK scoped lifecycle",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478905656",
+      "scope": "native-ACK scoped strict-normal",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478916115",
+      "scope": "native-ACK scoped strict-game",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478910920",
+      "scope": "native-ACK scoped strict-normal-baseline",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37478921728",
+      "scope": "native-ACK scoped strict-game-baseline",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37480766936",
+      "scope": "native-ACK P6 threeplatform manifest/fileSHA/receipt",
       "status": "PASS"
     }
   ],
@@ -8167,8 +8239,8 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
-    "state": "STAGE_DIAG_CONFIRMED_SYNC_ACK_PRESSURE_NOT_FIXED",
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "state": "ACK_WORKER_PAIRED_DEPLOYED_NATIVE_PENDING",
     "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "native_completed_300s": [
       {
@@ -8243,7 +8315,7 @@
     "running": null,
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
-    "previous_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+    "previous_source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
     "previous_completed_300s": [
       "D01 seed1351",
       "D01 seed1352",
@@ -8533,8 +8605,8 @@
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
-    "deployed_source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
-    "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "deployed_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
     "last_failed_case": "s11-current-300s-seed1472",
     "last_failure_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "latest_native_pass": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
@@ -8583,7 +8655,7 @@
         "counted_as_performance_qualification": false
       }
     ],
-    "deployment_evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json",
+    "deployment_evidence": "docs/evidence/native-ack-d6cb6ce-actions-package-deployed-20261006.json",
     "latest_diagnostic_evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json"
   },
   "windows_receive_diagnostics": {
@@ -8835,22 +8907,25 @@
     "helper_run": 37253531888
   },
   "current_soak": {
-    "source": "CURRENT_COMMIT",
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
     "state": "NOT_RUN"
   },
   "current_qualification": {
-    "source": "CURRENT_COMMIT",
-    "state": "NOT_RUN",
-    "core_race": "NOT_RUN",
-    "normal_5205": "NOT_RUN",
-    "game_5205": "NOT_RUN",
-    "lossless_baselines": "NOT_RUN",
-    "paired_rtt_checks": "NOT_RUN",
-    "lifecycle": "NOT_RUN",
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "state": "SCOPED10_RTT12_P6_PASS_NATIVE_NOT_RUN",
+    "core_race": "PASS including ACK worker race10",
+    "normal_5205": "PASS",
+    "game_5205": "PASS",
+    "lossless_baselines": "PASS",
+    "paired_rtt_checks": "12/12 PASS",
+    "lifecycle": "PASS",
     "full70": "NOT_RUN",
     "full18": "NOT_RUN",
-    "p6": "NOT_RUN",
-    "native": "NOT_RUN stageoff required"
+    "p6": "PASS",
+    "native": "NOT_RUN stage-off Normal/Game pending",
+    "evidence": "docs/evidence/native-ack-d6cb6ce-actions-package-deployed-20261006.json",
+    "scope_boundary": "Strict hosted Linux path does not enable the production Windows ACK worker; blocked-write unit/race and Windows core validate it. Native performance required.",
+    "lifecycle_fullstack": "36/36 samples + aggregate PASS"
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9835,7 +9910,7 @@
   "windows_dns_underlay_guard": {
     "state": "NATIVE_FUNCTION_PASS_TRANSPORT_QUALITY_PARTIAL",
     "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "deployed_source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "deployed_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
     "files": [
       "scripts/windows_client_network.ps1",
       "tools/test_windows_splitroute.ps1",
@@ -9964,13 +10039,15 @@
     "native_samples": 1361629
   },
   "windows_latest_ack_feedback": {
-    "source": "CURRENT_COMMIT",
-    "state": "IMPLEMENTED_NOT_TESTED",
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "state": "SCOPED_ACTIONS_P6_PASS_DEPLOYED_NATIVE_PENDING",
     "evidence_basis": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json",
     "scope": "Windows CLI internal default on; Linux/server/direct embedders default off. Per generation one lazy worker and one pending latest-ACK bit/channel token, no cached packets/history. Existing2records/2ms decisions; current seq/ACK/SACK at worker selection. FIN ACK/challenge/repair synchronous.",
     "lifecycle": "Exact transport cfg/ref captured; stop under transport mutex clears pending, never joins blocked native emit under owner lock. Already accepted in-flight IO drains via native gate; no new queued sends after close. Worker error latched and original fatal tick exit preserved; closed generation never publishes error to new ref.",
     "hotpath": "No new per-record clocks unless qualification stage opt-in. Fixed locked counters and at most one worker per physical generation (client<=10). No FEC/MTU/shadow/recovery/wire/CLI/configfile changes.",
-    "qualification": "NOT_RUN; Actions blocked-write noHOL/coalescing/latestACK/close/error/piggyback/actualFIN/race10 + realTLS replacement/wake; independent5205+lossless/P6 before deployment, then native stageoff",
-    "log": "docs/devlog/20261006-223000-windows-bounded-latest-ack-worker.md"
+    "qualification": "10 scoped PASS/race10/12RTT PASS/P6 PASS; native stageoff NOT_RUN",
+    "log": "docs/devlog/20261006-224324-native-ack-qualified-deployed.md",
+    "evidence": "docs/evidence/native-ack-d6cb6ce-actions-package-deployed-20261006.json",
+    "deployed_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
   }
 }
