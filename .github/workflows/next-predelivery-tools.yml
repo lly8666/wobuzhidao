@@ -32,6 +32,7 @@ jobs:
           Add-Type -Path tools/physical_udp_client.cs
           Add-Type -Path tools/physical_npcap_watch.cs
           ./tools/test_physical_dns_metadata.ps1
+          ./tools/test_physical_fragment_ownership.ps1
           Add-Type -Path tools/native_mtu_probe.cs
           Add-Type -Path tools/native_lifecycle_udp_client.cs
           foreach($fixture in @(@(-1,0),@(0,0),@(29.9,29.9),@(30,30),@(119.9,30),@(120,30),@(149.9,59.9),@(150,60),@(239.9,60),@(240,60),@(299.9,119.9),@(300,120),@(400,120))) {

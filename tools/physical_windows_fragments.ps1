@@ -26,19 +26,19 @@ foreach($path in @($etl,$pcap,$text,$receipt,$ready,$stopRequest)){
 [Net.IPAddress]$parsedLease=$null
 if(-not [Net.IPAddress]::TryParse($Lease,[ref]$parsedLease)){throw 'Invalid leased IPv4 address'}
 try {
-    $status=Invoke-Pktmon @('status')
+    $status=Invoke-Pktmon -Arguments @('status')
     # Fail closed on unrecognized/localized status instead of touching another
     # capture. Supported target reports one of these explicit inactive states.
     if($status -notmatch '(?i)(not running|没有运行|未运行)'){throw 'Packet monitor already active or status unknown'}
-    $filters=Invoke-Pktmon @('filter','list')
+    $filters=Invoke-Pktmon -Arguments @('filter','list')
     if($filters -notmatch '(?im)^\s*(无|None|No filters\.?)\s*$'){throw 'Existing/unknown filters; preserve foreign filters'}
-    $components=Invoke-Pktmon @('list')
+    $components=Invoke-Pktmon -Arguments @('list')
     if($components -notmatch ('(?m)^\s*'+$ComponentId+'\s+.*WBD Tunnel\s*$')){throw 'Selected component is not the current WBD Tunnel'}
-    Invoke-Pktmon @('filter','add',$filter,'-d','IPv4','-i','198.18.0.1',$Lease)|Out-Null
+    Invoke-Pktmon -Arguments @('filter','add',$filter,'-d','IPv4','-i','198.18.0.1',$Lease)|Out-Null
     $ownedFilter=$true
     # No port predicate: nonfirst IP fragments have no UDP ports. Select only
     # the controlled target/lease pair and the actual Wintun component.
-    Invoke-Pktmon @('start','--capture','--comp',[string]$ComponentId,'--type','all','--pkt-size','64','--file-name',$etl,'--file-size','16','--log-mode','circular')|Out-Null
+    Invoke-Pktmon -Arguments @('start','--capture','--comp',[string]$ComponentId,'--type','all','--pkt-size','64','--file-name',$etl,'--file-size','16','--log-mode','circular')|Out-Null
     $ownedCapture=$true
     Write-Receipt ([pscustomobject]@{StartedUnixMS=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds();ComponentId=$ComponentId;Lease=$Lease;Target='198.18.0.1';SnapBytes=64;MaxETLMiB=16}) $ready
     $clock=[Diagnostics.Stopwatch]::StartNew()
@@ -49,21 +49,21 @@ try {
     $captureStatus=$null;$counters=$null;$converted=$false
     if($ownedCapture){
         try {
-            $captureStatus=Invoke-Pktmon @('status')
+            $captureStatus=Invoke-Pktmon -Arguments @('status')
             if($captureStatus -notlike ('*'+$Name+'.etl*')){throw 'Capture ownership changed; preserve current monitor'}
-            $counters=Invoke-Pktmon @('counters')
-            Invoke-Pktmon @('stop')|Out-Null
+            $counters=Invoke-Pktmon -Arguments @('counters')
+            Invoke-Pktmon -Arguments @('stop')|Out-Null
             $ownedCapture=$false
             if(-not(Test-Path -LiteralPath $etl) -or (Get-Item -LiteralPath $etl).Length -gt 17MB){throw 'ETL size outside bound'}
-            Invoke-Pktmon @('etl2pcap',$etl,'--out',$pcap,'--component-id',[string]$ComponentId)|Out-Null
-            Invoke-Pktmon @('etl2txt',$etl,'--out',$text,'--stats','--timestamp','--metadata','--brief')|Out-Null
+            Invoke-Pktmon -Arguments @('etl2pcap',$etl,'--out',$pcap,'--component-id',[string]$ComponentId)|Out-Null
+            Invoke-Pktmon -Arguments @('etl2txt',$etl,'--out',$text,'--stats','--timestamp','--metadata','--brief')|Out-Null
             if((Get-Item -LiteralPath $pcap).Length -gt 16MB -or (Get-Item -LiteralPath $text).Length -gt 32MB){throw 'Converted diagnostic size outside bound'}
             $converted=$true
             Remove-Item -LiteralPath $etl -Force
         }catch {$errors+= $_.Exception.Message}
     }
     if($ownedFilter -and -not $ownedCapture){
-        try{Invoke-Pktmon @('filter','remove',$filter)|Out-Null;$ownedFilter=$false}catch{$errors+= $_.Exception.Message}
+        try{Invoke-Pktmon -Arguments @('filter','remove',$filter)|Out-Null;$ownedFilter=$false}catch{$errors+= $_.Exception.Message}
     }
     Write-Receipt ([pscustomobject]@{StartedUnixMS=$started;EndedUnixMS=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds();ComponentId=$ComponentId;Lease=$Lease;Target='198.18.0.1';SnapBytes=64;Converted=$converted;CaptureStatus=$captureStatus;Counters=$counters;OwnedCaptureRemaining=$ownedCapture;OwnedFilterRemaining=$ownedFilter;Errors=$errors;Scope='Selected Wintun component; controlled target and lease; not application delivery proof';RawETLDeleted=(-not(Test-Path -LiteralPath $etl));RawPCAPPendingMetadataAudit=(Test-Path -LiteralPath $pcap)}) $receipt
 }

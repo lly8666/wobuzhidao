@@ -85,7 +85,7 @@
     "Remaining native IP/config and old rawp99/Wake attribution"
   ],
   "next_task": "Collect D04 seed1417 on paired product9211b24 and qualified helperf7c; evaluate DNS failure/recovery, no physical DNS leakage, per-phase p99 and offered load separately. Qualify bounded reverse fragment helpers before instrumented M03; never repeat unchanged MTU blindly, expand repair buffers or restore HOL. Historical failures/latest full70-strict18-soak stay open.",
-  "latest_log": "docs/devlog/20261006-113000-native-fragment-boundary-helper.md",
+  "latest_log": "docs/devlog/20261006-113500-pktmon-owned-command-arguments.md",
   "last_tested_source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
   "actions": [
     {
@@ -8556,7 +8556,7 @@
     ]
   },
   "native_fragment_diagnostic": {
-    "state": "HELPER_NOT_QUALIFIED_NATIVE_NOT_RUN",
+    "state": "COMMAND_ARGUMENT_FIX_NOT_QUALIFIED_NATIVE_NOT_RUN",
     "files": [
       "tools/physical_inner_fragment_watch.py",
       "tools/physical_windows_fragments.ps1"
