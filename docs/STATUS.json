@@ -84,7 +84,7 @@
     "MaximumUDP tail recovery/fragment boundary attribution and pending DNS D04/physical matrix"
   ],
   "next_task": "Qualify narrow server kernel receive-port filter before deploy: core/race, Linux-server real AF_PACKET/no truncation/default endpoint compatibility + multi-client ordinary TLS fallback. Then each independent Normal/Game5205 plus lossless same-source RTT pairs (at least Game5305 for old tail), no profile/AB/matrix. P6 new paired candidate only after gates; repeat timed M03 for tail attribution. Product currently remains7eeb, maxUDP1414 all163 exact but4late1.28..3.02s/maxUDP p992240ms, small1302 timely; no globalHOL claim from this sparse fixture. DNS D04 not run. Historical rawp99/Wake loss remain open.",
-  "latest_log": "docs/devlog/20261006-102305-server-kernel-port-filter.md",
+  "latest_log": "docs/devlog/20261006-103000-receive-filter-test-import.md",
   "last_tested_source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
   "actions": [
     {
@@ -8440,6 +8440,22 @@
       "raw_io.kernel_port_filter"
     ],
     "evidence": "docs/evidence/native-timed-mtu-m03-7eebdcf-20261006.json",
-    "next": "Actions core/race, isolated AF_PACKET kernel filter/default compatibility, real ordinary TLS fallback+multi-client, then independent Normal/Game5205 and lossless RTT pairs;P6 paired deploy only after passing"
+    "next": "Actions core/race, isolated AF_PACKET kernel filter/default compatibility, real ordinary TLS fallback+multi-client, then independent Normal/Game5205 and lossless RTT pairs;P6 paired deploy only after passing",
+    "failed_candidate_source": "d9b188ad07dad699f4538d5aa59eaaf835fa864c",
+    "failed_gates": [
+      {
+        "run": 37403877830,
+        "name": "next-linux-server"
+      },
+      {
+        "run": 37403877905,
+        "name": "next-p4-steady-targeted"
+      },
+      {
+        "run": 37403877865,
+        "name": "next-foundation"
+      }
+    ],
+    "failure_reason": "Linux faketcp test compile failed: unused x/sys/unix import. Product delivery compiled, kernel fixture never reached. Removed unused test import only; exact corrected-source Actions qualification pending."
   }
 }

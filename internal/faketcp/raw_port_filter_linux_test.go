@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"golang.org/x/net/bpf"
-	"golang.org/x/sys/unix"
 )
 
 func rawFilterFrame(port uint16, flags uint8) []byte {
