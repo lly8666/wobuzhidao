@@ -1,6 +1,6 @@
 # WBD NEXT 详细开发方案
 
-2026-10-06当前：a280 DNSguard13定向Actions/12RTT/P6及原生DNS开关功能PASS；D06双向近10M、2979探针全回、DNS60/60、off规则0且物理UDP/TCP53可达，但两向各缺3包/p99332ms整体FAIL。有界CPU诊断1469运行，不作性能资格。48份/23工况/20NOT_RUN跨源码含失败；M03未关闭，当前全70/18/1800s不继承024历史。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：Npcap发送冗余返回整包复制候选已实现待Actions；输入/帧/后续发送所有权回归增强，无wire/恢复策略改动。a280原生CPU诊断完成但148下行missing/useroverflow3233/p99663ms保留，不作性能资格；DNS开关功能PASS。48普通300s/23工况/20NOT_RUN另1诊断，当前候选不继承a280/024资格；M03未关闭。每性能Action一条，先STATUS/latest_log。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

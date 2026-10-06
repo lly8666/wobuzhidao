@@ -176,7 +176,9 @@ func encodeNpcapOutbound(seg Segment, cfg NpcapConfig, ipID uint16) ([]byte, []b
 	copy(frame[6:12], cfg.SourceMAC[:])
 	binary.BigEndian.PutUint16(frame[12:14], 0x0800)
 	copy(frame[14:], packet)
-	return append([]byte(nil), packet...), frame, nil
+	// MarshalSegment already owns packet; frame has its own copied storage.
+	// Returning packet directly preserves both lifetimes without a third copy.
+	return packet, frame, nil
 }
 
 type npcapCallGate struct {

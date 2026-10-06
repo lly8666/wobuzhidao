@@ -1,0 +1,1617 @@
+{
+  "schema": "wbd-native-static-case/v1",
+  "status": "FAIL",
+  "errors": [
+    "business_loss"
+  ],
+  "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+  "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
+  "case": "s01-current-300s-seed1469",
+  "effective": {
+    "desired": 1,
+    "active": 1,
+    "lanes": [
+      {
+        "id": 1,
+        "generation": 1,
+        "parity": 20
+      }
+    ]
+  },
+  "actual_send_seconds": 300.00105329999997,
+  "goodput_mbps": {
+    "c2s": 9.999980053333333,
+    "s2c": 9.996483626666667
+  },
+  "business_loss": {
+    "c2s_packets": 0,
+    "s2c_packets": 148,
+    "c2s_percent": 0,
+    "s2c_percent": 0.03496433640886032
+  },
+  "probes": {
+    "sent": 2979,
+    "received": 2979,
+    "p95_ms": 502.9129,
+    "p99_ms": 662.8784
+  },
+  "phases": {
+    "early": {
+      "probes": 894,
+      "p95_ms": 567.0511,
+      "p99_ms": 634.2426,
+      "c2s_goodput_mbps": 10.000005559106258,
+      "s2c_goodput_mbps": 9.990074782006973
+    },
+    "middle": {
+      "probes": 893,
+      "p95_ms": 436.374,
+      "p99_ms": 507.2269,
+      "c2s_goodput_mbps": 10.000891590596577,
+      "s2c_goodput_mbps": 9.999900531957985
+    },
+    "late": {
+      "probes": 893,
+      "p95_ms": 591.5946,
+      "p99_ms": 696.8754,
+      "c2s_goodput_mbps": 10.000181870896029,
+      "s2c_goodput_mbps": 10.001387677983313
+    }
+  },
+  "input_quality": {
+    "client": {
+      "TxPackets": 579419,
+      "SendLagSamples": 579419,
+      "SendLagOverflowSamples": 204,
+      "SendLagP99UpperMs": 2.1,
+      "MaxSendLagMs": 103.5933,
+      "PacingMode": "byte-budget-1ms-batch32"
+    },
+    "server": {
+      "TxPackets": 579419,
+      "SendLagSamples": 579419,
+      "SendLagOverflowSamples": 44,
+      "SendLagP99UpperMs": 1.3,
+      "MaxSendLagMs": 30.31161581913011,
+      "PacingMode": "byte-budget-1ms-batch32"
+    }
+  },
+  "default_dns": {
+    "total": 60,
+    "success": 60
+  },
+  "physical_dns": {
+    "state": "PASS_NO_PLAINTEXT_DNS_OBSERVED",
+    "scope": "selected physical NIC only, plaintext IPv4/IPv6 TCP/UDP53; not DoH/DoT/otherNIC",
+    "observations": 302,
+    "dns_frames": 0,
+    "observer_drops": 0
+  },
+  "cpu_seconds": {
+    "client": 320.390625,
+    "server": 163.73,
+    "client_helper": 21.546875,
+    "server_helper": 36.64781856
+  },
+  "server_raw_socket_drop_max": 124,
+  "client_npcap_max": {
+    "interface_dropped": 0,
+    "driver_dropped": 0
+  },
+  "client_npcap_stats_supported": true,
+  "client_user_receive_overflow_max": 3233,
+  "wire_windows": [
+    {
+      "captured_frames": 17,
+      "window_seconds": 12.057196101173759,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 8192,
+      "window_seconds": 1.6549265207722783,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 4,
+      "window_seconds": 12.03985061403364,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 8192,
+      "window_seconds": 1.351413554046303,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    }
+  ],
+  "live_snapshot_write_errors": 2,
+  "owned_cleanup": {
+    "State": "STOPPED",
+    "Ready": true,
+    "Reason": "requested_stop",
+    "ExitCode": 0,
+    "NetworkStateRemaining": false,
+    "OwnedNRPTRemaining": 0,
+    "OwnedFirewallRemaining": 0,
+    "ElapsedSeconds": 358.1
+  },
+  "matched_native_rtt_baseline": "NOT_RUN",
+  "strict_performance_qualification": false,
+  "full_p7": false,
+  "receipt_hashes": {
+    "case-config.json": "05fba4febfa2acd862ffe3b4c17926f3d0cd3010637c9013332d4f3f579741f8",
+    "cleanup-errors.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "client-diagnostic.jsonl": "b2aed8a495a81f6c7d7710bafd15f1bdb15a7dca575296f1bcfd97c6984fc80f",
+    "client-session.json": "ad7e0936c44586cf4fd7ac54116b268bac5302dadf6fb5fdd70a63a85abe935b",
+    "d01-dns-default-300s-dns.json": "9a91884478dbc333ff25093ad044e4c4f9748cbe7f9243e59081eb52ed84e664",
+    "deployed-versions.json": "0d313983d16c1d616cc0f3109f65d9d25388d98636f45a6028016eca1c4fc2b9",
+    "dns-fault-events.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "dns-guard-active-filters.json": "cb3763bb83dad7b32d6ef4484f52d04bf1fab8e447c787d3b1edb21dabf71602",
+    "dns-guard-helper-source.json": "26324882aa38c713995a01dcbf2c4451203862b617243374a3dd7e4ff41afa3a",
+    "dns-guard-on-proof.json": "0a63d853911e67b56aa09bcd6eec5cabaf9445d2224054acf808fdbd27579f7c",
+    "dns-guard-owned-cleanup.json": "2791e3f32f1ebd7a10242b5320bd0d357d1494805482e080ef16c70cdb01188b",
+    "effective-lanes.json": "35cf1e29203d2ebdf8df74b71e12f6f7e79d8b692d855ca9a52885e33ee62294",
+    "header-preflight-windows-headers.jsonl": "177a69610ab07132c87a6c30212ac01f59a0f247317cc13f4d49d150d41ed64b",
+    "helper-source-hashes.json": "9f171a01ab5167da485e4c96e53dbec406f47c005b4410323d92cd0055035c84",
+    "helper-source-unchanged.json": "89a1bd729816edd75c25b2b3eae07e8aa18a3c4d0b2ff7357b088b79512895d2",
+    "helper-source.json": "2cad414a3e54ed5f650288b1474b5974675a8acd1cf33736380fce8e5972f66d",
+    "measurement-status.json": "81132cb27c529b1a08af6545cf492a0e62e71d92106ad25fcb3c664ad48c19c6",
+    "native-cpu-1469.callsites.json": "e0c783edd7c16a0ccfbc5c50b264b1fe78fbb16e42be5322fd86b93ba7b83063",
+    "native-cpu-1469.top.json": "33941785e5c20080357a74d774bb201554b75c76cac3b34cc646c753a4c30adb",
+    "observation-window.json": "f6a6abd0ad738ed45a146f0e580aecc20c575fb3e9938b0dc32a3118f663ebea",
+    "p7-network-after.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-network-before.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-status.json": "a8b0f7f9f43d5d490ac30611e6deecf1a4e0c9ac630e42b5dc9c58a55c7f8354",
+    "s01-current-300s-seed1469-linux-headers.jsonl": "fb64498767c27f7fe161e5be73baa3467f044e097a24f4387160e47a7914876a",
+    "s01-current-300s-seed1469-live.json": "117f143f91dab4808e3bd21b5a4cc7f698a6bccff2ecdeec8b33f9d11d6cc668",
+    "s01-current-300s-seed1469-observer.json": "7b091aceff550ef947a8282b90ce917efa7555de839d06589fb9dd1351fc61b5",
+    "s01-current-300s-seed1469-physical-dns.jsonl": "1d2d2ee10bf5db3a3037cd675556c10f654ce76924f86383e35b4031fd31e4d2",
+    "s01-current-300s-seed1469-resources.json": "6a30d1c0d092aa16d418c5a139c92e7ab1290a431e3874c5d96f0b88d4ce741a",
+    "s01-current-300s-seed1469-start-wire.json": "61b1d24cd163b566332fa47d1125bc615313cdef64ecc2517b63c7f07bb8952a",
+    "s01-current-300s-seed1469-steady-wire.json": "0031ca75ad8335f4115eadfd64a83ccebd3344c313d7985c3aeb15559e050e9b",
+    "s01-current-300s-seed1469-stop-wire.json": "51f0e8dbcb18792895a95c67636185b59151410bde1a77de93a157871c03af64",
+    "s01-current-300s-seed1469-tail-wire.json": "4354584c57a0c1c553f8f09f26f91367ee6f06e11e8c0730865c692f9daed8dd",
+    "s01-current-300s-seed1469-target.json": "8fd0db224602b0f287a0332399dc342157b1591fd7198e74f11b5aa1c0261fd6",
+    "s01-current-300s-seed1469-windows-headers.jsonl": "cae6529e22d15ea345c15a2bdc153dc8a02a49dc624caf981113e868730ec3f5",
+    "s01-current-300s-seed1469.json": "3ac913106d543d0d8debfd3b50aa6f0c26a34fc05d883b4e2ad583a643a6cf8a",
+    "server-before.json": "6f845aa22570ba61f4d4d61c3320d514da92cf6bd89fc511d3c06c50b0b282b3",
+    "server-diagnostic.jsonl": "d75675080768ca4e3d0bf197505411c401dc1113f5469e88fb29f727a847e252",
+    "trigger-timeline.json": "ef4105c15e7542e69f092d1ff4578ed7c64694d02219c43dbcc04a9286c9edda",
+    "windows-observer-processes.json": "9bbcedce83c05681de3fc9ff52abb7789ace8d5180bc72f768f7e851676d86a4"
+  },
+  "instrumentation": {
+    "cpu_profile": true,
+    "client_diagnostics": true,
+    "scope": "DIAGNOSTIC_ONLY_NOT_ORDINARY_PERFORMANCE_QUALIFICATION",
+    "profile_bytes": 151041,
+    "profile_sha256": "140e1336bbbb4a9a5a7f14c089bcc9ca1adfeb2df55a32087d57185333230512",
+    "profile_duration_includes_startup_stop": true
+  },
+  "profile": {
+    "profile": "native-cpu-1469.pprof",
+    "duration_seconds": 357.5677245,
+    "sample_weight_seconds": 1183.21,
+    "interpretation": "Windows Go sampler includes blocked foreign/syscall stacks;not actual process CPU;cross-check OS process CPU separately",
+    "sample_types": [
+      {
+        "type": "samples",
+        "unit": "count"
+      },
+      {
+        "type": "cpu",
+        "unit": "nanoseconds"
+      }
+    ],
+    "flat": [
+      {
+        "function": "runtime.cgocall",
+        "flat_seconds": 1041.5,
+        "cumulative_seconds": 1044.64,
+        "flat_percent": 88.02325876218084,
+        "cumulative_percent": 88.28863853415709
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.xorMul",
+        "flat_seconds": 19.23,
+        "cumulative_seconds": 19.28,
+        "flat_percent": 1.6252398137270645,
+        "cumulative_percent": 1.6294656062744568
+      },
+      {
+        "function": "runtime.stdcall1",
+        "flat_seconds": 13.95,
+        "cumulative_seconds": 13.98,
+        "flat_percent": 1.1789961207224415,
+        "cumulative_percent": 1.1815315962508768
+      },
+      {
+        "function": "crypto/sha256.block",
+        "flat_seconds": 7.97,
+        "cumulative_seconds": 7.97,
+        "flat_percent": 0.6735913320543268,
+        "cumulative_percent": 0.6735913320543268
+      },
+      {
+        "function": "runtime.mapiternext",
+        "flat_seconds": 4.38,
+        "cumulative_seconds": 5.27,
+        "flat_percent": 0.37017942715156227,
+        "cumulative_percent": 0.44539853449514455
+      },
+      {
+        "function": "runtime.memclrNoHeapPointers",
+        "flat_seconds": 3.36,
+        "cumulative_seconds": 3.36,
+        "flat_percent": 0.2839732591847601,
+        "cumulative_percent": 0.2839732591847601
+      },
+      {
+        "function": "runtime.nextFreeFast",
+        "flat_seconds": 3.0,
+        "cumulative_seconds": 3.0,
+        "flat_percent": 0.2535475528435358,
+        "cumulative_percent": 0.2535475528435358
+      },
+      {
+        "function": "runtime.stdcall2",
+        "flat_seconds": 2.88,
+        "cumulative_seconds": 2.88,
+        "flat_percent": 0.24340565072979437,
+        "cumulative_percent": 0.24340565072979437
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastReedSolomon20x20).EncodeActive",
+        "flat_seconds": 2.69,
+        "cumulative_seconds": 21.96,
+        "flat_percent": 0.22734763904970376,
+        "cumulative_percent": 1.8559680868146822
+      },
+      {
+        "function": "golang.org/x/crypto/chacha20poly1305.chacha20Poly1305Seal",
+        "flat_seconds": 2.68,
+        "cumulative_seconds": 2.77,
+        "flat_percent": 0.22650248054022531,
+        "cumulative_percent": 0.2341089071255314
+      },
+      {
+        "function": "runtime.memmove",
+        "flat_seconds": 2.58,
+        "cumulative_seconds": 2.58,
+        "flat_percent": 0.2180508954454408,
+        "cumulative_percent": 0.2180508954454408
+      },
+      {
+        "function": "runtime.mallocgc",
+        "flat_seconds": 2.24,
+        "cumulative_seconds": 14.18,
+        "flat_percent": 0.1893155061231734,
+        "cumulative_percent": 1.198434766440446
+      },
+      {
+        "function": "golang.org/x/crypto/chacha20poly1305.chacha20Poly1305Open",
+        "flat_seconds": 2.22,
+        "cumulative_seconds": 2.24,
+        "flat_percent": 0.1876251891042165,
+        "cumulative_percent": 0.1893155061231734
+      },
+      {
+        "function": "runtime.stdcall0",
+        "flat_seconds": 1.43,
+        "cumulative_seconds": 1.43,
+        "flat_percent": 0.12085766685541874,
+        "cumulative_percent": 0.12085766685541874
+      },
+      {
+        "function": "runtime.stdcall6",
+        "flat_seconds": 1.25,
+        "cumulative_seconds": 1.25,
+        "flat_percent": 0.10564481368480659,
+        "cumulative_percent": 0.10564481368480659
+      },
+      {
+        "function": "runtime.stdcall8",
+        "flat_seconds": 1.15,
+        "cumulative_seconds": 1.15,
+        "flat_percent": 0.09719322859002207,
+        "cumulative_percent": 0.09719322859002207
+      },
+      {
+        "function": "runtime.scanobject",
+        "flat_seconds": 1.08,
+        "cumulative_seconds": 3.8,
+        "flat_percent": 0.09127711902367289,
+        "cumulative_percent": 0.321160233601812
+      },
+      {
+        "function": "runtime.findObject",
+        "flat_seconds": 0.94,
+        "cumulative_seconds": 1.3,
+        "flat_percent": 0.07944489989097456,
+        "cumulative_percent": 0.10987060623219885
+      },
+      {
+        "function": "runtime.duffcopy",
+        "flat_seconds": 0.93,
+        "cumulative_seconds": 0.93,
+        "flat_percent": 0.0785997413814961,
+        "cumulative_percent": 0.0785997413814961
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*Reassembler).Expire",
+        "flat_seconds": 0.89,
+        "cumulative_seconds": 7.08,
+        "flat_percent": 0.0752191073435823,
+        "cumulative_percent": 0.5983722247107445
+      },
+      {
+        "function": "runtime.mapaccess2_fast32",
+        "flat_seconds": 0.89,
+        "cumulative_seconds": 0.96,
+        "flat_percent": 0.0752191073435823,
+        "cumulative_percent": 0.08113521690993146
+      },
+      {
+        "function": "runtime.lock2",
+        "flat_seconds": 0.87,
+        "cumulative_seconds": 2.9,
+        "flat_percent": 0.07352879032462538,
+        "cumulative_percent": 0.24509596774875128
+      },
+      {
+        "function": "runtime.growslice",
+        "flat_seconds": 0.85,
+        "cumulative_seconds": 8.08,
+        "flat_percent": 0.07183847330566848,
+        "cumulative_percent": 0.6828880756585898
+      },
+      {
+        "function": "runtime.(*mspan).writeHeapBitsSmall",
+        "flat_seconds": 0.82,
+        "cumulative_seconds": 0.94,
+        "flat_percent": 0.06930299777723312,
+        "cumulative_percent": 0.07944489989097456
+      },
+      {
+        "function": "runtime.newobject",
+        "flat_seconds": 0.78,
+        "cumulative_seconds": 4.92,
+        "flat_percent": 0.06592236373931931,
+        "cumulative_percent": 0.4158179866633987
+      },
+      {
+        "function": "runtime.unlock2",
+        "flat_seconds": 0.78,
+        "cumulative_seconds": 1.21,
+        "flat_percent": 0.06592236373931931,
+        "cumulative_percent": 0.10226417964689277
+      },
+      {
+        "function": "runtime.procyield",
+        "flat_seconds": 0.77,
+        "cumulative_seconds": 0.77,
+        "flat_percent": 0.06507720522984085,
+        "cumulative_percent": 0.06507720522984085
+      },
+      {
+        "function": "runtime.mapaccess1",
+        "flat_seconds": 0.75,
+        "cumulative_seconds": 1.66,
+        "flat_percent": 0.06338688821088395,
+        "cumulative_percent": 0.14029631257342315
+      },
+      {
+        "function": "runtime.stealWork",
+        "flat_seconds": 0.74,
+        "cumulative_seconds": 2.26,
+        "flat_percent": 0.0625417297014055,
+        "cumulative_percent": 0.1910058231421303
+      },
+      {
+        "function": "time.Time.Sub",
+        "flat_seconds": 0.7,
+        "cumulative_seconds": 0.8,
+        "flat_percent": 0.05916109566349169,
+        "cumulative_percent": 0.06761268075827621
+      },
+      {
+        "function": "runtime.mapaccess1_fast32",
+        "flat_seconds": 0.68,
+        "cumulative_seconds": 0.95,
+        "flat_percent": 0.05747077864453478,
+        "cumulative_percent": 0.080290058400453
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.tcpChecksum",
+        "flat_seconds": 0.66,
+        "cumulative_seconds": 0.99,
+        "flat_percent": 0.05578046162557788,
+        "cumulative_percent": 0.08367069243836682
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).handleSegment",
+        "flat_seconds": 0.65,
+        "cumulative_seconds": 150.09,
+        "flat_percent": 0.054935303116099427,
+        "cumulative_percent": 12.684984068762096
+      },
+      {
+        "function": "runtime.casgstatus",
+        "flat_seconds": 0.63,
+        "cumulative_seconds": 0.77,
+        "flat_percent": 0.05324498609714252,
+        "cumulative_percent": 0.06507720522984085
+      },
+      {
+        "function": "runtime.mapaccess2",
+        "flat_seconds": 0.62,
+        "cumulative_seconds": 1.02,
+        "flat_percent": 0.052399827587664066,
+        "cumulative_percent": 0.08620616796680218
+      },
+      {
+        "function": "time.Now",
+        "flat_seconds": 0.61,
+        "cumulative_seconds": 0.98,
+        "flat_percent": 0.051554669078185615,
+        "cumulative_percent": 0.08282553392888836
+      },
+      {
+        "function": "runtime.selectgo",
+        "flat_seconds": 0.6,
+        "cumulative_seconds": 1.67,
+        "flat_percent": 0.050709510568707164,
+        "cumulative_percent": 0.1411414710829016
+      },
+      {
+        "function": "runtime.mapassign_fast32",
+        "flat_seconds": 0.59,
+        "cumulative_seconds": 0.76,
+        "flat_percent": 0.049864352059228706,
+        "cumulative_percent": 0.06423204672036241
+      },
+      {
+        "function": "runtime.stdcall4",
+        "flat_seconds": 0.58,
+        "cumulative_seconds": 0.58,
+        "flat_percent": 0.049019193549750255,
+        "cumulative_percent": 0.049019193549750255
+      },
+      {
+        "function": "runtime.mapaccess2_fast64",
+        "flat_seconds": 0.55,
+        "cumulative_seconds": 0.55,
+        "flat_percent": 0.046483718021314895,
+        "cumulative_percent": 0.046483718021314895
+      }
+    ],
+    "cumulative": [
+      {
+        "function": "runtime.syscall_syscalln",
+        "flat_seconds": 0.3,
+        "cumulative_seconds": 1044.94,
+        "flat_percent": 0.025354755284353582,
+        "cumulative_percent": 88.31399328944144
+      },
+      {
+        "function": "runtime.cgocall",
+        "flat_seconds": 1041.5,
+        "cumulative_seconds": 1044.64,
+        "flat_percent": 88.02325876218084,
+        "cumulative_percent": 88.28863853415709
+      },
+      {
+        "function": "syscall.(*Proc).Call",
+        "flat_seconds": 0.34,
+        "cumulative_seconds": 672.78,
+        "flat_percent": 0.02873538932226739,
+        "cumulative_percent": 56.86057420069134
+      },
+      {
+        "function": "syscall.SyscallN",
+        "flat_seconds": 0.18,
+        "cumulative_seconds": 672.35,
+        "flat_percent": 0.015212853170612148,
+        "cumulative_percent": 56.82423238478377
+      },
+      {
+        "function": "syscall.Syscall6",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 355.84,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.07412040128126
+      },
+      {
+        "function": "os.(*File).Read",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 355.82,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.072430084262304
+      },
+      {
+        "function": "syscall.ReadFile",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 355.82,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.072430084262304
+      },
+      {
+        "function": "syscall.Read",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 355.82,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.072430084262304
+      },
+      {
+        "function": "syscall.readFile",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 355.82,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.072430084262304
+      },
+      {
+        "function": "os.(*File).read",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 355.82,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.072430084262304
+      },
+      {
+        "function": "internal/poll.(*FD).Read",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 355.82,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.072430084262304
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*SegmentMux).readLoop",
+        "flat_seconds": 0.44,
+        "cumulative_seconds": 343.58,
+        "flat_percent": 0.03718697441705192,
+        "cumulative_percent": 29.037956068660677
+      },
+      {
+        "function": "main.runWindows.func2.1",
+        "flat_seconds": 0.17,
+        "cumulative_seconds": 339.69,
+        "flat_percent": 0.014367694661133695,
+        "cumulative_percent": 28.70918940847356
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).ReadSegment",
+        "flat_seconds": 0.52,
+        "cumulative_seconds": 339.49,
+        "flat_percent": 0.04394824249287954,
+        "cumulative_percent": 28.69228623828399
+      },
+      {
+        "function": "main.watchGUIControl",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 338.97,
+        "flat_percent": 0.0,
+        "cumulative_percent": 28.64833799579111
+      },
+      {
+        "function": "bufio.(*Scanner).Scan",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 338.97,
+        "flat_percent": 0.0,
+        "cumulative_percent": 28.64833799579111
+      },
+      {
+        "function": "main.runWindows.func6",
+        "flat_seconds": 0.12,
+        "cumulative_seconds": 269.7,
+        "flat_percent": 0.010141902113741432,
+        "cumulative_percent": 22.79392500063387
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).clientLaneReadLoop",
+        "flat_seconds": 0.4,
+        "cumulative_seconds": 154.05,
+        "flat_percent": 0.03380634037913811,
+        "cumulative_percent": 13.019666838515564
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*SegmentMux).Open.func3",
+        "flat_seconds": 0.2,
+        "cumulative_seconds": 151.66,
+        "flat_percent": 0.016903170189569054,
+        "cumulative_percent": 12.817673954750214
+      },
+      {
+        "function": "main.runWindows.func2.2",
+        "flat_seconds": 0.21,
+        "cumulative_seconds": 151.43,
+        "flat_percent": 0.017748328699047505,
+        "cumulative_percent": 12.79823530903221
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).WriteSegment",
+        "flat_seconds": 0.16,
+        "cumulative_seconds": 151.22,
+        "flat_percent": 0.013522536151655242,
+        "cumulative_percent": 12.780486980333162
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).HandleSegment",
+        "flat_seconds": 0.13,
+        "cumulative_seconds": 150.98,
+        "flat_percent": 0.010987060623219885,
+        "cumulative_percent": 12.760203176105678
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).handleSegment",
+        "flat_seconds": 0.65,
+        "cumulative_seconds": 150.09,
+        "flat_percent": 0.054935303116099427,
+        "cumulative_percent": 12.684984068762096
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).writeFrameLocked",
+        "flat_seconds": 0.14,
+        "cumulative_seconds": 145.34,
+        "flat_percent": 0.011832219132698338,
+        "cumulative_percent": 12.283533776759832
+      },
+      {
+        "function": "syscall.(*LazyProc).Call",
+        "flat_seconds": 0.01,
+        "cumulative_seconds": 143.82,
+        "flat_percent": 0.0008451585094784526,
+        "cumulative_percent": 12.155069683319107
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/windowsclient.(*TUN).ReadPacket",
+        "flat_seconds": 0.08,
+        "cumulative_seconds": 140.29,
+        "flat_percent": 0.006761268075827621,
+        "cumulative_percent": 11.856728729473213
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).SendPacket",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 125.28,
+        "flat_percent": 0.0,
+        "cumulative_percent": 10.588145806746056
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).WithOutbound",
+        "flat_seconds": 0.06,
+        "cumulative_seconds": 125.18,
+        "flat_percent": 0.005070951056870716,
+        "cumulative_percent": 10.579694221651271
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).SendPacket",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 125.18,
+        "flat_percent": 0.0,
+        "cumulative_percent": 10.579694221651271
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).SendPacket.(*Runtime).SendPacket.func1",
+        "flat_seconds": 0.08,
+        "cumulative_seconds": 125.06,
+        "flat_percent": 0.006761268075827621,
+        "cumulative_percent": 10.569552319537529
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).sendACK",
+        "flat_seconds": 0.28,
+        "cumulative_seconds": 108.69,
+        "flat_percent": 0.023664438265396676,
+        "cumulative_percent": 9.186027839521302
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).send",
+        "flat_seconds": 0.15,
+        "cumulative_seconds": 102.29,
+        "flat_percent": 0.012677377642176791,
+        "cumulative_percent": 8.645126393455092
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).SendNormal",
+        "flat_seconds": 0.1,
+        "cumulative_seconds": 96.35,
+        "flat_percent": 0.008451585094784527,
+        "cumulative_percent": 8.143102238824891
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).sendReadyBatch",
+        "flat_seconds": 0.08,
+        "cumulative_seconds": 57.2,
+        "flat_percent": 0.006761268075827621,
+        "cumulative_percent": 4.83430667421675
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).emitReadyBatch",
+        "flat_seconds": 0.02,
+        "cumulative_seconds": 55.59,
+        "flat_percent": 0.0016903170189569053,
+        "cumulative_percent": 4.6982361541907185
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*SegmentMux).Open.func1",
+        "flat_seconds": 0.09,
+        "cumulative_seconds": 55.22,
+        "flat_percent": 0.007606426585306074,
+        "cumulative_percent": 4.666965289340015
+      },
+      {
+        "function": "main.runWindows.func2.3",
+        "flat_seconds": 0.03,
+        "cumulative_seconds": 55.12,
+        "flat_percent": 0.002535475528435358,
+        "cumulative_percent": 4.658513704245231
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).WriteSegments",
+        "flat_seconds": 0.09,
+        "cumulative_seconds": 55.09,
+        "flat_percent": 0.007606426585306074,
+        "cumulative_percent": 4.655978228716796
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.writeNpcapReadySegments",
+        "flat_seconds": 0.18,
+        "cumulative_seconds": 54.23,
+        "flat_percent": 0.015212853170612148,
+        "cumulative_percent": 4.5832945969016485
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).WriteSegments.func1",
+        "flat_seconds": 0.02,
+        "cumulative_seconds": 51.24,
+        "flat_percent": 0.0016903170189569053,
+        "cumulative_percent": 4.330592202567591
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*TunnelOwner).NormalOutbound",
+        "flat_seconds": 0.09,
+        "cumulative_seconds": 28.43,
+        "flat_percent": 0.007606426585306074,
+        "cumulative_percent": 2.402785642447241
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).Outbound",
+        "flat_seconds": 0.01,
+        "cumulative_seconds": 26.29,
+        "flat_percent": 0.0008451585094784526,
+        "cumulative_percent": 2.2219217214188522
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).outbound",
+        "flat_seconds": 0.08,
+        "cumulative_seconds": 26.28,
+        "flat_percent": 0.006761268075827621,
+        "cumulative_percent": 2.221076562909374
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastBlockEncoder).flushParity",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 22.08,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.8661099889284236
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastReedSolomon20x20).EncodeActive",
+        "flat_seconds": 2.69,
+        "cumulative_seconds": 21.96,
+        "flat_percent": 0.22734763904970376,
+        "cumulative_percent": 1.8559680868146822
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*TunnelOwner).InboundPayload",
+        "flat_seconds": 0.18,
+        "cumulative_seconds": 21.32,
+        "flat_percent": 0.015212853170612148,
+        "cumulative_percent": 1.801877942208061
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*FECPath).Encode",
+        "flat_seconds": 0.07,
+        "cumulative_seconds": 20.97,
+        "flat_percent": 0.005916109566349169,
+        "cumulative_percent": 1.7722973943763152
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).InboundPayload",
+        "flat_seconds": 0.12,
+        "cumulative_seconds": 19.58,
+        "flat_percent": 0.010141902113741432,
+        "cumulative_percent": 1.6548203615588104
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*SizeClassEncoder).Add",
+        "flat_seconds": 0.14,
+        "cumulative_seconds": 19.44,
+        "flat_percent": 0.011832219132698338,
+        "cumulative_percent": 1.642988142426112
+      },
+      {
+        "function": "runtime.systemstack",
+        "flat_seconds": 0.38,
+        "cumulative_seconds": 19.37,
+        "flat_percent": 0.032116023360181205,
+        "cumulative_percent": 1.6370720328597628
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastBlockEncoder).Add",
+        "flat_seconds": 0.05,
+        "cumulative_seconds": 19.29,
+        "flat_percent": 0.004225792547392263,
+        "cumulative_percent": 1.6303107647839352
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.xorMul",
+        "flat_seconds": 19.23,
+        "cumulative_seconds": 19.28,
+        "flat_percent": 1.6252398137270645,
+        "cumulative_percent": 1.6294656062744568
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).inboundLocked",
+        "flat_seconds": 0.15,
+        "cumulative_seconds": 19.01,
+        "flat_percent": 0.012677377642176791,
+        "cumulative_percent": 1.6066463265185384
+      },
+      {
+        "function": "main.main",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 17.24,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4570532703408525
+      },
+      {
+        "function": "runtime.main",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 17.24,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4570532703408525
+      },
+      {
+        "function": "main.runWindows",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 17.24,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4570532703408525
+      },
+      {
+        "function": "main.runNetworkAction",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 16.92,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4300081980375419
+      },
+      {
+        "function": "syscall.WaitForSingleObject",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 16.91,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4291630395280635
+      },
+      {
+        "function": "os.(*Process).wait",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 16.91,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4291630395280635
+      },
+      {
+        "function": "os.(*Process).Wait",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 16.91,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4291630395280635
+      }
+    ]
+  },
+  "stack_attribution": {
+    "schema": "wbd-windows-profile-stack-attribution/v1",
+    "profile": "native-cpu-1469.pprof",
+    "total_weight_seconds": 1183.21,
+    "foreign_weight_seconds": 1044.94,
+    "nonforeign_weight_seconds": 138.27,
+    "foreign_first_project_frame": [
+      {
+        "function": "other_foreign_or_runtime",
+        "sample_weight_seconds": 372.74
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).ReadSegment",
+        "sample_weight_seconds": 333.41
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).writeFrameLocked",
+        "sample_weight_seconds": 144.12
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/windowsclient.(*TUN).ReadPacket",
+        "sample_weight_seconds": 139.28
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).WriteSegments.func1",
+        "sample_weight_seconds": 51.01
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/windowsclient.(*TUN).WritePacket",
+        "sample_weight_seconds": 4.02
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/windowsclient.OpenTUN",
+        "sample_weight_seconds": 0.27
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).sampleDriverStats",
+        "sample_weight_seconds": 0.03
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/windowsclient.(*TUN).Close.func1",
+        "sample_weight_seconds": 0.03
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/windowsclient.sendARP",
+        "sample_weight_seconds": 0.01
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/qualificationdiag.Run",
+        "sample_weight_seconds": 0.01
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/qualificationdiag.Run.func1",
+        "sample_weight_seconds": 0.01
+      }
+    ],
+    "nonforeign_flat": [
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.xorMul",
+        "sample_weight_seconds": 19.23
+      },
+      {
+        "function": "runtime.stdcall1",
+        "sample_weight_seconds": 13.95
+      },
+      {
+        "function": "crypto/sha256.block",
+        "sample_weight_seconds": 7.97
+      },
+      {
+        "function": "runtime.mapiternext",
+        "sample_weight_seconds": 4.38
+      },
+      {
+        "function": "runtime.memclrNoHeapPointers",
+        "sample_weight_seconds": 3.36
+      },
+      {
+        "function": "runtime.nextFreeFast",
+        "sample_weight_seconds": 3.0
+      },
+      {
+        "function": "runtime.stdcall2",
+        "sample_weight_seconds": 2.88
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastReedSolomon20x20).EncodeActive",
+        "sample_weight_seconds": 2.69
+      },
+      {
+        "function": "golang.org/x/crypto/chacha20poly1305.chacha20Poly1305Seal",
+        "sample_weight_seconds": 2.68
+      },
+      {
+        "function": "runtime.memmove",
+        "sample_weight_seconds": 2.58
+      },
+      {
+        "function": "runtime.mallocgc",
+        "sample_weight_seconds": 2.24
+      },
+      {
+        "function": "golang.org/x/crypto/chacha20poly1305.chacha20Poly1305Open",
+        "sample_weight_seconds": 2.22
+      },
+      {
+        "function": "runtime.stdcall0",
+        "sample_weight_seconds": 1.42
+      },
+      {
+        "function": "runtime.stdcall6",
+        "sample_weight_seconds": 1.25
+      },
+      {
+        "function": "runtime.stdcall8",
+        "sample_weight_seconds": 1.15
+      },
+      {
+        "function": "runtime.scanobject",
+        "sample_weight_seconds": 1.08
+      },
+      {
+        "function": "runtime.findObject",
+        "sample_weight_seconds": 0.94
+      },
+      {
+        "function": "runtime.duffcopy",
+        "sample_weight_seconds": 0.93
+      },
+      {
+        "function": "runtime.mapaccess2_fast32",
+        "sample_weight_seconds": 0.89
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*Reassembler).Expire",
+        "sample_weight_seconds": 0.89
+      },
+      {
+        "function": "runtime.lock2",
+        "sample_weight_seconds": 0.86
+      },
+      {
+        "function": "runtime.growslice",
+        "sample_weight_seconds": 0.85
+      },
+      {
+        "function": "runtime.(*mspan).writeHeapBitsSmall",
+        "sample_weight_seconds": 0.82
+      },
+      {
+        "function": "runtime.newobject",
+        "sample_weight_seconds": 0.78
+      },
+      {
+        "function": "runtime.unlock2",
+        "sample_weight_seconds": 0.78
+      },
+      {
+        "function": "runtime.procyield",
+        "sample_weight_seconds": 0.77
+      },
+      {
+        "function": "runtime.mapaccess1",
+        "sample_weight_seconds": 0.75
+      },
+      {
+        "function": "runtime.stealWork",
+        "sample_weight_seconds": 0.74
+      },
+      {
+        "function": "time.Time.Sub",
+        "sample_weight_seconds": 0.7
+      },
+      {
+        "function": "runtime.mapaccess1_fast32",
+        "sample_weight_seconds": 0.68
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.tcpChecksum",
+        "sample_weight_seconds": 0.66
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).handleSegment",
+        "sample_weight_seconds": 0.65
+      },
+      {
+        "function": "runtime.mapaccess2",
+        "sample_weight_seconds": 0.62
+      },
+      {
+        "function": "time.Now",
+        "sample_weight_seconds": 0.61
+      },
+      {
+        "function": "runtime.selectgo",
+        "sample_weight_seconds": 0.6
+      },
+      {
+        "function": "runtime.mapassign_fast32",
+        "sample_weight_seconds": 0.59
+      },
+      {
+        "function": "runtime.stdcall4",
+        "sample_weight_seconds": 0.58
+      },
+      {
+        "function": "runtime.mapaccess2_fast64",
+        "sample_weight_seconds": 0.55
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).ReadSegment",
+        "sample_weight_seconds": 0.52
+      },
+      {
+        "function": "aeshashbody",
+        "sample_weight_seconds": 0.51
+      },
+      {
+        "function": "runtime.(*spanSet).push",
+        "sample_weight_seconds": 0.5
+      },
+      {
+        "function": "encoding/binary.bigEndian.Uint16",
+        "sample_weight_seconds": 0.49
+      },
+      {
+        "function": "runtime.duffzero",
+        "sample_weight_seconds": 0.48
+      },
+      {
+        "function": "runtime.mapdelete_fast64",
+        "sample_weight_seconds": 0.47
+      },
+      {
+        "function": "sync.(*Mutex).Lock",
+        "sample_weight_seconds": 0.46
+      },
+      {
+        "function": "runtime.mapdelete_fast32",
+        "sample_weight_seconds": 0.45
+      },
+      {
+        "function": "runtime.add",
+        "sample_weight_seconds": 0.45
+      },
+      {
+        "function": "sync/atomic.(*Bool).Load",
+        "sample_weight_seconds": 0.45
+      },
+      {
+        "function": "golang.org/x/crypto/chacha20.quarterRound",
+        "sample_weight_seconds": 0.45
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*SegmentMux).readLoop",
+        "sample_weight_seconds": 0.44
+      },
+      {
+        "function": "runtime.typePointers.next",
+        "sample_weight_seconds": 0.44
+      },
+      {
+        "function": "runtime.runqgrab",
+        "sample_weight_seconds": 0.4
+      },
+      {
+        "function": "runtime.findRunnable",
+        "sample_weight_seconds": 0.4
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).clientLaneReadLoop",
+        "sample_weight_seconds": 0.4
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/tlsrecord.(*Decoder).OpenPayload",
+        "sample_weight_seconds": 0.39
+      },
+      {
+        "function": "strings.TrimSpace",
+        "sample_weight_seconds": 0.38
+      },
+      {
+        "function": "time.now",
+        "sample_weight_seconds": 0.37
+      },
+      {
+        "function": "runtime.typedmemmove",
+        "sample_weight_seconds": 0.37
+      },
+      {
+        "function": "sync.(*Mutex).lockSlow",
+        "sample_weight_seconds": 0.37
+      },
+      {
+        "function": "sync.(*Mutex).Unlock",
+        "sample_weight_seconds": 0.36
+      }
+    ],
+    "nonforeign_cumulative": [
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).clientLaneReadLoop",
+        "sample_weight_seconds": 47.51
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).HandleSegment",
+        "sample_weight_seconds": 44.44
+      },
+      {
+        "function": "main.runWindows.func6",
+        "sample_weight_seconds": 43.6
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).handleSegment",
+        "sample_weight_seconds": 43.55
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).SendPacket",
+        "sample_weight_seconds": 38.46
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).SendPacket",
+        "sample_weight_seconds": 38.36
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).WithOutbound",
+        "sample_weight_seconds": 38.36
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).SendPacket.(*Runtime).SendPacket.func1",
+        "sample_weight_seconds": 38.24
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*TunnelOwner).NormalOutbound",
+        "sample_weight_seconds": 28.43
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).Outbound",
+        "sample_weight_seconds": 26.29
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).outbound",
+        "sample_weight_seconds": 26.28
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastBlockEncoder).flushParity",
+        "sample_weight_seconds": 22.08
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastReedSolomon20x20).EncodeActive",
+        "sample_weight_seconds": 21.96
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*TunnelOwner).InboundPayload",
+        "sample_weight_seconds": 21.32
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*FECPath).Encode",
+        "sample_weight_seconds": 20.97
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).InboundPayload",
+        "sample_weight_seconds": 19.58
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*SizeClassEncoder).Add",
+        "sample_weight_seconds": 19.44
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastBlockEncoder).Add",
+        "sample_weight_seconds": 19.29
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.xorMul",
+        "sample_weight_seconds": 19.28
+      },
+      {
+        "function": "runtime.systemstack",
+        "sample_weight_seconds": 19.22
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).inboundLocked",
+        "sample_weight_seconds": 19.01
+      },
+      {
+        "function": "runtime.mcall",
+        "sample_weight_seconds": 14.51
+      },
+      {
+        "function": "runtime.wakep",
+        "sample_weight_seconds": 14.48
+      },
+      {
+        "function": "runtime.schedule",
+        "sample_weight_seconds": 14.22
+      },
+      {
+        "function": "runtime.park_m",
+        "sample_weight_seconds": 14.19
+      },
+      {
+        "function": "runtime.mallocgc",
+        "sample_weight_seconds": 14.18
+      },
+      {
+        "function": "runtime.startm",
+        "sample_weight_seconds": 13.98
+      },
+      {
+        "function": "runtime.stdcall1",
+        "sample_weight_seconds": 13.98
+      },
+      {
+        "function": "runtime.semawakeup",
+        "sample_weight_seconds": 13.82
+      },
+      {
+        "function": "runtime.notewakeup",
+        "sample_weight_seconds": 13.74
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*FECPath).Decode",
+        "sample_weight_seconds": 11.89
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).acceptPayloadLocked",
+        "sample_weight_seconds": 11.45
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*SegmentMux).readLoop",
+        "sample_weight_seconds": 10.14
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).send",
+        "sample_weight_seconds": 9.79
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).SendNormal",
+        "sample_weight_seconds": 9.53
+      },
+      {
+        "function": "crypto/sha256.Sum256",
+        "sample_weight_seconds": 8.57
+      },
+      {
+        "function": "runtime.ready",
+        "sample_weight_seconds": 8.5
+      },
+      {
+        "function": "crypto/sha256.(*digest).Write",
+        "sample_weight_seconds": 8.28
+      },
+      {
+        "function": "runtime.growslice",
+        "sample_weight_seconds": 8.08
+      },
+      {
+        "function": "crypto/sha256.block",
+        "sample_weight_seconds": 7.97
+      },
+      {
+        "function": "runtime.readyWithTime.goready.func1",
+        "sample_weight_seconds": 7.96
+      },
+      {
+        "function": "runtime.findRunnable",
+        "sample_weight_seconds": 7.95
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*SegmentMux).Open.func3",
+        "sample_weight_seconds": 7.54
+      },
+      {
+        "function": "main.runWindows.func2.2",
+        "sample_weight_seconds": 7.31
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).WriteSegment",
+        "sample_weight_seconds": 7.1
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*Reassembler).Expire",
+        "sample_weight_seconds": 7.08
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/tlsrecord.(*Decoder).OpenPayload",
+        "sample_weight_seconds": 6.84
+      },
+      {
+        "function": "main.runWindows.func2.1",
+        "sample_weight_seconds": 6.25
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).sendACK",
+        "sample_weight_seconds": 6.18
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).sendReadyBatch",
+        "sample_weight_seconds": 6.13
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).ReadSegment",
+        "sample_weight_seconds": 6.05
+      },
+      {
+        "function": "runtime.resetspinning",
+        "sample_weight_seconds": 5.81
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).sealLocked",
+        "sample_weight_seconds": 5.41
+      },
+      {
+        "function": "runtime.mapiternext",
+        "sample_weight_seconds": 5.27
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.encodeNpcapOutbound",
+        "sample_weight_seconds": 5.24
+      },
+      {
+        "function": "runtime.gcBgMarkWorker.func2",
+        "sample_weight_seconds": 5.06
+      },
+      {
+        "function": "runtime.gcDrain",
+        "sample_weight_seconds": 5.05
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*FECPath).Expire",
+        "sample_weight_seconds": 4.98
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/tlsrecord.(*Sealer).Seal",
+        "sample_weight_seconds": 4.96
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/tlsrecord.(*Sealer).seal",
+        "sample_weight_seconds": 4.95
+      }
+    ],
+    "interpretation": "Foreign/syscall sampling may include blocked stacks. Buckets partition sample weight, not actual CPU or a causal latency attribution; crosscheck OS process CPU and diagnostic call/queue measurements. Cumulative rows overlap."
+  },
+  "fec_accounting": {
+    "schema": "wbd-native-fec-accounting/v1",
+    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "case": "s01-current-300s-seed1469",
+    "parity": 20,
+    "scope": "Full diagnostic lifetime including handshake, DNS, probes and drain. Encoder bytes include56B FEC headers. Observed TCP payload includes TLS overhead and retransmits, excludes TCP/IP headers. Not an exact load-only wire amplification or CPU A/B.",
+    "roles": {
+      "client": {
+        "encoder": {
+          "source_shards": 698478,
+          "source_bytes": 435102603,
+          "parity_shards": 698478,
+          "parity_bytes": 524016667,
+          "full_blocks": 29243,
+          "partial_blocks": 6778,
+          "refs": 1,
+          "parity_shard_ratio": 1.0,
+          "parity_byte_ratio": 1.2043519468441333,
+          "configured_full_block_ratio": 1.0
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 4096,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 1396980,
+          "Retransmitted": 54,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 8,
+          "pressure_retirements": 23,
+          "reconstruction_events": 2731,
+          "recovered_sources": 3472
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 4,
+          "ExpiredMissingSources": 12
+        }
+      },
+      "server": {
+        "encoder": {
+          "source_shards": 698438,
+          "source_bytes": 435101440,
+          "parity_shards": 698438,
+          "parity_bytes": 547046407,
+          "full_blocks": 27344,
+          "partial_blocks": 8666,
+          "refs": 1,
+          "parity_shard_ratio": 1.0,
+          "parity_byte_ratio": 1.2572847541023997,
+          "configured_full_block_ratio": 1.0
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 4096,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 1396904,
+          "Retransmitted": 1229,
+          "Abandoned": 23,
+          "RepairEvicted": 23,
+          "RepairExpiredSkipped": 3,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 4,
+          "pressure_retirements": 0,
+          "reconstruction_events": 11,
+          "recovered_sources": 42
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 0,
+          "ExpiredMissingSources": 0
+        }
+      }
+    },
+    "errors": [],
+    "windows_outer_observation": {
+      "observer_received": 4503073,
+      "observer_dropped": 0,
+      "stats_error": 0,
+      "flows": 2,
+      "tcp_payload_bytes": {
+        "C2S": 1002463490,
+        "S2C": 1025352515
+      },
+      "tcp_packets": {
+        "C2S": 2410010,
+        "S2C": 2093063
+      }
+    },
+    "status": "PASS_ACCOUNTING"
+  },
+  "client_io": {
+    "enabled": true,
+    "supported": true,
+    "generation": 1,
+    "read_packets": 2093061,
+    "read_bytes": 1110231371,
+    "write_packets": 2410009,
+    "write_bytes": 1108870278,
+    "read_gap_max_ns": 14992862800,
+    "driver_received": 2093061,
+    "driver_dropped": 0,
+    "interface_dropped": 0,
+    "stats_samples": 349,
+    "stats_errors": 0,
+    "batch_supported": true,
+    "write_calls": 1671260,
+    "batch_calls": 211508,
+    "batch_requested_packets": 950257,
+    "write_call_ns": 184707187400,
+    "write_call_max_ns": 27665200,
+    "send_lock_wait_ns": 129237601600,
+    "send_lock_wait_max_ns": 29404300
+  },
+  "client_receive_queue": {
+    "local_port": 40000,
+    "peer_port": 443,
+    "capacity": 4096,
+    "current": 0,
+    "peak": 4097,
+    "bytes": 0,
+    "bytes_peak": 2091901,
+    "full_waits": 3233,
+    "overflow_drops": 3233,
+    "overflow_bytes": 2043094,
+    "overflow_age": {
+      "samples": 3233,
+      "total_ns": 1849053163300,
+      "max_ns": 598461500,
+      "over_50us": 3233,
+      "over_1ms": 3233,
+      "over_10ms": 3233
+    },
+    "handoff_block": {
+      "samples": 2093061,
+      "total_ns": 1809383400,
+      "max_ns": 1571800,
+      "over_50us": 4498,
+      "over_1ms": 218,
+      "over_10ms": 0
+    },
+    "queue_age": {
+      "samples": 2089828,
+      "total_ns": 211552039080200,
+      "max_ns": 598766200,
+      "over_50us": 1942535,
+      "over_1ms": 1830182,
+      "over_10ms": 1239304
+    }
+  },
+  "client_allocation": {
+    "snapshot_span_s": 339.0010562,
+    "allocated_bytes_delta": 14328308144,
+    "allocations_delta": 52186860,
+    "scope": "Includes startup/diagnostic lifetime,not precise load-only allocation benchmark"
+  },
+  "cleanup_errors": []
+}

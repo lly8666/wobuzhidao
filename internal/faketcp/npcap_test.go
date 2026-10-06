@@ -1,6 +1,7 @@
 package faketcp
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"strings"
@@ -14,12 +15,12 @@ func testNpcapConfig() NpcapConfig {
 		SourceMAC:  [6]byte{0x02, 0x11, 0x22, 0x33, 0x44, 0x55},
 		NextHopMAC: [6]byte{0x02, 0xaa, 0xbb, 0xcc, 0xdd, 0xee},
 		Flow: NpcapFlow{
-			LocalIP: [4]byte{192, 0, 2, 20},
-			PeerIP: [4]byte{198, 51, 100, 10},
+			LocalIP:   [4]byte{192, 0, 2, 20},
+			PeerIP:    [4]byte{198, 51, 100, 10},
 			LocalPort: 41001,
-			PeerPort: 443,
+			PeerPort:  443,
 		},
-		Persona: PacketPersonaWindows11,
+		Persona:    PacketPersonaWindows11,
 		Generation: 9,
 	}
 }
@@ -75,14 +76,14 @@ func makeNpcapFrame(packet []byte, vlan bool) []byte {
 func TestNpcapIngressOwnsOnlyExactPeerFlowAndCopiesLifetime(t *testing.T) {
 	cfg := testNpcapConfig()
 	seg := Segment{
-		SrcIP: cfg.Flow.PeerIP,
-		DstIP: cfg.Flow.LocalIP,
+		SrcIP:   cfg.Flow.PeerIP,
+		DstIP:   cfg.Flow.LocalIP,
 		SrcPort: cfg.Flow.PeerPort,
 		DstPort: cfg.Flow.LocalPort,
-		Seq: 10,
-		Ack: 20,
-		Flags: FlagACK,
-		Window: 32000,
+		Seq:     10,
+		Ack:     20,
+		Flags:   FlagACK,
+		Window:  32000,
 		Payload: []byte("peer-data"),
 	}
 	packet := MarshalSegment(seg, 7, PacketPersonaLegacy)
@@ -136,14 +137,14 @@ func TestNpcapIngressOwnsOnlyExactPeerFlowAndCopiesLifetime(t *testing.T) {
 func TestNpcapOutboundBindsSourcePortPeerAndEthernetPath(t *testing.T) {
 	cfg := testNpcapConfig()
 	seg := Segment{
-		SrcIP: cfg.Flow.LocalIP,
-		DstIP: cfg.Flow.PeerIP,
+		SrcIP:   cfg.Flow.LocalIP,
+		DstIP:   cfg.Flow.PeerIP,
 		SrcPort: cfg.Flow.LocalPort,
 		DstPort: cfg.Flow.PeerPort,
-		Seq: 100,
-		Ack: 200,
-		Flags: FlagACK | FlagPSH,
-		Window: 64000,
+		Seq:     100,
+		Ack:     200,
+		Flags:   FlagACK | FlagPSH,
+		Window:  64000,
 		Payload: []byte("wire"),
 	}
 	packet, frame, err := encodeNpcapOutbound(seg, cfg, 12)
@@ -168,6 +169,29 @@ func TestNpcapOutboundBindsSourcePortPeerAndEthernetPath(t *testing.T) {
 	}
 	if !cfg.Flow.matchesSegment(parsed, false) {
 		t.Fatalf("serialized segment escaped bound flow: %+v", parsed)
+	}
+	// Retained wire bytes must survive caller, frame, and subsequent-send reuse.
+	// This guards the ownership boundary when the redundant return clone is gone.
+	wantPacket := append([]byte(nil), packet...)
+	wantFrame := append([]byte(nil), frame...)
+	clear(seg.Payload)
+	if !bytes.Equal(packet, wantPacket) || !bytes.Equal(frame, wantFrame) {
+		t.Fatal("outbound serialization retained caller payload storage")
+	}
+	clear(frame[14:])
+	if !bytes.Equal(packet, wantPacket) {
+		t.Fatal("returned packet aliases Ethernet frame storage")
+	}
+	copy(frame, wantFrame)
+	if _, _, err := encodeNpcapOutbound(seg, cfg, 13); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(packet, wantPacket) || !bytes.Equal(frame, wantFrame) {
+		t.Fatal("subsequent serialization overwrote retained wire bytes")
+	}
+	clear(packet)
+	if !bytes.Equal(frame, wantFrame) {
+		t.Fatal("Ethernet frame aliases returned packet storage")
 	}
 
 	bad := seg

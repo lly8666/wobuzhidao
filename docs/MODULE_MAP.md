@@ -1,5 +1,7 @@
 # 复用与重写地图
 
+2026-10-06 Npcap发送所有权微优化：`faketcp/npcap.go`直接返回MarshalSegment新分配的packet，保留Ethernet frame独立复制；去掉第三份返回clone，不借用外部/驱动存储、不改批量/ACK/重传/恢复边界。`npcap_test.go`覆盖输入、frame、后续发送和返回packet互不污染。Actions及原生状态看STATUS.windows_npcap_return_ownership，未继承a280成绩。
+
 2026-10-04新增`internal/dnsroute`：全新有界普通DNS事务/双解析器互备；复用platformflow UDP映射/虚拟TCP，不复用旧DNS worker。Linux复用owned TPROXY并增加DNS OUTPUT和IPv6黑洞；Windows复用NRPT/防火墙并增加owned IPv6 Wintun sink。`gamelane`保留原PacketID/窗口/无HOL语义，仅增量退役；Linux TUN先bind再注册nonblocking runtime poller。具体资格见STATUS，物理驱动未跑。
 
 2026-10-04 IPv4分流：`internal/splitroute`全新启动期地址集编译器与内置MIT地址数据、手动更新；仅参考`old/internal/windowsruntime/routing_policy.go`的LAN/CN/Other语义和不在热路径查表原则。Linux/OpenWrt在WBD-owned nft interval set捕获前return，Windows捕获前缀取直连集合精确补集，保留原物理/局域网路由；大型快照通过临时文件交给网络脚本，保留owned清理及IPv6边界。不复用旧DTLS/TUN进程编排。规范见SPLIT_ROUTING.md，参数进PARAMETERS目录。

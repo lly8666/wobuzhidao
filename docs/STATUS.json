@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "a280 scoped13Actions/12pairedRTT/P6 PASS;nativeDNSon+offfunctionPASS,overallD01+D06FAIL retained.48 full300s/23unique/20NOT_RUN acrosssource,not PASS count. CPUprofileseed1469diagnostic running;full70/18/1800sNOT_RUNcurrent;M03PARTIAL.",
-  "updated_at": "2026-10-06T20:52:00.573242+08:00",
+  "qualification_scope": "NewNpcap redundant-return-copy candidate IMPLEMENTED_NOT_TESTED. a280 nativeCPUprofile1469 collected diagnosticFAIL148downstreammissing/useroverflow3233/p99663ms;not ordinaryqualification/CPU A-B. a280 scoped13Actions+DNSon/off functionPASS historyretained.48 ordinary300s/23unique/20NOT_RUN plusoneCPUdiagnostic;M03PARTIAL.",
+  "updated_at": "2026-10-06T21:00:02.863484+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,13 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Bounded CPU-only nativeprofile seed1469;diagnostic not performance qualification",
-    "NativehighFEC pressure/p99 diagnosis remainsopen",
-    "RemainingnativeDNS/IP/IPv6/startupPadding configurationsNOT_RUN",
-    "M03 residual datagram tailPARTIAL"
+    "Qualify narrowNpcap return-copy candidate in Actions core/race+independentNormal/Game5205",
+    "NativeCPUprofile hasblockedforeign contamination;no causalperformance claim",
+    "RemainingnativeDNS/IP/IPv6/startupPadding configsNOT_RUN",
+    "NativehighFEC p99/M03 missing-tail unresolved"
   ],
-  "next_task": "Collect bounded nativeCPUprofile1469 only after normal stop/ownedcleanup;read existingprofile_top decoder, crosscheck Windows sampler blockedforeign stacks against OS CPU,not percentagesasactualCPU. Preserve business/probe/p99/drop failures. Select narrow evidence-backed optimization then Actions core/race and one5205sample perrun;do not expand buffer/FEC/shadow or addHOL. Continue remainingnativeIP/IPv6 configuration gaps after independent workload cleanup.",
-  "latest_log": "docs/devlog/20261006-205000-dns-off-native-and-cpu-diagnosis.md",
+  "next_task": "Freeze exactNpcap return-copy candidateSHA,review ownedwire regression in Actions foundation/targeted/GUI/preflight then separateNormal5205 seed1470 and Game5205 seed1471 runs;matchedlossless baselinesonlyif qualification needsRTT. P6 and nativeprofileoff repeat onlyaftergatesPASS. Do not expandbuffers/FEC/4096/changeACK policy or claim copyremoval fixesnativep99. More ambitious driver/FEC changes require bounded cause evidence.",
+  "latest_log": "docs/devlog/20261006-211200-npcap-owned-return-copy-candidate.md",
   "last_tested_source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
   "actions": [
     {
@@ -8038,7 +8038,7 @@
   },
   "physical_current": {
     "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "state": "NATIVE_CPU_PROFILE_RUNNING",
+    "state": "NATIVE_PROFILE_COLLECTED_COPY_CANDIDATE_NOT_TESTED",
     "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
     "native_completed_300s": [
       {
@@ -8104,16 +8104,7 @@
         "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF"
       }
     ],
-    "running": [
-      {
-        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-        "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
-        "case": "S01_CPU_DIAGNOSTIC_ONLY",
-        "seed": 1469,
-        "seconds": 300,
-        "strict_performance_qualification": false
-      }
-    ],
+    "running": null,
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
@@ -8124,7 +8115,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "s01-current-300s-seed1469",
+    "running_case": null,
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8433,6 +8424,15 @@
       "M03 seed1365 FAIL",
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
+    ],
+    "diagnostic_samples": [
+      {
+        "case": "s01-current-300s-seed1469",
+        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "status": "DIAGNOSTIC_FAIL_LOSS_PRESSURE",
+        "evidence": "docs/evidence/native-cpu-profile-a280566-seed1469-20261006.json",
+        "counted_as_performance_qualification": false
+      }
     ]
   },
   "windows_receive_diagnostics": {
@@ -8677,20 +8677,19 @@
     "helper_run": 37253531888
   },
   "current_soak": {
-    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "state": "NOT_RUN",
-    "scope": "Windows PS-only guard;previous024 Linux1800s belongs to024"
+    "source": "CURRENT_COMMIT",
+    "state": "NOT_RUN"
   },
   "current_qualification": {
-    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "state": "SCOPED13_PASS_FULL_NOT_RUN",
-    "config70": "NOT_RUN",
-    "strict18_individual": "NOT_RUN",
-    "strict18_paired": "NOT_RUN",
-    "strict4_individual": "4/4 PASS",
-    "targeted_rtt_checks": "12/12 PASS",
-    "evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json",
-    "one_sample_per_action": true
+    "source": "CURRENT_COMMIT",
+    "state": "COPY_CANDIDATE_NOT_RUN",
+    "core_race": "NOT_RUN",
+    "normal_5205": "NOT_RUN",
+    "game_5205": "NOT_RUN",
+    "full70": "NOT_RUN",
+    "full18": "NOT_RUN",
+    "p6": "NOT_RUN",
+    "native": "NOT_RUN"
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9458,6 +9457,18 @@
       "receipts": "docs/evidence/qualification-0246526-complete-20261006-receipts.json.gz",
       "max_p95_increment_ms": 12.420647,
       "max_p99_increment_ms": 34.53852
+    },
+    {
+      "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+      "state": "SCOPED13_PASS_FULL_NOT_RUN",
+      "config70": "NOT_RUN",
+      "strict18_individual": "NOT_RUN",
+      "strict18_paired": "NOT_RUN",
+      "strict4_individual": "4/4 PASS",
+      "targeted_rtt_checks": "12/12 PASS",
+      "evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json",
+      "one_sample_per_action": true,
+      "scope": "a280 scoped13Actions before Npcap return-copy candidate;not inherited"
     }
   ],
   "soak_history": [
@@ -9620,6 +9631,11 @@
       "evidence": "docs/evidence/soak-0246526-1800s-20261006.json",
       "receipts": "docs/evidence/soak-0246526-1800s-20261006-receipts.json.gz",
       "one_sample_per_action": true
+    },
+    {
+      "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+      "state": "NOT_RUN",
+      "scope": "Previous source not inherited by return-copy candidate"
     }
   ],
   "windows_dns_underlay_guard": {
@@ -9668,5 +9684,21 @@
     "full18": "NOT_RUN",
     "soak1800": "NOT_RUN",
     "evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json"
+  },
+  "windows_npcap_return_ownership": {
+    "state": "IMPLEMENTED_NOT_TESTED",
+    "source": "CURRENT_COMMIT",
+    "deployed_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "files": [
+      "internal/faketcp/npcap.go",
+      "internal/faketcp/npcap_test.go"
+    ],
+    "profile_evidence": "docs/evidence/native-cpu-profile-a280566-seed1469-20261006.json",
+    "change": "Return existing MarshalSegment-owned packet;Ethernetframe remainsindependent copy. Removeonepacket allocation+copy perencode call;no pool/borrowedpointer/newqueue.",
+    "preserved": "Npcap inboundowned copy/nativecallguard/sendMu/8packet16KiBreadybatch/sparseimmediate/generation/partialprefix/retransmitexactwire;FEC/4096/repair/ACK/MTU unchanged",
+    "benefit": "Structural allocation reduction;actualCPU/p99 benefit NOT_TESTED,not mainrootclaim",
+    "native_candidate": "NOT_RUN",
+    "actions": "NOT_RUN",
+    "log": "docs/devlog/20261006-211200-npcap-owned-return-copy-candidate.md"
   }
 }
