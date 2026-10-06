@@ -1,5 +1,7 @@
 # WBD NEXT — 每位 agent 的开发入口
 
+2026-10-06当前：配套产品9211b24不变；f7c探针phase timing助手Actions37408486066及core/GUI均PASS，原生D04 seed1417正在跑。M03第二份FAIL保留，延后查Windows重组失败仍0，不把缺包自动认定超时。新增只限受控target/lease的serverTUN与Wintun碎片诊断助手，先Actions固定向量/parse，再实机；不改transport/MTU/buffer/FEC/4096，抓包容量/时间有界，审计后删除。
+
 本分支是 `next/tlslike-dataplane`，唯一产品方向为单进程、单 TLS-like 数据面。不是 DTLS 兼容分支。所有 agent，包括全新接手者，在修改前执行以下流程。
 
 ## 必读顺序与权威

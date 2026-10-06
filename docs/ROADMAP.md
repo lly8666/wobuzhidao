@@ -1,5 +1,7 @@
 # 唯一开发路线图
 
+2026-10-06当前：配套产品9211b24不变；f7c探针phase timing助手Actions37408486066及core/GUI均PASS，原生D04 seed1417正在跑。M03第二份FAIL保留，延后查Windows重组失败仍0，不把缺包自动认定超时。新增只限受控target/lease的serverTUN与Wintun碎片诊断助手，先Actions固定向量/parse，再实机；不改transport/MTU/buffer/FEC/4096，抓包容量/时间有界，审计后删除。
+
 2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
 
 历史3e3e094阶段入口（已由上段当前状态覆盖）：当时配套包已过Actions定向门并实机D01完整300s，长时间双向中断未再现，但下行8.90%字节损失、208探针超时仍FAIL。当时下一项S16/Windows收包诊断不作为本轮任务；最新下一步以STATUS为准。旧失败不继承为新SOURCE资格。
