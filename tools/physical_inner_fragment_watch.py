@@ -118,7 +118,7 @@ def pcapng_rows(path, source, destination):
                 coverage='REQUIRES_PKT_MON_COUNTERS_AND_COMPONENT_SCOPE')
 
 
-def watch(interface, source, destination, seconds, output):
+def watch(interface, source, destination, seconds, output, ready=None):
     if not 1 <= seconds <= 390:
         raise ValueError('Bounded duration required')
     stopping = False
@@ -131,9 +131,15 @@ def watch(interface, source, destination, seconds, output):
     hardware = int(Path('/sys/class/net/%s/type' % interface).read_text())
     if hardware not in (1, 65534):
         raise ValueError('Unknown shared TUN link format')
-    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800)) as sock:
+    # ETH_P_IP observes only packets entering the kernel on this TUN. Kernel
+    # replies leave via PACKET_OUTGOING; ETH_P_ALL is required to see them.
+    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0003)) as sock:
         sock.bind((interface, 0))
         sock.settimeout(.5)
+        if ready is not None:
+            if ready.exists():
+                raise ValueError('Existing readiness artifact')
+            ready.write_text(json.dumps(dict(interface=interface,started_unix_ns=time.time_ns()))+'\n')
         # Existing default receive buffer, diagnostic only. No product change.
         while not stopping and time.monotonic()-started < seconds:
             try:
@@ -172,6 +178,7 @@ def main():
     ap.add_argument('--pcapng', type=Path)
     ap.add_argument('--interface', default='wbdg0')
     ap.add_argument('--seconds', type=int, default=330)
+    ap.add_argument('--ready', type=Path)
     args = ap.parse_args()
     if args.source != '198.18.0.1' or not ipaddress.IPv4Address(args.destination) in ipaddress.IPv4Network('10.66.0.0/16'):
         raise ValueError('Only controlled test target and leased destination allowed')
@@ -180,7 +187,7 @@ def main():
     else:
         if args.interface != 'wbdg0':
             raise ValueError('Only shared test TUN permitted')
-        watch(args.interface, args.source, args.destination, args.seconds, args.output)
+        watch(args.interface, args.source, args.destination, args.seconds, args.output, args.ready)
 
 
 if __name__ == '__main__':

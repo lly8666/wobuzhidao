@@ -17,9 +17,10 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq iproute2
           mkdir -p artifacts
           sudo env GITHUB_ACTIONS=true GITHUB_SHA="$GITHUB_SHA" python3 tools/test_physical_egress_blackhole.py | tee artifacts/egress-fixture.json
+          sudo env GITHUB_ACTIONS=true python3 tools/test_physical_fragment_kernel.py | tee artifacts/reverse-fragment-fixture.json
       - uses: actions/upload-artifact@v4
         if: always()
-        with: {name: 'egress-fixture-${{ github.sha }}', path: artifacts/egress-fixture.json}
+        with: {name: 'egress-fixture-${{ github.sha }}', path: artifacts/*.json}
   physical-helper-compile:
     runs-on: windows-2022
     timeout-minutes: 5

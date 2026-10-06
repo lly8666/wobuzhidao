@@ -18,7 +18,7 @@ function global:pktmon.exe {
         'stop' {$global:WBDPktmonActive=$null}
         'counters' {'Controlled counter fixture'}
         'etl2pcap' {[IO.File]::WriteAllBytes($values[[array]::IndexOf($values,'--out')+1],[byte[]]@(1,2,3,4))}
-        'etl2txt' {[IO.File]::WriteAllText($values[[array]::IndexOf($values,'--out')+1],'Controlled event fixture')}
+        'etl2txt' {if($values -contains '--stats'){'Controlled statistics fixture'}else{[IO.File]::WriteAllText($values[[array]::IndexOf($values,'--out')+1],'Controlled event fixture')}}
         default {throw 'Unexpected fake monitor operation'}
     }
 }
@@ -27,7 +27,8 @@ try {
     $result=Get-Content (Join-Path $fixture 'data/fixture-capture.json') -Raw|ConvertFrom-Json
     if(-not $result.Converted -or -not $result.RawETLDeleted -or $result.OwnedCaptureRemaining -or $result.OwnedFilterRemaining){throw 'Own capture cleanup failed'}
     $start=@($global:WBDPktmonCalls|Where-Object {$_[0] -eq 'start'})
-    if($start.Count -ne 1 -or -not ($start[0] -contains '--file-size') -or -not ($start[0] -contains '16') -or -not ($start[0] -contains '--pkt-size') -or -not ($start[0] -contains '64')){throw 'Capture arguments were lost or bound changed'}
+    if($start.Count -ne 1 -or -not ($start[0] -contains '--file-size') -or -not ($start[0] -contains '16') -or -not ($start[0] -contains '--pkt-size') -or -not ($start[0] -contains '64') -or -not ($start[0] -contains 'Microsoft-Windows-PktMon')){throw 'Capture arguments were lost or bound changed'}
+    if(-not (Test-Path -LiteralPath (Join-Path $fixture 'data/fixture-statistics.txt'))){throw 'Statistics output missing'}
     $global:WBDPktmonChinese=$true
     & $PSScriptRoot/physical_windows_fragments.ps1 -Bundle $fixture -Lease '10.66.1.1' -ComponentId 57 -Seconds 1 -Name localized
     $global:WBDPktmonChinese=$false

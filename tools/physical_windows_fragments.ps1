@@ -10,6 +10,7 @@ $data=Join-Path (Resolve-Path -LiteralPath $Bundle).Path 'data'
 $prefix=Join-Path $data $Name
 $etl=$prefix+'.etl';$pcap=$prefix+'.pcapng';$text=$prefix+'-events.txt'
 $receipt=$prefix+'-capture.json';$ready=$prefix+'-ready.json';$stopRequest=$prefix+'-stop.request'
+$statistics=$prefix+'-statistics.txt'
 $filter='WBD-'+$Name
 $notRunningCN=-join @([char]0x6ca1,[char]0x6709,[char]0x8fd0,[char]0x884c)
 $inactiveCN=-join @([char]0x672a,[char]0x8fd0,[char]0x884c)
@@ -23,7 +24,7 @@ function Invoke-Pktmon([string[]]$Arguments) {
 function Write-Receipt($Value,[string]$Path) {
     [IO.File]::WriteAllText($Path,($Value|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
 }
-foreach($path in @($etl,$pcap,$text,$receipt,$ready,$stopRequest)){
+foreach($path in @($etl,$pcap,$text,$statistics,$receipt,$ready,$stopRequest)){
     if(Test-Path -LiteralPath $path){throw 'Existing diagnostic artifact; preserve it'}
 }
 [Net.IPAddress]$parsedLease=$null
@@ -41,7 +42,7 @@ try {
     $ownedFilter=$true
     # No port predicate: nonfirst IP fragments have no UDP ports. Select only
     # the controlled target/lease pair and the actual Wintun component.
-    Invoke-Pktmon -Arguments @('start','--capture','--comp',[string]$ComponentId,'--type','all','--pkt-size','64','--file-name',$etl,'--file-size','16','--log-mode','circular')|Out-Null
+    Invoke-Pktmon -Arguments @('start','--capture','--comp',[string]$ComponentId,'--type','all','--pkt-size','64','--flags','0x3f','--trace','--provider','Microsoft-Windows-PktMon','--keywords','0x3f','--level','5','--file-name',$etl,'--file-size','16','--log-mode','circular')|Out-Null
     $ownedCapture=$true
     Write-Receipt ([pscustomobject]@{StartedUnixMS=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds();ComponentId=$ComponentId;Lease=$Lease;Target='198.18.0.1';SnapBytes=64;MaxETLMiB=16}) $ready
     $clock=[Diagnostics.Stopwatch]::StartNew()
@@ -59,7 +60,10 @@ try {
             $ownedCapture=$false
             if(-not(Test-Path -LiteralPath $etl) -or (Get-Item -LiteralPath $etl).Length -gt 17MB){throw 'ETL size outside bound'}
             Invoke-Pktmon -Arguments @('etl2pcap',$etl,'--out',$pcap,'--component-id',[string]$ComponentId)|Out-Null
-            Invoke-Pktmon -Arguments @('etl2txt',$etl,'--out',$text,'--stats','--timestamp','--metadata','--brief')|Out-Null
+            # --stats exits after printing statistics; it never writes --out.
+            $traceStatistics=Invoke-Pktmon -Arguments @('etl2txt',$etl,'--stats')
+            [IO.File]::WriteAllText($statistics,$traceStatistics,[Text.UTF8Encoding]::new($false))
+            Invoke-Pktmon -Arguments @('etl2txt',$etl,'--out',$text,'--timestamp','--metadata','--brief')|Out-Null
             if((Get-Item -LiteralPath $pcap).Length -gt 16MB -or (Get-Item -LiteralPath $text).Length -gt 32MB){throw 'Converted diagnostic size outside bound'}
             $converted=$true
             Remove-Item -LiteralPath $etl -Force
@@ -68,7 +72,7 @@ try {
     if($ownedFilter -and -not $ownedCapture){
         try{Invoke-Pktmon -Arguments @('filter','remove',$filter)|Out-Null;$ownedFilter=$false}catch{$errors+= $_.Exception.Message}
     }
-    Write-Receipt ([pscustomobject]@{StartedUnixMS=$started;EndedUnixMS=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds();ComponentId=$ComponentId;Lease=$Lease;Target='198.18.0.1';SnapBytes=64;Converted=$converted;CaptureStatus=$captureStatus;Counters=$counters;OwnedCaptureRemaining=$ownedCapture;OwnedFilterRemaining=$ownedFilter;Errors=$errors;Scope='Selected Wintun component; controlled target and lease; not application delivery proof';RawETLDeleted=(-not(Test-Path -LiteralPath $etl));RawPCAPPendingMetadataAudit=(Test-Path -LiteralPath $pcap)}) $receipt
+    Write-Receipt ([pscustomobject]@{StartedUnixMS=$started;EndedUnixMS=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds();ComponentId=$ComponentId;Lease=$Lease;Target='198.18.0.1';SnapBytes=64;Converted=$converted;CaptureStatus=$captureStatus;Counters=$counters;OwnedCaptureRemaining=$ownedCapture;OwnedFilterRemaining=$ownedFilter;Errors=$errors;Scope='Selected Wintun component; controlled target and lease; PktMon provider only; requires nonempty packet rows and coverage; not application delivery proof';RawETLDeleted=(-not(Test-Path -LiteralPath $etl));RawPCAPPendingMetadataAudit=(Test-Path -LiteralPath $pcap)}) $receipt
 }
 if($errors.Count){throw ($errors -join '; ')}
 Write-Output 'BOUNDED_FRAGMENT_CAPTURE_COMPLETE'

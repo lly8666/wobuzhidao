@@ -84,8 +84,8 @@
     "Bounded reverse-fragment diagnostic helpers Actions qualification",
     "Remaining native IP/config and old rawp99/Wake attribution"
   ],
-  "next_task": "Finish owned bounded reverse-fragment M03 seed1418 on paired product9211b24/helper5c; compare serverTUN and WindowsWintun IDs/offsets and retain observercoverage/drop integrity. D04 functional gates passed but business32missing and raw187drops/pacingp99 unavailable remain PARTIAL; do not claim zero-loss or fullP7. No buffers/FEC/4096/HOL expansion. Latest full70/strict18/1800s and remaining30 case IDs still open.",
-  "latest_log": "docs/devlog/20261006-114600-native-pktmon-localized-status.md",
+  "next_task": "Qualify ETH_P_ALL actual reverse TUN fixture and corrected Pktmon stats/event helper in Actions, then short controlled probe confirms nonempty per-fragment observations before any next300s M03. Application1419 missing1828 and late8972 retained; capture invalid, not proof of no-loss or protocol root. D04 functional PASS/quality PARTIAL remains; no product MTU/buffer/FEC/4096/HOL change, remaining IP/config and current full70/18/soak open.",
+  "latest_log": "docs/devlog/20261006-115000-native-fragment-coverage-correction.md",
   "last_tested_source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
   "actions": [
     {
@@ -7785,7 +7785,7 @@
   },
   "physical_current": {
     "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
-    "state": "D04_FUNCTIONAL_PASS_M03_DIAGNOSTIC_LOCALIZATION_FIX_PENDING",
+    "state": "D04_FUNCTIONAL_PASS_M03_APP_REPEAT_FAIL_DIAGNOSTIC_INVALID",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -8563,26 +8563,39 @@
     "evidence": "docs/evidence/native-dns-d04-9211b24-seed1417-20261006.json"
   },
   "native_fragment_diagnostic": {
-    "state": "NATIVE_SETUP_INVALID_UTF8_PS5_LOCALIZATION_FIX_NOT_QUALIFIED",
+    "state": "NATIVE_CAPTURE_EMPTY_REVERSE_ETH_ALL_AND_EVENT_FIX_NOT_QUALIFIED",
     "files": [
       "tools/physical_inner_fragment_watch.py",
       "tools/physical_windows_fragments.ps1"
     ],
     "scope": "Controlled198.18.0.1 to leased10.66 address only; serverTUN before ingestion vs selectedWintun Pktmon; bounded metadata, no transport changes",
     "next": "Actions fixed fragment/pcapng fixtures and PS parse gate before native diagnostic; ownership/capture drops/window must be proven, raw captures deleted after audit",
-    "helper_source": "5c94366ab453120d63ab5a28d85007456aa8bcd5",
-    "compile_and_fixtures_run": 37409438238,
+    "helper_source": "b3530388e51855a8b4d44cd81e4181e61c9de6d6",
+    "compile_and_fixtures_run": 37409806054,
     "related_runs": [
-      37409438245,
-      37409438233
+      37409806148,
+      37409806189
     ],
-    "foundation_run": 37409438248,
-    "foundation_state": "IN_PROGRESS_AT_RECORDING",
+    "foundation_run": 37409806078,
+    "foundation_state": "SCOPED_COMPLETED_7SUCCESS_9SKIPPED",
     "invalid_preflight": {
       "case": "m03-current-300s-seed1418",
       "full300s": false,
       "product_failure": false,
       "reason": "PS5 ANSI interpretation of UTF8 Chinese status literals produced invalid regex before monitor/workload start"
+    },
+    "capture_invalid": {
+      "case": "m03-current-300s-seed1419",
+      "application_actual_seconds": 300.0862896,
+      "application_missing_max_udp": 1828,
+      "linux_selected_rows": 0,
+      "linux_observer_packets": 3400,
+      "linux_observer_drops": 0,
+      "windows_packet_events": 0,
+      "windows_counters_rx": 13089,
+      "windows_counters_tx": 3400,
+      "raw_deleted": true,
+      "root_cause_proven": false
     }
   }
 }
