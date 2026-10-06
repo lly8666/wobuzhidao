@@ -34,6 +34,16 @@ jobs:
           python3 tools/check_p6_release.py --source-sha "$GITHUB_SHA" --target-os linux --target-arch amd64 --bundle-dir artifacts/linux-amd64 --run-native
           python3 -m py_compile deploy/linux/wbdctl tools/test_linux_server_delivery.py
           go test -c -o /tmp/wbd-linux-managed.test ./internal/linuxserver
+          go test -c -o /tmp/wbd-raw-port.test ./internal/faketcp
+      - name: Kernel receive-port filter and default endpoint compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          ns=wbd-raw-port-filter
+          trap 'sudo ip netns del "$ns" || true' EXIT
+          sudo ip netns add "$ns"
+          sudo ip netns exec "$ns" ip link set lo up
+          sudo ip netns exec "$ns" env GITHUB_ACTIONS=true WBD_RAW_PORT_FILTER_KERNEL=1 /tmp/wbd-raw-port.test -test.run '^TestRawPortFilterKernelIngress$' -test.v | tee artifacts/raw-port-kernel.log
       - name: Real isolated crash recovery and narrow RST ownership
         shell: bash
         run: |

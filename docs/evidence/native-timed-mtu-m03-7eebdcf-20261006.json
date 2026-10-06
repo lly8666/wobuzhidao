@@ -1,0 +1,726 @@
+{
+  "schema": "wbd-native-inner-mtu-boundary/v1",
+  "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+  "case": "m03-current-300s-seed1414",
+  "status": "PASS_WITH_LATE_RESPONSES",
+  "errors": [],
+  "cases": [
+    {
+      "UDPPayload": 8972,
+      "IPv4Total": 9000,
+      "Attempts": 163,
+      "Sent": 163,
+      "ReceivedExact": 163,
+      "TimelyReceived": 163,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "Timeout": 0,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": false,
+      "MissingSequences": [],
+      "outcome": "PASS_EXACT"
+    },
+    {
+      "UDPPayload": 96,
+      "IPv4Total": 124,
+      "Attempts": 1302,
+      "Sent": 1302,
+      "ReceivedExact": 1302,
+      "TimelyReceived": 1302,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "Timeout": 0,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": false,
+      "MissingSequences": [],
+      "outcome": "PASS_EXACT"
+    },
+    {
+      "UDPPayload": 8973,
+      "IPv4Total": 9001,
+      "Attempts": 163,
+      "Sent": 163,
+      "ReceivedExact": 163,
+      "TimelyReceived": 163,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "Timeout": 0,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": false,
+      "MissingSequences": [],
+      "outcome": "PASS_EXACT"
+    },
+    {
+      "UDPPayload": 65507,
+      "IPv4Total": 65535,
+      "Attempts": 163,
+      "Sent": 163,
+      "ReceivedExact": 163,
+      "TimelyReceived": 159,
+      "LateExact": 4,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "Timeout": 4,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": false,
+      "MissingSequences": [],
+      "outcome": "PASS_EXACT"
+    },
+    {
+      "UDPPayload": 65508,
+      "IPv4Total": 65536,
+      "Attempts": 163,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "TimelyReceived": 0,
+      "LateExact": 0,
+      "MessageSizeError": 163,
+      "OtherSendError": 0,
+      "Timeout": 0,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": false,
+      "MissingSequences": [],
+      "outcome": "PASS_REJECTED"
+    },
+    {
+      "UDPPayload": 8972,
+      "IPv4Total": 9000,
+      "Attempts": 163,
+      "Sent": 163,
+      "ReceivedExact": 163,
+      "TimelyReceived": 163,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "Timeout": 0,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": true,
+      "MissingSequences": [],
+      "outcome": "PASS_EXACT"
+    },
+    {
+      "UDPPayload": 8973,
+      "IPv4Total": 9001,
+      "Attempts": 163,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "TimelyReceived": 0,
+      "LateExact": 0,
+      "MessageSizeError": 163,
+      "OtherSendError": 0,
+      "Timeout": 0,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": true,
+      "MissingSequences": [],
+      "outcome": "PASS_REJECTED"
+    },
+    {
+      "UDPPayload": 65507,
+      "IPv4Total": 65535,
+      "Attempts": 163,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "TimelyReceived": 0,
+      "LateExact": 0,
+      "MessageSizeError": 163,
+      "OtherSendError": 0,
+      "Timeout": 0,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": true,
+      "MissingSequences": [],
+      "outcome": "PASS_REJECTED"
+    },
+    {
+      "UDPPayload": 65508,
+      "IPv4Total": 65536,
+      "Attempts": 162,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "TimelyReceived": 0,
+      "LateExact": 0,
+      "MessageSizeError": 162,
+      "OtherSendError": 0,
+      "Timeout": 0,
+      "BadPayload": 0,
+      "Duplicates": 0,
+      "DontFragment": true,
+      "MissingSequences": [],
+      "outcome": "PASS_REJECTED"
+    }
+  ],
+  "actual_seconds": 300.0030074,
+  "late_exact": 4,
+  "client_alive": true,
+  "actual_inner_mtu": {
+    "InterfaceIndex": 12,
+    "InterfaceAlias": "WBD-P7",
+    "NlMtu": 9000
+  },
+  "stop": {
+    "State": "STOPPED",
+    "Ready": true,
+    "Reason": "requested_stop",
+    "ExitCode": 0,
+    "NetworkStateRemaining": false,
+    "OwnedNRPTRemaining": 0,
+    "OwnedFirewallRemaining": 0,
+    "ElapsedSeconds": 345.9
+  },
+  "wire": [
+    {
+      "name": "m03-current-300s-seed1414-start-wire.json",
+      "raw_deleted": true,
+      "capture_kernel_drops": 0,
+      "flow": [
+        {
+          "direction": "C2S",
+          "packets": 9,
+          "max_ipv4_length": 706,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "tls_complete_records": 5,
+          "tls_record_types": {
+            "22": 1,
+            "20": 1,
+            "23": 3
+          },
+          "tls_wire_versions": {
+            "0x301": 1,
+            "0x303": 4
+          },
+          "tls_invalid_headers_in_aligned_runs": 0
+        },
+        {
+          "direction": "S2C",
+          "packets": 8,
+          "max_ipv4_length": 938,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "tls_complete_records": 9,
+          "tls_record_types": {
+            "22": 1,
+            "20": 1,
+            "23": 7
+          },
+          "tls_wire_versions": {
+            "0x303": 9
+          },
+          "tls_invalid_headers_in_aligned_runs": 0
+        }
+      ],
+      "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+      "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof"
+    },
+    {
+      "name": "m03-current-300s-seed1414-steady-wire.json",
+      "raw_deleted": true,
+      "capture_kernel_drops": 0,
+      "flow": [
+        {
+          "direction": "C2S",
+          "packets": 964,
+          "max_ipv4_length": 1290,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "tls_complete_records": 529,
+          "tls_record_types": {
+            "23": 529
+          },
+          "tls_wire_versions": {
+            "0x303": 529
+          },
+          "tls_invalid_headers_in_aligned_runs": 0
+        },
+        {
+          "direction": "S2C",
+          "packets": 986,
+          "max_ipv4_length": 1340,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "tls_complete_records": 715,
+          "tls_record_types": {
+            "23": 715
+          },
+          "tls_wire_versions": {
+            "0x303": 715
+          },
+          "tls_invalid_headers_in_aligned_runs": 0
+        }
+      ],
+      "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+      "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof"
+    },
+    {
+      "name": "m03-current-300s-seed1414-stop-wire.json",
+      "raw_deleted": true,
+      "capture_kernel_drops": 0,
+      "flow": [
+        {
+          "direction": "C2S",
+          "packets": 1,
+          "max_ipv4_length": 40,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "tls_complete_records": 0,
+          "tls_record_types": {},
+          "tls_wire_versions": {},
+          "tls_invalid_headers_in_aligned_runs": 0
+        },
+        {
+          "direction": "S2C",
+          "packets": 2,
+          "max_ipv4_length": 80,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "tls_complete_records": 1,
+          "tls_record_types": {
+            "23": 1
+          },
+          "tls_wire_versions": {
+            "0x303": 1
+          },
+          "tls_invalid_headers_in_aligned_runs": 0
+        }
+      ],
+      "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+      "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof"
+    },
+    {
+      "name": "m03-current-300s-seed1414-tail-wire.json",
+      "raw_deleted": true,
+      "capture_kernel_drops": 0,
+      "flow": [
+        {
+          "direction": "C2S",
+          "packets": 1498,
+          "max_ipv4_length": 1290,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "tls_complete_records": 672,
+          "tls_record_types": {
+            "23": 672
+          },
+          "tls_wire_versions": {
+            "0x303": 672
+          },
+          "tls_invalid_headers_in_aligned_runs": 0
+        },
+        {
+          "direction": "S2C",
+          "packets": 1248,
+          "max_ipv4_length": 1340,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "tls_complete_records": 894,
+          "tls_record_types": {
+            "23": 894
+          },
+          "tls_wire_versions": {
+            "0x303": 894
+          },
+          "tls_invalid_headers_in_aligned_runs": 0
+        }
+      ],
+      "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+      "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof"
+    }
+  ],
+  "cpu": {
+    "product": 10.078125,
+    "helper": 0.71875
+  },
+  "fixture_hashes": {
+    "physical_bounded_capture.py": "aabc25fb2eca637ddc907fdf65ee69e66d09df6f44089939a52ba7bde48c8caf",
+    "physical_dns_observer.py": "88f42ea38bd323f20ebb05a9de059a2e5d2112e3de0a1e10c8d0230efcd35108",
+    "physical_egress_blackhole.py": "9b31c353832a59b5e5408ea7ee592f01a31a1679c30327bdb6c9b08bd0028ab8",
+    "physical_header_watch.py": "977bd060511fc2a3f09c4496b37d5caeaebee4d185ef4fde4dc4667e431f0aea",
+    "physical_mtu_target.py": "8b6283c042bf9a2a2c763ab75a96654e1f89cec85d3a74821207c2959632e0e9",
+    "physical_npcap_watch.cs": "1b6902b9135570e4a7cbcb5046ebc07feaedd7d7e36a9c6ef80d94d7360087c7",
+    "physical_packet_counts.py": "1f663f68b8c090b6dec181cfa082a827cf5c83cb06fbac4030c0ac4f9f2fd510",
+    "physical_resource_watch.py": "d70d45f3f445bf2cbd19e83bb24faedc82e9613c8cc6d3fa2262dc4c92bbbeb3",
+    "physical_udp_client.cs": "dbfbc95d0a133c5c22643389266736ba8cf9a5dc4644413bcd459d15256bd428",
+    "physical_udp_server.py": "9f88a896b2f20bab6341d71215cb58fd92a34ee30fe1a80445b792ff4a387547",
+    "physical_windows_business.ps1": "5cb3631268f1adc826891e1b4e07deb64b0a1d8eb6b15978b040fbf7d81176f8",
+    "physical_windows_dns.ps1": "cd976134b3e2e94abbecdfb159db8efc87c22a894db4bae9bcb10798316bbed6",
+    "physical_windows_header_watch.ps1": "e341cbd4ed7c0e8e92f491a4a1215408b3150fbcff18c1515d068b7862e46ea4",
+    "physical_windows_mtu.ps1": "72bd46c001e35d7a6319d6fd552092ca0d98474d3033dd12a0aeeee13d0737e6",
+    "physical_windows_session.ps1": "b3e75fdff75664a6889c564b0a6397a9b7ee03edccc8446c8d2923bc60c19715",
+    "physical_windows_udp.ps1": "fa1da2c70314bc9b021cb4bfb9ac527814dbdf5081a9452720a6a2b4c7b5eb34",
+    "physical_wire_audit.py": "6be5b98d6b62d8f52a95f9f1419d31040dbaa16cf3e3f8ca0174fc801e5c8f83",
+    "native_mtu_probe.cs": "cb9b185f162bd97b92b1f299f5a8d130ee885b9905c17e809b45d89ac8597a33",
+    "native_windows_mtu_boundary.ps1": "33fd8c916c9b488cc4e9c03c06a1b252aa0d5c851e00d08b102ca1232f1c291a",
+    "native_mtu_boundary_target.py": "c782d2b0ad9b20653c622ee2a988955d466842b24730b2753b7a9e6849d89ae4"
+  },
+  "not_performance_qualification": true,
+  "timing": {
+    "inventory_state": "PASS",
+    "errors": [],
+    "total": {
+      "sent": 1954,
+      "received": 1954,
+      "missing": 0,
+      "timeout": 4,
+      "rtt_ms": {
+        "p50": 110.48800000003212,
+        "p95": 139.177200000006,
+        "p99": 204.59259999999801,
+        "max": 3016.277400000007
+      },
+      "send_call_max_ms": 1.5925999999999996
+    },
+    "by_size_df": {
+      "8972/False": {
+        "sent": 163,
+        "received": 163,
+        "missing": 0,
+        "timeout": 0,
+        "rtt_ms": {
+          "p50": 113.29020000000867,
+          "p95": 197.69379999999614,
+          "p99": 710.0257999999826,
+          "max": 788.9643999999976
+        },
+        "send_call_max_ms": 1.5925999999999996
+      },
+      "96/False": {
+        "sent": 1302,
+        "received": 1302,
+        "missing": 0,
+        "timeout": 0,
+        "rtt_ms": {
+          "p50": 108.38939999999297,
+          "p95": 115.99190000001158,
+          "p99": 117.70129999999313,
+          "max": 217.11429999999154
+        },
+        "send_call_max_ms": 0.21380000001158805
+      },
+      "8973/False": {
+        "sent": 163,
+        "received": 163,
+        "missing": 0,
+        "timeout": 0,
+        "rtt_ms": {
+          "p50": 111.93169999995689,
+          "p95": 174.08709999999417,
+          "p99": 196.067400000004,
+          "max": 209.13140000001817
+        },
+        "send_call_max_ms": 0.1672000000070284
+      },
+      "65507/False": {
+        "sent": 163,
+        "received": 163,
+        "missing": 0,
+        "timeout": 4,
+        "rtt_ms": {
+          "p50": 132.05500000000114,
+          "p95": 204.59259999999801,
+          "p99": 2240.3495000000007,
+          "max": 3016.277400000007
+        },
+        "send_call_max_ms": 0.3457999999980643
+      },
+      "8972/True": {
+        "sent": 163,
+        "received": 163,
+        "missing": 0,
+        "timeout": 0,
+        "rtt_ms": {
+          "p50": 113.4704000000113,
+          "p95": 127.54869999997709,
+          "p99": 202.15239999999568,
+          "max": 210.3561000000127
+        },
+        "send_call_max_ms": 0.1201999999977943
+      }
+    },
+    "echo_send_call_max_ms": 5.197666,
+    "clock_ranges": {
+      "client_utc_vs_monotonic_range_ms": 2.4162999999898602,
+      "server_utc_vs_monotonic_range_ms": 0.00146484375,
+      "warning": "Relative direction changes only under stable offset; apparent values are not absolute one-way delays. Server clock check is sampled,not continuous."
+    },
+    "helper": {
+      "source": "f9653fb94d89f55a93686449bde4eeb65873fc25",
+      "exact_files_verified": true,
+      "product_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535"
+    },
+    "interhost_clock": "UNKNOWN offset; no absolute one-way latency attribution",
+    "formal_performance_qualification": false
+  },
+  "late": [
+    {
+      "client": {
+        "Sequence": 436,
+        "UDPPayload": 65507,
+        "DontFragment": false,
+        "Received": true,
+        "TimedOutAtOneSecond": true,
+        "SentUnixMS": 1791216288865,
+        "ReceivedUnixMS": 1791216291105,
+        "SentOffsetMS": 48677.138999999996,
+        "ReceivedOffsetMS": 50917.4885,
+        "SendCallMS": 0.2500999999952569,
+        "RTTMS": 2240.3495000000007
+      },
+      "target": {
+        "sequence": 436,
+        "udp_payload": 65507,
+        "received_unix_ns": 1791216287542407006,
+        "echo_end_unix_ns": 1791216287542524726,
+        "echo_send_call_ns": 79080
+      },
+      "apparent_forward_ms": -1322.593017578125,
+      "apparent_reverse_ms": 3562.475341796875,
+      "target_wall_duration_ms": 0.11772,
+      "relative_forward_ms": 2.934814453125,
+      "relative_reverse_ms": 2105.81494140625
+    },
+    {
+      "client": {
+        "Sequence": 612,
+        "UDPPayload": 65507,
+        "DontFragment": false,
+        "Received": true,
+        "TimedOutAtOneSecond": true,
+        "SentUnixMS": 1791216309420,
+        "ReceivedUnixMS": 1791216312436,
+        "SentOffsetMS": 69231.70569999999,
+        "ReceivedOffsetMS": 72247.9831,
+        "SendCallMS": 0.21209999999882712,
+        "RTTMS": 3016.277400000007
+      },
+      "target": {
+        "sequence": 612,
+        "udp_payload": 65507,
+        "received_unix_ns": 1791216308094076991,
+        "echo_end_unix_ns": 1791216308094210552,
+        "echo_send_call_ns": 82720
+      },
+      "apparent_forward_ms": -1325.923095703125,
+      "apparent_reverse_ms": 4341.78955078125,
+      "target_wall_duration_ms": 0.133561,
+      "relative_forward_ms": -0.395263671875,
+      "relative_reverse_ms": 2885.129150390625
+    },
+    {
+      "client": {
+        "Sequence": 1348,
+        "UDPPayload": 65507,
+        "DontFragment": false,
+        "Received": true,
+        "TimedOutAtOneSecond": true,
+        "SentUnixMS": 1791216393938,
+        "ReceivedUnixMS": 1791216395216,
+        "SentOffsetMS": 153750.3007,
+        "ReceivedOffsetMS": 155028.4724,
+        "SendCallMS": 0.06809999999290994,
+        "RTTMS": 1278.1717000000015
+      },
+      "target": {
+        "sequence": 1348,
+        "udp_payload": 65507,
+        "received_unix_ns": 1791216392613430249,
+        "echo_end_unix_ns": 1791216392613559370,
+        "echo_send_call_ns": 91001
+      },
+      "apparent_forward_ms": -1324.56982421875,
+      "apparent_reverse_ms": 2602.440673828125,
+      "target_wall_duration_ms": 0.129121,
+      "relative_forward_ms": 0.9580078125,
+      "relative_reverse_ms": 1145.7802734375
+    },
+    {
+      "client": {
+        "Sequence": 1556,
+        "UDPPayload": 65507,
+        "DontFragment": false,
+        "Received": true,
+        "TimedOutAtOneSecond": true,
+        "SentUnixMS": 1791216419299,
+        "ReceivedUnixMS": 1791216421230,
+        "SentOffsetMS": 179110.9073,
+        "ReceivedOffsetMS": 181042.0796,
+        "SendCallMS": 0.0952000000040698,
+        "RTTMS": 1931.1723000000143
+      },
+      "target": {
+        "sequence": 1556,
+        "udp_payload": 65507,
+        "received_unix_ns": 1791216419779490269,
+        "echo_end_unix_ns": 1791216419779625990,
+        "echo_send_call_ns": 98001
+      },
+      "apparent_forward_ms": 480.490234375,
+      "apparent_reverse_ms": 1450.3740234375,
+      "target_wall_duration_ms": 0.135721,
+      "relative_forward_ms": 1806.01806640625,
+      "relative_reverse_ms": -6.286376953125
+    }
+  ],
+  "unreceived": [],
+  "tail": [
+    {
+      "client": {
+        "Sequence": 612,
+        "UDPPayload": 65507,
+        "DontFragment": false,
+        "Received": true,
+        "TimedOutAtOneSecond": true,
+        "SentUnixMS": 1791216309420,
+        "ReceivedUnixMS": 1791216312436,
+        "SentOffsetMS": 69231.70569999999,
+        "ReceivedOffsetMS": 72247.9831,
+        "SendCallMS": 0.21209999999882712,
+        "RTTMS": 3016.277400000007
+      },
+      "target": {
+        "sequence": 612,
+        "udp_payload": 65507,
+        "received_unix_ns": 1791216308094076991,
+        "echo_end_unix_ns": 1791216308094210552,
+        "echo_send_call_ns": 82720
+      },
+      "apparent_forward_ms": -1325.923095703125,
+      "apparent_reverse_ms": 4341.78955078125,
+      "target_wall_duration_ms": 0.133561,
+      "relative_forward_ms": -0.395263671875,
+      "relative_reverse_ms": 2885.129150390625
+    },
+    {
+      "client": {
+        "Sequence": 436,
+        "UDPPayload": 65507,
+        "DontFragment": false,
+        "Received": true,
+        "TimedOutAtOneSecond": true,
+        "SentUnixMS": 1791216288865,
+        "ReceivedUnixMS": 1791216291105,
+        "SentOffsetMS": 48677.138999999996,
+        "ReceivedOffsetMS": 50917.4885,
+        "SendCallMS": 0.2500999999952569,
+        "RTTMS": 2240.3495000000007
+      },
+      "target": {
+        "sequence": 436,
+        "udp_payload": 65507,
+        "received_unix_ns": 1791216287542407006,
+        "echo_end_unix_ns": 1791216287542524726,
+        "echo_send_call_ns": 79080
+      },
+      "apparent_forward_ms": -1322.593017578125,
+      "apparent_reverse_ms": 3562.475341796875,
+      "target_wall_duration_ms": 0.11772,
+      "relative_forward_ms": 2.934814453125,
+      "relative_reverse_ms": 2105.81494140625
+    },
+    {
+      "client": {
+        "Sequence": 1556,
+        "UDPPayload": 65507,
+        "DontFragment": false,
+        "Received": true,
+        "TimedOutAtOneSecond": true,
+        "SentUnixMS": 1791216419299,
+        "ReceivedUnixMS": 1791216421230,
+        "SentOffsetMS": 179110.9073,
+        "ReceivedOffsetMS": 181042.0796,
+        "SendCallMS": 0.0952000000040698,
+        "RTTMS": 1931.1723000000143
+      },
+      "target": {
+        "sequence": 1556,
+        "udp_payload": 65507,
+        "received_unix_ns": 1791216419779490269,
+        "echo_end_unix_ns": 1791216419779625990,
+        "echo_send_call_ns": 98001
+      },
+      "apparent_forward_ms": 480.490234375,
+      "apparent_reverse_ms": 1450.3740234375,
+      "target_wall_duration_ms": 0.135721,
+      "relative_forward_ms": 1806.01806640625,
+      "relative_reverse_ms": -6.286376953125
+    }
+  ],
+  "independent_target": {
+    "counts": {
+      "8972": 326,
+      "96": 1302,
+      "8973": 163,
+      "65507": 163
+    },
+    "bad_payload": 0,
+    "echo_send_errors": {},
+    "elapsed_seconds": 307.98561005294323,
+    "effective_receive_buffer_bytes": 425984
+  },
+  "receipt_hashes": {
+    "analysis.json": "7c1379bef0d15c9d5eb4a7155b6dc918964a38341b1f438bb840d96bcccfd0c7",
+    "case-config.json": "7d75c05e925c5a24d27d7f89aca8e9ba7c505de116e24f98dbbb7f032418a69c",
+    "client-diagnostic.jsonl": "86476f09fd6e48d6f2a01c75d95b2c9f82070ea58a93267bf68126937ce02b00",
+    "client-session.json": "a2995f905800cfc1fb80948ebe27f65f91d6792411c8a61740181325814abd68",
+    "deployed-versions.json": "abca4e67ab61b767a7250c3c4a710a51f49e4aea2b516b95c23263da2b988f1a",
+    "dns-fault-events.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "header-preflight-windows-headers.jsonl": "46f94b725041aac48d7e95e41e09df7cfd4e305d166b1fb9aaa90e813a94af61",
+    "helper-source-hashes.json": "8e32bfd7be12dad3b251600156d699b62b2551515058186e66e14aeaf1c32337",
+    "helper-source.json": "be1901350fb349e3eec2d6278bc7eb49c018a76e2ce4b8b46c8473e012f8f03a",
+    "m03-current-300s-seed1414-linux-headers.jsonl": "e3d90781c5af6b1434ee336b9eae09da4901bb58ae989c69e54da389cc86c49d",
+    "m03-current-300s-seed1414-resources.json": "f322a7bad00dc0304039250b78f5de6f0e11b163e7b321db0faa9b41e8031f03",
+    "m03-current-300s-seed1414-start-wire.json": "714e623e47db1a3a83e09e59fff7583904f63e9e45a9432d715d1ec28f4a00bc",
+    "m03-current-300s-seed1414-steady-wire.json": "f8bb7cf2104bf73b81db2fdbc5ce284b18bff1f2e8940b13a478e9590b898861",
+    "m03-current-300s-seed1414-stop-wire.json": "10634b1adb7691479461065b63db67a642af3232613a2e429121479da4ae0c85",
+    "m03-current-300s-seed1414-tail-wire.json": "591501535d75804f0a90955b82dc454ae5d3f4d563bf718c42e842c2445d4605",
+    "m03-current-300s-seed1414-target.json": "821413bb254d5d3dc72db1ec83b87990d6f43d1c2e8bb085ec2912f89df98ab2",
+    "m03-current-300s-seed1414-windows-headers.jsonl": "0ff4c75c76e7499e595ad2af01d1d258b3cf60116f555c86bc561e4bf526e57c",
+    "m03-current-300s-seed1414.json": "bb66962201b8a701b5d88cd745591d702834b777df413ceb16bb1651c76ec9f7",
+    "measurement-status.json": "5413d4fabcaf11e9c9f7166ce7ca2b47dc074f08b8a9bf85b2df034abc9a97a2",
+    "missing-receipts.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "mtu-after-stop.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mtu-before-start.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mtu-during.json": "72c285ad54164af2b222216e8da0a07fa5c3acd27b6874a3626a51cde4e732e9",
+    "p7-network-after.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-network-before.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-status.json": "b5ac37f5ce3d0cb4bfc71d268350a08f9749a50e00c168e71731d981ceda22cb",
+    "server-before.json": "68f655cd04e524e5b30ae334d6d6eb9f01e3a531a29046dfd17f5bde1fbcf35a",
+    "server-diagnostic.jsonl": "fc042652203bcd877a09e93b399a728caa51168bbd0466f4fed77faeee271fab",
+    "tail-boundaries.json": "96a7286118999a700ddbd806d0a61413a7191ac554bbdfa19d1a3728a4644a5d",
+    "target-ready.json": "bf29c570acfc3206aea7cdbac6f2806ada39a9a55456a55ee385405636c55687",
+    "timing-analysis.json": "d0e298595b3994213572db3ce53e436fe419efd053351b3c0ed4ba3d07a44be0",
+    "trigger-timeline.json": "2c9a51e357e86fe0db8c208769005372ca9e45572c30c0b35e43bb3c6ca375b5",
+    "windows-observer-processes.json": "b7b7299e301afe070fe67af191a027cdd52796703b656626dc0a3245e7d5818d"
+  },
+  "historical_failures_remain_open": [
+    "native1412 9000IP/DFfalse late>1s not attributed",
+    "old SOURCE660 maximumUDP two missing replies",
+    "old strict raw p99 failures",
+    "native Wake residual loss"
+  ]
+}

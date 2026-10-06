@@ -23,25 +23,41 @@ const (
 // and the existing Segment parser/marshaler. It does not create TUN devices,
 // routing policy, DTLS, or a kernel TCP business channel.
 type RawIPv4Endpoint struct {
-	recvFD  int
-	sendFD  int
-	localIP [4]byte
-	persona PacketPersona
+	recvFD           int
+	sendFD           int
+	localIP          [4]byte
+	persona          PacketPersona
+	receivePort      uint16
+	kernelPortFilter bool
 
-	recvMu  sync.Mutex
-	recvBuf []byte
-	recvBatch *rawReceiveBatch
+	recvMu            sync.Mutex
+	recvBuf           []byte
+	recvBatch         *rawReceiveBatch
 	recvBatchDisabled bool
-	ioStats rawIOCounters
+	ioStats           rawIOCounters
 
-	mu     sync.Mutex
-	ipID   uint16
-	closed bool
+	mu                sync.Mutex
+	ipID              uint16
+	closed            bool
 	sendBatchDisabled bool
-	once   sync.Once
+	once              sync.Once
 }
 
 func OpenRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPersona) (*RawIPv4Endpoint, error) {
+	return openRawIPv4Endpoint(interfaceName, localIP, persona, 0)
+}
+
+// OpenRawIPv4EndpointForPort excludes unrelated traffic before receive queue
+// admission on Ethernet/loopback. It accepts every peer and TCP persona at the
+// listening port; authentication, fallback and packet validation stay unchanged.
+func OpenRawIPv4EndpointForPort(interfaceName string, localIP [4]byte, persona PacketPersona, port uint16) (*RawIPv4Endpoint, error) {
+	if port == 0 {
+		return nil, errors.New("faketcp: invalid raw receive port")
+	}
+	return openRawIPv4Endpoint(interfaceName, localIP, persona, port)
+}
+
+func openRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPersona, port uint16) (*RawIPv4Endpoint, error) {
 	if interfaceName == "" || localIP == ([4]byte{}) {
 		return nil, errors.New("faketcp: invalid raw IPv4 endpoint config")
 	}
@@ -72,6 +88,15 @@ func OpenRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPe
 	// Optional Linux4.20+ optimization. Keep the userspace outgoing filter for
 	// older kernels; it has identical ingress semantics when this is unsupported.
 	_ = unix.SetsockoptInt(recvFD, unix.SOL_PACKET, unix.PACKET_IGNORE_OUTGOING, 1)
+	kernelFilter := false
+	if port != 0 && (len(iface.HardwareAddr) == 6 || iface.Flags&net.FlagLoopback != 0) {
+		instructions := rawReceivePortFilter(localIP, port)
+		program := unix.SockFprog{Len: uint16(len(instructions)), Filter: &instructions[0]}
+		if err := unix.SetsockoptSockFprog(recvFD, unix.SOL_SOCKET, unix.SO_ATTACH_FILTER, &program); err != nil {
+			return nil, err
+		}
+		kernelFilter = true
+	}
 
 	sendFD, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_RAW)
 	if err != nil {
@@ -91,7 +116,7 @@ func OpenRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPe
 	closeSend = false
 	return &RawIPv4Endpoint{
 		recvFD: recvFD, sendFD: sendFD,
-		localIP: localIP, persona: persona,
+		localIP: localIP, persona: persona, receivePort: port, kernelPortFilter: kernelFilter,
 		recvBuf: make([]byte, 65536+64),
 		ipID:    1,
 	}, nil
@@ -137,7 +162,7 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 		if err != nil {
 			continue
 		}
-		if seg.DstIP != e.localIP {
+		if seg.DstIP != e.localIP || (e.receivePort != 0 && seg.DstPort != e.receivePort) {
 			continue
 		}
 		return rawOwnedIPv4TCP(ip)
@@ -173,7 +198,9 @@ func (e *RawIPv4Endpoint) WriteSegment(seg Segment) ([]byte, error) {
 			Port: int(seg.DstPort),
 			Addr: seg.DstIP,
 		})
-		if e.ioStats.enabled.Load() { e.ioStats.txCalls.Add(1) }
+		if e.ioStats.enabled.Load() {
+			e.ioStats.txCalls.Add(1)
+		}
 		if rawIOInterrupted(err) {
 			continue
 		}
@@ -183,7 +210,9 @@ func (e *RawIPv4Endpoint) WriteSegment(seg Segment) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if e.ioStats.enabled.Load() { e.ioStats.txMessages.Add(1) }
+	if e.ioStats.enabled.Load() {
+		e.ioStats.txMessages.Add(1)
+	}
 	// MarshalSegment already returns a fresh owned packet. Sendto has completed
 	// before this point, so returning that packet preserves the ownership contract
 	// without cloning every emitted data/ACK segment a second time.

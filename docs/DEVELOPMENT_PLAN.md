@@ -323,3 +323,6 @@ Game desired=2..4是生命周期目标，不是每包回程必须等所有兄弟
 
 
 2026-10-05专项补充：SOURCE7eeb原生Normal1 failed-Wake300s tc黑洞1411通过。出口实际44drop，4failed+1success，双端samePID与lease、两quiet物理lane0、ownedcleanup均确认；清障末60s9.983/9.957M，残余0.172/0.425%loss未关闭。无idleprobe故nativep99NOT_EVALUATED，不能继承Actions或将whole故障期25%loss说成clear-path退化。仅server-to-client单向，双边原生另验。原1410localOUTPUT EPERM失败保留，不吞发送错误；M02Game4新增实机case独立运行。证据native-wake-tc-7eebdcf与STATUS为准。
+
+
+2026-10-06P7窄候选：提前过滤共享服务端AF_PACKET接收的无关目的端口，避免在内核队列、批量syscall与用户态Parse/owned clone之后才拒绝。不增buffer/调恢复/改FEC或wire；任何源IP/persona访问既有listen-port仍进入原TLS/admission/fallback。当前证据支持无关入口工作存在，未证明它是所有maxUDP/rawp99长尾根因；需native AF_PACKET安装/全包字节/default API兼容、普通回落与多client，再独立Normal/Game5205/同源lossless RTT和P6配套实机M03。

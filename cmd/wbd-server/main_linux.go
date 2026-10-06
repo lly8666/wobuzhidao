@@ -233,7 +233,7 @@ func runServer() error {
 	if err != nil {
 		return err
 	}
-	raw, err := faketcp.OpenRawIPv4Endpoint(*rawIface, listenIP.As4(), faketcp.PacketPersonaLegacy)
+	raw, err := faketcp.OpenRawIPv4EndpointForPort(*rawIface, listenIP.As4(), faketcp.PacketPersonaLegacy, uint16(*listenPort))
 	if err != nil {
 		return err
 	}

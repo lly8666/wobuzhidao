@@ -87,3 +87,6 @@ FEC首源8ms是encoder到期条件，不是已承诺的实际parity发包上限�
 Windows新增 CLI-only --check-config：复用完整正式参数解析/健康与MTU校验，打印有效标量，密码和路由密钥隐藏，不建立网络或安装驱动。--control-stdin：GUI-owned子进程收到stop或stdin EOF就取消建连/运行，执行owned清理；named event防止旧进程仍清理时新GUI再建隧道。两者不能写进业务JSON。全部普通字段见 WINDOWS_GUI.md，config/version/update-china-ip及上述操作有按钮，state-path/network-script固定程序目录内位置。PARAMETERS.json仍是唯一参数全集。
 
 Windows state-path 默认 EXE 同目录 data/network-state.json；network-script 默认 EXE 同目录 windows_client_network.ps1，裸 CLI 不再依赖调用者 CWD，也与便携包脚本位置一致。显式 CLI 路径仍保留运维能力；GUI将这些路径固定为本文件夹且拒绝越界。
+
+
+2026-10-06服务端接收入口候选无新参数：沿用实际server-ip/listen-port，Ethernet/loopback AF_PACKET挂经典BPF，内核只收本地IPv4 TCP目的监听端口；所有peer和普通SYN/ALPN/TLS fallback保留，不用固定persona做身份门。其他链路类型保留用户态端口过滤。raw_io诊断新增receive_port与kernel_port_filter，让测试能读到实际安装情况。状态以STATUS.server_receive_port_filter为准，未过Actions/P6不部署。
