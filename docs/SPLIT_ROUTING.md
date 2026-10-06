@@ -27,7 +27,7 @@ Windows对直连地址及server /32取精确补集作为Wintun capture routes。
 
 Linux/OpenWrt TCP/UDP目的端口53在direct/local bypass之前捕获；本机OUTPUT DNS设置现有policy mark后回入TPROXY。underlay服务器地址始终绕行，尤其服务器端口53不能被递归劫持。DNS UDP仅512事务/1MiB，按客户端地址、ID、问题名/类型/类及已尝试解析器验证回复，恢复原始DNS目标地址，只首次交付。虚拟TCP pipe直接复用现有platformflow，无新增回环转发链。健康解析器短期优先；失败转另一台，不无限重试。回复socket专用高位mark避免客户端源端口53递归捕获。IPv6owned policy blackhole + nft ingress/output drop；退出只撤自身资源。
 
-Windows默认owned NRPT指定两台解析器，DNS服务器/32走隧道；失败切换由系统DNS客户端完成。2026-10-06候选新增当前选定物理接口的UDP/TCP53出口阻止：两条owned系统防火墙规则在capture/NRPT前安装，不作用于Wintun/加密外层443/其它端口；支持显式关闭DNS策略，正常退出、安装失败及丢journal清理均只匹配WBD自己的group/名称/description。物理接口名按literal转义，不能把特殊字符扩大成其它接口。此规则阻止显式物理绑定的普通DNS，不伪造DNS回复、不承诺其它NIC/DoH/DoT已接管；实际资格以STATUS为准。
+Windows默认owned NRPT指定两台解析器，DNS服务器/32走隧道；失败切换由系统DNS客户端完成。2026-10-06新增当前选定物理接口的UDP/TCP53出口阻止：两条owned系统防火墙规则在capture/NRPT前安装，不作用于Wintun/加密外层443/其它端口；支持显式关闭DNS策略，正常退出、安装失败及丢journal清理均只匹配WBD自己的group/名称/description。物理接口名按literal转义，不能把特殊字符扩大成其它接口。此规则阻止显式物理绑定的普通DNS，不伪造DNS回复、不承诺其它NIC/DoH/DoT已接管；实际资格以STATUS为准。
 
 device-wide IPv6双向防火墙在安装capture路由前启用；另安装owned ::/1、8000::/1至Wintun，读到IPv6直接丢弃，不唤醒业务。已有更具体IPv6路由也由防火墙拦截。退出/安装失败按journal精确回滚，外部规则和路由保留。hosted模拟不是物理驱动验收。
 
@@ -50,3 +50,5 @@ device-wide IPv6双向防火墙在安装capture路由前启用；另安装owned 
 ```
 
 如果使用内置表，省略china-ip-file即可。全部代理用route-mode=all，只有LAN直连用bypass-lan。正常启动不会隐式更新表；更新命令无需凭据，更新成功后正常客户端重启应用。
+
+2026-10-06 a280原生DNSguard功能限定通过：单所选physicalNIC，显式UDP/TCP53 off可达/on无reply，正常NRPT60/60、physical metadataDNS0、observerdrop0、ownedDNSgroup退出0；见STATUS与native-d01-dns-guard-a280566-seed1464-20261006证据。整条业务仍有54missing/1probe timeout/raw70drop/p99286ms，记FAIL/质量PARTIAL，不将功能PASS冒充性能或全P7通过。dns-hijack=false完整300s单列D06运行，尚不能继承其原生资格。

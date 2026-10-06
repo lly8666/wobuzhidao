@@ -1,0 +1,24 @@
+{
+  "source_version": "wbd-client version=next-rc-a280566b3a16 source_sha=a280566b3a1642d43afe95f29a70ab4daf4e8759 go=go1.23.12 os=windows arch=amd64",
+  "expected_guard": "off",
+  "client_unix_ms": 1791289797939,
+  "owned_rules": 0,
+  "attempts": [
+    {
+      "protocol": "UDP",
+      "received_valid_reply": true,
+      "socket_error": null,
+      "elapsed_ms": 337.65770000000003,
+      "forced_interface": 6
+    },
+    {
+      "protocol": "TCP",
+      "received_valid_reply": true,
+      "socket_error": null,
+      "elapsed_ms": 483.6617,
+      "forced_interface": 6
+    }
+  ],
+  "no_payload_stored": true,
+  "scope": "Forced selected underlay ordinary DNS only; combine reachable off-control and independent physical metadata observer to prove on-guard"
+}

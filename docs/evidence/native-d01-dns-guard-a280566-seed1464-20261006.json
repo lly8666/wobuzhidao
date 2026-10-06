@@ -1,0 +1,370 @@
+{
+  "schema": "wbd-native-static-case/v1",
+  "status": "FAIL",
+  "errors": [
+    "probe_coverage",
+    "business_loss"
+  ],
+  "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+  "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
+  "case": "d01-current-300s-seed1464",
+  "effective": {
+    "desired": 1,
+    "active": 1,
+    "lanes": [
+      {
+        "id": 1,
+        "generation": 1,
+        "parity": 20
+      }
+    ]
+  },
+  "actual_send_seconds": 300.00024279999997,
+  "goodput_mbps": {
+    "c2s": 9.998840213333333,
+    "s2c": 9.999953386666666
+  },
+  "business_loss": {
+    "c2s_packets": 54,
+    "s2c_packets": 0,
+    "c2s_percent": 0.011131785222295854,
+    "s2c_percent": 0
+  },
+  "probes": {
+    "sent": 2979,
+    "received": 2978,
+    "p95_ms": 199.5742,
+    "p99_ms": 285.8157
+  },
+  "phases": {
+    "early": {
+      "probes": 894,
+      "p95_ms": 170.6367,
+      "p99_ms": 223.3469,
+      "c2s_goodput_mbps": 10.000250409806469,
+      "s2c_goodput_mbps": 9.997213350765138
+    },
+    "middle": {
+      "probes": 893,
+      "p95_ms": 226.1651,
+      "p99_ms": 362.5176,
+      "c2s_goodput_mbps": 10.000472609270254,
+      "s2c_goodput_mbps": 10.001334071178285
+    },
+    "late": {
+      "probes": 893,
+      "p95_ms": 185.4212,
+      "p99_ms": 232.4637,
+      "c2s_goodput_mbps": 10.000355214812886,
+      "s2c_goodput_mbps": 10.000114429611772
+    }
+  },
+  "input_quality": {
+    "client": {
+      "TxPackets": 579418,
+      "SendLagSamples": 579418,
+      "SendLagOverflowSamples": 28,
+      "SendLagP99UpperMs": 2.1,
+      "MaxSendLagMs": 15.085499999997865,
+      "PacingMode": "byte-budget-1ms-batch32"
+    },
+    "server": {
+      "TxPackets": 579418,
+      "SendLagSamples": 579418,
+      "SendLagOverflowSamples": 92,
+      "SendLagP99UpperMs": 1.3,
+      "MaxSendLagMs": 50.48703030337709,
+      "PacingMode": "byte-budget-1ms-batch32"
+    }
+  },
+  "default_dns": {
+    "total": 60,
+    "success": 60
+  },
+  "physical_dns": {
+    "state": "PASS_NO_PLAINTEXT_DNS_OBSERVED",
+    "scope": "selected physical NIC only, plaintext IPv4/IPv6 TCP/UDP53; not DoH/DoT/otherNIC",
+    "observations": 302,
+    "dns_frames": 0,
+    "observer_drops": 0
+  },
+  "cpu_seconds": {
+    "client": 306.515625,
+    "server": 160.01,
+    "client_helper": 21.734375,
+    "server_helper": 35.7231212
+  },
+  "server_raw_socket_drop_max": 70,
+  "client_npcap_max": {
+    "interface_dropped": 0,
+    "driver_dropped": 0
+  },
+  "client_npcap_stats_supported": true,
+  "client_user_receive_overflow_max": 0,
+  "wire_windows": [
+    {
+      "captured_frames": 17,
+      "window_seconds": 12.049915256910026,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 8192,
+      "window_seconds": 1.602058308199048,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 4,
+      "window_seconds": 12.051141862757504,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 8192,
+      "window_seconds": 1.518292292021215,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    }
+  ],
+  "live_snapshot_write_errors": 5,
+  "owned_cleanup": {
+    "State": "STOPPED",
+    "Ready": true,
+    "Reason": "requested_stop",
+    "ExitCode": 0,
+    "NetworkStateRemaining": false,
+    "OwnedNRPTRemaining": 0,
+    "OwnedFirewallRemaining": 0,
+    "ElapsedSeconds": 356.9
+  },
+  "matched_native_rtt_baseline": "NOT_RUN",
+  "strict_performance_qualification": false,
+  "full_p7": false,
+  "receipt_hashes": {
+    "case-config.json": "eba9bf7ca06dd80f656a78efd31868df23d178656c4c20fca5ed3649a96f40b8",
+    "cleanup-errors.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "client-diagnostic.jsonl": "e9027fd9cb66d9343626e3188a06e579034744cf55087d83c006aa7339fd861c",
+    "client-session.json": "3e948b18ac3427a4f24f258a1edc44c7522fa180514360768d62f21bff7a1407",
+    "d01-current-300s-seed1464-linux-headers.jsonl": "e0b5913fe2dfd4ddf4f2186609f9c270917082bdd5f20c964bcefc5edc20f9f7",
+    "d01-current-300s-seed1464-live.json": "1e127cfbefe570e6f875b0a05e4722ed6376acf50b75f2efa7e246496479f2f6",
+    "d01-current-300s-seed1464-observer.json": "5c0c7d847e20d33b943617a8fe573e1a20b05366e72ff955078653a6ad3da066",
+    "d01-current-300s-seed1464-physical-dns.jsonl": "e0922b3e3683072965db4951ec922639301debe3c0b460903e1420ebeb833dbb",
+    "d01-current-300s-seed1464-resources.json": "669154884a99a36f5e7cbf5a79235af7392408428116384485a93c624a4f7607",
+    "d01-current-300s-seed1464-start-wire.json": "addaf082219137d126396c28573ae297e0a8a5a249f5b1a06716f850536dee6d",
+    "d01-current-300s-seed1464-steady-wire.json": "ccab583397d57d0d5c211af949820ef20f95f6dc1803543789d0bdb40b42e1ab",
+    "d01-current-300s-seed1464-stop-wire.json": "f3f83bef7bde13aa357f0450e91080ab6d41be56a894889ddbc71f313deba03e",
+    "d01-current-300s-seed1464-tail-wire.json": "3eccb50e648e64278b0697d910fa8fb37c64a5165d8357a5c5328d7097f58c4e",
+    "d01-current-300s-seed1464-target.json": "508906c5e4f022ebb7ce3ee37a0f04921188a564a1b8b58f38df33c67a588afe",
+    "d01-current-300s-seed1464-windows-headers.jsonl": "f6c761a33e1d9ab481a7946830c0a333459cf03c0ed14b928fa6b89390a754c9",
+    "d01-current-300s-seed1464.json": "7cd5b2c3da8b04eb59d69429b9fe26bf01ce76013faf3fd201ee6494c309374c",
+    "d01-dns-default-300s-dns.json": "41d73cc1f036ac6ac51435cc3e06f6796dca16be27b96cb4818aa9709e71afa9",
+    "deployed-versions.json": "0d313983d16c1d616cc0f3109f65d9d25388d98636f45a6028016eca1c4fc2b9",
+    "dns-fault-events.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "dns-guard-active-filters.json": "cb3763bb83dad7b32d6ef4484f52d04bf1fab8e447c787d3b1edb21dabf71602",
+    "dns-guard-helper-source.json": "26324882aa38c713995a01dcbf2c4451203862b617243374a3dd7e4ff41afa3a",
+    "dns-guard-on-proof.json": "f46e0f1e055dd4ed3fdd03259dba95262e13858f241f6909d94d8e32e534eb99",
+    "dns-guard-owned-cleanup.json": "2791e3f32f1ebd7a10242b5320bd0d357d1494805482e080ef16c70cdb01188b",
+    "effective-lanes.json": "35cf1e29203d2ebdf8df74b71e12f6f7e79d8b692d855ca9a52885e33ee62294",
+    "header-preflight-windows-headers.jsonl": "a632653c6959ed5173b182bff6b665690d8fc77f74a0a99b5c04f7a912f6c5be",
+    "helper-source-hashes.json": "9f171a01ab5167da485e4c96e53dbec406f47c005b4410323d92cd0055035c84",
+    "helper-source-unchanged.json": "89a1bd729816edd75c25b2b3eae07e8aa18a3c4d0b2ff7357b088b79512895d2",
+    "helper-source.json": "2cad414a3e54ed5f650288b1474b5974675a8acd1cf33736380fce8e5972f66d",
+    "measurement-status.json": "81132cb27c529b1a08af6545cf492a0e62e71d92106ad25fcb3c664ad48c19c6",
+    "observation-window.json": "c3d6bbb98431ca466fb8bdafe451782a7d505f6c8defef87eb9ea18f611a620b",
+    "p7-network-after.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-network-before.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-status.json": "dd399d798652054bcbaeb7342e9574f9bc90944fab8c64d60cb002bb3de0d953",
+    "server-before.json": "d2b15a15b369f700c5bba53a6fb861eb79690e258c169990bbe2e74bb297e08a",
+    "server-diagnostic.jsonl": "af1a96245628f7043421cee643f7982aa22a7ce6e8835edfddc058d8a26dcd06",
+    "trigger-timeline.json": "277ab2d4507310ef5dae79a1cb08ab2fdf713d00cce906e887ad6f8a87b87012",
+    "windows-observer-processes.json": "f96922b00f4eb5143941c692a75cc2f180be414a411f068e66ae8671f7db3d35"
+  },
+  "dns_guard_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53",
+  "guard_on": {
+    "source_version": "wbd-client version=next-rc-a280566b3a16 source_sha=a280566b3a1642d43afe95f29a70ab4daf4e8759 go=go1.23.12 os=windows arch=amd64",
+    "expected_guard": "on",
+    "client_unix_ms": 1791289934931,
+    "owned_rules": 2,
+    "attempts": [
+      {
+        "protocol": "UDP",
+        "received_valid_reply": false,
+        "socket_error": 10060,
+        "elapsed_ms": 1933.3702,
+        "forced_interface": 6
+      },
+      {
+        "protocol": "TCP",
+        "received_valid_reply": false,
+        "socket_error": 10013,
+        "elapsed_ms": 5.5164,
+        "forced_interface": 6
+      }
+    ],
+    "no_payload_stored": true,
+    "scope": "Forced selected underlay ordinary DNS only; combine reachable off-control and independent physical metadata observer to prove on-guard"
+  },
+  "guard_off": {
+    "source_version": "wbd-client version=next-rc-a280566b3a16 source_sha=a280566b3a1642d43afe95f29a70ab4daf4e8759 go=go1.23.12 os=windows arch=amd64",
+    "expected_guard": "off",
+    "client_unix_ms": 1791289797939,
+    "owned_rules": 0,
+    "attempts": [
+      {
+        "protocol": "UDP",
+        "received_valid_reply": true,
+        "socket_error": null,
+        "elapsed_ms": 337.65770000000003,
+        "forced_interface": 6
+      },
+      {
+        "protocol": "TCP",
+        "received_valid_reply": true,
+        "socket_error": null,
+        "elapsed_ms": 483.6617,
+        "forced_interface": 6
+      }
+    ],
+    "no_payload_stored": true,
+    "scope": "Forced selected underlay ordinary DNS only; combine reachable off-control and independent physical metadata observer to prove on-guard"
+  },
+  "actual_filters": [
+    {
+      "name": "WBD Block Underlay DNS UDP",
+      "direction": "Outbound",
+      "action": "Block",
+      "enabled": "True",
+      "profile": "Any",
+      "protocol": "UDP",
+      "remote_port": [
+        "53"
+      ],
+      "interface_alias": [
+        "以太网"
+      ]
+    },
+    {
+      "name": "WBD Block Underlay DNS TCP",
+      "direction": "Outbound",
+      "action": "Block",
+      "enabled": "True",
+      "profile": "Any",
+      "protocol": "TCP",
+      "remote_port": [
+        "53"
+      ],
+      "interface_alias": [
+        "以太网"
+      ]
+    }
+  ],
+  "owned_dns_cleanup": {
+    "owned_dns_rules": 0,
+    "client_processes": 0
+  },
+  "fec_accounting": {
+    "schema": "wbd-native-fec-accounting/v1",
+    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "case": "d01-current-300s-seed1464",
+    "parity": 20,
+    "scope": "Full diagnostic lifetime including handshake, DNS, probes and drain. Encoder bytes include56B FEC headers. Observed TCP payload includes TLS overhead and retransmits, excludes TCP/IP headers. Not an exact load-only wire amplification or CPU A/B.",
+    "roles": {
+      "client": {
+        "encoder": {
+          "source_shards": 698487,
+          "source_bytes": 435103112,
+          "parity_shards": 698487,
+          "parity_bytes": 524024684,
+          "full_blocks": 29211,
+          "partial_blocks": 6821,
+          "refs": 1,
+          "parity_shard_ratio": 1.0,
+          "parity_byte_ratio": 1.2043689634653774,
+          "configured_full_block_ratio": 1.0
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 4081,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 1396998,
+          "Retransmitted": 28,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 3,
+          "pressure_retirements": 0,
+          "reconstruction_events": 2277,
+          "recovered_sources": 2316
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 0,
+          "ExpiredMissingSources": 0
+        }
+      },
+      "server": {
+        "encoder": {
+          "source_shards": 698443,
+          "source_bytes": 435102342,
+          "parity_shards": 698443,
+          "parity_bytes": 547047824,
+          "full_blocks": 27302,
+          "partial_blocks": 8710,
+          "refs": 1,
+          "parity_shard_ratio": 1.0,
+          "parity_byte_ratio": 1.2572854043612571,
+          "configured_full_block_ratio": 1.0
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 4096,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 1396914,
+          "Retransmitted": 759,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 6,
+          "pressure_retirements": 0,
+          "reconstruction_events": 8,
+          "recovered_sources": 30
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 3,
+          "ExpiredMissingSources": 30
+        }
+      }
+    },
+    "errors": [],
+    "windows_outer_observation": {
+      "observer_received": 4434835,
+      "observer_dropped": 0,
+      "stats_error": 0,
+      "flows": 2,
+      "tcp_payload_bytes": {
+        "C2S": 1002466967,
+        "S2C": 1025156897
+      },
+      "tcp_packets": {
+        "C2S": 2344257,
+        "S2C": 2090578
+      }
+    },
+    "status": "PASS_ACCOUNTING"
+  },
+  "baseline_observation": {
+    "p99_ms": 18.22109999999998,
+    "p95_ms": 2.2404999999999973,
+    "client_cpu_seconds": 0.578125,
+    "server_cpu_seconds": -0.3499999999999943,
+    "scope": "Same machines/config but024baseline vs a280laterWAN window about2.5h apart;observational only,NOT causal/strict pairedperformancePASS"
+  }
+}

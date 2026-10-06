@@ -1,0 +1,363 @@
+{
+  "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+  "state": "PENDING",
+  "primary_runs": [
+    {
+      "label": "foundation",
+      "run": 37445044674,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445044674",
+      "jobs": [
+        {
+          "name": "repository-contract",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "p2-kernel-fallback",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "p4-linux-shared-tun-privileged (nft)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "active-go-tests (windows-2022)",
+          "conclusion": "failure",
+          "status": "completed"
+        },
+        {
+          "name": "active-go-tests (ubuntu-24.04)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "p4-openwrt-tproxy-privileged",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "p4-linux-shared-tun-privileged (iptables)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "p5-https-measurement-base",
+          "conclusion": "skipped",
+          "status": "completed"
+        },
+        {
+          "name": "p5-fec2020-weaknet-5-30-5",
+          "conclusion": "skipped",
+          "status": "completed"
+        },
+        {
+          "name": "p5-load-40",
+          "conclusion": "skipped",
+          "status": "completed"
+        },
+        {
+          "name": "p6-release-candidate",
+          "conclusion": "skipped",
+          "status": "completed"
+        },
+        {
+          "name": "p5-weaknet-5-20-5",
+          "conclusion": "skipped",
+          "status": "completed"
+        },
+        {
+          "name": "p5-soak",
+          "conclusion": "skipped",
+          "status": "completed"
+        },
+        {
+          "name": "p5-weaknet-5-30-5",
+          "conclusion": "skipped",
+          "status": "completed"
+        },
+        {
+          "name": "p5-load",
+          "conclusion": "skipped",
+          "status": "completed"
+        },
+        {
+          "name": "p5-fec2020-weaknet-5-20-5",
+          "conclusion": "skipped",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "label": "steady",
+      "run": 37445044781,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445044781",
+      "jobs": [
+        {
+          "name": "contract",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "steady-core (ubuntu-24.04)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "lifecycle-focus",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "steady-core (windows-2022)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "linux-privileged (nft)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "linux-privileged (iptables)",
+          "conclusion": "success",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "label": "gui",
+      "run": 37445044649,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445044649",
+      "jobs": [
+        {
+          "name": "gui-portable",
+          "conclusion": "success",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "label": "predelivery",
+      "run": 37445044670,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445044670",
+      "jobs": [
+        {
+          "name": "physical-helper-compile",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "harness-unit",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "egress-blackhole-semantics",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "transient-overlap-regression",
+          "conclusion": "success",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "label": "preflight",
+      "run": 37445044698,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445044698",
+      "jobs": [
+        {
+          "name": "seeded-netem-preflight",
+          "conclusion": "success",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "label": "default-network",
+      "run": 37445044675,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445044675",
+      "jobs": [
+        {
+          "name": "default-network (default)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "default-network (off)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "default-network (custom)",
+          "conclusion": "success",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "label": "lifecycle",
+      "run": 37445044773,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445044773",
+      "jobs": [
+        {
+          "name": "core",
+          "conclusion": "success",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "label": "splitroute",
+      "run": 37445044712,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445044712",
+      "jobs": [
+        {
+          "name": "splitroute-all-FUNCTIONAL",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "splitroute-embedded-FUNCTIONAL",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "splitroute-lan-FUNCTIONAL",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "splitroute-manual-FUNCTIONAL",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "aggregate",
+          "conclusion": "success",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "label": "strict-normal",
+      "run": 37445144109,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445144109"
+    },
+    {
+      "label": "strict-game",
+      "run": 37445148062,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445148062"
+    },
+    {
+      "label": "package",
+      "run": 37445310156,
+      "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37445310156",
+      "jobs": [
+        {
+          "name": "package (windows-2022, windows, amd64, true)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "package (ubuntu-24.04, linux, amd64, true)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "package (ubuntu-24.04, linux, arm64, false)",
+          "conclusion": "success",
+          "status": "completed"
+        },
+        {
+          "name": "aggregate",
+          "conclusion": "success",
+          "status": "completed"
+        }
+      ]
+    }
+  ],
+  "duplicate_functional_dispatches": {
+    "source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+    "ref": "qualification/b675fd9-dns-underlay-20261006",
+    "samples": [
+      {
+        "workflow": "next-strict-weaknet.yml",
+        "inputs": {
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "1461",
+          "rate_mbps": "10",
+          "lanes": "1"
+        },
+        "state": "DISPATCHED"
+      },
+      {
+        "workflow": "next-strict-weaknet.yml",
+        "inputs": {
+          "mode": "game",
+          "scenario": "5205",
+          "seed": "1462",
+          "rate_mbps": "3",
+          "lanes": "4"
+        },
+        "state": "DISPATCHED"
+      },
+      {
+        "workflow": "next-lifecycle.yml",
+        "inputs": {},
+        "state": "CANCEL_REQUESTED_DUPLICATE_FUNCTIONAL_ONLY",
+        "run": 37445152391,
+        "primary_run": 37445044773,
+        "reason": "Already automatically triggered same source;retain receipts,not failed performance sample"
+      },
+      {
+        "workflow": "next-splitroute.yml",
+        "inputs": {},
+        "state": "CANCEL_REQUESTED_DUPLICATE_FUNCTIONAL_ONLY",
+        "run": 37445156663,
+        "primary_run": 37445044712,
+        "reason": "Already automatically triggered same source;retain receipts,not failed performance sample"
+      }
+    ],
+    "one_performance_sample_per_action": true
+  },
+  "scope": "Scoped11 exact-source gates including two independent5205;not full70/18/soak/native firewall proof"
+}

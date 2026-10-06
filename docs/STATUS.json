@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Deployed024 full70/configs,18 independent strict/36pairedRTT,Normal+Game1800s,P6 PASS. NativeFEC20:12 single300s scopedPASS;20:4/8/10/16 residual businessloss/rawpressure retained;S07/S08 physicalDNS leaks. M03 missing/latePARTIAL. b675 DNSguard firstcandidate foundationFAIL(testwrapper receipt count), fix pending newsourceActions;not deployed/not inherited.",
-  "updated_at": "2026-10-06T17:51:16.107594+08:00",
+  "qualification_scope": "a280 scoped13Actions(4 strict/12 pairedRTT/P6)PASS;nativeDNSguard functionPASS,overallD01FAIL54upstreammissing/1probe timeout/raw70drop/p99286ms. D06 explicitoff running. Latestfull70/18/1800sNOT_RUN;024 historyonly. M03missing/late andpreviousfailuresretained;P7PARTIAL.",
+  "updated_at": "2026-10-06T20:40:35.598640+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,14 +80,14 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "S11 independent300s FEC20 baseline on unchanged024",
-    "DNSguard test-wrapper correction and new exact-source Actions/P6",
-    "NativeDNS guard proof after sourcequalification",
-    "M03 residual datagram recovery tail remainsPARTIAL"
+    "D06 single300s DNSoff config/normalresolver/actualpolicy0/physicalpath/performance",
+    "NativehighFEC pressure/p99 diagnosis remainsopen",
+    "RemainingnativeDNS/IP/IPv6/startupPadding configurationsNOT_RUN",
+    "M03 residual datagram tailPARTIAL"
   ],
-  "next_task": "Commit test-only five-scenario wrapper correction;freeze newsource and qualify Actions,check automatic runs before dispatching missing predelivery/defaultnetwork/two independent5205/P6. S11 frozen024 baseline running,thennewsourceD01 with forcedphysicalDNS off/on proof,actualfilters,normalDNS/p99/input/ownedcleanup. Preserveb675 failedrun/S10pressure/M03.",
-  "latest_log": "docs/devlog/20261006-174943-dns-guard-ownership-receipts.md",
-  "last_tested_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+  "next_task": "Complete D06/seed1468 single300s on frozena280 and immutablehelpers,validateactualdns-hijack=false/ownedNRPT+DNSrules0/normalDNS+physicalDNSexpected/explicitUDP+TCPunderlayreply/cleanup,input/p99/CPU/drop. Then prioritize scopednative configuration gap or bounded performanceprofile basedon evidence;do not lowerquality gates,blindrerunM03/expandbuffer/FEC/4096 orforceouter reliability.",
+  "latest_log": "docs/devlog/20261006-203800-dns-guard-native-validation.md",
+  "last_tested_source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -8037,8 +8037,8 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "state": "S11_FEC20_BASELINE_RUNNING",
+    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "state": "D06_NATIVE_DNS_OFF_RUNNING",
     "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
     "native_completed_300s": [
       {
@@ -8082,20 +8082,34 @@
         "status": "FAIL",
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json"
+      },
+      {
+        "case": "s11-current-300s-seed1463",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s11-0246526-seed1463-20261006.json"
+      },
+      {
+        "case": "d01-current-300s-seed1464",
+        "status": "FAIL",
+        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
+        "dns_guard_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53"
       }
     ],
     "running": [
       {
-        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
         "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
-        "case": "S11",
-        "seed": 1463,
+        "guard_helper_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "case": "D06",
+        "seed": 1468,
         "seconds": 300
       }
     ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
-    "previous_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "previous_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
     "previous_completed_300s": [
       "D01 seed1351",
       "D01 seed1352",
@@ -8103,7 +8117,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "s11-current-300s-seed1463",
+    "running_case": "d06-current-300s-seed1468",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8355,18 +8369,30 @@
         "status": "FAIL",
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json"
+      },
+      {
+        "case": "s11-current-300s-seed1463",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s11-0246526-seed1463-20261006.json"
+      },
+      {
+        "case": "d01-current-300s-seed1464",
+        "status": "FAIL",
+        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
+        "dns_guard_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
-    "deployed_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "last_failed_case": "s10-current-300s-seed1447",
-    "last_failure_evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json",
+    "deployed_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "last_failed_case": "d01-current-300s-seed1464",
+    "last_failure_evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
     "latest_native_pass": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
-    "latest_native_evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json",
+    "latest_native_evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
     "not_run_case_ids": [
-      "S11",
       "S12",
       "S13",
       "S14",
@@ -8456,11 +8482,12 @@
       "S07",
       "S08",
       "S09",
-      "S10"
+      "S10",
+      "S11"
     ],
-    "full300s_samples": 45,
+    "full300s_samples": 47,
     "case_ids_total": 43,
-    "case_ids_not_run": 22,
+    "case_ids_not_run": 21,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true,
     "additional_client_complete_only_failures": [
@@ -8526,6 +8553,21 @@
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json",
         "id": "S10"
+      },
+      {
+        "case": "s11-current-300s-seed1463",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s11-0246526-seed1463-20261006.json",
+        "id": "S11"
+      },
+      {
+        "case": "d01-current-300s-seed1464",
+        "status": "FAIL",
+        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
+        "dns_guard_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53",
+        "id": "D01"
       }
     ]
   },
@@ -8613,147 +8655,20 @@
     "helper_run": 37253531888
   },
   "current_soak": {
-    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "state": "PASS",
-    "samples": [
-      {
-        "mode": "normal",
-        "run": 37440874448,
-        "status": "completed",
-        "conclusion": "success",
-        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-        "result": "PASS",
-        "errors": [],
-        "min_phase_goodput_mbps": 9.999163733333333,
-        "max_phase_p99_ms": 619.918224,
-        "cpu_seconds": {
-          "client": 885.17,
-          "server": 890.84
-        },
-        "socket_drop_max": 0,
-        "diagnostics": {
-          "client": {
-            "first_generation": {
-              "1": 1
-            },
-            "last_generation": {
-              "1": 4
-            },
-            "heap_peak": 28352512,
-            "early_heap_median": 18001920.0,
-            "late_heap_median": 18276352.0,
-            "internal_queue_drops": {
-              "maxima": {
-                "segment_mux": 0
-              },
-              "errors": []
-            }
-          },
-          "server": {
-            "first_generation": {
-              "1": 1
-            },
-            "last_generation": {
-              "1": 4
-            },
-            "heap_peak": 28721152,
-            "early_heap_median": 18776064.0,
-            "late_heap_median": 19189760.0,
-            "internal_queue_drops": {
-              "maxima": {
-                "server_pipeline": 0
-              },
-              "errors": []
-            }
-          }
-        }
-      },
-      {
-        "mode": "game",
-        "run": 37440878333,
-        "status": "completed",
-        "conclusion": "success",
-        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-        "result": "PASS",
-        "errors": [],
-        "min_phase_goodput_mbps": 2.999872,
-        "max_phase_p99_ms": 601.968186,
-        "cpu_seconds": {
-          "client": 1097.63,
-          "server": 1023.79
-        },
-        "socket_drop_max": 0,
-        "diagnostics": {
-          "client": {
-            "first_generation": {
-              "1": 1,
-              "2": 2,
-              "3": 3,
-              "4": 4
-            },
-            "last_generation": {
-              "1": 5,
-              "2": 6,
-              "3": 7,
-              "4": 4
-            },
-            "heap_peak": 63143936,
-            "early_heap_median": 47423488.0,
-            "late_heap_median": 49086464.0,
-            "internal_queue_drops": {
-              "maxima": {
-                "segment_mux": 0
-              },
-              "errors": []
-            }
-          },
-          "server": {
-            "first_generation": {
-              "1": 1,
-              "2": 2,
-              "3": 3,
-              "4": 4
-            },
-            "last_generation": {
-              "1": 5,
-              "2": 6,
-              "3": 7,
-              "4": 4
-            },
-            "heap_peak": 60669952,
-            "early_heap_median": 45711360.0,
-            "late_heap_median": 48422912.0,
-            "internal_queue_drops": {
-              "maxima": {
-                "server_pipeline": 0
-              },
-              "errors": []
-            }
-          }
-        }
-      }
-    ],
-    "evidence": "docs/evidence/soak-0246526-1800s-20261006.json",
-    "receipts": "docs/evidence/soak-0246526-1800s-20261006-receipts.json.gz",
-    "one_sample_per_action": true
+    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "state": "NOT_RUN",
+    "scope": "Windows PS-only guard;previous024 Linux1800s belongs to024"
   },
   "current_qualification": {
-    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "state": "PASS",
-    "config70": "70/70 PASS",
-    "strict18_individual": "18/18 five classifications PASS",
-    "strict18_paired": "36/36 pairedstages;72/72p95+p99checks PASS",
-    "seeds": [
-      1451,
-      1452,
-      1453
-    ],
-    "evidence": "docs/evidence/qualification-0246526-complete-20261006.json",
-    "previous_scoped5": "PASS;separatequalification",
-    "one_sample_per_action": true,
-    "receipts": "docs/evidence/qualification-0246526-complete-20261006-receipts.json.gz",
-    "max_p95_increment_ms": 12.420647,
-    "max_p99_increment_ms": 34.53852
+    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "state": "SCOPED13_PASS_FULL_NOT_RUN",
+    "config70": "NOT_RUN",
+    "strict18_individual": "NOT_RUN",
+    "strict18_paired": "NOT_RUN",
+    "strict4_individual": "4/4 PASS",
+    "targeted_rtt_checks": "12/12 PASS",
+    "evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json",
+    "one_sample_per_action": true
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9479,6 +9394,13 @@
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json",
         "id": "S10"
+      },
+      {
+        "case": "s11-current-300s-seed1463",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s11-0246526-seed1463-20261006.json",
+        "id": "S11"
       }
     ]
   },
@@ -9496,6 +9418,24 @@
       "evidence": "docs/evidence/qualification-660b370-20261005.json",
       "latency_user_priority": "p99 and throughput must not degrade;no threshold weakening/no replacing failed samples",
       "root_cause": "NOT_YET_LOCALIZED;not a demonstrated sustained CPU saturation or FEC HOL"
+    },
+    {
+      "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+      "state": "PASS",
+      "config70": "70/70 PASS",
+      "strict18_individual": "18/18 five classifications PASS",
+      "strict18_paired": "36/36 pairedstages;72/72p95+p99checks PASS",
+      "seeds": [
+        1451,
+        1452,
+        1453
+      ],
+      "evidence": "docs/evidence/qualification-0246526-complete-20261006.json",
+      "previous_scoped5": "PASS;separatequalification",
+      "one_sample_per_action": true,
+      "receipts": "docs/evidence/qualification-0246526-complete-20261006-receipts.json.gz",
+      "max_p95_increment_ms": 12.420647,
+      "max_p99_increment_ms": 34.53852
     }
   ],
   "soak_history": [
@@ -9533,12 +9473,137 @@
         }
       ],
       "evidence": "docs/evidence/qualification-660b370-20261005.json"
+    },
+    {
+      "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+      "state": "PASS",
+      "samples": [
+        {
+          "mode": "normal",
+          "run": 37440874448,
+          "status": "completed",
+          "conclusion": "success",
+          "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+          "result": "PASS",
+          "errors": [],
+          "min_phase_goodput_mbps": 9.999163733333333,
+          "max_phase_p99_ms": 619.918224,
+          "cpu_seconds": {
+            "client": 885.17,
+            "server": 890.84
+          },
+          "socket_drop_max": 0,
+          "diagnostics": {
+            "client": {
+              "first_generation": {
+                "1": 1
+              },
+              "last_generation": {
+                "1": 4
+              },
+              "heap_peak": 28352512,
+              "early_heap_median": 18001920.0,
+              "late_heap_median": 18276352.0,
+              "internal_queue_drops": {
+                "maxima": {
+                  "segment_mux": 0
+                },
+                "errors": []
+              }
+            },
+            "server": {
+              "first_generation": {
+                "1": 1
+              },
+              "last_generation": {
+                "1": 4
+              },
+              "heap_peak": 28721152,
+              "early_heap_median": 18776064.0,
+              "late_heap_median": 19189760.0,
+              "internal_queue_drops": {
+                "maxima": {
+                  "server_pipeline": 0
+                },
+                "errors": []
+              }
+            }
+          }
+        },
+        {
+          "mode": "game",
+          "run": 37440878333,
+          "status": "completed",
+          "conclusion": "success",
+          "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+          "result": "PASS",
+          "errors": [],
+          "min_phase_goodput_mbps": 2.999872,
+          "max_phase_p99_ms": 601.968186,
+          "cpu_seconds": {
+            "client": 1097.63,
+            "server": 1023.79
+          },
+          "socket_drop_max": 0,
+          "diagnostics": {
+            "client": {
+              "first_generation": {
+                "1": 1,
+                "2": 2,
+                "3": 3,
+                "4": 4
+              },
+              "last_generation": {
+                "1": 5,
+                "2": 6,
+                "3": 7,
+                "4": 4
+              },
+              "heap_peak": 63143936,
+              "early_heap_median": 47423488.0,
+              "late_heap_median": 49086464.0,
+              "internal_queue_drops": {
+                "maxima": {
+                  "segment_mux": 0
+                },
+                "errors": []
+              }
+            },
+            "server": {
+              "first_generation": {
+                "1": 1,
+                "2": 2,
+                "3": 3,
+                "4": 4
+              },
+              "last_generation": {
+                "1": 5,
+                "2": 6,
+                "3": 7,
+                "4": 4
+              },
+              "heap_peak": 60669952,
+              "early_heap_median": 45711360.0,
+              "late_heap_median": 48422912.0,
+              "internal_queue_drops": {
+                "maxima": {
+                  "server_pipeline": 0
+                },
+                "errors": []
+              }
+            }
+          }
+        }
+      ],
+      "evidence": "docs/evidence/soak-0246526-1800s-20261006.json",
+      "receipts": "docs/evidence/soak-0246526-1800s-20261006-receipts.json.gz",
+      "one_sample_per_action": true
     }
   ],
   "windows_dns_underlay_guard": {
-    "state": "ACTIONS_WRAPPER_RECEIPT_FIX_PENDING",
-    "source": "PENDING_COMMIT",
-    "deployed_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "state": "NATIVE_FUNCTION_PASS_TRANSPORT_QUALITY_PARTIAL",
+    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "deployed_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
     "files": [
       "scripts/windows_client_network.ps1",
       "tools/test_windows_splitroute.ps1",
@@ -9550,11 +9615,33 @@
       "docs/evidence/native-s08-0246526-seed1445-20261006.json"
     ],
     "scope": "DNS hijack enabled:two owned outboundUDP/TCP remote53 block rules scoped to selected physical NIC literal alias. Wintun DNS preserved. Off no guard. Not DoH/DoT/allNIC.",
-    "hotpath": "No Go/per-record change; kernel firewall cost/native p99 still NOT_RUN",
-    "qualification": "Apply/Cleanup/rollback/foreign same-name ownership and literal alias mock; new probe AST/wire vectors; exact-source performance/P6/native proof pending",
-    "log": "docs/devlog/20261006-174943-dns-guard-ownership-receipts.md",
+    "hotpath": "No productGo per-record change;observedCPU306.515625/160.01s per300s;nativep99/quality warning remains",
+    "qualification": "13 scopedActions incl4 independentstrict/12 pairedRTT/P6 PASS;normalDNS/on-guard/ownednativecleanup pending",
+    "log": "docs/devlog/20261006-203800-dns-guard-native-validation.md",
     "first_candidate_source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
     "failed_run": 37445044674,
-    "reason": "PowerShell five scenarios all PASS;existing Go wrapper expected exactly two markers. Assert five named unique scenarios, no product rollback."
+    "reason": "PowerShell five scenarios all PASS;existing Go wrapper expected exactly two markers. Assert five named unique scenarios, no product rollback.",
+    "qualification_evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json",
+    "qualification_receipts": "docs/evidence/windows-dns-guard-a280566-actions-20261006-receipts.json.gz",
+    "paired_rtt_checks": 12,
+    "retained_first_candidate_failure": 37445044674,
+    "deployment_evidence": "docs/evidence/windows-dns-guard-a280566-deployed-20261006.json",
+    "off_control_evidence": "docs/evidence/windows-dns-guard-a280566-off-control-20261006.json",
+    "off_control": "UDP/TCP explicit selectedphysical replytrue;guard0/clientstopped",
+    "native_evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
+    "native_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53",
+    "native_overall": "FAIL",
+    "native_scope": "NormalDNS60/60,off reachableUDP/TCP,on no reply/actual selectedNIC filters/physical metadataDNS0/drop0;ownedDNScleanup0;D06offcurrentrunning"
+  },
+  "candidate_qualification": {
+    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "state": "SCOPED_PASS",
+    "gates": 13,
+    "strict_samples": 4,
+    "paired_rtt_checks": 12,
+    "full70": "NOT_RUN",
+    "full18": "NOT_RUN",
+    "soak1800": "NOT_RUN",
+    "evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json"
   }
 }
