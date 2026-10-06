@@ -1,6 +1,6 @@
 # Actions 验收契约
 
-2026-10-06当前：部署SOURCE024内层TUN9000/外层1400，完整70配置+18独立严格弱网/36配对RTT全部PASS；Normal/Game1800s待收。S09 FEC20:12单300s满速无损/DNS60/60，S07/S08少量loss和物理DNS泄漏保留；新Windows DNS出口保护候选NOT_RUN，下一Actions验后同源部署。M03 missing/late未关闭；历史44份/20工况/23NOT_RUN跨源码不继承，S10运行。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：部署SOURCE024完整70配置+18独立严格/36配对RTT+Normal/Game1800s+P6 PASS。S09 FEC20:12单300s满速无损；S10 FEC20:16少量loss/rawdrop96、p99=172ms保留FAIL，S11基线运行。DNSguard首候选b675基础检查回执数漏同步FAIL，产品未部署，修正后重新验。M03 missing/late未关闭；历史45份/21工况/22NOT_RUN跨源码不继承。每性能Action一条，先STATUS/latest_log。
 
 2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
 

@@ -1,6 +1,6 @@
 # 原生与Actions五分钟工况验收
 
-2026-10-06当前：部署SOURCE024内层TUN9000/外层1400，完整70配置+18独立严格弱网/36配对RTT全部PASS；Normal/Game1800s待收。S09 FEC20:12单300s满速无损/DNS60/60，S07/S08少量loss和物理DNS泄漏保留；新Windows DNS出口保护候选NOT_RUN，下一Actions验后同源部署。M03 missing/late未关闭；历史44份/20工况/23NOT_RUN跨源码不继承，S10运行。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：部署SOURCE024完整70配置+18独立严格/36配对RTT+Normal/Game1800s+P6 PASS。S09 FEC20:12单300s满速无损；S10 FEC20:16少量loss/rawdrop96、p99=172ms保留FAIL，S11基线运行。DNSguard首候选b675基础检查回执数漏同步FAIL，产品未部署，修正后重新验。M03 missing/late未关闭；历史45份/21工况/22NOT_RUN跨源码不继承。每性能Action一条，先STATUS/latest_log。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

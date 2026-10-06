@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Deployed024:17 scopedActions/P6 + full70 actualconfigs +18 independent strict samples/36 pairedRTT stages PASS; Normal/Game1800s pending. NativeFEC20:12 single300s scopedPASS;20:8/10 loss/DNS leaks retained;M03 missing/late remainsPARTIAL. Windows DNS guard candidate implemented but NOT_RUN; no inherited qualification.",
-  "updated_at": "2026-10-06T17:43:58.537683+08:00",
+  "qualification_scope": "Deployed024 full70/configs,18 independent strict/36pairedRTT,Normal+Game1800s,P6 PASS. NativeFEC20:12 single300s scopedPASS;20:4/8/10/16 residual businessloss/rawpressure retained;S07/S08 physicalDNS leaks. M03 missing/latePARTIAL. b675 DNSguard firstcandidate foundationFAIL(testwrapper receipt count), fix pending newsourceActions;not deployed/not inherited.",
+  "updated_at": "2026-10-06T17:51:16.107594+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,13 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "S10 single300s native FEC20:16 on unchanged frozen024/helperb393",
-    "Windows selected-underlay DNS guard Actions/native qualification",
-    "Collect024 independent Normal/Game1800s soaks",
+    "S11 independent300s FEC20 baseline on unchanged024",
+    "DNSguard test-wrapper correction and new exact-source Actions/P6",
+    "NativeDNS guard proof after sourcequalification",
     "M03 residual datagram recovery tail remainsPARTIAL"
   ],
-  "next_task": "Commit narrow Windows DNS guard and qualify exact-source Actions(mock/vector/core/GUI/network/two independent5205/P6);finish unchanged024 S10 first. Then native off-control/on-guard proof with normalDNS/input/p99/ownedcleanup and exact filters, one native workload at a time. Collect0241800s. Do not blind repeatM03/expandFEC/shadow/buffers or restoreHOL.",
-  "latest_log": "docs/devlog/20261006-174500-windows-dns-underlay-guard.md",
+  "next_task": "Commit test-only five-scenario wrapper correction;freeze newsource and qualify Actions,check automatic runs before dispatching missing predelivery/defaultnetwork/two independent5205/P6. S11 frozen024 baseline running,thennewsourceD01 with forcedphysicalDNS off/on proof,actualfilters,normalDNS/p99/input/ownedcleanup. Preserveb675 failedrun/S10pressure/M03.",
+  "latest_log": "docs/devlog/20261006-174943-dns-guard-ownership-receipts.md",
   "last_tested_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
   "actions": [
     {
@@ -8038,7 +8038,7 @@
   },
   "physical_current": {
     "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "state": "S10_NATIVE_FEC16_RUNNING",
+    "state": "S11_FEC20_BASELINE_RUNNING",
     "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
     "native_completed_300s": [
       {
@@ -8076,14 +8076,20 @@
         "status": "PASS_SCOPED_NATIVE_CAPACITY",
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "evidence": "docs/evidence/native-s09-0246526-seed1446-20261006.json"
+      },
+      {
+        "case": "s10-current-300s-seed1447",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json"
       }
     ],
     "running": [
       {
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
-        "seed": 1447,
-        "case": "S10",
+        "case": "S11",
+        "seed": 1463,
         "seconds": 300
       }
     ],
@@ -8097,7 +8103,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "s10-current-300s-seed1447",
+    "running_case": "s11-current-300s-seed1463",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8343,18 +8349,23 @@
         "status": "PASS_SCOPED_NATIVE_CAPACITY",
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "evidence": "docs/evidence/native-s09-0246526-seed1446-20261006.json"
+      },
+      {
+        "case": "s10-current-300s-seed1447",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
     "deployed_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
     "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "last_failed_case": "s08-current-300s-seed1445",
-    "last_failure_evidence": "docs/evidence/native-s08-0246526-seed1445-20261006.json",
+    "last_failed_case": "s10-current-300s-seed1447",
+    "last_failure_evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json",
     "latest_native_pass": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
-    "latest_native_evidence": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
+    "latest_native_evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json",
     "not_run_case_ids": [
-      "S10",
       "S11",
       "S12",
       "S13",
@@ -8444,11 +8455,12 @@
       "S06",
       "S07",
       "S08",
-      "S09"
+      "S09",
+      "S10"
     ],
-    "full300s_samples": 44,
+    "full300s_samples": 45,
     "case_ids_total": 43,
-    "case_ids_not_run": 23,
+    "case_ids_not_run": 22,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true,
     "additional_client_complete_only_failures": [
@@ -8507,6 +8519,13 @@
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "evidence": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
         "id": "S09"
+      },
+      {
+        "case": "s10-current-300s-seed1447",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json",
+        "id": "S10"
       }
     ]
   },
@@ -8595,31 +8614,135 @@
   },
   "current_soak": {
     "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "state": "IN_PROGRESS",
+    "state": "PASS",
     "samples": [
       {
         "mode": "normal",
-        "seed": 1442,
         "run": 37440874448,
-        "seconds": 1800,
-        "status": "RUNNING"
+        "status": "completed",
+        "conclusion": "success",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "result": "PASS",
+        "errors": [],
+        "min_phase_goodput_mbps": 9.999163733333333,
+        "max_phase_p99_ms": 619.918224,
+        "cpu_seconds": {
+          "client": 885.17,
+          "server": 890.84
+        },
+        "socket_drop_max": 0,
+        "diagnostics": {
+          "client": {
+            "first_generation": {
+              "1": 1
+            },
+            "last_generation": {
+              "1": 4
+            },
+            "heap_peak": 28352512,
+            "early_heap_median": 18001920.0,
+            "late_heap_median": 18276352.0,
+            "internal_queue_drops": {
+              "maxima": {
+                "segment_mux": 0
+              },
+              "errors": []
+            }
+          },
+          "server": {
+            "first_generation": {
+              "1": 1
+            },
+            "last_generation": {
+              "1": 4
+            },
+            "heap_peak": 28721152,
+            "early_heap_median": 18776064.0,
+            "late_heap_median": 19189760.0,
+            "internal_queue_drops": {
+              "maxima": {
+                "server_pipeline": 0
+              },
+              "errors": []
+            }
+          }
+        }
       },
       {
         "mode": "game",
-        "seed": 1443,
         "run": 37440878333,
-        "seconds": 1800,
-        "status": "RUNNING"
+        "status": "completed",
+        "conclusion": "success",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "result": "PASS",
+        "errors": [],
+        "min_phase_goodput_mbps": 2.999872,
+        "max_phase_p99_ms": 601.968186,
+        "cpu_seconds": {
+          "client": 1097.63,
+          "server": 1023.79
+        },
+        "socket_drop_max": 0,
+        "diagnostics": {
+          "client": {
+            "first_generation": {
+              "1": 1,
+              "2": 2,
+              "3": 3,
+              "4": 4
+            },
+            "last_generation": {
+              "1": 5,
+              "2": 6,
+              "3": 7,
+              "4": 4
+            },
+            "heap_peak": 63143936,
+            "early_heap_median": 47423488.0,
+            "late_heap_median": 49086464.0,
+            "internal_queue_drops": {
+              "maxima": {
+                "segment_mux": 0
+              },
+              "errors": []
+            }
+          },
+          "server": {
+            "first_generation": {
+              "1": 1,
+              "2": 2,
+              "3": 3,
+              "4": 4
+            },
+            "last_generation": {
+              "1": 5,
+              "2": 6,
+              "3": 7,
+              "4": 4
+            },
+            "heap_peak": 60669952,
+            "early_heap_median": 45711360.0,
+            "late_heap_median": 48422912.0,
+            "internal_queue_drops": {
+              "maxima": {
+                "server_pipeline": 0
+              },
+              "errors": []
+            }
+          }
+        }
       }
     ],
+    "evidence": "docs/evidence/soak-0246526-1800s-20261006.json",
+    "receipts": "docs/evidence/soak-0246526-1800s-20261006-receipts.json.gz",
     "one_sample_per_action": true
   },
   "current_qualification": {
     "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
     "state": "PASS",
     "config70": "70/70 PASS",
-    "strict18_individual": "18/18 all five classifications PASS",
-    "strict18_paired": "36/36 paired stages;72/72 p95+p99 checks PASS",
+    "strict18_individual": "18/18 five classifications PASS",
+    "strict18_paired": "36/36 pairedstages;72/72p95+p99checks PASS",
     "seeds": [
       1451,
       1452,
@@ -9349,6 +9472,13 @@
         "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
         "evidence": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
         "id": "S09"
+      },
+      {
+        "case": "s10-current-300s-seed1447",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s10-0246526-seed1447-20261006.json",
+        "id": "S10"
       }
     ]
   },
@@ -9406,7 +9536,7 @@
     }
   ],
   "windows_dns_underlay_guard": {
-    "state": "IMPLEMENTED_ACTIONS_NOT_RUN",
+    "state": "ACTIONS_WRAPPER_RECEIPT_FIX_PENDING",
     "source": "PENDING_COMMIT",
     "deployed_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
     "files": [
@@ -9422,6 +9552,9 @@
     "scope": "DNS hijack enabled:two owned outboundUDP/TCP remote53 block rules scoped to selected physical NIC literal alias. Wintun DNS preserved. Off no guard. Not DoH/DoT/allNIC.",
     "hotpath": "No Go/per-record change; kernel firewall cost/native p99 still NOT_RUN",
     "qualification": "Apply/Cleanup/rollback/foreign same-name ownership and literal alias mock; new probe AST/wire vectors; exact-source performance/P6/native proof pending",
-    "log": "docs/devlog/20261006-174500-windows-dns-underlay-guard.md"
+    "log": "docs/devlog/20261006-174943-dns-guard-ownership-receipts.md",
+    "first_candidate_source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
+    "failed_run": 37445044674,
+    "reason": "PowerShell five scenarios all PASS;existing Go wrapper expected exactly two markers. Assert five named unique scenarios, no product rollback."
   }
 }

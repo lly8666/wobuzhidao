@@ -1,0 +1,124 @@
+{
+  "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+  "state": "PASS",
+  "samples": [
+    {
+      "mode": "normal",
+      "run": 37440874448,
+      "status": "completed",
+      "conclusion": "success",
+      "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+      "result": "PASS",
+      "errors": [],
+      "min_phase_goodput_mbps": 9.999163733333333,
+      "max_phase_p99_ms": 619.918224,
+      "cpu_seconds": {
+        "client": 885.17,
+        "server": 890.84
+      },
+      "socket_drop_max": 0,
+      "diagnostics": {
+        "client": {
+          "first_generation": {
+            "1": 1
+          },
+          "last_generation": {
+            "1": 4
+          },
+          "heap_peak": 28352512,
+          "early_heap_median": 18001920.0,
+          "late_heap_median": 18276352.0,
+          "internal_queue_drops": {
+            "maxima": {
+              "segment_mux": 0
+            },
+            "errors": []
+          }
+        },
+        "server": {
+          "first_generation": {
+            "1": 1
+          },
+          "last_generation": {
+            "1": 4
+          },
+          "heap_peak": 28721152,
+          "early_heap_median": 18776064.0,
+          "late_heap_median": 19189760.0,
+          "internal_queue_drops": {
+            "maxima": {
+              "server_pipeline": 0
+            },
+            "errors": []
+          }
+        }
+      }
+    },
+    {
+      "mode": "game",
+      "run": 37440878333,
+      "status": "completed",
+      "conclusion": "success",
+      "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+      "result": "PASS",
+      "errors": [],
+      "min_phase_goodput_mbps": 2.999872,
+      "max_phase_p99_ms": 601.968186,
+      "cpu_seconds": {
+        "client": 1097.63,
+        "server": 1023.79
+      },
+      "socket_drop_max": 0,
+      "diagnostics": {
+        "client": {
+          "first_generation": {
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4
+          },
+          "last_generation": {
+            "1": 5,
+            "2": 6,
+            "3": 7,
+            "4": 4
+          },
+          "heap_peak": 63143936,
+          "early_heap_median": 47423488.0,
+          "late_heap_median": 49086464.0,
+          "internal_queue_drops": {
+            "maxima": {
+              "segment_mux": 0
+            },
+            "errors": []
+          }
+        },
+        "server": {
+          "first_generation": {
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4
+          },
+          "last_generation": {
+            "1": 5,
+            "2": 6,
+            "3": 7,
+            "4": 4
+          },
+          "heap_peak": 60669952,
+          "early_heap_median": 45711360.0,
+          "late_heap_median": 48422912.0,
+          "internal_queue_drops": {
+            "maxima": {
+              "server_pipeline": 0
+            },
+            "errors": []
+          }
+        }
+      }
+    }
+  ],
+  "receipts": "docs/evidence/soak-0246526-1800s-20261006-receipts.json.gz",
+  "scope": "Frozen024 independentNormal10/Game4x3 each1800s/600msRTT/FEC20 withrotation;not newDNSguard/physical qualification"
+}
