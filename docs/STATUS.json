@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "78b8faf explicit default-off stage diagnostic9scopedActions+12RTT+P6 PASS;paired deployed, native diagnostic pending. be456 priornative37up/1downmissing FAIL retained.49ordinary300s/23unique/20NOT_RUN plusoneCPUdiagnostic;full70/18/1800s newsource NOT_RUN.",
-  "updated_at": "2026-10-06T21:57:06.074127+08:00",
+  "qualification_scope": "78b8faf scoped9/RTT12/P6 PASS; explicitstage diagnostic1361629samples showsACKfeedback209s vsOwner45.8s/Deliver5.79s, butqueueoverflow51534/probe19missing/business4343downmissing/p99712.93ms STRICTFAIL.49ordinary300s unchanged/23unique/20NOT_RUN plus2diagnostics; not off performance regression/benefit proof, no P7closure.",
+  "updated_at": "2026-10-06T22:11:29.438784+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -85,8 +85,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Run one paired78b8faf Normal1/10M/FEC20 native300s with explicit process-local client stage timing and CPUprofileoff, unchanged14helpers b393/guardprobea280. Verify actualflags/samples, preserve originalinput/business/probe/cleanup gates; stage sample diagnostic-only not ordinaryqualification. Read per-stage wall vs queue/nativeIO, then evidence-backed minimal feedback optimization;no blindACK/cache/FEC/MTU change. M03/20nativeconfigurationgaps remain.",
-  "latest_log": "docs/devlog/20261006-221500-client-stage-actions-package-deployed.md",
+  "next_task": "Implement Windows-only one pending latest-ACK feedback worker per generation, coalescing no packet history. Keep FIN ACK/control repair synchronous, original2records/2ms timing, bounded lifecycle shutdown and observable async errors. Default client stage instrumentation remains off; validate Actions and native off before claiming benefit.",
+  "latest_log": "docs/devlog/20261006-221800-client-stage-native-ack-boundary.md",
   "last_tested_source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
   "actions": [
     {
@@ -8168,7 +8168,7 @@
   },
   "physical_current": {
     "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
-    "state": "STAGE_DIAGNOSTIC_PAIRED_DEPLOYED_NATIVE_PENDING",
+    "state": "STAGE_DIAG_CONFIRMED_SYNC_ACK_PRESSURE_NOT_FIXED",
     "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "native_completed_300s": [
       {
@@ -8240,7 +8240,7 @@
         "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json"
       }
     ],
-    "running": "s01-current-300s-seed1477 explicit stage diagnostic",
+    "running": null,
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
@@ -8251,7 +8251,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "S01 diagnostic-only",
+    "running_case": null,
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8574,9 +8574,17 @@
         "status": "DIAGNOSTIC_FAIL_LOSS_PRESSURE",
         "evidence": "docs/evidence/native-cpu-profile-a280566-seed1469-20261006.json",
         "counted_as_performance_qualification": false
+      },
+      {
+        "case": "s01-current-300s-seed1477",
+        "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+        "status": "DIAGNOSTIC_FAIL_QUEUE_PRESSURE",
+        "evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json",
+        "counted_as_performance_qualification": false
       }
     ],
-    "deployment_evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json"
+    "deployment_evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json",
+    "latest_diagnostic_evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -8842,9 +8850,10 @@
     "full70": "NOT_RUN",
     "full18": "NOT_RUN",
     "p6": "PASS",
-    "native": "NOT_RUN explicit diagnostic pending",
+    "native": "Explicit stage diagnostic FAIL_QUEUE_PRESSURE; ordinary native off on thissource NOT_RUN",
     "evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json",
-    "tail_warning": "Normal5205 stressp99 delta453.341298ms passed500ms gate butnearbound; no tail-latency improvement claim or broader qualification."
+    "tail_warning": "Normal5205 stressp99 delta453.341298ms passed500ms gate butnearbound; no tail-latency improvement claim or broader qualification.",
+    "native_diagnostic_evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json"
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9886,9 +9895,9 @@
     "remaining": "37up/1downmissing;receivequeuep99path stillneedslocalization;M03 remainsPARTIAL"
   },
   "native_receive_latency_diagnosis": {
-    "state": "EVIDENCE_NARROWED_NOT_FIXED",
-    "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-    "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
+    "state": "SYNC_ACK_STAGE_DOMINANT_UNDER_DIAGNOSTIC_PRESSURE",
+    "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json",
     "correlations": [
       {
         "case": "d01-current-300s-seed1464",
@@ -9911,10 +9920,20 @@
     ],
     "code_boundary": "runtimeentry.clientLaneReadLoop -> runtimeowner.handleSegment -> businessDeliver -> synchronoussendACK/Emit -> nextRead",
     "warning": "1s correlations aggregate differentrecord populations;not unique causality. Npcapdriver/lock timing wall notCPU. Profilingweights include blockedcalls. No blindACK policy change.",
-    "next": "Qualify new default-off client stage timing in Actions; only after core/race/Normal+Game5205 and matched lossless/P6 pass deploy paired source and one explicit diagnostic native sample. Separate ACK/native wait from compute; do not change ACK semantics blind."
+    "next": "Implement Windows-only one pending latest-ACK feedback worker per generation, coalescing no packet history. Keep FIN ACK/control repair synchronous, original2records/2ms timing, bounded lifecycle shutdown and observable async errors. Default client stage instrumentation remains off; validate Actions and native off before claiming benefit.",
+    "measured_wall_seconds": {
+      "lock_wait_ns": 0.2400354,
+      "lock_held_ns": 15.7120601,
+      "ack_process_ns": 2.4541621,
+      "owner_ns": 45.7966766,
+      "deliver_ns": 5.7860821,
+      "ack_feedback_ns": 209.055214,
+      "selected_repair_ns": 0.0116355,
+      "lane_decode_ns": 22.5495956
+    }
   },
   "client_receive_stage_timing": {
-    "state": "SCOPED_ACTIONS_P6_PASS_DEPLOYED_NATIVE_PENDING",
+    "state": "QUALIFIED_AND_NATIVE_DIAGNOSTIC_COLLECTED",
     "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
     "default": "off; ordinary diagnostic-jsonl does not enable per-record clocks",
     "activation": "Windows explicit process-local WBD_QUALIFICATION_CLIENT_STAGE_TIMING=1 plus diagnostic-jsonl; invalid value/missing output rejected before network mutation",
@@ -9925,6 +9944,9 @@
     "first_candidate": "e3050706966377d306c9c4de0a26a54b8d77b322",
     "first_failure": "docs/evidence/client-stage-e305070-windows-clock-test-failure-20261006.json",
     "evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json",
-    "deployed_source": "78b8faf0f90e98b98dbc404306cab7689df2b267"
+    "deployed_source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "native_evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json",
+    "native_status": "DIAGNOSTIC_FAIL_QUEUE_PRESSURE",
+    "native_samples": 1361629
   }
 }
