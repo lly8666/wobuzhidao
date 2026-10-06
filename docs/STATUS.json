@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Product candidate60f core/race/60 failed-Wake+SYN+retired repetitions/Linuxserver/GUI/padding/lifecycle37/strict preflight PASS. Independent Normal lossless/5205 and P6 RUNNING. Native sender histogram helper pending Actions, no Go change. Deployed921 unchanged; D04 functionalPASS/qualityPARTIAL, M03 maximumUDP missing/lateFAIL and selected Wintun packet observationUNSUPPORTED. Full70/18/soak/P7 not inherited.",
-  "updated_at": "2026-10-06T12:15:48.606887+08:00",
+  "qualification_scope": "Frozen60f targeted correctness/lifecycle37/five independent strict samples+18 RTT pairs/three-target P6 PASS and paired Windows/ARM deployed. Helperb393 four Actions PASS. NativeS03 full300s 2 lanes/FEC20:20/3M each way zero loss, p99 119.40ms; not full P7. New opt-in Windows TUN metadata product candidate unqualified; M03 missing/late unresolved. Full70/strict18/1800s not inherited.",
+  "updated_at": "2026-10-06T15:31:39.529433+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,13 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "D04 native both-resolver blackhole300s seed1417",
-    "Bounded reverse-fragment diagnostic helpers Actions qualification",
-    "Remaining native IP/config and old rawp99/Wake attribution"
+    "Bounded opt-in Windows pre-TUN metadata observer Actions qualification",
+    "Frozen60f nativeS04 Game3/FEC20:20 300s seed1425",
+    "Remaining native IP/config/current full qualification"
   ],
-  "next_task": "Finish candidate60f exact-source correctness/lifecycle37/preflight. Then independent Normal lossless+5205 and Game lossless+5205+5305, raw pacing and paired p95/p99 before same-source P6/deploy. No new performance scheme; one sample per Action. NativeM03 needs observable Windows boundary; no blind300s repeats of empty packet capture. D04 functionalPASS/business qualityPARTIAL; remaining30 case IDs and current full70/18/soak open.",
-  "latest_log": "docs/devlog/20261006-121800-native-input-p99-observer.md",
-  "last_tested_source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+  "next_task": "Qualify bounded opt-in TUN observation candidate core/build/race, independent Normal/Game lossless and5205 plus Game5305 pairedRTT/rawpacing, exact-source P6 before deploy. While frozen60f nativeS04 runs, preserve all historicalM03 failures. After qualified observer deployment first 2s nonzero/coverage preflight, then one300s M03 with Linux reverse+Windows submission; no empty-capture repeat, no FEC/4096/buffer growth.",
+  "latest_log": "docs/devlog/20261006-153139-bounded-tun-probe-observer.md",
+  "last_tested_source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -2278,6 +2278,76 @@
       "scope": "retired-published-control-next-lifecycle-fullstack",
       "status": "PASS",
       "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412573311",
+      "scope": "retired-control-independent-strict-strict-normal-lossless-seed1421-rate10-lanes1",
+      "status": "PASS",
+      "note": "Five classifications and same-source/helper18 paired p95/p99 PASS; scoped120s, not full18/soak/P7"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412577103",
+      "scope": "retired-control-independent-strict-strict-normal-5205-seed1421-rate10-lanes1",
+      "status": "PASS",
+      "note": "Five classifications and same-source/helper18 paired p95/p99 PASS; scoped120s, not full18/soak/P7"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37413104351",
+      "scope": "retired-control-independent-strict-strict-game-lossless-seed1422-rate3-lanes4",
+      "status": "PASS",
+      "note": "Five classifications and same-source/helper18 paired p95/p99 PASS; scoped120s, not full18/soak/P7"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37413106831",
+      "scope": "retired-control-independent-strict-strict-game-5205-seed1422-rate3-lanes4",
+      "status": "PASS",
+      "note": "Five classifications and same-source/helper18 paired p95/p99 PASS; scoped120s, not full18/soak/P7"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37413109383",
+      "scope": "retired-control-independent-strict-strict-game-5305-seed1422-rate3-lanes4",
+      "status": "PASS",
+      "note": "Five classifications and same-source/helper18 paired p95/p99 PASS; scoped120s, not full18/soak/P7"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412581223",
+      "scope": "retired-control-three-target-P6",
+      "status": "PASS",
+      "note": "All manifest file hashes checked before paired Windows/ARM deployment"
+    },
+    {
+      "source_sha": "b393bc30bcbeff8a6e4922243820649cec31157c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412906119",
+      "scope": "native-send-lag-helper-next-predelivery-tools",
+      "status": "PASS",
+      "note": "Go product unchanged from frozen60f; C#/Python fixed vectors and helper compilation before native use"
+    },
+    {
+      "source_sha": "b393bc30bcbeff8a6e4922243820649cec31157c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412906137",
+      "scope": "native-send-lag-helper-next-p4-steady-targeted",
+      "status": "PASS",
+      "note": "Go product unchanged from frozen60f; C#/Python fixed vectors and helper compilation before native use"
+    },
+    {
+      "source_sha": "b393bc30bcbeff8a6e4922243820649cec31157c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412906139",
+      "scope": "native-send-lag-helper-next-windows-gui",
+      "status": "PASS",
+      "note": "Go product unchanged from frozen60f; C#/Python fixed vectors and helper compilation before native use"
+    },
+    {
+      "source_sha": "b393bc30bcbeff8a6e4922243820649cec31157c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412906136",
+      "scope": "native-send-lag-helper-next-foundation",
+      "status": "PASS",
+      "note": "Go product unchanged from frozen60f; C#/Python fixed vectors and helper compilation before native use"
     }
   ],
   "physical_status": "PARTIAL",
@@ -7847,19 +7917,21 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
-    "state": "D04_FUNCTIONAL_PASS_M03_FAIL_WINDOWS_PACKET_OBSERVATION_UNSUPPORTED",
-    "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
+    "source": "60f6544aa09259c8589c39eac08019ae284116c4",
+    "state": "S03_SCOPED_NATIVE_PASS_M03_UNRESOLVED",
+    "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
     "native_completed_300s": [
       "M01 seed1364",
       "M03 seed1365 FAIL",
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": [],
+    "running": [
+      "s04-current-300s-seed1425"
+    ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
-    "previous_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "previous_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "previous_completed_300s": [
       "D01 seed1351",
       "D01 seed1352",
@@ -7867,7 +7939,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": null,
+    "running_case": "s04-current-300s-seed1425",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7937,7 +8009,7 @@
         }
       }
     ],
-    "helper_head": "5c94366ab453120d63ab5a28d85007456aa8bcd5",
+    "helper_head": "b393bc30bcbeff8a6e4922243820649cec31157c",
     "completed": [
       {
         "case": "m01-current-300s-seed1364",
@@ -8046,12 +8118,18 @@
         "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
         "status": "APP_FAIL_DIAGNOSTIC_INVALID",
         "evidence": "docs/evidence/native-fragment-boundary-9211b24-20261006.json"
+      },
+      {
+        "case": "s03-current-300s-seed1423",
+        "status": "PASS_SCOPED_NATIVE_CAPACITY",
+        "source": "60f6544aa09259c8589c39eac08019ae284116c4",
+        "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
-    "fixture_invalid_latest": "seed1397 SSH masters expired before workload;not product sample,not counted. Operational scp now BatchMode/ConnectTimeout.",
-    "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
-    "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+    "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
+    "deployed_source": "60f6544aa09259c8589c39eac08019ae284116c4",
+    "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
     "last_failed_case": "m03-current-300s-seed1419",
     "last_failure_evidence": "docs/evidence/native-fragment-boundary-9211b24-20261006.json",
     "latest_native_pass": "docs/evidence/native-mtu-9211b24-seed1415-20261006.json",
@@ -8109,11 +8187,12 @@
       "S19",
       "S20",
       "M02",
-      "D04"
+      "D04",
+      "S03"
     ],
-    "full300s_samples": 34,
+    "full300s_samples": 35,
     "case_ids_total": 43,
-    "case_ids_not_run": 30,
+    "case_ids_not_run": 29,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true,
     "additional_client_complete_only_failures": [
@@ -8672,13 +8751,13 @@
     "windows_packet_rows": 0
   },
   "retired_published_control": {
-    "state": "CORRECTNESS_PASS_PERFORMANCE_PENDING",
-    "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+    "state": "SCOPED_ACTIONS_PASS_DEPLOYED",
+    "deployed_source": "60f6544aa09259c8589c39eac08019ae284116c4",
     "trigger_run": 37410839914,
     "trigger": "repeated failedWake shared server ErrHandshakeState",
     "scope": "Only own closed-association marker plus retired byFlow/DORMANT evidence",
     "historical_run_unique_root_proven": false,
-    "next": "core/race deterministic retired control+60Wake repetitions, fullstack37, independent Normal/Game5205 and same-source P6 before deploy",
+    "next": "Preserve qualified frozen60f baseline while independent opt-in TUN observer candidate is gated; historical failedWake exact unique root remains unproven",
     "candidate_source": "60f6544aa09259c8589c39eac08019ae284116c4",
     "candidate_failed_test_run": 37411327860,
     "failed_test_reason": "deterministic retired integration fixture sampled byFlow before async admission published; use real delivered business barrier. Product logic unchanged by fixture fix.",
@@ -8689,21 +8768,24 @@
     "lifecycle_core_run": 37411565849,
     "lifecycle_core_state": "PASS",
     "freeze_ref": "qualification/60f6544-retired-control-20261006",
-    "performance_state": "RUNNING_NORMAL_LOSSLESS_5205",
+    "performance_state": "PASS_TARGETED_5_SAMPLES_18_RTT_PAIRS",
     "fullstack_run": 37411565847,
     "fullstack_state": "PASS_37",
-    "package_state": "RUNNING",
+    "package_state": "PASS_THREE_TARGETS",
     "foundation_state": "PASS",
     "linux_server_state": "PASS",
     "preflight_state": "PASS",
     "performance_runs": [
       37412573311,
-      37412577103
+      37412577103,
+      37413104351,
+      37413106831,
+      37413109383
     ],
     "package_run": 37412581223
   },
   "native_input_p99_observer": {
-    "state": "HELPER_ACTIONS_PENDING",
+    "state": "HELPER_ACTIONS_PASS_NATIVE_S03_INPUT_PASS",
     "scope": "native C# and ARM target successful business sends only; actual per-send monotonic clock minus unchanged byte budget deadline; 102 counters",
     "resolution_ms": 0.1,
     "overflow_threshold_ms": 10,
@@ -8711,6 +8793,59 @@
     "product_changed": false,
     "pacing_changed": false,
     "historical_native_input_p99": "NOT_EVALUATED; cannot infer from old MaxSendLagMs or inherit new counters",
-    "next": "qualify fixed C#/Python vectors in Actions before native use; full positive sample count must equal sent packets; no old D04 quality promotion"
+    "next": "Retain actual positive count=TxPackets and p99Upper<=10ms for each new native sample; old D04 input remains NOT_EVALUATED",
+    "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
+    "gates": [
+      {
+        "id": 37412906119,
+        "name": "next-predelivery-tools",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b393bc30bcbeff8a6e4922243820649cec31157c",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412906119"
+      },
+      {
+        "id": 37412906137,
+        "name": "next-p4-steady-targeted",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b393bc30bcbeff8a6e4922243820649cec31157c",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412906137"
+      },
+      {
+        "id": 37412906139,
+        "name": "next-windows-gui",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b393bc30bcbeff8a6e4922243820649cec31157c",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412906139"
+      },
+      {
+        "id": 37412906136,
+        "name": "next-foundation",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b393bc30bcbeff8a6e4922243820649cec31157c",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37412906136"
+      }
+    ],
+    "native_case": "s03-current-300s-seed1423",
+    "client_p99_upper_ms": 1.7,
+    "server_p99_upper_ms": 1.2
+  },
+  "windows_tun_probe_observer": {
+    "state": "UNQUALIFIED_CANDIDATE",
+    "base_product_source": "60f6544aa09259c8589c39eac08019ae284116c4",
+    "scope": "Only controlled198.18.0.1->currentlease UDP echo18446 firstfragment; nonfirst IPpair/protocol scope only; no packet bytes retained",
+    "pending_capacity": 1024,
+    "total_capacity": 40000,
+    "window_seconds": 390,
+    "default_off": true,
+    "no_new_cli_flags": true,
+    "no_driver_write_under_statistics_lock": true,
+    "no_business_shedding": true,
+    "success_is_application_delivery": false,
+    "coverage_gate": "observed=recorded=sum consumed rows;all metadata drops0;nonempty preflight;missing final snapshot INVALID",
+    "next": "Actions core/Windowsbuild/race repeated20, strict independent performance and P6; do not deploy before qualification"
   }
 }

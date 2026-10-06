@@ -1,5 +1,9 @@
 # 原生与Actions五分钟工况验收
 
+2026-10-06当前：固定产品60f6544已过core/race/60次Wake-SYN退役重复/37生命周期、五独立严格性能及18RTT对、三平台P6并配套部署。助手b393四门PASS。实机S03双lane/FEC20:20/双向3M完整300s零loss、2981探针全回/p99=119.40ms、DNS60/60/owned清理通过；S04三lane正在测。新增默认关闭受控Windows写TUN逐片元数据候选未验，先Actions，不继承60f资格。M03缺包/迟到仍未解决，空Pktmon仍UNSUPPORTED；35历史完整样本/14工况/29NOT_RUN跨源码不能继承。保持无HOL/有界repair、不扩FEC/4096/buffer，每性能Action一条。
+
+以下带日期段落保留历史，当前任务以STATUS顶层为准。
+
 2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
 
 当前进展以 STATUS.physical_current 与094500日志为准：SOURCE24ff D01两独立样本、S16每60秒rotation、S02 Game4均完成300s；各目标吞吐达到，Windows driver/user overflow0、探针全回，Game业务零loss；少量Normal上行loss与server raw drop保留，不能写全链路无损PASS。全历史7唯一case/15份完整样本（跨SOURCE不能继承），36项NOT_RUN。新产品SOURCE660b内层MTU9000/本地坏输入拒绝已通过core/race/GUI/ownership/fullstack/独立Normal+Game5205/P6，夹具HEADc089编译通过；准备配套部署M01/M03，实际边界未验前不写PASS。8f/3e/6181为保留历史证据。

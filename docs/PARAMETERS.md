@@ -6,6 +6,8 @@
 
 Windows客户端新增与Linux同名的`diagnostic-jsonl`（默认空，关闭）和`diagnostic-interval`（默认1s，启用时必须>0）。按期保存owner/FEC/transport/lifecycle、Go资源和每个活跃Npcap incarnation的收发/driver drop/read-gap计数；不保存正文、密钥或凭据。Npcap driver stats只由同一个接收线程每秒采一次，外部诊断线程仅读原子快照，关闭后不调用已释放handle。无stats导出记supported=false，不能伪造零drop。GUI路径限定程序目录内相对路径；例如logs/diagnostic.jsonl，空值不生成文件。文件沿用Linux诊断输出语义，不自动轮转；资格测试外部设置16MiB上限并停止测试，避免长期开启占磁盘。该诊断不是默认数据面策略，不能将诊断on的资源数据冒充off的基准。
 
+Windows候选的同一诊断开关增加`tun_probe_fragments`：只观察198.18.0.1到当前lease的受控UDP回包，首片必须源端口18446，非首片只能按IP对/UDP协议范围识别，不能假称已逐片识别端口。只保留IP/UDP头部标量、已知P7M1测试序号和原始Wintun写入结果，不保留正文；未知序号为-1。关闭诊断时完全使用原PacketWriter。启用时pending最多1024条、累计40000条、从首次观察起390s；满额仅舍弃诊断行，包仍照原样提交。统计锁不跨driver write。`written_bytes`成功只证明提交给Wintun，不证明Windows协议栈或应用收到。分析必须验累计observed=recorded、drop三项为0且已消费行数=recorded；缺少最终快照/日志、超限或空行记INCONCLUSIVE，不据此断言业务片丢失。测试停止负载后等待至少两个诊断周期再停止程序，仍需核对最后快照覆盖。候选Actions/实机状态见STATUS，不继承60f已部署产品资格。
+
 ## 使用方式
 
 Windows收包分离候选沿用已有SegmentMux4096队列，每物理incarnation独立；诊断额外输出receive_queues的容量/峰值/排队年龄/溢出。不是shadow repair4096，不新增用户参数，不扩大Npcap内核接收缓存。是否通过仍看STATUS，不能仅kernel drop下降而忽略用户态overflow或尾延迟。
@@ -58,7 +60,7 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
 | `rotate-min` / `rotate-max` | 0/0 | 客户端定时轮换，配对启用；和黑洞恢复共用一次一个候选的串行调度，不按高丢包下首次成功验收。 |
 | `fec-parity` | 0 | 固定档位：0(off)、4、8、10、12、16、20；数据分片 20，单 incarnation 不热切档。 |
 | `lanes` | 1 | 1=Normal，2～4=Game。逻辑 lease 不因轮换/休眠/重连改变。 |
-| `diagnostic-jsonl` / `diagnostic-interval` | 空/1s | 当前 Linux 两端已有；包含新增 health、pressure、客户端 recovery 计数。Windows 暂无此诊断文件开关，不能宣称 CLI 全平台完全一致。 |
+| `diagnostic-jsonl` / `diagnostic-interval` | 空/1s | Linux两端及Windows客户端已有；包含health、pressure、recovery与平台诊断。Windows受控TUN逐片观察候选须单独验收；Linux/Windows观测字段依平台不同。 |
 
 休眠后由客户端新业务触发唤醒。服务端没有脱离现有 lane 的反向唤醒通道；不能保证两端已经完全休眠后的服务端主动推送。需要这种持续接收能力时保持 idle-dormant=0。默认不自动休眠。
 

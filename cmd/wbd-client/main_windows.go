@@ -351,7 +351,16 @@ func runWindows() error {
 		return err
 	}
 	defer tun.Close()
-	router, err = windowsclient.NewRouter(client.Owner(), tun)
+	var tunWriter windowsclient.PacketWriter = tun
+	var tunProbe *windowsclient.ProbeFragmentWriter
+	if *diagnosticJSONL != "" {
+		tunProbe, err = windowsclient.NewProbeFragmentWriter(tun, leasePrefix.Addr())
+		if err != nil {
+			return err
+		}
+		tunWriter = tunProbe
+	}
+	router, err = windowsclient.NewRouter(client.Owner(), tunWriter)
 	if err != nil {
 		return err
 	}
@@ -404,7 +413,8 @@ func runWindows() error {
 					NpcapIO       map[uint64]faketcp.NpcapIODiagnostic         `json:"npcap_io"`
 					ReceiveQueues map[uint64]runtimeentry.SegmentMuxDiagnostic `json:"receive_queues"`
 					TUNInput      windowsclient.TUNInputDiagnostic             `json:"tun_input"`
-				}{TunnelDiagnostic: client.DiagnosticSnapshot(now), NpcapIO: ioStats, ReceiveQueues: queueStats, TUNInput: tunInput.DiagnosticSnapshot()}
+					TUNProbe      windowsclient.ProbeFragmentDiagnostic        `json:"tun_probe_fragments"`
+				}{TunnelDiagnostic: client.DiagnosticSnapshot(now), NpcapIO: ioStats, ReceiveQueues: queueStats, TUNInput: tunInput.DiagnosticSnapshot(), TUNProbe: tunProbe.DiagnosticSnapshot()}
 			})
 		}()
 	}

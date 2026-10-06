@@ -2,7 +2,7 @@ name: next-predelivery-tools
 on:
   push:
     branches: ['next/tlslike-dataplane']
-    paths: ['tools/**', 'scripts/**', 'internal/runtimeentry/**', 'internal/runtimeowner/**', 'internal/datapath/**', 'internal/platformflow/**', '.github/workflows/next-config-effective.yml', '.github/workflows/next-target-soak.yml', '.github/workflows/next-predelivery-tools.yml']
+    paths: ['tools/**', 'scripts/**', 'internal/runtimeentry/**', 'internal/runtimeowner/**', 'internal/datapath/**', 'internal/platformflow/**', 'internal/windowsclient/**', '.github/workflows/next-config-effective.yml', '.github/workflows/next-target-soak.yml', '.github/workflows/next-predelivery-tools.yml']
   workflow_dispatch:
 permissions: {contents: read}
 jobs:
@@ -87,3 +87,5 @@ jobs:
         run: go test -race ./internal/runtimeentry -run '^TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease$' -count=30 -timeout=8m
       - name: Failed business Wake and retired SYN candidate repetitions
         run: go test -race ./internal/runtimeentry -run '^(TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner|TestLifecycleSYNACK.*|TestLifecycleRetiredAssociation.*)$' -count=60 -timeout=8m
+      - name: Bounded opt-in TUN probe metadata concurrent drain and exact write outcome
+        run: go test -race ./internal/windowsclient -run '^TestProbeFragmentWriter' -count=20 -timeout=3m
