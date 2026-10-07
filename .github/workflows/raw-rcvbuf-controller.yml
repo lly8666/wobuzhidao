@@ -1,5 +1,5 @@
-name: established-rto-foundation-retry
-run-name: established-rto-foundation-retry
+name: rto-perf-1-normal-lossless
+run-name: rto-perf-1-normal-lossless
 
 on:
   push:
@@ -14,13 +14,12 @@ jobs:
   dispatch:
     runs-on: ubuntu-24.04
     steps:
-      - name: Re-run exact-source Foundation only
+      - name: Dispatch one strict sample
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          ref='qualification/large-datagram-rto-20261007'
-          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-foundation.yml/dispatches" --input - <<JSON
-          {"ref":"$ref","inputs":{"run_extended":"false","run_legacy_soak":"false"}}
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/dispatches" --input - <<'JSON'
+          {"ref":"qualification/large-datagram-rto-20261007","inputs":{"qualification_kind":"formal20","fec_parity":"20","mode":"normal","scenario":"lossless","seed":"1521","rate_mbps":"10","lanes":"1","cpu_profile":false,"stateful_middlebox":false,"wan_neighbors":"dynamic","product_source_sha":"c853935e5356a9bc99d380befb5a8ac8e0c08d97"}}
           JSON
