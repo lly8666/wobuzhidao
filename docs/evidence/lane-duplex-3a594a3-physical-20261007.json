@@ -2735,6 +2735,540 @@
         "helper-source.json": "c2d2d40de8c9f2aadb4060fcacc9487f5a313c63a013c1b48ef5bf96902c994e",
         "server-pressure-analysis.json": "de3b66c51fe365032a87def2b8d192b9de59cafd944f80bdf3db0e00f3650138"
       }
+    },
+    {
+      "case": "s18-current-300s-seed1535",
+      "analysis": {
+        "source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "case": "s18-current-300s-seed1535",
+        "strict_isolated_quiet_gate": "FAIL",
+        "errors": [
+          "client_strict_quiet_gate",
+          "server_strict_quiet_gate"
+        ],
+        "feature_observation": "Both endpoints observed physical/active zero twice, same lease, and recovery at ~120s. A further wake at ~224s coincides with non-fixture DNS/TCP application input; not a keepalive-only wake proof. Planned240s controlled cold wake is not independently exercised.",
+        "p99": "NOT_EVALUATED_NO_PROBES",
+        "quality": {
+          "C2SGoodputMbps": 9.9900464,
+          "S2CGoodputMbps": 9.972512533333333,
+          "C2SByteLossPercent": 0.09864354788235996,
+          "S2CByteLossPercent": 0.2743241809361474
+        },
+        "endpoints": {
+          "client": {
+            "transitions": [
+              {
+                "elapsed_s": -21.786,
+                "Dormant": false,
+                "Closed": false,
+                "PhysicalLanes": 1,
+                "ActiveLogicalLanes": 1,
+                "generations": [
+                  1
+                ]
+              },
+              {
+                "elapsed_s": 79.215,
+                "Dormant": true,
+                "Closed": false,
+                "PhysicalLanes": 0,
+                "ActiveLogicalLanes": 0,
+                "generations": []
+              },
+              {
+                "elapsed_s": 121.215,
+                "Dormant": false,
+                "Closed": false,
+                "PhysicalLanes": 1,
+                "ActiveLogicalLanes": 1,
+                "generations": [
+                  2
+                ]
+              },
+              {
+                "elapsed_s": 181.215,
+                "Dormant": true,
+                "Closed": false,
+                "PhysicalLanes": 0,
+                "ActiveLogicalLanes": 0,
+                "generations": []
+              },
+              {
+                "elapsed_s": 224.215,
+                "Dormant": false,
+                "Closed": false,
+                "PhysicalLanes": 1,
+                "ActiveLogicalLanes": 1,
+                "generations": [
+                  3
+                ]
+              }
+            ],
+            "stable_lease": true,
+            "quiet_sample_counts": [
+              34,
+              34
+            ],
+            "quiet_dormant_sample_counts": [
+              34,
+              24
+            ],
+            "strict_quiet_violations_s": [
+              224.215,
+              225.215,
+              226.215,
+              227.215,
+              228.215,
+              229.215,
+              230.215,
+              231.215,
+              232.215,
+              233.215
+            ]
+          },
+          "server": {
+            "transitions": [
+              {
+                "elapsed_s": -31.259,
+                "Dormant": false,
+                "Closed": false,
+                "PhysicalLanes": 1,
+                "ActiveLogicalLanes": 1,
+                "generations": [
+                  1
+                ]
+              },
+              {
+                "elapsed_s": 79.741,
+                "Dormant": true,
+                "Closed": false,
+                "PhysicalLanes": 0,
+                "ActiveLogicalLanes": 0,
+                "generations": []
+              },
+              {
+                "elapsed_s": 120.741,
+                "Dormant": false,
+                "Closed": false,
+                "PhysicalLanes": 1,
+                "ActiveLogicalLanes": 1,
+                "generations": [
+                  2
+                ]
+              },
+              {
+                "elapsed_s": 181.741,
+                "Dormant": true,
+                "Closed": false,
+                "PhysicalLanes": 0,
+                "ActiveLogicalLanes": 0,
+                "generations": []
+              },
+              {
+                "elapsed_s": 223.741,
+                "Dormant": false,
+                "Closed": false,
+                "PhysicalLanes": 1,
+                "ActiveLogicalLanes": 1,
+                "generations": [
+                  3
+                ]
+              },
+              {
+                "elapsed_s": 333.741,
+                "Dormant": true,
+                "Closed": false,
+                "PhysicalLanes": 0,
+                "ActiveLogicalLanes": 0,
+                "generations": []
+              }
+            ],
+            "stable_lease": true,
+            "quiet_sample_counts": [
+              34,
+              34
+            ],
+            "quiet_dormant_sample_counts": [
+              34,
+              23
+            ],
+            "strict_quiet_violations_s": [
+              223.741,
+              224.741,
+              225.741,
+              226.741,
+              227.741,
+              228.741,
+              229.741,
+              230.741,
+              231.741,
+              232.741,
+              233.741
+            ]
+          }
+        },
+        "background_metadata": [
+          {
+            "server_elapsed_s": 10.96,
+            "transport": "UDP",
+            "dst_port": 53,
+            "destination_category": "public_dns"
+          },
+          {
+            "server_elapsed_s": 46.478,
+            "transport": "UDP",
+            "dst_port": 53,
+            "destination_category": "public_dns"
+          },
+          {
+            "server_elapsed_s": 223.625,
+            "transport": "UDP",
+            "dst_port": 53,
+            "destination_category": "public_dns"
+          },
+          {
+            "server_elapsed_s": 223.706,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 223.935,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 223.937,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.171,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.171,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.176,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.408,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.419,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.419,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.419,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.688,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 224.918,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          },
+          {
+            "server_elapsed_s": 225.153,
+            "transport": "TCP",
+            "dst_port": 443,
+            "destination_category": "foreign_tcp443"
+          }
+        ],
+        "observer_integrity": {
+          "unparsed_frames": 0,
+          "cap_reached": false,
+          "observer_drops": 0,
+          "capture_count_matches": true,
+          "metadata_complete": true
+        },
+        "cleanup": {
+          "State": "STOPPED",
+          "Ready": true,
+          "Reason": "requested_stop",
+          "ExitCode": 0,
+          "NetworkStateRemaining": false,
+          "OwnedNRPTRemaining": 0,
+          "OwnedFirewallRemaining": 0,
+          "ElapsedSeconds": 355.5
+        },
+        "ordinary_profile": false,
+        "helper_hashes_unchanged": "not emitted by legacy controller; immutable tool source checked before run",
+        "strict_original_analyzer_assertion_retained": "summarize_3a_lifecycle.py:23 quiet Dormant/PhysicalLanes/ActiveLogicalLanes assertion failed"
+      },
+      "controller_exit_code": 0,
+      "local_receipt_hashes": {
+        "analysis-lifecycle.json": "540633b4b16c6836e8f7af1ed4f78d82e167e08619bf54e485368ead2db70e7e",
+        "case-config.json": "a35bf1158c30ba77a89a9623de152c525b6db28b02ea72fd50df9dfeaeb76de5",
+        "client-session.json": "0a220c2e001b75a91a99acb90076f06328f7b91ce65b7826d429e53223e6a8de",
+        "deployed-versions.json": "27512d0f592cda6e598f04100226a3ccd8ef90e09cfa61e82a7f5305f3b34f19",
+        "missing-receipts.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "p7-status.json": "99133cb5682cf1be5b3168f1dcfd187060883617da7286ea1d2cd42f3166494f",
+        "s18-current-300s-seed1535.json": "f5d47492caed1918dfba21c34455849bae82ffb68e3222e2838ca4af1af7bf91"
+      }
+    },
+    {
+      "case": "m03-current-300s-seed1536",
+      "analysis": {
+        "source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "case": "m03-current-300s-seed1536",
+        "state": "PASS_SCOPED_NATIVE_MTU",
+        "errors": [],
+        "duration_seconds": 300.0447722,
+        "inner_mtu": 9000,
+        "connection_mtu": 1400,
+        "cases": [
+          {
+            "UDPPayload": 8972,
+            "IPv4Total": 9000,
+            "Attempts": 171,
+            "Sent": 171,
+            "ReceivedExact": 171,
+            "TimelyReceived": 171,
+            "LateExact": 0,
+            "MessageSizeError": 0,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": false,
+            "MissingSequences": []
+          },
+          {
+            "UDPPayload": 96,
+            "IPv4Total": 124,
+            "Attempts": 1362,
+            "Sent": 1362,
+            "ReceivedExact": 1362,
+            "TimelyReceived": 1362,
+            "LateExact": 0,
+            "MessageSizeError": 0,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": false,
+            "MissingSequences": []
+          },
+          {
+            "UDPPayload": 8973,
+            "IPv4Total": 9001,
+            "Attempts": 171,
+            "Sent": 171,
+            "ReceivedExact": 171,
+            "TimelyReceived": 171,
+            "LateExact": 0,
+            "MessageSizeError": 0,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": false,
+            "MissingSequences": []
+          },
+          {
+            "UDPPayload": 65507,
+            "IPv4Total": 65535,
+            "Attempts": 171,
+            "Sent": 171,
+            "ReceivedExact": 171,
+            "TimelyReceived": 171,
+            "LateExact": 0,
+            "MessageSizeError": 0,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": false,
+            "MissingSequences": []
+          },
+          {
+            "UDPPayload": 65508,
+            "IPv4Total": 65536,
+            "Attempts": 170,
+            "Sent": 0,
+            "ReceivedExact": 0,
+            "TimelyReceived": 0,
+            "LateExact": 0,
+            "MessageSizeError": 170,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": false,
+            "MissingSequences": []
+          },
+          {
+            "UDPPayload": 8972,
+            "IPv4Total": 9000,
+            "Attempts": 170,
+            "Sent": 170,
+            "ReceivedExact": 170,
+            "TimelyReceived": 170,
+            "LateExact": 0,
+            "MessageSizeError": 0,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": true,
+            "MissingSequences": []
+          },
+          {
+            "UDPPayload": 8973,
+            "IPv4Total": 9001,
+            "Attempts": 170,
+            "Sent": 0,
+            "ReceivedExact": 0,
+            "TimelyReceived": 0,
+            "LateExact": 0,
+            "MessageSizeError": 170,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": true,
+            "MissingSequences": []
+          },
+          {
+            "UDPPayload": 65507,
+            "IPv4Total": 65535,
+            "Attempts": 170,
+            "Sent": 0,
+            "ReceivedExact": 0,
+            "TimelyReceived": 0,
+            "LateExact": 0,
+            "MessageSizeError": 170,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": true,
+            "MissingSequences": []
+          },
+          {
+            "UDPPayload": 65508,
+            "IPv4Total": 65536,
+            "Attempts": 170,
+            "Sent": 0,
+            "ReceivedExact": 0,
+            "TimelyReceived": 0,
+            "LateExact": 0,
+            "MessageSizeError": 170,
+            "OtherSendError": 0,
+            "Timeout": 0,
+            "BadPayload": 0,
+            "Duplicates": 0,
+            "DontFragment": true,
+            "MissingSequences": []
+          }
+        ],
+        "latency_by_udp_size": {
+          "96": {
+            "received": 1362,
+            "p99_ms": 107.95609999999556,
+            "max_ms": 117.89640000000645
+          },
+          "8972": {
+            "received": 341,
+            "p99_ms": 116.87770000000341,
+            "max_ms": 163.61000000000558
+          },
+          "8973": {
+            "received": 171,
+            "p99_ms": 191.37560000001486,
+            "max_ms": 740.7703000000013
+          },
+          "65507": {
+            "received": 171,
+            "p99_ms": 319.3070000000091,
+            "max_ms": 723.1933000000197
+          }
+        },
+        "server_raw_socket_drop_max": 0,
+        "cpu_seconds": {
+          "client": 10.109375,
+          "helper": 0.890625
+        },
+        "cleanup": {
+          "State": "STOPPED",
+          "Ready": true,
+          "Reason": "requested_stop",
+          "ExitCode": 0,
+          "NetworkStateRemaining": false,
+          "OwnedNRPTRemaining": 0,
+          "OwnedFirewallRemaining": 0,
+          "ElapsedSeconds": 347.4
+        },
+        "wire_windows": [
+          {
+            "file": "m03-current-300s-seed1536-start-wire.json",
+            "frames": 17,
+            "raw_deleted": true,
+            "sha256": "c7a6a14085da04d7a32e4e97f469c725e7cd19960048dc306193dd6848dc656c"
+          },
+          {
+            "file": "m03-current-300s-seed1536-steady-wire.json",
+            "frames": 1663,
+            "raw_deleted": true,
+            "sha256": "c5340aac82b082a29df02b78f38eeacc1bac24f30ea33c11be9385da04a4926c"
+          },
+          {
+            "file": "m03-current-300s-seed1536-stop-wire.json",
+            "frames": 6,
+            "raw_deleted": true,
+            "sha256": "403a3ac3e77d3d049510aadcbafbad92e07457c60f187cb2b80398a05ea05973"
+          },
+          {
+            "file": "m03-current-300s-seed1536-tail-wire.json",
+            "frames": 1944,
+            "raw_deleted": true,
+            "sha256": "53cf7331cd7b6e6f67fae29fdf646bced4bc9b006fe9beae99554f9873b656b5"
+          }
+        ],
+        "scope": "Sparse functional MTU/API boundary, not throughput benchmark, no weaknet injection. One current-source PASS does not erase old missing/late M03 or close all MTU/1800s gates."
+      },
+      "controller_exit_code": 0,
+      "local_receipt_hashes": {
+        "analysis-mtu.json": "e3d07523824b8306184ef5519d3a32c6075c647d59d01b73edf12eb337259806",
+        "case-config.json": "f6f22a76355f8a9ea5238c7ca9c82880a90dcbd1d669218f0957bda84e29ddca",
+        "client-session.json": "ada3baf7338c3b08b9241315ebc3849c91fd69ccae0d5912cd0c4ea8d6f2f41e",
+        "deployed-versions.json": "27512d0f592cda6e598f04100226a3ccd8ef90e09cfa61e82a7f5305f3b34f19",
+        "helper-source.json": "c2d2d40de8c9f2aadb4060fcacc9487f5a313c63a013c1b48ef5bf96902c994e",
+        "m03-current-300s-seed1536.json": "7a6ad3adb2b8abeb612cf8d88423e006966e7f41f5b3b2560db0dea456b51a34",
+        "missing-receipts.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "p7-status.json": "c330d5c63a85b88e7614cbcae72dfb3b856fe3864a0a72bf01986c7c6d88c45f"
+      }
     }
   ],
   "physical_pending": [
@@ -2757,7 +3291,7 @@
     "per_record_stage_timing": false,
     "diagnostic_interval": "1s"
   },
-  "updated_at": "2026-10-07T19:30:15.751367+08:00",
+  "updated_at": "2026-10-07T19:51:31.407618+08:00",
   "socket_environment": {
     "rmem_default": "212992",
     "rmem_max": "212992",
@@ -2767,5 +3301,10 @@
     "actions_product_actual_rb_bytes": 1048576,
     "global_sysctl_changed": false,
     "interpretation": "Environment headroom differs; no causal claim and no buffer workaround applied."
+  },
+  "physical_subscopes": {
+    "payload_idle_keepalive_wake": "PARTIAL; twice observed zero physical/active, one controlled wake, later quiet interrupted by background DNS/TCP; strict quiet gate FAIL retained",
+    "over_MTU": "ONE_CURRENT_SOURCE_M03_PASS; repeat pending, old FAIL/late not erased",
+    "DNS_mutual_backup": "D02 seed1537 in progress, then D03 seed1538; exact lease-only faults"
   }
 }
