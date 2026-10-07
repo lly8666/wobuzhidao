@@ -2,6 +2,7 @@ package runtimeowner
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 	"time"
 
