@@ -67,7 +67,7 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
 
 2026-10-04用户确认：`idle-dormant`是允许开始自动休眠的业务空闲阈值，不是必须在该秒关闭的硬截止；允许较大关闭余量，优先不误关并在客户端新业务到来时重建。等待新鲜对端空闲提示、正常关闭与调度都可使实际时间晚于阈值；保活缺失保持未知，不能强行超时休眠。keepalive不延长业务空闲时间，`dead-after`则独立负责失活恢复。最新SOURCE2b2的实际空闲/重建、health丢失与1/4lane竞态证据见LIFECYCLE_ACCEPTANCE及`docs/evidence/idle-keepalive-2b2bd9e.json`。
 
-内部固定边界不是 CLI 参数：4096 shadow metadata有效记录、3s repair horizon、重传新流量补充比例1/5、128KiB启动credit、FEC最多8个heavy恢复槽与8192个compact late-delivery历史、3s绝对恢复期限及满额时旧block早退役、padding预算、最多10物理lane。fresh发送不受4096 ACK退休门阻塞；这些常量不是可配置开关，不用历史“64代”文字代替当前实际解码状态。
+内部固定边界不是 CLI 参数：4096 shadow metadata有效记录、outer repair启动RTO 1s；取得未重传的可信RTT样本后使用SRTT+4*RTTVAR且最小200ms，3s绝对repair horizon不变；重传新流量补充比例1/5、128KiB启动credit、FEC最多8个heavy恢复槽与8192个compact late-delivery历史、FEC 3s绝对恢复期限及满额时旧block早退役、padding预算、最多10物理lane。fresh发送不受4096 ACK退休门阻塞；200ms不是用户调参旋钮，不改变同Seq同密文字节重传、FEC档位或恢复期限。
 
 FEC首源8ms是encoder到期条件，不是已承诺的实际parity发包上限：正式入口约100ms tick检查部分组，满组立即产生parity，systematic始终立即发。MTU是完整外层IPv4包预算，还受peer MSS及双向record limit约束；现有配置/抓包通过不等于自动PMTU探测已实现。路径更小时需下调两端MTU并重新建lane，物理验证见PREDELIVERY_ACCEPTANCE。
 

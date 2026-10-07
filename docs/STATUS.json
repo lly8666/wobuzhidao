@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T22:48:00+08:00",
+  "updated_at": "2026-10-07T23:05:00+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -90,8 +90,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Re-run pre-fix diagnostics after fixing only the TUN observer's unrelated-packet filter. Preserve failed next-predelivery-tools run37638831165 as harness failure evidence. Foundation run37638827134 remains product-test authority for a3ce2f while pending/completing. No production RTO change until corrected kernel fixture and Go pre-fix diagnostics pass.",
-  "latest_log": "docs/devlog/20261007-224800-inner-mtu-fixture-filter-fix.md",
+  "next_task": "Qualify established-RTO-floor candidate with foundation/race/arm64, predelivery MTU9000 fixture, lifecycle/network gates, then independent Normal20/Game4 lossless+5205 and r12 lossless+5305 seed1508. Compare r12 tail/repair/wire cost against run37633598715 and retain historical failures. Separately run raw-recv-buffer 0 vs 524288 same-source A/B in two independent Actions runs; no physical claim until fixed P6 is rerun on Windows->ARM.",
+  "latest_log": "docs/devlog/20261007-230500-established-rto-floor-fix.md",
   "last_tested_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
   "actions": [
     {
@@ -10599,13 +10599,13 @@
     "latest_log": "docs/devlog/20261007-215500-linux-raw-rcvbuf-candidate.md"
   },
   "large_datagram_late": {
-    "state": "PRE_FIX_DIAGNOSTIC_FIXTURE_RETRY",
+    "state": "RTO_FLOOR_FIX_CANDIDATE_AWAITING_ACTIONS",
     "physical_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
     "evidence": "docs/evidence/lane-duplex-3a594a3-physical-20261007.json",
     "observation": "M03 seed1539 UDP8973/IP9001 DF=false 167/167 eventual, 2 late ~1081.6/1125.3ms; 96B 1330/1330 p99~116.9ms max~212.3; UDP65507 timely; server rawdrop0.",
-    "current_hypothesis": "Physical M03 9001-byte packet is OS-fragmented at MTU9000 into a near-MTU fragment plus tiny tail. Product LINK/FEC can process that tiny tail independently; if its source/FEC protection is lost and no later payload creates SACK/RACK evidence, current outer repair remains clamped by InitialRTO=1s even after low RTT samples. Deterministic Action must prove each layer before production change.",
+    "current_hypothesis": "Causal chain supported pre-fix: real Linux MTU9000 always splits UDP8973/IP9001 DF=false into [8996,25]; LINK/FEC deterministic test proves missing tiny-tail source does not HOL an independent96B systematic and parity can recover it by the owner tick; outer transport deterministic test proves a clean50ms RTT still had RTO=1s and a sparse loss with no later SACK repaired only at1s. Product fix separates startup InitialRTO=1s from established estimator floor=200ms.",
     "linked_actions_tail": "Normal 20:12 5305 seed1508 run37602563270 p99~2168ms socket/link drop0 remains independently OPEN; do not merge causes without evidence.",
-    "fix": "NONE_PRE_FIX_DIAGNOSTIC_ONLY",
+    "fix": "CANDIDATE: keep startup RTO1s and horizon3s; after clean RTT samples clamp SRTT+4*RTTVAR at internal200ms minimum instead of InitialRTO. No CLI, FEC,4096,delivery-order or ciphertext retransmission change.",
     "actions": {
       "prior_same_source_default_buffer_r12_5305": {
         "run": 37633598715,
@@ -10624,8 +10624,26 @@
         "failure_scope": "HARNESS",
         "failure": "test_inner_mtu9000_fragment_kernel.py treated an unrelated/non-IPv4 TUN packet as fatal before the first 8972 probe; existing egress blackhole and reverse fragment fixtures passed in the same job",
         "product_algorithm_changed": false
-      }
+      },
+      "diagnostic_retry": {
+        "source": "be06814c3ba527fbdf1f713e3b37db024ad71618",
+        "foundation_run": 37639163031,
+        "predelivery_run": 37639166468,
+        "kernel_fixture_job": "PASS",
+        "kernel_rounds": 24,
+        "udp8973_shape": "24/24 [8996,25]",
+        "udp65507": "24/24 eight fragments",
+        "small96": "72/72 one packet at TUN boundary",
+        "invalid_and_df": "expected EMSGSIZE",
+        "pre_fix_foundation_reference": {
+          "source": "a3ce2f552b04776dbcc2654b9fcef54c7cc3edb8",
+          "run": 37638827134,
+          "conclusion": "success"
+        },
+        "note": "Full retry workflows may still be completing at candidate commit time; product algorithm was unchanged through be06814."
+      },
+      "fix_candidate": "NOT_RUN"
     },
-    "latest_log": "docs/devlog/20261007-224800-inner-mtu-fixture-filter-fix.md"
+    "latest_log": "docs/devlog/20261007-230500-established-rto-floor-fix.md"
   }
 }

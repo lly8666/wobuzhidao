@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	MaxOutstandingRecords = 4096
-	DefaultRepairRTO      = time.Second
-	DefaultRepairHorizon  = 3 * time.Second
-	DefaultACKDelay       = 2 * time.Millisecond
+	MaxOutstandingRecords   = 4096
+	DefaultRepairRTO        = time.Second
+	DefaultMinimumRepairRTO = 200 * time.Millisecond
+	DefaultRepairHorizon    = 3 * time.Second
+	DefaultACKDelay         = 2 * time.Millisecond
 )
 
 var (
@@ -49,7 +50,10 @@ type TransportConfig struct {
 	WindowScale         uint8
 	WindowScaleSet      bool
 
+	// InitialRTO is the conservative startup value before any clean RTT sample.
+	// MinimumRTO is the floor for the established RTT estimator.
 	InitialRTO    time.Duration
+	MinimumRTO    time.Duration
 	RepairHorizon time.Duration
 	SACKPermitted bool
 	// Zero preserves immediate ACK for direct embedders. Production admission
@@ -76,10 +80,16 @@ func (c *TransportConfig) normalize() error {
 	if c.InitialRTO <= 0 {
 		c.InitialRTO = DefaultRepairRTO
 	}
+	if c.MinimumRTO <= 0 {
+		c.MinimumRTO = DefaultMinimumRepairRTO
+		if c.MinimumRTO > c.InitialRTO {
+			c.MinimumRTO = c.InitialRTO
+		}
+	}
 	if c.RepairHorizon <= 0 {
 		c.RepairHorizon = DefaultRepairHorizon
 	}
-	if c.RepairHorizon < c.InitialRTO {
+	if c.MinimumRTO <= 0 || c.MinimumRTO > c.InitialRTO || c.RepairHorizon < c.InitialRTO {
 		return ErrTransportConfig
 	}
 	if !c.AdvertisedWindowSet {
@@ -226,6 +236,7 @@ type TransportStats struct {
 	PeerRST                  bool
 	SRTT                     time.Duration
 	RTO                      time.Duration
+	MinimumRTO               time.Duration
 	AdvertisedWindow         uint16
 	WindowScale              uint8
 	WindowScaleSet           bool
@@ -1025,6 +1036,7 @@ func (t *laneTransport) statsSnapshotAt(now time.Time) TransportStats {
 	out.RepairCreditBytes = t.repairCredit
 	out.SRTT = t.srtt
 	out.RTO = t.rto
+	out.MinimumRTO = t.cfg.MinimumRTO
 	out.AdvertisedWindow = t.cfg.AdvertisedWindow
 	out.WindowScale = t.cfg.WindowScale
 	out.WindowScaleSet = t.cfg.WindowScaleSet

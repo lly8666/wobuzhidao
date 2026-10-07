@@ -601,8 +601,11 @@ func (t *laneTransport) observeRTTLocked(sample time.Duration) {
 }
 
 func (t *laneTransport) clampRTOLocked(v time.Duration) time.Duration {
-	if v < t.cfg.InitialRTO {
-		v = t.cfg.InitialRTO
+	// baseRTO/rto still start at InitialRTO, so a lane with no clean RTT sample
+	// keeps startup behavior. After observeRTTLocked, the established estimator
+	// uses its independent floor instead of being forced back to startup RTO.
+	if v < t.cfg.MinimumRTO {
+		v = t.cfg.MinimumRTO
 	}
 	if v > t.cfg.RepairHorizon {
 		v = t.cfg.RepairHorizon

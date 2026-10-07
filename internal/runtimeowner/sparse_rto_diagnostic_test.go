@@ -9,12 +9,10 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 )
 
-// This is deliberately a pre-fix diagnostic. It captures the existing sparse
-// loss behavior on an established low-RTT lane: once there is no later payload
-// to create SACK/RACK evidence, RTT estimation cannot reduce the repair timer
-// below InitialRTO (1s). The follow-up fix must change this expectation rather
-// than deleting the reproducer.
-func TestSparseLowRTTLossWaitsInitialRTOPreFix(t *testing.T) {
+// This preserves the pre-fix sparse-loss reproducer while asserting the narrow
+// repair: startup still uses 1s, but one clean low-RTT sample lets the standard
+// SRTT+4*RTTVAR estimator use its separate established floor.
+func TestSparseLowRTTLossUsesEstablishedMinimumRTO(t *testing.T) {
 	lease := runtimeLease(t)
 	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 16)
 	if err != nil {
@@ -39,6 +37,10 @@ func TestSparseLowRTTLossWaitsInitialRTOPreFix(t *testing.T) {
 	}
 	tr := rt.lanes[snap.Ref]
 	t0 := time.Unix(12000, 0)
+	initial, _ := rt.TransportStatsAt(snap.Ref, t0)
+	if initial.RTO != time.Second || initial.MinimumRTO != DefaultMinimumRepairRTO {
+		t.Fatalf("startup timers rto=%s minimum=%s", initial.RTO, initial.MinimumRTO)
+	}
 
 	if err := tr.send([]datapath.WireRecord{{Wire: []byte("low-rtt-sample")}}, t0); err != nil {
 		t.Fatal(err)
@@ -55,8 +57,9 @@ func TestSparseLowRTTLossWaitsInitialRTOPreFix(t *testing.T) {
 		t.Fatal(err)
 	}
 	stats, _ := rt.TransportStatsAt(snap.Ref, t0.Add(50*time.Millisecond))
-	if stats.SRTT != 50*time.Millisecond || stats.RTO != time.Second {
-		t.Fatalf("pre-fix low RTT did not remain clamped: srtt=%s rto=%s", stats.SRTT, stats.RTO)
+	if stats.SRTT != 50*time.Millisecond || stats.RTO != DefaultMinimumRepairRTO ||
+		stats.MinimumRTO != DefaultMinimumRepairRTO {
+		t.Fatalf("established low RTT timer mismatch: srtt=%s rto=%s minimum=%s", stats.SRTT, stats.RTO, stats.MinimumRTO)
 	}
 
 	t1 := t0.Add(100 * time.Millisecond)
@@ -66,26 +69,46 @@ func TestSparseLowRTTLossWaitsInitialRTOPreFix(t *testing.T) {
 	lost := wire[len(wire)-1]
 	before := len(wire)
 
-	if err := rt.Tick(t1.Add(999 * time.Millisecond)); err != nil {
+	if err := rt.Tick(t1.Add(DefaultMinimumRepairRTO - time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	if len(wire) != before {
-		t.Fatalf("pre-fix sparse repair fired before 1s: before=%d after=%d", before, len(wire))
+		t.Fatalf("sparse repair fired before established RTO: before=%d after=%d", before, len(wire))
 	}
-	if err := rt.Tick(t1.Add(time.Second)); err != nil {
+	if err := rt.Tick(t1.Add(DefaultMinimumRepairRTO)); err != nil {
 		t.Fatal(err)
 	}
 	if len(wire) != before+1 {
-		t.Fatalf("pre-fix sparse repair missing at 1s: before=%d after=%d", before, len(wire))
+		t.Fatalf("sparse repair missing at established RTO: before=%d after=%d", before, len(wire))
 	}
 	retry := wire[len(wire)-1]
 	if retry.Seq != lost.Seq || !bytes.Equal(retry.Payload, lost.Payload) {
 		t.Fatalf("retry changed seq/ciphertext: lost=%+v retry=%+v", lost, retry)
 	}
-	stats, _ = rt.TransportStatsAt(snap.Ref, t1.Add(time.Second))
+	stats, _ = rt.TransportStatsAt(snap.Ref, t1.Add(DefaultMinimumRepairRTO))
 	if stats.RTORepairs != 1 {
-		t.Fatalf("pre-fix sparse repair stats=%+v", stats)
+		t.Fatalf("sparse repair stats=%+v", stats)
 	}
-	t.Logf("WBD_SPARSE_RTO_PREFX srtt_ms=%d rto_ms=%d first_repair_ms=1000 same_seq_ciphertext=1",
-		stats.SRTT.Milliseconds(), time.Second.Milliseconds())
+	t.Logf("WBD_SPARSE_RTO_FIXED srtt_ms=%d minimum_rto_ms=%d first_repair_ms=%d same_seq_ciphertext=1",
+		stats.SRTT.Milliseconds(), stats.MinimumRTO.Milliseconds(), DefaultMinimumRepairRTO.Milliseconds())
+}
+
+func TestTransportMinimumRTOValidationAndSmallExplicitStartup(t *testing.T) {
+	cfg := TransportConfig{
+		LocalIP: [4]byte{192, 0, 2, 1}, PeerIP: [4]byte{192, 0, 2, 2},
+		LocalPort: 1234, PeerPort: 443, InitialRTO: time.Second,
+		MinimumRTO: 2 * time.Second, RepairHorizon: 3 * time.Second,
+		Emit: func(faketcp.Segment) error { return nil },
+	}
+	if err := cfg.normalize(); !errors.Is(err, ErrTransportConfig) {
+		t.Fatalf("minimum above initial accepted: %v", err)
+	}
+	cfg.MinimumRTO = 0
+	cfg.InitialRTO = 100 * time.Millisecond
+	if err := cfg.normalize(); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.MinimumRTO != cfg.InitialRTO {
+		t.Fatalf("small explicit startup should cap default minimum: initial=%s minimum=%s", cfg.InitialRTO, cfg.MinimumRTO)
+	}
 }
