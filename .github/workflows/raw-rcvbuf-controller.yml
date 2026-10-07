@@ -1,5 +1,5 @@
-name: rto-perf-6-r12-5305
-run-name: rto-perf-6-r12-5305
+name: raw-rcvbuf-ab-dispatch
+run-name: raw-rcvbuf-ab-dispatch
 
 on:
   push:
@@ -14,12 +14,14 @@ jobs:
   dispatch:
     runs-on: ubuntu-24.04
     steps:
-      - name: Dispatch one exact-source r12 5305 sample
+      - name: Dispatch two separate exact-product-source A/B run requests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/dispatches" --input - <<'JSON'
-          {"ref":"qualification/large-datagram-rto-20261007","inputs":{"qualification_kind":"fec-profile-screen","fec_parity":"12","mode":"normal","scenario":"5305","seed":"1508","rate_mbps":"10","lanes":"1","cpu_profile":false,"stateful_middlebox":false,"wan_neighbors":"dynamic","product_source_sha":"c853935e5356a9bc99d380befb5a8ac8e0c08d97"}}
+          for request in 0 524288; do
+            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/dispatches" --input - <<JSON
+          {"ref":"qualification/raw-rcvbuf-ab-20261007","inputs":{"qualification_kind":"formal20","fec_parity":"20","mode":"normal","scenario":"5205","seed":"1521","rate_mbps":"10","lanes":"1","cpu_profile":false,"stateful_middlebox":false,"wan_neighbors":"dynamic","raw_recv_buffer":"$request","product_source_sha":"3d3e24f1271ddf960aa57035a6217476f1826bbc"}}
           JSON
+          done
