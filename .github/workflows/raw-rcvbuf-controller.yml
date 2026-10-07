@@ -1,5 +1,5 @@
-name: large-datagram-prefix-dispatch
-run-name: large-datagram-prefix-dispatch
+name: large-datagram-prefix-retry-dispatch
+run-name: large-datagram-prefix-retry-dispatch
 
 on:
   push:
