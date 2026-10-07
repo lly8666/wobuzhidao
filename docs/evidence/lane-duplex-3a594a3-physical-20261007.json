@@ -1,0 +1,570 @@
+{
+  "schema": 1,
+  "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+  "state": "IN_PROGRESS",
+  "actions_independent_audit": {
+    "state": "PASS",
+    "runs": [
+      {
+        "run": 37602221629,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112729082990,
+            "name": "repository-contract",
+            "conclusion": "success"
+          },
+          {
+            "id": 112729142877,
+            "name": "active-go-tests (windows-2022)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112729142929,
+            "name": "active-go-tests (ubuntu-24.04)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112729142945,
+            "name": "p4-openwrt-tproxy-privileged",
+            "conclusion": "success"
+          },
+          {
+            "id": 112729142963,
+            "name": "p4-linux-shared-tun-privileged (nft)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112729143003,
+            "name": "p2-kernel-fallback",
+            "conclusion": "success"
+          },
+          {
+            "id": 112729143021,
+            "name": "p4-linux-shared-tun-privileged (iptables)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112729144429,
+            "name": "p5-weaknet-5-20-5",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112729144433,
+            "name": "p6-release-candidate",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112729144938,
+            "name": "p5-load",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112729144976,
+            "name": "p5-load-40",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112729145311,
+            "name": "p5-weaknet-5-30-5",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112729145426,
+            "name": "p5-https-measurement-base",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112729145516,
+            "name": "p5-fec2020-weaknet-5-20-5",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112729145650,
+            "name": "p5-fec2020-weaknet-5-30-5",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112729146293,
+            "name": "p5-soak",
+            "conclusion": "skipped"
+          }
+        ]
+      },
+      {
+        "run": 37602535872,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730135407,
+            "name": "lifecycle-l0_config-fec0-pad1-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135658,
+            "name": "lifecycle-l0_config-fec20-pad1-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135672,
+            "name": "lifecycle-l0_config-fec0-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135749,
+            "name": "lifecycle-l0_config-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135758,
+            "name": "lifecycle-l0_config-fec0-pad1-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135770,
+            "name": "lifecycle-l4_old_tuple-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135775,
+            "name": "lifecycle-l0_config-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135784,
+            "name": "lifecycle-l3_health-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135785,
+            "name": "lifecycle-l5_tls-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135803,
+            "name": "lifecycle-l5_admission-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135815,
+            "name": "lifecycle-l2_c2s-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135819,
+            "name": "lifecycle-l1_idle_downlink-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135822,
+            "name": "lifecycle-l3_health-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135826,
+            "name": "lifecycle-l5_syn-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135830,
+            "name": "lifecycle-l2_s2c-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135833,
+            "name": "lifecycle-l0_config-fec20-pad1-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135857,
+            "name": "lifecycle-l1_idle_downlink-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135872,
+            "name": "lifecycle-l5_detach-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135894,
+            "name": "lifecycle-l5_syn-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135920,
+            "name": "lifecycle-l4_all_tuple-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135927,
+            "name": "lifecycle-l2_c2s-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135937,
+            "name": "lifecycle-l0_config-fec0-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135942,
+            "name": "lifecycle-l4_old_tuple-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135959,
+            "name": "lifecycle-l5_admission-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730135975,
+            "name": "lifecycle-l5_tls-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730136016,
+            "name": "lifecycle-l2_s2c-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730136060,
+            "name": "lifecycle-l5_detach-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730136071,
+            "name": "lifecycle-l6_race1-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730136143,
+            "name": "lifecycle-l4_all_tuple-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730136379,
+            "name": "lifecycle-l6_race1-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730137621,
+            "name": "lifecycle-l6_race4-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730137784,
+            "name": "lifecycle-l6_race4-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730138368,
+            "name": "lifecycle-l6_partial-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730138424,
+            "name": "lifecycle-l6_partial-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730138506,
+            "name": "lifecycle-l7_defaults-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730138663,
+            "name": "lifecycle-l7_defaults-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 112734320927,
+            "name": "lifecycle-aggregate-36",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602539898,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730148345,
+            "name": "default-network (off)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730148543,
+            "name": "default-network (custom)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730148639,
+            "name": "default-network (default)",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602544149,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730159854,
+            "name": "splitroute-embedded-FUNCTIONAL",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730160118,
+            "name": "splitroute-lan-FUNCTIONAL",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730160210,
+            "name": "splitroute-all-FUNCTIONAL",
+            "conclusion": "success"
+          },
+          {
+            "id": 112730160390,
+            "name": "splitroute-manual-FUNCTIONAL",
+            "conclusion": "success"
+          },
+          {
+            "id": 112731516364,
+            "name": "aggregate",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602548438,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730176823,
+            "name": "single-configuration",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602552100,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730187237,
+            "name": "deployment",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602556519,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730203133,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602559653,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730215275,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602563270,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730226373,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602567530,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730240710,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37602571402,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112730255060,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37605009121,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112738249615,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37605011893,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112738259380,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37605015130,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112738265805,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37605017713,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112738275396,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37606109601,
+        "sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "id": 112741868454,
+            "name": "package (windows-2022, windows, amd64, true)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112741868841,
+            "name": "package (ubuntu-24.04, linux, amd64, true)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112741869022,
+            "name": "package (ubuntu-24.04, linux, arm64, false)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112742409660,
+            "name": "aggregate",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ],
+    "p6_run": 37606109601,
+    "packages": [
+      {
+        "target": "windows-amd64",
+        "artifact_id": 11474354633,
+        "artifact_digest": "sha256:a4553ebf6412b354ec49f1792981a58c8d1fd184243ca58745685e8e917d8b90",
+        "manifest_sha256": "c25b9cc6d64bb7879f7f956b48b0db2ea343a86ccd84abc9ae569c262f83b1c1",
+        "file_sizes_and_sha256_verified": true
+      },
+      {
+        "target": "linux-arm64",
+        "artifact_id": 11474687727,
+        "artifact_digest": "sha256:796062547d99777864ab53117dbef695c94eab157a04b95822dafa073923c976",
+        "manifest_sha256": "43cc6ebfcff37deb5133cbd0b89ec41bc1d377df4c48b19ab83487184fd78dc6",
+        "file_sizes_and_sha256_verified": true
+      },
+      {
+        "target": "linux-amd64",
+        "artifact_id": 11475186403,
+        "artifact_digest": "sha256:accd0ed8d38416405d16fab5b493f6c88f6c0e11dd9864ca9e08f891d0ffb5e7",
+        "manifest_sha256": "b4b802321165be3dfc44e73745c814b863421abfe7421f734d2755255e6de229",
+        "file_sizes_and_sha256_verified": true
+      }
+    ],
+    "final_docs_head": "a0e378b9e4dd8e65735a5f8e8d597153c5dde0a7",
+    "final_docs_runs": [
+      37607323423,
+      37607323382,
+      37607323442
+    ],
+    "final_docs_checks": "SUCCESS"
+  },
+  "deployment": {
+    "state": "PASS",
+    "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+    "previous_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "windows_and_arm64_exact_source": true,
+    "server_active": true,
+    "inner_mtu": 9000,
+    "config_preserved": true,
+    "npcap_not_reinstalled": true,
+    "rollback_available": true
+  },
+  "physical_samples": [],
+  "physical_pending": [
+    "Normal300s",
+    "Game4_300s",
+    "Normal_rotation300s",
+    "Game4_rotation300s",
+    "payload_idle_keepalive_wake",
+    "DNS_mutual_backup",
+    "LAN_CN_split",
+    "IPv6_fail_closed",
+    "over_MTU",
+    "additional_FEC_profiles"
+  ],
+  "historical_failures_retained": [
+    "old11pairedRTT",
+    "nativeS01/S16/M03",
+    "full70/final18/1800s",
+    "historical284msrootcauseOPEN",
+    "r12/5305multi_second_probe_tailOPEN"
+  ],
+  "ordinary_mode": {
+    "profile": false,
+    "per_record_stage_timing": false,
+    "diagnostic_interval": "1s"
+  },
+  "updated_at": "2026-10-07T18:56:26.392295+08:00"
+}

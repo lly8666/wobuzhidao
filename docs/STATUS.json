@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T18:25:00+08:00",
+  "updated_at": "2026-10-07T18:56:26.392295+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -88,8 +88,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "First confirm the automatic repository-contract/foundation checks on this final documentation head are green. Then original chat physical acceptance only: verify fixed SOURCE 3a594a34191159bd7224f35ba9117cdf6f239c69 from qualification/lane-duplex-20261007 using the exact P6 artifacts in docs/evidence/lane-duplex-3a594a3-qualification-20261007.json. Actions PASS is not physical PASS; historical 11 paired RTT FAIL, native S01/S16/M03, full70/final18/1800s and other NOT_RUN remain open.",
-  "latest_log": "docs/devlog/20261007-182500-main-contract-repair.md",
+  "next_task": "Original chat physical acceptance of fixed SOURCE3a594a3 only: first Normal/Game300s, then rotation, idle/keepalive, DNS backup, splitrouting/IPv6/MTU and FEC profiles. Ordinary profiling/stage timing off, one load window at a time; retain old FAIL/NOT_RUN and report real WAN capability separately. Record actual samples and cleanup in existing STATUS/devlog/evidence.",
+  "latest_log": "docs/devlog/20261007-185626-lane-duplex-physical-start.md",
   "last_tested_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
   "actions": [
     {
@@ -10496,7 +10496,7 @@
     "actions_evidence": "docs/evidence/lane-duplex-3a594a3-qualification-20261007.json",
     "result": "RETAIN_DIRECTION_LOCK",
     "p6_run": 37606109601,
-    "physical": "NOT_RUN"
+    "physical": "IN_PROGRESS"
   },
   "development_handoff": {
     "state": "ACTIONS_READY_FOR_PHYSICAL",
@@ -10504,7 +10504,7 @@
     "physical_acceptance_owner": "original chat",
     "priority": "real business first arrival efficiency > latency/p99/noHOL and low resource cost > appearance > additional security; original hard requirements unchanged",
     "original_chat_code_edits": "PHYSICAL_ACCEPTANCE_ONLY unless a new development handoff is explicitly opened",
-    "latest_log": "docs/devlog/20261007-182500-main-contract-repair.md",
+    "latest_log": "docs/devlog/20261007-185626-lane-duplex-physical-start.md",
     "thread_id": "01a115bd-4de6-7d32-a779-ad7302f0b002",
     "host_id": "local",
     "handoff_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
@@ -10512,7 +10512,7 @@
     "qualification_ref": "qualification/lane-duplex-20261007",
     "evidence": "docs/evidence/lane-duplex-3a594a3-qualification-20261007.json",
     "repository_contract_repair": {
-      "state": "FINAL_DOCS_COMMIT_AWAITING_AUTOMATIC_CHECKS",
+      "state": "PASS",
       "failed_docs_head": "0a9c2bf146667e4b090ac91efad825b7c1e98045",
       "failed_runs": [
         37606953953,
@@ -10523,7 +10523,23 @@
       "cause": "Final handoff documentation was initially written as several sequential commits after the STATUS commit; repository policy evaluates each push range and requires both STATUS plus a newly-added devlog in every change.",
       "remediation": "This repair is one atomic commit adding a new devlog and updating the single STATUS. No product source, qualification ref, protocol, parameters or prior evidence are changed.",
       "product_source_unchanged": "3a594a34191159bd7224f35ba9117cdf6f239c69",
-      "physical": "NOT_RUN"
-    }
+      "physical": "NOT_RUN",
+      "verified_runs": [
+        37607323423,
+        37607323382,
+        37607323442
+      ]
+    },
+    "physical_acceptance": "IN_PROGRESS"
+  },
+  "physical_lane_duplex": {
+    "state": "IN_PROGRESS",
+    "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+    "evidence": "docs/evidence/lane-duplex-3a594a3-physical-20261007.json",
+    "latest_log": "docs/devlog/20261007-185626-lane-duplex-physical-start.md",
+    "completed_samples": 0,
+    "actions_independently_verified": true,
+    "deployment": "PASS",
+    "historical_scope_not_inherited": true
   }
 }
