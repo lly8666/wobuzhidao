@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T12:54:29.179988+08:00",
+  "updated_at": "2026-10-07T12:58:21.240581+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -86,7 +86,7 @@
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
   "next_task": "Wait Actions preflight for explicitFECscreen identity/partial math/one-sample policy; if PASS freeze harness SHA and dispatch36independent Actions at exactproduct d6, oneprofile/mode/scenario/seed perrun. Collect all compact receipts, per-profile same-seed lossless RTT200/500ms checks and probe coverage/continuity, compare observedloss to actual theoretical bounds as reference, no blind runtime change. Rawpcaps hashed/deleted afteranalysis, no rawpayload artifacts. Freeze profile implementation if performance/latency/noHOL/capacity consistent; isolate/repeat only failed anomalous samples. Remaining19native/M03/full70/18/1800s are not closed.",
-  "latest_log": "docs/devlog/20261007-125429-fec-profile-screen-framework.md",
+  "latest_log": "docs/devlog/20261007-125821-fec-screen-registered-entry.md",
   "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
@@ -10229,10 +10229,10 @@
     "priority": "performance,latency,noHOL,continuousfresh,boundedstate; recovery potential separate",
     "runtime_changed": false,
     "formal20_20_gates_unchanged": true,
-    "profile_workflow_parity_input": "IMPLEMENTED_PENDING_ACTIONS_PREFLIGHT",
+    "profile_workflow_parity_input": "IMPLEMENTED_REGISTERED_ENTRY_PENDING_PREFLIGHT",
     "trace_oracle": "NOT_IMPLEMENTED; screen onlyIID full/partial range reference, no false exact app oracle",
     "other_profile_5305": "NOT_RUN_PENDING_DISPATCH",
-    "screen_workflow": ".github/workflows/next-fec-profile-screen.yml",
+    "screen_workflow": ".github/workflows/next-strict-weaknet.yml",
     "analyzer": "tools/check_strict_fec_profile_screen.py",
     "product_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
     "planned_profiles": [
@@ -10253,6 +10253,13 @@
       "5305"
     ],
     "planned_independent_actions": 36,
-    "freeze_condition": "Expert review of profile-correct/source-exact input,capture,integrity,capacity,matchedRTT,continuity and theoretical recovery references; do not rewrite historical failures or claim full final18/native qualification from screen"
+    "freeze_condition": "Expert review of profile-correct/source-exact input,capture,integrity,capacity,matchedRTT,continuity and theoretical recovery references; do not rewrite historical failures or claim full final18/native qualification from screen",
+    "screen_dispatch_input": "qualification_kind=fec-profile-screen,fec_parity=R",
+    "first_framework_preflight": {
+      "source": "a9df7daaf1381e6c8fbe797118f8d06b5cebf9c5",
+      "run": 37573760403,
+      "status": "PASS"
+    },
+    "registration_failure": "GitHub404 new workflow on nondefault branch;0performance dispatched;reuse registeredstrict entry,defaultformal20 unchanged"
   }
 }

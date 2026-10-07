@@ -1,9 +1,21 @@
 name: next-strict-weaknet
-run-name: strict-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}${{ inputs.cpu_profile && '-profile' || '' }}${{ inputs.wan_neighbors == 'permanent' && '-fixed-neighbors' || '' }}
+run-name: ${{ inputs.qualification_kind == 'fec-profile-screen' && format('fecscreen-r{0}-', inputs.fec_parity) || 'strict-' }}${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}${{ inputs.cpu_profile && '-profile' || '' }}${{ inputs.wan_neighbors == 'permanent' && '-fixed-neighbors' || '' }}
 
 on:
   workflow_dispatch:
     inputs:
+      qualification_kind:
+        description: "formal20 preserves original gates; profile screen is separately identified"
+        required: true
+        default: formal20
+        type: choice
+        options: [formal20, fec-profile-screen]
+      fec_parity:
+        description: "Profile screen only; formal20 must remain20"
+        required: true
+        default: "20"
+        type: choice
+        options: ["0", "4", "8", "10", "12", "16", "20"]
       mode:
         description: "normal or game"
         required: true
@@ -62,6 +74,8 @@ jobs:
     timeout-minutes: 45
     env:
       ART: ${{ github.workspace }}/artifacts/strict-single
+      WBD_STRICT_FEC_SCREEN: ${{ inputs.qualification_kind == 'fec-profile-screen' && '1' || '0' }}
+      WBD_STRICT_FEC_PARITY: ${{ inputs.fec_parity || '20' }}
       WBD_STRICT_MODE: ${{ inputs.mode }}
       WBD_STRICT_SCENARIO: ${{ inputs.scenario }}
       WBD_STRICT_SEED: ${{ inputs.seed }}
@@ -100,7 +114,7 @@ jobs:
           fi
           echo "TESTED_SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
           python3 tools/perf_sample_guard.py claim \
-            --identity "strict:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:stateful$WBD_STRICT_STATEFUL_GATE:neighbors$WBD_STRICT_WAN_NEIGHBORS:source$source_sha:harness$GITHUB_SHA" \
+            --identity "strict:screen$WBD_STRICT_FEC_SCREEN:r$WBD_STRICT_FEC_PARITY:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:stateful$WBD_STRICT_STATEFUL_GATE:neighbors$WBD_STRICT_WAN_NEIGHBORS:source$source_sha:harness$GITHUB_SHA" \
             --receipt "$ART/sample-claim.json"
 
       - name: Install network tooling
@@ -130,7 +144,7 @@ jobs:
         id: sample
         continue-on-error: true
         run: |
-          sudo --preserve-env=GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS \
+          sudo --preserve-env=WBD_STRICT_FEC_SCREEN,WBD_STRICT_FEC_PARITY,GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS \
             env GITHUB_SHA="$TESTED_SOURCE_SHA" WBD_HARNESS_SHA="$GITHUB_SHA" WBD_STRICT_ARTIFACT_DIR="$ART" bash scripts/strict_weaknet_sample.sh
 
       - name: Analyze loss-tolerant-v1
@@ -138,16 +152,42 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          python3 tools/check_strict_weaknet_loss_tolerant_v1.py \
-            --artifact-dir "$ART" --source-sha "$TESTED_SOURCE_SHA" \
-            --mode "$WBD_STRICT_MODE" --scenario "$WBD_STRICT_SCENARIO" \
-            --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" \
-            --lanes "$WBD_STRICT_LANES" \
-            --output "$ART/summary-loss-tolerant-v1.json"
+          if [[ "$WBD_STRICT_FEC_SCREEN" == 1 ]]; then
+            python3 tools/check_strict_fec_profile_screen.py \
+              --artifact-dir "$ART" --source-sha "$TESTED_SOURCE_SHA" \
+              --mode "$WBD_STRICT_MODE" --scenario "$WBD_STRICT_SCENARIO" \
+              --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" \
+              --lanes "$WBD_STRICT_LANES" --fec-parity "$WBD_STRICT_FEC_PARITY" \
+              --output "$ART/summary-loss-tolerant-v1.json"
+          else
+            python3 tools/check_strict_weaknet_loss_tolerant_v1.py \
+              --artifact-dir "$ART" --source-sha "$TESTED_SOURCE_SHA" \
+              --mode "$WBD_STRICT_MODE" --scenario "$WBD_STRICT_SCENARIO" \
+              --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" \
+              --lanes "$WBD_STRICT_LANES" \
+              --output "$ART/summary-loss-tolerant-v1.json"
+          fi
 
       - name: Verify native ready-only raw batch paths
         if: steps.sample.outcome == 'success'
         run: python3 tools/collect_raw_io_receipt.py --artifact-dir "$ART"
+
+      - name: Audit and remove raw capture files after analysis
+        if: always() && inputs.qualification_kind == 'fec-profile-screen'
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path(os.environ["ART"]).resolve()
+          expected = Path(os.environ["GITHUB_WORKSPACE"]).resolve() / "artifacts" / "strict-single"
+          assert root == expected, "Preserve files outside the owned sample directory"
+          rows = []
+          for path in root.glob("*.pcap"):
+              data = path.read_bytes()
+              rows.append({"name": path.name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+              path.unlink()
+          (root / "capture-cleanup-receipt.json").write_text(json.dumps({"raw_deleted": True, "captures": rows}, indent=2))
+          PY
 
       - name: Upload compact analyzer summary
         if: always()
@@ -156,6 +196,7 @@ jobs:
           name: strict-summary-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-${{ github.sha }}
           path: |
             ${{ env.ART }}/summary-loss-tolerant-v1.json
+            ${{ env.ART }}/capture-cleanup-receipt.json
             ${{ env.ART }}/raw-io-receipt.json
             ${{ env.ART }}/runner-host.txt
             ${{ env.ART }}/resources.jsonl
@@ -170,11 +211,25 @@ jobs:
           retention-days: 30
 
       - name: Upload immutable sample evidence
-        if: always()
+        if: always() && inputs.qualification_kind != 'fec-profile-screen'
         uses: actions/upload-artifact@v4
         with:
           name: strict-single-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-${{ github.sha }}
           path: ${{ env.ART }}
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 30
+
+      - name: Upload compact immutable profile evidence
+        if: always() && inputs.qualification_kind == 'fec-profile-screen'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fec-profile-single-r${{ inputs.fec_parity }}-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-${{ github.sha }}
+          path: |
+            ${{ env.ART }}/*.json
+            ${{ env.ART }}/*.jsonl
+            ${{ env.ART }}/*.txt
+            ${{ env.ART }}/*.log
           if-no-files-found: error
           compression-level: 1
           retention-days: 30

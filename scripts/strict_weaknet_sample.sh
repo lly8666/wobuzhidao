@@ -307,8 +307,6 @@ blackhole_ms = int(sys.argv[10])
 fec_parity = int(sys.argv[11])
 fec_screen = sys.argv[12] == "1"
 workflow_rel = ".github/workflows/next-shared-blackhole.yml" if blackhole_ms else ".github/workflows/next-strict-weaknet.yml"
-if fec_screen:
-    workflow_rel = ".github/workflows/next-fec-profile-screen.yml"
 harness = [
     workflow_rel,
     "scripts/strict_weaknet_sample.sh",
