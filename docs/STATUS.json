@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T19:51:31.407618+08:00",
+  "updated_at": "2026-10-07T12:12:17.670195+00:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -88,8 +88,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Fixed SOURCE3a physical controller: DNS1.1.1.1-only fault D02/1537, then8.8.8.8-only D03/1538 and repeatM03/1539. Six complete samples: S01/S16 strict residual business-loss FAIL; Game business PASS with kernel pressure; S18 strict quiet FAIL with independently captured background DNS/HTTPS; M03 sparse boundaries scoped PASS but large-packet tail319ms/max723ms retained. Do not change product/ref/global socket settings or start duplicate load. P7 IN_PROGRESS; split/IPv6 and native matched RTT reference remain pending.",
-  "latest_log": "docs/devlog/20261007-195131-lane-duplex-native-idle-mtu.md",
+  "next_task": "Fixed SOURCE3a physical nine samples complete, owned cleanup restored. DNS primary fault fallback evidenced but reverse forced fallback partial; D02 p99~303ms/input max222ms and residual business losses retained. M03repeat1539 FAIL two8973B late>1s/rawdrop0, all eventually received; small1330/1330. No sysctl/product/ref change. Next diagnose late own-datagram completion, matched native RTT baseline/default split/IPv6 and other configurations. No full P7 or buffer fix claim.",
+  "latest_log": "docs/devlog/20261007-205600-lane-duplex-native-dns-mtu-repeat.md",
   "last_tested_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
   "actions": [
     {
@@ -10536,23 +10536,27 @@
     "state": "IN_PROGRESS",
     "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
     "evidence": "docs/evidence/lane-duplex-3a594a3-physical-20261007.json",
-    "latest_log": "docs/devlog/20261007-195131-lane-duplex-native-idle-mtu.md",
-    "completed_samples": 6,
+    "latest_log": "docs/devlog/20261007-205600-lane-duplex-native-dns-mtu-repeat.md",
+    "completed_samples": 9,
     "actions_independently_verified": true,
     "deployment": "PASS",
     "historical_scope_not_inherited": true,
     "strict_zero_loss_fail": [
       "s01-seed1531",
-      "s16-seed1533"
+      "s16-seed1533",
+      "d02-seed1537",
+      "d03-seed1538"
     ],
     "business_pass_with_transport_pressure": [
       "s02-seed1532",
       "s17-seed1534"
     ],
     "p7": "IN_PROGRESS_NOT_FULL_PASS",
-    "active_test": "D02 seed1537 then D03 seed1538 and M03 repeat1539; original-chat sequential controller active; do not duplicate",
+    "active_test": "NONE; sequential nine samples complete, owned test processes/network state restored",
     "socket_environment": "ARM rb212992 vs Actions rb1048576; unchanged",
     "idle": "PARTIAL_BACKGROUND_FLOW_STRICT_QUIET_FAIL",
-    "mtu": "M03_ONE_SCOPED_PASS_OLD_FAIL_RETAINED"
+    "mtu": "M03_1536_SCOPED_PASS_REPEAT1539_TIMELY_FAIL_OLD_FAIL_RETAINED",
+    "dns": "D02_PRIMARY_FAULT_FALLBACK_EVIDENCED_D03_HEALTHY_PRIMARY_ONLY",
+    "raw_socket_buffer_changed": false
   }
 }
