@@ -55,3 +55,9 @@ WEAKNET_LIFECYCLE：功能 COMPLETE（最终源码0b206a0，36/36真实进程样
 2026-10-04最新收口覆盖上一段待办：SOURCE2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8 core/race、严格18与完整78原始回执全部PASS，Normal/Game各1800s原门及逐秒/internal queue0门PASS，三目标P6hash/manifest/独立receipt已核验。固定本候选可交用户P7物理验收；不是RELEASE_QUALIFIED。参数功能与性能分开：70配置证明生效，主高负载资格FEC20:20/padding off；TLS启动填充完整on/稀疏/双入口弱网专项仍PARTIAL_ACTIONS_PASS。不要恢复已修的换代错误、继续微调缓存或按历史HOLD停工；当前SOURCE、证据及下一项以STATUS/PREDELIVERY_ACCEPTANCE为准。
 
 2026-10-04最新用户优先任务已交付：WINDOWS_GUI.md 中文原生GUI、服务器切换、完整配置和单目录应用便携包。SOURCE9857bdb的206项GUI检查与基础/网络专项PASS，固定GitHub预发布标签windows-gui-rc-20261004-9857bdb；STATUS.windows_gui是结果入口。Wintun系统驱动安装已获用户接受；实际Npcap/Wintun/NIC/UAC与跨服务器业务留P7，不能冒充hosted完成。新源码完整性能/弱网矩阵未重跑。
+
+## 2026-10-07 Lane方向锁 exact-source Actions结论
+
+固定产品源码 `3a594a34191159bd7224f35ba9117cdf6f239c69` / `qualification/lane-duplex-20261007` 的TX/RX方向锁候选已完成scoped Actions：core/race、受影响生命周期/网络、Normal r12诊断与普通样本、正式20:20 Normal、Game4 3Mbps保护门及同源码P6三目标均完成。候选保留的依据是诊断中Lane RX锁累计等待约7.22s→39ms、route queue max约18.30ms→6.53ms、旧诊断10ms交付空洞1.31s/1.29s→候选同seed无空洞；Game5205/5305 paired stress p99仅比各自lossless约+1.81ms/+4.85ms。
+
+这只是 `ACTIONS_READY_FOR_PHYSICAL`，不是P5/P7整体关闭。历史约284ms停顿未在本轮复现，根因保持OPEN；普通r12/5305仍有约2.168s stress probe p99。旧11项配对RTT FAIL、S01/S16/M03、full70/final18/1800s及其余NOT_RUN全部保留。下一步由原聊天拿同一SOURCE P6包做Windows→Linux ARM物理复验，Actions PASS不得写成物理PASS。
