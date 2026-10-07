@@ -1,11 +1,16 @@
 {
-  "workflow": "next-shared-blackhole.yml",
-  "ref": "next/tlslike-dataplane",
-  "blackout_ms": "500",
-  "seed": "601",
-  "acceptance": "shared-blackhole-v1",
-  "expected_product_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae",
-  "request_revision": 9,
-  "request_reason": "shared-blackhole-100ms-pass-proceed-500ms",
-  "previous_qualification_run": 35852343843
+  "workflow": "next-strict-weaknet.yml",
+  "ref": "diagnostic/normal-5305-fec20-counterfactual-20261008",
+  "mode": "normal",
+  "scenario": "5305",
+  "seed": "1508",
+  "rate_mbps": "10",
+  "lanes": "1",
+  "qualification_kind": "formal20",
+  "fec_parity": "20",
+  "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+  "acceptance": "diagnostic-fec-20-vs-12-counterfactual-no-physical",
+  "request_revision": 10,
+  "request_reason": "Compare matched 30% IID erasure 20:20 with immutable 20:12 seed1508 source",
+  "previous_qualification_run": 37692499392
 }

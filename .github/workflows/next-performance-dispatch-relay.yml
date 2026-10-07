@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - next/tlslike-dataplane
+      - diagnostic/normal-5305-fec20-counterfactual-20261008
     paths:
       - .github/perf-dispatch-request.json
       - .github/workflows/next-performance-dispatch-relay.yml
@@ -34,8 +35,12 @@ jobs:
           missing = [k for k in common if k not in d]
           if missing:
               raise SystemExit(f'missing keys: {missing}')
-          if d['ref'] != 'next/tlslike-dataplane':
+          if d['ref'] not in {'next/tlslike-dataplane', 'diagnostic/normal-5305-fec20-counterfactual-20261008'}:
               raise SystemExit('unexpected ref')
+          if d['ref'] != os.environ['GITHUB_REF_NAME']:
+              raise SystemExit('requested ref must match pushing branch')
+          if d.get('product_source_sha') and not re.fullmatch(r'[0-9a-f]{40}', d['product_source_sha']):
+              raise SystemExit('product source must be an exact 40-hex commit')
           if not re.fullmatch(r'[0-9]+', str(d['seed'])):
               raise SystemExit('seed must be decimal')
           if d['workflow'] == 'next-strict-weaknet.yml':
@@ -68,6 +73,7 @@ jobs:
               if kind == 'strict':
                   for key, name in [('mode','PERF_MODE'),('scenario','PERF_SCENARIO'),('rate_mbps','PERF_RATE'),('lanes','PERF_LANES')]:
                       out.write(f'{name}={d[key]}\n')
+                  out.write(f"PERF_PRODUCT_SOURCE={d.get('product_source_sha','')}\n")
               else:
                   out.write(f"PERF_BLACKOUT_MS={d['blackout_ms']}\n")
           PY
@@ -102,7 +108,8 @@ jobs:
 
           if [ "$PERF_KIND" = strict ]; then
             gh workflow run "$PERF_WORKFLOW" --ref "$PERF_REF" \
-              -f mode="$PERF_MODE" -f scenario="$PERF_SCENARIO" -f seed="$PERF_SEED" -f rate_mbps="$PERF_RATE" -f lanes="$PERF_LANES"
+              -f mode="$PERF_MODE" -f scenario="$PERF_SCENARIO" -f seed="$PERF_SEED" -f rate_mbps="$PERF_RATE" -f lanes="$PERF_LANES" \
+              -f product_source_sha="$PERF_PRODUCT_SOURCE"
             echo "DISPATCHED: $PERF_WORKFLOW $PERF_MODE/$PERF_SCENARIO seed=$PERF_SEED rate=$PERF_RATE lanes=$PERF_LANES head=$GITHUB_SHA"
           else
             gh workflow run "$PERF_WORKFLOW" --ref "$PERF_REF" -f blackout_ms="$PERF_BLACKOUT_MS" -f seed="$PERF_SEED"

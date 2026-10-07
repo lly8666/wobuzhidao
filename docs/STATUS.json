@@ -92,7 +92,7 @@
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
   "next_task": "Original chat: physical Windows→Linux ARM acceptance for fixed SOURCE c853935e5356a9bc99d380befb5a8ac8e0c08d97 from qualification/raw-rto-physical-20261008 using three exact P6 artifacts in docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json. Run controlled raw-recv-buffer=0 vs 524288 with real ARM effective/limited/drops and queue+CPU/PSI time-aligned; normal/game throughput+p99+rotation; sustained native inner MTU9000 UDP8972/8973/65507, illegal65508/DF with interleaved 96B and per-datagram first/complete time; DNS split/IPv6/idle/keepalive. Keep r12 5305 ~2179ms p99, native drop root cause, old 11 RTT FAIL/S01/S16/M03/full70/final18/1800s and all other NOT_RUN OPEN. No physical PASS or release qualified claim.",
-  "latest_log": "docs/devlog/20261008-060500-raw-rcvbuf-rto-actions-handoff.md",
+  "latest_log": "docs/devlog/20261008-5305-fec20-same-source-diagnostic.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10646,7 +10646,7 @@
     "physical_acceptance_owner": "original chat",
     "priority": "real business first arrival efficiency > latency/p99/noHOL and low resource cost > appearance > additional security; original hard requirements unchanged",
     "original_chat_code_edits": "PHYSICAL_ACCEPTANCE_ONLY unless new development handoff explicitly starts",
-    "latest_log": "docs/devlog/20261008-060500-raw-rcvbuf-rto-actions-handoff.md",
+    "latest_log": "docs/devlog/20261008-5305-fec20-same-source-diagnostic.md",
     "thread_id": "01a115bd-4de6-7d32-a779-ad7302f0b002",
     "host_id": "local",
     "handoff_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
@@ -10673,7 +10673,17 @@
       ]
     },
     "physical_acceptance": "NOT_RUN_NEW_SOURCE",
-    "fixed_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97"
+    "fixed_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "diagnosis_5305": {
+      "state": "COUNTERFACTUAL_RUNNING",
+      "diagnostic_branch": "diagnostic/normal-5305-fec20-counterfactual-20261008",
+      "baseline_main_head": "307dece5eef183ca86d146bfd823f575f11f7e9f",
+      "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "reference_run_20_12": 37692499392,
+      "matched_counterfactual": "20:20 / Normal / 5305 / seed1508 / 10Mbps/dir / 1lane / same pinned product SOURCE",
+      "physical": "NOT_RUN",
+      "note": "Diagnostic CI branch only. Preserve main/P6 qualification and do not claim physical resolution."
+    }
   },
   "physical_lane_duplex": {
     "state": "IN_PROGRESS",
