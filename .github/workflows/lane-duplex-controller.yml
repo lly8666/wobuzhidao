@@ -1,5 +1,5 @@
-name: lane-duplex-game-dispatch
-run-name: lane-duplex-game-dispatch
+name: lane-duplex-game-artifact-scan
+run-name: lane-duplex-game-artifact-scan
 
 on:
   push:
@@ -7,29 +7,106 @@ on:
       - qualification/lane-duplex-controller-20261007
 
 permissions:
-  actions: write
+  actions: read
   contents: read
 
 jobs:
-  dispatch:
+  scan:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {label: game-lossless-1479, artifact_id: "11474566955", source_run: "37605009121"}
+          - {label: game-5205-1479, artifact_id: "11474189500", source_run: "37605011893"}
+          - {label: game-lossless-1484, artifact_id: "11475130446", source_run: "37605015130"}
+          - {label: game-5305-1484, artifact_id: "11474477189", source_run: "37605017713"}
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
-      - name: Dispatch four independent Game4 qualification samples
+      - name: Verify and scan immutable Game artifact
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE_SHA: 3a594a34191159bd7224f35ba9117cdf6f239c69
-          QUAL_REF: qualification/lane-duplex-20261007
+          ARTIFACT_ID: ${{ matrix.artifact_id }}
+          SOURCE_RUN: ${{ matrix.source_run }}
+          LABEL: ${{ matrix.label }}
         shell: bash
         run: |
           set -euo pipefail
-          dispatch() {
-            local scenario="$1" seed="$2"
-            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/dispatches" --input - <<JSON
-          {"ref":"$QUAL_REF","inputs":{"qualification_kind":"formal20","fec_parity":"20","mode":"game","scenario":"$scenario","seed":"$seed","rate_mbps":"3","lanes":"4","cpu_profile":"false","stateful_middlebox":"false","wan_neighbors":"dynamic","product_source_sha":"$SOURCE_SHA"}}
-          JSON
-          }
-          dispatch lossless 1479
-          dispatch 5205 1479
-          dispatch lossless 1484
-          dispatch 5305 1484
+          meta="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID")"
+          test "$(jq -r .workflow_run.id <<<"$meta")" = "$SOURCE_RUN"
+          test "$(jq -r .workflow_run.head_sha <<<"$meta")" = "$SOURCE_SHA"
+          test "$(jq -r .expired <<<"$meta")" = false
+          mkdir -p out
+          curl --fail --location --retry 3             -H "Accept: application/vnd.github+json"             -H "Authorization: Bearer $GH_TOKEN"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip"             -o "$RUNNER_TEMP/evidence.zip"
+          python3 - <<'PY'
+          import hashlib, json, os, zipfile
+          zpath=os.path.join(os.environ["RUNNER_TEMP"],"evidence.zip")
+          source=os.environ["SOURCE_SHA"]
+          aid=int(os.environ["ARTIFACT_ID"])
+          run=int(os.environ["SOURCE_RUN"])
+          label=os.environ["LABEL"]
+          result={"label":label,"artifact_id":aid,"source_run":run,"source_sha":source,
+                  "zip_sha256":hashlib.sha256(open(zpath,"rb").read()).hexdigest(),"endpoints":{}}
+          with zipfile.ZipFile(zpath) as z:
+              names=z.namelist()
+              manifests=[n for n in names if n.endswith("manifest.json")]
+              if len(manifests)!=1:
+                  raise SystemExit(f"manifest matches={manifests}")
+              manifest=json.loads(z.read(manifests[0]))
+              if manifest.get("source_sha") != source:
+                  raise SystemExit("manifest source mismatch")
+              result["manifest"]={k:manifest.get(k) for k in ("source_sha","harness_sha","mode","scenario","seed")}
+              duration=int((manifest.get("config") or {}).get("duration_s",120))
+              for endpoint in ("biz.json","target.json"):
+                  matches=[n for n in names if n.endswith(endpoint)]
+                  if len(matches)!=1:
+                      raise SystemExit(f"{endpoint} matches={matches}")
+                  d=json.loads(z.read(matches[0]))
+                  st=d["stats"]
+                  bucket_ms=int(st["recv_wall_bucket_ms"])
+                  buckets=list(st["recv_wall_bytes_by_bucket"])
+                  nonzero=[i for i,v in enumerate(buckets) if v>0]
+                  if not nonzero:
+                      raise SystemExit(f"{endpoint}: no delivery buckets")
+                  start=nonzero[0]
+                  count=(duration*1000)//bucket_ms
+                  end=min(start+count,len(buckets))
+                  window=buckets[start:end]
+                  longest=cur=zeros=0
+                  longest_start=None
+                  cur_start=None
+                  for i,v in enumerate(window):
+                      if v==0:
+                          zeros+=1
+                          if cur==0: cur_start=i
+                          cur+=1
+                          if cur>longest:
+                              longest=cur
+                              longest_start=cur_start
+                      else:
+                          cur=0
+                          cur_start=None
+                  result["endpoints"][endpoint]={
+                      "bucket_ms":bucket_ms,
+                      "first_nonzero_bucket":start,
+                      "active_window_start_bucket":start,
+                      "active_window_end_exclusive":end,
+                      "active_window_buckets":len(window),
+                      "active_zero_buckets":zeros,
+                      "longest_zero_run_buckets":longest,
+                      "longest_zero_run_ms":longest*bucket_ms,
+                      "longest_zero_run_start_bucket":None if longest_start is None else start+longest_start,
+                      "active_delivered_bytes":sum(window),
+                      "last_nonzero_bucket":nonzero[-1]
+                  }
+          with open("out/scan.json","w",encoding="utf-8") as f:
+              json.dump(result,f,indent=2,sort_keys=True); f.write("\n")
+          print(json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lane-duplex-10ms-${{ matrix.label }}-${{ matrix.artifact_id }}
+          path: out/scan.json
+          if-no-files-found: error
+          retention-days: 30
