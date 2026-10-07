@@ -368,6 +368,7 @@ type TunnelClient struct {
 	retryAt        time.Time
 	retryDelay     time.Duration
 	lifecycleStats LifecycleStats
+	pipeline       clientPipelineTiming
 
 	runCtx context.Context
 	cancel context.CancelFunc
@@ -910,19 +911,39 @@ func (c *TunnelClient) clientLaneReadLoop(ctx context.Context, lane *clientLifec
 			c.laneFailure(lane, err)
 			return
 		}
+		observeTiming := c.cfg.ObserveTiming
+		var started time.Time
+		if observeTiming {
+			started = time.Now()
+		}
 		c.mu.Lock()
+		if observeTiming {
+			c.pipeline.stateLockWait.observe(time.Since(started))
+		}
 		closed := c.closed
 		attached := lane.attached
 		ref := lane.ref
 		retiring := lane.retiring
 		c.mu.Unlock()
 		if closed {
+			if observeTiming {
+				c.pipeline.process.observe(time.Since(started))
+			}
 			return
+		}
+		var handlerStarted time.Time
+		if observeTiming {
+			handlerStarted = time.Now()
 		}
 		if attached {
 			err = c.rt.HandleSegment(ref, seg, time.Now())
 		} else {
 			err = lane.assoc.HandleSegment(seg, time.Now())
+		}
+		if observeTiming {
+			finished := time.Now()
+			c.pipeline.handler.observe(finished.Sub(handlerStarted))
+			c.pipeline.process.observe(finished.Sub(started))
 		}
 		if err == nil || errors.Is(err, faketcp.ErrClientDetached) {
 			continue
@@ -964,12 +985,36 @@ func (c *TunnelClient) lifecycleLoop() {
 		case <-c.runCtx.Done():
 			return
 		case now := <-ticker.C:
-			if err := c.rt.Tick(now); err != nil {
-				c.noteLifecycleError(err)
-			}
-			c.retireQualified(now)
-			c.maybeScheduleLifecycle(now)
+			c.lifecycleTick(now)
 		}
+	}
+}
+
+func (c *TunnelClient) lifecycleTick(now time.Time) {
+	observeTiming := c.cfg.ObserveTiming
+	var started time.Time
+	if observeTiming {
+		started = time.Now()
+	}
+	if err := c.rt.Tick(now); err != nil {
+		c.noteLifecycleError(err)
+	}
+	var runtimeFinished time.Time
+	if observeTiming {
+		runtimeFinished = time.Now()
+		c.pipeline.runtimeTick.observe(runtimeFinished.Sub(started))
+	}
+	c.retireQualified(now)
+	var retireFinished time.Time
+	if observeTiming {
+		retireFinished = time.Now()
+		c.pipeline.retire.observe(retireFinished.Sub(runtimeFinished))
+	}
+	c.maybeScheduleLifecycle(now)
+	if observeTiming {
+		finished := time.Now()
+		c.pipeline.schedule.observe(finished.Sub(retireFinished))
+		c.pipeline.tick.observe(finished.Sub(started))
 	}
 }
 

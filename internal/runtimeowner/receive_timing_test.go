@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"net/netip"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -232,5 +233,94 @@ func TestFeedbackDurationBoundedThresholdCounters(t *testing.T) {
 	}
 	if d.samples.Load() != 5 || d.over1MS.Load() != 3 || d.over10MS.Load() != 1 || d.duration.total.Load() != uint64(24*time.Millisecond) || d.duration.max.Load() != uint64(11*time.Millisecond) {
 		t.Fatal("duration boundaries incorrect")
+	}
+}
+
+func TestReceiveTimingCoversEarlyUnlockBranches(t *testing.T) {
+	for _, enabled := range []bool{false, true} {
+		for _, tc := range []struct {
+			name    string
+			prepare func(*laneTransport, *faketcp.Segment)
+			wantErr error
+		}{
+			{"pure ACK", nil, nil},
+			{"closed", func(tr *laneTransport, _ *faketcp.Segment) { tr.closed = true }, ErrRuntimeClosed},
+			{"peer reset closed", func(tr *laneTransport, _ *faketcp.Segment) { tr.closed, tr.peerRST = true, true }, ErrTransportPeerReset},
+			{"ACK beyond send", func(tr *laneTransport, seg *faketcp.Segment) { seg.Ack = tr.sendNext + 1 }, ErrACKRange},
+			{"before receive start", func(tr *laneTransport, seg *faketcp.Segment) {
+				seg.Seq = tr.recvStart - 1
+				seg.Payload = []byte("old")
+			}, nil},
+			{"reset challenge", func(tr *laneTransport, seg *faketcp.Segment) { seg.Flags |= faketcp.FlagRST; seg.Seq = tr.recvNext + 1 }, nil},
+			{"accepted reset", func(_ *laneTransport, seg *faketcp.Segment) { seg.Flags |= faketcp.FlagRST }, nil},
+			{"conflicting payload", func(tr *laneTransport, seg *faketcp.Segment) {
+				seg.Payload = []byte("changed")
+				tr.delivered[seg.Seq] = deliveredMark{end: seg.Seq + 1}
+			}, ErrPayloadConflict},
+			{"conflicting FIN", func(tr *laneTransport, seg *faketcp.Segment) {
+				seg.Flags |= faketcp.FlagFIN
+				tr.peerFIN, tr.peerFINEnd = true, tr.recvNext-1
+			}, ErrPayloadConflict},
+		} {
+			name := tc.name + map[bool]string{false: " timing off", true: " timing on"}[enabled]
+			t.Run(name, func(t *testing.T) {
+				lease := runtimeLease(t)
+				owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+				if err != nil {
+					t.Fatal(err)
+				}
+				rt, err := New(owner, nil)
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer rt.Close()
+				var tr *laneTransport
+				cfg, _ := transportPair(func(faketcp.Segment) error {
+					// ACK/challenge emission must still occur outside the lock.
+					if !tr.mu.TryLock() {
+						t.Error("feedback emitted while holding transport lock")
+					} else {
+						tr.mu.Unlock()
+					}
+					return nil
+				}, func(faketcp.Segment) error { return nil }, 1, 33000)
+				snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 91), cfg)
+				if err != nil {
+					t.Fatal(err)
+				}
+				tr = rt.lanes[snap.Ref]
+				tr.timing.enabled.Store(enabled)
+				seg := faketcp.Segment{SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP, SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort, Seq: cfg.ReceiveNext, Ack: cfg.SendNext, Flags: faketcp.FlagACK}
+				if tc.prepare != nil {
+					tr.mu.Lock()
+					tc.prepare(tr, &seg)
+					tr.mu.Unlock()
+				}
+				err = tr.handleSegment(seg, time.Unix(1000, 0))
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("error=%v want=%v", err, tc.wantErr)
+				}
+				if !tr.mu.TryLock() {
+					t.Fatal("early return left transport lock held")
+				}
+				tr.mu.Unlock()
+				var stats TransportStats
+				tr.timing.apply(&stats)
+				if !enabled {
+					if stats.TimingSamples != 0 || stats.LockHeldNS != 0 || stats.OwnerNS != 0 {
+						t.Fatal("disabled timing gathered counters")
+					}
+					return
+				}
+				if stats.TimingSamples != 1 || stats.LockHeldNS < stats.ACKProcessNS {
+					t.Fatalf("receive critical section coverage=%+v", stats)
+				}
+				// Windows can quantize sub-clock work to zero. Linux Actions has
+				// a fine monotonic clock and catches omission of each early path.
+				if runtime.GOOS != "windows" && stats.LockHeldNS == 0 {
+					t.Fatal("early critical section elapsed missing")
+				}
+			})
+		}
 	}
 }

@@ -33,6 +33,7 @@ type TunnelDiagnostic struct {
 	Lifecycle      *LifecycleStats                   `json:"lifecycle,omitempty"`
 	Config         *LifecycleConfigDiagnostic        `json:"config,omitempty"`
 	ServerPipeline *ServerPipelineDiagnostic         `json:"server_pipeline,omitempty"`
+	ClientPipeline *ClientPipelineDiagnostic         `json:"client_pipeline,omitempty"`
 	ServerUDP      *platformflow.UDPServerDiagnostic `json:"server_udp,omitempty"`
 	Lease4         string                            `json:"lease4,omitempty"`
 	TunnelID       logicaltunnel.TunnelID            `json:"tunnel_id"`
@@ -77,6 +78,10 @@ func (c *TunnelClient) DiagnosticSnapshot(now time.Time) TunnelDiagnostic {
 		return TunnelDiagnostic{}
 	}
 	out := diagnosticSnapshot(c.owner, c.rt, now)
+	if c.cfg.ObserveTiming {
+		pipeline := c.pipeline.snapshot()
+		out.ClientPipeline = &pipeline
+	}
 	stats := c.LifecycleStats()
 	out.Lifecycle = &stats
 	out.Config = &LifecycleConfigDiagnostic{

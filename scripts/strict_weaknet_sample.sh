@@ -190,6 +190,7 @@ ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 
 SERVER_CPU=""; CLIENT_CPU=""; if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then SERVER_CPU="$ART/server.cpu"; CLIENT_CPU="$ART/client.cpu"; fi
 export WBD_QUALIFICATION_CONTENTION_PROFILE="${WBD_STRICT_CPU_PROFILE:-0}"
+export WBD_QUALIFICATION_CLIENT_STAGE_TIMING="${WBD_STRICT_CPU_PROFILE:-0}"
 ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
 SERVER_PID="$!"
 
@@ -348,6 +349,8 @@ manifest = {
         "hidden_bandwidth_limit": False,
         "packet_sizes_equal_count_cycle": [64, 256, 1200],
         "diagnostic_rate_only": diagnostic_rate_only,
+        "cpu_contention_profile": os.environ.get("WBD_STRICT_CPU_PROFILE", "0") == "1",
+        "client_stage_timing_requested": os.environ.get("WBD_QUALIFICATION_CLIENT_STAGE_TIMING", "0") == "1",
         "stateful_middlebox": os.environ.get("WBD_STRICT_STATEFUL_GATE", "0") == "1",
         "wan_neighbors": os.environ.get("WBD_STRICT_WAN_NEIGHBORS", "dynamic"),
         "blackhole_ms": blackhole_ms,

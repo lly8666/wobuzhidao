@@ -554,6 +554,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	}
 	if t.closed {
 		peerRST := t.peerRST
+		if observeTiming {
+			t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+		}
 		t.mu.Unlock()
 		if peerRST {
 			return ErrTransportPeerReset
@@ -566,6 +569,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 			ackStarted = time.Now()
 		}
 		if seqLT(t.sendNext, seg.Ack) {
+			if observeTiming {
+				t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+			}
 			t.mu.Unlock()
 			return ErrACKRange
 		}
@@ -586,6 +592,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	if (len(seg.Payload) != 0 || seg.Flags&(faketcp.FlagFIN|faketcp.FlagRST) != 0) &&
 		seqLT(seg.Seq, t.recvStart) {
 		ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
+		if observeTiming {
+			t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+		}
 		t.mu.Unlock()
 		if err := t.emitReceiveACK(ackSeg, observeFeedback); err != nil {
 			return err
@@ -596,6 +605,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	if seg.Flags&faketcp.FlagRST != 0 {
 		if seg.Seq != t.recvNext {
 			ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
+			if observeTiming {
+				t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+			}
 			t.mu.Unlock()
 			if err := t.emitReceiveACK(ackSeg, observeFeedback); err != nil {
 				return err
@@ -610,6 +622,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		clear(t.received)
 		t.pendingOrder = nil
 		t.clearSteadyIndexesLocked()
+		if observeTiming {
+			t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+		}
 		t.mu.Unlock()
 		return nil
 	}
@@ -617,6 +632,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	hasPayload := len(seg.Payload) != 0
 	hasFIN := seg.Flags&faketcp.FlagFIN != 0
 	if !hasPayload && !hasFIN {
+		if observeTiming {
+			t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+		}
 		t.mu.Unlock()
 		return t.emitReceiveRepair(repair, now, observeFeedback)
 	}
@@ -628,6 +646,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	if hasPayload {
 		deliver, err = t.acceptPayloadLocked(seg.Seq, seg.Payload, now)
 		if err != nil {
+			if observeTiming {
+				t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+			}
 			t.mu.Unlock()
 			return err
 		}
@@ -635,6 +656,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	if hasFIN {
 		finSeq := seg.Seq + uint32(len(seg.Payload))
 		if err := t.acceptFINLocked(finSeq, now); err != nil {
+			if observeTiming {
+				t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+			}
 			t.mu.Unlock()
 			return err
 		}
@@ -647,11 +671,11 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 
 	if deliver {
 		var result datapath.InboundResult
-		stats := t.owner.Stats()
 		ownerStarted := time.Time{}
 		if observeTiming {
 			ownerStarted = time.Now()
 		}
+		stats := t.owner.Stats()
 		if stats.DesiredLanes == 1 {
 			result, err = t.owner.InboundPayload(t.ref, seg.Payload, now)
 		} else {

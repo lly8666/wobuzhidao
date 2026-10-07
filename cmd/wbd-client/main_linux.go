@@ -115,6 +115,10 @@ func runLinuxClient() error {
 	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
 		return errors.New("diagnostic-interval must be positive")
 	}
+	observeClientStageTiming, err := qualificationdiag.ClientStageTimingEnabled(*diagnosticJSONL)
+	if err != nil {
+		return err
+	}
 	if _, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), 1); err != nil {
 		return errors.New("source-port must leave a 1024-port bounded rotation window")
 	}
@@ -224,6 +228,7 @@ func runLinuxClient() error {
 		EmitBatch: raw.WriteSegments,
 	}
 	raw.SetIODiagnostics(*diagnosticJSONL != "")
+	raw.SetWriteTimingDiagnostics(observeClientStageTiming)
 	mux, err := runtimeentry.NewSegmentMux(baseIO)
 	if err != nil {
 		return err
@@ -233,6 +238,7 @@ func runLinuxClient() error {
 
 	var adapter *openwrtclient.SocketAdapter
 	client, err := runtimeentry.DialTunnelClient(context.Background(), runtimeentry.TunnelClientConfig{
+		ObserveTiming: observeClientStageTiming,
 		OpenLane: func(_ uint8, incarnation uint64) (runtimeentry.SegmentIO, faketcp.ClientFlow, error) {
 			port, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), incarnation)
 			if err != nil {

@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T13:39:18.767157+08:00",
+  "updated_at": "2026-10-07T14:17:51.303852+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -87,8 +87,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "FEC implementation stays frozen. Narrow transport diagnosis: exactd6 Normal20:12/5305 client handling/owner-lock/blocking IO/scheduling around84.67s; route queue age284ms/peak1886 and clientUDP697 aligned with pause, server handlers<=1.682ms/queue<=4.721ms. Identify client blocking point with bounded timing/profile in one independent performanceAction, only change supported cause, preserve fresh/noHOL/latefirstarrival/immutable repair. Multi-second late-probe problem separate;11RTT FAIL/traceoracle/full70/final18/1800s/native19/M03 remain open.",
-  "latest_log": "docs/devlog/20261007-133918-fec12-client-queue-pause-review.md",
+  "next_task": "Parallel client-pause diagnosis: default-off Linux stage/raw write/client consumer timing candidate awaits core/race then one Normal20:12/5305 seed1508 profile Action. d6 profile37579975921 has Lane outbound mutex5212ms/raw1284ms cumulative, no single-pause cause proven. Inspect effective enable flags and max deltas; only fix supported blocking cause. Preserve frozen FEC/noHOL/fresh/immutable repair,11RTT FAIL and native open cases. One performanceAction one sample.",
+  "latest_log": "docs/devlog/20261007-141751-fec12-parallel-stage-diagnostics.md",
   "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
@@ -10357,5 +10357,17 @@
       "runtime_changed": false,
       "new_performance_runs": 0
     }
+  },
+  "client_pause_diagnostics": {
+    "state": "CANDIDATE_AWAITING_ACTIONS",
+    "started_head": "d7614b91ef7798aff9ca4f942424317611fed3da",
+    "product_candidate_source": "COMMIT_PENDING",
+    "runtime_behavior_changed": false,
+    "default_off": true,
+    "private_env": "WBD_QUALIFICATION_CLIENT_STAGE_TIMING",
+    "baseline_profile": "docs/evidence/fec12-d6-contention-profile-20261007.json",
+    "candidate_core_race": "NOT_RUN",
+    "candidate_diagnostic": "NOT_RUN",
+    "latest_log": "docs/devlog/20261007-141751-fec12-parallel-stage-diagnostics.md"
   }
 }

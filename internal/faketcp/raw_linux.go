@@ -8,6 +8,7 @@ import (
 	"net"
 	"sync"
 	"syscall"
+	"time"
 
 	"golang.org/x/sys/unix"
 )
@@ -35,6 +36,7 @@ type RawIPv4Endpoint struct {
 	recvBatch         *rawReceiveBatch
 	recvBatchDisabled bool
 	ioStats           rawIOCounters
+	writeTiming       rawWriteTiming
 
 	mu                sync.Mutex
 	ipID              uint16
@@ -188,16 +190,36 @@ func (e *RawIPv4Endpoint) WriteSegment(seg Segment) ([]byte, error) {
 	if e == nil {
 		return nil, errors.New("faketcp: nil raw IPv4 endpoint")
 	}
+	observeWrite := e.writeTiming.enabled.Load()
+	var waitStarted, holdStarted, marshalStarted time.Time
+	if observeWrite {
+		waitStarted = time.Now()
+	}
 	e.mu.Lock()
+	if observeWrite {
+		holdStarted = time.Now()
+		e.writeTiming.lockWait.observe(holdStarted.Sub(waitStarted))
+		marshalStarted = time.Now()
+	}
 	id := e.ipID
 	e.ipID++
 	pkt := MarshalSegment(seg, id, e.persona)
+	if observeWrite {
+		e.writeTiming.marshal.observe(time.Since(marshalStarted))
+	}
 	var err error
 	for {
+		var syscallStarted time.Time
+		if observeWrite {
+			syscallStarted = time.Now()
+		}
 		err = syscall.Sendto(e.sendFD, pkt, 0, &syscall.SockaddrInet4{
 			Port: int(seg.DstPort),
 			Addr: seg.DstIP,
 		})
+		if observeWrite {
+			e.writeTiming.syscall.observe(time.Since(syscallStarted))
+		}
 		if e.ioStats.enabled.Load() {
 			e.ioStats.txCalls.Add(1)
 		}
@@ -205,6 +227,9 @@ func (e *RawIPv4Endpoint) WriteSegment(seg Segment) ([]byte, error) {
 			continue
 		}
 		break
+	}
+	if observeWrite {
+		e.writeTiming.lockHold.observe(time.Since(holdStarted))
 	}
 	e.mu.Unlock()
 	if err != nil {
