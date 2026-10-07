@@ -1,5 +1,5 @@
-name: large-datagram-prefix-retry-dispatch
-run-name: large-datagram-prefix-retry-dispatch
+name: established-rto-core-dispatch
+run-name: established-rto-core-dispatch
 
 on:
   push:
@@ -14,16 +14,21 @@ jobs:
   dispatch:
     runs-on: ubuntu-24.04
     steps:
-      - name: Dispatch exact-source pre-fix diagnostics
+      - name: Dispatch exact-source core and network gates
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
           ref='qualification/large-datagram-rto-20261007'
-          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-foundation.yml/dispatches" --input - <<JSON
-          {"ref":"$ref","inputs":{"run_extended":"false","run_legacy_soak":"false"}}
-          JSON
-          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-predelivery-tools.yml/dispatches" --input - <<JSON
-          {"ref":"$ref"}
-          JSON
+          dispatch() {
+            local wf="$1" body="$2"
+            printf '%s\n' "$body" | gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/$wf/dispatches" --input -
+          }
+          dispatch next-foundation.yml '{"ref":"'"$ref"'","inputs":{"run_extended":"false","run_legacy_soak":"false"}}'
+          dispatch next-predelivery-tools.yml '{"ref":"'"$ref"'"}'
+          dispatch next-linux-server.yml '{"ref":"'"$ref"'"}'
+          dispatch next-lifecycle-fullstack.yml '{"ref":"'"$ref"'"}'
+          dispatch next-default-network.yml '{"ref":"'"$ref"'"}'
+          dispatch next-splitroute.yml '{"ref":"'"$ref"'"}'
+          dispatch next-config-effective.yml '{"ref":"'"$ref"'","inputs":{"case_id":"f20-l1-p0"}}'
