@@ -1,0 +1,2442 @@
+{
+  "product_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+  "harness_source": "49eba9ba91985bbf771601788fd6d4348d950ef9",
+  "state": "FEC_RUNTIME_FROZEN_WITH_LATENCY_EXCEPTIONS",
+  "runtime_changed": false,
+  "screen_status": "REVIEW_OR_FAIL",
+  "workflow_success": 31,
+  "workflow_failure": 5,
+  "sample_analysis_pass": 32,
+  "sample_analysis_review_or_fail": 4,
+  "input_capture_integrity_environment_effective_profile_pass": 36,
+  "lossless_business_and_probe_zero": 12,
+  "socket_drop_zero": 36,
+  "no_complete_zero_business_seconds": 36,
+  "paired_rtt_checks": 144,
+  "paired_rtt_pass": 133,
+  "paired_rtt_fail": 11,
+  "paired_rtt_failures": [
+    {
+      "parity": 0,
+      "mode": "normal",
+      "scenario": "5205",
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 2163.082547,
+      "gate_ms": 200.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 41,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "parity": 0,
+      "mode": "normal",
+      "scenario": "5205",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 2428.392404,
+      "gate_ms": 500.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 41,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "parity": 0,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 1739.2785,
+      "gate_ms": 500.0,
+      "state": "FAIL",
+      "lossy_sent": 30,
+      "lossy_received": 29,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "parity": 0,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 1598.778776,
+      "gate_ms": 200.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 33,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "parity": 0,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 2436.851534,
+      "gate_ms": 500.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 33,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "parity": 0,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 2132.293651,
+      "gate_ms": 500.0,
+      "state": "FAIL",
+      "lossy_sent": 30,
+      "lossy_received": 29,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "parity": 4,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 1903.811358,
+      "gate_ms": 200.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 32,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "parity": 4,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 1910.728193,
+      "gate_ms": 500.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 32,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "parity": 8,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 1714.12052,
+      "gate_ms": 500.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 48,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "parity": 12,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 1568.55463,
+      "gate_ms": 200.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 56,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "parity": 12,
+      "mode": "normal",
+      "scenario": "5305",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 1571.009601,
+      "gate_ms": 500.0,
+      "state": "FAIL",
+      "lossy_sent": 60,
+      "lossy_received": 56,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    }
+  ],
+  "false_batch_path_failure": {
+    "run": 37574266150,
+    "label": "r0-normal-lossless",
+    "reason": "server native send_messages=send_calls=478459,send_multi=0,send_fallbacks=0; off immediate sends need not coalesce; original workflow failure retained",
+    "correction": "only explicit off profile screen may observe single-send; default formal/on multi requirement unchanged; correction Actions and isolated off baseline pending"
+  },
+  "runtime_freeze_scope": "FEC codec/wire/profiles/partial/size classes/3s retirement unchanged. Recovery curves fit a full-block fragmented business reference; exact finite-policy oracle NOT_EVALUATED. Not whole-product performance/final18/P7 completion.",
+  "latency_open": "Normal off5205/5305,4/8/12 at5305 exceed matched p95/p99 gates; never dismissed as expected FEC loss. All profile/mode/scenario probe sent/received and original errors retained in receipts. Missing probes mean survivor p99 is conditional.",
+  "tail_diagnostics": {
+    "samples": [
+      {
+        "label": "r0-normal-5205",
+        "run": 37574299094,
+        "receivers": {
+          "biz": {
+            "max_zero_delivery_buckets_ms": 0,
+            "probe_sent": 120,
+            "probe_received": 97,
+            "unreturned": 23,
+            "min_business_bytes_1s_after_fill": 973744,
+            "probe_elapsed_metric": "RTT",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 31,
+                "elapsed_ms": 2552.014395
+              },
+              {
+                "seq": 36,
+                "elapsed_ms": 3028.970405
+              },
+              {
+                "seq": 54,
+                "elapsed_ms": 3016.006595
+              },
+              {
+                "seq": 58,
+                "elapsed_ms": 2553.257145
+              },
+              {
+                "seq": 89,
+                "elapsed_ms": 2763.609438
+              }
+            ]
+          },
+          "target": {
+            "max_zero_delivery_buckets_ms": 0,
+            "probe_sent": 0,
+            "probe_received": 0,
+            "unreturned": 0,
+            "min_business_bytes_1s_after_fill": 814944,
+            "probe_elapsed_metric": "ONE_WAY_AT_TARGET",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 31,
+                "elapsed_ms": 2251.858918
+              },
+              {
+                "seq": 58,
+                "elapsed_ms": 2253.12064
+              }
+            ]
+          }
+        },
+        "transport": {
+          "client": {
+            "LateFirstArrival": 7884,
+            "Retransmitted": 12094,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          },
+          "server": {
+            "LateFirstArrival": 10480,
+            "Retransmitted": 9186,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          }
+        }
+      },
+      {
+        "label": "r0-normal-5305",
+        "run": 37574329863,
+        "receivers": {
+          "biz": {
+            "max_zero_delivery_buckets_ms": 0,
+            "probe_sent": 120,
+            "probe_received": 91,
+            "unreturned": 29,
+            "min_business_bytes_1s_after_fill": 836432,
+            "probe_elapsed_metric": "RTT",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 27,
+                "elapsed_ms": 2340.985355
+              },
+              {
+                "seq": 65,
+                "elapsed_ms": 2199.305667
+              },
+              {
+                "seq": 88,
+                "elapsed_ms": 3037.429535
+              },
+              {
+                "seq": 89,
+                "elapsed_ms": 2793.668016
+              },
+              {
+                "seq": 113,
+                "elapsed_ms": 2733.113197
+              }
+            ]
+          },
+          "target": {
+            "max_zero_delivery_buckets_ms": 0,
+            "probe_sent": 0,
+            "probe_received": 0,
+            "unreturned": 0,
+            "min_business_bytes_1s_after_fill": 629648,
+            "probe_elapsed_metric": "ONE_WAY_AT_TARGET",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 27,
+                "elapsed_ms": 2040.848276
+              }
+            ]
+          }
+        },
+        "transport": {
+          "client": {
+            "LateFirstArrival": 5923,
+            "Retransmitted": 8577,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          },
+          "server": {
+            "LateFirstArrival": 7456,
+            "Retransmitted": 7158,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          }
+        }
+      },
+      {
+        "label": "r4-normal-5305",
+        "run": 37574332790,
+        "receivers": {
+          "biz": {
+            "max_zero_delivery_buckets_ms": 0,
+            "probe_sent": 120,
+            "probe_received": 92,
+            "unreturned": 28,
+            "min_business_bytes_1s_after_fill": 665376,
+            "probe_elapsed_metric": "RTT",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 46,
+                "elapsed_ms": 2490.650073
+              },
+              {
+                "seq": 50,
+                "elapsed_ms": 2512.109434
+              },
+              {
+                "seq": 55,
+                "elapsed_ms": 2497.185943
+              },
+              {
+                "seq": 63,
+                "elapsed_ms": 2499.321306
+              },
+              {
+                "seq": 71,
+                "elapsed_ms": 2505.127243
+              },
+              {
+                "seq": 77,
+                "elapsed_ms": 2504.951617
+              },
+              {
+                "seq": 82,
+                "elapsed_ms": 2497.657532
+              },
+              {
+                "seq": 88,
+                "elapsed_ms": 2501.41566
+              }
+            ]
+          },
+          "target": {
+            "max_zero_delivery_buckets_ms": 0,
+            "probe_sent": 0,
+            "probe_received": 0,
+            "unreturned": 0,
+            "min_business_bytes_1s_after_fill": 665296,
+            "probe_elapsed_metric": "ONE_WAY_AT_TARGET",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 34,
+                "elapsed_ms": 2184.059186
+              },
+              {
+                "seq": 37,
+                "elapsed_ms": 2197.208836
+              },
+              {
+                "seq": 46,
+                "elapsed_ms": 2190.488618
+              },
+              {
+                "seq": 52,
+                "elapsed_ms": 2201.547565
+              },
+              {
+                "seq": 55,
+                "elapsed_ms": 2196.959647
+              },
+              {
+                "seq": 63,
+                "elapsed_ms": 2199.125172
+              },
+              {
+                "seq": 71,
+                "elapsed_ms": 2204.943461
+              },
+              {
+                "seq": 77,
+                "elapsed_ms": 2204.784895
+              },
+              {
+                "seq": 82,
+                "elapsed_ms": 2197.489543
+              },
+              {
+                "seq": 88,
+                "elapsed_ms": 2200.983268
+              }
+            ]
+          }
+        },
+        "transport": {
+          "client": {
+            "LateFirstArrival": 14458,
+            "Retransmitted": 18257,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          },
+          "server": {
+            "LateFirstArrival": 14727,
+            "Retransmitted": 18013,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          }
+        }
+      },
+      {
+        "label": "r8-normal-5305",
+        "run": 37574335505,
+        "receivers": {
+          "biz": {
+            "max_zero_delivery_buckets_ms": 0,
+            "probe_sent": 120,
+            "probe_received": 108,
+            "unreturned": 12,
+            "min_business_bytes_1s_after_fill": 842272,
+            "probe_elapsed_metric": "RTT",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 59,
+                "elapsed_ms": 2316.44857
+              },
+              {
+                "seq": 69,
+                "elapsed_ms": 2309.558427
+              }
+            ]
+          },
+          "target": {
+            "max_zero_delivery_buckets_ms": 0,
+            "probe_sent": 0,
+            "probe_received": 0,
+            "unreturned": 0,
+            "min_business_bytes_1s_after_fill": 860320,
+            "probe_elapsed_metric": "ONE_WAY_AT_TARGET",
+            "probe_elapsed_over1100ms": []
+          }
+        },
+        "transport": {
+          "client": {
+            "LateFirstArrival": 19098,
+            "Retransmitted": 24326,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          },
+          "server": {
+            "LateFirstArrival": 19235,
+            "Retransmitted": 24099,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          }
+        }
+      },
+      {
+        "label": "r12-normal-5305",
+        "run": 37574340886,
+        "receivers": {
+          "biz": {
+            "max_zero_delivery_buckets_ms": 270,
+            "probe_sent": 120,
+            "probe_received": 116,
+            "unreturned": 4,
+            "min_business_bytes_1s_after_fill": 1003680,
+            "probe_elapsed_metric": "RTT",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 34,
+                "elapsed_ms": 2172.521274
+              },
+              {
+                "seq": 49,
+                "elapsed_ms": 2169.770325
+              },
+              {
+                "seq": 50,
+                "elapsed_ms": 2162.531546
+              },
+              {
+                "seq": 78,
+                "elapsed_ms": 2171.039136
+              },
+              {
+                "seq": 82,
+                "elapsed_ms": 2454.283612
+              }
+            ]
+          },
+          "target": {
+            "max_zero_delivery_buckets_ms": 290,
+            "probe_sent": 0,
+            "probe_received": 0,
+            "unreturned": 0,
+            "min_business_bytes_1s_after_fill": 1076064,
+            "probe_elapsed_metric": "ONE_WAY_AT_TARGET",
+            "probe_elapsed_over1100ms": [
+              {
+                "seq": 34,
+                "elapsed_ms": 1871.456205
+              },
+              {
+                "seq": 49,
+                "elapsed_ms": 1869.547747
+              }
+            ]
+          }
+        },
+        "transport": {
+          "client": {
+            "LateFirstArrival": 25472,
+            "Retransmitted": 31965,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          },
+          "server": {
+            "LateFirstArrival": 25098,
+            "Retransmitted": 32480,
+            "FreshBlocked": 0,
+            "FreshEmitFailures": 0,
+            "RecordErrors": 0,
+            "PathErrors": 0
+          }
+        }
+      }
+    ],
+    "limitations": "10ms buckets show aggregate traffic continued, not exact per-record ordering. LateFirstArrival and repair counters support a late-repair hypothesis; no encrypted-record-to-probe mapping, so causal attribution is not closed. Unreturned probes not discarded in quality assessment."
+  },
+  "analytical_business_reference": {
+    "analysis_only": true,
+    "models": [
+      {
+        "parity": 4,
+        "p": 0.2,
+        "iid_full_source_loss_percent": 14.069371780302395,
+        "two_frag_same_block_loss_percent": 24.75670948707406,
+        "mixed_business_same_block_loss_percent": 17.631817682559614,
+        "mixed_business_cross_block_loss_percent": 18.099338299428634,
+        "mixed_byte_loss_same_block_percent": 22.506743654069496,
+        "normal10_same_block_goodput_mbps": 7.749325634593051
+      },
+      {
+        "parity": 4,
+        "p": 0.3,
+        "iid_full_source_loss_percent": 28.384685361071107,
+        "two_frag_same_block_loss_percent": 47.95536649488194,
+        "mixed_business_same_block_loss_percent": 34.90824573900805,
+        "mixed_business_cross_block_loss_percent": 35.16061260460479,
+        "mixed_byte_loss_same_block_percent": 43.83522309829019,
+        "normal10_same_block_goodput_mbps": 5.61647769017098
+      },
+      {
+        "parity": 8,
+        "p": 0.2,
+        "iid_full_source_loss_percent": 3.111194143779667,
+        "two_frag_same_block_loss_percent": 5.211852874749443,
+        "mixed_business_same_block_loss_percent": 3.811413720769593,
+        "mixed_business_cross_block_loss_percent": 4.115993761705262,
+        "mixed_byte_loss_same_block_percent": 4.769608931387385,
+        "normal10_same_block_goodput_mbps": 9.523039106861262
+      },
+      {
+        "parity": 8,
+        "p": 0.3,
+        "iid_full_source_loss_percent": 17.661155816063104,
+        "two_frag_same_block_loss_percent": 28.990856322724177,
+        "mixed_business_same_block_loss_percent": 21.437722651616795,
+        "mixed_business_cross_block_loss_percent": 22.508486338886602,
+        "mixed_byte_loss_same_block_percent": 26.605656216058694,
+        "normal10_same_block_goodput_mbps": 7.339434378394131
+      },
+      {
+        "parity": 10,
+        "p": 0.2,
+        "iid_full_source_loss_percent": 0.9852703460842515,
+        "two_frag_same_block_loss_percent": 1.6104020576489901,
+        "mixed_business_same_block_loss_percent": 1.1936475832724975,
+        "mixed_business_cross_block_loss_percent": 1.3104579359294262,
+        "mixed_byte_loss_same_block_percent": 1.4787953815300978,
+        "normal10_same_block_goodput_mbps": 9.85212046184699
+      },
+      {
+        "parity": 10,
+        "p": 0.3,
+        "iid_full_source_loss_percent": 10.920122432158303,
+        "two_frag_same_block_loss_percent": 17.58792054113809,
+        "mixed_business_same_block_loss_percent": 13.142721801818233,
+        "mixed_business_cross_block_loss_percent": 14.16266632976665,
+        "mixed_byte_loss_same_block_percent": 16.18417357082656,
+        "normal10_same_block_goodput_mbps": 8.381582642917344
+      },
+      {
+        "parity": 12,
+        "p": 0.2,
+        "iid_full_source_loss_percent": 0.25435497613686636,
+        "two_frag_same_block_loss_percent": 0.40624493093242653,
+        "mixed_business_same_block_loss_percent": 0.30498496106871975,
+        "mixed_business_cross_block_loss_percent": 0.33892431333620077,
+        "mixed_byte_loss_same_block_percent": 0.3742680983438875,
+        "normal10_same_block_goodput_mbps": 9.96257319016561
+      },
+      {
+        "parity": 12,
+        "p": 0.3,
+        "iid_full_source_loss_percent": 5.7724242117219156,
+        "two_frag_same_block_loss_percent": 9.118181900168345,
+        "mixed_business_same_block_loss_percent": 6.887676774537392,
+        "mixed_business_cross_block_loss_percent": 7.585496011362309,
+        "mixed_byte_loss_same_block_percent": 8.413811860495413,
+        "normal10_same_block_goodput_mbps": 9.158618813950458
+      },
+      {
+        "parity": 16,
+        "p": 0.2,
+        "iid_full_source_loss_percent": 0.010496359777770924,
+        "two_frag_same_block_loss_percent": 0.016088788780869993,
+        "mixed_business_same_block_loss_percent": 0.012360502778803947,
+        "mixed_business_cross_block_loss_percent": 0.013994779125132072,
+        "mixed_byte_loss_same_block_percent": 0.014911435306533348,
+        "normal10_same_block_goodput_mbps": 9.998508856469346
+      },
+      {
+        "parity": 16,
+        "p": 0.3,
+        "iid_full_source_loss_percent": 1.0764666043645665,
+        "two_frag_same_block_loss_percent": 1.6387471650053362,
+        "mixed_business_same_block_loss_percent": 1.2638934579114898,
+        "mixed_business_cross_block_loss_percent": 1.4314262046517154,
+        "mixed_byte_loss_same_block_percent": 1.5203723101335953,
+        "normal10_same_block_goodput_mbps": 9.84796276898664
+      }
+    ],
+    "assumptions": "Full k=20,r=profile, IID timely erasures, no finite retirement/repair. Normal equal-count UDP64/256/1200; all FEC-on directions LINK budgets1163/1213 so1228B largest datagram has2 adjacent fragments, smaller packets fit. Both-in-same-block vs independent-cross-block examples, not exact weighted mapping oracle or validated quality gate. Actual partial/full mapping is not reconstructed. Game not inferred as q^4."
+  },
+  "raw_capture_cleanup": [
+    {
+      "label": "r0-normal-lossless",
+      "run": 37574266150,
+      "artifact": {
+        "id": 11462066499,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjA2NjQ5OQ==",
+        "name": "strict-summary-normal-lossless-seed1500-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 148861,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462066499",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462066499/zip",
+        "expired": false,
+        "digest": "sha256:c207ca6420a54512dc273d006d779c819569d0622d3a51041f709eaa2df477d0",
+        "created_at": "2026-10-07T05:05:02Z",
+        "updated_at": "2026-10-07T05:05:02Z",
+        "expires_at": "2026-11-06T05:05:01Z",
+        "workflow_run": {
+          "id": 37574266150,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 89071759,
+            "sha256": "9f84b8733460840c36eaf9b759a4a77719811c3a284165ba587a14578f401fe1"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 89071759,
+            "sha256": "cdc4265b5ca204b487b7cc5c04d0939f639fc83d880d2ab4b86f68257afb7df7"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 101642466,
+            "sha256": "eb496f404b7051153f37c45945b69a465f4291b6acd0e9871b7bad29c1ad48d1"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 101642466,
+            "sha256": "4c30b33f0bb386034caf1d570b6c1b9d7aa585e06675eded9d21c4d96678b68e"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r4-normal-lossless",
+      "run": 37574269450,
+      "artifact": {
+        "id": 11461099751,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTA5OTc1MQ==",
+        "name": "strict-summary-normal-lossless-seed1502-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 149890,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461099751",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461099751/zip",
+        "expired": false,
+        "digest": "sha256:a3b08a8d917ce1846a79d35237653f6aebaa54317a2140d5e7272bbb847b717c",
+        "created_at": "2026-10-07T05:05:14Z",
+        "updated_at": "2026-10-07T05:05:14Z",
+        "expires_at": "2026-11-06T05:05:13Z",
+        "workflow_run": {
+          "id": 37574269450,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 141905052,
+            "sha256": "fffc0df3c93091c6954cf9df1e44222ff5453dcca948adeac8cab07fab2804b5"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 141905052,
+            "sha256": "482abf819643914ab80024d70a37394593568d9dd8c50eb63879848a41f56d75"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 144448255,
+            "sha256": "7ce337251772d31ca0eb489f6c324b98adb92571d1fd58bf96e542e3ce93f06b"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 144448255,
+            "sha256": "f14c7fda15dd2d9aeb81abe1429568fb37e0f140309ef8aafceec17fc160b540"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r8-normal-lossless",
+      "run": 37574272318,
+      "artifact": {
+        "id": 11461054994,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTA1NDk5NA==",
+        "name": "strict-summary-normal-lossless-seed1504-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 151833,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461054994",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461054994/zip",
+        "expired": false,
+        "digest": "sha256:b6f319f1f0078f9025a64e22cda3eccfe47954b803b1ed6e5f3ebe17b449da5b",
+        "created_at": "2026-10-07T05:05:33Z",
+        "updated_at": "2026-10-07T05:05:33Z",
+        "expires_at": "2026-11-06T05:05:32Z",
+        "workflow_run": {
+          "id": 37574272318,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 165769478,
+            "sha256": "8214a0a07109fe37db50409813171fe92f9a971743dc848b6ccbdd5d23d197f3"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 165769478,
+            "sha256": "aeb90aa48befe6b8b82416be6525a35a97a596b506ccf23464fb7f57d0773aaa"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 168356705,
+            "sha256": "0b1ead91e86b54f36b90d273893ea1ef2abc85ee0536ea979898ad21a09074d7"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 168356705,
+            "sha256": "8d79b6d62763933637c4165802af3c14d6d54e0c6d714d50f5a4cb2b794d3851"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r10-normal-lossless",
+      "run": 37574275068,
+      "artifact": {
+        "id": 11461804457,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTgwNDQ1Nw==",
+        "name": "strict-summary-normal-lossless-seed1506-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 150766,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461804457",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461804457/zip",
+        "expired": false,
+        "digest": "sha256:b98f6126b5460dc5197d5caba282badde96fd260b2bb448eee99c5a163ec7959",
+        "created_at": "2026-10-07T05:05:31Z",
+        "updated_at": "2026-10-07T05:05:31Z",
+        "expires_at": "2026-11-06T05:05:30Z",
+        "workflow_run": {
+          "id": 37574275068,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 178670032,
+            "sha256": "d05565d3916bcb234cbb3014b67adfdcbc9ba398bee9ad79add0528cbbfffa21"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 178670032,
+            "sha256": "d5f3f726bcb781f476a8a2282534d6428c8b7188340231f06046e7d100ea07f5"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 181303869,
+            "sha256": "a30c34133a31ba0b8c3c4307915fa0db9deed6a2e15417ed50f744066af7b9ad"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 181303869,
+            "sha256": "0da1f6746d9f958c72695eafab25fad79bee3f05918bb7cc5ae2b4b92b31bc4d"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r12-normal-lossless",
+      "run": 37574278707,
+      "artifact": {
+        "id": 11462041738,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjA0MTczOA==",
+        "name": "strict-summary-normal-lossless-seed1508-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 152064,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462041738",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462041738/zip",
+        "expired": false,
+        "digest": "sha256:745b21ef24f855e192053bb7438953ce08834bca8cc49e563b2c48caabb50590",
+        "created_at": "2026-10-07T05:05:40Z",
+        "updated_at": "2026-10-07T05:05:40Z",
+        "expires_at": "2026-11-06T05:05:39Z",
+        "workflow_run": {
+          "id": 37574278707,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 190844154,
+            "sha256": "d577ca37d7f5f731a0e779a76846998a9d38ad3100e552244316a73e7d1aafa9"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 190844154,
+            "sha256": "b4b704be3bafbbcfb8105ade93738309bfcd88cf62a027a772e8bf2c6a7f0e78"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 193402037,
+            "sha256": "e40a327f221664ba33bbf88362c616f424562c963e47694deb86c7f9e795a748"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 193402037,
+            "sha256": "2281c3f484da9f168d031f0595c37002a15e812768a7495149732c0be95a3dc6"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r16-normal-lossless",
+      "run": 37574281218,
+      "artifact": {
+        "id": 11462535081,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjUzNTA4MQ==",
+        "name": "strict-summary-normal-lossless-seed1510-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 150695,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462535081",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462535081/zip",
+        "expired": false,
+        "digest": "sha256:cee57ccff71e0e38535114f2cb2151550f2e6d0e0efc120cbd58aa29b08a59f7",
+        "created_at": "2026-10-07T05:05:45Z",
+        "updated_at": "2026-10-07T05:05:45Z",
+        "expires_at": "2026-11-06T05:05:44Z",
+        "workflow_run": {
+          "id": 37574281218,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 214927920,
+            "sha256": "350bc1df9afd31fb00d455e1b1d47fa1d2f29820e8027a132c84705bb4c51d60"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 214927920,
+            "sha256": "c9af217bd8870a1e2698a4b7a112d6ae7320de54452f6196d7784172f1e8536c"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 217700981,
+            "sha256": "1e89194b81fc387c7e8432501474dc28d31fe184b394d14787d54136a268799d"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 217700981,
+            "sha256": "f000d4db6319dae94db9eac0be2f4886fc40c4a6c171fd6cc1218c8c29df2e0a"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r0-game-lossless",
+      "run": 37574283853,
+      "artifact": {
+        "id": 11461933649,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTkzMzY0OQ==",
+        "name": "strict-summary-game-lossless-seed1501-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 145876,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461933649",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461933649/zip",
+        "expired": false,
+        "digest": "sha256:a23c570d1cb0652c2faa049e1eed7bd39a24ba5c9cfebb3427ff28588f45a2ec",
+        "created_at": "2026-10-07T05:05:08Z",
+        "updated_at": "2026-10-07T05:05:08Z",
+        "expires_at": "2026-11-06T05:05:07Z",
+        "workflow_run": {
+          "id": 37574283853,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 126475188,
+            "sha256": "deaf43b3901161d0564895b6afe75c9085b529618c32f06797e9c4da3a12e15b"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 126475188,
+            "sha256": "f20de451dae2878842b8e593233c6afc667ebc3e732dca9f7c2e39411350723a"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 131551268,
+            "sha256": "fbdc5c2887c27cb331031d816af41daf375463df34bd0ccd91ea87f9145dfc9e"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 131551268,
+            "sha256": "d0ec5b442cdc9af3888ca312f17eae4f9f78537bce1de77f39c19cee97b80ebc"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r4-game-lossless",
+      "run": 37574286298,
+      "artifact": {
+        "id": 11462076330,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjA3NjMzMA==",
+        "name": "strict-summary-game-lossless-seed1503-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 150495,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462076330",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462076330/zip",
+        "expired": false,
+        "digest": "sha256:49e882ce018aed5fcf67a38b31ee1ac9e3a2f0932c3079c377b0d3239dd8ed31",
+        "created_at": "2026-10-07T05:05:13Z",
+        "updated_at": "2026-10-07T05:05:13Z",
+        "expires_at": "2026-11-06T05:05:12Z",
+        "workflow_run": {
+          "id": 37574286298,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 170105782,
+            "sha256": "a0437878621dc57971fb2cce2a152f9baf54a96a6ed2320e1bea46c23bcab9a0"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 170105782,
+            "sha256": "59156ad13b99ca64421b86a27368aa86398719e3ed5853ba947a9abbba160ab1"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 169402168,
+            "sha256": "b58aefea908995ae6ee2584de52bcbb0c580df54bf9f18730b00592eb4c34bcb"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 169402168,
+            "sha256": "6a9abfe773ad7debba886dc83bf3a3975752684ffbc3651d7b14b092942d8aed"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r8-game-lossless",
+      "run": 37574288656,
+      "artifact": {
+        "id": 11461794770,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTc5NDc3MA==",
+        "name": "strict-summary-game-lossless-seed1505-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 153881,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461794770",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461794770/zip",
+        "expired": false,
+        "digest": "sha256:0d4bc7a74e10b7d17b9816ec3f362ef67f4386248c326f419d5df74d629fdb2d",
+        "created_at": "2026-10-07T05:05:34Z",
+        "updated_at": "2026-10-07T05:05:34Z",
+        "expires_at": "2026-11-06T05:05:33Z",
+        "workflow_run": {
+          "id": 37574288656,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 202194742,
+            "sha256": "5660028773b57e0e39d9e1834b9c6ec31955d8df54edc2f4dd9bc89e33992852"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 202194742,
+            "sha256": "bcb945de0c084996c5b43b5abc2584b97c2e97fd0d269d9a193b863397801c11"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 202012808,
+            "sha256": "5bcdc8252f88f5c3f28f047f5f9c8babc1c8b7e160f13799e745b39559256b70"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 202012808,
+            "sha256": "a4754a75d541b9b5f567c56b2626e779849365bf0cf2177663020ab9463e0292"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r10-game-lossless",
+      "run": 37574291275,
+      "artifact": {
+        "id": 11460989848,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MDk4OTg0OA==",
+        "name": "strict-summary-game-lossless-seed1507-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 150478,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11460989848",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11460989848/zip",
+        "expired": false,
+        "digest": "sha256:2f08ef99c5b94ee088b605c879eb34f9de9c5272fa1de368d938bf441b73c9ad",
+        "created_at": "2026-10-07T05:05:23Z",
+        "updated_at": "2026-10-07T05:05:23Z",
+        "expires_at": "2026-11-06T05:05:22Z",
+        "workflow_run": {
+          "id": 37574291275,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 214417370,
+            "sha256": "9684b9c6a1799f3b6eb6a9d1cf283207c37590fdaed427b41e8eee33745d0a34"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 214417370,
+            "sha256": "9f035de01a0c45f6fadca11f86bf0c4006982a9e0bc4ec88bec654e102b1797f"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 213881174,
+            "sha256": "0652bcb66c4b5a9bb6c3050045676dfaa52e5272a3f9e28f2fbbe59cefc3be64"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 213881174,
+            "sha256": "76539181644e29f7e40f61f87a3fd4577c59e7e7510b8535d65e3fa949fc603f"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r12-game-lossless",
+      "run": 37574293685,
+      "artifact": {
+        "id": 11462026745,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjAyNjc0NQ==",
+        "name": "strict-summary-game-lossless-seed1509-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 152632,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462026745",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462026745/zip",
+        "expired": false,
+        "digest": "sha256:73065477a1eeef4457a3f039d35a35116175e4ceefa866cc6abf1f15645840a5",
+        "created_at": "2026-10-07T05:05:51Z",
+        "updated_at": "2026-10-07T05:05:51Z",
+        "expires_at": "2026-11-06T05:05:51Z",
+        "workflow_run": {
+          "id": 37574293685,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 232161978,
+            "sha256": "db147d40effe313a6c4d5c54a664b5ee83b8cb5c32ad53c9e53655dc46bda273"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 232161978,
+            "sha256": "ae0e03f97b01a9f0d5f1e9a28d5df8c0ae1448e37a12ed0c23e07250f9b9dcb3"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 232296720,
+            "sha256": "9281a2f4a306bb80ff774e4f865df399c986ae1f48efee2ff87bdcbd0106fed0"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 232296720,
+            "sha256": "0be830b49d5702245e95e773f5a549057aa6947f6e3497305ff6340c9e2e0d65"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r16-game-lossless",
+      "run": 37574296345,
+      "artifact": {
+        "id": 11461854060,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTg1NDA2MA==",
+        "name": "strict-summary-game-lossless-seed1511-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 150440,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461854060",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461854060/zip",
+        "expired": false,
+        "digest": "sha256:a765971e1725ad9ea817f6e7f7d3fd571d60d41f530f718982b884f49fa46a30",
+        "created_at": "2026-10-07T05:05:23Z",
+        "updated_at": "2026-10-07T05:05:23Z",
+        "expires_at": "2026-11-06T05:05:22Z",
+        "workflow_run": {
+          "id": 37574296345,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 258643898,
+            "sha256": "815933800106737ce239de57a853adc4599b08edd83613cec493f14d233d1207"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 258643898,
+            "sha256": "6bfddb0ee16dfcdcd2fbb8dec03aa868113e67ac98159ab53b8c65218c3e935a"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 258335684,
+            "sha256": "515187047ede0027f84c7b6085bcd082fcfd510f2556d409773e8a501af64317"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 258335684,
+            "sha256": "b846706a398eaa77d9a0c4be0fcec166f4d191a1a3a84ae9eac7b36c67ec5350"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r0-normal-5205",
+      "run": 37574299094,
+      "artifact": {
+        "id": 11461324203,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTMyNDIwMw==",
+        "name": "strict-summary-normal-5205-seed1500-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 153768,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461324203",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461324203/zip",
+        "expired": false,
+        "digest": "sha256:0ccee57e1f727b9fd764440a60afa49bf13a1b26e5a0d833865e8ff5a3eb9891",
+        "created_at": "2026-10-07T05:05:14Z",
+        "updated_at": "2026-10-07T05:05:14Z",
+        "expires_at": "2026-11-06T05:05:13Z",
+        "workflow_run": {
+          "id": 37574299094,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 102048761,
+            "sha256": "ed32375280cde028819e8ace3bcc9a0fe7a9a2d5bd7633aae3c132e8f6ecd64c"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 116438343,
+            "sha256": "99ffdf5620e0150980ae18b887c01197abbf221fb23cd08b83f9c38914325ad1"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 125865129,
+            "sha256": "37b62bda2cf2e7b72057a268b429060fa9402dbd16d1288ca0e2e4ebb86a8032"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 110331923,
+            "sha256": "8f36c4f728e5cd5ac73791625c59fcfcc7fce413dd25021ef704d06fde5cbc0d"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r4-normal-5205",
+      "run": 37574301678,
+      "artifact": {
+        "id": 11461159566,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTE1OTU2Ng==",
+        "name": "strict-summary-normal-5205-seed1502-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 154451,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461159566",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461159566/zip",
+        "expired": false,
+        "digest": "sha256:dce72c561e5a1549a5b97f65896b8cc286e1ff57046b5c754fdefa0c5df05191",
+        "created_at": "2026-10-07T05:05:48Z",
+        "updated_at": "2026-10-07T05:05:48Z",
+        "expires_at": "2026-11-06T05:05:47Z",
+        "workflow_run": {
+          "id": 37574301678,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 152433866,
+            "sha256": "da31fe436bb53e4eb04a7cd66dc631fc3a0c026b0f8fd47cdef7f7794ffb1c4d"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 173705258,
+            "sha256": "fdb1de7f787b92fee25f6bdcf0264b7673e4a12afe2e421bb27508bc6dc26934"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 176114965,
+            "sha256": "afa09a390a98e97a455058b317cabf980433db2294370ebc1baa3eed98c2ca13"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 154581635,
+            "sha256": "546aed05b803652c4fdba96380dbac46342a05b678c85e15ce892e3d586e618a"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r8-normal-5205",
+      "run": 37574304279,
+      "artifact": {
+        "id": 11460974909,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MDk3NDkwOQ==",
+        "name": "strict-summary-normal-5205-seed1504-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 155939,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11460974909",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11460974909/zip",
+        "expired": false,
+        "digest": "sha256:e45dd0c9e1f4216d67f8644cd9a7fe69e77afb0a1e5aa722c70c652f7af01f80",
+        "created_at": "2026-10-07T05:05:51Z",
+        "updated_at": "2026-10-07T05:05:51Z",
+        "expires_at": "2026-11-06T05:05:50Z",
+        "workflow_run": {
+          "id": 37574304279,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 179365422,
+            "sha256": "b91b2e7f55e5f4dd773ccc657b143f24856fff12e4f93bbf15210d2ddf675c1a"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 204533868,
+            "sha256": "c95c8184329bed2461668492c8df96e380064f0d106a0f11feea92c4708a74dd"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 206923201,
+            "sha256": "d9f211e1a412aafec663cc676fd6186c84acefe5c37fb4ce325adbb08a6bdca3"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 181488173,
+            "sha256": "69ae1caf541fa63a9f31868c471b71c4349917165e6edb6efee618c3e88fd6ae"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r10-normal-5205",
+      "run": 37574306964,
+      "artifact": {
+        "id": 11462745223,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2Mjc0NTIyMw==",
+        "name": "strict-summary-normal-5205-seed1506-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 157028,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462745223",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462745223/zip",
+        "expired": false,
+        "digest": "sha256:1aec2b978b8eb4c621aa2b8d4bbbdd14ed3a66197f1a18c0040ecdf4de9225c0",
+        "created_at": "2026-10-07T05:06:07Z",
+        "updated_at": "2026-10-07T05:06:07Z",
+        "expires_at": "2026-11-06T05:06:06Z",
+        "workflow_run": {
+          "id": 37574306964,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 193217420,
+            "sha256": "275bf67cfb1601413cfbe93bb252bec4dc4c5b20e59c31d4b08bb61bbdf67c0d"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 220315944,
+            "sha256": "e1704a85d01863e72d3e0a5659046a30516331edc8a23f0d85107ca86b0bafbb"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 222724521,
+            "sha256": "999650f276a2b119b3da2ce68e5f924f06d80c5400dbc8e64392561845253055"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 195364575,
+            "sha256": "ae1474776ab8de7f7c2f32770a1758738428cdb93b1c89506487bcb095917110"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r12-normal-5205",
+      "run": 37574309524,
+      "artifact": {
+        "id": 11462210939,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjIxMDkzOQ==",
+        "name": "strict-summary-normal-5205-seed1508-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 154403,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462210939",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462210939/zip",
+        "expired": false,
+        "digest": "sha256:9723c6e9a4293647363073dcceb11bcfeff0aa9ca6e378ff8a53740482de99bf",
+        "created_at": "2026-10-07T05:06:01Z",
+        "updated_at": "2026-10-07T05:06:01Z",
+        "expires_at": "2026-11-06T05:06:00Z",
+        "workflow_run": {
+          "id": 37574309524,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 206952912,
+            "sha256": "9c0c54cbe6558de780d468bce89e2947d31b78b839dea8529bef83c47128d8d8"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 236150720,
+            "sha256": "aae7c9d7b379f6307d66fc4686f311a1afb75bf2a9fc5329c792f5ce48563d0e"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 238483063,
+            "sha256": "1922d5b08c40c0b7832d6291fe76b775d186827b8a1b9a269d5813dfbdb7cac9"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 209184413,
+            "sha256": "be92285d85cb7b55ed9802acfee3f95a20c6c6d300513c7ba9099ae5c39ce0c3"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r16-normal-5205",
+      "run": 37574311977,
+      "artifact": {
+        "id": 11461923929,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTkyMzkyOQ==",
+        "name": "strict-summary-normal-5205-seed1510-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 158032,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461923929",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461923929/zip",
+        "expired": false,
+        "digest": "sha256:30f5e52d3efb4ea5b590254692756c5aa3d29109c68d6e780ef5e3f5db283629",
+        "created_at": "2026-10-07T05:06:35Z",
+        "updated_at": "2026-10-07T05:06:35Z",
+        "expires_at": "2026-11-06T05:06:33Z",
+        "workflow_run": {
+          "id": 37574311977,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 234501658,
+            "sha256": "6d9b64c3211c45e0bca1c5f63c74b83253e9a79e54d0911aa7ce91ff13009b38"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 267590510,
+            "sha256": "9e6090a29250319671ea8c0fb2e514bd410361efad50d2d8925ffb682ae11048"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 270105439,
+            "sha256": "6138c76eb80720a16562c41c72490e468af8b08f0d29d5b1eb518e564e2f36ce"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 236680467,
+            "sha256": "ec92b423ad3ddd79077498ac6df83fa9a7b6e9db6c3731cbd2c805c2d29d0dcf"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r0-game-5205",
+      "run": 37574314288,
+      "artifact": {
+        "id": 11462156179,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjE1NjE3OQ==",
+        "name": "strict-summary-game-5205-seed1501-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 157887,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462156179",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462156179/zip",
+        "expired": false,
+        "digest": "sha256:84f9c01162376ec129012f02b185b2c26a011cc60b7254121b5aae5678a45ae6",
+        "created_at": "2026-10-07T05:06:05Z",
+        "updated_at": "2026-10-07T05:06:05Z",
+        "expires_at": "2026-11-06T05:06:04Z",
+        "workflow_run": {
+          "id": 37574314288,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 140997663,
+            "sha256": "dc3c19b0af9a9dc9b8940c5cf8647c6ab6eaed3517d78ca7004a6f548ed322cc"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 160857052,
+            "sha256": "3eeee5eb2e487d7455d7947cfb8c00074e084557af4cdc291b3fb798b6a729b2"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 166859652,
+            "sha256": "1160105c6fe7b58aee89d82476697dbb7701be11bfad678a079c83d9fd4b863b"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 146221003,
+            "sha256": "955cb0daf255970ab4443581104338b24c23f18fde3e45ca0fca16c3a15f2e3f"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r4-game-5205",
+      "run": 37574316464,
+      "artifact": {
+        "id": 11462630349,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjYzMDM0OQ==",
+        "name": "strict-summary-game-5205-seed1503-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 160096,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462630349",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462630349/zip",
+        "expired": false,
+        "digest": "sha256:6d2b5887c0f06aaf6bfa7c989882e1cd63089ac3a8b062387c275d7836aed73c",
+        "created_at": "2026-10-07T05:05:39Z",
+        "updated_at": "2026-10-07T05:05:39Z",
+        "expires_at": "2026-11-06T05:05:38Z",
+        "workflow_run": {
+          "id": 37574316464,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 183827556,
+            "sha256": "0806835f63b3ca779d7a914bacd8dc366d031b669b60e6b50b07d75a6d6f2aef"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 209593108,
+            "sha256": "ee396d2999ea4e1d36b237a3ebfcdc3d0213c8046f83e9f00741e53f8ae30537"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 209748996,
+            "sha256": "5bb55caa1ebbeb0cdb7a5927e5f8ad7584baa984664fe7b95f1473057f10c497"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 183796710,
+            "sha256": "2ee67a572467df3c856b8f063c688c106e1a63b3dc368462ce522ad7af4798fa"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r8-game-5205",
+      "run": 37574319207,
+      "artifact": {
+        "id": 11462301342,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjMwMTM0Mg==",
+        "name": "strict-summary-game-5205-seed1505-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 165521,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462301342",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462301342/zip",
+        "expired": false,
+        "digest": "sha256:90d0e3d5a711b46f6c504d1561ec05c6091f393252e836943ab3e8c6efdd9525",
+        "created_at": "2026-10-07T05:09:15Z",
+        "updated_at": "2026-10-07T05:09:15Z",
+        "expires_at": "2026-11-06T05:09:14Z",
+        "workflow_run": {
+          "id": 37574319207,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 214495784,
+            "sha256": "441efbdebb0616d78d804cf9223c16047b18c5ce4ed60ecfeb667e69c6a2ce16"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 244772510,
+            "sha256": "ddf947c1508fb6b7fe283597dd1ad0852a4fc63bbcff3f4de4814a2f1b519dcd"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 244837634,
+            "sha256": "04220f093fc27db1362e6ff0a927dcb21a3c55cc8734111544d955d0db847517"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 214598878,
+            "sha256": "97b2c72aa557aca59eb8619426ec845f0c1b845ce3dabc7c67bc12f334ef1c87"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r10-game-5205",
+      "run": 37574322064,
+      "artifact": {
+        "id": 11462290659,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjI5MDY1OQ==",
+        "name": "strict-summary-game-5205-seed1507-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 166229,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462290659",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462290659/zip",
+        "expired": false,
+        "digest": "sha256:c8f5a15ed829bb115b814c04b118fd28e4e0fe135c495a69989f2cd0cb7b944a",
+        "created_at": "2026-10-07T05:09:34Z",
+        "updated_at": "2026-10-07T05:09:34Z",
+        "expires_at": "2026-11-06T05:09:33Z",
+        "workflow_run": {
+          "id": 37574322064,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 229875752,
+            "sha256": "043de22913a748a03f902f60e685af9ed605454eae1f2a542070918f16c55eaf"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 262223770,
+            "sha256": "b896d7b0dbe30c780db75afade75251cdeb63b79dc7aaf8885c004f2cd6c5e89"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 262309476,
+            "sha256": "ebb844ec38238efb0c794940c72d0a1c5419336b8ebb272e2b0f8d9319afc4c2"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 229971406,
+            "sha256": "13729c9819684991fcc004a009db160207373df9d18e3be26b821bf0c2c3572a"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r12-game-5205",
+      "run": 37574324441,
+      "artifact": {
+        "id": 11462082105,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjA4MjEwNQ==",
+        "name": "strict-summary-game-5205-seed1509-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 166508,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462082105",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462082105/zip",
+        "expired": false,
+        "digest": "sha256:39d9f2a25be943c4210a48107a6260e8fa08f86b3df932bd2586492fb6fc9c86",
+        "created_at": "2026-10-07T05:10:18Z",
+        "updated_at": "2026-10-07T05:10:18Z",
+        "expires_at": "2026-11-06T05:10:18Z",
+        "workflow_run": {
+          "id": 37574324441,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 246208712,
+            "sha256": "0370a145fed6e5e9fc37ba926007d5fb4f776ab6b04fc4e1eaf69c2372d29263"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 280694698,
+            "sha256": "5f368c82eb99186a7cf217c3e7564852aa871bcb35a1c6b561be6e1ac6f23a32"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 280843482,
+            "sha256": "f4a4198fa3adc78cb5f29559b9a0edb49a1caa0a2b966aea60d36b05248d8fe6"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 246212114,
+            "sha256": "b5a81fe384705a5c89bb7afc82980b88b18b9ae7352f04a94a8468c462ae1374"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r16-game-5205",
+      "run": 37574327118,
+      "artifact": {
+        "id": 11462725247,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjcyNTI0Nw==",
+        "name": "strict-summary-game-5205-seed1511-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 168277,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462725247",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462725247/zip",
+        "expired": false,
+        "digest": "sha256:f4c56fef086145baf17a8980852d56aed15934fa6953dcb7874567b52a2e2a75",
+        "created_at": "2026-10-07T05:09:49Z",
+        "updated_at": "2026-10-07T05:09:49Z",
+        "expires_at": "2026-11-06T05:09:48Z",
+        "workflow_run": {
+          "id": 37574327118,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 277277874,
+            "sha256": "63a90f58e3c50c7dd57454d859ff81b6ce0eefd08696f53881666c830ef4450e"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 316218158,
+            "sha256": "bafafa47e33e72da765836bbd375a25dfc078d7e171873d60082c619918bb09a"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 316279192,
+            "sha256": "6aa0a3b89b1f67442c796b2632d116fc27ea7aed9d38b19653a3b5ecac086ba1"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 277299370,
+            "sha256": "d2c3af77d3bfa1270147163f2950cc96e8fef8b35784fe4e7fdcf1337dc52e59"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r0-normal-5305",
+      "run": 37574329863,
+      "artifact": {
+        "id": 11461964193,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTk2NDE5Mw==",
+        "name": "strict-summary-normal-5305-seed1500-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 156420,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461964193",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461964193/zip",
+        "expired": false,
+        "digest": "sha256:6c79a419a329aa406373d791c2a8069108794aac12eb4d8b6bd288193f939830",
+        "created_at": "2026-10-07T05:09:17Z",
+        "updated_at": "2026-10-07T05:09:17Z",
+        "expires_at": "2026-11-06T05:09:16Z",
+        "workflow_run": {
+          "id": 37574329863,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 94320829,
+            "sha256": "4b5b0c745b86ee8bf6dc599dcb41b7607055cf8718848998a4b79813059e79be"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 113470523,
+            "sha256": "5488c7084b23beb2d6871b24fefef8f1e9432e42a0a788b39291f9717b392dc6"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 123272815,
+            "sha256": "13be9cf2af62a17ca33b627d44d626f2b4202c732561430887f015c75f4fbb63"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 102273895,
+            "sha256": "5ca97b202c66eaed4d3d51f890d8b347fd2a334553234958c1c12d5cfaf51308"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r4-normal-5305",
+      "run": 37574332790,
+      "artifact": {
+        "id": 11461997573,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTk5NzU3Mw==",
+        "name": "strict-summary-normal-5305-seed1502-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 156699,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461997573",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461997573/zip",
+        "expired": false,
+        "digest": "sha256:dd20a729eb7e73b1fb890e2f1a5442021ba86e0e53f6fe1afaa358dd07bdf79e",
+        "created_at": "2026-10-07T05:09:30Z",
+        "updated_at": "2026-10-07T05:09:30Z",
+        "expires_at": "2026-11-06T05:09:29Z",
+        "workflow_run": {
+          "id": 37574332790,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 144414810,
+            "sha256": "e15c714ff8384ecdcfb0fa1359999f8d7b6f0991cda62afdbe635007306e37dc"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 174307282,
+            "sha256": "8c703a5fe32b7bf38d2d74121b9eb65fc2614d24caa34e3c35309731f81c8664"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 176788019,
+            "sha256": "757121deed62e5447b8cc078e8c59ff36c35a04fd58f3af3f5d6a31d78862454"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 146568979,
+            "sha256": "40fc216fbb764d5fc15ff230ffafcd2cb89f47890ca1a2bb7562464fd05e9d25"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r8-normal-5305",
+      "run": 37574335505,
+      "artifact": {
+        "id": 11462002554,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjAwMjU1NA==",
+        "name": "strict-summary-normal-5305-seed1504-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 156685,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462002554",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462002554/zip",
+        "expired": false,
+        "digest": "sha256:4c6f7a4563ab08508ba52e21ffb5751817c084dce204c5c4b1ba1dbc43095b3c",
+        "created_at": "2026-10-07T05:09:24Z",
+        "updated_at": "2026-10-07T05:09:24Z",
+        "expires_at": "2026-11-06T05:09:23Z",
+        "workflow_run": {
+          "id": 37574335505,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 169506760,
+            "sha256": "035db7aef320f27d89a086388a99119925d26807112bda2567562e9a6b865b9e"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 204722674,
+            "sha256": "4e8339d3586ae2acf301cf1582f7743554b26ec037af7f76c960a19c6e69779f"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 207256471,
+            "sha256": "52e0425283faba0883ffb985f6e4505f863dc10213ff714d7786609d399df663"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 171587925,
+            "sha256": "310b9e0e89cbdb88f322d06a4a5758fede419a5552c0ce9633ce04e320cb78a9"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r10-normal-5305",
+      "run": 37574338347,
+      "artifact": {
+        "id": 11462126792,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjEyNjc5Mg==",
+        "name": "strict-summary-normal-5305-seed1506-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 159288,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462126792",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462126792/zip",
+        "expired": false,
+        "digest": "sha256:78cef9e02b194214517bf4fc42c0b822a65c593e16773ae3ab360128db1b8996",
+        "created_at": "2026-10-07T05:09:53Z",
+        "updated_at": "2026-10-07T05:09:53Z",
+        "expires_at": "2026-11-06T05:09:52Z",
+        "workflow_run": {
+          "id": 37574338347,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 182686670,
+            "sha256": "005b510a59129d42c2600bdbb82a866fcf7c9554673d729e467336c77f2a6fb1"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 220513496,
+            "sha256": "1873cc9125001d30f10cebd6491f2bbf511038ced48572386d9e0115c7126334"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 223023107,
+            "sha256": "7d39351e65ea70be2095c273104a1c070bc2c9d0310f26ba2051156e00a79d89"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 184669397,
+            "sha256": "dd0d4704ead9dd62c06ac1625f6fe5da11411468f9105dd2ff4063532d142afa"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r12-normal-5305",
+      "run": 37574340886,
+      "artifact": {
+        "id": 11462655328,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjY1NTMyOA==",
+        "name": "strict-summary-normal-5305-seed1508-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 156493,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462655328",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462655328/zip",
+        "expired": false,
+        "digest": "sha256:19a94fd9b0c40544fc55a62b65ebddbf0e7b384b435e7e47d6215268ddf74ad1",
+        "created_at": "2026-10-07T05:09:37Z",
+        "updated_at": "2026-10-07T05:09:37Z",
+        "expires_at": "2026-11-06T05:09:36Z",
+        "workflow_run": {
+          "id": 37574340886,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 195361970,
+            "sha256": "423c0c418d2ccf4948b2db5f215cd4005d5594b307576a75e862b0e854d23d14"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 236110434,
+            "sha256": "a7931be7502e0fda2f6b57deaff199ab67a875add7bbefdee3fe1e55b5f630d2"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 238476007,
+            "sha256": "e782f7248471a379b08d3a1fa213384543858040c29b22d77c878bcfd9f4870f"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 197483127,
+            "sha256": "ad755867d5b610d82b016120c104f69ff57e8c4c587c1240c508313abb9398c0"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r16-normal-5305",
+      "run": 37574343902,
+      "artifact": {
+        "id": 11462900121,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjkwMDEyMQ==",
+        "name": "strict-summary-normal-5305-seed1510-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 156185,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462900121",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462900121/zip",
+        "expired": false,
+        "digest": "sha256:81bd4f8b9cd034952be174a25544bdd6d5c4d011cec1b08239072f2a10e7d16c",
+        "created_at": "2026-10-07T05:10:09Z",
+        "updated_at": "2026-10-07T05:10:09Z",
+        "expires_at": "2026-11-06T05:10:09Z",
+        "workflow_run": {
+          "id": 37574343902,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 219371670,
+            "sha256": "24677c2eb390a2fe31bc3aa98b402e782a1cef0889c70ff8e4316f3258c7f183"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 264834088,
+            "sha256": "af0241f909bb14dfcbce76e89e89eb80663d781c6228b2aa71d66934ec441266"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 267508115,
+            "sha256": "1a17e50a8918fed6020c7a755165d2a58015502ddc34dceecd3c56c118bad7c6"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 221607999,
+            "sha256": "801b286b23d65a4443a9170a15228962393728d7268f08bbf41373de95418e75"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r0-game-5305",
+      "run": 37574346543,
+      "artifact": {
+        "id": 11463005167,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MzAwNTE2Nw==",
+        "name": "strict-summary-game-5305-seed1501-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 157313,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11463005167",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11463005167/zip",
+        "expired": false,
+        "digest": "sha256:ae934c227da5e60be3d80e74f9c9748bf6cb8fb0fc8412ec7d93f0e0b1581b07",
+        "created_at": "2026-10-07T05:09:58Z",
+        "updated_at": "2026-10-07T05:09:58Z",
+        "expires_at": "2026-11-06T05:09:58Z",
+        "workflow_run": {
+          "id": 37574346543,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 131401379,
+            "sha256": "b1c0587fb46b03c157f4f0e6b13f8328e22eee2eeba66dba8604fb12d5b4fede"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 158392585,
+            "sha256": "d0d6daee690462aafb3c14749fee7d86d1e2def2187cce737756c546bd3ea901"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 164404582,
+            "sha256": "12a0daa1264938915b2731b6c4e12e922bd4796e4fce2b7cf8906d1b5ff92ff9"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 136368302,
+            "sha256": "bee523afd128448d688f1783fe276ee9625f90880277cc213c9ed8394750842a"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r4-game-5305",
+      "run": 37574349302,
+      "artifact": {
+        "id": 11462161067,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjE2MTA2Nw==",
+        "name": "strict-summary-game-5305-seed1503-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 164958,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462161067",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462161067/zip",
+        "expired": false,
+        "digest": "sha256:765e8799b027b532e689073a9835f07e3a13d406214a70401655c369410bc9fc",
+        "created_at": "2026-10-07T05:10:38Z",
+        "updated_at": "2026-10-07T05:10:38Z",
+        "expires_at": "2026-11-06T05:10:37Z",
+        "workflow_run": {
+          "id": 37574349302,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 171439166,
+            "sha256": "82cbf49b8e67e096116bcab7d670f922b661cbe343408699132d5429614da951"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 206675790,
+            "sha256": "85a6b8b4fccb157776878686c9fa78edee3ab49b568ce4079c997d8841359183"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 206782628,
+            "sha256": "8e4e73379f1398116746dad8dbc29252c39a5145e7038ba4bb5c980a9bb08940"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 171426672,
+            "sha256": "5e19563f843731fd74b9430d212fdce6c46b7b16d135785602d5010562cfd379"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r8-game-5305",
+      "run": 37574351987,
+      "artifact": {
+        "id": 11462530518,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjUzMDUxOA==",
+        "name": "strict-summary-game-5305-seed1505-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 162795,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462530518",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462530518/zip",
+        "expired": false,
+        "digest": "sha256:74423197ec6810077e1307a15255e28fef1d68cd263ef2a3d2f8ddcee65b1cf0",
+        "created_at": "2026-10-07T05:10:09Z",
+        "updated_at": "2026-10-07T05:10:09Z",
+        "expires_at": "2026-11-06T05:10:08Z",
+        "workflow_run": {
+          "id": 37574351987,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 200129922,
+            "sha256": "b1bc10681d95705c81283335eea38dbffb7e58c3dc638651b287605907a11c45"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 241248428,
+            "sha256": "af382892236395f1fe9fe47f30a2e996d8dc64e51717ba452f92f25be10ed3b1"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 241336320,
+            "sha256": "6456c1ca1fdf6931fc9b16f0c469b233b3e8a2351275be7b30d22f14174d2dcf"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 200120830,
+            "sha256": "738aaf60bfb3638e6418b4476cc76a03bf11b54b00d751c599aefce53b131762"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r10-game-5305",
+      "run": 37574354155,
+      "artifact": {
+        "id": 11462520564,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjUyMDU2NA==",
+        "name": "strict-summary-game-5305-seed1507-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 168351,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462520564",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462520564/zip",
+        "expired": false,
+        "digest": "sha256:68c8f42ba6e13711d7ef16377e2c89466af8fe857293f4716c9ee81cc9148202",
+        "created_at": "2026-10-07T05:10:47Z",
+        "updated_at": "2026-10-07T05:10:47Z",
+        "expires_at": "2026-11-06T05:10:47Z",
+        "workflow_run": {
+          "id": 37574354155,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 214326900,
+            "sha256": "9f8a3682d1004a1944b6e36d74586a8c9142e63717b5e4247860efb2fce44b75"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 258500072,
+            "sha256": "8093207707403fa71b75c0524cdf77a78383f6c90e6ce93ec132c52e29174930"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 258549018,
+            "sha256": "39a6e895bda3b3debd38f13337d225c931496ba318527be872135eac904aee2d"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 214472962,
+            "sha256": "857781afd324ab138595c981072ec80a4e47ddc1db418ece8ff30a5230dacded"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r12-game-5305",
+      "run": 37574356525,
+      "artifact": {
+        "id": 11462052360,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MjA1MjM2MA==",
+        "name": "strict-summary-game-5305-seed1509-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 165622,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462052360",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11462052360/zip",
+        "expired": false,
+        "digest": "sha256:fe8d8364950967f2c62e057603a3cef52a5c84c7340b8db826b88ca9aba11983",
+        "created_at": "2026-10-07T05:10:53Z",
+        "updated_at": "2026-10-07T05:10:53Z",
+        "expires_at": "2026-11-06T05:10:51Z",
+        "workflow_run": {
+          "id": 37574356525,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 229620532,
+            "sha256": "711bb2334368ee90e2221dd08e5f37f4b674c6a9e3245b186286c18e30713268"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 276661670,
+            "sha256": "094f9b94678dff85aae6f61bb9da23a6830cfd5be92433fd8b5a6ea0d67391dc"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 276795702,
+            "sha256": "4c6e71ce006d497c5611142b2d8004bf66cb2f73cf2a16c7217e661ab411d160"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 229644504,
+            "sha256": "213eaa15d8e5a70ad9721f342499643193075dae84d5ce30eeb87dd1de10e49d"
+          }
+        ]
+      }
+    },
+    {
+      "label": "r16-game-5305",
+      "run": 37574359028,
+      "artifact": {
+        "id": 11461924621,
+        "node_id": "MDg6QXJ0aWZhY3QxMTQ2MTkyNDYyMQ==",
+        "name": "strict-summary-game-5305-seed1511-49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "size_in_bytes": 169037,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461924621",
+        "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11461924621/zip",
+        "expired": false,
+        "digest": "sha256:e676762d00cb0aca00b4889048e7a1b5f1949ce06a314f3a27bd1332a56c1fa3",
+        "created_at": "2026-10-07T05:11:23Z",
+        "updated_at": "2026-10-07T05:11:23Z",
+        "expires_at": "2026-11-06T05:11:22Z",
+        "workflow_run": {
+          "id": 37574359028,
+          "repository_id": 1344529182,
+          "head_repository_id": 1344529182,
+          "head_branch": "qualification/fec-profile-screen-v2-20261007",
+          "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9"
+        }
+      },
+      "capture_cleanup": {
+        "raw_deleted": true,
+        "captures": [
+          {
+            "name": "s2c-post.pcap",
+            "bytes": 258726096,
+            "sha256": "5f7d900e3a25ab538e4e3230162e81dfaffdc74fb24e8c7a71cb12f65694c512"
+          },
+          {
+            "name": "s2c-pre.pcap",
+            "bytes": 311805636,
+            "sha256": "ef4b14da0d34210c6030fb500be97803f17076dd9afed4ecc8312607c7dbf6cb"
+          },
+          {
+            "name": "c2s-pre.pcap",
+            "bytes": 311874110,
+            "sha256": "c760c8f918039913642df066624dfdc9e1dbe011b827720f4e91356272dbb6fc"
+          },
+          {
+            "name": "c2s-post.pcap",
+            "bytes": 258873020,
+            "sha256": "ee847df4072196015c961e6a42bc5cd04b6f4b1922421bc07b2a7fff85a66d68"
+          }
+        ]
+      }
+    }
+  ],
+  "receipts_archive": "docs/evidence/fec-profile-screen-d6-49eba9b-receipts-20261007.json.gz",
+  "receipts_archive_sha256": "6afb9b8f6dd1819f99f6d94c22f2addb6f46d70fc82143baec768f5deef4e110",
+  "latency_hypothesis": "late bounded shadow repairs and late FEC arrivals can account for multi-second returned probes while fresh traffic continues; not causal proof. 20:12 has270/290ms business zero-delivery gaps and must remain an open scheduler/repair diagnostic. No blind FEC/buffer/shadow expansion.",
+  "remaining_qualification": "one seed/identity; no exact trace oracle; no full70/final18/1800s/native19 coverage inherited"
+}

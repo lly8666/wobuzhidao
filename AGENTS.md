@@ -1,6 +1,6 @@
 # WBD NEXT — 每位 agent 的开发入口
 
-2026-10-07当前：d6cb6ce 14定向Actions/24RTT/P6/lifecycle36+aggregate PASS；实机S17 Game4轮换300s约3M、业务loss0/2980探针全回/p99135.42ms，raw686压力保留，worker9refs与逐lane换代观测PASS。53普通样本/24工况/19NOT_RUN另2诊断，S01/S16/M03 FAIL不改；按用户要求快速批量独立Actions筛查其他FEC，标准WEAKNET_QUALIFICATION10.5/10.6，优先性能/延迟/noHOL。每性能Action一条，先STATUS/latest_log。
+2026-10-07当前：固定d6产品/49harness的36独立FECscreen已收齐，12无损业务/probe零loss、36完整性/profile/input/capture/environment通过且socketdrop0；32sample分析PASS、31workflowSUCCESS，133/144配对RTT通过、11FAIL保留。FEC恢复吞吐曲线符合计入分片的参考，冻结FEC实现；低档位单lane多秒尾延迟仍OPEN，非全产品定稿。off单条无损batch检查误判正在仅修测试并复验。原生53样本/24工况/19NOT_RUN、S01/S16/M03旧FAIL不改。每性能Action一条，先STATUS/latest_log。
 
 本分支是 `next/tlslike-dataplane`，唯一产品方向为单进程、单 TLS-like 数据面。不是 DTLS 兼容分支。所有 agent，包括全新接手者，在修改前执行以下流程。
 

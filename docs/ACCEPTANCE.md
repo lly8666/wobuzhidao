@@ -1,6 +1,6 @@
 # Actions 验收契约
 
-2026-10-07当前：d6cb6ce 14定向Actions/24RTT/P6/lifecycle36+aggregate PASS；实机S17 Game4轮换300s约3M、业务loss0/2980探针全回/p99135.42ms，raw686压力保留，worker9refs与逐lane换代观测PASS。53普通样本/24工况/19NOT_RUN另2诊断，S01/S16/M03 FAIL不改；按用户要求快速批量独立Actions筛查其他FEC，标准WEAKNET_QUALIFICATION10.5/10.6，优先性能/延迟/noHOL。每性能Action一条，先STATUS/latest_log。
+2026-10-07当前：固定d6产品/49harness的36独立FECscreen已收齐，12无损业务/probe零loss、36完整性/profile/input/capture/environment通过且socketdrop0；32sample分析PASS、31workflowSUCCESS，133/144配对RTT通过、11FAIL保留。FEC恢复吞吐曲线符合计入分片的参考，冻结FEC实现；低档位单lane多秒尾延迟仍OPEN，非全产品定稿。off单条无损batch检查误判正在仅修测试并复验。原生53样本/24工况/19NOT_RUN、S01/S16/M03旧FAIL不改。每性能Action一条，先STATUS/latest_log。
 
 受控无损仍零业务/探针loss；受控有损沿用loss-tolerant-v1原门。原生WAN原始零损失参考FAIL保留，功能/完整性/清理、性能质量、接收压力与归因分别记录，不追溯改PASS。完整口径见WEAKNET_QUALIFICATION第10.5节，尤其返回探针条件p99及覆盖/有限样本边界。
 
@@ -155,3 +155,5 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 每Action一条的独立Normal1双向10Mbps/Game4双向3Mbps、FEC20:20、300ms单向、5%→20%→5%/120s/seed101，两者五分类全PASS；20%阶段双向字节损失均0、socketdrop0，p95约614.10/607.50ms。CPU原始Normal65.11/65.50、Game96.21/91.42 CPU-s，不能据不同host与基线比较声称固定CPU提升/退化。
 
 固定[预发布linux-server-rc-20261004-6181db6](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)，三同源ZIP/manifest每个文件和GitHub资产哈希已核验。完整回执、失败链及边界见[evidence/linux-server-6181db6.json](evidence/linux-server-6181db6.json)。最新full70/strict18/1800s、startup-padding on完整专项、Windows/ARM原生/物理P7仍NOT_RUN，不能继承2b历史全量成绩。仅Linux本版本owned journal可自动恢复，未知历史残留不自动接管；冷进程无FIN同端口恢复使用至少90s/3keepalive保护，不承诺即时强替。
+
+当前profile实现冻结与11配对RTT例外详见WEAKNET_QUALIFICATION10.7；36快速screen不关闭全产品性能/FEC精确oracle/完整资格，原FAIL保留。

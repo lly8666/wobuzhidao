@@ -1,10 +1,10 @@
 # WBD NEXT 详细开发方案
 
-2026-10-07当前：d6cb6ce 14定向Actions/24RTT/P6/lifecycle36+aggregate PASS；实机S17 Game4轮换300s约3M、业务loss0/2980探针全回/p99135.42ms，raw686压力保留，worker9refs与逐lane换代观测PASS。53普通样本/24工况/19NOT_RUN另2诊断，S01/S16/M03 FAIL不改；按用户要求快速批量独立Actions筛查其他FEC，标准WEAKNET_QUALIFICATION10.5/10.6，优先性能/延迟/noHOL。每性能Action一条，先STATUS/latest_log。
+2026-10-07当前：固定d6产品/49harness的36独立FECscreen已收齐，12无损业务/probe零loss、36完整性/profile/input/capture/environment通过且socketdrop0；32sample分析PASS、31workflowSUCCESS，133/144配对RTT通过、11FAIL保留。FEC恢复吞吐曲线符合计入分片的参考，冻结FEC实现；低档位单lane多秒尾延迟仍OPEN，非全产品定稿。off单条无损batch检查误判正在仅修测试并复验。原生53样本/24工况/19NOT_RUN、S01/S16/M03旧FAIL不改。每性能Action一条，先STATUS/latest_log。
 
 当前受控与WAN的验收边界遵循WEAKNET_QUALIFICATION第10.5节：不以原生少量未恢复包要求外层强可靠；不删历史FAIL；不把本机raw drop归入WAN。下一配置S17只扩展测试静态档位，不改数据面。
 
-各FEC档位的实际k/r、partial与理论残余检测标准见WEAKNET_QUALIFICATION第10.6节；优先性能/延迟/no-HOL，正式20:20门不变，其他档位弱网专项尚未运行，不能套零loss或直接套名义比例。
+各FEC档位的实际k/r、partial与理论残余检测标准见WEAKNET_QUALIFICATION第10.6节；优先性能/延迟/no-HOL，正式20:20门不变，其他档位36独立screen已完成，见WEAKNET_QUALIFICATION第10.7节；恢复曲线支持冻结FEC实现，低档位尾延迟和精确oracle未关闭，不能套零loss或直接套名义比例。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

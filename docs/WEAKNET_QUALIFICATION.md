@@ -233,3 +233,29 @@ Game的同一业务PacketID在多个lane首次有效到达才算成功，各lane
 **实施次序与成本边界。** 当前next-strict-weaknet固定20:20，尚无其他profile的5305资格，现有lower-profile unit/native连通结果不能填补。先在测试框架增加显式fec_parity并贯穿check-config/实际生效、summary identity/receipts/aggregator；保留正式18的20:20入口默认与原判定不变，另建命名清楚的profile专项schema。编解码器定向门可以unit/race批量用例；真实性能每Action只能一个档位/场景/seed，配对无损与重复分别独立run。优先off、20:4超预算20%和20:10接近预算30%的代表场景，各两seed；复用当前20:20的受控5305作为不同scope参考，不伪称新profile源码已测。再补20:8/12/16边界，不开展挡位选型赛或自动调参。oracle重放/理论计算是只读分析，测量期间的探针/观测负担单列，诊断样本不替代默认off性能样本。没有产品新缺陷证据先补检测口径，不因此重构FEC、4096或提高冗余。
 
 2026-10-07用户追加快速筛查：本轮只新增profile-screen-v1测试入口，固定产品d6，6profiles（off/4/8/10/12/16）×Normal/Game×lossless/5205/5305共36独立Actions；不是参数选型赛，也不替代正式20:20 final18或精确有限策略oracle。原分类失败全部保留，任何与理论比较都区分source与业务分片、partial、Game与policy；看持续性能/条件延迟+超时/资源和定向noHOL后再冻结实现，只有明确异常才继续改代码。screen原始pcap分析后hash回执并删除，不上传原始payload。
+
+
+### 10.7 其他FEC档位快速筛查收口（2026-10-07）
+
+产品固定d6cb6cee4c241aac8dd2f542a876edc57bf3d7db，harness49eba9ba91985bbf771601788fd6d4348d950ef9；off/4/8/10/12/16 × Normal10M/Game4逻辑3M × lossless/5205/5305，共36独立120s Actions，每run一条。12无损样本均业务/probe零loss并达目标；36样本input/capture/integrity/environment、实际两端profile通过，socketdrop0、无完整1秒零业务桶。32样本分析PASS、4原性能reference FAIL；workflow31success/5failure，其中off无损多一个批量路径断言误判，原失败不改。144配对RTT只有133PASS/11FAIL，不能称全批资格通过。证据[evidence/fec-profile-screen-d6-49eba9b-20261007.json](evidence/fec-profile-screen-d6-49eba9b-20261007.json)及压缩完整方向/阶段/原错误/探针覆盖回执。
+
+Normal压力阶段goodput（上/下Mbps）：
+
+| 档位 | 20%实测 | 30%实测 | 30%完整块+同块两片参考 |
+|---|---:|---:|---:|
+| off | 6.795 / 8.316 | 5.380 / 7.186 | 两方向分片不同；不套统一30%业务loss |
+| 20:4 | 7.738 / 7.770 | 5.671 / 5.662 | 5.616 |
+| 20:8 | 9.520 / 9.521 | 7.338 / 7.331 | 7.339 |
+| 20:10 | 9.854 / 9.850 | 8.415 / 8.410 | 8.382 |
+| 20:12 | 9.973 / 9.975 | 9.166 / 9.184 | 9.159 |
+| 20:16 | 10.000 / 9.999 | 9.871 / 9.878 | 9.848 |
+
+这是恢复曲线的解释参考，不是新硬门。MTU1400、方向record limits1250/1300、固定TLS-like31B/FEC56B：FEC-on LINK预算1163/1213，最大原始IPv4UDP包1228B需要两片。等包数64/256/1200业务不能把source loss直接当业务packet或byte loss。完整块内m个关键源片的业务失败概率为Pr[Bin(n,p)>r]−(1−p)^m Pr[Bin(n−m,p)>r]；m=2同块、m=1其余两种包、按320/1200字节加权得到上表。跨块/partial/repair改变数值，完整实际映射未重放，精确恢复质量oracle仍NOT_EVALUATED。off C2S LINK1219而S2C1269使1228B大包仅上行分片，方向差异并非自动说明丢数据bug。
+
+**决定：冻结现有FEC实现，性能资格保留例外。** 不修改codec/wire/各档位、partial/size class/3s退役、不继续扩大FEC/shadow/buffer；恢复吞吐未见需要新修复的反常曲线。Game4在30%下off约2.83M、20:4约2.87M、20:8约2.98M、20:10/12/16接近3M；它包含4份业务复制，不能与Normal当同等线上成本或宣称共享黑洞也有q^4收益。
+
+Normal off的5205/5305与20:4/8/12的5305保留配对p95/p99超门：条件尾延迟约2.17–3.04s，含600ms基线。弱档位缺包可解释，晚到延迟仍是真实缺陷/能力边界，不因恢复理论吻合改绿。5条尾部诊断均fresh blocked/emit失败0，off/4/8业务每10ms桶均非零，说明多秒迟到并未把整条业务卡住；20:12却有270/290ms无业务桶，要单列调度/队列排查，不断言完全无停顿。late-first-arrival和repair计数支持有限补包迟到假设，无record→probe映射，因果未关闭。所有未返回探针必须保留，低档位幸存p99不是所有请求p99。
+
+Normal无损线上IP字节/业务分别off约1.32–1.37、20:4约2.22–2.25、8约2.91–2.96、10约3.26–3.33、12约3.61–3.68、16约4.30–4.40。低档位仍单size组，padding-off不等于parity无补齐成本；不把高档位成本说成配置无效。Game4复制和头部进一步放大。跨独立runner CPU不能当不同档位固定CPU收益；本轮资源门通过/drop0，但不代表原生Windows→ARM容量或全局最优。
+
+off无损原run37574266150数据面/分析PASS，额外receipt要求send_multi>0导致workflow FAIL。FEC-off即时逐包发送可能合法不形成multi，不能为了触发测试而攒包增加等待。仅显式profile_screen=true/fec=off/parity0的send允许single并标MULTI_NOT_EXERCISED；receive原要求、所有fallback/空流量拒绝、正式20/on原门保留，必须在Actions验证修正及独立off基线，原run不改绿。后续原子任务只调查transport迟到/调度，有新证据才改；不重开FEC选型赛、不把screen当full70/final18/长测/P7完成。

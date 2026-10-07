@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T13:04:31.566667+08:00",
+  "updated_at": "2026-10-07T13:18:59.035787+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -77,7 +77,8 @@
     "Windows中文GUI与便携包完成：29普通字段及全部managed操作、服务器管理/切换/安全停止、Npcap引导、原版Wintun随包。9857bdb同源206GUI检查及core/race/网络专项PASS，已发布固定标签预发布。物理P7仍NOT_RUN。",
     "2026-10-04 Linux部署/共享账号多客户端自动7天内存IP与配套GUI完成：SOURCE6181db6 native12/systemd12/GUI208/core-race/真实DNS分流/36+aggregate37jobs/两独立5205 PASS，正常与SIGKILL同端口重建、foreign/live保护通过，三平台同源包预发布linux-server-rc-20261004-6181db6。",
     "6181db6原生Windows CLI/Npcap/Wintun→ARM WAN：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0，受控DNS/TCP/验证HTTPS及owned退出清理；失败/压力样本保留，P7仅PARTIAL",
-    "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
+    "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过",
+    "36独立FECscreen全部收齐：12无损业务/probe零loss，36input/capture/integrity/environment与profile实效PASS、socketdrop0；32分析PASS/31workflowSUCCESS，133/144RTT PASS、11FAIL保留。FEC恢复吞吐趋势与分片理论参考吻合，仅冻结FEC实现，不关闭低档位尾延迟/完整产品资格。"
   ],
   "in_progress": [
     "Nativeclient ACK/nativewrite vsdecode latency boundary diagnosis",
@@ -85,8 +86,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Collect36independentFECscreenActions exactproduct d6/harness49, validate actualprofile/input/capture/CPU/queues/drops and compare144stagep95/p99 pairs to sameprofile/mode/seed lossless; show probe coverage and no-business intervals. Account actualpartial, businessfragmentation andGame correlation before interpreting theoreticalsource loss; retainoriginal referenceFAIL. If outcomes are consistent with declared capability, latency/noHOL/throughput/resource priorities, freeze profile implementation; rerun only clearly anomalous samples separately, no broad runtime rewrites. Native19remaining/M03/full70/18/1800s not closed.",
-  "latest_log": "docs/devlog/20261007-130431-fec-profile-screen-dispatched.md",
+  "next_task": "Verify raw-IO off-screen assertion correction in Actions and one isolated off/lossless Normal10 baseline on exact d6 product. Keep36 original runs/11RTT FAIL. FEC implementation frozen; do not raise parity/buffers/4096 or promise low-profile all-recovery. Next narrow diagnostic: late finite-shadow/FEC arrivals versus fresh queue/scheduler stalls in Normal off/4/8/12; 20:12 saw270/290ms gaps; preserve p99/coverage gates. Exact oracle/full70/final18/1800s/native19 remain open.",
+  "latest_log": "docs/devlog/20261007-131859-fec-profile-screen-results.md",
   "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
@@ -10222,7 +10223,7 @@
     "environment": "Effective packet socket budget Actions1048576B vsARM212992B; no automatic source or capacity equivalence"
   },
   "fec_profile_acceptance": {
-    "state": "RUNNING_36_INDEPENDENT_ACTIONS_SCREEN",
+    "state": "FEC_RUNTIME_FROZEN_WITH_LATENCY_EXCEPTIONS",
     "plan": "docs/WEAKNET_QUALIFICATION.md#106-各fec档位的能力口径与检测标准2026-10-07用户补充",
     "analytical_reference": "docs/evidence/fec-theory-reference-20261007.json",
     "actual_partial_rule": "r=min(k,configuredR);20:20three size classes/lowerprofiles single",
@@ -10231,7 +10232,7 @@
     "formal20_20_gates_unchanged": true,
     "profile_workflow_parity_input": "PASS_ACTIONS_PREFLIGHT_IMPLEMENTED",
     "trace_oracle": "NOT_IMPLEMENTED; screen onlyIID full/partial range reference, no false exact app oracle",
-    "other_profile_5305": "RUNNING",
+    "other_profile_5305": "36_SCREEN_SAMPLES_COLLECTED_NOT_ALL_LATENCY_QUALIFIED",
     "screen_workflow": ".github/workflows/next-strict-weaknet.yml",
     "analyzer": "tools/check_strict_fec_profile_screen.py",
     "product_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
@@ -10270,8 +10271,22 @@
     },
     "dispatch_evidence": "docs/evidence/fec-profile-screen-d6-49eba9b-plan-20261007.json",
     "dispatched_count": 36,
-    "collected_count": 0,
-    "screen_status": "PENDING",
-    "exact_policy_oracle": "NOT_IMPLEMENTED; referenceonly,not false precision"
+    "collected_count": 36,
+    "screen_status": "REVIEW_OR_FAIL",
+    "exact_policy_oracle": "NOT_IMPLEMENTED; referenceonly,not false precision",
+    "screen_results": "docs/evidence/fec-profile-screen-d6-49eba9b-20261007.json",
+    "sample_analysis_pass": 32,
+    "workflow_success": 31,
+    "workflow_failure": 5,
+    "paired_rtt_checks": 144,
+    "paired_rtt_pass": 133,
+    "paired_rtt_fail": 11,
+    "runtime_freeze_scope": "FEC codec/wire/profiles/partial/size classes/3s retirement unchanged. Recovery curves fit a full-block fragmented business reference; exact finite-policy oracle NOT_EVALUATED. Not whole-product performance/final18/P7 completion.",
+    "latency_open": "Normal off5205/5305,4/8/12 at5305 exceed matched p95/p99 gates; never dismissed as expected FEC loss. All profile/mode/scenario probe sent/received and original errors retained in receipts. Missing probes mean survivor p99 is conditional.",
+    "raw_io_assertion_correction": {
+      "state": "PENDING_ACTIONS",
+      "product_unchanged": true,
+      "reason": "server native send_messages=send_calls=478459,send_multi=0,send_fallbacks=0; off immediate sends need not coalesce; original workflow failure retained"
+    }
   }
 }

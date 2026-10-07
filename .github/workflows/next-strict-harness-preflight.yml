@@ -11,6 +11,8 @@ on:
       - "tools/strict_weaknet_stage.py"
       - "tools/check_strict_fec_profile_screen.py"
       - "tools/test_fec_profile_screen.py"
+      - "tools/collect_raw_io_receipt.py"
+      - "tools/test_raw_io_receipt.py"
       - ".github/workflows/next-strict-weaknet.yml"
       - "tools/check_strict_weaknet.py"
       - "tools/aggregate_strict_weaknet.py"
@@ -39,6 +41,7 @@ jobs:
       - name: Explicit FEC screen identity and analytical boundary checks
         run: |
           python3 tools/test_fec_profile_screen.py
+          python3 tools/test_raw_io_receipt.py
           bash -n scripts/strict_weaknet_sample.sh
 
       - name: Install build and network tooling
