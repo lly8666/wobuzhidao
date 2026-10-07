@@ -1,0 +1,29 @@
+name: raw-rcvbuf-core-dispatch
+run-name: raw-rcvbuf-core-dispatch
+
+on:
+  push:
+    branches:
+      - qualification/raw-rcvbuf-controller-20261007
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Dispatch exact-source core and Linux raw gates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref='qualification/raw-rcvbuf-20261007'
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-foundation.yml/dispatches" --input - <<JSON
+          {"ref":"$ref","inputs":{"run_extended":"false","run_legacy_soak":"false"}}
+          JSON
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-linux-server.yml/dispatches" --input - <<JSON
+          {"ref":"$ref"}
+          JSON
