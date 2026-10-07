@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T21:55:00+08:00",
+  "updated_at": "2026-10-08T00:08:00+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -90,8 +90,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Validate isolated Linux raw-recv-buffer candidate on qualification/raw-rcvbuf-20261007 via foundation Linux/Windows unit+build, Linux race/arm64, next-linux-server real AF_PACKET kernel fixture and config precedence/effective gates. Then run separate one-sample Normal/Game ordinary performance plus same-source lossless RTT baselines before deciding whether default512KiB request reduces packet-socket drops without converting loss to queue/p99. Do not conflate with M03/8973 >1s late: server rawdrop0 there, issue remains OPEN and needs separate deterministic timeline/reproduction.",
-  "latest_log": "docs/devlog/20261007-215500-linux-raw-rcvbuf-candidate.md",
+  "next_task": "After established-RTO Foundation is green, run raw receive buffer A/B as two independent strict Normal/lossless samples using this qualification-only harness and the exact same product_source_sha 3d3e24f1271ddf960aa57035a6217476f1826bbc: raw_recv_buffer=0 vs 524288, same seed/rate/lanes/scenario. Compare effective buffer readback, socket/link drops, probe coverage/p99, goodput, repair/wire cost. Harness changes are not product source.",
+  "latest_log": "docs/devlog/20261008-000800-raw-rcvbuf-ab-harness.md",
   "last_tested_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
   "actions": [
     {
@@ -10562,7 +10562,7 @@
     "raw_socket_buffer_changed": false
   },
   "linux_raw_receive_buffer": {
-    "state": "CANDIDATE_AWAITING_ACTIONS",
+    "state": "AB_HARNESS_READY_NOT_RUN",
     "source_ref": "qualification/raw-rcvbuf-20261007",
     "base_source": "92f18755791108d9bc2d54b00bc97da50b17c9eb",
     "product_parent": "3a594a34191159bd7224f35ba9117cdf6f239c69",
@@ -10574,7 +10574,16 @@
     "kernel_filter": "Existing destination-IP/listen-port classic BPF is preserved; no duplicate filtering feature.",
     "actions": "NOT_RUN",
     "physical": "NOT_RUN_NEW_SOURCE",
-    "latest_log": "docs/devlog/20261007-215500-linux-raw-rcvbuf-candidate.md"
+    "latest_log": "docs/devlog/20261008-000800-raw-rcvbuf-ab-harness.md",
+    "ab_harness": {
+      "source_ref": "qualification/raw-rcvbuf-ab-20261007",
+      "product_source_sha": "3d3e24f1271ddf960aa57035a6217476f1826bbc",
+      "parameter_input": "raw_recv_buffer",
+      "allowed_range": "0..67108864",
+      "default": "524288",
+      "comparison_plan": "two independent Actions VMs, same product SHA + same strict tuple/seed; 0 inherit vs 524288 request",
+      "performance_runs": 0
+    }
   },
   "large_datagram_late": {
     "state": "OPEN_DIAGNOSIS",

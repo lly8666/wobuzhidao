@@ -1,5 +1,5 @@
 name: next-strict-weaknet
-run-name: ${{ inputs.qualification_kind == 'fec-profile-screen' && format('fecscreen-r{0}-', inputs.fec_parity) || 'strict-' }}${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}${{ inputs.cpu_profile && '-profile' || '' }}${{ inputs.wan_neighbors == 'permanent' && '-fixed-neighbors' || '' }}
+run-name: ${{ inputs.qualification_kind == 'fec-profile-screen' && format('fecscreen-r{0}-', inputs.fec_parity) || 'strict-' }}${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}-rb${{ inputs.raw_recv_buffer }}${{ inputs.cpu_profile && '-profile' || '' }}${{ inputs.wan_neighbors == 'permanent' && '-fixed-neighbors' || '' }}
 
 on:
   workflow_dispatch:
@@ -59,6 +59,11 @@ on:
         default: dynamic
         type: choice
         options: [dynamic, permanent]
+      raw_recv_buffer:
+        description: "Qualification-only Linux AF_PACKET SO_RCVBUF request; 0 inherits, default matches product"
+        required: true
+        default: "524288"
+        type: string
       product_source_sha:
         description: "Optional exact 40-hex product source; empty uses this workflow SHA"
         required: false
@@ -84,6 +89,7 @@ jobs:
       WBD_STRICT_CPU_PROFILE: ${{ inputs.cpu_profile && '1' || '0' }}
       WBD_STRICT_STATEFUL_GATE: ${{ inputs.stateful_middlebox && '1' || '0' }}
       WBD_STRICT_WAN_NEIGHBORS: ${{ inputs.wan_neighbors || 'dynamic' }}
+      WBD_STRICT_RAW_RECV_BUFFER: ${{ inputs.raw_recv_buffer || '524288' }}
       WBD_PRODUCT_SOURCE_INPUT: ${{ inputs.product_source_sha }}
 
     steps:
@@ -106,6 +112,8 @@ jobs:
           python3 tools/check_repository.py
           python3 tools/check_performance_workflow_policy.py
           mkdir -p "$ART"
+          [[ "$WBD_STRICT_RAW_RECV_BUFFER" =~ ^[0-9]+$ ]]
+          test "$WBD_STRICT_RAW_RECV_BUFFER" -le 67108864
           if test -n "$WBD_PRODUCT_SOURCE_INPUT"; then
             [[ "$WBD_PRODUCT_SOURCE_INPUT" =~ ^[0-9a-f]{40}$ ]]
             source_sha="$(git rev-parse "$WBD_PRODUCT_SOURCE_INPUT^{commit}")"
@@ -114,7 +122,7 @@ jobs:
           fi
           echo "TESTED_SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
           python3 tools/perf_sample_guard.py claim \
-            --identity "strict:screen$WBD_STRICT_FEC_SCREEN:r$WBD_STRICT_FEC_PARITY:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:stateful$WBD_STRICT_STATEFUL_GATE:neighbors$WBD_STRICT_WAN_NEIGHBORS:source$source_sha:harness$GITHUB_SHA" \
+            --identity "strict:screen$WBD_STRICT_FEC_SCREEN:r$WBD_STRICT_FEC_PARITY:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:stateful$WBD_STRICT_STATEFUL_GATE:neighbors$WBD_STRICT_WAN_NEIGHBORS:rawbuf$WBD_STRICT_RAW_RECV_BUFFER:source$source_sha:harness$GITHUB_SHA" \
             --receipt "$ART/sample-claim.json"
 
       - name: Install network tooling
@@ -144,7 +152,7 @@ jobs:
         id: sample
         continue-on-error: true
         run: |
-          sudo --preserve-env=WBD_STRICT_FEC_SCREEN,WBD_STRICT_FEC_PARITY,GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS \
+          sudo --preserve-env=WBD_STRICT_FEC_SCREEN,WBD_STRICT_FEC_PARITY,GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS,WBD_STRICT_RAW_RECV_BUFFER \
             env GITHUB_SHA="$TESTED_SOURCE_SHA" WBD_HARNESS_SHA="$GITHUB_SHA" WBD_STRICT_ARTIFACT_DIR="$ART" bash scripts/strict_weaknet_sample.sh
 
       - name: Analyze loss-tolerant-v1

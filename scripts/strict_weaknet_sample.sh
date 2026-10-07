@@ -10,6 +10,7 @@ set -euo pipefail
 : "${WBD_STRICT_RATE_MBPS:?missing WBD_STRICT_RATE_MBPS}"
 : "${WBD_STRICT_LANES:?missing WBD_STRICT_LANES}"
 : "${WBD_STRICT_TC:?missing WBD_STRICT_TC}"
+: "${WBD_STRICT_RAW_RECV_BUFFER:?missing WBD_STRICT_RAW_RECV_BUFFER}"
 
 ART="$WBD_STRICT_ARTIFACT_DIR"
 MODE="$WBD_STRICT_MODE"
@@ -17,6 +18,8 @@ SCENARIO="$WBD_STRICT_SCENARIO"
 SEED="$WBD_STRICT_SEED"
 RATE="$WBD_STRICT_RATE_MBPS"
 LANES="$WBD_STRICT_LANES"
+RAW_RECV_BUFFER="$WBD_STRICT_RAW_RECV_BUFFER"
+[[ "$RAW_RECV_BUFFER" =~ ^[0-9]+$ ]] && (( RAW_RECV_BUFFER <= 67108864 )) || { echo "invalid raw receive buffer request" >&2; exit 2; }
 FEC_PARITY="${WBD_STRICT_FEC_PARITY:-20}"
 FEC_SCREEN="${WBD_STRICT_FEC_SCREEN:-0}"
 case "$FEC_PARITY" in 0|4|8|10|12|16|20) ;; *) echo "invalid fixed FEC profile" >&2; exit 2 ;; esac
@@ -191,11 +194,11 @@ ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 SERVER_CPU=""; CLIENT_CPU=""; if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then SERVER_CPU="$ART/server.cpu"; CLIENT_CPU="$ART/client.cpu"; fi
 export WBD_QUALIFICATION_CONTENTION_PROFILE="${WBD_STRICT_CPU_PROFILE:-0}"
 export WBD_QUALIFICATION_CLIENT_STAGE_TIMING="${WBD_STRICT_CPU_PROFILE:-0}"
-ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
+ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400 --raw-recv-buffer "$RAW_RECV_BUFFER"   --fec-parity "$FEC_PARITY" --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
 SERVER_PID="$!"
 
 sleep 1
-ip netns exec "$CLI" env WBD_QUALIFICATION_CPU_PROFILE="$CLIENT_CPU" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass --client-record-limit 1300 --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --tproxy-port 12345 --mark 66   --route-table 1066 --rule-priority 1066   --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s   > "$ART/client.log" 2>&1 &
+ip netns exec "$CLI" env WBD_QUALIFICATION_CPU_PROFILE="$CLIENT_CPU" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass --client-record-limit 1300 --mtu 1400 --raw-recv-buffer "$RAW_RECV_BUFFER"   --fec-parity "$FEC_PARITY" --lanes "$LANES" --tproxy-port 12345 --mark 66   --route-table 1066 --rule-priority 1066   --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s   > "$ART/client.log" 2>&1 &
 CLIENT_PID="$!"
 
 sleep 5
@@ -355,6 +358,7 @@ manifest = {
         "wan_neighbors": os.environ.get("WBD_STRICT_WAN_NEIGHBORS", "dynamic"),
         "blackhole_ms": blackhole_ms,
         "blackhole_nominal_offset_s": 60 if blackhole_ms else None,
+        "raw_receive_buffer_request_bytes": int(os.environ["WBD_STRICT_RAW_RECV_BUFFER"]),
     },
     "topology": "biz netns -> OpenWrt TPROXY formal client -> raw/veth -> shared router netem -> raw formal server -> shared TUN -> target netns",
 }
