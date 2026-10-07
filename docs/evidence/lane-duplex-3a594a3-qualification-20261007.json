@@ -1,0 +1,498 @@
+{
+  "schema": 1,
+  "state": "ACTIONS_READY_FOR_PHYSICAL",
+  "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+  "harness_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+  "source_parent": "6e7638abf7b8bea1d6877c239bcaf3cea465ecae",
+  "qualification_ref": "qualification/lane-duplex-20261007",
+  "product_change": {
+    "summary": "Lane TX/RX mutex isolation: TX owns encoder/sealer/PN/send/padding; RX owns decoder/recovery/reassembly/Expire/InboundTransition; Stats/Close TX→RX; Health remains TX.",
+    "wire_changed": false,
+    "keys_changed": false,
+    "fec_parameters_changed": false,
+    "recovery_deadline_changed": false,
+    "repair_policy_changed": false,
+    "shadow4096_changed": false,
+    "generation_semantics_changed": false,
+    "delivery_semantics_changed": false
+  },
+  "root_cause": {
+    "old_284ms_pause": "OPEN_NOT_REPRODUCED",
+    "statement": "Measured contention/backlog improves strongly, but neither the parent diagnostic nor this candidate diagnostic reproduced the historical ~284ms pause. Root cause is not closed.",
+    "remaining_observation": "Ordinary r12/5305 seed1508 still has ~2168.137ms stress probe p99; parent same seed ~2177.749ms."
+  },
+  "core_and_lifecycle": [
+    {
+      "run": 37602221629,
+      "name": "next-foundation",
+      "status": "PASS",
+      "note": "Windows/Linux unit+build; Linux race+directed fuzz; arm64 cross-build; privileged network jobs PASS; historical extension jobs skipped, not counted."
+    },
+    {
+      "run": 37602535872,
+      "name": "lifecycle-fullstack",
+      "status": "PASS"
+    },
+    {
+      "run": 37602539898,
+      "name": "default-network",
+      "status": "PASS"
+    },
+    {
+      "run": 37602544149,
+      "name": "splitroute",
+      "status": "PASS"
+    },
+    {
+      "run": 37602548438,
+      "name": "config-effective",
+      "status": "PASS"
+    },
+    {
+      "run": 37602552100,
+      "name": "linux-server",
+      "status": "PASS"
+    }
+  ],
+  "normal": {
+    "r12_profile_5305": {
+      "run": 37602556519,
+      "seed": 1508,
+      "status": "PASS_DIAGNOSTIC_ONLY",
+      "summary_artifact": {
+        "id": 11473851334,
+        "digest": "sha256:c13a6961e940c8349c1520da64085559b15a8c334895169e4c1dbcc9998d5372"
+      },
+      "raw_artifact": {
+        "id": 11473444137,
+        "digest": "sha256:2dbde816ff96db79572d1c8e51c2979d7c87d0a48f15e124d5a195491e87f5a3"
+      },
+      "stress": {
+        "c2s_mbps": 9.191912533333333,
+        "s2c_mbps": 9.1681472,
+        "probe_received": 54,
+        "probe_sent": 60,
+        "p95_ms": 609.098371,
+        "p99_ms": 614.290415
+      },
+      "ten_ms": {
+        "biz_longest_zero_ms": 0,
+        "target_longest_zero_ms": 0
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      }
+    },
+    "r12_lossless": {
+      "run": 37602559653,
+      "seed": 1508,
+      "status": "PASS",
+      "summary_artifact": {
+        "id": 11473801504,
+        "digest": "sha256:90cd27b22840c19f4d2f5733d16adceb833a76c4f1f34a0136ecafeaa29711ca"
+      },
+      "raw_artifact": {
+        "id": 11473518093,
+        "digest": "sha256:a637e46c1a8396babb8b5bf5fa199639ca7fa40b827673b048b5263c8cd72aa4"
+      },
+      "stress": {
+        "c2s_mbps": 9.999978666666665,
+        "s2c_mbps": 9.9999872,
+        "c2s_app_loss_percent": 0,
+        "s2c_app_loss_percent": 0,
+        "probe_received": 60,
+        "probe_sent": 60,
+        "p95_ms": 600.776745,
+        "p99_ms": 600.836874
+      },
+      "ten_ms": {
+        "biz_longest_zero_ms": 0,
+        "target_longest_zero_ms": 0
+      },
+      "resource": {
+        "client_cpu_s": 46.86,
+        "server_cpu_s": 46.81,
+        "client_rss_kb": 35288,
+        "server_rss_kb": 34504
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      }
+    },
+    "r12_5305": {
+      "run": 37602563270,
+      "seed": 1508,
+      "status": "PASS_WITH_OPEN_LONG_PROBE_TAIL",
+      "summary_artifact": {
+        "id": 11473562909,
+        "digest": "sha256:f4182b3fbd0a19397081e863669cfeab393258150ce31ce809c02d654255e746"
+      },
+      "raw_artifact": {
+        "id": 11473088815,
+        "digest": "sha256:49e2f94f473ce970d7f3ffae5dc494a41c71e1870059e53412c9f235863050b1"
+      },
+      "stress": {
+        "c2s_mbps": 9.192106666666666,
+        "s2c_mbps": 9.181557333333334,
+        "c2s_app_loss_percent": 8.058052142822095,
+        "s2c_app_loss_percent": 8.166915910579391,
+        "probe_received": 58,
+        "probe_sent": 60,
+        "p95_ms": 609.080551,
+        "p99_ms": 2168.136629
+      },
+      "ten_ms": {
+        "biz_longest_zero_ms": 0,
+        "target_longest_zero_ms": 0
+      },
+      "resource": {
+        "client_cpu_s": 95.34,
+        "server_cpu_s": 96.98,
+        "client_rss_kb": 39464,
+        "server_rss_kb": 38404
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      },
+      "parent_same_seed": {
+        "run": 37581075128,
+        "probe_received": 51,
+        "probe_sent": 60,
+        "p99_ms": 2177.749431
+      }
+    },
+    "r20_lossless": {
+      "run": 37602567530,
+      "seed": 1521,
+      "status": "PASS",
+      "summary_artifact": {
+        "id": 11473667234,
+        "digest": "sha256:df75a80f498c1c84593d14f50dfa0364d4792b8411b5f23f93e717da10807629"
+      },
+      "raw_artifact": {
+        "id": 11473652417,
+        "digest": "sha256:5075b7ebee5b0be09ecc79b33b3e4cab610f60604eb9884fff3d27fdac8c51f3"
+      },
+      "stress": {
+        "c2s_mbps": 10.000181333333334,
+        "s2c_mbps": 10.000341333333333,
+        "c2s_app_loss_percent": 0,
+        "s2c_app_loss_percent": 0,
+        "probe_received": 60,
+        "probe_sent": 60,
+        "p95_ms": 605.214133,
+        "p99_ms": 605.903839
+      },
+      "resource": {
+        "client_cpu_s": 88.26,
+        "server_cpu_s": 89.67,
+        "client_rss_kb": 35544,
+        "server_rss_kb": 33608
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      }
+    },
+    "r20_5205": {
+      "run": 37602571402,
+      "seed": 1521,
+      "status": "PASS",
+      "summary_artifact": {
+        "id": 11474045962,
+        "digest": "sha256:fff8c1d5fc37c8c50cdb974a4d39bb8ea41a7a5a9245406d7f7cd8be8013a480"
+      },
+      "raw_artifact": {
+        "id": 11473563007,
+        "digest": "sha256:4a59af968f258f0511adec890c2d2b42bd96f9ebc226e5599bd2876b3f0d0a48"
+      },
+      "stress": {
+        "c2s_mbps": 9.9516992,
+        "s2c_mbps": 9.999573333333334,
+        "c2s_app_loss_percent": 0.4811936401202344,
+        "s2c_app_loss_percent": 0,
+        "probe_received": 60,
+        "probe_sent": 60,
+        "p95_ms": 610.915364,
+        "p99_ms": 613.274213
+      },
+      "paired_lossless_delta_ms": {
+        "p95": 5.701231,
+        "p99": 7.370374
+      },
+      "resource": {
+        "client_cpu_s": 102.36,
+        "server_cpu_s": 104.4,
+        "client_rss_kb": 37548,
+        "server_rss_kb": 35768
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      }
+    }
+  },
+  "diagnostic_parent_compare": {
+    "parent_run": 37580826640,
+    "candidate_run": 37602556519,
+    "seed": 1508,
+    "parent": {
+      "lane_rx_lock_wait_total_ms": 7221.624371,
+      "lane_rx_lock_wait_max_ms": 2.584059,
+      "route_queue_age_max_ms": 18.30178,
+      "route_queue_age_over_10ms": 1360,
+      "route_peak_records": 358,
+      "biz_longest_zero_ms": 1310,
+      "target_longest_zero_ms": 1290,
+      "mutex_total_delay_ms": 8258.67,
+      "lane_outbound_mutex_cumulative_ms": 5427.87
+    },
+    "candidate": {
+      "lane_rx_lock_wait_total_ms": 39.394779,
+      "lane_rx_lock_wait_max_ms": 1.050564,
+      "route_queue_age_max_ms": 6.533272,
+      "route_queue_age_over_10ms": 0,
+      "route_peak_records": 51,
+      "biz_longest_zero_ms": 0,
+      "target_longest_zero_ms": 0,
+      "mutex_total_delay_ms": 2010.59,
+      "lane_outbound_mutex_cumulative_ms": 36.83
+    },
+    "interpretation": "Confirms the split removes the measured cross-direction Lane mutex bottleneck and reduces queueing in this sample; does not prove historical 284ms root-cause closure."
+  },
+  "game": {
+    "lossless_1479": {
+      "run": 37605009121,
+      "seed": 1479,
+      "status": "PASS",
+      "summary_artifact": {
+        "id": 11474841459,
+        "digest": "sha256:487badd59b45590047cbf76525157d1883218101f34b6dc3a722a385ebe6e023"
+      },
+      "raw_artifact": {
+        "id": 11474566955,
+        "digest": "sha256:28ed47394aa667d0ede59845219c419f18d57b0cf7cfdf005740a1030e483514"
+      },
+      "ten_ms_artifact": {
+        "id": 11475290805,
+        "digest": "sha256:18bcf73e23a1c1924ca5d3175253fedcb31c650f9b439c6af1d196eb98863ad2"
+      },
+      "stress": {
+        "c2s_mbps": 2.999872,
+        "s2c_mbps": 3.000032,
+        "probe_received": 60,
+        "probe_sent": 60,
+        "p95_ms": 601.159083,
+        "p99_ms": 601.455487
+      },
+      "ten_ms": {
+        "biz_zero_buckets": 0,
+        "target_zero_buckets": 0,
+        "longest_zero_ms": 0
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      }
+    },
+    "sample_5205_1479": {
+      "run": 37605011893,
+      "seed": 1479,
+      "status": "PASS",
+      "summary_artifact": {
+        "id": 11475015915,
+        "digest": "sha256:a439cb33d455e29e423bebbb8689968a670ed413a6ff7e2a834e5f1d12ce060f"
+      },
+      "raw_artifact": {
+        "id": 11474189500,
+        "digest": "sha256:49a13c9da4f89b03a30ceb8748918a6f5cfa8b79178ff409166cc2c59d51dd3a"
+      },
+      "ten_ms_artifact": {
+        "id": 11474712411,
+        "digest": "sha256:b7b25ce9e25b13f3058398fa5ca99b3e8afb3be70dc062326375cc5a5e5cd269"
+      },
+      "injection_stress_percent": {
+        "c2s": 19.99558478297729,
+        "s2c": 20.018635957157777
+      },
+      "stress": {
+        "c2s_mbps": 3.000032,
+        "s2c_mbps": 2.9999061333333334,
+        "c2s_app_loss_percent": 0,
+        "s2c_app_loss_percent": 0,
+        "probe_received": 60,
+        "probe_sent": 60,
+        "p95_ms": 603.104926,
+        "p99_ms": 603.263595
+      },
+      "paired_lossless_delta_ms": {
+        "p95": 1.945843,
+        "p99": 1.808108
+      },
+      "ten_ms": {
+        "biz_zero_buckets": 11,
+        "target_zero_buckets": 6,
+        "longest_zero_ms": 10
+      },
+      "integrity": {
+        "lane_mismatches": 0,
+        "stale": 0,
+        "source_discards": 0
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      }
+    },
+    "lossless_1484": {
+      "run": 37605015130,
+      "seed": 1484,
+      "status": "PASS",
+      "summary_artifact": {
+        "id": 11474651731,
+        "digest": "sha256:4725d866ef4189827d47f1069630ce147038f48214ac754c4d7ea9e990e3c19f"
+      },
+      "raw_artifact": {
+        "id": 11475130446,
+        "digest": "sha256:578a4a714550c1849faab59dd3edbc169f22992d17f6ddaa7614051155be803b"
+      },
+      "ten_ms_artifact": {
+        "id": 11475335593,
+        "digest": "sha256:73152b28d59cb710072b439de207137f6d1cf536f647d717f80d2aaac8ef2622"
+      },
+      "stress": {
+        "c2s_mbps": 2.999872,
+        "s2c_mbps": 2.999872,
+        "probe_received": 60,
+        "probe_sent": 60,
+        "p95_ms": 600.71825,
+        "p99_ms": 600.996748
+      },
+      "ten_ms": {
+        "biz_zero_buckets": 0,
+        "target_zero_buckets": 0,
+        "longest_zero_ms": 0
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      }
+    },
+    "sample_5305_1484": {
+      "run": 37605017713,
+      "seed": 1484,
+      "status": "PASS",
+      "summary_artifact": {
+        "id": 11474910889,
+        "digest": "sha256:fdc2742ef056ec570e5b294afd864772aed57b5b3daf1ac93185e06b175f32ce"
+      },
+      "raw_artifact": {
+        "id": 11474477189,
+        "digest": "sha256:a7940ee5568c10e2372f6f0026fe06da6c5573a3a5bdeaf6169d89eb9cdb08b2"
+      },
+      "ten_ms_artifact": {
+        "id": 11475011705,
+        "digest": "sha256:6ee031a026a3313cf42ae693bb91e2acbafd4dafbd4852e4bbb6e8a8e3ce0e3a"
+      },
+      "stress": {
+        "c2s_mbps": 2.999872,
+        "s2c_mbps": 2.999712,
+        "c2s_app_loss_percent": 0,
+        "s2c_app_loss_percent": 0,
+        "probe_received": 60,
+        "probe_sent": 60,
+        "p95_ms": 600.688729,
+        "p99_ms": 605.849225
+      },
+      "paired_lossless_delta_ms": {
+        "p95": -0.029521,
+        "p99": 4.852477
+      },
+      "ten_ms": {
+        "biz_zero_buckets": 0,
+        "target_zero_buckets": 0,
+        "longest_zero_ms": 0
+      },
+      "integrity": {
+        "lane_mismatches": 0,
+        "stale": 0,
+        "source_discards": 0
+      },
+      "drops": {
+        "socket": 0,
+        "link": 0
+      }
+    },
+    "note": "Formal20, 4 lanes, 3 Mbps logical per direction, padding off. Hosted process CPU varies materially between runners; no intrinsic CPU improvement claim."
+  },
+  "auxiliary_actions": {
+    "branch": "qualification/lane-duplex-controller-20261007",
+    "purpose": "Dispatch-only and immutable-artifact scanning; no product source/ref change and no performance sample runs in the controller workflow.",
+    "game_dispatch": {
+      "run": 37604997717,
+      "commit": "207e62553e5ba8f7b2699e84956c6c47efea5a21",
+      "status": "PASS"
+    },
+    "game_artifact_scan": {
+      "run": 37605933377,
+      "commit": "9af3f7783c45e93712f2ed15e15091be2c2533a5",
+      "status": "PASS"
+    },
+    "p6_dispatch": {
+      "run": 37606101071,
+      "commit": "25915d6f08446807382525aaa0b26a3a8dc7aff0",
+      "status": "PASS"
+    }
+  },
+  "p6": {
+    "run": 37606109601,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37606109601",
+    "status": "PASS",
+    "scope": "HOSTED_PACKAGE_ONLY",
+    "aggregate": {
+      "id": 11475361114,
+      "digest": "sha256:7fcea95e83c7821ccfb5f67c691dbb0178dd5d85578ff940a496859cd45b42b2",
+      "result": "PASS",
+      "physical": "NOT_RUN",
+      "release_qualified": "NOT_RUN"
+    },
+    "targets": {
+      "linux/amd64": {
+        "artifact_id": 11475186403,
+        "artifact_digest": "sha256:accd0ed8d38416405d16fab5b493f6c88f6c0e11dd9864ca9e08f891d0ffb5e7",
+        "manifest_sha256": "b4b802321165be3dfc44e73745c814b863421abfe7421f734d2755255e6de229",
+        "file_hash_recheck": "PASS_0_MISMATCH",
+        "native_check": "PASS"
+      },
+      "linux/arm64": {
+        "artifact_id": 11474687727,
+        "artifact_digest": "sha256:796062547d99777864ab53117dbef695c94eab157a04b95822dafa073923c976",
+        "manifest_sha256": "43cc6ebfcff37deb5133cbd0b89ec41bc1d377df4c48b19ab83487184fd78dc6",
+        "file_hash_recheck": "PASS_0_MISMATCH",
+        "native_check": "NOT_RUN_HOSTED_CROSS_BUILD"
+      },
+      "windows/amd64": {
+        "artifact_id": 11474354633,
+        "artifact_digest": "sha256:a4553ebf6412b354ec49f1792981a58c8d1fd184243ca58745685e8e917d8b90",
+        "manifest_sha256": "c25b9cc6d64bb7879f7f956b48b0db2ea343a86ccd84abc9ae569c262f83b1c1",
+        "file_hash_recheck": "PASS_0_MISMATCH",
+        "native_check": "PASS"
+      }
+    }
+  },
+  "decision": {
+    "retain_candidate": true,
+    "actions_ready_for_physical": true,
+    "physical_pass": false,
+    "release_qualified": false
+  },
+  "retained_open_items": [
+    "Historical 11 paired RTT FAIL cases remain open.",
+    "Native S01/S16/M03 and other STATUS native gaps remain open.",
+    "Current-product full70 / final18 / 1800s and other NOT_RUN items remain open.",
+    "Physical Windows→Linux ARM validation is NOT_RUN."
+  ]
+}
