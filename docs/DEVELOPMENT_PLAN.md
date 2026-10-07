@@ -338,3 +338,9 @@ Game desired=2..4是生命周期目标，不是每包回程必须等所有兄弟
 2026-10-06P7窄候选：提前过滤共享服务端AF_PACKET接收的无关目的端口，避免在内核队列、批量syscall与用户态Parse/owned clone之后才拒绝。不增buffer/调恢复/改FEC或wire；任何源IP/persona访问既有listen-port仍进入原TLS/admission/fallback。当前证据支持无关入口工作存在，未证明它是所有maxUDP/rawp99长尾根因；需native AF_PACKET安装/全包字节/default API兼容、普通回落与多client，再独立Normal/Game5205/同源lossless RTT和P6配套实机M03。
 
 2026-10-07开发交接：6e7638a default-off Linux诊断16工作流SUCCESS，stage实效已核验，本次未复现旧284ms。Lane方向锁最小候选见STATUS/latest_log，待新SOURCE core/race/独立性能；TX/RX分别mutex，Stats/Close固定TX→RX，wire/FEC/PN/generation不变。全新聊天负责开发与Actions直到留痕/配套包，原聊天之后负责物理复验；不同时修改共享源码。效率和p99/noHOL优先，既有硬门不变，安全强化最后。
+
+2026-10-07 Lane方向锁 exact-source Actions结论：候选 `3a594a34191159bd7224f35ba9117cdf6f239c69` 已按“一条性能Action一条样本”完成Normal/Game独立验收并保留。formal20 Normal5205相对同源码lossless stress p99约+7.37ms；Game4 5205/5305相对各自同seed lossless约+1.81ms/+4.85ms，Game两方向均3Mbps完整交付、60/60 stress probes、mismatch/stale/source-discard和raw/socket/link drop为0。Game原始120秒10ms桶中5305及两个lossless无零桶；5205只见零散单个10ms零桶，最长10ms，无长HOL。
+
+r12诊断支持“方向锁减少交叉争用/客户端积压”，但不支持“历史284ms根因关闭”；普通r12/5305仍保留约2.168s p99长尾。CPU跨hosted runner波动明显，不据此宣称CPU收益；RSS/放大/完整性未显示通过扩大buffer换收益。备用zero-tail编码优化未开发，因为当前证据不要求继续叠加优化。
+
+同SOURCE P6 run 37606109601三目标及aggregate PASS，三份bundle逐文件hash复算0 mismatch；linux/arm64仍是hosted cross-build。开发阶段到此停止，下一原子任务是原聊天物理Windows→Linux ARM复验；旧失败/未跑项不继承、不降门。
