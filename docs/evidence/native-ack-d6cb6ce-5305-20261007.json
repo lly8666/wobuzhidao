@@ -1,0 +1,1224 @@
+{
+  "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+  "state": "PASS",
+  "runs": [
+    {
+      "label": "normal-5305",
+      "run": 37485726849,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37485726849",
+      "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "status": "completed",
+      "conclusion": "success",
+      "identity": {
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1483",
+        "rate_mbps": "10",
+        "lanes": "1"
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "generator": {
+        "c2s": {
+          "post": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 10.000503466666666,
+            "wall_delivered_mbps_path_delay_aligned": 10.000635733333333,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 9.999995733333332,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999995733333332,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999995733333333,
+            "sent_bytes": 37499984,
+            "sent_packets": 74014,
+            "unique_delivered_bytes": 37499984,
+            "unique_delivered_packets": 74014,
+            "wall_delivered_mbps": 9.899861333333334,
+            "wall_delivered_mbps_path_delay_aligned": 9.999573333333334,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 10.0000128,
+            "byte_loss_percent": 0.23121037071739214,
+            "eventual_goodput_mbps": 9.976891733333332,
+            "packet_loss_percent": 0.16415924121950726,
+            "send_target_ratio": 1.00000128,
+            "sent_bytes": 75000096,
+            "sent_packets": 148027,
+            "unique_delivered_bytes": 74826688,
+            "unique_delivered_packets": 147784,
+            "wall_delivered_mbps": 9.976637866666668,
+            "wall_delivered_mbps_path_delay_aligned": 9.9764032,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        },
+        "s2c": {
+          "post": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 10.001258666666667,
+            "wall_delivered_mbps_path_delay_aligned": 10.001006933333334,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 9.899541333333334,
+            "wall_delivered_mbps_path_delay_aligned": 9.998698666666666,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 10.000021333333335,
+            "byte_loss_percent": 0.21941286525255413,
+            "eventual_goodput_mbps": 9.97808,
+            "packet_loss_percent": 0.1499716269894885,
+            "send_target_ratio": 1.0000021333333333,
+            "sent_bytes": 75000160,
+            "sent_packets": 148028,
+            "unique_delivered_bytes": 74835600,
+            "unique_delivered_packets": 147806,
+            "wall_delivered_mbps": 9.977557333333333,
+            "wall_delivered_mbps_path_delay_aligned": 9.977969066666667,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        }
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300010000,
+        "c2s_qdisc_delay_p95_ns": 300038000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 609119912,
+            "p99_ns": 611500423,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 606676066,
+            "p99_ns": 609514361,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 614999633,
+            "p99_ns": 615195833,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 3199592358,
+        "s2c_qdisc_delay_p50_ns": 300010000,
+        "s2c_qdisc_delay_p95_ns": 300039000
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.001157194,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 20160,
+            "max_rmem_ratio": 0.01922607421875
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 22272,
+            "max_rmem_ratio": 0.021240234375
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 62.16,
+          "server": 62.39
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5705": 7.91,
+            "5707": 1.7,
+            "5708": 5.93,
+            "5709": 8.63,
+            "5710": 0.0,
+            "5711": 0.0,
+            "5718": 0.0,
+            "5730": 8.73,
+            "5731": 10.0,
+            "5732": 9.56,
+            "6357": 0.0
+          },
+          "server": {
+            "5685": 0.0,
+            "5687": 1.69,
+            "5688": 9.14,
+            "5689": 9.48,
+            "5690": 0.0,
+            "5691": 0.0,
+            "5692": 9.83,
+            "5703": 9.73,
+            "5704": 10.32,
+            "5733": 4.39,
+            "6835": 0.0
+          }
+        }
+      }
+    },
+    {
+      "label": "normal-lossless",
+      "run": 37485733350,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37485733350",
+      "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "status": "completed",
+      "conclusion": "success",
+      "identity": {
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1483",
+        "rate_mbps": "10",
+        "lanes": "1"
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "generator": {
+        "c2s": {
+          "post": {
+            "actual_send_mbps": 9.999961599999999,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999961599999999,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.99999616,
+            "sent_bytes": 37499856,
+            "sent_packets": 74012,
+            "unique_delivered_bytes": 37499856,
+            "unique_delivered_packets": 74012,
+            "wall_delivered_mbps": 9.999978666666665,
+            "wall_delivered_mbps_path_delay_aligned": 9.999978666666665,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 9.8998784,
+            "wall_delivered_mbps_path_delay_aligned": 9.999978666666665,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 9.9999872,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.9999872,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.99999872,
+            "sent_bytes": 74999904,
+            "sent_packets": 148027,
+            "unique_delivered_bytes": 74999904,
+            "unique_delivered_packets": 148027,
+            "wall_delivered_mbps": 9.999970133333333,
+            "wall_delivered_mbps_path_delay_aligned": 9.999978666666665,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        },
+        "s2c": {
+          "post": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 9.999978666666665,
+            "wall_delivered_mbps_path_delay_aligned": 9.999978666666665,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 9.899861333333334,
+            "wall_delivered_mbps_path_delay_aligned": 9.9995904,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 10.000021333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 10.000021333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000021333333333,
+            "sent_bytes": 75000160,
+            "sent_packets": 148028,
+            "unique_delivered_bytes": 75000160,
+            "unique_delivered_packets": 148028,
+            "wall_delivered_mbps": 9.999978666666665,
+            "wall_delivered_mbps_path_delay_aligned": 10.000172800000001,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        }
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300013000,
+        "c2s_qdisc_delay_p95_ns": 300043000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 602034524,
+            "p99_ns": 604905041,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 601089125,
+            "p99_ns": 601625914,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 601521445,
+            "p99_ns": 602020100,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 601434059,
+        "s2c_qdisc_delay_p50_ns": 300013000,
+        "s2c_qdisc_delay_p95_ns": 300042000
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000655767,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 56960,
+            "max_rmem_ratio": 0.0543212890625
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 22464,
+            "max_rmem_ratio": 0.02142333984375
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 76.4,
+          "server": 76.49
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5925": 0.0,
+            "5927": 2.82,
+            "5928": 2.19,
+            "5929": 0.0,
+            "5930": 9.29,
+            "5931": 0.0,
+            "5937": 11.16,
+            "5950": 10.54,
+            "5951": 9.18,
+            "5952": 10.95,
+            "6499": 0.0,
+            "7426": 0.0
+          },
+          "server": {
+            "5905": 0.0,
+            "5907": 2.8,
+            "5908": 10.72,
+            "5909": 10.38,
+            "5910": 0.0,
+            "5911": 0.0,
+            "5912": 11.28,
+            "5923": 9.41,
+            "5924": 8.92,
+            "5953": 12.25,
+            "6437": 0.0
+          }
+        }
+      }
+    },
+    {
+      "label": "game-5305",
+      "run": 37485739956,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37485739956",
+      "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "status": "completed",
+      "conclusion": "success",
+      "identity": {
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1484",
+        "rate_mbps": "3",
+        "lanes": "4"
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "generator": {
+        "c2s": {
+          "post": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9999573333333336,
+            "wall_delivered_mbps_path_delay_aligned": 2.9999573333333336,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9699626666666665,
+            "wall_delivered_mbps_path_delay_aligned": 2.9999573333333336,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 2.999872,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 2.999872,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999573333333334,
+            "sent_bytes": 22499040,
+            "sent_packets": 44406,
+            "unique_delivered_bytes": 22499040,
+            "unique_delivered_packets": 44406,
+            "wall_delivered_mbps": 3.000032,
+            "wall_delivered_mbps_path_delay_aligned": 3.000032,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        },
+        "s2c": {
+          "post": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9999573333333336,
+            "wall_delivered_mbps_path_delay_aligned": 2.9999573333333336,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9698944,
+            "wall_delivered_mbps_path_delay_aligned": 2.9999573333333336,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 2.999872,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 2.999872,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999573333333334,
+            "sent_bytes": 22499040,
+            "sent_packets": 44406,
+            "unique_delivered_bytes": 22499040,
+            "unique_delivered_packets": 44406,
+            "wall_delivered_mbps": 3.000066133333333,
+            "wall_delivered_mbps_path_delay_aligned": 3.000032,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        }
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300012000,
+        "c2s_qdisc_delay_p95_ns": 300089000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 601219600,
+            "p99_ns": 601264464,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 601807277,
+            "p99_ns": 602021389,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 601287091,
+            "p99_ns": 601716692,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 3270704447,
+        "s2c_qdisc_delay_p50_ns": 300011000,
+        "s2c_qdisc_delay_p95_ns": 300081000
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000192172,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 37952,
+            "max_rmem_ratio": 0.03619384765625
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 25920,
+            "max_rmem_ratio": 0.02471923828125
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 70.76,
+          "server": 65.55
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "10433": 0.0,
+            "5984": 0.0,
+            "5986": 2.36,
+            "5987": 8.54,
+            "5988": 8.88,
+            "5989": 0.0,
+            "5990": 0.0,
+            "5997": 8.52,
+            "6007": 10.52,
+            "6244": 10.39,
+            "6245": 10.79,
+            "6532": 0.0
+          },
+          "server": {
+            "5964": 0.0,
+            "5966": 1.94,
+            "5967": 8.77,
+            "5968": 8.63,
+            "5969": 0.0,
+            "5970": 0.0,
+            "5971": 11.16,
+            "5982": 7.91,
+            "5983": 9.63,
+            "6011": 9.72,
+            "6674": 0.0
+          }
+        }
+      }
+    },
+    {
+      "label": "game-lossless",
+      "run": 37485745445,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37485745445",
+      "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "status": "completed",
+      "conclusion": "success",
+      "identity": {
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1484",
+        "rate_mbps": "3",
+        "lanes": "4"
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "generator": {
+        "c2s": {
+          "post": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.999552,
+            "wall_delivered_mbps_path_delay_aligned": 3.0007509333333333,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9699626666666665,
+            "wall_delivered_mbps_path_delay_aligned": 2.9999573333333336,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 2.999872,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 2.999872,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999573333333334,
+            "sent_bytes": 22499040,
+            "sent_packets": 44406,
+            "unique_delivered_bytes": 22499040,
+            "unique_delivered_packets": 44406,
+            "wall_delivered_mbps": 3.000032,
+            "wall_delivered_mbps_path_delay_aligned": 2.9996352,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        },
+        "s2c": {
+          "post": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9999573333333336,
+            "wall_delivered_mbps_path_delay_aligned": 2.999889066666667,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9699626666666665,
+            "wall_delivered_mbps_path_delay_aligned": 3.0002773333333335,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 2.999872,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 2.999872,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999573333333334,
+            "sent_bytes": 22499040,
+            "sent_packets": 44406,
+            "unique_delivered_bytes": 22499040,
+            "unique_delivered_packets": 44406,
+            "wall_delivered_mbps": 3.000032,
+            "wall_delivered_mbps_path_delay_aligned": 2.999872,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        }
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300032000,
+        "c2s_qdisc_delay_p95_ns": 300110000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 601920236,
+            "p99_ns": 602322144,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 602004820,
+            "p99_ns": 602139853,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 602076877,
+            "p99_ns": 602572400,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 611332194,
+        "s2c_qdisc_delay_p50_ns": 300032000,
+        "s2c_qdisc_delay_p95_ns": 300107000
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000296018,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 43776,
+            "max_rmem_ratio": 0.041748046875
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 22400,
+            "max_rmem_ratio": 0.0213623046875
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 83.53,
+          "server": 79.75
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5993": 0.0,
+            "5995": 4.47,
+            "5996": 0.0,
+            "5997": 8.15,
+            "5998": 5.14,
+            "5999": 10.63,
+            "6000": 0.0,
+            "6018": 12.92,
+            "6253": 12.65,
+            "6503": 0.0,
+            "6540": 0.0,
+            "7034": 0.0
+          },
+          "server": {
+            "5973": 0.0,
+            "5975": 3.74,
+            "5976": 11.82,
+            "5977": 12.37,
+            "5978": 0.0,
+            "5979": 0.0,
+            "5980": 10.22,
+            "5991": 11.5,
+            "5992": 8.71,
+            "6019": 11.11,
+            "6539": 0.0
+          }
+        }
+      }
+    }
+  ],
+  "paired_rtt_checks": [
+    {
+      "mode": "normal",
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": 5.586941,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "normal",
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 7.888447,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "normal",
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 13.478188,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 60,
+      "lossy_received": 60,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "mode": "normal",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 13.175733,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 60,
+      "lossy_received": 60,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "mode": "normal",
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": 7.085388,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "normal",
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 6.595382,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "game",
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": -0.197543,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "game",
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": -0.118464,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "game",
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": -0.789786,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 60,
+      "lossy_received": 60,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "mode": "game",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": -0.855708,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 60,
+      "lossy_received": 60,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "mode": "game",
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": -0.700636,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "game",
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": -1.05768,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    }
+  ],
+  "scope": "Four independent120s samples;Normal/Game5305 andsame-seed lossless;not full18/70/1800s or production Windows worker performance. Preserve gate200/500ms andconditional RTT received/sent."
+}

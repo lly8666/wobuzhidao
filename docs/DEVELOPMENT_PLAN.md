@@ -1,6 +1,8 @@
 # WBD NEXT 详细开发方案
 
-2026-10-06当前：d6cb6ce Windows最新ACK10定向/race10、12RTT/P6/lifecycle36+aggregate PASS；最新实机S02 seed1481完整300s BUSINESS_PASS_TRANSPORT_PRESSURE，worker实际PASS/stageoff/profileoff，goodput2.99999/3.00000M、p99134.40ms，损失/压力原门保留。51普通样本/23工况/20NOT_RUN另2诊断，M03/P7未关闭。每性能Action一条，先STATUS/latest_log。
+2026-10-07当前：d6cb6ce 14定向Actions（6core+8独立性能）/24阶段RTT/P6/lifecycle36+aggregate PASS；5305 Normal stress9.976/9.978M、loss0.164/0.150%，Game3M零loss，探针全回。Windows实机S01/S16原严格FAIL、S02业务PASS但raw压力保留；52普通300s/23工况/20NOT_RUN另2诊断、M03/P7未关闭。受控/WAN验收边界见WEAKNET_QUALIFICATION第10.5节；下一S17。每性能Action一条，先STATUS/latest_log。
+
+当前受控与WAN的验收边界遵循WEAKNET_QUALIFICATION第10.5节：不以原生少量未恢复包要求外层强可靠；不删历史FAIL；不把本机raw drop归入WAN。下一配置S17只扩展测试静态档位，不改数据面。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

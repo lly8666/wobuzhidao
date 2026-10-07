@@ -1,0 +1,661 @@
+{
+  "native": {
+    "schema": "wbd-native-static-case/v1",
+    "status": "FAIL",
+    "errors": [
+      "business_loss"
+    ],
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
+    "case": "s16-current-300s-seed1482",
+    "effective": {
+      "desired": 1,
+      "active": 1,
+      "lanes": [
+        {
+          "id": 1,
+          "generation": 1,
+          "parity": 20,
+          "ack_worker": true,
+          "stage_timing": null
+        }
+      ]
+    },
+    "actual_send_seconds": 300.0006653,
+    "goodput_mbps": {
+      "c2s": 9.997374506666667,
+      "s2c": 9.99971392
+    },
+    "business_loss": {
+      "c2s_packets": 124,
+      "s2c_packets": 10,
+      "c2s_percent": 0.026055518638745667,
+      "s2c_percent": 0.0026613386418183893
+    },
+    "probes": {
+      "sent": 2979,
+      "received": 2979,
+      "p95_ms": 118.795,
+      "p99_ms": 125.523
+    },
+    "phases": {
+      "early": {
+        "probes": 894,
+        "p95_ms": 119.1496,
+        "p99_ms": 123.893,
+        "c2s_goodput_mbps": 9.995512766479731,
+        "s2c_goodput_mbps": 10.000667966884508
+      },
+      "middle": {
+        "probes": 894,
+        "p95_ms": 119.1186,
+        "p99_ms": 128.1429,
+        "c2s_goodput_mbps": 9.998524084317092,
+        "s2c_goodput_mbps": 9.999014300050716
+      },
+      "late": {
+        "probes": 894,
+        "p95_ms": 116.5688,
+        "p99_ms": 123.4649,
+        "c2s_goodput_mbps": 9.997226208711993,
+        "s2c_goodput_mbps": 9.999226761725161
+      }
+    },
+    "input_quality": {
+      "client": {
+        "TxPackets": 579419,
+        "SendLagSamples": 579419,
+        "SendLagOverflowSamples": 21,
+        "SendLagP99UpperMs": 2,
+        "MaxSendLagMs": 20.03479999999991,
+        "PacingMode": "byte-budget-1ms-batch32"
+      },
+      "server": {
+        "TxPackets": 579419,
+        "SendLagSamples": 579419,
+        "SendLagOverflowSamples": 40,
+        "SendLagP99UpperMs": 1.3,
+        "MaxSendLagMs": 28.855294823216582,
+        "PacingMode": "byte-budget-1ms-batch32"
+      }
+    },
+    "default_dns": {
+      "total": 60,
+      "success": 60
+    },
+    "physical_dns": {
+      "state": "PASS_NO_PLAINTEXT_DNS_OBSERVED",
+      "scope": "selected physical NIC only, plaintext IPv4/IPv6 TCP/UDP53; not DoH/DoT/otherNIC",
+      "observations": 302,
+      "dns_frames": 0,
+      "observer_drops": 0
+    },
+    "cpu_seconds": {
+      "client": 272.46875,
+      "server": 158.49,
+      "client_helper": 21.53125,
+      "server_helper": 35.759280600000004
+    },
+    "server_raw_socket_drop_max": 103,
+    "client_npcap_max": {
+      "interface_dropped": 0,
+      "driver_dropped": 0
+    },
+    "client_npcap_stats_supported": true,
+    "client_user_receive_overflow_max": 0,
+    "wire_windows": [
+      {
+        "captured_frames": 17,
+        "window_seconds": 12.061941804829985,
+        "capture_kernel_drops": 0,
+        "raw_deleted_after_analysis": true
+      },
+      {
+        "captured_frames": 8192,
+        "window_seconds": 1.686734588816762,
+        "capture_kernel_drops": 0,
+        "raw_deleted_after_analysis": true
+      },
+      {
+        "captured_frames": 4,
+        "window_seconds": 12.042407506145537,
+        "capture_kernel_drops": 0,
+        "raw_deleted_after_analysis": true
+      },
+      {
+        "captured_frames": 8192,
+        "window_seconds": 1.539352325256914,
+        "capture_kernel_drops": 0,
+        "raw_deleted_after_analysis": true
+      }
+    ],
+    "live_snapshot_write_errors": 3,
+    "owned_cleanup": {
+      "State": "STOPPED",
+      "Ready": true,
+      "Reason": "requested_stop",
+      "ExitCode": 0,
+      "NetworkStateRemaining": false,
+      "OwnedNRPTRemaining": 0,
+      "OwnedFirewallRemaining": 0,
+      "ElapsedSeconds": 357.6
+    },
+    "matched_native_rtt_baseline": "NOT_RUN",
+    "strict_performance_qualification": false,
+    "full_p7": false,
+    "receipt_hashes": {
+      "case-config.json": "39c24c1e287bb5d734f5c12848642bc1d931b3f1b59bada7b95d6f13ef90a8f7",
+      "cleanup-errors.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "client-diagnostic.jsonl": "2017de6be1c84c2efa569b61292a37e4505604b9467e6e10f4fa60e2d97ea029",
+      "client-session.json": "1011386cc91ff6dc81413916f273e018d0346b91253715f4bfe64fd34a907fe1",
+      "d01-dns-default-300s-dns.json": "797acc6a40c94979a5cf486b66710dce3ad9c54b7e88c644cdee3dc9c49be3e0",
+      "deployed-versions.json": "2cf54ea98b6f0044710e812a44d2e227faf0d2052e73de71f109289b696b36ee",
+      "dns-fault-events.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dns-guard-active-filters.json": "cb3763bb83dad7b32d6ef4484f52d04bf1fab8e447c787d3b1edb21dabf71602",
+      "dns-guard-helper-source.json": "26324882aa38c713995a01dcbf2c4451203862b617243374a3dd7e4ff41afa3a",
+      "dns-guard-on-proof.json": "0db7bd0f1bda5f9e8fa78dc3185c1bf0f2d24dea23e84a2fd94fa120bda12ab1",
+      "dns-guard-owned-cleanup.json": "2791e3f32f1ebd7a10242b5320bd0d357d1494805482e080ef16c70cdb01188b",
+      "effective-lanes.json": "ea3016d38d20b4d76148a80eefbe9cf1fe17054d7d62e7df6665716774f14397",
+      "header-preflight-windows-headers.jsonl": "1ca13646d96f2a2d173d0e340592475ccade2a44c1a0a79b52164148e5b8faf4",
+      "helper-source-hashes.json": "9f171a01ab5167da485e4c96e53dbec406f47c005b4410323d92cd0055035c84",
+      "helper-source-unchanged.json": "89a1bd729816edd75c25b2b3eae07e8aa18a3c4d0b2ff7357b088b79512895d2",
+      "helper-source.json": "e38c65b84b85c63910c172ff2e6d43e64474155a4dfd1a55642ca76a3fbfe834",
+      "measurement-status.json": "81132cb27c529b1a08af6545cf492a0e62e71d92106ad25fcb3c664ad48c19c6",
+      "observation-window.json": "0d17025a455f90f9f3e04c3016dad6a817a8b943526301f0336bbbe01cc12911",
+      "p7-network-after.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+      "p7-network-before.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+      "p7-status.json": "dc8889ff376ff536770cb44f95399959dbb8bc68f2309a9db57fa5ed72fc32ae",
+      "s16-current-300s-seed1482-linux-headers.jsonl": "763ff74bb320b0c1f7f60f6024f78a6293af15c0826a23cf5e228cb7387fb403",
+      "s16-current-300s-seed1482-live.json": "99dfa9120cc7ecc7b9ea418b9caf315a20e79504af05112af65ee3a9cdad85bc",
+      "s16-current-300s-seed1482-observer.json": "3b4d07d80a561624c3ff69659f7316b00fd93590faffad703015624c14a0140e",
+      "s16-current-300s-seed1482-physical-dns.jsonl": "7b9cf2c14e4730ea3d6eb164958848a885ed05d2947c23b835d9487aead05fad",
+      "s16-current-300s-seed1482-resources.json": "17b4f2c929414216b0853c97477c1c903c2c91fefeb6bcffe852943589ca9963",
+      "s16-current-300s-seed1482-start-wire.json": "cc29109ddc342215769f2e0e03c12baa3878ae1900c1ab9e1c35bb175b9fcd5b",
+      "s16-current-300s-seed1482-steady-wire.json": "1c6fe2c52e09a149332ac283708c383e889d8871efd7c1ca7a8d9f057d1c018e",
+      "s16-current-300s-seed1482-stop-wire.json": "a1f3af29d7256da572386c77f18e29ad096716068e128f8613791e239170f69d",
+      "s16-current-300s-seed1482-tail-wire.json": "26fa641645ce48a8440d3e922361ca283b60b429a84858c3ff7f637169ad55d2",
+      "s16-current-300s-seed1482-target.json": "815ce5363a1e9c614d2c8390866347f8d290f9e3ec14d1bdf6ff42df06545822",
+      "s16-current-300s-seed1482-windows-headers.jsonl": "656038c33ca4ac3424e7a2e525a8cd7affa07c444179288b03c2659d1c2f878f",
+      "s16-current-300s-seed1482.json": "c6484c06e502121bb94ef625450778a1216dbf0a07abb7002dde7e0f879aadbf",
+      "server-before.json": "ab7a21341058ceab03c6669b3fc8c3d9c3dc065b86e3202dddb3880b6609b66e",
+      "server-diagnostic.jsonl": "86709c852d7c37c75989e3967f9917604eee566578f2d20a2449ea048d1cd2ff",
+      "trigger-timeline.json": "41b76cba4a7997ef18367113492a44f3f6501d78c08d541fed200f94b3797f45",
+      "windows-observer-processes.json": "6451e21fce71f043339ba5742115c4d61d9c5b116b1553179794f7b02770341f"
+    }
+  },
+  "worker": {
+    "schema": "wbd-native-ack-worker-observation/v1",
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "case": "s16-current-300s-seed1482",
+    "configuration_observation": "PASS",
+    "errors": [],
+    "transport_refs": [
+      {
+        "ref": {
+          "ID": 1,
+          "Generation": 1
+        },
+        "snapshots": 51,
+        "first_unix_ns": 1791299002123137300,
+        "maxima": {
+          "ack_worker_queued": 115736,
+          "ack_worker_coalesced": 73523,
+          "ack_worker_piggybacked": 303,
+          "ack_worker_attempts": 41909,
+          "ack_worker_sent": 41908,
+          "ack_worker_failures": 0
+        },
+        "last_unix_ns": 1791299052124925200,
+        "last_flags": {
+          "ack_worker_enabled": true,
+          "ack_worker_pending": true,
+          "ack_worker_running": true,
+          "timing_enabled": false,
+          "feedback_timing_enabled": false
+        }
+      },
+      {
+        "ref": {
+          "ID": 1,
+          "Generation": 2
+        },
+        "snapshots": 60,
+        "first_unix_ns": 1791299053124925200,
+        "maxima": {
+          "ack_worker_queued": 237955,
+          "ack_worker_coalesced": 148685,
+          "ack_worker_piggybacked": 800,
+          "ack_worker_attempts": 88469,
+          "ack_worker_sent": 88469,
+          "ack_worker_failures": 0
+        },
+        "last_unix_ns": 1791299112124925200,
+        "last_flags": {
+          "ack_worker_enabled": true,
+          "ack_worker_pending": true,
+          "ack_worker_running": false,
+          "timing_enabled": false,
+          "feedback_timing_enabled": false
+        }
+      },
+      {
+        "ref": {
+          "ID": 1,
+          "Generation": 3
+        },
+        "snapshots": 60,
+        "first_unix_ns": 1791299113124925200,
+        "maxima": {
+          "ack_worker_queued": 244646,
+          "ack_worker_coalesced": 153501,
+          "ack_worker_piggybacked": 601,
+          "ack_worker_attempts": 90544,
+          "ack_worker_sent": 90543,
+          "ack_worker_failures": 0
+        },
+        "last_unix_ns": 1791299172124925200,
+        "last_flags": {
+          "ack_worker_enabled": true,
+          "ack_worker_pending": false,
+          "ack_worker_running": true,
+          "timing_enabled": false,
+          "feedback_timing_enabled": false
+        }
+      },
+      {
+        "ref": {
+          "ID": 1,
+          "Generation": 4
+        },
+        "snapshots": 61,
+        "first_unix_ns": 1791299173124925200,
+        "maxima": {
+          "ack_worker_queued": 235467,
+          "ack_worker_coalesced": 145656,
+          "ack_worker_piggybacked": 968,
+          "ack_worker_attempts": 88842,
+          "ack_worker_sent": 88841,
+          "ack_worker_failures": 0
+        },
+        "last_unix_ns": 1791299233124925200,
+        "last_flags": {
+          "ack_worker_enabled": true,
+          "ack_worker_pending": true,
+          "ack_worker_running": true,
+          "timing_enabled": false,
+          "feedback_timing_enabled": false
+        }
+      },
+      {
+        "ref": {
+          "ID": 1,
+          "Generation": 5
+        },
+        "snapshots": 60,
+        "first_unix_ns": 1791299234124925200,
+        "maxima": {
+          "ack_worker_queued": 210122,
+          "ack_worker_coalesced": 125144,
+          "ack_worker_piggybacked": 1333,
+          "ack_worker_attempts": 83645,
+          "ack_worker_sent": 83644,
+          "ack_worker_failures": 0
+        },
+        "last_unix_ns": 1791299293124925200,
+        "last_flags": {
+          "ack_worker_enabled": true,
+          "ack_worker_pending": false,
+          "ack_worker_running": true,
+          "timing_enabled": false,
+          "feedback_timing_enabled": false
+        }
+      },
+      {
+        "ref": {
+          "ID": 1,
+          "Generation": 6
+        },
+        "snapshots": 47,
+        "first_unix_ns": 1791299294124925200,
+        "maxima": {
+          "ack_worker_queued": 124001,
+          "ack_worker_coalesced": 77499,
+          "ack_worker_piggybacked": 416,
+          "ack_worker_attempts": 46086,
+          "ack_worker_sent": 46086,
+          "ack_worker_failures": 0
+        },
+        "last_unix_ns": 1791299340124925200,
+        "last_flags": {
+          "ack_worker_enabled": true,
+          "ack_worker_pending": false,
+          "ack_worker_running": false,
+          "timing_enabled": false,
+          "feedback_timing_enabled": false
+        }
+      }
+    ],
+    "totals": {
+      "ack_worker_queued": 1167927,
+      "ack_worker_coalesced": 724008,
+      "ack_worker_piggybacked": 4421,
+      "ack_worker_attempts": 439495,
+      "ack_worker_sent": 439491,
+      "ack_worker_failures": 0
+    },
+    "native_status": "FAIL",
+    "native_errors": [
+      "business_loss"
+    ],
+    "scope": "Worker counters summed once per unique incarnation using observed cumulative maxima. Last flags describe final diagnostic snapshot, not joined thread proof. Ordinary helper/owned cleanup remains authoritative. No per-record clocks, CPU profile, ACK payload/history capture or acceptance gate changes. Ratios are observed scheduling/coalescing counts, not CPU savings.",
+    "coalesced_per_queued": 0.619908607301655
+  },
+  "fec_accounting": {
+    "schema": "wbd-native-fec-accounting/v1",
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "case": "s16-current-300s-seed1482",
+    "parity": 20,
+    "scope": "Full diagnostic lifetime including handshake, DNS, probes and drain. Encoder bytes include56B FEC headers. Observed TCP payload includes TLS overhead and retransmits, excludes TCP/IP headers. Not an exact load-only wire amplification or CPU A/B.",
+    "roles": {
+      "client": {
+        "encoder": {
+          "source_shards": 692479,
+          "source_bytes": 431360288,
+          "parity_shards": 692463,
+          "parity_bytes": 519512205,
+          "full_blocks": 28925,
+          "partial_blocks": 6793,
+          "refs": 6,
+          "parity_shard_ratio": 0.9999768946061902,
+          "parity_byte_ratio": 1.2043579797498651,
+          "configured_full_block_ratio": 1.0
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 3065,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 279769,
+          "Retransmitted": 19,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 6,
+          "pressure_retirements": 0,
+          "reconstruction_events": 562,
+          "recovered_sources": 742
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 4,
+          "ExpiredMissingSources": 7
+        }
+      },
+      "server": {
+        "encoder": {
+          "source_shards": 693855,
+          "source_bytes": 432240435,
+          "parity_shards": 693842,
+          "parity_bytes": 543441262,
+          "full_blocks": 27019,
+          "partial_blocks": 8751,
+          "refs": 6,
+          "parity_shard_ratio": 0.9999812640969655,
+          "parity_byte_ratio": 1.2572661370748435,
+          "configured_full_block_ratio": 1.0
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 4096,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 281019,
+          "Retransmitted": 548,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 5,
+          "pressure_retirements": 0,
+          "reconstruction_events": 876,
+          "recovered_sources": 893
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 2,
+          "ExpiredMissingSources": 20
+        }
+      }
+    },
+    "errors": [],
+    "windows_outer_observation": {
+      "observer_received": 4025788,
+      "observer_dropped": 0,
+      "stats_error": 0,
+      "flows": 12,
+      "tcp_payload_bytes": {
+        "C2S": 1002383020,
+        "S2C": 1023504416
+      },
+      "tcp_packets": {
+        "C2S": 1841513,
+        "S2C": 2184275
+      }
+    },
+    "status": "PASS_ACCOUNTING"
+  },
+  "owned_dns_cleanup": {
+    "owned_dns_rules": 0,
+    "client_processes": 0
+  },
+  "stage_timing": false,
+  "cpu_profile": false,
+  "full_p7": false,
+  "wire_observation_limits": [],
+  "server_pressure": {
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "case": "s16-current-300s-seed1482",
+    "clock": "Same ARM resources sampled_unix_ns and server diagnostic unix_ns only; never align Windows or infer one-way latency.",
+    "drop_events": [
+      {
+        "elapsed_seconds": 148.1117507298477,
+        "drop_delta": 2,
+        "cumulative_drop": 2,
+        "resource_interval_seconds": 1.059413224,
+        "server_cpu_cores": 0.5569120590852691,
+        "host_busy_percent": 74.64788732394366,
+        "host_steal_percent": 0.0,
+        "psi": "some avg10=20.96 avg60=17.78 avg300=11.87 total=12365866026",
+        "raw_socket_snapshot": [
+          "p_raw  UNCONN   0        0                 [2048]:enp0s3                 *       users:((\"wbd-server\",pid=473614,fd=7)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o968,bl0,d2)"
+        ],
+        "gc_window_seconds": 4.0,
+        "gc_pause_window_ns": 1560927,
+        "gc_count_window": 23
+      },
+      {
+        "elapsed_seconds": 250.05394228408113,
+        "drop_delta": 101,
+        "cumulative_drop": 103,
+        "resource_interval_seconds": 1.001313451,
+        "server_cpu_cores": 0.5492785495398256,
+        "host_busy_percent": 51.515151515151516,
+        "host_steal_percent": 0.0,
+        "psi": "some avg10=21.34 avg60=20.53 avg300=14.62 total=12387885296",
+        "raw_socket_snapshot": [
+          "p_raw  UNCONN   0        0                 [2048]:enp0s3                 *       users:((\"wbd-server\",pid=473614,fd=7)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o968,bl0,d103)"
+        ],
+        "gc_window_seconds": 3.99999976,
+        "gc_pause_window_ns": 1383288,
+        "gc_count_window": 23
+      }
+    ],
+    "raw_io": {
+      "enabled": true,
+      "receive_port": 443,
+      "kernel_port_filter": true,
+      "receive_calls": 712334,
+      "receive_messages": 1840866,
+      "receive_multi": 410022,
+      "receive_fallbacks": 0,
+      "send_calls": 1453380,
+      "send_messages": 2192216,
+      "send_multi": 208665,
+      "send_fallbacks": 0
+    },
+    "pipeline_final": [
+      {
+        "enabled": true,
+        "reads": 1840866,
+        "read_gap": {
+          "samples": 1840865,
+          "total_ns": 357072756926,
+          "max_ns": 14842807913,
+          "over_50us": 616136,
+          "over_1ms": 73206,
+          "over_10ms": 125
+        },
+        "handoff_block": {
+          "samples": 1840866,
+          "total_ns": 3205416988,
+          "max_ns": 7052275,
+          "over_50us": 3066,
+          "over_1ms": 26,
+          "over_10ms": 0
+        },
+        "queue_age": {
+          "samples": 1840866,
+          "total_ns": 560669192705,
+          "max_ns": 38296073,
+          "over_50us": 1312794,
+          "over_1ms": 111460,
+          "over_10ms": 931
+        },
+        "handler": {
+          "samples": 1840866,
+          "total_ns": 84000992806,
+          "max_ns": 35068897,
+          "over_50us": 511063,
+          "over_1ms": 2364,
+          "over_10ms": 12
+        },
+        "tick": {
+          "samples": 4420,
+          "total_ns": 5211142689,
+          "max_ns": 8538683,
+          "over_50us": 3017,
+          "over_1ms": 2476,
+          "over_10ms": 0
+        },
+        "replacement_checks": 44,
+        "downstream": {
+          "samples": 582393,
+          "total_ns": 12738725164,
+          "max_ns": 10409172,
+          "over_50us": 38248,
+          "over_1ms": 219,
+          "over_10ms": 1
+        },
+        "ready_capacity": 4096,
+        "ready_current": 0,
+        "ready_peak": 176,
+        "ready_bytes": 0,
+        "ready_bytes_peak": 85568,
+        "overflow_drops": 0,
+        "overflow_bytes": 0,
+        "overflow_age": {
+          "samples": 0,
+          "total_ns": 0,
+          "max_ns": 0,
+          "over_50us": 0,
+          "over_1ms": 0,
+          "over_10ms": 0
+        },
+        "downstream_batches": 582393,
+        "downstream_packets": 582481
+      }
+    ],
+    "scope": "Socket cumulative drops observed at one-second resolution, GC window spans nearby snapshots. Host busy and PSI do not uniquely establish CPU/scheduler/driver causality. read_gap max includes startup/idle/teardown; not a steady-state stall duration. Kernel drop cannot be mapped one-to-one to application missing packets. Original native FAIL/pressure remains authoritative."
+  },
+  "rotation_observation": {
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "case": "s16-current-300s-seed1482",
+    "observation_status": "PASS",
+    "errors": [],
+    "generations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "transitions": [
+      {
+        "previous_generation": 1,
+        "new_generation": 2,
+        "first_observed_elapsed_s": 28.710925102233887,
+        "nearby_window_s": 4,
+        "probe_slots": 39,
+        "probes_returned": 39,
+        "probes_missing": 0,
+        "p95_ms": 136.1229,
+        "p99_ms": 159.1697
+      },
+      {
+        "previous_generation": 2,
+        "new_generation": 3,
+        "first_observed_elapsed_s": 88.71092510223389,
+        "nearby_window_s": 4,
+        "probe_slots": 40,
+        "probes_returned": 40,
+        "probes_missing": 0,
+        "p95_ms": 118.9622,
+        "p99_ms": 127.3168
+      },
+      {
+        "previous_generation": 3,
+        "new_generation": 4,
+        "first_observed_elapsed_s": 148.7109251022339,
+        "nearby_window_s": 4,
+        "probe_slots": 40,
+        "probes_returned": 40,
+        "probes_missing": 0,
+        "p95_ms": 119.4889,
+        "p99_ms": 121.2689
+      },
+      {
+        "previous_generation": 4,
+        "new_generation": 5,
+        "first_observed_elapsed_s": 209.7109251022339,
+        "nearby_window_s": 4,
+        "probe_slots": 40,
+        "probes_returned": 40,
+        "probes_missing": 0,
+        "p95_ms": 119.499,
+        "p99_ms": 141.2843
+      },
+      {
+        "previous_generation": 5,
+        "new_generation": 6,
+        "first_observed_elapsed_s": 269.7109251022339,
+        "nearby_window_s": 4,
+        "probe_slots": 39,
+        "probes_returned": 39,
+        "probes_missing": 0,
+        "p95_ms": 118.7939,
+        "p99_ms": 131.8821
+      }
+    ],
+    "lease_values": [
+      "10.66.187.88/32"
+    ],
+    "physical_peak": 2,
+    "retiring_peak": 1,
+    "active_zero_elapsed_seconds": [],
+    "scope": "First observation of higher generation at1s diagnostics is not exact promotion/FIN timestamp. Nearby probes use same Windows wall+monotonic anchor. Probes returned and missing both reported; not zero-HOL proof or complete wire A->A+B->B order. Original input/business/cleanup gates remain authoritative. Native exact subsecond handoff throughput and continuous FIN ordering not claimed."
+  }
+}

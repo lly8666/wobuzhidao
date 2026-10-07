@@ -1,6 +1,8 @@
 # Actions 验收契约
 
-2026-10-06当前：d6cb6ce Windows最新ACK10定向/race10、12RTT/P6/lifecycle36+aggregate PASS；最新实机S02 seed1481完整300s BUSINESS_PASS_TRANSPORT_PRESSURE，worker实际PASS/stageoff/profileoff，goodput2.99999/3.00000M、p99134.40ms，损失/压力原门保留。51普通样本/23工况/20NOT_RUN另2诊断，M03/P7未关闭。每性能Action一条，先STATUS/latest_log。
+2026-10-07当前：d6cb6ce 14定向Actions（6core+8独立性能）/24阶段RTT/P6/lifecycle36+aggregate PASS；5305 Normal stress9.976/9.978M、loss0.164/0.150%，Game3M零loss，探针全回。Windows实机S01/S16原严格FAIL、S02业务PASS但raw压力保留；52普通300s/23工况/20NOT_RUN另2诊断、M03/P7未关闭。受控/WAN验收边界见WEAKNET_QUALIFICATION第10.5节；下一S17。每性能Action一条，先STATUS/latest_log。
+
+受控无损仍零业务/探针loss；受控有损沿用loss-tolerant-v1原门。原生WAN原始零损失参考FAIL保留，功能/完整性/清理、性能质量、接收压力与归因分别记录，不追溯改PASS。完整口径见WEAKNET_QUALIFICATION第10.5节，尤其返回探针条件p99及覆盖/有限样本边界。
 
 2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
 

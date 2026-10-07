@@ -179,3 +179,22 @@ Actions先单条Normal10M无损，再单条Game4逻辑3M无损；随后按独立
 6. 被forgive的Seq后来首次到达，仍经原鉴权/去重路径尽力交付，不能仅因seq<recvNext丢弃；历史重复由现有有界record/Game去重继续处理，保持其既有保证，不宣称无限历史exactly-once。FIN不能按普通业务范围合并丢失控制语义；保留有序PeerFIN发布及已验证服务端休眠跟随规则。
 
 新增联合定向测试：sender先淘汰、receiver有后继仍立即交付；receiver先forgive后sender迟到repair；连续深洞的期限不重置；缺口在截止前补齐；ACK丢失与停流双端最终回收；纯尾部丢失不伪造ACK/FIN；稀疏/回绕/压力淘汰；FIN与Close/Emit并发。记录gap count/oldest age、timer wakeups、scan steps、forgive原因、ACK量、fresh延迟及锁耗时。验证发送/接收两侧资源有界且持续损失不制造CPU或控制包正反馈，全部性能测量仍一个Action run一条。
+
+
+### 10.5 受控损伤与真实WAN的验收边界（2026-10-07）
+
+本节澄清结果解释，不修改 loss-tolerant-v1 分析器或历史 PASS/FAIL，不设置新的“原生少于0.1%即可通过”等门槛。当前资格及精确源码以 STATUS.current_qualification 为准。
+
+| 环境 | 质量判定 | 必须同时报告 |
+|---|---|---|
+| Actions受控无损 | 业务与探针损失0，目标速率及原资源/完整性门全部满足 | 输入实效、socket/NIC drop、延迟与资源 |
+| Actions受控5205/5305 | 现有逐阶段业务packet loss≤配置损伤p；delay-aligned wall goodput≥目标×(1−p/100)×99%；配对独立同seed无损p95增量≤200ms/p99≤500ms | pre/stress/post各方向、实际注入、恢复时间、队列及所有探针超时；不是要求FEC补齐每包 |
+| 原生未人为损伤WAN | 继续保留原始零损失参考门及其FAIL；不能将“未加netem”当已知0%底层loss，也不能据少量loss直接断言协议错误或整版不可用 | 功能/完整性硬门、实测性能质量、本机receive pressure、线路因素及未定位部分分别记录；在归因或预先定义新资格前保持PARTIAL |
+
+共同硬门仍包括源码/配套版本和实际配置一致、输入有效、payload/record完整性、账户与lease隔离、no-HOL、有界资源与owned退出清理。本机socket/driver/queue overflow单列接收压力，即使FEC救回全部业务也不能删除告警。输入无效也不能掩盖同时发现的完整性错误。吞吐接近目标不抵消p99、探针超时或长停顿。
+
+FEC20:20完整块的理论范围是40个合法shard中至少20个及时可用即可恢复源数据。实际还有partial flush、大小组、有限恢复槽和绝对3秒期限；“平均30% loss”不保证每块都丢30%，突发/相关丢包或parity晚于退役时可能不可恢复。本机入口drop也可能叠加。ExpiredMissingSources、重构次数、raw drop与最终业务missing具有不同单位和交叉路径，不能一一抵扣或相加。无法恢复的洞仍有界退役，由内层业务自行恢复；不得因此加外层无限重传、全局等待或盲目扩大FEC/shadow/buffer。
+
+RTT分位数是**已返回探针的条件分位数**。每阶段必须列sent/received/timeout及连续超时、最大无交付间隔。若超过1%的探针未返回，不能用幸存探针p99描述全部请求的尾部；未返回项只知道超过观察期限，不任意填成一个精确RTT。当前aggregate的probe_valid仅验证有限分位数及0<received≤sent，弱网未设最小coverage门；因此历史配对PASS不等于无超时或强尾延迟保证。当前d6八条定向样本各阶段30/60/30全回，未受此问题影响；120s每阶段仅30/60点仍是有限样本，不能冒充长期精确p99。后续扩展长时探针/覆盖约束需事先定义新测试规范、独立Actions验证，不能追溯改绿旧结果。
+
+原生ARM观察到packet socket有效接收预算212992B（208KiB），当前Actions为1048576B（1MiB）；raw_linux.go未显式设置SO_RCVBUF，平台默认值和调度不同。共享ARM两核心、Windows vmxnet3和hosted runner属于不同容量环境。hosted drop0不证明原生drop0，较小预算也不证明扩大缓存能解决处理瓶颈；先记录最早拥塞位置、read-service/队列驻留和压力时间线。晚高峰WAN是可能因素，须与本机drop分别保留；跨时间/runner的CPU与p99差值是观测，不作为单项优化的固定收益。
