@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-07当前：d6cb6ce 14定向Actions（6core+8独立性能）/24阶段RTT/P6/lifecycle36+aggregate PASS；5305 Normal stress9.976/9.978M、loss0.164/0.150%，Game3M零loss，探针全回。Windows实机S01/S16原严格FAIL、S02业务PASS但raw压力保留；52普通300s/23工况/20NOT_RUN另2诊断、M03/P7未关闭。受控/WAN验收边界见WEAKNET_QUALIFICATION第10.5节；下一S17。每性能Action一条，先STATUS/latest_log。
+2026-10-07当前：d6cb6ce 14定向Actions/24RTT/P6/lifecycle36+aggregate PASS；实机S17 Game4轮换300s约3M、业务loss0/2980探针全回/p99135.42ms，raw686压力保留，worker9refs与逐lane换代观测PASS。53普通样本/24工况/19NOT_RUN另2诊断，S01/S16/M03 FAIL不改；按用户要求快速批量独立Actions筛查其他FEC，标准WEAKNET_QUALIFICATION10.5/10.6，优先性能/延迟/noHOL。每性能Action一条，先STATUS/latest_log。
 
 2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
 

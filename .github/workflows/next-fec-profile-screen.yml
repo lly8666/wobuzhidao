@@ -1,0 +1,220 @@
+name: next-fec-profile-screen
+run-name: fecscreen-r${{ inputs.fec_parity }}-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}${{ inputs.cpu_profile && '-profile' || '' }}${{ inputs.wan_neighbors == 'permanent' && '-fixed-neighbors' || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      fec_parity:
+        description: "Fixed FEC parity; each run measures one profile only"
+        required: true
+        default: "4"
+        type: choice
+        options: ["0", "4", "8", "10", "12", "16", "20"]
+      mode:
+        description: "normal or game"
+        required: true
+        default: normal
+        type: choice
+        options: [normal, game]
+      scenario:
+        description: "lossless, 5205, or 5305"
+        required: true
+        default: lossless
+        type: choice
+        options: [lossless, "5205", "5305"]
+      seed:
+        description: "single sample seed"
+        required: true
+        default: "601"
+        type: string
+      rate_mbps:
+        description: "logical application Mbps per direction"
+        required: true
+        default: "10"
+        type: string
+      lanes:
+        description: "1 for Normal; 2..4 for Game"
+        required: true
+        default: "1"
+        type: string
+      cpu_profile:
+        description: "Explicit file-only CPU/block/mutex diagnostic; one sample, not an ordinary performance qualification"
+        required: false
+        default: false
+        type: boolean
+      stateful_middlebox:
+        description: "Isolated transit router drops conntrack INVALID TCP/window segments"
+        required: false
+        default: false
+        type: boolean
+      wan_neighbors:
+        description: "Explicit WAN ARP diagnostic; dynamic preserves baseline, permanent pins only two owned veth pairs"
+        required: false
+        default: dynamic
+        type: choice
+        options: [dynamic, permanent]
+      product_source_sha:
+        description: "Optional exact 40-hex product source; empty uses this workflow SHA"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  strict-sample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      ART: ${{ github.workspace }}/artifacts/strict-single
+      WBD_STRICT_FEC_SCREEN: "1"
+      WBD_STRICT_FEC_PARITY: ${{ inputs.fec_parity }}
+      WBD_STRICT_MODE: ${{ inputs.mode }}
+      WBD_STRICT_SCENARIO: ${{ inputs.scenario }}
+      WBD_STRICT_SEED: ${{ inputs.seed }}
+      WBD_STRICT_RATE_MBPS: ${{ inputs.rate_mbps }}
+      WBD_STRICT_LANES: ${{ inputs.lanes }}
+      WBD_STRICT_CPU_PROFILE: ${{ inputs.cpu_profile && '1' || '0' }}
+      WBD_STRICT_STATEFUL_GATE: ${{ inputs.stateful_middlebox && '1' || '0' }}
+      WBD_STRICT_WAN_NEIGHBORS: ${{ inputs.wan_neighbors || 'dynamic' }}
+      WBD_PRODUCT_SOURCE_INPUT: ${{ inputs.product_source_sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Repository and one-sample contract
+        run: |
+          set -euo pipefail
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          mkdir -p "$ART"
+          if test -n "$WBD_PRODUCT_SOURCE_INPUT"; then
+            [[ "$WBD_PRODUCT_SOURCE_INPUT" =~ ^[0-9a-f]{40}$ ]]
+            source_sha="$(git rev-parse "$WBD_PRODUCT_SOURCE_INPUT^{commit}")"
+          else
+            source_sha="$GITHUB_SHA"
+          fi
+          echo "TESTED_SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
+          python3 tools/perf_sample_guard.py claim \
+            --identity "fecscreen:r$WBD_STRICT_FEC_PARITY:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:stateful$WBD_STRICT_STATEFUL_GATE:neighbors$WBD_STRICT_WAN_NEIGHBORS:source$source_sha:harness$GITHUB_SHA" \
+            --receipt "$ART/sample-claim.json"
+
+      - name: Install network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl \
+            build-essential bison flex pkg-config libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+          sudo modprobe nf_conntrack || true
+
+      - name: Build exact source and pinned tc
+        run: |
+          set -euo pipefail
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+          git worktree add --detach "$RUNNER_TEMP/wbd-product-source" "$TESTED_SOURCE_SHA"
+          cd "$RUNNER_TEMP/wbd-product-source"
+          go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+          "$ART/wbd-client" --version > "$ART/client-version.txt"
+          "$ART/wbd-server" --version > "$ART/server-version.txt"
+
+      - name: Run exactly one strict sample
+        id: sample
+        continue-on-error: true
+        run: |
+          sudo --preserve-env=WBD_STRICT_FEC_SCREEN,WBD_STRICT_FEC_PARITY,GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS \
+            env GITHUB_SHA="$TESTED_SOURCE_SHA" WBD_HARNESS_SHA="$GITHUB_SHA" WBD_STRICT_ARTIFACT_DIR="$ART" bash scripts/strict_weaknet_sample.sh
+
+      - name: Analyze explicit FEC profile screen
+        id: validate
+        if: always()
+        continue-on-error: true
+        run: |
+          python3 tools/check_strict_fec_profile_screen.py \
+            --artifact-dir "$ART" --source-sha "$TESTED_SOURCE_SHA" \
+            --mode "$WBD_STRICT_MODE" --scenario "$WBD_STRICT_SCENARIO" \
+            --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" \
+            --lanes "$WBD_STRICT_LANES" --fec-parity "$WBD_STRICT_FEC_PARITY" \
+            --output "$ART/summary-fec-profile-screen.json"
+
+      - name: Verify native ready-only raw batch paths
+        if: steps.sample.outcome == 'success'
+        run: python3 tools/collect_raw_io_receipt.py --artifact-dir "$ART"
+
+      - name: Audit and remove raw capture files after analysis
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path(os.environ["ART"]).resolve()
+          expected = Path(os.environ["GITHUB_WORKSPACE"]).resolve() / "artifacts" / "strict-single"
+          assert root == expected, "Preserve files outside the owned sample directory"
+          rows = []
+          for path in root.glob("*.pcap"):
+              data = path.read_bytes()
+              rows.append({"name": path.name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+              path.unlink()
+          (root / "capture-cleanup-receipt.json").write_text(json.dumps({"raw_deleted": True, "captures": rows}, indent=2))
+          PY
+
+      - name: Upload compact analyzer summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fec-profile-summary-r${{ inputs.fec_parity }}-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-${{ github.sha }}
+          path: |
+            ${{ env.ART }}/summary-fec-profile-screen.json
+            ${{ env.ART }}/capture-cleanup-receipt.json
+            ${{ env.ART }}/raw-io-receipt.json
+            ${{ env.ART }}/runner-host.txt
+            ${{ env.ART }}/resources.jsonl
+            ${{ env.ART }}/wan-neighbors-before.json
+            ${{ env.ART }}/*.cpu
+            ${{ env.ART }}/*.cpu-block
+            ${{ env.ART }}/*.cpu-mutex
+            ${{ env.ART }}/*-cpu-top.txt
+            ${{ env.ART }}/*-block-top.txt
+            ${{ env.ART }}/*-mutex-top.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload immutable sample evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fec-profile-single-r${{ inputs.fec_parity }}-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-${{ github.sha }}
+          path: |
+            ${{ env.ART }}/*.json
+            ${{ env.ART }}/*.jsonl
+            ${{ env.ART }}/*.txt
+            ${{ env.ART }}/*.log
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 30
+
+      - name: Preserve collection and qualification failures
+        if: always()
+        env:
+          SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
+          ANALYZER_OUTCOME: ${{ steps.validate.outcome }}
+        run: |
+          echo "sample=$SAMPLE_OUTCOME analyzer=${{ steps.validate.outcome }}"
+          test "$SAMPLE_OUTCOME" = success
+          test "$ANALYZER_OUTCOME" = success

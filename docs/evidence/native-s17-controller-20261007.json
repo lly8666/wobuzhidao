@@ -1,0 +1,13 @@
+{
+  "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+  "controller_sha256": "68ba635d3f92b1efaa47740154097f1dd17fc8cf1db58aca8a39390e4f9dfc76",
+  "controller_change": "Only PROFILES addsS17=(4,3,20,60)",
+  "qualified_original14helpers": "b393bc30bcbeff8a6e4922243820649cec31157c",
+  "guard_helper": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+  "measurement": "one native300s sample seed1485",
+  "state": "COMPLETE",
+  "analytical_reference": "docs/evidence/fec-theory-reference-20261007.json",
+  "native_result": "BUSINESS_PASS_TRANSPORT_PRESSURE",
+  "rotation_observation": "PASS",
+  "evidence": "docs/evidence/native-ack-d6cb6ce-s17-seed1485-20261007.json"
+}

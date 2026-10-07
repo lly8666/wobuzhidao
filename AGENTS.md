@@ -1,6 +1,6 @@
 # WBD NEXT — 每位 agent 的开发入口
 
-2026-10-07当前：d6cb6ce 14定向Actions（6core+8独立性能）/24阶段RTT/P6/lifecycle36+aggregate PASS；5305 Normal stress9.976/9.978M、loss0.164/0.150%，Game3M零loss，探针全回。Windows实机S01/S16原严格FAIL、S02业务PASS但raw压力保留；52普通300s/23工况/20NOT_RUN另2诊断、M03/P7未关闭。受控/WAN验收边界见WEAKNET_QUALIFICATION第10.5节；下一S17。每性能Action一条，先STATUS/latest_log。
+2026-10-07当前：d6cb6ce 14定向Actions/24RTT/P6/lifecycle36+aggregate PASS；实机S17 Game4轮换300s约3M、业务loss0/2980探针全回/p99135.42ms，raw686压力保留，worker9refs与逐lane换代观测PASS。53普通样本/24工况/19NOT_RUN另2诊断，S01/S16/M03 FAIL不改；按用户要求快速批量独立Actions筛查其他FEC，标准WEAKNET_QUALIFICATION10.5/10.6，优先性能/延迟/noHOL。每性能Action一条，先STATUS/latest_log。
 
 本分支是 `next/tlslike-dataplane`，唯一产品方向为单进程、单 TLS-like 数据面。不是 DTLS 兼容分支。所有 agent，包括全新接手者，在修改前执行以下流程。
 
@@ -68,6 +68,8 @@
 - 不新增第二套“当前交接”、CURRENT_FINAL_v2 文档或平行章程。只更新本套入口。
 
 ## 最新弱网开发目标
+
+2026-10-07用户补充：各FEC档位按WEAKNET_QUALIFICATION第10.6节实际k/r、partial及丢包分布验恢复能力；优先性能、p99、no-HOL与突发连续性，不套统一零丢包门。理论值是参考，不能把本机drop/处理压力藏进线路loss；其他profile弱网workflow/oracle未实现时不得宣称资格完成。
 
 2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。
 

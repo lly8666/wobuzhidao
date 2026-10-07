@@ -17,6 +17,10 @@ SCENARIO="$WBD_STRICT_SCENARIO"
 SEED="$WBD_STRICT_SEED"
 RATE="$WBD_STRICT_RATE_MBPS"
 LANES="$WBD_STRICT_LANES"
+FEC_PARITY="${WBD_STRICT_FEC_PARITY:-20}"
+FEC_SCREEN="${WBD_STRICT_FEC_SCREEN:-0}"
+case "$FEC_PARITY" in 0|4|8|10|12|16|20) ;; *) echo "invalid fixed FEC profile" >&2; exit 2 ;; esac
+case "$FEC_SCREEN:$FEC_PARITY" in 0:20|1:*) ;; *) echo "non20 FEC requires explicit profile-screen entry" >&2; exit 2 ;; esac
 CLIENT_BIN="$ART/wbd-client"
 SERVER_BIN="$ART/wbd-server"
 GEN="$GITHUB_WORKSPACE/tools/realpath_udp_duplex.py"
@@ -186,11 +190,11 @@ ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 
 SERVER_CPU=""; CLIENT_CPU=""; if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then SERVER_CPU="$ART/server.cpu"; CLIENT_CPU="$ART/client.cpu"; fi
 export WBD_QUALIFICATION_CONTENTION_PROFILE="${WBD_STRICT_CPU_PROFILE:-0}"
-ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity 20 --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
+ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
 SERVER_PID="$!"
 
 sleep 1
-ip netns exec "$CLI" env WBD_QUALIFICATION_CPU_PROFILE="$CLIENT_CPU" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass --client-record-limit 1300 --mtu 1400   --fec-parity 20 --lanes "$LANES" --tproxy-port 12345 --mark 66   --route-table 1066 --rule-priority 1066   --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s   > "$ART/client.log" 2>&1 &
+ip netns exec "$CLI" env WBD_QUALIFICATION_CPU_PROFILE="$CLIENT_CPU" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass --client-record-limit 1300 --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --tproxy-port 12345 --mark 66   --route-table 1066 --rule-priority 1066   --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s   > "$ART/client.log" 2>&1 &
 CLIENT_PID="$!"
 
 sleep 5
@@ -292,7 +296,7 @@ if [[ "$STATEFUL_GATE" == 1 ]]; then
   ip netns exec "$RTR" iptables-save -c > "$ART/stateful-window-after.txt"
 fi
 
-python3 - "$ART" "$GITHUB_SHA" "$GITHUB_WORKSPACE" "$MODE" "$SCENARIO" "$SEED" "$RATE" "$LANES" "$DIAGNOSTIC_RATE_ONLY" "$BLACKHOLE_MS" <<'PY'
+python3 - "$ART" "$GITHUB_SHA" "$GITHUB_WORKSPACE" "$MODE" "$SCENARIO" "$SEED" "$RATE" "$LANES" "$DIAGNOSTIC_RATE_ONLY" "$BLACKHOLE_MS" "$FEC_PARITY" "$FEC_SCREEN" <<'PY'
 import hashlib, json, os, sys
 from pathlib import Path
 art = Path(sys.argv[1])
@@ -300,7 +304,11 @@ source, root = sys.argv[2], Path(sys.argv[3])
 mode, scenario, seed, rate, lanes = sys.argv[4], sys.argv[5], int(sys.argv[6]), float(sys.argv[7]), int(sys.argv[8])
 diagnostic_rate_only = sys.argv[9] == "1"
 blackhole_ms = int(sys.argv[10])
+fec_parity = int(sys.argv[11])
+fec_screen = sys.argv[12] == "1"
 workflow_rel = ".github/workflows/next-shared-blackhole.yml" if blackhole_ms else ".github/workflows/next-strict-weaknet.yml"
+if fec_screen:
+    workflow_rel = ".github/workflows/next-fec-profile-screen.yml"
 harness = [
     workflow_rel,
     "scripts/strict_weaknet_sample.sh",
@@ -313,6 +321,8 @@ harness = [
     "tools/check_strict_weaknet.py",
     "tools/aggregate_strict_weaknet.py",
 ]
+if fec_screen:
+    harness.append("tools/check_strict_fec_profile_screen.py")
 if blackhole_ms:
     harness.extend([
         "tools/strict_blackhole_stage.py",
@@ -334,7 +344,7 @@ manifest = {
     "config": {
         "lanes": lanes, "application_mbps_each_direction": rate,
         "generator_stats": "bounded-v1-exact-dedupe",
-        "fec": "20:20", "padding": "off", "mtu": 1400,
+        "fec": "off" if fec_parity == 0 else "20:" + str(fec_parity), "fec_parity": fec_parity, "profile_screen": fec_screen, "padding": "off", "mtu": 1400,
         "one_way_delay_ms": 300, "duration_s": 120, "stages_s": [30, 60, 30],
         "drain_s": 10, "qdisc_limit_packets": 200000,
         "hidden_bandwidth_limit": False,

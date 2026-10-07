@@ -198,3 +198,38 @@ FEC20:20完整块的理论范围是40个合法shard中至少20个及时可用即
 RTT分位数是**已返回探针的条件分位数**。每阶段必须列sent/received/timeout及连续超时、最大无交付间隔。若超过1%的探针未返回，不能用幸存探针p99描述全部请求的尾部；未返回项只知道超过观察期限，不任意填成一个精确RTT。当前aggregate的probe_valid仅验证有限分位数及0<received≤sent，弱网未设最小coverage门；因此历史配对PASS不等于无超时或强尾延迟保证。当前d6八条定向样本各阶段30/60/30全回，未受此问题影响；120s每阶段仅30/60点仍是有限样本，不能冒充长期精确p99。后续扩展长时探针/覆盖约束需事先定义新测试规范、独立Actions验证，不能追溯改绿旧结果。
 
 原生ARM观察到packet socket有效接收预算212992B（208KiB），当前Actions为1048576B（1MiB）；raw_linux.go未显式设置SO_RCVBUF，平台默认值和调度不同。共享ARM两核心、Windows vmxnet3和hosted runner属于不同容量环境。hosted drop0不证明原生drop0，较小预算也不证明扩大缓存能解决处理瓶颈；先记录最早拥塞位置、read-service/队列驻留和压力时间线。晚高峰WAN是可能因素，须与本机drop分别保留；跨时间/runner的CPU与p99差值是观测，不作为单项优化的固定收益。
+
+
+### 10.6 各FEC档位的能力口径与检测标准（2026-10-07用户补充）
+
+用户当前优先级：持续业务性能、低延迟、无HOL、突发后继续前进、状态有界。FEC只尽力恢复；不为低档位强制零丢包增加修复强度、等待、缓存或动态改档。本节是后续profile专项的设计标准，当前正式20:20 loss-tolerant-v1门和所有历史结果不改。理论依据为[RFC5510的RS擦除恢复性质](https://www.rfc-editor.org/rfc/rfc5510.html)，项目实际行为以本分支源码为准；本项目并未宣称实现RFC5510 wire格式。
+
+**先看每个实际编码块，不能把名义档位当全局丢包阈值。** 完整20:R块最多弥补R个缺失shard，即该块20+R个shard中丢失不超过R且所需合法shard在有效恢复期间到达。R/(20+R)是该块的数量上限，不是“这条线路低于此百分比永远零loss”。随机有限块有尾部概率；相关/连续丢包更不能按平均比例推断。
+
+项目partial flush的实际规则是k=DataCount、r=min(k,R)，未发的20−k个源槽是已知零，不计网络丢包。因此20:4的k=3 partial块实际是3+3，不是3+0.6或20+4；名义低档位在稀疏负载下冗余比例可能更高。20:20按256/512/SourceMTU三个lane-local大小组分别flush，低档位仍单组。按配置总包数乘R/20推算冗余成本或恢复极限会失真。记录实际k/r、source/parity包数和字节、flush/partial大小分布，header声明的profile也不等于实际发出的parity数。
+
+下表是**完整块、每个shard独立以p概率丢失、所有幸存shard及时到达、无限恢复机会、不计外层repair/Game**时的源shard残余损失期望，作为解释参考，绝不是业务包丢失硬门或生产承诺。单位均为百分比；很小值用“<0.000001”而非假装严格0。
+
+| 档位 | 完整块最多丢shard | 完整块擦除比例上限 | p=5%残余源loss | p=20%残余源loss | p=30%残余源loss |
+|---|---:|---:|---:|---:|---:|
+| off | 0 | 0% | 5% | 20% | 30% |
+| 20:4 | 4/24 | 16.67% | 0.129073% | 14.069372% | 28.384685% |
+| 20:8 | 8/28 | 28.57% | 0.000184% | 3.111194% | 17.661156% |
+| 20:10 | 10/30 | 33.33% | 0.000004% | 0.985270% | 10.920122% |
+| 20:12 | 12/32 | 37.50% | <0.000001% | 0.254355% | 5.772424% |
+| 20:16 | 16/36 | 44.44% | <0.000001% | 0.010496% | 1.076467% |
+| 20:20 | 20/40 | 50.00% | <0.000001% | 0.000267% | 0.130108% |
+
+推导：指定源shard最终缺失当且仅当自身丢失且其余k+r−1个shard至少再丢r个，故理想残余q=p×Pr[Binomial(k+r−1,p)≥r]。整块超过擦除预算的概率Pr[Binomial(k+r,p)>r]不是源loss百分比，不能混用。实际partial要逐k加权；例如k=r=1、p=30%时q=p²=9%，明显不同于完整20:20的0.130108%。计算全精度和假设保存在evidence/fec-theory-reference-20261007.json，该文件是解析参考，非测试PASS。
+
+**检测分三栏，恢复率不能替代性能/无HOL。**
+
+1. 正确性硬门：所有档位均无bad payload/重复交付/错误lease/nonce或wire错误；仍systematic首次到达立即交付。编码器/decoder定向可控测试内，final metadata有效、恢复资源在测试声明范围且擦除≤实际r必须逐字节恢复；超过r不要求补齐，但已到systematic和后续其他完整datagram必须继续交付。刻意超恢复槽/超3秒的live case按既定退役策略验证，不能把数学足够但已按原策略退役误当codec bug，也不能借此掩盖性能压力。
+2. 性能与延迟硬门：off及每档位各自同配置无损独立基线仍业务/probe loss0、目标输入速率保持、goodput≥99%、input有效；有损持续输入不能降速凑绿。正式20:20沿用原loss≤p/goodput≥目标×(1−p)×99%、配对RTT200/500ms、post5恢复原门。其他档位新专项事前声明基于实际shard/业务fragment的参考有效交付预算；不得机械照20:20近零loss，也不得把源shard理论q直接套到多片业务包。先有合法oracle再关闭恢复质量资格，缺oracle记NOT_EVALUATED，不能补一个任意“q+2%”宽限。所有profile保留有限修复/有限FEC/no-HOL、本机drop/queue age、CPU/inputMiB与CPU/deliveredMiB、线上放大和停流收敛门；弱档位超过恢复能力时允许缺失，但不允许fresh停发、长停顿、无限恢复库存或queuebloat。RTT继续覆盖全部探针超时，幸存p99不足以证明无卡顿。
+3. 恢复效率和归因：用测试端有界离线事件账本按lane/generation/BlockID/ShardIndex、真实k/r、source/parity发送与首次有效接收时间分析。离线oracle分别列“理想及时可恢复”“原3秒/pressure-retire策略范围内可恢复”“实际恢复”“业务datagram全部fragment满足期限”，不在产品热路径加逐包日志、跨lane同步或新控制协议。未发parity、网络drop、raw/driver overflow、deadline/pressure退役、最后业务missing分开；完全未到接收端的block需发送端账本，不能从decoder统计消失掉。超过能力项不能判codec FAIL；范围内可恢复却未恢复、收到的systematic丢失、未解释的额外交付缺失则定位/FAIL，不一概叫线路差。
+
+Game的同一业务PacketID在多个lane首次有效到达才算成功，各lane单独FEC，统计逻辑业务一次。只有独立丢失且时限/复制路径独立时才能乘各lane失败概率；共享队列、共同黑洞、相关WAN损伤下不能套q^4或保证至少一lane活。业务多片在off且独立丢失时是1−(1−p)^m；FEC块内恢复相关、跨块分片和Game情况下按实际映射算oracle，不直接套该式。字节goodput按每包真实长度，不将packet loss百分比当byte loss。
+
+**实施次序与成本边界。** 当前next-strict-weaknet固定20:20，尚无其他profile的5305资格，现有lower-profile unit/native连通结果不能填补。先在测试框架增加显式fec_parity并贯穿check-config/实际生效、summary identity/receipts/aggregator；保留正式18的20:20入口默认与原判定不变，另建命名清楚的profile专项schema。编解码器定向门可以unit/race批量用例；真实性能每Action只能一个档位/场景/seed，配对无损与重复分别独立run。优先off、20:4超预算20%和20:10接近预算30%的代表场景，各两seed；复用当前20:20的受控5305作为不同scope参考，不伪称新profile源码已测。再补20:8/12/16边界，不开展挡位选型赛或自动调参。oracle重放/理论计算是只读分析，测量期间的探针/观测负担单列，诊断样本不替代默认off性能样本。没有产品新缺陷证据先补检测口径，不因此重构FEC、4096或提高冗余。
+
+2026-10-07用户追加快速筛查：本轮只新增profile-screen-v1测试入口，固定产品d6，6profiles（off/4/8/10/12/16）×Normal/Game×lossless/5205/5305共36独立Actions；不是参数选型赛，也不替代正式20:20 final18或精确有限策略oracle。原分类失败全部保留，任何与理论比较都区分source与业务分片、partial、Game与policy；看持续性能/条件延迟+超时/资源和定向noHOL后再冻结实现，只有明确异常才继续改代码。screen原始pcap分析后hash回执并删除，不上传原始payload。

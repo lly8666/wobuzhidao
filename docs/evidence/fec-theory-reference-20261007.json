@@ -1,0 +1,195 @@
+{
+  "kind": "Analytical reference; not executed product test or qualification",
+  "source_reviewed": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+  "reviewed_files": [
+    "internal/fec/fec.go",
+    "internal/fec/fastblock_encoder.go",
+    "internal/fec/block.go",
+    "internal/fec/size_class_encoder.go",
+    "internal/linkdata/fec_path.go"
+  ],
+  "reference": "https://www.rfc-editor.org/rfc/rfc5510.html",
+  "actual_partial_rule": "k=actual DataCount; r=min(k, configured parity). Known-zero20-k source slots are not transmitted erasures; profile20:20 splits lane-local size classes, lower profiles single group.",
+  "full_block_iid_source_loss_formula": "p * Pr[Binomial(k+r-1,p) >= r]",
+  "block_over_budget_formula": "Pr[Binomial(k+r,p) > r]",
+  "assumptions": [
+    "independent identical shard erasures",
+    "all intended parity emitted",
+    "no reassembly/metadata loss beyond model",
+    "all surviving shards timely before policy retirement",
+    "no finite-slot pressure retirement",
+    "one source shard metric, not business datagram metric",
+    "no transport repair or Game redundancy benefit"
+  ],
+  "rows": [
+    {
+      "profile": "off",
+      "full_block_k": 20,
+      "full_block_r": 0,
+      "max_erasure_fraction_for_this_block": 0.0,
+      "ideal_parity_source_count_ratio": 0.0,
+      "full_block_iid_reference": [
+        {
+          "iid_shard_erasure_probability": 0.05,
+          "expected_missing_source_fraction": 0.04999999999999996,
+          "block_over_erasure_budget_probability": 0.6415140775914571
+        },
+        {
+          "iid_shard_erasure_probability": 0.2,
+          "expected_missing_source_fraction": 0.20000000000000023,
+          "block_over_erasure_budget_probability": 0.9884707849539327
+        },
+        {
+          "iid_shard_erasure_probability": 0.3,
+          "expected_missing_source_fraction": 0.29999999999999966,
+          "block_over_erasure_budget_probability": 0.9992020773370229
+        }
+      ]
+    },
+    {
+      "profile": "20:4",
+      "full_block_k": 20,
+      "full_block_r": 4,
+      "max_erasure_fraction_for_this_block": 0.16666666666666666,
+      "ideal_parity_source_count_ratio": 0.2,
+      "full_block_iid_reference": [
+        {
+          "iid_shard_erasure_probability": 0.05,
+          "expected_missing_source_fraction": 0.001290725292739323,
+          "block_over_erasure_budget_probability": 0.005974550586488714
+        },
+        {
+          "iid_shard_erasure_probability": 0.2,
+          "expected_missing_source_fraction": 0.14069371780302395,
+          "block_over_erasure_budget_probability": 0.5401226702424216
+        },
+        {
+          "iid_shard_erasure_probability": 0.3,
+          "expected_missing_source_fraction": 0.28384685361071105,
+          "block_over_erasure_budget_probability": 0.8889247767390765
+        }
+      ]
+    },
+    {
+      "profile": "20:8",
+      "full_block_k": 20,
+      "full_block_r": 8,
+      "max_erasure_fraction_for_this_block": 0.2857142857142857,
+      "ideal_parity_source_count_ratio": 0.4,
+      "full_block_iid_reference": [
+        {
+          "iid_shard_erasure_probability": 0.05,
+          "expected_missing_source_fraction": 1.8367701309801867e-06,
+          "block_over_erasure_budget_probability": 5.646901284012169e-06
+        },
+        {
+          "iid_shard_erasure_probability": 0.2,
+          "expected_missing_source_fraction": 0.03111194143779667,
+          "block_over_erasure_budget_probability": 0.09003465862987807
+        },
+        {
+          "iid_shard_erasure_probability": 0.3,
+          "expected_missing_source_fraction": 0.17661155816063104,
+          "block_over_erasure_budget_probability": 0.4724804803531705
+        }
+      ]
+    },
+    {
+      "profile": "20:10",
+      "full_block_k": 20,
+      "full_block_r": 10,
+      "max_erasure_fraction_for_this_block": 0.3333333333333333,
+      "ideal_parity_source_count_ratio": 0.5,
+      "full_block_iid_reference": [
+        {
+          "iid_shard_erasure_probability": 0.05,
+          "expected_missing_source_fraction": 4.0545609368229716e-08,
+          "block_over_erasure_budget_probability": 1.0969376835069546e-07
+        },
+        {
+          "iid_shard_erasure_probability": 0.2,
+          "expected_missing_source_fraction": 0.009852703460842514,
+          "block_over_erasure_budget_probability": 0.02561625533532658
+        },
+        {
+          "iid_shard_erasure_probability": 0.3,
+          "expected_missing_source_fraction": 0.10920122432158304,
+          "block_over_erasure_budget_probability": 0.2696296136972765
+        }
+      ]
+    },
+    {
+      "profile": "20:12",
+      "full_block_k": 20,
+      "full_block_r": 12,
+      "max_erasure_fraction_for_this_block": 0.375,
+      "ideal_parity_source_count_ratio": 0.6,
+      "full_block_iid_reference": [
+        {
+          "iid_shard_erasure_probability": 0.05,
+          "expected_missing_source_fraction": 7.036537424400088e-10,
+          "block_over_erasure_budget_probability": 1.722068604805369e-09
+        },
+        {
+          "iid_shard_erasure_probability": 0.2,
+          "expected_missing_source_fraction": 0.002543549761368664,
+          "block_over_erasure_budget_probability": 0.006053520433793629
+        },
+        {
+          "iid_shard_erasure_probability": 0.3,
+          "expected_missing_source_fraction": 0.05772424211721916,
+          "block_over_erasure_budget_probability": 0.13257214857815747
+        }
+      ]
+    },
+    {
+      "profile": "20:16",
+      "full_block_k": 20,
+      "full_block_r": 16,
+      "max_erasure_fraction_for_this_block": 0.4444444444444444,
+      "ideal_parity_source_count_ratio": 0.8,
+      "full_block_iid_reference": [
+        {
+          "iid_shard_erasure_probability": 0.05,
+          "expected_missing_source_fraction": 1.241397408637405e-13,
+          "block_over_erasure_budget_probability": 2.619888868642048e-13
+        },
+        {
+          "iid_shard_erasure_probability": 0.2,
+          "expected_missing_source_fraction": 0.00010496359777770924,
+          "block_over_erasure_budget_probability": 0.0002180584305475512
+        },
+        {
+          "iid_shard_erasure_probability": 0.3,
+          "expected_missing_source_fraction": 0.010764666043645664,
+          "block_over_erasure_budget_probability": 0.021937194761100245
+        }
+      ]
+    },
+    {
+      "profile": "20:20",
+      "full_block_k": 20,
+      "full_block_r": 20,
+      "max_erasure_fraction_for_this_block": 0.5,
+      "ideal_parity_source_count_ratio": 1.0,
+      "full_block_iid_reference": [
+        {
+          "iid_shard_erasure_probability": 0.05,
+          "expected_missing_source_fraction": 1.301880915833201e-17,
+          "block_over_erasure_budget_probability": 2.4742142167926573e-17
+        },
+        {
+          "iid_shard_erasure_probability": 0.2,
+          "expected_missing_source_fraction": 2.6719163469190875e-06,
+          "block_over_erasure_budget_probability": 5.027270342857915e-06
+        },
+        {
+          "iid_shard_erasure_probability": 0.3,
+          "expected_missing_source_fraction": 0.0013010796404352904,
+          "block_over_erasure_budget_probability": 0.002419359897133589
+        }
+      ]
+    }
+  ],
+  "limits": "A finite-block ceiling is not a sustainable loss-rate guarantee. Correlated loss/partial blocks/k-dependent shard lengths/time/finite policy require trace oracle and separate capacity diagnosis; analytical expected values never serve as exact raw PASS threshold."
+}

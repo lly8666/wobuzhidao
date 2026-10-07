@@ -17,6 +17,7 @@ MEASUREMENT_MARKERS = (
 ACTIVE = (
     ".github/workflows/next-target-soak.yml",
     ".github/workflows/next-strict-weaknet.yml",
+    ".github/workflows/next-fec-profile-screen.yml",
     ".github/workflows/next-shared-blackhole.yml",
     ".github/workflows/next-performance-capacity-diagnostic.yml",
     ".github/workflows/next-realpath-calibration.yml",
@@ -71,7 +72,7 @@ for name in RETIRED:
 
 # continue-on-error exists only to preserve artifacts, never to waive a failed
 # qualification analyzer. The final always step must propagate both outcomes.
-for name in (".github/workflows/next-strict-weaknet.yml", ".github/workflows/next-shared-blackhole.yml"):
+for name in (".github/workflows/next-strict-weaknet.yml", ".github/workflows/next-shared-blackhole.yml", ".github/workflows/next-fec-profile-screen.yml"):
     text = Path(name).read_text(encoding="utf-8")
     final = text.rsplit("      - name: Preserve collection", 1)[-1]
     if ('ANALYZER_OUTCOME: ${{ steps.validate.outcome }}' not in final

@@ -9,6 +9,9 @@ on:
       - "scripts/build_seeded_tc.sh"
       - "tools/strict_netem_seed_preflight.py"
       - "tools/strict_weaknet_stage.py"
+      - "tools/check_strict_fec_profile_screen.py"
+      - "tools/test_fec_profile_screen.py"
+      - ".github/workflows/next-fec-profile-screen.yml"
       - "tools/check_strict_weaknet.py"
       - "tools/aggregate_strict_weaknet.py"
       - "docs/DEVELOPMENT_PLAN.md"
@@ -32,6 +35,9 @@ jobs:
         env:
           CHANGE_BASE: ${{ github.event.before }}
         run: python3 tools/check_repository.py
+
+      - name: Explicit FEC screen identity and analytical boundary checks
+        run: python3 tools/test_fec_profile_screen.py
 
       - name: Install build and network tooling
         run: |
