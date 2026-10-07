@@ -1,5 +1,5 @@
-name: raw-rcvbuf-ab-dispatch
-run-name: raw-rcvbuf-ab-dispatch
+name: rto-exact-source-network-gates
+run-name: rto-exact-source-network-gates
 
 on:
   push:
@@ -14,14 +14,18 @@ jobs:
   dispatch:
     runs-on: ubuntu-24.04
     steps:
-      - name: Dispatch two separate exact-product-source A/B run requests
+      - name: Dispatch exact-source network and lifecycle functional gates
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          for request in 0 524288; do
-            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/dispatches" --input - <<JSON
-          {"ref":"qualification/raw-rcvbuf-ab-20261007","inputs":{"qualification_kind":"formal20","fec_parity":"20","mode":"normal","scenario":"5205","seed":"1521","rate_mbps":"10","lanes":"1","cpu_profile":false,"stateful_middlebox":false,"wan_neighbors":"dynamic","raw_recv_buffer":"$request","product_source_sha":"3d3e24f1271ddf960aa57035a6217476f1826bbc"}}
+          ref='qualification/large-datagram-rto-20261007'
+          for wf in next-predelivery-tools.yml next-linux-server.yml next-lifecycle-fullstack.yml next-default-network.yml next-splitroute.yml; do
+            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/$wf/dispatches" --input - <<JSON
+          {"ref":"$ref"}
           JSON
           done
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-config-effective.yml/dispatches" --input - <<JSON
+          {"ref":"$ref","inputs":{"case_id":"f20-l1-p0"}}
+          JSON
