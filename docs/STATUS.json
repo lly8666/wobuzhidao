@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T13:25:37.711318+08:00",
+  "updated_at": "2026-10-07T13:39:18.767157+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -87,8 +87,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "FEC profiles are frozen on d6 after36 screens plus isolated off baseline; no further FEC/buffer/shadow tuning. Next evidence-led atom: Normal low-profile transport tail latency, especially20:12/5305 270/290ms zero-delivery gaps and off/4/8/12 multi-second late probes; separate bounded repair/FEC late delivery from fresh scheduling stalls, never discard late valid payload or weaken latency/coverage gates. 11/144RTT FAIL, exact oracle/full70/final18/1800s/native19/M03 remain open; one sample perperformanceAction.",
-  "latest_log": "docs/devlog/20261007-132537-fec-profile-screen-freeze.md",
+  "next_task": "FEC implementation stays frozen. Narrow transport diagnosis: exactd6 Normal20:12/5305 client handling/owner-lock/blocking IO/scheduling around84.67s; route queue age284ms/peak1886 and clientUDP697 aligned with pause, server handlers<=1.682ms/queue<=4.721ms. Identify client blocking point with bounded timing/profile in one independent performanceAction, only change supported cause, preserve fresh/noHOL/latefirstarrival/immutable repair. Multi-second late-probe problem separate;11RTT FAIL/traceoracle/full70/final18/1800s/native19/M03 remain open.",
+  "latest_log": "docs/devlog/20261007-133918-fec12-client-queue-pause-review.md",
   "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
@@ -10345,6 +10345,17 @@
     "supplemental_independent_actions": 1,
     "implementation": "FROZEN_FEC_ONLY",
     "all_profile_latency_qualification": "FAIL_11_OF144_MATCHED_CHECKS_ORIGINAL_RESULTS_RETAINED",
-    "exact_recovery_quality": "NOT_EVALUATED_TRACE_ORACLE_NOT_IMPLEMENTED"
+    "exact_recovery_quality": "NOT_EVALUATED_TRACE_ORACLE_NOT_IMPLEMENTED",
+    "fec12_pause_review": {
+      "state": "CLIENT_QUEUE_PAUSE_LOCALIZED_CAUSE_OPEN",
+      "evidence": "docs/evidence/fec12-client-queue-pause-20261007.json",
+      "client_route_age_ms": 284.218696,
+      "client_route_peak": 1886,
+      "client_udp_peak": 697,
+      "server_route_age_ms": 4.72068,
+      "server_handler_max_ms": 1.681924,
+      "runtime_changed": false,
+      "new_performance_runs": 0
+    }
   }
 }

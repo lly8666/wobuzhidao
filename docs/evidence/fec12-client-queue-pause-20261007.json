@@ -1,0 +1,319 @@
+{
+  "product_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+  "harness_source": "49eba9ba91985bbf771601788fd6d4348d950ef9",
+  "run": 37574340886,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574340886",
+  "profile": "20:12",
+  "mode": "Normal1 10Mbps each direction",
+  "scenario": "5/30/5 loss,300ms each direction",
+  "client_before_after_pause": [
+    {
+      "offset_s": 84.104670037,
+      "unix_ns": 1791349692926783909,
+      "segment_mux": {
+        "enabled": true,
+        "routes": [
+          {
+            "local_port": 40000,
+            "peer_port": 443,
+            "capacity": 4096,
+            "current": 0,
+            "peak": 29,
+            "bytes": 0,
+            "bytes_peak": 19178,
+            "full_waits": 0,
+            "overflow_drops": 0,
+            "overflow_bytes": 0,
+            "overflow_age": {
+              "samples": 0,
+              "total_ns": 0,
+              "max_ns": 0,
+              "over_50us": 0,
+              "over_1ms": 0,
+              "over_10ms": 0
+            },
+            "handoff_block": {
+              "samples": 662085,
+              "total_ns": 1330661885,
+              "max_ns": 570736,
+              "over_50us": 487,
+              "over_1ms": 0,
+              "over_10ms": 0
+            },
+            "queue_age": {
+              "samples": 662085,
+              "total_ns": 57315961456,
+              "max_ns": 2495634,
+              "over_50us": 289713,
+              "over_1ms": 340,
+              "over_10ms": 0
+            }
+          }
+        ]
+      },
+      "client_udp": {
+        "queue_capacity_records": 1024,
+        "queue_capacity_bytes": 9150464,
+        "queue_current": 0,
+        "queue_bytes": 0,
+        "inflight_current": 1,
+        "inflight_bytes": 1200,
+        "total_peak": 6,
+        "total_bytes_peak": 3040,
+        "enqueued": 207642,
+        "dequeued": 207642,
+        "overflow_drops": 0,
+        "overflow_bytes": 0,
+        "overflow_age_max": 0,
+        "gate_errors": 0,
+        "forward_errors": 0,
+        "close_drops": 0,
+        "workers": 4,
+        "eviction_max_scan": 0
+      },
+      "gc_pause_total_ns": 41105001,
+      "fresh_blocked": 0,
+      "fresh_emit_failures": 0
+    },
+    {
+      "offset_s": 85.10467004,
+      "unix_ns": 1791349693926783912,
+      "segment_mux": {
+        "enabled": true,
+        "routes": [
+          {
+            "local_port": 40000,
+            "peer_port": 443,
+            "capacity": 4096,
+            "current": 7,
+            "peak": 1886,
+            "bytes": 1922,
+            "bytes_peak": 911338,
+            "full_waits": 0,
+            "overflow_drops": 0,
+            "overflow_bytes": 0,
+            "overflow_age": {
+              "samples": 0,
+              "total_ns": 0,
+              "max_ns": 0,
+              "over_50us": 0,
+              "over_1ms": 0,
+              "over_10ms": 0
+            },
+            "handoff_block": {
+              "samples": 668735,
+              "total_ns": 1340959416,
+              "max_ns": 570736,
+              "over_50us": 488,
+              "over_1ms": 0,
+              "over_10ms": 0
+            },
+            "queue_age": {
+              "samples": 668728,
+              "total_ns": 417926016071,
+              "max_ns": 284218696,
+              "over_50us": 293789,
+              "over_1ms": 2679,
+              "over_10ms": 2272
+            }
+          }
+        ]
+      },
+      "client_udp": {
+        "queue_capacity_records": 1024,
+        "queue_capacity_bytes": 9150464,
+        "queue_current": 4,
+        "queue_bytes": 1776,
+        "inflight_current": 1,
+        "inflight_bytes": 64,
+        "total_peak": 697,
+        "total_bytes_peak": 353840,
+        "enqueued": 210111,
+        "dequeued": 210107,
+        "overflow_drops": 0,
+        "overflow_bytes": 0,
+        "overflow_age_max": 0,
+        "gate_errors": 0,
+        "forward_errors": 0,
+        "close_drops": 0,
+        "workers": 4,
+        "eviction_max_scan": 0
+      },
+      "gc_pause_total_ns": 41459379,
+      "fresh_blocked": 0,
+      "fresh_emit_failures": 0
+    },
+    {
+      "offset_s": 86.1046704,
+      "unix_ns": 1791349694926784272,
+      "segment_mux": {
+        "enabled": true,
+        "routes": [
+          {
+            "local_port": 40000,
+            "peer_port": 443,
+            "capacity": 4096,
+            "current": 7,
+            "peak": 1886,
+            "bytes": 178,
+            "bytes_peak": 911338,
+            "full_waits": 0,
+            "overflow_drops": 0,
+            "overflow_bytes": 0,
+            "overflow_age": {
+              "samples": 0,
+              "total_ns": 0,
+              "max_ns": 0,
+              "over_50us": 0,
+              "over_1ms": 0,
+              "over_10ms": 0
+            },
+            "handoff_block": {
+              "samples": 674996,
+              "total_ns": 1352814742,
+              "max_ns": 570736,
+              "over_50us": 490,
+              "over_1ms": 0,
+              "over_10ms": 0
+            },
+            "queue_age": {
+              "samples": 674989,
+              "total_ns": 419031758062,
+              "max_ns": 284218696,
+              "over_50us": 297137,
+              "over_1ms": 2697,
+              "over_10ms": 2272
+            }
+          }
+        ]
+      },
+      "client_udp": {
+        "queue_capacity_records": 1024,
+        "queue_capacity_bytes": 9150464,
+        "queue_current": 2,
+        "queue_bytes": 1456,
+        "inflight_current": 1,
+        "inflight_bytes": 64,
+        "total_peak": 697,
+        "total_bytes_peak": 353840,
+        "enqueued": 212579,
+        "dequeued": 212577,
+        "overflow_drops": 0,
+        "overflow_bytes": 0,
+        "overflow_age_max": 0,
+        "gate_errors": 0,
+        "forward_errors": 0,
+        "close_drops": 0,
+        "workers": 4,
+        "eviction_max_scan": 0
+      },
+      "gc_pause_total_ns": 42151470,
+      "fresh_blocked": 0,
+      "fresh_emit_failures": 0
+    }
+  ],
+  "server_whole_sample_pipeline": {
+    "enabled": true,
+    "reads": 1007455,
+    "read_gap": {
+      "samples": 1007454,
+      "total_ns": 139205935993,
+      "max_ns": 1182949438,
+      "over_50us": 370324,
+      "over_1ms": 4256,
+      "over_10ms": 157
+    },
+    "handoff_block": {
+      "samples": 1007455,
+      "total_ns": 2029462244,
+      "max_ns": 856787,
+      "over_50us": 774,
+      "over_1ms": 0,
+      "over_10ms": 0
+    },
+    "queue_age": {
+      "samples": 1007455,
+      "total_ns": 113547262505,
+      "max_ns": 4720680,
+      "over_50us": 466609,
+      "over_1ms": 2774,
+      "over_10ms": 0
+    },
+    "handler": {
+      "samples": 1007455,
+      "total_ns": 24410416362,
+      "max_ns": 1681924,
+      "over_50us": 85183,
+      "over_1ms": 39,
+      "over_10ms": 0
+    },
+    "tick": {
+      "samples": 1490,
+      "total_ns": 180028040,
+      "max_ns": 862807,
+      "over_50us": 769,
+      "over_1ms": 0,
+      "over_10ms": 0
+    },
+    "replacement_checks": 0,
+    "downstream": {
+      "samples": 247910,
+      "total_ns": 4086796305,
+      "max_ns": 1166703,
+      "over_50us": 5608,
+      "over_1ms": 4,
+      "over_10ms": 0
+    },
+    "ready_capacity": 4096,
+    "ready_current": 0,
+    "ready_peak": 177,
+    "ready_bytes": 0,
+    "ready_bytes_peak": 110158,
+    "overflow_drops": 0,
+    "overflow_bytes": 0,
+    "overflow_age": {
+      "samples": 0,
+      "total_ns": 0,
+      "max_ns": 0,
+      "over_50us": 0,
+      "over_1ms": 0,
+      "over_10ms": 0
+    },
+    "downstream_batches": 247910,
+    "downstream_packets": 286733
+  },
+  "business_gaps": {
+    "client_biz_receiver": [
+      84.67,
+      84.94
+    ],
+    "server_target_receiver": [
+      84.95,
+      85.24
+    ]
+  },
+  "input": {
+    "send_lag_p99_ns": 400000,
+    "skipped_slots": 0,
+    "send_failures": 0,
+    "both_senders_second84_bytes": 1250960
+  },
+  "resource_near_pause": {
+    "host_busy_percent_range": [
+      31.3,
+      34.8
+    ],
+    "steal_ticks": 0,
+    "socket_drops": 0,
+    "client_gc_pause_delta_84_to85_ms": 0.354378
+  },
+  "conclusion": "Client processing backlog is temporally aligned: route max queue age284.218696ms/peak1886, UDP outstanding peak697. Server queue max4.72068ms/handler1.681924ms; cannot attribute this290ms gap to FEC algebra or whole-host CPU saturation. Client stall cause not located: lock/blocking IO/scheduling remains unresolved. One-second diag cannot pin exact blocking call, no runtime timing profile enabled. Multi-second late probes are a separate phenomenon; do not conflate with the290ms pause. No new test/runtime change.",
+  "input_file_sha256": {
+    "client-diag.jsonl": "fe082fe95b0fb51ea2d61c53392cdcfeae4edd04b5c0b85f6f356c8b53be00be",
+    "server-diag.jsonl": "713a3ee521f7a567a02ec7b4032851b2d99731f89a44a693639df8c0f6039a23",
+    "resources.jsonl": "55591c0e5da606a101ebfe7b25735dcf6ea4c721e3b18fa714227dd1d201d513",
+    "biz.json": "d737ad1a21e6ce201fc82fa4ed367d6c11186593c13d50d1017d37ff65452b79",
+    "target.json": "4bd562766024286e5eddcd3642dbee3c8c6afbb1ed9ee80ed40d1672f3ac301b",
+    "stage-events.jsonl": "4564be6313782e64685203f165cd76743f0ae7696295251d787a53f018969ac1"
+  }
+}
