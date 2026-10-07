@@ -175,7 +175,64 @@
     "run": 37574266150,
     "label": "r0-normal-lossless",
     "reason": "server native send_messages=send_calls=478459,send_multi=0,send_fallbacks=0; off immediate sends need not coalesce; original workflow failure retained",
-    "correction": "only explicit off profile screen may observe single-send; default formal/on multi requirement unchanged; correction Actions and isolated off baseline pending"
+    "correction": {
+      "state": "PASS_ACTIONS_CORRECTED_ASSERTION_AND_ISOLATED_OFF_BASELINE",
+      "harness_source": "48d9cf2b4b93ae5bc51e7d95b9699dc857c53b15",
+      "product_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "preflight": {
+        "run": 37575761975,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37575761975",
+        "conclusion": "success"
+      },
+      "off_lossless": {
+        "run": 37575781199,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37575781199",
+        "conclusion": "success"
+      },
+      "goodput_stress_mbps": {
+        "c2s": 9.9999872,
+        "s2c": 9.9999872
+      },
+      "business_loss_zero_all_stages": true,
+      "probe_coverage": {
+        "post": {
+          "p95_ns": 600948154,
+          "p99_ns": 601071027,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 601202499,
+          "p99_ns": 601246493,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 600978904,
+          "p99_ns": 601060099,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "socket_drop_max": 0,
+      "raw_io_observations": {
+        "client": {
+          "receive": "MULTI_MESSAGE_OBSERVED",
+          "send": "MULTI_MESSAGE_OBSERVED"
+        },
+        "server": {
+          "receive": "MULTI_MESSAGE_OBSERVED",
+          "send": "SINGLE_MESSAGE_ONLY_MULTI_NOT_EXERCISED"
+        }
+      },
+      "raw_fallbacks_zero": true,
+      "correction_unit_checks": 4,
+      "screen_identity_unit_checks": 7,
+      "raw_capture_deleted": true,
+      "archive": "docs/evidence/fec-off-receipt-48d9cf2-20261007.json.gz",
+      "archive_sha256": "35c58bcfcab4bba0d01d23567e2e3664d139c5fa20d68675eab791c490074da5",
+      "scope": "One supplemental independent Action; no runtime changed, does not overwrite any of36 original outcomes or11RTT failures; CPU differences across hosts not optimization evidence."
+    }
   },
   "runtime_freeze_scope": "FEC codec/wire/profiles/partial/size classes/3s retirement unchanged. Recovery curves fit a full-block fragmented business reference; exact finite-policy oracle NOT_EVALUATED. Not whole-product performance/final18/P7 completion.",
   "latency_open": "Normal off5205/5305,4/8/12 at5305 exceed matched p95/p99 gates; never dismissed as expected FEC loss. All profile/mode/scenario probe sent/received and original errors retained in receipts. Missing probes mean survivor p99 is conditional.",

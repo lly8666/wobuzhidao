@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T13:18:59.035787+08:00",
+  "updated_at": "2026-10-07T13:25:37.711318+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -78,7 +78,8 @@
     "2026-10-04 Linux部署/共享账号多客户端自动7天内存IP与配套GUI完成：SOURCE6181db6 native12/systemd12/GUI208/core-race/真实DNS分流/36+aggregate37jobs/两独立5205 PASS，正常与SIGKILL同端口重建、foreign/live保护通过，三平台同源包预发布linux-server-rc-20261004-6181db6。",
     "6181db6原生Windows CLI/Npcap/Wintun→ARM WAN：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0，受控DNS/TCP/验证HTTPS及owned退出清理；失败/压力样本保留，P7仅PARTIAL",
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过",
-    "36独立FECscreen全部收齐：12无损业务/probe零loss，36input/capture/integrity/environment与profile实效PASS、socketdrop0；32分析PASS/31workflowSUCCESS，133/144RTT PASS、11FAIL保留。FEC恢复吞吐趋势与分片理论参考吻合，仅冻结FEC实现，不关闭低档位尾延迟/完整产品资格。"
+    "36独立FECscreen全部收齐：12无损业务/probe零loss，36input/capture/integrity/environment与profile实效PASS、socketdrop0；32分析PASS/31workflowSUCCESS，133/144RTT PASS、11FAIL保留。FEC恢复吞吐趋势与分片理论参考吻合，仅冻结FEC实现，不关闭低档位尾延迟/完整产品资格。",
+    "FEC off批量路径误判仅测试修正：harness48d9cf2 preflight37575761975含7profile+4raw检查PASS，exactd6独立Normal10 lossless37575781199 PASS/双向约10M、全业务probe零loss、p99最高601.246ms、rawdrop0。36原run与11RTT失败不改；FEC实现冻结，尾延迟性能资格仍开放。"
   ],
   "in_progress": [
     "Nativeclient ACK/nativewrite vsdecode latency boundary diagnosis",
@@ -86,8 +87,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Verify raw-IO off-screen assertion correction in Actions and one isolated off/lossless Normal10 baseline on exact d6 product. Keep36 original runs/11RTT FAIL. FEC implementation frozen; do not raise parity/buffers/4096 or promise low-profile all-recovery. Next narrow diagnostic: late finite-shadow/FEC arrivals versus fresh queue/scheduler stalls in Normal off/4/8/12; 20:12 saw270/290ms gaps; preserve p99/coverage gates. Exact oracle/full70/final18/1800s/native19 remain open.",
-  "latest_log": "docs/devlog/20261007-131859-fec-profile-screen-results.md",
+  "next_task": "FEC profiles are frozen on d6 after36 screens plus isolated off baseline; no further FEC/buffer/shadow tuning. Next evidence-led atom: Normal low-profile transport tail latency, especially20:12/5305 270/290ms zero-delivery gaps and off/4/8/12 multi-second late probes; separate bounded repair/FEC late delivery from fresh scheduling stalls, never discard late valid payload or weaken latency/coverage gates. 11/144RTT FAIL, exact oracle/full70/final18/1800s/native19/M03 remain open; one sample perperformanceAction.",
+  "latest_log": "docs/devlog/20261007-132537-fec-profile-screen-freeze.md",
   "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
@@ -10284,9 +10285,66 @@
     "runtime_freeze_scope": "FEC codec/wire/profiles/partial/size classes/3s retirement unchanged. Recovery curves fit a full-block fragmented business reference; exact finite-policy oracle NOT_EVALUATED. Not whole-product performance/final18/P7 completion.",
     "latency_open": "Normal off5205/5305,4/8/12 at5305 exceed matched p95/p99 gates; never dismissed as expected FEC loss. All profile/mode/scenario probe sent/received and original errors retained in receipts. Missing probes mean survivor p99 is conditional.",
     "raw_io_assertion_correction": {
-      "state": "PENDING_ACTIONS",
-      "product_unchanged": true,
-      "reason": "server native send_messages=send_calls=478459,send_multi=0,send_fallbacks=0; off immediate sends need not coalesce; original workflow failure retained"
-    }
+      "state": "PASS_ACTIONS_CORRECTED_ASSERTION_AND_ISOLATED_OFF_BASELINE",
+      "harness_source": "48d9cf2b4b93ae5bc51e7d95b9699dc857c53b15",
+      "product_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+      "preflight": {
+        "run": 37575761975,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37575761975",
+        "conclusion": "success"
+      },
+      "off_lossless": {
+        "run": 37575781199,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37575781199",
+        "conclusion": "success"
+      },
+      "goodput_stress_mbps": {
+        "c2s": 9.9999872,
+        "s2c": 9.9999872
+      },
+      "business_loss_zero_all_stages": true,
+      "probe_coverage": {
+        "post": {
+          "p95_ns": 600948154,
+          "p99_ns": 601071027,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 601202499,
+          "p99_ns": 601246493,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 600978904,
+          "p99_ns": 601060099,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "socket_drop_max": 0,
+      "raw_io_observations": {
+        "client": {
+          "receive": "MULTI_MESSAGE_OBSERVED",
+          "send": "MULTI_MESSAGE_OBSERVED"
+        },
+        "server": {
+          "receive": "MULTI_MESSAGE_OBSERVED",
+          "send": "SINGLE_MESSAGE_ONLY_MULTI_NOT_EXERCISED"
+        }
+      },
+      "raw_fallbacks_zero": true,
+      "correction_unit_checks": 4,
+      "screen_identity_unit_checks": 7,
+      "raw_capture_deleted": true,
+      "archive": "docs/evidence/fec-off-receipt-48d9cf2-20261007.json.gz",
+      "archive_sha256": "35c58bcfcab4bba0d01d23567e2e3664d139c5fa20d68675eab791c490074da5",
+      "scope": "One supplemental independent Action; no runtime changed, does not overwrite any of36 original outcomes or11RTT failures; CPU differences across hosts not optimization evidence."
+    },
+    "supplemental_independent_actions": 1,
+    "implementation": "FROZEN_FEC_ONLY",
+    "all_profile_latency_qualification": "FAIL_11_OF144_MATCHED_CHECKS_ORIGINAL_RESULTS_RETAINED",
+    "exact_recovery_quality": "NOT_EVALUATED_TRACE_ORACLE_NOT_IMPLEMENTED"
   }
 }

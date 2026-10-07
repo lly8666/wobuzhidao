@@ -12,6 +12,8 @@
 
 > 当前决策（覆盖下文历史下一步）：2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。 所有性能测试严格一个Action run一条样本，禁止同run A/B与matrix。
 
+2026-10-07 FEC各档位实现按36独立screen+1off断言修正复验冻结；恢复吞吐曲线吻合分片参考，11配对RTT FAIL仍待单独transport迟到/调度定位，不能关闭整产品弱网性能或P7。详细证据见WEAKNET_QUALIFICATION10.7与STATUS.fec_profile_acceptance。
+
 完成条件取 ACCEPTANCE；当前执行位置只看 STATUS.json。表中优先级和协议已决定，不再开选型阶段。
 
 2026-10-04最新用户Linux部署、多客户端自动7天内存IP和Windows配套任务已交付：固定SOURCE6181db6、预发布linux-server-rc-20261004-6181db6，scope为core/native/部署/GUI/36生命周期/定向5205。当前下一原子任务见STATUS顶层；最新全70/严格18/1800s和P7尚未验，不能继承旧完整基线，也不因此回到无证据架构调参。

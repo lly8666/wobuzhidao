@@ -1,6 +1,6 @@
 # WBD NEXT 详细开发方案
 
-2026-10-07当前：固定d6产品/49harness的36独立FECscreen已收齐，12无损业务/probe零loss、36完整性/profile/input/capture/environment通过且socketdrop0；32sample分析PASS、31workflowSUCCESS，133/144配对RTT通过、11FAIL保留。FEC恢复吞吐曲线符合计入分片的参考，冻结FEC实现；低档位单lane多秒尾延迟仍OPEN，非全产品定稿。off单条无损batch检查误判正在仅修测试并复验。原生53样本/24工况/19NOT_RUN、S01/S16/M03旧FAIL不改。每性能Action一条，先STATUS/latest_log。
+2026-10-07当前：固定d6产品/49harness的36独立FECscreen已收齐，12无损业务/probe零loss、36完整性/profile/input/capture/environment通过且socketdrop0；32sample分析PASS、31workflowSUCCESS，133/144配对RTT通过、11FAIL保留。FEC恢复吞吐曲线符合计入分片的参考，冻结FEC实现；低档位单lane多秒尾延迟仍OPEN，非全产品定稿。off单条无损batch检查误判已仅修测试：preflight与独立off基线PASS。原生53样本/24工况/19NOT_RUN、S01/S16/M03旧FAIL不改。每性能Action一条，先STATUS/latest_log。
 
 当前受控与WAN的验收边界遵循WEAKNET_QUALIFICATION第10.5节：不以原生少量未恢复包要求外层强可靠；不删历史FAIL；不把本机raw drop归入WAN。下一配置S17只扩展测试静态档位，不改数据面。
 

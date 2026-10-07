@@ -259,3 +259,5 @@ Normal off的5205/5305与20:4/8/12的5305保留配对p95/p99超门：条件尾�
 Normal无损线上IP字节/业务分别off约1.32–1.37、20:4约2.22–2.25、8约2.91–2.96、10约3.26–3.33、12约3.61–3.68、16约4.30–4.40。低档位仍单size组，padding-off不等于parity无补齐成本；不把高档位成本说成配置无效。Game4复制和头部进一步放大。跨独立runner CPU不能当不同档位固定CPU收益；本轮资源门通过/drop0，但不代表原生Windows→ARM容量或全局最优。
 
 off无损原run37574266150数据面/分析PASS，额外receipt要求send_multi>0导致workflow FAIL。FEC-off即时逐包发送可能合法不形成multi，不能为了触发测试而攒包增加等待。仅显式profile_screen=true/fec=off/parity0的send允许single并标MULTI_NOT_EXERCISED；receive原要求、所有fallback/空流量拒绝、正式20/on原门保留，必须在Actions验证修正及独立off基线，原run不改绿。后续原子任务只调查transport迟到/调度，有新证据才改；不重开FEC选型赛、不把screen当full70/final18/长测/P7完成。
+
+收口补充：测试harness48d9cf2的preflight [37575761975](https://github.com/lly8666/wobuzhidao/actions/runs/37575761975) PASS（7profile+4raw检查），exactd6产品独立off/Normal/lossless/seed1500 [37575781199](https://github.com/lly8666/wobuzhidao/actions/runs/37575781199) PASS。双向各阶段约10M、全业务/probe零loss、p99最高601.246ms/socketdrop0；server仍send_multi0、fallback0并如实标single-only未触发multi。仅修harness断言，未改变即时发送或FEC策略，旧run37574266150不改绿。37独立performance Actions含36原screen+1复验，11配对RTT失败仍原样保留。FEC实现冻结，所有profile全项性能不标COMPLETE；单位trace oracle/full70/final18/1800s/原生剩余不继承。
