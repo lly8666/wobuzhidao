@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "branch": "diagnostic/normal-5305-fec20-counterfactual-20261008",
+  "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+  "baseline": {
+    "profile": "20:12",
+    "type": "fec-profile-screen",
+    "run": 37692499392,
+    "artifact_id": 11513199128,
+    "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "injected_loss_percent": {
+      "c2s": 29.85749787115722,
+      "s2c": 29.935221096236987
+    },
+    "business_loss_percent": {
+      "c2s": 6.308266003729024,
+      "s2c": 6.498138853047079
+    },
+    "wall_goodput_mbps": {
+      "c2s": 9.1735872,
+      "s2c": 9.149937066666666
+    },
+    "probe_stress": {
+      "sent": 60,
+      "received": 56,
+      "p95_ms": 607.396941,
+      "p99_returned_only_ms": 2178.685393
+    },
+    "process_cpu_seconds": {
+      "client": 66.53,
+      "server": 66.7
+    },
+    "tx_fresh_stress": {
+      "c2s": 315883,
+      "s2c": 315883
+    },
+    "tx_abandoned_stress": {
+      "c2s": 0,
+      "s2c": 0
+    },
+    "tx_fast_repairs_stress": {
+      "c2s": 21267,
+      "s2c": 21236
+    },
+    "tx_fec_parity_bytes_stress": {
+      "c2s": 144392988,
+      "s2c": 150315588
+    },
+    "rx_fec_recovered_sources_stress": {
+      "c2s": 47870,
+      "s2c": 47492
+    },
+    "socket_drop_max": 0,
+    "link_drop": "0 all local endpoints"
+  },
+  "counterfactual": {
+    "profile": "20:20",
+    "type": "formal20",
+    "run": 37698070990,
+    "artifact_id": 11516725946,
+    "raw_artifact_id": 11516945510,
+    "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "harness_branch": "diagnostic/normal-5305-fec20-counterfactual-20261008",
+    "harness_sha": "1e111fd143b6aa1c45d27ae1736292ecff203815",
+    "injected_loss_percent": {
+      "c2s": 29.83752,
+      "s2c": 29.91157
+    },
+    "business_loss_percent": {
+      "c2s": 0.20537,
+      "s2c": 0.15132
+    },
+    "wall_goodput_mbps": {
+      "c2s": 9.97562,
+      "s2c": 9.97706
+    },
+    "probe_stress": {
+      "sent": 60,
+      "received": 60,
+      "p95_ms": 612.284127,
+      "p99_returned_only_ms": 612.790192
+    },
+    "process_cpu_seconds": {
+      "client": 83.59,
+      "server": 83.76
+    },
+    "tx_fresh_stress": {
+      "c2s": 394852,
+      "s2c": 394878
+    },
+    "tx_abandoned_stress": {
+      "c2s": 116015,
+      "s2c": 116179
+    },
+    "tx_fast_repairs_stress": {
+      "c2s": 257,
+      "s2c": 323
+    },
+    "tx_fec_parity_bytes_stress": {
+      "c2s": 98146678,
+      "s2c": 99348737
+    },
+    "rx_fec_recovered_sources_stress": {
+      "c2s": 58719,
+      "s2c": 58866
+    },
+    "socket_drop_max": 0,
+    "link_drop": "0 all local endpoints",
+    "classifications": [
+      "CAPTURE_PASS",
+      "CORRECTNESS_PASS",
+      "ENVIRONMENT_PASS",
+      "INPUT_VALIDITY_PASS",
+      "PERFORMANCE_PASS"
+    ],
+    "artifact_digest": "sha256:2bcc1aafafd253851369b89e663556af67a7ae8f41acdd4c382ec5542cc21824"
+  },
+  "theoretical_reference_full_block_30pct": {
+    "fec20_12_source_residual_percent": 5.772424211721916,
+    "fec20_20_source_residual_percent": 0.130107964
+  },
+  "conclusion": {
+    "status": "HIGH_CONFIDENCE_MATCHED_SOURCE_SINGLE_SEED",
+    "determination": "20:12 insufficient parity reserve is the dominant observed 5305 cause; not a universal physical 30% packet-loss ceiling nor proof of an FEC decoder correctness bug.",
+    "explanation": "In IID 30% erasure and complete 20-source blocks, FEC20:12 source residual 5.772424% vs FEC20:20 0.130108%; 20:20 size classes and partial flush mean full-block reference cannot be applied directly to all packets.",
+    "metrics": "Compared seed1508, identical source and netns setup: app loss 6.308/6.498% -> 0.205/0.151%; probe 56/60 and returned p99 2178.685ms ->60/60 and 612.790ms. Normal traffic 10Mbps each direction maintained.",
+    "limited_shadow": "FEC20:20 sends ~6581 outer fresh packets/sec vs 5265 with20:12. At 600ms RTT, nominal outstanding ~3949 vs3159 records, approaching the intentional 4096 optional retransmission shadow cap. Tx abandoned ~116k each direction tracks optional repair protection, not delivered app loss; investigate if lower-resource recovery tuning desired, no blanket increase of memory cap.",
+    "cpu": "Single hosted-run process CPU seconds ~83.6 vs66.6 client/server; resource overhead indicative, not a multi-run CPU qualification.",
+    "uncertainty": "Only one 20:20 matched sample and 60 stress probes; cannot guarantee rare latency tail across seeds, burst losses, physical ARM AF_PACKET, MTU9000/IP fragmentation, physical 1800s or full70/final18. Do not infer ARM physical resolution.",
+    "physical": "NOT_RUN"
+  }
+}
