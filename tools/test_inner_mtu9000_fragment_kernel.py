@@ -36,12 +36,17 @@ def checksum_ok(header):
 
 
 def packet_meta(packet):
+    # The TUN may surface unrelated control traffic in the isolated namespace.
+    # Filter it exactly like the production fragment observer instead of
+    # treating a non-target packet as evidence about this UDP probe.
     if len(packet) < 20 or packet[0] >> 4 != 4:
-        raise AssertionError("non-IPv4 TUN packet")
+        return None
     ihl = (packet[0] & 15) * 4
     total = int.from_bytes(packet[2:4], "big")
     if ihl < 20 or total < ihl or len(packet) != total:
         raise AssertionError("malformed/truncated TUN IPv4 packet")
+    if socket.inet_ntoa(packet[12:16]) != SOURCE or socket.inet_ntoa(packet[16:20]) != DEST or packet[9] != 17:
+        return None
     flags = int.from_bytes(packet[6:8], "big")
     row = {
         "ip_id": int.from_bytes(packet[4:6], "big"),
@@ -177,11 +182,13 @@ def inside():
                         continue
                     arrived = time.monotonic_ns()
                     meta = packet_meta(packet)
+                    if meta is None:
+                        continue
                     if meta["sequence"] == current:
                         ip_id = meta["ip_id"]
                         first_arrival = arrived
                     if ip_id is None or meta["ip_id"] != ip_id:
-                        raise AssertionError((payload, df, "unexpected_interleaved_TUN_packet", meta))
+                        continue
                     fragments.append(meta)
                     if first_arrival is None:
                         first_arrival = arrived

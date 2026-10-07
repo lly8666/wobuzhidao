@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T22:30:00+08:00",
+  "updated_at": "2026-10-07T22:48:00+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -90,8 +90,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Run exact-source pre-fix deterministic diagnostics on qualification/large-datagram-rto-20261007: runtime sparse low-RTT/no-SACK repair must reproduce 1s floor; LINK/FEC must show independent 96B first-delivery while tiny cross-MTU tail is missing then recovered by parity; privileged Linux TUN MTU9000 must sustain 8972/8973/65507/65508 and DF boundaries. If all pass, split InitialRTO startup value from established minimum repair RTO with a conservative low floor, then rerun same diagnostics plus independent Normal/Game and r12/5305. Raw-buffer A/B baseline remains separately pending.",
-  "latest_log": "docs/devlog/20261007-223000-large-datagram-prefix-deterministic.md",
+  "next_task": "Re-run pre-fix diagnostics after fixing only the TUN observer's unrelated-packet filter. Preserve failed next-predelivery-tools run37638831165 as harness failure evidence. Foundation run37638827134 remains product-test authority for a3ce2f while pending/completing. No production RTO change until corrected kernel fixture and Go pre-fix diagnostics pass.",
+  "latest_log": "docs/devlog/20261007-224800-inner-mtu-fixture-filter-fix.md",
   "last_tested_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
   "actions": [
     {
@@ -10599,7 +10599,7 @@
     "latest_log": "docs/devlog/20261007-215500-linux-raw-rcvbuf-candidate.md"
   },
   "large_datagram_late": {
-    "state": "PRE_FIX_DETERMINISTIC_DIAGNOSTIC_COMMITTED",
+    "state": "PRE_FIX_DIAGNOSTIC_FIXTURE_RETRY",
     "physical_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
     "evidence": "docs/evidence/lane-duplex-3a594a3-physical-20261007.json",
     "observation": "M03 seed1539 UDP8973/IP9001 DF=false 167/167 eventual, 2 late ~1081.6/1125.3ms; 96B 1330/1330 p99~116.9ms max~212.3; UDP65507 timely; server rawdrop0.",
@@ -10617,8 +10617,15 @@
         "link_drop_max": 0
       },
       "diagnostic_source_ref": "qualification/large-datagram-rto-20261007",
-      "diagnostic": "NOT_RUN"
+      "diagnostic": "RETRY_NOT_RUN",
+      "diagnostic_first_run": {
+        "run": 37638831165,
+        "conclusion": "failure",
+        "failure_scope": "HARNESS",
+        "failure": "test_inner_mtu9000_fragment_kernel.py treated an unrelated/non-IPv4 TUN packet as fatal before the first 8972 probe; existing egress blackhole and reverse fragment fixtures passed in the same job",
+        "product_algorithm_changed": false
+      }
     },
-    "latest_log": "docs/devlog/20261007-223000-large-datagram-prefix-deterministic.md"
+    "latest_log": "docs/devlog/20261007-224800-inner-mtu-fixture-filter-fix.md"
   }
 }
