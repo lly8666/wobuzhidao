@@ -18,6 +18,7 @@ jobs:
           mkdir -p artifacts
           sudo env GITHUB_ACTIONS=true GITHUB_SHA="$GITHUB_SHA" python3 tools/test_physical_egress_blackhole.py | tee artifacts/egress-fixture.json
           sudo env GITHUB_ACTIONS=true python3 tools/test_physical_fragment_kernel.py | tee artifacts/reverse-fragment-fixture.json
+          sudo env GITHUB_ACTIONS=true python3 tools/test_inner_mtu9000_fragment_kernel.py | tee artifacts/inner-mtu9000-fragment-fixture.json
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: 'egress-fixture-${{ github.sha }}', path: artifacts/*.json}

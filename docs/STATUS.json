@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T21:55:00+08:00",
+  "updated_at": "2026-10-07T22:30:00+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -90,8 +90,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Validate isolated Linux raw-recv-buffer candidate on qualification/raw-rcvbuf-20261007 via foundation Linux/Windows unit+build, Linux race/arm64, next-linux-server real AF_PACKET kernel fixture and config precedence/effective gates. Then run separate one-sample Normal/Game ordinary performance plus same-source lossless RTT baselines before deciding whether default512KiB request reduces packet-socket drops without converting loss to queue/p99. Do not conflate with M03/8973 >1s late: server rawdrop0 there, issue remains OPEN and needs separate deterministic timeline/reproduction.",
-  "latest_log": "docs/devlog/20261007-215500-linux-raw-rcvbuf-candidate.md",
+  "next_task": "Run exact-source pre-fix deterministic diagnostics on qualification/large-datagram-rto-20261007: runtime sparse low-RTT/no-SACK repair must reproduce 1s floor; LINK/FEC must show independent 96B first-delivery while tiny cross-MTU tail is missing then recovered by parity; privileged Linux TUN MTU9000 must sustain 8972/8973/65507/65508 and DF boundaries. If all pass, split InitialRTO startup value from established minimum repair RTO with a conservative low floor, then rerun same diagnostics plus independent Normal/Game and r12/5305. Raw-buffer A/B baseline remains separately pending.",
+  "latest_log": "docs/devlog/20261007-223000-large-datagram-prefix-deterministic.md",
   "last_tested_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
   "actions": [
     {
@@ -10562,7 +10562,7 @@
     "raw_socket_buffer_changed": false
   },
   "linux_raw_receive_buffer": {
-    "state": "CANDIDATE_AWAITING_ACTIONS",
+    "state": "ACTIONS_DEFAULT_PATH_PASS_AB_PENDING_PHYSICAL_PENDING",
     "source_ref": "qualification/raw-rcvbuf-20261007",
     "base_source": "92f18755791108d9bc2d54b00bc97da50b17c9eb",
     "product_parent": "3a594a34191159bd7224f35ba9117cdf6f239c69",
@@ -10572,19 +10572,53 @@
     "so_rcvbufforce": false,
     "arm_rmem_observation": "Physical 3a host had rmem_default/rmem_max=212992 and rb212992. With product default request524288, an unchanged low system cap is expected to report limited=true rather than guarantee 1MiB.",
     "kernel_filter": "Existing destination-IP/listen-port classic BPF is preserved; no duplicate filtering feature.",
-    "actions": "NOT_RUN",
+    "actions": {
+      "foundation": {
+        "run": 37632989732,
+        "conclusion": "success"
+      },
+      "linux_server": {
+        "run": 37632993604,
+        "conclusion": "success"
+      },
+      "performance_runs": [
+        37633582798,
+        37633586379,
+        37633589774,
+        37633592606,
+        37633595493,
+        37633598715
+      ],
+      "default_request_bytes": 524288,
+      "observed_effective_bytes": 1048576,
+      "observed_limited": false,
+      "observed_socket_link_drop_max": 0,
+      "note": "All six independent default-path samples/workflows succeeded. This is not the requested same-source 0-vs-512KiB A/B yet; Actions host capacity and ARM physical rmem_max differ."
+    },
     "physical": "NOT_RUN_NEW_SOURCE",
     "latest_log": "docs/devlog/20261007-215500-linux-raw-rcvbuf-candidate.md"
   },
   "large_datagram_late": {
-    "state": "OPEN_DIAGNOSIS",
+    "state": "PRE_FIX_DETERMINISTIC_DIAGNOSTIC_COMMITTED",
     "physical_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
     "evidence": "docs/evidence/lane-duplex-3a594a3-physical-20261007.json",
     "observation": "M03 seed1539 UDP8973/IP9001 DF=false 167/167 eventual, 2 late ~1081.6/1125.3ms; 96B 1330/1330 p99~116.9ms max~212.3; UDP65507 timely; server rawdrop0.",
-    "current_hypothesis": "9001-byte IP packet crosses inner MTU and OS creates a tiny trailing IP fragment. In 20:20 size-class FEC that tiny source can occupy a separate partial class; ~1s timing is also near the outer repair RTO. Correlation only until deterministic stage timeline proves the missing/recovered boundary.",
+    "current_hypothesis": "Physical M03 9001-byte packet is OS-fragmented at MTU9000 into a near-MTU fragment plus tiny tail. Product LINK/FEC can process that tiny tail independently; if its source/FEC protection is lost and no later payload creates SACK/RACK evidence, current outer repair remains clamped by InitialRTO=1s even after low RTT samples. Deterministic Action must prove each layer before production change.",
     "linked_actions_tail": "Normal 20:12 5305 seed1508 run37602563270 p99~2168ms socket/link drop0 remains independently OPEN; do not merge causes without evidence.",
-    "fix": "NONE_YET",
-    "actions": "NOT_RUN",
-    "latest_log": "docs/devlog/20261007-215500-linux-raw-rcvbuf-candidate.md"
+    "fix": "NONE_PRE_FIX_DIAGNOSTIC_ONLY",
+    "actions": {
+      "prior_same_source_default_buffer_r12_5305": {
+        "run": 37633598715,
+        "conclusion": "success",
+        "probe_stress_sent": 60,
+        "probe_stress_received": 56,
+        "probe_stress_p99_ms": 2167.779055,
+        "socket_drop_max": 0,
+        "link_drop_max": 0
+      },
+      "diagnostic_source_ref": "qualification/large-datagram-rto-20261007",
+      "diagnostic": "NOT_RUN"
+    },
+    "latest_log": "docs/devlog/20261007-223000-large-datagram-prefix-deterministic.md"
   }
 }
