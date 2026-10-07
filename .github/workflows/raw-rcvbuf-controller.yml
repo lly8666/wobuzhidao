@@ -1,5 +1,5 @@
-name: rto-exact-source-network-gates
-run-name: rto-exact-source-network-gates
+name: raw-rto-p6-package-dispatch
+run-name: raw-rto-p6-package-dispatch
 
 on:
   push:
@@ -14,18 +14,12 @@ jobs:
   dispatch:
     runs-on: ubuntu-24.04
     steps:
-      - name: Dispatch exact-source network and lifecycle functional gates
+      - name: Build fixed-source P6 targets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          ref='qualification/large-datagram-rto-20261007'
-          for wf in next-predelivery-tools.yml next-linux-server.yml next-lifecycle-fullstack.yml next-default-network.yml next-splitroute.yml; do
-            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/$wf/dispatches" --input - <<JSON
-          {"ref":"$ref"}
-          JSON
-          done
-          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-config-effective.yml/dispatches" --input - <<JSON
-          {"ref":"$ref","inputs":{"case_id":"f20-l1-p0"}}
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-p6-package.yml/dispatches" --input - <<'JSON'
+          {"ref":"qualification/raw-rto-physical-20261008"}
           JSON
