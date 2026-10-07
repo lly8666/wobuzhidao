@@ -1,0 +1,1329 @@
+{
+  "plan": {
+    "product_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "harness_source": "49eba9ba91985bbf771601788fd6d4348d950ef9",
+    "ref": "qualification/fec-profile-screen-v2-20261007",
+    "workflow": {
+      "id": 364226329,
+      "node_id": "W_kwDOUCPjHs4VtacZ",
+      "name": "next-strict-weaknet",
+      "path": ".github/workflows/next-strict-weaknet.yml",
+      "state": "active",
+      "created_at": "2026-09-22T20:43:42.000+08:00",
+      "updated_at": "2026-09-23T17:21:57.000+08:00",
+      "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/workflows/364226329",
+      "html_url": "https://github.com/lly8666/wobuzhidao/blob/main/.github/workflows/next-strict-weaknet.yml",
+      "badge_url": "https://github.com/lly8666/wobuzhidao/workflows/next-strict-weaknet/badge.svg"
+    },
+    "preflight": {
+      "id": 37574063154,
+      "name": "next-strict-harness-preflight",
+      "node_id": "WFR_kwLOUCPjHs8AAAAIv5a0Mg",
+      "head_branch": "next/tlslike-dataplane",
+      "head_sha": "49eba9ba91985bbf771601788fd6d4348d950ef9",
+      "path": ".github/workflows/next-strict-harness-preflight.yml",
+      "display_title": "test: use registered strict workflow for explicit isolated FEC screens",
+      "run_number": 86,
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "workflow_id": 364284924,
+      "check_suite_id": 101783573504,
+      "check_suite_node_id": "CS_kwDOUCPjHs8AAAAXssYUAA",
+      "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37574063154",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574063154",
+      "pull_requests": [],
+      "created_at": "2026-10-07T04:58:58Z",
+      "updated_at": "2026-10-07T04:59:28Z",
+      "actor": {
+        "login": "lly8666",
+        "id": 30583594,
+        "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+        "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/lly8666",
+        "html_url": "https://github.com/lly8666",
+        "followers_url": "https://api.github.com/users/lly8666/followers",
+        "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+        "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+        "organizations_url": "https://api.github.com/users/lly8666/orgs",
+        "repos_url": "https://api.github.com/users/lly8666/repos",
+        "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/lly8666/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "run_attempt": 1,
+      "referenced_workflows": [],
+      "run_started_at": "2026-10-07T04:58:58Z",
+      "triggering_actor": {
+        "login": "lly8666",
+        "id": 30583594,
+        "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+        "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/lly8666",
+        "html_url": "https://github.com/lly8666",
+        "followers_url": "https://api.github.com/users/lly8666/followers",
+        "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+        "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+        "organizations_url": "https://api.github.com/users/lly8666/orgs",
+        "repos_url": "https://api.github.com/users/lly8666/repos",
+        "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/lly8666/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "jobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37574063154/jobs",
+      "logs_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37574063154/logs",
+      "check_suite_url": "https://api.github.com/repos/lly8666/wobuzhidao/check-suites/101783573504",
+      "artifacts_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37574063154/artifacts",
+      "cancel_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37574063154/cancel",
+      "rerun_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/runs/37574063154/rerun",
+      "previous_attempt_url": null,
+      "workflow_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/workflows/364284924",
+      "head_commit": {
+        "id": "49eba9ba91985bbf771601788fd6d4348d950ef9",
+        "tree_id": "c4fd046f4bcbec82f599810cd761f3d5f4c8ed82",
+        "message": "test: use registered strict workflow for explicit isolated FEC screens",
+        "timestamp": "2026-10-07T04:58:43Z",
+        "author": {
+          "name": "Codex",
+          "email": "codex@openai.com"
+        },
+        "committer": {
+          "name": "Codex",
+          "email": "codex@openai.com"
+        }
+      },
+      "repository": {
+        "id": 1344529182,
+        "node_id": "R_kgDOUCPjHg",
+        "name": "wobuzhidao",
+        "full_name": "lly8666/wobuzhidao",
+        "private": false,
+        "owner": {
+          "login": "lly8666",
+          "id": 30583594,
+          "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+          "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/lly8666",
+          "html_url": "https://github.com/lly8666",
+          "followers_url": "https://api.github.com/users/lly8666/followers",
+          "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+          "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+          "organizations_url": "https://api.github.com/users/lly8666/orgs",
+          "repos_url": "https://api.github.com/users/lly8666/repos",
+          "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/lly8666/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "html_url": "https://github.com/lly8666/wobuzhidao",
+        "description": null,
+        "fork": false,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao",
+        "forks_url": "https://api.github.com/repos/lly8666/wobuzhidao/forks",
+        "keys_url": "https://api.github.com/repos/lly8666/wobuzhidao/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/lly8666/wobuzhidao/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/lly8666/wobuzhidao/teams",
+        "hooks_url": "https://api.github.com/repos/lly8666/wobuzhidao/hooks",
+        "issue_events_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/lly8666/wobuzhidao/events",
+        "assignees_url": "https://api.github.com/repos/lly8666/wobuzhidao/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/lly8666/wobuzhidao/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/tags",
+        "blobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/lly8666/wobuzhidao/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/lly8666/wobuzhidao/languages",
+        "stargazers_url": "https://api.github.com/repos/lly8666/wobuzhidao/stargazers",
+        "contributors_url": "https://api.github.com/repos/lly8666/wobuzhidao/contributors",
+        "subscribers_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscribers",
+        "subscription_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscription",
+        "commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/lly8666/wobuzhidao/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/lly8666/wobuzhidao/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/lly8666/wobuzhidao/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/lly8666/wobuzhidao/merges",
+        "archive_url": "https://api.github.com/repos/lly8666/wobuzhidao/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/lly8666/wobuzhidao/downloads",
+        "issues_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/lly8666/wobuzhidao/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/lly8666/wobuzhidao/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/lly8666/wobuzhidao/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/lly8666/wobuzhidao/labels{/name}",
+        "releases_url": "https://api.github.com/repos/lly8666/wobuzhidao/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/lly8666/wobuzhidao/deployments"
+      },
+      "head_repository": {
+        "id": 1344529182,
+        "node_id": "R_kgDOUCPjHg",
+        "name": "wobuzhidao",
+        "full_name": "lly8666/wobuzhidao",
+        "private": false,
+        "owner": {
+          "login": "lly8666",
+          "id": 30583594,
+          "node_id": "MDQ6VXNlcjMwNTgzNTk0",
+          "avatar_url": "https://avatars.githubusercontent.com/u/30583594?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/lly8666",
+          "html_url": "https://github.com/lly8666",
+          "followers_url": "https://api.github.com/users/lly8666/followers",
+          "following_url": "https://api.github.com/users/lly8666/following{/other_user}",
+          "gists_url": "https://api.github.com/users/lly8666/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/lly8666/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/lly8666/subscriptions",
+          "organizations_url": "https://api.github.com/users/lly8666/orgs",
+          "repos_url": "https://api.github.com/users/lly8666/repos",
+          "events_url": "https://api.github.com/users/lly8666/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/lly8666/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "html_url": "https://github.com/lly8666/wobuzhidao",
+        "description": null,
+        "fork": false,
+        "url": "https://api.github.com/repos/lly8666/wobuzhidao",
+        "forks_url": "https://api.github.com/repos/lly8666/wobuzhidao/forks",
+        "keys_url": "https://api.github.com/repos/lly8666/wobuzhidao/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/lly8666/wobuzhidao/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/lly8666/wobuzhidao/teams",
+        "hooks_url": "https://api.github.com/repos/lly8666/wobuzhidao/hooks",
+        "issue_events_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/lly8666/wobuzhidao/events",
+        "assignees_url": "https://api.github.com/repos/lly8666/wobuzhidao/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/lly8666/wobuzhidao/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/tags",
+        "blobs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/lly8666/wobuzhidao/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/lly8666/wobuzhidao/languages",
+        "stargazers_url": "https://api.github.com/repos/lly8666/wobuzhidao/stargazers",
+        "contributors_url": "https://api.github.com/repos/lly8666/wobuzhidao/contributors",
+        "subscribers_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscribers",
+        "subscription_url": "https://api.github.com/repos/lly8666/wobuzhidao/subscription",
+        "commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/lly8666/wobuzhidao/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/lly8666/wobuzhidao/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/lly8666/wobuzhidao/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/lly8666/wobuzhidao/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/lly8666/wobuzhidao/merges",
+        "archive_url": "https://api.github.com/repos/lly8666/wobuzhidao/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/lly8666/wobuzhidao/downloads",
+        "issues_url": "https://api.github.com/repos/lly8666/wobuzhidao/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/lly8666/wobuzhidao/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/lly8666/wobuzhidao/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/lly8666/wobuzhidao/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/lly8666/wobuzhidao/labels{/name}",
+        "releases_url": "https://api.github.com/repos/lly8666/wobuzhidao/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/lly8666/wobuzhidao/deployments"
+      }
+    },
+    "state": "DISPATCHED",
+    "samples": [
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "0",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "1500",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r0-normal-lossless-seed1500-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "4",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "1502",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r4-normal-lossless-seed1502-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "8",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "1504",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r8-normal-lossless-seed1504-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "10",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "1506",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r10-normal-lossless-seed1506-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "1508",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r12-normal-lossless-seed1508-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "16",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "1510",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r16-normal-lossless-seed1510-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "0",
+          "mode": "game",
+          "scenario": "lossless",
+          "seed": "1501",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r0-game-lossless-seed1501-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "4",
+          "mode": "game",
+          "scenario": "lossless",
+          "seed": "1503",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r4-game-lossless-seed1503-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "8",
+          "mode": "game",
+          "scenario": "lossless",
+          "seed": "1505",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r8-game-lossless-seed1505-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "10",
+          "mode": "game",
+          "scenario": "lossless",
+          "seed": "1507",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r10-game-lossless-seed1507-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "game",
+          "scenario": "lossless",
+          "seed": "1509",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r12-game-lossless-seed1509-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "16",
+          "mode": "game",
+          "scenario": "lossless",
+          "seed": "1511",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r16-game-lossless-seed1511-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "0",
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "1500",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r0-normal-5205-seed1500-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "4",
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "1502",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r4-normal-5205-seed1502-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "8",
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "1504",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r8-normal-5205-seed1504-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "10",
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "1506",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r10-normal-5205-seed1506-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "1508",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r12-normal-5205-seed1508-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "16",
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "1510",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r16-normal-5205-seed1510-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "0",
+          "mode": "game",
+          "scenario": "5205",
+          "seed": "1501",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r0-game-5205-seed1501-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "4",
+          "mode": "game",
+          "scenario": "5205",
+          "seed": "1503",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r4-game-5205-seed1503-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "8",
+          "mode": "game",
+          "scenario": "5205",
+          "seed": "1505",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r8-game-5205-seed1505-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "10",
+          "mode": "game",
+          "scenario": "5205",
+          "seed": "1507",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r10-game-5205-seed1507-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "game",
+          "scenario": "5205",
+          "seed": "1509",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r12-game-5205-seed1509-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "16",
+          "mode": "game",
+          "scenario": "5205",
+          "seed": "1511",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r16-game-5205-seed1511-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "0",
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "1500",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r0-normal-5305-seed1500-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "4",
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "1502",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r4-normal-5305-seed1502-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "8",
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "1504",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r8-normal-5305-seed1504-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "10",
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "1506",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r10-normal-5305-seed1506-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "1508",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r12-normal-5305-seed1508-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "16",
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "1510",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r16-normal-5305-seed1510-rate10-lanes1",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "0",
+          "mode": "game",
+          "scenario": "5305",
+          "seed": "1501",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r0-game-5305-seed1501-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "4",
+          "mode": "game",
+          "scenario": "5305",
+          "seed": "1503",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r4-game-5305-seed1503-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "8",
+          "mode": "game",
+          "scenario": "5305",
+          "seed": "1505",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r8-game-5305-seed1505-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "10",
+          "mode": "game",
+          "scenario": "5305",
+          "seed": "1507",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r10-game-5305-seed1507-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "game",
+          "scenario": "5305",
+          "seed": "1509",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r12-game-5305-seed1509-rate3-lanes4",
+        "dispatched": true
+      },
+      {
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "16",
+          "mode": "game",
+          "scenario": "5305",
+          "seed": "1511",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+        },
+        "title": "fecscreen-r16-game-5305-seed1511-rate3-lanes4",
+        "dispatched": true
+      }
+    ]
+  },
+  "indexed_runs": [
+    {
+      "label": "r0-normal-lossless",
+      "run": 37574266150,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574266150",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "0",
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1500",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r4-normal-lossless",
+      "run": 37574269450,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574269450",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "4",
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1502",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r8-normal-lossless",
+      "run": 37574272318,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574272318",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "8",
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1504",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r10-normal-lossless",
+      "run": 37574275068,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574275068",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "10",
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1506",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r12-normal-lossless",
+      "run": 37574278707,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574278707",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "12",
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1508",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r16-normal-lossless",
+      "run": 37574281218,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574281218",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "16",
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1510",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r0-game-lossless",
+      "run": 37574283853,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574283853",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "0",
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1501",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r4-game-lossless",
+      "run": 37574286298,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574286298",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "4",
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1503",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r8-game-lossless",
+      "run": 37574288656,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574288656",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "8",
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1505",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r10-game-lossless",
+      "run": 37574291275,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574291275",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "10",
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1507",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r12-game-lossless",
+      "run": 37574293685,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574293685",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "12",
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1509",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r16-game-lossless",
+      "run": 37574296345,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574296345",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "16",
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1511",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r0-normal-5205",
+      "run": 37574299094,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574299094",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "0",
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1500",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r4-normal-5205",
+      "run": 37574301678,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574301678",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "4",
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1502",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r8-normal-5205",
+      "run": 37574304279,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574304279",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "8",
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1504",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r10-normal-5205",
+      "run": 37574306964,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574306964",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "10",
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1506",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r12-normal-5205",
+      "run": 37574309524,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574309524",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "12",
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1508",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r16-normal-5205",
+      "run": 37574311977,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574311977",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "16",
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1510",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r0-game-5205",
+      "run": 37574314288,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574314288",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "0",
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1501",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r4-game-5205",
+      "run": 37574316464,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574316464",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "4",
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1503",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "in_progress"
+    },
+    {
+      "label": "r8-game-5205",
+      "run": 37574319207,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574319207",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "8",
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1505",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r10-game-5205",
+      "run": 37574322064,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574322064",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "10",
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1507",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r12-game-5205",
+      "run": 37574324441,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574324441",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "12",
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1509",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r16-game-5205",
+      "run": 37574327118,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574327118",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "16",
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1511",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r0-normal-5305",
+      "run": 37574329863,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574329863",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "0",
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1500",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r4-normal-5305",
+      "run": 37574332790,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574332790",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "4",
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1502",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r8-normal-5305",
+      "run": 37574335505,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574335505",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "8",
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1504",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r10-normal-5305",
+      "run": 37574338347,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574338347",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "10",
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1506",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r12-normal-5305",
+      "run": 37574340886,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574340886",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "12",
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1508",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r16-normal-5305",
+      "run": 37574343902,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574343902",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "16",
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1510",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r0-game-5305",
+      "run": 37574346543,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574346543",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "0",
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1501",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r4-game-5305",
+      "run": 37574349302,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574349302",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "4",
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1503",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r8-game-5305",
+      "run": 37574351987,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574351987",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "8",
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1505",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r10-game-5305",
+      "run": 37574354155,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574354155",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "10",
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1507",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r12-game-5305",
+      "run": 37574356525,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574356525",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "12",
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1509",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    },
+    {
+      "label": "r16-game-5305",
+      "run": 37574359028,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37574359028",
+      "identity": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "16",
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1511",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+      },
+      "status": "queued"
+    }
+  ],
+  "scope": "Dispatch receipt only;36 performance samples currentlyPENDING,not qualificationPASS"
+}

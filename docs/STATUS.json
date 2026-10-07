@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T12:58:21.240581+08:00",
+  "updated_at": "2026-10-07T13:04:31.566667+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -85,8 +85,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Wait Actions preflight for explicitFECscreen identity/partial math/one-sample policy; if PASS freeze harness SHA and dispatch36independent Actions at exactproduct d6, oneprofile/mode/scenario/seed perrun. Collect all compact receipts, per-profile same-seed lossless RTT200/500ms checks and probe coverage/continuity, compare observedloss to actual theoretical bounds as reference, no blind runtime change. Rawpcaps hashed/deleted afteranalysis, no rawpayload artifacts. Freeze profile implementation if performance/latency/noHOL/capacity consistent; isolate/repeat only failed anomalous samples. Remaining19native/M03/full70/18/1800s are not closed.",
-  "latest_log": "docs/devlog/20261007-125821-fec-screen-registered-entry.md",
+  "next_task": "Collect36independentFECscreenActions exactproduct d6/harness49, validate actualprofile/input/capture/CPU/queues/drops and compare144stagep95/p99 pairs to sameprofile/mode/seed lossless; show probe coverage and no-business intervals. Account actualpartial, businessfragmentation andGame correlation before interpreting theoreticalsource loss; retainoriginal referenceFAIL. If outcomes are consistent with declared capability, latency/noHOL/throughput/resource priorities, freeze profile implementation; rerun only clearly anomalous samples separately, no broad runtime rewrites. Native19remaining/M03/full70/18/1800s not closed.",
+  "latest_log": "docs/devlog/20261007-130431-fec-profile-screen-dispatched.md",
   "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
@@ -10222,16 +10222,16 @@
     "environment": "Effective packet socket budget Actions1048576B vsARM212992B; no automatic source or capacity equivalence"
   },
   "fec_profile_acceptance": {
-    "state": "PLANNED_NOT_EXECUTED_PROFILE_WEAKNET_QUALIFICATION",
+    "state": "RUNNING_36_INDEPENDENT_ACTIONS_SCREEN",
     "plan": "docs/WEAKNET_QUALIFICATION.md#106-各fec档位的能力口径与检测标准2026-10-07用户补充",
     "analytical_reference": "docs/evidence/fec-theory-reference-20261007.json",
     "actual_partial_rule": "r=min(k,configuredR);20:20three size classes/lowerprofiles single",
     "priority": "performance,latency,noHOL,continuousfresh,boundedstate; recovery potential separate",
     "runtime_changed": false,
     "formal20_20_gates_unchanged": true,
-    "profile_workflow_parity_input": "IMPLEMENTED_REGISTERED_ENTRY_PENDING_PREFLIGHT",
+    "profile_workflow_parity_input": "PASS_ACTIONS_PREFLIGHT_IMPLEMENTED",
     "trace_oracle": "NOT_IMPLEMENTED; screen onlyIID full/partial range reference, no false exact app oracle",
-    "other_profile_5305": "NOT_RUN_PENDING_DISPATCH",
+    "other_profile_5305": "RUNNING",
     "screen_workflow": ".github/workflows/next-strict-weaknet.yml",
     "analyzer": "tools/check_strict_fec_profile_screen.py",
     "product_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
@@ -10260,6 +10260,18 @@
       "run": 37573760403,
       "status": "PASS"
     },
-    "registration_failure": "GitHub404 new workflow on nondefault branch;0performance dispatched;reuse registeredstrict entry,defaultformal20 unchanged"
+    "registration_failure": "GitHub404 new workflow on nondefault branch;0performance dispatched;reuse registeredstrict entry,defaultformal20 unchanged",
+    "harness_source": "49eba9ba91985bbf771601788fd6d4348d950ef9",
+    "frozen_harness_ref": "qualification/fec-profile-screen-v2-20261007",
+    "preflight": {
+      "source": "49eba9ba91985bbf771601788fd6d4348d950ef9",
+      "run": 37574063154,
+      "status": "PASS"
+    },
+    "dispatch_evidence": "docs/evidence/fec-profile-screen-d6-49eba9b-plan-20261007.json",
+    "dispatched_count": 36,
+    "collected_count": 0,
+    "screen_status": "PENDING",
+    "exact_policy_oracle": "NOT_IMPLEMENTED; referenceonly,not false precision"
   }
 }
