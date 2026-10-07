@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T17:39:37.405384+08:00",
+  "updated_at": "2026-10-07T17:42:22.962640+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -10374,7 +10374,7 @@
   },
   "client_lane_duplex_lock": {
     "state": "CANDIDATE_NOT_TESTED",
-    "source_ref": "CURRENT_CODE_COMMIT; obtain exact SHA with git",
+    "source_ref": "qualification/lane-duplex-20261007",
     "source_parent": "6e7638abf7b8bea1d6877c239bcaf3cea465ecae",
     "files": [
       "internal/datapath/lane.go",
@@ -10384,14 +10384,19 @@
     ],
     "tests": "NOT_RUN; Actions only",
     "root_cause": "OPEN; cumulative contention motivates isolation, no proof of 284ms cause",
-    "latest_log": "docs/devlog/20261007-173937-client-duplex-candidate-handoff.md"
+    "latest_log": "docs/devlog/20261007-173937-client-duplex-candidate-handoff.md",
+    "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69"
   },
   "development_handoff": {
-    "state": "READY_FOR_FRESH_THREAD",
-    "developer": "fresh local chat to be created",
+    "state": "FRESH_THREAD_CREATED",
+    "developer": "WBD 双向锁优化与 Actions 验收",
     "physical_acceptance_owner": "original chat after verified same-source Actions and packages",
     "priority": "real business first arrival efficiency > latency/p99/noHOL and low resource cost > appearance > additional security; original hard requirements unchanged",
     "original_chat_code_edits": "STOP_AFTER_HANDOFF",
-    "latest_log": "docs/devlog/20261007-173937-client-duplex-candidate-handoff.md"
+    "latest_log": "docs/devlog/20261007-173937-client-duplex-candidate-handoff.md",
+    "thread_id": "01a115bd-4de6-7d32-a779-ad7302f0b002",
+    "host_id": "local",
+    "handoff_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+    "progress_authority": "GitHub existing STATUS/devlog/evidence only; no second handoff system"
   }
 }

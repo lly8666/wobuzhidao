@@ -40,3 +40,7 @@ FEC实现恢复策略冻结；允许必要有证据的等价计算优化但一�
 ## 原聊天负责的后续物理复验
 
 等新聊天完成并核验同源Actions证据和包后，原聊天再按现有PHYSICAL_5MIN_ACCEPTANCE、STATUS实机未完项操作，Windows→LinuxARM五分钟Normal/Game/低档FEC、rotation/idle+keepalive/DNS互备/分流/IPv6/大于MTU包，重点p99/真实业务持续交付。既有用户授权机器沿用会话/受保护本机材料，口令不写仓库/提示词。先记录线路质量与host压力，不能把超FEC能力线路loss当程序bug或把本机drop藏在线路里。无需持久大pcap，必要有界头部观测，测试后清理owned原始大抓包，保留摘要/hash与失败。只移交开发权，原聊天不再同时编辑共享源码。
+
+## 交接落地
+
+候选SOURCE `3a594a34191159bd7224f35ba9117cdf6f239c69`已推送主线与固定ref `qualification/lane-duplex-20261007`。新本地聊天“WBD 双向锁优化与 Actions 验收”（01a115bd-4de6-7d32-a779-ad7302f0b002）已创建并收到完整任务/硬门/原始结果/测试计划/工具路径。按用户最新要求，双方沿用GitHub已有STATUS与devlog留痕。原聊天从此停止源码开发；后续只核验新聊天交付证据与执行同源物理复验，不并行修改源码。新聊天需把本轮准确SOURCE/Actions状态更新到现有记录，候选本轮仍NOT_RUN，不能继承6e通过。
