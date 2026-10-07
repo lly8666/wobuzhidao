@@ -1,0 +1,337 @@
+{
+  "schema": "wbd-raw-rcvbuf-rto-qualification/v1",
+  "state": "ACTIONS_READY_FOR_PHYSICAL",
+  "product_state": "IN_PROGRESS",
+  "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+  "product_ref": "qualification/raw-rto-physical-20261008",
+  "prior_product_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+  "prior_frozen_ref": "qualification/lane-duplex-20261007",
+  "raw_config_source_sha": "3d3e24f1271ddf960aa57035a6217476f1826bbc",
+  "ab_harness_sha": "6bfa251ed24151a7a3401f6eb40314026280e46f",
+  "source_unchanged_by_qualification_scans": true,
+  "raw_socket": {
+    "feature": "Linux-owned AF_PACKET receive fd SO_RCVBUF only; CLI/JSON --raw-recv-buffer",
+    "default_request_bytes": 524288,
+    "rollback_request_bytes": 0,
+    "max_request_bytes": 67108864,
+    "meaning": "SO_RCVBUF setsockopt request bytes, not effective target; Linux may double and rmem_max may cap",
+    "behavior": "At raw socket creation set (except 0 inherit), immediately getsockopt, log requested/expected/effective/inherited/limited; fail startup on invalid requests or socket call error; limited=true on readback shortfall.",
+    "global_sysctl_modified": false,
+    "so_rcvbufforce_used": false,
+    "steady_hot_path_added_syscalls": false,
+    "server_kernel_port_filter_retained": true,
+    "windows_supported": false,
+    "physical_arm_previous_socket_actual_bytes": 212992,
+    "physical_arm_previous_rmem_max_bytes": 212992,
+    "physical_arm_default_candidate_effective_bytes": "NOT_MEASURED; may be capped around 425984 by existing rmem_max, do not claim 1MiB"
+  },
+  "raw_ab": {
+    "source_sha": "3d3e24f1271ddf960aa57035a6217476f1826bbc",
+    "harness_sha": "6bfa251ed24151a7a3401f6eb40314026280e46f",
+    "scenario": "formal20 Normal5205, 10Mbps each direction, seed1521, FEC20:20, padding off; same product, harness and configuration except SO_RCVBUF request",
+    "one_run_per_sample": true,
+    "samples": [
+      {
+        "run": 37692529297,
+        "request_bytes": 0,
+        "effective_client_bytes": 1048576,
+        "effective_server_bytes": 1048576,
+        "inherit": true,
+        "limited": false,
+        "artifact_id": 11513509503,
+        "artifact_digest": "sha256:51bc7a81a587f14a68620562e5f6f330532f2aa36e7e452361d3854e9b2690ed",
+        "probes": "60/60",
+        "stress_probe_p99_ms": 612.716705,
+        "goodput_c2s_mbps": 9.9994304,
+        "goodput_s2c_mbps": 9.999464533333333,
+        "socket_drops": 0,
+        "wire_c2s": 3.4871383933333333,
+        "wire_s2c": 3.50431932,
+        "client_rss_hwm_kib": 37304,
+        "server_rss_hwm_kib": 35836,
+        "rmem_alloc_client_peak_bytes": 27264,
+        "rmem_alloc_server_peak_bytes": 33344,
+        "classification": "5xPASS"
+      },
+      {
+        "run": 37692532618,
+        "request_bytes": 524288,
+        "effective_client_bytes": 1048576,
+        "effective_server_bytes": 1048576,
+        "inherit": false,
+        "limited": false,
+        "artifact_id": 11513114457,
+        "artifact_digest": "sha256:0a96a5eb236fe357f850794a18ee1813dd7474855b7b690ca167a9f0d56ae66f",
+        "probes": "60/60",
+        "stress_probe_p99_ms": 614.796337,
+        "goodput_c2s_mbps": 9.9998272,
+        "goodput_s2c_mbps": 10.000046933333333,
+        "socket_drops": 0,
+        "wire_c2s": 3.48598546,
+        "wire_s2c": 3.50253238,
+        "client_rss_hwm_kib": 37724,
+        "server_rss_hwm_kib": 35748,
+        "rmem_alloc_client_peak_bytes": 54400,
+        "rmem_alloc_server_peak_bytes": 49536,
+        "classification": "5xPASS"
+      }
+    ],
+    "inference": "NO EFFECTIVE BUFFER CONTRAST: on these hosted runners 0 and 524288 both yielded 1048576 effective and zero drops. Cannot attribute p99/CPU differences to buffer nor claim physical AF_PACKET drop fix. ARM has lower rmem_max; physical controlled recheck required.",
+    "raw_drop_root_cause": "OPEN_UNPROVEN"
+  },
+  "cross_mtu_sparse_repair": {
+    "old_physical_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+    "physical_old": "M03/1539 UDP8973/IP9001 167/167 eventual but 2 late approximately 1081.6/1125.3ms, 96B 1330/1330 independently, UDP65507 timely, server raw drop0",
+    "os_kernel_fixture": {
+      "run": 37692576217,
+      "state": "PASS",
+      "rounds": 24,
+      "mtu": 9000,
+      "udp8972": "single IPv4 packet",
+      "udp8973": "24/24 [8996,25] IPv4 fragments",
+      "udp65507": "24/24 eight IPv4 fragments",
+      "interleaved_small96": "72/72 one fragment",
+      "udp65508": "EMSGSIZE",
+      "df_exceed": "EMSGSIZE"
+    },
+    "fec_link_fixture": {
+      "test": "TestCrossInnerMTUTinyTailFECRecoveryDoesNotHOLSmallDatagram",
+      "state": "PASS",
+      "reason": "Missing tiny source does not HOL independent 96B systematic, parity recovers tail after flush"
+    },
+    "outer_repair": {
+      "pre_fix_test": "TestSparseLowRTTLossWaitsInitialRTOPreFix",
+      "pre_fix_result": "Clean RTT50ms nevertheless RTO1s; no subsequent SACK; at999ms no retry, 1000ms same-seq identical bytes retry",
+      "candidate_test": "TestSparseLowRTTLossUsesEstablishedMinimumRTO",
+      "candidate_result": "startup1s retained; trusted clean RTT50ms -> established RTO200ms; 199ms no retry, 200ms identical immutable bytes retry",
+      "internal_established_minimum_rto_ms": 200,
+      "initial_rto_ms": 1000,
+      "repair_horizon_ms": 3000,
+      "changed": "only runtimeowner RTO clamp after clean RTT sample",
+      "unchanged": "wire/FEC profiles/systematic deadlines/4096/fresh path/generation/ciphertext repair"
+    },
+    "physical_new_source": "NOT_RUN",
+    "whole_product_sustained_native_max_udp_equivalent_in_actions": "NOT_RUN; staged real kernel, LINK/FEC and transport deterministics are separate, physical full path still required",
+    "original_late_root_cause": "PARTIALLY_IDENTIFIED_NOT_CLOSED; sparse outer timer mechanism proven, not that every physical 8973 late shares it"
+  },
+  "qualification": {
+    "foundation": {
+      "run": 37647915603,
+      "state": "PASS",
+      "includes": "Linux/Windows unit, Linux race, arm64 cross compile, privileged network, repository contract"
+    },
+    "predelivery": {
+      "run": 37692576217,
+      "state": "PASS"
+    },
+    "linux_server": {
+      "run": 37692578878,
+      "state": "PASS"
+    },
+    "lifecycle_36": {
+      "run": 37692581702,
+      "state": "PASS"
+    },
+    "default_network": {
+      "run": 37692584662,
+      "state": "PASS"
+    },
+    "splitroute": {
+      "run": 37692587833,
+      "state": "PASS"
+    },
+    "config": {
+      "run": 37692590054,
+      "state": "PASS"
+    },
+    "performance_one_run_per_sample": true,
+    "samples": [
+      {
+        "run": 37648447701,
+        "name": "Normal formal20 lossless seed1521",
+        "artifact_id": 11495187091,
+        "artifact_digest": "sha256:df4666ebc86782d9b403de1760d7b4f1883f53a067e7369c7dc7774ac20106cc",
+        "classification": "5xPASS",
+        "probe": "60/60",
+        "stress_p99_ms": 601.193228,
+        "goodput_mbps": [
+          10,
+          10
+        ],
+        "socket_drop": 0
+      },
+      {
+        "run": 37649256342,
+        "name": "Normal formal20 5205 seed1521",
+        "artifact_id": 11496266666,
+        "artifact_digest": "sha256:055d0da8b603342e805f833736f9ead66d00ff0099f2c200aafbed00c8f28916",
+        "classification": "5xPASS",
+        "probe": "60/60",
+        "stress_p99_ms": 613.454652,
+        "goodput_mbps": [
+          9.998894933333334,
+          9.999581866666666
+        ],
+        "socket_drop": 0
+      },
+      {
+        "run": 37650050540,
+        "name": "Game4 formal20 lossless seed1479",
+        "artifact_id": 11496447380,
+        "artifact_digest": "sha256:ca628b87d605b480df418b56d38e894d889dca499a8a3479cf5954b38869cfa6",
+        "classification": "5xPASS",
+        "probe": "60/60",
+        "stress_p99_ms": 605.122767,
+        "goodput_mbps": [
+          3,
+          3
+        ],
+        "socket_drop": 0
+      },
+      {
+        "run": 37650792915,
+        "name": "Game4 formal20 5205 seed1479",
+        "artifact_id": 11496248428,
+        "artifact_digest": "sha256:0bdbe0a8c408a4e4c22cadb283d9f7df8691738438215927e3a5e3e402b9370d",
+        "classification": "5xPASS",
+        "probe": "60/60",
+        "stress_p99_ms": 601.148985,
+        "goodput_mbps": [
+          3,
+          3
+        ],
+        "socket_drop": 0
+      },
+      {
+        "run": 37692071383,
+        "name": "Normal FEC20:12 lossless seed1508",
+        "artifact_id": 11513279192,
+        "artifact_digest": "sha256:d527dc84bc3de2e580513a596501779accf0b75617753518221a08ee46cb7434",
+        "classification": "5xPASS",
+        "probe": "60/60",
+        "stress_p99_ms": 602.827481,
+        "goodput_mbps": [
+          9.999776,
+          9.999978666666665
+        ],
+        "socket_drop": 0
+      },
+      {
+        "run": 37692499392,
+        "name": "Normal FEC20:12 5305 seed1508",
+        "artifact_id": 11513199128,
+        "artifact_digest": "sha256:1a35ad10a76b969d295afb4f6e693e317614271e6dc29afc8d71ed4abbc05613",
+        "classification": "5xPASS_SCREEN",
+        "probe": "56/60",
+        "stress_p99_ms": 2178.685393,
+        "goodput_mbps": [
+          9.1735872,
+          9.149937066666666
+        ],
+        "socket_drop": 0
+      }
+    ],
+    "original_r12_reference": {
+      "source": "3d3e24f1271ddf960aa57035a6217476f1826bbc",
+      "run": 37633598715,
+      "probe": "56/60",
+      "stress_p99_ms": 2167.779055,
+      "claim": "multi-second tail UNCHANGED and OPEN"
+    },
+    "ten_ms_readonly_scan": {
+      "run": 37693316733,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "scope": "immutable raw artifact reader only; not a performance run",
+      "scans": [
+        {
+          "case": "normal-lossless",
+          "artifact_id": 11514018157,
+          "zero_buckets": [
+            "0",
+            "0"
+          ],
+          "longest_ms": 0
+        },
+        {
+          "case": "normal-5205",
+          "artifact_id": 11513908644,
+          "zero_buckets": [
+            "0",
+            "0"
+          ],
+          "longest_ms": 0
+        },
+        {
+          "case": "game-lossless",
+          "artifact_id": 11514392180,
+          "zero_buckets": [
+            "1",
+            "0"
+          ],
+          "longest_ms": 10
+        },
+        {
+          "case": "game-5205",
+          "artifact_id": 11513134851,
+          "zero_buckets": [
+            "1",
+            "0"
+          ],
+          "longest_ms": 10
+        }
+      ]
+    },
+    "performance_limits": "All formal20 samples PASS; high RTT 600ms noise and process CPU scatter cannot substantiate intrinsic CPU reduction; raw/request A/B no effective contrast; r12 multi-second tail remains OPEN. No relaxation of gates."
+  },
+  "p6": {
+    "run": 37692691482,
+    "result": "PASS",
+    "scope": "HOSTED_PACKAGE_ONLY",
+    "physical": "NOT_RUN",
+    "release_qualified": "NOT_RUN",
+    "aggregate": {
+      "artifact_id": 11514426279,
+      "digest": "sha256:48a064afeb5cafb9392ff5b45540768676b9b88806f4f23d72cd05aa66bfaf39",
+      "result": "PASS"
+    },
+    "bundles": [
+      {
+        "target": "windows/amd64",
+        "artifact_id": 11514550924,
+        "artifact_digest": "sha256:9a458ce7662cdd7a71e9d60826b8e52375b51268d89a2653408ac662e171bb86",
+        "manifest_sha256": "9bec69d0e233c14b88b6543065db5f19430a546eb52a77bb395b699dfadaf316",
+        "files_checked": 13,
+        "mismatches": 0,
+        "native_check": "PASS"
+      },
+      {
+        "target": "linux/amd64",
+        "artifact_id": 11513738493,
+        "artifact_digest": "sha256:5c9bcb4f94ca44b67fe41487fb09083f3951dd2f9db786339e04832f6b4c3bf4",
+        "manifest_sha256": "92db79db7b42f07ea9188a4ca8a03b07b5185240fed696d7cb83fbc3a0889cd8",
+        "files_checked": 10,
+        "mismatches": 0,
+        "native_check": "PASS"
+      },
+      {
+        "target": "linux/arm64",
+        "artifact_id": 11513604052,
+        "artifact_digest": "sha256:a4465df9432973e8c27cf76e24932577c3f228a5380827eb7c664132aaa9c9b7",
+        "manifest_sha256": "ce6913fe1c6e5a2415eb12a9d50ac6bb56e617c92d29421a97a8c3c115c6396b",
+        "files_checked": 10,
+        "mismatches": 0,
+        "native_check": "NOT_RUN_HOSTED_CROSS_BUILD"
+      }
+    ],
+    "file_hash_recheck": "PASS_0_MISMATCH",
+    "artifact_base_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692691482"
+  },
+  "retained_open": [
+    "Server AF_PACKET drop under native sustained Normal/Game: root cause unproven; buffer may help under lower ARM rmem_max but not confirmed.",
+    "Two native cross-MTU UDP8973 late >1s: post-fix native outcome NOT_RUN; layered deterministic evidence does not prove all late causes.",
+    "Normal 20:12/5305 seed1508 multi-second probe p99 remains around 2.18s, 56/60 despite socket drops0.",
+    "Previous 11 paired RTT FAIL remain open; S01/S16/M03 native gaps, full70/final18/1800s and other STATUS NOT_RUN retained.",
+    "Physical Windows→Linux ARM new-source validation NOT_RUN; no release-qualification claim."
+  ],
+  "interpretation": "Candidate narrow timer fix + observable per-socket raw buffer configuration Actions qualified; ACTIONS_READY_FOR_PHYSICAL, not physical PASS. Do not claim resolved native queue drops or all large datagram late events."
+}

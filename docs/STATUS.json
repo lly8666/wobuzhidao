@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T23:58:00+08:00",
+  "updated_at": "2026-10-07T22:06:21.942Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,7 +80,8 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过",
     "36独立FECscreen全部收齐：12无损业务/probe零loss，36input/capture/integrity/environment与profile实效PASS、socketdrop0；32分析PASS/31workflowSUCCESS，133/144RTT PASS、11FAIL保留。FEC恢复吞吐趋势与分片理论参考吻合，仅冻结FEC实现，不关闭低档位尾延迟/完整产品资格。",
     "FEC off批量路径误判仅测试修正：harness48d9cf2 preflight37575761975含7profile+4raw检查PASS，exactd6独立Normal10 lossless37575781199 PASS/双向约10M、全业务probe零loss、p99最高601.246ms、rawdrop0。36原run与11RTT失败不改；FEC实现冻结，尾延迟性能资格仍开放。",
-    "Lane方向锁 exact-source scoped Actions qualification + Game4 protection + same-source P6 hosted packages PASS; ACTIONS_READY_FOR_PHYSICAL (physical NOT_RUN, 284ms root OPEN)"
+    "Lane方向锁 exact-source scoped Actions qualification + Game4 protection + same-source P6 hosted packages PASS; ACTIONS_READY_FOR_PHYSICAL (physical NOT_RUN, 284ms root OPEN)",
+    "SOURCE c853935e5356a9bc99d380befb5a8ac8e0c08d97 Linux raw SO_RCVBUF configuration + established clean-RTT 200ms RTO candidate: scoped Actions Normal/Game/r12(core/race/lifecycle/network), raw A/B, 10ms HOL scan and P6 3 targets PASS; ACTIONS_READY_FOR_PHYSICAL only"
   ],
   "in_progress": [
     "Nativeclient ACK/nativewrite vsdecode latency boundary diagnosis",
@@ -90,9 +91,9 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Re-run exact-source Foundation after adding the missing test-only errors import. Keep prior fix-candidate network/lifecycle/predelivery runs as PASS evidence; no performance runs until Foundation is green. Then dispatch six independent strict samples and the raw-recv-buffer same-source A/B.",
-  "latest_log": "docs/devlog/20261007-235800-established-rto-test-import.md",
-  "last_tested_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+  "next_task": "Original chat: physical Windows→Linux ARM acceptance for fixed SOURCE c853935e5356a9bc99d380befb5a8ac8e0c08d97 from qualification/raw-rto-physical-20261008 using three exact P6 artifacts in docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json. Run controlled raw-recv-buffer=0 vs 524288 with real ARM effective/limited/drops and queue+CPU/PSI time-aligned; normal/game throughput+p99+rotation; sustained native inner MTU9000 UDP8972/8973/65507, illegal65508/DF with interleaved 96B and per-datagram first/complete time; DNS split/IPv6/idle/keepalive. Keep r12 5305 ~2179ms p99, native drop root cause, old 11 RTT FAIL/S01/S16/M03/full70/final18/1800s and all other NOT_RUN OPEN. No physical PASS or release qualified claim.",
+  "latest_log": "docs/devlog/20261008-060500-raw-rcvbuf-rto-actions-handoff.md",
+  "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -2804,6 +2805,142 @@
       "scope": "lane-duplex exact-source P6 linux-amd64/linux-arm64/windows-amd64 + aggregate",
       "status": "PASS_HOSTED_PHYSICAL_NOT_RUN",
       "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37647915603",
+      "scope": "new raw+rto fixed source foundation Windows/Linux unit+race/arm64/privileged",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692576217",
+      "scope": "real Linux MTU9000 kernel fragment fixture",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692578878",
+      "scope": "Linux server AF_PACKET configured receive buffer/filter",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692581702",
+      "scope": "36-entry lifecycle fullstack",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692584662",
+      "scope": "default network regression",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692587833",
+      "scope": "split routing regression",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692590054",
+      "scope": "configuration effective",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37648447701",
+      "scope": "formal20 normal lossless",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37649256342",
+      "scope": "formal20 normal5205",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37650050540",
+      "scope": "formal20 Game4 lossless",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37650792915",
+      "scope": "formal20 Game4 5205",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692071383",
+      "scope": "r12 normal lossless",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692499392",
+      "scope": "r12 normal5305 with retained ~2.18s probe tail",
+      "status": "PASS_SCREEN_OPEN_TAIL",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692529297",
+      "scope": "raw buffer A request0 inherited effective1MiB",
+      "status": "PASS_NO_BUFFER_CONTRAST",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692532618",
+      "scope": "raw buffer B request524288 effective1MiB",
+      "status": "PASS_NO_BUFFER_CONTRAST",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37693316733",
+      "scope": "read-only 10ms immutable delivery hole scan",
+      "status": "PASS",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
+    },
+    {
+      "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37692691482",
+      "scope": "same-source 3-target P6 package/aggregate; physical not run",
+      "status": "PASS_HOSTED_PHYSICAL_NOT_RUN",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
+      "note": "Scoped Actions only. Native queue drop, original 8973 late and r12 multisecond probe tail remain OPEN."
     }
   ],
   "physical_status": "PARTIAL",
@@ -2821,7 +2958,10 @@
     "CPU为当前runner进程CPU-time/时长、heap不是RSS；跨VM不声称固定CPU收益。Game所有副本/FEC开销按原始逻辑业务计，不能稀释放大。",
     "旧b1阶段平均PASS但逐秒约61%loss/内部queue20012，以及50/48/a86失败原始run与日志保留；最新PASS不擦除历史。",
     "IPv4地址分流不含域名/IPv6直连。Windows显式dns4仍隧道优先；大FIB真实安装/退出成本未物理验。Game本次CPU105.37/98.92s高于旧67.84/62.89，独立VM单样本不能归因，不能声称CPU无退化。",
-    "3a594a3 Lane方向锁候选仅达到ACTIONS_READY_FOR_PHYSICAL：Normal/Game scoped Actions和同源P6通过；历史284ms客户端停顿根因仍OPEN，r12/5305仍见约2.168s stress probe p99；物理Windows→Linux ARM、旧11 RTT FAIL、S01/S16/M03、full70/final18/1800s及其他NOT_RUN未被关闭。"
+    "3a594a3 Lane方向锁候选仅达到ACTIONS_READY_FOR_PHYSICAL：Normal/Game scoped Actions和同源P6通过；历史284ms客户端停顿根因仍OPEN，r12/5305仍见约2.168s stress probe p99；物理Windows→Linux ARM、旧11 RTT FAIL、S01/S16/M03、full70/final18/1800s及其他NOT_RUN未被关闭。",
+    "Current candidate c853935e5356a9bc99d380befb5a8ac8e0c08d97 physical Windows→Linux ARM NOT_RUN; default raw SO_RCVBUF 524288 on ARM limited rmem_max may not achieve 1MiB; hosted raw A/B both actual 1MiB and 0 drop so native drop causal effect unproven.",
+    "Current candidate c853935e5356a9bc99d380befb5a8ac8e0c08d97 r12 Normal20:12/5305 seed1508 stress p99 2178.685ms /56 of60 probes, socket drop0; multi-second tail remains OPEN. Native UDP8973 crossMTU occasional >1s has no post-fix physical evidence.",
+    "Historical 11 paired RTT FAIL, native S01/S16/M03, full70/final18/1800s and all other NOT_RUN remain open despite current scoped Actions PASS."
   ],
   "required_read_set": [
     "AGENTS.md",
@@ -10502,17 +10642,17 @@
   },
   "development_handoff": {
     "state": "ACTIONS_READY_FOR_PHYSICAL",
-    "developer": "WBD lane-duplex Actions qualification complete; no further product-source edits in this handoff",
+    "developer": "WBD raw buffer + established RTT RTO scoped Actions qualification complete; no additional product edits until physical evidence",
     "physical_acceptance_owner": "original chat",
     "priority": "real business first arrival efficiency > latency/p99/noHOL and low resource cost > appearance > additional security; original hard requirements unchanged",
-    "original_chat_code_edits": "PHYSICAL_ACCEPTANCE_ONLY unless a new development handoff is explicitly opened",
-    "latest_log": "docs/devlog/20261007-195131-lane-duplex-native-idle-mtu.md",
+    "original_chat_code_edits": "PHYSICAL_ACCEPTANCE_ONLY unless new development handoff explicitly starts",
+    "latest_log": "docs/devlog/20261008-060500-raw-rcvbuf-rto-actions-handoff.md",
     "thread_id": "01a115bd-4de6-7d32-a779-ad7302f0b002",
     "host_id": "local",
-    "handoff_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+    "handoff_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
     "progress_authority": "GitHub existing STATUS/devlog/evidence only; no second handoff system",
-    "qualification_ref": "qualification/lane-duplex-20261007",
-    "evidence": "docs/evidence/lane-duplex-3a594a3-qualification-20261007.json",
+    "qualification_ref": "qualification/raw-rto-physical-20261008",
+    "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json",
     "repository_contract_repair": {
       "state": "PASS",
       "failed_docs_head": "0a9c2bf146667e4b090ac91efad825b7c1e98045",
@@ -10532,7 +10672,8 @@
         37607323442
       ]
     },
-    "physical_acceptance": "IN_PROGRESS"
+    "physical_acceptance": "NOT_RUN_NEW_SOURCE",
+    "fixed_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97"
   },
   "physical_lane_duplex": {
     "state": "IN_PROGRESS",
@@ -10562,50 +10703,42 @@
     "raw_socket_buffer_changed": false
   },
   "linux_raw_receive_buffer": {
-    "state": "ACTIONS_DEFAULT_PATH_PASS_AB_PENDING_PHYSICAL_PENDING",
+    "state": "ACTIONS_READY_FOR_PHYSICAL_NATIVE_DROP_OPEN",
     "source_ref": "qualification/raw-rcvbuf-20261007",
     "base_source": "92f18755791108d9bc2d54b00bc97da50b17c9eb",
     "product_parent": "3a594a34191159bd7224f35ba9117cdf6f239c69",
     "parameter": "raw-recv-buffer",
-    "semantics": "Linux AF_PACKET SO_RCVBUF request bytes; default 524288; 0 inherit; getsockopt readback authoritative; Linux may double and rmem_max may cap",
+    "semantics": "Linux AF_PACKET receive SO_RCVBUF request bytes; 0 inherit; getsockopt effective is authoritative; limited=true if actual below Linux doubled request; no sysctl/SO_RCVBUFFORCE; restart for change",
     "global_sysctl_changed": false,
     "so_rcvbufforce": false,
     "arm_rmem_observation": "Physical 3a host had rmem_default/rmem_max=212992 and rb212992. With product default request524288, an unchanged low system cap is expected to report limited=true rather than guarantee 1MiB.",
-    "kernel_filter": "Existing destination-IP/listen-port classic BPF is preserved; no duplicate filtering feature.",
+    "kernel_filter": "EXISTING_BPF_PRESERVED",
     "actions": {
-      "foundation": {
-        "run": 37632989732,
-        "conclusion": "success"
-      },
-      "linux_server": {
-        "run": 37632993604,
-        "conclusion": "success"
-      },
-      "performance_runs": [
-        37633582798,
-        37633586379,
-        37633589774,
-        37633592606,
-        37633595493,
-        37633598715
+      "foundation": 37647915603,
+      "linux_server": 37692578878,
+      "ab_harness_sha": "6bfa251ed24151a7a3401f6eb40314026280e46f",
+      "ab_source_sha": "3d3e24f1271ddf960aa57035a6217476f1826bbc",
+      "ab_runs": [
+        37692529297,
+        37692532618
       ],
-      "default_request_bytes": 524288,
-      "observed_effective_bytes": 1048576,
-      "observed_limited": false,
-      "observed_socket_link_drop_max": 0,
-      "note": "All six independent default-path samples/workflows succeeded. This is not the requested same-source 0-vs-512KiB A/B yet; Actions host capacity and ARM physical rmem_max differ."
+      "ab_result": "5xPASS both but NO EFFECTIVE BUFFER CONTRAST: requested 0 vs524288, both actual 1048576, socket drops0; cannot claim raw drop fix",
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json"
     },
     "physical": "NOT_RUN_NEW_SOURCE",
-    "latest_log": "docs/devlog/20261007-215500-linux-raw-rcvbuf-candidate.md"
+    "latest_log": "docs/devlog/20261008-060500-raw-rcvbuf-rto-actions-handoff.md",
+    "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "default_request_bytes": 524288,
+    "raw_drop_root_cause": "OPEN"
   },
   "large_datagram_late": {
-    "state": "RTO_FLOOR_FIX_TEST_IMPORT_RETRY",
+    "state": "ACTIONS_READY_FOR_PHYSICAL_NATIVE_LATE_OPEN",
     "physical_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
     "evidence": "docs/evidence/lane-duplex-3a594a3-physical-20261007.json",
     "observation": "M03 seed1539 UDP8973/IP9001 DF=false 167/167 eventual, 2 late ~1081.6/1125.3ms; 96B 1330/1330 p99~116.9ms max~212.3; UDP65507 timely; server rawdrop0.",
     "current_hypothesis": "Causal chain supported pre-fix: real Linux MTU9000 always splits UDP8973/IP9001 DF=false into [8996,25]; LINK/FEC deterministic test proves missing tiny-tail source does not HOL an independent96B systematic and parity can recover it by the owner tick; outer transport deterministic test proves a clean50ms RTT still had RTO=1s and a sparse loss with no later SACK repaired only at1s. Product fix separates startup InitialRTO=1s from established estimator floor=200ms.",
     "linked_actions_tail": "Normal 20:12 5305 seed1508 run37602563270 p99~2168ms socket/link drop0 remains independently OPEN; do not merge causes without evidence.",
-    "fix": "CANDIDATE: keep startup RTO1s and horizon3s; after clean RTT samples clamp SRTT+4*RTTVAR at internal200ms minimum instead of InitialRTO. No CLI, FEC,4096,delivery-order or ciphertext retransmission change.",
+    "fix": "InitialRTO startup1s retained; clean RTT established uses internal MinimumRTO200ms; 3s horizon and all immutable wire/no-HOL/FEC/generation invariants unchanged",
     "actions": {
       "prior_same_source_default_buffer_r12_5305": {
         "run": 37633598715,
@@ -10657,8 +10790,30 @@
           "config": 37640184016
         },
         "product_runtime_failure_observed": false
-      }
+      },
+      "final_foundation": 37647915603,
+      "final_kernel_fixture": 37692576217,
+      "final_lifecycle": 37692581702,
+      "final_normal_runs": [
+        37648447701,
+        37649256342
+      ],
+      "final_game_runs": [
+        37650050540,
+        37650792915
+      ],
+      "final_r12_runs": [
+        37692071383,
+        37692499392
+      ],
+      "final_10ms_scan": 37693316733,
+      "p6": 37692691482,
+      "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json"
     },
-    "latest_log": "docs/devlog/20261007-235800-established-rto-test-import.md"
+    "latest_log": "docs/devlog/20261008-060500-raw-rcvbuf-rto-actions-handoff.md",
+    "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "root_cause": "PARTIAL: sparse clean-RTT repair 1s floor proven & reduced to 200ms; full native late source may involve other boundaries, NOT_RUN post-fix",
+    "historical_r12_tail": "OPEN; 20:12 5305 seed1508 run37692499392 56/60 probes p99 2178.685ms vs pre-run37633598715 56/60 p99 2167.779ms",
+    "physical": "NOT_RUN_NEW_SOURCE"
   }
 }
