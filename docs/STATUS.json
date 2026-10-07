@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T17:45:30.387131+08:00",
+  "updated_at": "2026-10-07T18:19:00+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -79,7 +79,8 @@
     "6181db6原生Windows CLI/Npcap/Wintun→ARM WAN：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0，受控DNS/TCP/验证HTTPS及owned退出清理；失败/压力样本保留，P7仅PARTIAL",
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过",
     "36独立FECscreen全部收齐：12无损业务/probe零loss，36input/capture/integrity/environment与profile实效PASS、socketdrop0；32分析PASS/31workflowSUCCESS，133/144RTT PASS、11FAIL保留。FEC恢复吞吐趋势与分片理论参考吻合，仅冻结FEC实现，不关闭低档位尾延迟/完整产品资格。",
-    "FEC off批量路径误判仅测试修正：harness48d9cf2 preflight37575761975含7profile+4raw检查PASS，exactd6独立Normal10 lossless37575781199 PASS/双向约10M、全业务probe零loss、p99最高601.246ms、rawdrop0。36原run与11RTT失败不改；FEC实现冻结，尾延迟性能资格仍开放。"
+    "FEC off批量路径误判仅测试修正：harness48d9cf2 preflight37575761975含7profile+4raw检查PASS，exactd6独立Normal10 lossless37575781199 PASS/双向约10M、全业务probe零loss、p99最高601.246ms、rawdrop0。36原run与11RTT失败不改；FEC实现冻结，尾延迟性能资格仍开放。",
+    "Lane方向锁 exact-source scoped Actions qualification + Game4 protection + same-source P6 hosted packages PASS; ACTIONS_READY_FOR_PHYSICAL (physical NOT_RUN, 284ms root OPEN)"
   ],
   "in_progress": [
     "Nativeclient ACK/nativewrite vsdecode latency boundary diagnosis",
@@ -87,9 +88,9 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Collect exact3a594a3 fullstack/network/deployment and independentprofile+r12lossless/5305+r20Normal lossless/5205. Verify raw summaries,coverage/RTT/continuity/drop/resources; then Game4 3Mlossless/5205/5305. Root284msOPEN; only retain lock split on evidence, then same-sourceP6. All priorFAIL/full70/final18/1800s/native gaps retained.",
-  "latest_log": "docs/devlog/20261007-174500-lane-duplex-actions-progress.md",
-  "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+  "next_task": "Original chat physical acceptance only: verify fixed SOURCE 3a594a34191159bd7224f35ba9117cdf6f239c69 from qualification/lane-duplex-20261007 using the exact P6 linux/amd64, linux/arm64 and windows/amd64 artifacts recorded in latest evidence. Prioritize real business first-arrival/p99/no-HOL under weaknet plus rotation, payload-idle vs keepalive, DNS mutual fallback, split routing, IPv6 and >MTU packets. Do not treat Actions PASS as physical PASS. Historical 11 paired RTT FAIL, native S01/S16/M03, full70/final18/1800s and other NOT_RUN remain open.",
+  "latest_log": "docs/devlog/20261007-181900-lane-duplex-actions-ready.md",
+  "last_tested_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -2696,6 +2697,111 @@
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37485745445",
       "scope": "native-ACK independent game-lossless seed1484",
       "status": "PASS"
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602535872",
+      "scope": "lane-duplex lifecycle-fullstack exact-source",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602539898",
+      "scope": "lane-duplex default-network exact-source",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602544149",
+      "scope": "lane-duplex splitroute exact-source",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602548438",
+      "scope": "lane-duplex config-effective exact-source",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602552100",
+      "scope": "lane-duplex linux-server exact-source",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602556519",
+      "scope": "lane-duplex diagnostic r12 normal5305 seed1508 profile",
+      "status": "PASS_DIAGNOSTIC",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602559653",
+      "scope": "lane-duplex r12 normal lossless seed1508",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602563270",
+      "scope": "lane-duplex r12 normal5305 seed1508; long probe tail retained",
+      "status": "PASS_WITH_OPEN_TAIL",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602567530",
+      "scope": "lane-duplex formal20 normal lossless seed1521",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602571402",
+      "scope": "lane-duplex formal20 normal5205 seed1521",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37605009121",
+      "scope": "lane-duplex formal20 game4 lossless seed1479",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37605011893",
+      "scope": "lane-duplex formal20 game4 5205 seed1479",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37605015130",
+      "scope": "lane-duplex formal20 game4 lossless seed1484",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37605017713",
+      "scope": "lane-duplex formal20 game4 5305 seed1484",
+      "status": "PASS",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
+    },
+    {
+      "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37606109601",
+      "scope": "lane-duplex exact-source P6 linux-amd64/linux-arm64/windows-amd64 + aggregate",
+      "status": "PASS_HOSTED_PHYSICAL_NOT_RUN",
+      "note": "Scoped candidate qualification only; historical/native/physical/full-matrix open items remain."
     }
   ],
   "physical_status": "PARTIAL",
@@ -2712,7 +2818,8 @@
     "默认FEC off、startup padding false、idle-dormant0、rotate-min/max0/0；health缺失不是业务空闲，服务端休眠仍等当前权威lanes的client PeerFIN。server CLI静态身份/lease，无账户管理GUI。",
     "CPU为当前runner进程CPU-time/时长、heap不是RSS；跨VM不声称固定CPU收益。Game所有副本/FEC开销按原始逻辑业务计，不能稀释放大。",
     "旧b1阶段平均PASS但逐秒约61%loss/内部queue20012，以及50/48/a86失败原始run与日志保留；最新PASS不擦除历史。",
-    "IPv4地址分流不含域名/IPv6直连。Windows显式dns4仍隧道优先；大FIB真实安装/退出成本未物理验。Game本次CPU105.37/98.92s高于旧67.84/62.89，独立VM单样本不能归因，不能声称CPU无退化。"
+    "IPv4地址分流不含域名/IPv6直连。Windows显式dns4仍隧道优先；大FIB真实安装/退出成本未物理验。Game本次CPU105.37/98.92s高于旧67.84/62.89，独立VM单样本不能归因，不能声称CPU无退化。",
+    "3a594a3 Lane方向锁候选仅达到ACTIONS_READY_FOR_PHYSICAL：Normal/Game scoped Actions和同源P6通过；历史284ms客户端停顿根因仍OPEN，r12/5305仍见约2.168s stress probe p99；物理Windows→Linux ARM、旧11 RTT FAIL、S01/S16/M03、full70/final18/1800s及其他NOT_RUN未被关闭。"
   ],
   "required_read_set": [
     "AGENTS.md",
@@ -7866,7 +7973,7 @@
         "c2s_packet_loss": 74,
         "c2s_packet_loss_percent": 0.01277143616525548,
         "c2s_byte_loss_percent": 0.015672606388575913,
-        "s2c_byte_loss_percent": 0.0,
+        "s2c_byte_loss_percent": 0,
         "bad_payload_client": 0,
         "bad_payload_target": 0,
         "probe_sent": 2972,
@@ -7900,7 +8007,7 @@
         "c2s_packet_loss": 10,
         "c2s_packet_loss_percent": 0.005752879316097707,
         "c2s_byte_loss_percent": 0.0067449107124222165,
-        "s2c_byte_loss_percent": 0.0,
+        "s2c_byte_loss_percent": 0,
         "bad_payload_client": 0,
         "bad_payload_target": 0,
         "probe_sent": 2980,
@@ -9928,8 +10035,8 @@
                 "1": 4
               },
               "heap_peak": 28352512,
-              "early_heap_median": 18001920.0,
-              "late_heap_median": 18276352.0,
+              "early_heap_median": 18001920,
+              "late_heap_median": 18276352,
               "internal_queue_drops": {
                 "maxima": {
                   "segment_mux": 0
@@ -9945,8 +10052,8 @@
                 "1": 4
               },
               "heap_peak": 28721152,
-              "early_heap_median": 18776064.0,
-              "late_heap_median": 19189760.0,
+              "early_heap_median": 18776064,
+              "late_heap_median": 19189760,
               "internal_queue_drops": {
                 "maxima": {
                   "server_pipeline": 0
@@ -9986,8 +10093,8 @@
                 "4": 4
               },
               "heap_peak": 63143936,
-              "early_heap_median": 47423488.0,
-              "late_heap_median": 49086464.0,
+              "early_heap_median": 47423488,
+              "late_heap_median": 49086464,
               "internal_queue_drops": {
                 "maxima": {
                   "segment_mux": 0
@@ -10009,8 +10116,8 @@
                 "4": 4
               },
               "heap_peak": 60669952,
-              "early_heap_median": 45711360.0,
-              "late_heap_median": 48422912.0,
+              "early_heap_median": 45711360,
+              "late_heap_median": 48422912,
               "internal_queue_drops": {
                 "maxima": {
                   "server_pipeline": 0
@@ -10373,7 +10480,7 @@
     "actions": "docs/evidence/client-stage-6e7638a-actions-20261007.json"
   },
   "client_lane_duplex_lock": {
-    "state": "CORE_PASS_PERFORMANCE_PENDING",
+    "state": "ACTIONS_READY_FOR_PHYSICAL",
     "source_ref": "qualification/lane-duplex-20261007",
     "source_parent": "6e7638abf7b8bea1d6877c239bcaf3cea465ecae",
     "files": [
@@ -10382,22 +10489,27 @@
       "internal/datapath/handoff.go",
       "internal/datapath/lane_direction_lock_test.go"
     ],
-    "tests": "Foundation7 active jobs PASS: Linux/Windows unit/build, Linux race/fuzz, arm64 compile and privileged network; datapath includes new3 concurrent tests.7 automatic workflows SUCCESS; fullstack/network/deployment and5 independentNormal samples pending.",
-    "root_cause": "OPEN; cumulative contention motivates isolation, no proof of 284ms cause",
-    "latest_log": "docs/devlog/20261007-174500-lane-duplex-actions-progress.md",
+    "tests": "Scoped exact-source Actions PASS: foundation Windows/Linux unit+build, Linux race/fuzz, arm64 cross-build and privileged network; lifecycle-fullstack/default-network/splitroute/config/linux-server; Normal r12 profile+lossless+5305 and formal20 lossless+5205; Game4 formal20 lossless/5205/5305 with 10ms raw-bucket scan; exact-source P6 3 targets + aggregate.",
+    "root_cause": "OPEN; candidate materially reduces measured Lane contention/route backlog, but historical ~284ms pause was not reproduced in parent or candidate diagnostic. Ordinary r12/5305 still has ~2168ms stress probe p99, similar to parent ~2178ms.",
+    "latest_log": "docs/devlog/20261007-181900-lane-duplex-actions-ready.md",
     "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
-    "actions_evidence": "docs/evidence/lane-duplex-3a594a3-actions-20261007.json"
+    "actions_evidence": "docs/evidence/lane-duplex-3a594a3-qualification-20261007.json",
+    "result": "RETAIN_DIRECTION_LOCK",
+    "p6_run": 37606109601,
+    "physical": "NOT_RUN"
   },
   "development_handoff": {
-    "state": "FRESH_THREAD_DEVELOPMENT_ACTIVE",
-    "developer": "WBD 双向锁优化与 Actions 验收",
-    "physical_acceptance_owner": "original chat after verified same-source Actions and packages",
+    "state": "ACTIONS_READY_FOR_PHYSICAL",
+    "developer": "WBD lane-duplex Actions qualification complete; no further product-source edits in this handoff",
+    "physical_acceptance_owner": "original chat",
     "priority": "real business first arrival efficiency > latency/p99/noHOL and low resource cost > appearance > additional security; original hard requirements unchanged",
-    "original_chat_code_edits": "STOP_AFTER_HANDOFF",
-    "latest_log": "docs/devlog/20261007-173937-client-duplex-candidate-handoff.md",
+    "original_chat_code_edits": "PHYSICAL_ACCEPTANCE_ONLY unless a new development handoff is explicitly opened",
+    "latest_log": "docs/devlog/20261007-181900-lane-duplex-actions-ready.md",
     "thread_id": "01a115bd-4de6-7d32-a779-ad7302f0b002",
     "host_id": "local",
     "handoff_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
-    "progress_authority": "GitHub existing STATUS/devlog/evidence only; no second handoff system"
+    "progress_authority": "GitHub existing STATUS/devlog/evidence only; no second handoff system",
+    "qualification_ref": "qualification/lane-duplex-20261007",
+    "evidence": "docs/evidence/lane-duplex-3a594a3-qualification-20261007.json"
   }
 }
