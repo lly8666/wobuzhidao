@@ -1,0 +1,35 @@
+name: lane-duplex-game-dispatch
+run-name: lane-duplex-game-dispatch
+
+on:
+  push:
+    branches:
+      - qualification/lane-duplex-controller-20261007
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch four independent Game4 qualification samples
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_SHA: 3a594a34191159bd7224f35ba9117cdf6f239c69
+          QUAL_REF: qualification/lane-duplex-20261007
+        shell: bash
+        run: |
+          set -euo pipefail
+          dispatch() {
+            local scenario="$1" seed="$2"
+            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/dispatches" --input - <<JSON
+          {"ref":"$QUAL_REF","inputs":{"qualification_kind":"formal20","fec_parity":"20","mode":"game","scenario":"$scenario","seed":"$seed","rate_mbps":"3","lanes":"4","cpu_profile":"false","stateful_middlebox":"false","wan_neighbors":"dynamic","product_source_sha":"$SOURCE_SHA"}}
+          JSON
+          }
+          dispatch lossless 1479
+          dispatch 5205 1479
+          dispatch lossless 1484
+          dispatch 5305 1484
