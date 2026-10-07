@@ -46,6 +46,8 @@ func (o *TunnelOwner) HealthRecord(ref logicaltunnel.LaneRef, idle time.Duration
 	payload[0] = 1
 	binary.BigEndian.PutUint64(payload[1:], uint64(idle/time.Millisecond))
 	lane := binding.lane
+	// Health shares the TX sealer and PN space with business records. It must
+	// serialize with TX only, never with unrelated RX reconstruction.
 	lane.mu.Lock()
 	defer lane.mu.Unlock()
 	if lane.closed {

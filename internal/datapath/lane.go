@@ -120,7 +120,11 @@ type LaneStats struct {
 }
 
 type Lane struct {
-	mu sync.Mutex
+	// mu owns TX: encoder/sealer/PN and outbound/padding counters. RX never
+	// waits on an unrelated TX encode/seal operation; rxMu owns decoder,
+	// recovery/reassembly and inbound/expiry counters.
+	mu   sync.Mutex
+	rxMu sync.Mutex
 
 	cfg      LaneConfig
 	txBudget pathmtu.Budget
@@ -133,7 +137,10 @@ type Lane struct {
 
 	stats         LaneStats
 	timingEnabled atomic.Bool
-	closed        bool
+	// closed is read under either direction's lock and written only while
+	// holding both. Stats and Close always acquire mu before rxMu; ordinary
+	// operations acquire one direction only. Configuration/budgets are immutable.
+	closed bool
 }
 
 func NewLane(cfg LaneConfig) (*Lane, error) {
@@ -475,9 +482,9 @@ func (l *Lane) InboundPayload(payload []byte, now time.Time) (InboundResult, err
 	if observeTiming {
 		waitStarted = time.Now()
 	}
-	l.mu.Lock()
+	l.rxMu.Lock()
 	if l.closed {
-		l.mu.Unlock()
+		l.rxMu.Unlock()
 		return InboundResult{}, ErrLaneClosed
 	}
 	var decodeStarted time.Time
@@ -500,7 +507,7 @@ func (l *Lane) InboundPayload(payload []byte, now time.Time) (InboundResult, err
 			l.stats.InboundDecodeMaxNS = uint64(elapsed)
 		}
 	}
-	l.mu.Unlock()
+	l.rxMu.Unlock()
 	return out, nil
 }
 
@@ -548,9 +555,9 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
 // runs after traffic stops; it does not generate traffic or wait for work.
 func (l *Lane) Expire(now time.Time) error {
 	observeTiming := l.timingEnabled.Load()
-	l.mu.Lock()
+	l.rxMu.Lock()
 	if l.closed {
-		l.mu.Unlock()
+		l.rxMu.Unlock()
 		return ErrLaneClosed
 	}
 	var started time.Time
@@ -567,7 +574,7 @@ func (l *Lane) Expire(now time.Time) error {
 			l.stats.ExpireMaxNS = uint64(elapsed)
 		}
 	}
-	l.mu.Unlock()
+	l.rxMu.Unlock()
 	return nil
 }
 
@@ -583,6 +590,8 @@ func (l *Lane) SetTimingDiagnostics(enabled bool) {
 func (l *Lane) Stats() LaneStats {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	l.rxMu.Lock()
+	defer l.rxMu.Unlock()
 	out := l.stats
 	out.Closed = l.closed
 	if l.decoder != nil {
@@ -602,6 +611,8 @@ func (l *Lane) Stats() LaneStats {
 func (l *Lane) Close() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	l.rxMu.Lock()
+	defer l.rxMu.Unlock()
 	if l.closed {
 		return
 	}

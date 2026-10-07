@@ -212,8 +212,8 @@ func ServerLaneConfigFromAdmission(session *realityfront.ServerAdmissionSession,
 // DetachTransition. Seq is intentionally not turned into record ordering;
 // tlsrecord PN and FEC/LINK identities remain independent.
 func (l *Lane) InboundTransition(packets []faketcp.TransitionPacket, now time.Time) (InboundResult, error) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+	l.rxMu.Lock()
+	defer l.rxMu.Unlock()
 	if l.closed {
 		return InboundResult{}, ErrLaneClosed
 	}

@@ -68,3 +68,5 @@ openwrtclient/managed_linux.go仅封装正式Linux客户端启动/退出的names
 2026-10-06 Windows ACK解耦候选：runtimeowner/ack_feedback.go每transport/ref独立lazy worker+一个latest待发位，无包历史/无限goroutine；ack.go原2records/2ms选择后提交最新反馈，successful data piggyback有界取消；runtime.go hasFIN强制同步，RST/close清待发不join堵住native的worker。recovery.go错误出口复用；runtimeentry client internal flag按每新ref继承，Windows入口默认true、Linux/server默认false，无新CLI/wire。perf_diag.go保留enqueue与worker实际emit分别计时，默认off。Actions race10和生命周期/独立性能验证以STATUS为准。
 
 2026-10-07 默认关闭的Linux客户端阶段诊断：`cmd/wbd-client/main_linux.go`复用qualificationdiag内部开关，`runtimeentry/client_pipeline_timing.go`为有界客户端消费/tick计数，`faketcp/raw_write_timing_linux.go`拆分raw发送锁与syscall。`runtimeowner/runtime.go`补早返回timing盲点。协议/队列/锁范围不变；严格性能Action一条，profile仅诊断。
+
+2026-10-07 Lane双向锁待验候选：lane.go TX mu管FEC编码/sealer/PN/outbound及padding；rxMu管解码/reassembly/Expire/InboundTransition。Stats/Close仅双锁路径，顺序TX→RX，closed写持双锁。health.go保持TX序号空间，handoff.go只切RX互斥。三个定向并发测试在lane_direction_lock_test.go，尚需本SOURCE Actions/race/性能证明，不继承6e诊断门。

@@ -1,0 +1,247 @@
+{
+  "run": 37580826640,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37580826640",
+  "source": "6e7638abf7b8bea1d6877c239bcaf3cea465ecae",
+  "workflow": "success",
+  "diagnostic_only": true,
+  "enabled": {
+    "pipeline": true,
+    "raw_write": true,
+    "lane": true,
+    "transport": true,
+    "feedback": true
+  },
+  "screen_status": "PASS_SCREEN",
+  "classifications": {
+    "CAPTURE": "PASS",
+    "CORRECTNESS": "PASS",
+    "ENVIRONMENT": "PASS",
+    "INPUT_VALIDITY": "PASS",
+    "PERFORMANCE": "PASS"
+  },
+  "latency": {
+    "c2s_qdisc_delay_p50_ns": 300042000,
+    "c2s_qdisc_delay_p95_ns": 300126000,
+    "probe_loss_percent": 3.3333333333333335,
+    "probe_stage": {
+      "post": {
+        "p95_ns": 603524645,
+        "p99_ns": 606156142,
+        "received": 30,
+        "sent": 30
+      },
+      "pre": {
+        "p95_ns": 606693001,
+        "p99_ns": 607444221,
+        "received": 30,
+        "sent": 30
+      },
+      "stress": {
+        "p95_ns": 610577858,
+        "p99_ns": 1148763631,
+        "received": 56,
+        "sent": 60
+      }
+    },
+    "queue_pre_p95_ns": 3289824763,
+    "s2c_qdisc_delay_p50_ns": 300042000,
+    "s2c_qdisc_delay_p95_ns": 300127000
+  },
+  "client_pipeline": {
+    "enabled": true,
+    "process": {
+      "samples": 1003956,
+      "total_ns": 47085111584,
+      "max_ns": 3206252,
+      "over_50us": 266187,
+      "over_1ms": 1803,
+      "over_10ms": 0
+    },
+    "state_lock_wait": {
+      "samples": 1003956,
+      "total_ns": 57766646,
+      "max_ns": 990118,
+      "over_50us": 79,
+      "over_1ms": 0,
+      "over_10ms": 0
+    },
+    "handler": {
+      "samples": 1003956,
+      "total_ns": 46931818040,
+      "max_ns": 3206122,
+      "over_50us": 265035,
+      "over_1ms": 1798,
+      "over_10ms": 0
+    },
+    "tick": {
+      "samples": 1440,
+      "total_ns": 240126823,
+      "max_ns": 2968854,
+      "over_50us": 848,
+      "over_1ms": 17,
+      "over_10ms": 0
+    },
+    "runtime_tick": {
+      "samples": 1440,
+      "total_ns": 230477524,
+      "max_ns": 2621652,
+      "over_50us": 821,
+      "over_1ms": 14,
+      "over_10ms": 0
+    },
+    "retire": {
+      "samples": 1440,
+      "total_ns": 5819723,
+      "max_ns": 91151,
+      "over_50us": 6,
+      "over_1ms": 0,
+      "over_10ms": 0
+    },
+    "schedule": {
+      "samples": 1440,
+      "total_ns": 3829576,
+      "max_ns": 341551,
+      "over_50us": 9,
+      "over_1ms": 0,
+      "over_10ms": 0
+    }
+  },
+  "raw_write": {
+    "enabled": true,
+    "lock_wait": {
+      "samples": 893215,
+      "total_ns": 4701852228,
+      "max_ns": 1888763,
+      "over_10ms": 0
+    },
+    "lock_hold": {
+      "samples": 893215,
+      "total_ns": 20583007206,
+      "max_ns": 1889270,
+      "over_10ms": 0
+    },
+    "marshal": {
+      "samples": 893215,
+      "total_ns": 1250242586,
+      "max_ns": 1522344,
+      "over_10ms": 0
+    },
+    "syscall": {
+      "samples": 893215,
+      "total_ns": 18987016578,
+      "max_ns": 1888369,
+      "over_10ms": 0
+    }
+  },
+  "lane_timing": {
+    "TimingEnabled": true,
+    "InboundTimingSamples": 543928,
+    "InboundLockWaitNS": 7221624371,
+    "InboundLockWaitMaxNS": 2584059,
+    "InboundDecodeNS": 9663754913,
+    "InboundDecodeMaxNS": 1768918,
+    "ExpireNS": 4938984,
+    "ExpireMaxNS": 80922
+  },
+  "transport_timing": {
+    "timing_enabled": true,
+    "timing_samples": 1003948,
+    "lock_wait_ns": 324193628,
+    "lock_wait_max_ns": 1497937,
+    "lock_held_ns": 4546217930,
+    "lock_held_max_ns": 3050099,
+    "ack_process_ns": 2620671920,
+    "ack_process_max_ns": 1282247,
+    "owner_ns": 17756598617,
+    "owner_max_ns": 2718161,
+    "deliver_ns": 8958813509,
+    "deliver_max_ns": 2247856,
+    "repair_eviction_ns": 483386884,
+    "repair_eviction_max_ns": 1462474,
+    "fresh_lock_wait_ns": 450948791,
+    "fresh_lock_wait_max_ns": 2124542,
+    "fresh_critical_ns": 1228185788,
+    "fresh_critical_max_ns": 1464017,
+    "feedback_timing_enabled": true,
+    "ack_feedback_ns": 13499796056,
+    "ack_feedback_max_ns": 1774348,
+    "ack_feedback_over_1ms": 62,
+    "selected_repair_ns": 819154862,
+    "selected_repair_max_ns": 1514436,
+    "selected_repair_over_1ms": 7
+  },
+  "max_events_over10ms": [
+    {
+      "unix_ns": 1791354149391214622,
+      "max_increased_ms": {
+        "segment_mux.routes[0].queue_age.max_ns": 18.302
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 11464323322,
+      "node_id": "MDg6QXJ0aWZhY3QxMTQ2NDMyMzMyMg==",
+      "name": "fec-profile-single-r12-normal-5305-seed1508-6e7638abf7b8bea1d6877c239bcaf3cea465ecae",
+      "size_in_bytes": 785115,
+      "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11464323322",
+      "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11464323322/zip",
+      "expired": false,
+      "digest": "sha256:117e93b43801153112262fbf21943d96e4a17078cdd22544a8260fc11509fcae",
+      "created_at": "2026-10-07T06:24:32Z",
+      "updated_at": "2026-10-07T06:24:32Z",
+      "expires_at": "2026-11-06T06:24:31Z",
+      "workflow_run": {
+        "id": 37580826640,
+        "repository_id": 1344529182,
+        "head_repository_id": 1344529182,
+        "head_branch": "qualification/client-stage-6e7638a-20261007",
+        "head_sha": "6e7638abf7b8bea1d6877c239bcaf3cea465ecae"
+      }
+    },
+    {
+      "id": 11464153538,
+      "node_id": "MDg6QXJ0aWZhY3QxMTQ2NDE1MzUzOA==",
+      "name": "strict-summary-normal-5305-seed1508-6e7638abf7b8bea1d6877c239bcaf3cea465ecae",
+      "size_in_bytes": 354132,
+      "url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11464153538",
+      "archive_download_url": "https://api.github.com/repos/lly8666/wobuzhidao/actions/artifacts/11464153538/zip",
+      "expired": false,
+      "digest": "sha256:a87a395900671a7d5be881dddcc84c4d1a056385d4a2c0bf5e7b67ecda33b447",
+      "created_at": "2026-10-07T06:24:31Z",
+      "updated_at": "2026-10-07T06:24:31Z",
+      "expires_at": "2026-11-06T06:24:30Z",
+      "workflow_run": {
+        "id": 37580826640,
+        "repository_id": 1344529182,
+        "head_repository_id": 1344529182,
+        "head_branch": "qualification/client-stage-6e7638a-20261007",
+        "head_sha": "6e7638abf7b8bea1d6877c239bcaf3cea465ecae"
+      }
+    }
+  ],
+  "file_hashes": {
+    "biz.json": "50a580ffd54cfd7807243d3f6b760f333765016586f9935c2b7551665918eaec",
+    "biz.log": "27444ea1f4968e7af3eb2959b2e9b888f6f5ec7455231f655fe27965e2672b9b",
+    "c2s-post.tcpdump.log": "88637b2843f83e65071c83ba7ff1b49f9af55d519893055a9b4c13c221dfa82b",
+    "c2s-pre.tcpdump.log": "7389e5ed89a3eea50418ee577f66f34b10aae6f950847ae898d23ab5b35d1b72",
+    "capture-cleanup-receipt.json": "77527fd616315dcdda1502b4d6a0630f5cbe064079bac3d93816f9bec85ab3e1",
+    "client-block-top.txt": "4ce7c2bca3e0ad479b1a89fae47d6c913d3c6f39ac1bd0667dff55f74a959881",
+    "client-cpu-top.txt": "a6700e10a238763bc65e6518643993cf64789591d5cbdbdc5aa2bc3cbb7785a7",
+    "client-mutex-top.txt": "0b249e65a49d5596228946ba3d16a6411ecc5915e9ca0e115772190565e74b3d",
+    "client.cpu": "51bea02cd3e419d2654abbbc461624716e144a07ee950df2808c00286721ef08",
+    "client.cpu-block": "5210bbb81014df022fe8cc79058e32cccd1cf077957ec5c49e97b57497f41057",
+    "client.cpu-mutex": "f7047419c56480877e2b0a34ff0ecfe62b17b8c6c6ba12d9e14e236a6935bd7d",
+    "raw-io-receipt.json": "ead498f7d5cbc2c03bcbd42456021c2a917671b9cfef30b9f26fb6c3ae7debe8",
+    "resources.jsonl": "57de45704c05a042a10626ab91de7347d1984ab70d108cfac4d894d58f462059",
+    "runner-host.txt": "716a10b3c3cd44430a2637514a40963647d4e220a10da331788a84e4728ea202",
+    "server-block-top.txt": "546fd7f5d587372549f9007413793d687c96313953e72b18f7cb51994a285c8c",
+    "server-cpu-top.txt": "29d90f46a57b9c501a4a6ca4e428c8eb0170464b1d5f50bee221bd60167ee582",
+    "server-mutex-top.txt": "838bcb06ee6ce739e2b58fb432357931558a674f6b8a18077b7566f0df2e7f00",
+    "server.cpu": "9cb6c7f47e8c2e274007a061baf72343aab8d527b64d648486aad047bd01c78c",
+    "server.cpu-block": "3f6cc7f6b24e1da47b230006b472061123f38ff6a7ee0cc0f7a8ac9bdb33edbd",
+    "server.cpu-mutex": "721d46c323dbc2ff682bd190126a0d75f97fb8c75dc69ff843642a31fdab1a3c",
+    "summary-loss-tolerant-v1.json": "77db84ff1d0c7af9c713d4acd4e8253ef1ae8367ab38b56e1f94c6c32bc0330a",
+    "wan-neighbors-before.json": "23dbe221984fca9dec85da491457ed17be0dc412e6990c0ff0b7a84b3a8fb164"
+  }
+}
