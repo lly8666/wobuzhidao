@@ -1,5 +1,5 @@
-name: raw-rcvbuf-performance-dispatch
-run-name: raw-rcvbuf-performance-dispatch
+name: large-datagram-prefix-dispatch
+run-name: large-datagram-prefix-dispatch
 
 on:
   push:
@@ -14,23 +14,16 @@ jobs:
   dispatch:
     runs-on: ubuntu-24.04
     steps:
-      - name: Dispatch six independent exact-source samples
+      - name: Dispatch exact-source pre-fix diagnostics
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REF: qualification/raw-rcvbuf-20261007
-          SOURCE: 3d3e24f1271ddf960aa57035a6217476f1826bbc
         shell: bash
         run: |
           set -euo pipefail
-          dispatch() {
-            local kind="$1" parity="$2" mode="$3" scenario="$4" seed="$5" rate="$6" lanes="$7"
-            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/dispatches" --input - <<JSON
-          {"ref":"$REF","inputs":{"qualification_kind":"$kind","fec_parity":"$parity","mode":"$mode","scenario":"$scenario","seed":"$seed","rate_mbps":"$rate","lanes":"$lanes","cpu_profile":"false","stateful_middlebox":"false","wan_neighbors":"dynamic","product_source_sha":"$SOURCE"}}
+          ref='qualification/large-datagram-rto-20261007'
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-foundation.yml/dispatches" --input - <<JSON
+          {"ref":"$ref","inputs":{"run_extended":"false","run_legacy_soak":"false"}}
           JSON
-          }
-          dispatch formal20 20 normal lossless 1521 10 1
-          dispatch formal20 20 normal 5205 1521 10 1
-          dispatch formal20 20 game lossless 1479 3 4
-          dispatch formal20 20 game 5205 1479 3 4
-          dispatch fec-profile-screen 12 normal lossless 1508 10 1
-          dispatch fec-profile-screen 12 normal 5305 1508 10 1
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-predelivery-tools.yml/dispatches" --input - <<JSON
+          {"ref":"$ref"}
+          JSON
