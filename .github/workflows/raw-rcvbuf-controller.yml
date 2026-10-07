@@ -1,5 +1,5 @@
-name: rto-perf-2-normal-5205
-run-name: rto-perf-2-normal-5205
+name: rto-perf-3-game-lossless
+run-name: rto-perf-3-game-lossless
 
 on:
   push:
@@ -21,5 +21,5 @@ jobs:
         run: |
           set -euo pipefail
           gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/dispatches" --input - <<'JSON'
-          {"ref":"qualification/large-datagram-rto-20261007","inputs":{"qualification_kind":"formal20","fec_parity":"20","mode":"normal","scenario":"5205","seed":"1521","rate_mbps":"10","lanes":"1","cpu_profile":false,"stateful_middlebox":false,"wan_neighbors":"dynamic","product_source_sha":"c853935e5356a9bc99d380befb5a8ac8e0c08d97"}}
+          {"ref":"qualification/large-datagram-rto-20261007","inputs":{"qualification_kind":"formal20","fec_parity":"20","mode":"game","scenario":"lossless","seed":"1479","rate_mbps":"3","lanes":"4","cpu_profile":false,"stateful_middlebox":false,"wan_neighbors":"dynamic","product_source_sha":"c853935e5356a9bc99d380befb5a8ac8e0c08d97"}}
           JSON
