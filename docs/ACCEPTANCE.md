@@ -157,3 +157,12 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 固定[预发布linux-server-rc-20261004-6181db6](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)，三同源ZIP/manifest每个文件和GitHub资产哈希已核验。完整回执、失败链及边界见[evidence/linux-server-6181db6.json](evidence/linux-server-6181db6.json)。最新full70/strict18/1800s、startup-padding on完整专项、Windows/ARM原生/物理P7仍NOT_RUN，不能继承2b历史全量成绩。仅Linux本版本owned journal可自动恢复，未知历史残留不自动接管；冷进程无FIN同端口恢复使用至少90s/3keepalive保护，不承诺即时强替。
 
 当前profile实现冻结与11配对RTT例外详见WEAKNET_QUALIFICATION10.7；36快速screen不关闭全产品性能/FEC精确oracle/完整资格，原FAIL保留。
+
+## 2026-10-07 Lane方向锁 exact-source Actions结论
+
+- 固定SOURCE/HARNESS：`3a594a34191159bd7224f35ba9117cdf6f239c69`，固定ref：`qualification/lane-duplex-20261007`。不继承父版本资格。
+- Core/受影响门：foundation 37602221629、lifecycle-fullstack 37602535872、default-network 37602539898、splitroute 37602544149、config 37602548438、linux-server 37602552100 PASS。
+- Normal：r12 profile 37602556519仅诊断；r12 lossless/5305 37602559653/37602563270；正式20:20 lossless/5205 37602567530/37602571402。正式20:20 paired stress p99约605.904→613.274ms（+7.370ms），60/60 probes，drop=0。r12普通5305的约2168ms p99明确保留为OPEN现象。
+- Game4（每方向逻辑3Mbps，20:20）：lossless/5205 seed1479为37605009121/37605011893，lossless/5305 seed1484为37605015130/37605017713。5205 paired p99 +1.808ms，5305 +4.852ms；stress两方向完整3Mbps、60/60 probes、integrity counters正常、drop=0。不可直接下载的大artifact由Actions只读scan 37605933377核验10ms桶：5305和两个lossless最长0ms，5205最长单个10ms。
+- P6：37606109601 PASS，aggregate明确 `HOSTED_PACKAGE_ONLY`；linux/amd64 artifact 11475186403 sha256 `accd0ed8d38416405d16fab5b493f6c88f6c0e11dd9864ca9e08f891d0ffb5e7`，linux/arm64 11474687727 sha256 `796062547d99777864ab53117dbef695c94eab157a04b95822dafa073923c976`，windows/amd64 11474354633 sha256 `a4553ebf6412b354ec49f1792981a58c8d1fd184243ca58745685e8e917d8b90`；manifest/file hashes本轮再次逐项复算0 mismatch。
+- 判定：`ACTIONS_READY_FOR_PHYSICAL`。不写 `PHYSICAL_PASS` 或 `RELEASE_QUALIFIED`。历史284ms根因OPEN；旧11 RTT FAIL、S01/S16/M03、full70/final18/1800s及其余NOT_RUN继续有效。
