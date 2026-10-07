@@ -70,3 +70,5 @@ openwrtclient/managed_linux.go仅封装正式Linux客户端启动/退出的names
 2026-10-07 默认关闭的Linux客户端阶段诊断：`cmd/wbd-client/main_linux.go`复用qualificationdiag内部开关，`runtimeentry/client_pipeline_timing.go`为有界客户端消费/tick计数，`faketcp/raw_write_timing_linux.go`拆分raw发送锁与syscall。`runtimeowner/runtime.go`补早返回timing盲点。协议/队列/锁范围不变；严格性能Action一条，profile仅诊断。
 
 2026-10-07 Lane双向锁待验候选：lane.go TX mu管FEC编码/sealer/PN/outbound及padding；rxMu管解码/reassembly/Expire/InboundTransition。Stats/Close仅双锁路径，顺序TX→RX，closed写持双锁。health.go保持TX序号空间，handoff.go只切RX互斥。三个定向并发测试在lane_direction_lock_test.go，尚需本SOURCE Actions/race/性能证明，不继承6e诊断门。
+
+2026-10-07 Lane方向锁 exact-source Actions结论：`internal/datapath/lane.go` 的TX `mu` 与RX `rxMu` 分工在SOURCE `3a594a34191159bd7224f35ba9117cdf6f239c69` 完成scoped Actions资格。Health继续走TX PN空间，InboundTransition/Expire走RX，Stats/Close固定TX→RX；没有新增参数、wire、FEC档位、期限、repair、4096或generation语义变化。Foundation的Windows/Linux unit/build、Linux race/fuzz和新方向锁并发测试均PASS；生命周期/网络/Normal/Game/P6证据见 `docs/evidence/lane-duplex-3a594a3-qualification-20261007.json`。候选状态 `ACTIONS_READY_FOR_PHYSICAL`，历史284ms根因仍OPEN，物理机NOT_RUN。
