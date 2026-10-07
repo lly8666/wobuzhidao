@@ -45,6 +45,7 @@ func runServer() error {
 		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
 		rawIface           = flag.String("raw-interface", "", "Linux interface used for FakeTCP raw IPv4 I/O")
+		rawRecvBuffer      = flag.Int("raw-recv-buffer", faketcp.DefaultRawReceiveBufferRequestBytes, "Linux AF_PACKET SO_RCVBUF request bytes; 0 inherits system default; kernel readback may be doubled or capped")
 		listenIPText       = flag.String("listen-ip", "", "public IPv4 address bound by the raw endpoint")
 		listenPort         = flag.Uint("listen-port", 443, "public FakeTCP/TLS port")
 		tunName            = flag.String("tun-name", "wbdg0", "shared server TUN name")
@@ -103,6 +104,9 @@ func runServer() error {
 	}
 	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
 		return errors.New("diagnostic-interval must be positive")
+	}
+	if err := faketcp.ValidateRawReceiveBufferRequest(*rawRecvBuffer); err != nil {
+		return err
 	}
 
 	listenIP, err := netip.ParseAddr(*listenIPText)
@@ -240,10 +244,16 @@ func runServer() error {
 	if err != nil {
 		return err
 	}
-	raw, err := faketcp.OpenRawIPv4EndpointForPort(*rawIface, listenIP.As4(), faketcp.PacketPersonaLegacy, uint16(*listenPort))
+	raw, err := faketcp.OpenRawIPv4EndpointWithOptions(*rawIface, listenIP.As4(), faketcp.PacketPersonaLegacy, faketcp.RawIPv4EndpointOptions{
+		ReceivePort:               uint16(*listenPort),
+		ReceiveBufferRequestBytes: *rawRecvBuffer,
+	})
 	if err != nil {
 		return err
 	}
+	rawBuffer := raw.ReceiveBufferStatus()
+	log.Printf("WBD_RAW_RCVBUF requested_bytes=%d expected_effective_bytes=%d effective_bytes=%d inherited=%t limited=%t",
+		rawBuffer.RequestedBytes, rawBuffer.ExpectedEffectiveBytes, rawBuffer.EffectiveBytes, rawBuffer.Inherited, rawBuffer.Limited)
 	io := runtimeentry.SegmentIO{
 		Read: func() (faketcp.Segment, error) {
 			seg, _, err := raw.ReadSegment()

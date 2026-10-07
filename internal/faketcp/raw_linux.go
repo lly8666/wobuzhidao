@@ -30,6 +30,7 @@ type RawIPv4Endpoint struct {
 	persona          PacketPersona
 	receivePort      uint16
 	kernelPortFilter bool
+	receiveBuffer    RawReceiveBufferStatus
 
 	recvMu            sync.Mutex
 	recvBuf           []byte
@@ -59,7 +60,22 @@ func OpenRawIPv4EndpointForPort(interfaceName string, localIP [4]byte, persona P
 	return openRawIPv4Endpoint(interfaceName, localIP, persona, port)
 }
 
+// OpenRawIPv4EndpointWithOptions is the production Linux constructor. Existing
+// wrappers retain request=0 compatibility; the formal Linux client/server use
+// this entry to configure only their AF_PACKET receive socket.
+func OpenRawIPv4EndpointWithOptions(interfaceName string, localIP [4]byte, persona PacketPersona, options RawIPv4EndpointOptions) (*RawIPv4Endpoint, error) {
+	return openRawIPv4EndpointConfigured(interfaceName, localIP, persona, options)
+}
+
 func openRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPersona, port uint16) (*RawIPv4Endpoint, error) {
+	return openRawIPv4EndpointConfigured(interfaceName, localIP, persona, RawIPv4EndpointOptions{ReceivePort: port})
+}
+
+func openRawIPv4EndpointConfigured(interfaceName string, localIP [4]byte, persona PacketPersona, options RawIPv4EndpointOptions) (*RawIPv4Endpoint, error) {
+	port := options.ReceivePort
+	if err := ValidateRawReceiveBufferRequest(options.ReceiveBufferRequestBytes); err != nil {
+		return nil, err
+	}
 	if interfaceName == "" || localIP == ([4]byte{}) {
 		return nil, errors.New("faketcp: invalid raw IPv4 endpoint config")
 	}
@@ -78,6 +94,10 @@ func openRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPe
 			_ = syscall.Close(recvFD)
 		}
 	}()
+	receiveBuffer, err := configureRawReceiveBuffer(recvFD, options.ReceiveBufferRequestBytes)
+	if err != nil {
+		return nil, err
+	}
 	if err := syscall.SetsockoptTimeval(recvFD, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &syscall.Timeval{Usec: 200000}); err != nil {
 		return nil, err
 	}
@@ -119,8 +139,9 @@ func openRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPe
 	return &RawIPv4Endpoint{
 		recvFD: recvFD, sendFD: sendFD,
 		localIP: localIP, persona: persona, receivePort: port, kernelPortFilter: kernelFilter,
-		recvBuf: make([]byte, 65536+64),
-		ipID:    1,
+		receiveBuffer: receiveBuffer,
+		recvBuf:       make([]byte, 65536+64),
+		ipID:          1,
 	}, nil
 }
 

@@ -35,6 +35,7 @@ type RawIODiagnostic struct {
 	Enabled          bool                     `json:"enabled"`
 	ReceivePort      uint16                   `json:"receive_port"`
 	KernelPortFilter bool                     `json:"kernel_port_filter"`
+	ReceiveBuffer    RawReceiveBufferStatus   `json:"receive_buffer"`
 	ReceiveCalls     uint64                   `json:"receive_calls"`
 	ReceiveMessages  uint64                   `json:"receive_messages"`
 	ReceiveMulti     uint64                   `json:"receive_multi"`
@@ -61,7 +62,7 @@ type rawIOCounters struct {
 func (e *RawIPv4Endpoint) SetIODiagnostics(enabled bool) { e.ioStats.enabled.Store(enabled) }
 
 func (e *RawIPv4Endpoint) IODiagnostic() RawIODiagnostic {
-	return RawIODiagnostic{Enabled: e.ioStats.enabled.Load(), ReceivePort: e.receivePort, KernelPortFilter: e.kernelPortFilter, ReceiveCalls: e.ioStats.rxCalls.Load(),
+	return RawIODiagnostic{Enabled: e.ioStats.enabled.Load(), ReceivePort: e.receivePort, KernelPortFilter: e.kernelPortFilter, ReceiveBuffer: e.receiveBuffer, ReceiveCalls: e.ioStats.rxCalls.Load(),
 		ReceiveMessages: e.ioStats.rxMessages.Load(), ReceiveMulti: e.ioStats.rxMulti.Load(),
 		ReceiveFallbacks: e.ioStats.rxFallbacks.Load(), SendCalls: e.ioStats.txCalls.Load(),
 		SendMessages: e.ioStats.txMessages.Load(), SendMulti: e.ioStats.txMulti.Load(), SendFallbacks: e.ioStats.txFallbacks.Load(), WriteTiming: e.writeTiming.snapshot()}

@@ -149,6 +149,13 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
+      "raw-recv-buffer": {
+        "type": "Int",
+        "default_expression": "faketcp.DefaultRawReceiveBufferRequestBytes",
+        "help": "Linux AF_PACKET SO_RCVBUF request bytes; 0 inherits system default; kernel readback may be doubled or capped",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "reconnect-max": {
         "type": "Duration",
         "default_expression": "runtimeentry.DefaultReconnectMax",
@@ -689,6 +696,13 @@
         "type": "String",
         "default_expression": "\"\"",
         "help": "Linux interface used for FakeTCP raw IPv4 I/O",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "raw-recv-buffer": {
+        "type": "Int",
+        "default_expression": "faketcp.DefaultRawReceiveBufferRequestBytes",
+        "help": "Linux AF_PACKET SO_RCVBUF request bytes; 0 inherits system default; kernel readback may be doubled or capped",
         "source": "cmd/wbd-server/main_linux.go",
         "json": true
       },

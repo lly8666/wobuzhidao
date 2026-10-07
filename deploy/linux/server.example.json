@@ -1,5 +1,6 @@
 {
   "raw-interface": "eth0",
+  "raw-recv-buffer": 524288,
   "listen-ip": "192.0.2.10",
   "listen-port": 443,
   "server-name": "www.example.com",

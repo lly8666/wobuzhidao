@@ -47,6 +47,7 @@ func runLinuxClient() error {
 		updateChinaIP      = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
 		rawIface           = flag.String("raw-interface", "", "Linux/OpenWrt underlay interface")
+		rawRecvBuffer      = flag.Int("raw-recv-buffer", faketcp.DefaultRawReceiveBufferRequestBytes, "Linux AF_PACKET SO_RCVBUF request bytes; 0 inherits system default; kernel readback may be doubled or capped")
 		localIPText        = flag.String("local-ip", "", "underlay source IPv4")
 		sourcePort         = flag.Uint("source-port", 40000, "FakeTCP source port")
 		serverIPText       = flag.String("server-ip", "", "server public IPv4")
@@ -114,6 +115,9 @@ func runLinuxClient() error {
 	}
 	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
 		return errors.New("diagnostic-interval must be positive")
+	}
+	if err := faketcp.ValidateRawReceiveBufferRequest(*rawRecvBuffer); err != nil {
+		return err
 	}
 	observeClientStageTiming, err := qualificationdiag.ClientStageTimingEnabled(*diagnosticJSONL)
 	if err != nil {
@@ -211,10 +215,15 @@ func runLinuxClient() error {
 	}
 	defer netRuntime.Close()
 
-	raw, err := faketcp.OpenRawIPv4Endpoint(*rawIface, localIP.As4(), faketcp.PacketPersonaLegacy)
+	raw, err := faketcp.OpenRawIPv4EndpointWithOptions(*rawIface, localIP.As4(), faketcp.PacketPersonaLegacy, faketcp.RawIPv4EndpointOptions{
+		ReceiveBufferRequestBytes: *rawRecvBuffer,
+	})
 	if err != nil {
 		return err
 	}
+	rawBuffer := raw.ReceiveBufferStatus()
+	log.Printf("WBD_RAW_RCVBUF requested_bytes=%d expected_effective_bytes=%d effective_bytes=%d inherited=%t limited=%t",
+		rawBuffer.RequestedBytes, rawBuffer.ExpectedEffectiveBytes, rawBuffer.EffectiveBytes, rawBuffer.Inherited, rawBuffer.Limited)
 	baseIO := runtimeentry.SegmentIO{
 		Read: func() (faketcp.Segment, error) {
 			seg, _, err := raw.ReadSegment()

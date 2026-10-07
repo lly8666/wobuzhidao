@@ -26,7 +26,8 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
   "fec-parity": 20,
   "lanes": 1,
   "keepalive-interval": "15s",
-  "idle-dormant": "5m"
+  "idle-dormant": "5m",
+  "raw-recv-buffer": 524288
 }
 ```
 
@@ -103,3 +104,11 @@ Windows短stage墙钟测量可能合法返回0（本轮Actions已实际观察sam
 2026-10-06 Windows普通ACK后台发送候选不新增用户参数：正式Windows入口内部`AsyncACKFeedback=true`；Linux客户端/服务端及未显式选择的嵌入者维持原同步行为。首次/缺口/SACK/重复ACK立即eligible，正常连续每2records或2ms原决策不变；最多每generation一个lazy worker、一个latest pending位/容量1通知token，不保存ACK包历史，实际发送时读取当前Seq/ACK/SACK。等native emit时接收handler可以继续解码/首次交付。成功data piggyback仅在gap-free且Ack覆盖当前recvNext时取消pending；SACK不得被无SACK的data吞掉。Peer FIN确认、challenge ACK及repair保留同步，FIN不能只排队后就让生命周期retire。close取消pending与通知，不在owner锁内等待native IO，已选择的in-flight调用通过现有native gate回收；新ref拥有独立worker。失败有`ack_worker_failures`和现有tick错误出口，不能吞错或无限重启worker。`ack_worker_queued/coalesced/piggybacked/attempts/sent`分别为请求、合并、成功piggyback取消、真实emit尝试/成功，worker_pending/running区分待发与在途，closed不复活。ACKTimerSent在此模式表示timer提出反馈而非最终wire packet，应结合worker发送及Npcap计数。资格stageon额外记录`ack_worker_emit_*`真实worker Emit墙钟；`ack_feedback_*`改为接收线程决策/入队耗时（FIN仍同步）。两者不同线程可重叠，不能将入队耗时下降冒充CPU/总native耗时收益；off仍无新热路计时。状态以STATUS为准，未过Actions/P6不部署。
 
 2026-10-07 Linux诊断补齐：同一private开关额外启用`client_pipeline`固定累计consumer/process、state锁等待、handler与tick分段，Linux raw `write_timing`拆分lock_wait/lock_hold/marshal/syscall（ns、samples/max/over10ms）。普通诊断与性能测试仍off，无新CLI/JSON/GUI参数。strict Action仅cpu_profile=true明确开启并记录requested；验实效必须读取实际enabled字段。各线程/嵌套阶段耗时有重叠，不能相加当CPU或用累计值证明一次长暂停；8个早返回transport lockheld路径现在也计时，OwnerNS包含owner.Stats锁等待。
+
+### Linux raw 接收缓冲
+
+Linux 客户端和服务端统一参数 `raw-recv-buffer` 表示传给 `SO_RCVBUF` 的**请求字节数**，不是承诺的实际缓冲大小。默认请求 `524288`（512 KiB），目标是在允许该请求的系统上得到 Linux `getsockopt(SO_RCVBUF)` 约 `1048576`（1 MiB）的实效读回；`0` 明确表示不调用 setsockopt、继承系统默认。Linux 会为内部记账通常把请求值翻倍，但普通 `SO_RCVBUF` 仍受宿主 `net.core.rmem_max` 限制，因此低上限机器会得到较小实效值。WBD 不修改 sysctl，也不使用 `SO_RCVBUFFORCE`。
+
+启动仅一次设置并立即 getsockopt 验证，日志 `WBD_RAW_RCVBUF` 和 `raw_io.receive_buffer` 固定状态同时记录 `requested_bytes / expected_effective_bytes / effective_bytes / inherited / limited`；稳态收发不再查询socket、不增加日志、分配或锁。负数或超过64 MiB的请求拒绝启动；setsockopt/getsockopt失败直接报错。受系统上限限制时允许启动但 `limited=true`，不能把请求值冒充已生效值。变更需重启进程才生效；设置 `0` 即可回滚到系统默认。
+
+该参数只存在于 Linux client/server。Windows客户端没有AF_PACKET raw接收socket，CLI没有此参数，Windows JSON出现该键会按未知平台参数拒绝，而不是静默忽略。

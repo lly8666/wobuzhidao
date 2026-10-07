@@ -14,13 +14,14 @@ func TestJSONConfigurationAndCLIOverride(t *testing.T) {
 	padding := fs.Bool("tls-startup-padding", false, "")
 	interval := fs.Duration("keepalive-interval", 15*time.Second, "")
 	parity := fs.Int("fec-parity", 0, "")
-	if err := fs.Parse([]string{"--fec-parity=4"}); err != nil {
+	rawBuffer := fs.Int("raw-recv-buffer", 524288, "")
+	if err := fs.Parse([]string{"--fec-parity=4", "--raw-recv-buffer=262144"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := Apply(fs, []byte(`{"tls-startup-padding":true,"keepalive-interval":"20s","fec-parity":20}`)); err != nil {
+	if err := Apply(fs, []byte(`{"tls-startup-padding":true,"keepalive-interval":"20s","fec-parity":20,"raw-recv-buffer":1048576}`)); err != nil {
 		t.Fatal(err)
 	}
-	if !*padding || *interval != 20*time.Second || *parity != 4 {
+	if !*padding || *interval != 20*time.Second || *parity != 4 || *rawBuffer != 262144 {
 		t.Fatal("configuration precedence failed")
 	}
 }

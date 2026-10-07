@@ -87,7 +87,10 @@ func TestRawPortFilterKernelIngress(t *testing.T) {
 		t.Fatal("kernel qualification belongs in Actions")
 	}
 	local := [4]byte{127, 0, 0, 1}
-	filtered, err := OpenRawIPv4EndpointForPort("lo", local, PacketPersonaLegacy, 24343)
+	filtered, err := OpenRawIPv4EndpointWithOptions("lo", local, PacketPersonaLegacy, RawIPv4EndpointOptions{
+		ReceivePort:               24343,
+		ReceiveBufferRequestBytes: 64 << 10,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,8 +100,14 @@ func TestRawPortFilterKernelIngress(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { all.Close() })
-	if d := filtered.IODiagnostic(); d.ReceivePort != 24343 || !d.KernelPortFilter {
-		t.Fatalf("filter not installed: %+v", d)
+	if d := filtered.IODiagnostic(); d.ReceivePort != 24343 || !d.KernelPortFilter ||
+		d.ReceiveBuffer.RequestedBytes != 64<<10 ||
+		d.ReceiveBuffer.EffectiveBytes != filtered.ReceiveBufferStatus().EffectiveBytes {
+		t.Fatalf("filter/buffer not installed: %+v", d)
+	}
+	actualBuffer, err := syscall.GetsockoptInt(filtered.recvFD, syscall.SOL_SOCKET, syscall.SO_RCVBUF)
+	if err != nil || actualBuffer != filtered.ReceiveBufferStatus().EffectiveBytes {
+		t.Fatalf("kernel receive buffer readback=%d err=%v status=%+v", actualBuffer, err, filtered.ReceiveBufferStatus())
 	}
 	if err = syscall.SetNonblock(filtered.recvFD, true); err != nil {
 		t.Fatal(err)
@@ -147,5 +156,23 @@ func TestRawPortFilterKernelIngress(t *testing.T) {
 	kept, unfiltered := collect(filtered), collect(all)
 	if len(kept) != 1 || kept[24343] == nil || !bytes.Equal(kept[24343], unfiltered[24343]) || unfiltered[24344] == nil {
 		t.Fatalf("wrong ingress filtering/bytes: filtered%v default%v", kept, unfiltered)
+	}
+	closedFD := filtered.recvFD
+	if err := filtered.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := syscall.GetsockoptInt(closedFD, syscall.SOL_SOCKET, syscall.SO_RCVBUF); !errors.Is(err, syscall.EBADF) {
+		t.Fatalf("closed raw fd still readable: %v", err)
+	}
+	reopened, err := OpenRawIPv4EndpointWithOptions("lo", local, PacketPersonaLegacy, RawIPv4EndpointOptions{
+		ReceivePort:               24343,
+		ReceiveBufferRequestBytes: 128 << 10,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reopened.Close()
+	if got := reopened.ReceiveBufferStatus(); got.RequestedBytes != 128<<10 || got.EffectiveBytes <= 0 {
+		t.Fatalf("reopened buffer status=%+v", got)
 	}
 }
