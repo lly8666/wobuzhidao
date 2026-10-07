@@ -1,0 +1,265 @@
+{
+  "source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+  "state": "CORE_PASS_PERFORMANCE_PENDING",
+  "runs": [
+    {
+      "id": 37602571402,
+      "name": "strict-normal-5205-seed1521-rate10-lanes1",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602571402"
+    },
+    {
+      "id": 37602567530,
+      "name": "strict-normal-lossless-seed1521-rate10-lanes1",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602567530"
+    },
+    {
+      "id": 37602563270,
+      "name": "fecscreen-r12-normal-5305-seed1508-rate10-lanes1",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602563270"
+    },
+    {
+      "id": 37602559653,
+      "name": "fecscreen-r12-normal-lossless-seed1508-rate10-lanes1",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602559653"
+    },
+    {
+      "id": 37602556519,
+      "name": "fecscreen-r12-normal-5305-seed1508-rate10-lanes1-profile",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602556519"
+    },
+    {
+      "id": 37602552100,
+      "name": "next-linux-server",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602552100"
+    },
+    {
+      "id": 37602548438,
+      "name": "config-f0-l1-p0",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602548438"
+    },
+    {
+      "id": 37602544149,
+      "name": "next-splitroute",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602544149"
+    },
+    {
+      "id": 37602539898,
+      "name": "next-default-network",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602539898"
+    },
+    {
+      "id": 37602535872,
+      "name": "next-lifecycle-fullstack",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602535872"
+    },
+    {
+      "id": 37602221713,
+      "name": "next-strict-harness-preflight",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602221713"
+    },
+    {
+      "id": 37602221808,
+      "name": "next-predelivery-tools",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602221808"
+    },
+    {
+      "id": 37602221636,
+      "name": "next-p4-steady-targeted",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602221636"
+    },
+    {
+      "id": 37602221629,
+      "name": "next-foundation",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602221629"
+    },
+    {
+      "id": 37602221666,
+      "name": "next-lifecycle",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602221666"
+    },
+    {
+      "id": 37602221584,
+      "name": "next-tls-startup-padding",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602221584"
+    },
+    {
+      "id": 37602221630,
+      "name": "next-windows-gui",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37602221630"
+    }
+  ],
+  "dispatch": {
+    "source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+    "ref": "qualification/lane-duplex-20261007",
+    "one_sample_per_action": true,
+    "runs": [
+      {
+        "workflow": "next-lifecycle-fullstack.yml",
+        "inputs": {},
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-default-network.yml",
+        "inputs": {},
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-splitroute.yml",
+        "inputs": {},
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-config-effective.yml",
+        "inputs": {},
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-linux-server.yml",
+        "inputs": {},
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-strict-weaknet.yml",
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "1508",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "cpu_profile": "true",
+          "product_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69"
+        },
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-strict-weaknet.yml",
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "1508",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "cpu_profile": "false",
+          "product_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69"
+        },
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-strict-weaknet.yml",
+        "inputs": {
+          "qualification_kind": "fec-profile-screen",
+          "fec_parity": "12",
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "1508",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "cpu_profile": "false",
+          "product_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69"
+        },
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-strict-weaknet.yml",
+        "inputs": {
+          "qualification_kind": "formal20",
+          "fec_parity": "20",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "1521",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "cpu_profile": "false",
+          "product_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69"
+        },
+        "state": "DISPATCHED",
+        "output": ""
+      },
+      {
+        "workflow": "next-strict-weaknet.yml",
+        "inputs": {
+          "qualification_kind": "formal20",
+          "fec_parity": "20",
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "1521",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "cpu_profile": "false",
+          "product_source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69"
+        },
+        "state": "DISPATCHED",
+        "output": ""
+      }
+    ]
+  },
+  "source_parent": "6e7638abf7b8bea1d6877c239bcaf3cea465ecae",
+  "root_cause": "OPEN",
+  "full70": "NOT_RUN",
+  "final18": "NOT_RUN",
+  "soak1800": "NOT_RUN",
+  "physical": "NOT_RUN"
+}

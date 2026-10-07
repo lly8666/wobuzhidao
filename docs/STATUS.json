@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T17:42:22.962640+08:00",
+  "updated_at": "2026-10-07T17:45:30.387131+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -87,8 +87,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Fresh chat: validate Lane TX/RX direction-lock candidate at exact new SOURCE via Actions core/build/race, ordinary Normal20:12 lossless/5305 + Normal20:20 5205 then Game4 3M5205 and needed5305; paired same-source RTT baselines, one performanceAction one sample. Review parent6e raw results and stage evidence, never claim284ms root solved. Keep performance/p99/noHOL/resources and all hard requirements. Record complete devlog/STATUS/evidence; same-source P6 artifacts hand back to original chat for physical acceptance. Old11RTT FAIL/native open/full70/final18/1800s retained.",
-  "latest_log": "docs/devlog/20261007-173937-client-duplex-candidate-handoff.md",
+  "next_task": "Collect exact3a594a3 fullstack/network/deployment and independentprofile+r12lossless/5305+r20Normal lossless/5205. Verify raw summaries,coverage/RTT/continuity/drop/resources; then Game4 3Mlossless/5205/5305. Root284msOPEN; only retain lock split on evidence, then same-sourceP6. All priorFAIL/full70/final18/1800s/native gaps retained.",
+  "latest_log": "docs/devlog/20261007-174500-lane-duplex-actions-progress.md",
   "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
@@ -10373,7 +10373,7 @@
     "actions": "docs/evidence/client-stage-6e7638a-actions-20261007.json"
   },
   "client_lane_duplex_lock": {
-    "state": "CANDIDATE_NOT_TESTED",
+    "state": "CORE_PASS_PERFORMANCE_PENDING",
     "source_ref": "qualification/lane-duplex-20261007",
     "source_parent": "6e7638abf7b8bea1d6877c239bcaf3cea465ecae",
     "files": [
@@ -10382,13 +10382,14 @@
       "internal/datapath/handoff.go",
       "internal/datapath/lane_direction_lock_test.go"
     ],
-    "tests": "NOT_RUN; Actions only",
+    "tests": "Foundation7 active jobs PASS: Linux/Windows unit/build, Linux race/fuzz, arm64 compile and privileged network; datapath includes new3 concurrent tests.7 automatic workflows SUCCESS; fullstack/network/deployment and5 independentNormal samples pending.",
     "root_cause": "OPEN; cumulative contention motivates isolation, no proof of 284ms cause",
-    "latest_log": "docs/devlog/20261007-173937-client-duplex-candidate-handoff.md",
-    "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69"
+    "latest_log": "docs/devlog/20261007-174500-lane-duplex-actions-progress.md",
+    "source_sha": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+    "actions_evidence": "docs/evidence/lane-duplex-3a594a3-actions-20261007.json"
   },
   "development_handoff": {
-    "state": "FRESH_THREAD_CREATED",
+    "state": "FRESH_THREAD_DEVELOPMENT_ACTIVE",
     "developer": "WBD 双向锁优化与 Actions 验收",
     "physical_acceptance_owner": "original chat after verified same-source Actions and packages",
     "priority": "real business first arrival efficiency > latency/p99/noHOL and low resource cost > appearance > additional security; original hard requirements unchanged",
