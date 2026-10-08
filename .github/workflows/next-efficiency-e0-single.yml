@@ -113,6 +113,16 @@ jobs:
           sudo --preserve-env=GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_FEC_PARITY,WBD_STRICT_FEC_SCREEN,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS,WBD_LARGE_WORKLOAD,WBD_LARGE_LOSS,WBD_EFF_SIZE_PROFILE \
             env GITHUB_SHA="$PRODUCT_SOURCE" WBD_HARNESS_SHA="$WBD_HELPER_SOURCE" \
               WBD_STRICT_ARTIFACT_DIR="$ART" bash "$ART/generated.sh"
+      - name: Enforce true profile-off measurement
+        if: always()
+        run: |
+          set -euo pipefail
+          # Diagnostic JSONL enables server per-record timing in formal binaries.
+          # A performance baseline marked OFF must never silently collect it.
+          if [[ "${WBD_EFF_DIAGNOSTIC:-0}" == "0" ]]; then
+            test ! -s "$ART/server-diag.jsonl"
+            test ! -s "$ART/client-diag.jsonl"
+          fi
       - name: Read-only analyze and delete raw capture
         id: analyze
         if: always()

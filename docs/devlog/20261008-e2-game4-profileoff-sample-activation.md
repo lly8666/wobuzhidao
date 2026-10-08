@@ -1,0 +1,7 @@
+# E2 Game4真profile-off保护：workflow主动禁止diagnostic假OFF并激活唯一样本（2026-10-08）
+
+仅目标branch `next/performance-efficiency-20261008`、父HEAD `1e36d84c0d738370badf6dda9c90796550ee818b`，产品源码精确`673a8ab0b2295d495e67cd7d4a42e23a70d38a7a`（E2一次分配封包），本轮没有产品热路径修改。前一提交已保留[Normal lossless run37793297374](https://github.com/lly8666/wobuzhidao/actions/runs/37793297374) scoped PASS，CPU244.07s对历史237.79s在一次同型EPYC9V74比较反而高6.28s/2.64%，**不算CPU改善也未确认回归**；MALLOC/GiB在profile-OFF`NOT_COLLECTED`。旧Game4 [run37788802499](https://github.com/lly8666/wobuzhidao/actions/runs/37788802499)真实无损仍FAIL，ready317739外层overflow、C2S UDP2510、探针29/28 missing。
+
+本轮恢复审计发现：前一仅修改 `.github/efficiency-e0-sample.json`的提交`1e36d84c0d738370badf6dda9c90796550ee818b`在GitHub Actions按head_sha查询暂时未产生任何run，因此本提交不宣称Game4开始或通过。更重要的是原早期助手把performance profile off与诊断JSONL混淆，会开启服务端ObserveTiming并污染CPU比对。当前独立one-fullstack-sample workflow新增独立**Enforce true profile-off measurement** fail-closed步骤，仅当`WBD_EFF_DIAGNOSTIC=0`时断言`$ART/client-diag.jsonl`和`$ART/server-diag.jsonl`都无非空文件。这个检查没有第二份业务测量、不改变packet、FEC、RTO、MTU，阻止历史计时假OFF再次进入优化收益账本。变更workflow本身触发一个全新helper SHA的独立Game4样本（mode game、lanes4、workload mixed、3Mbps/向、loss0/300ms one-way、300s+3s drain、seed1823、formal/clientTPROXY/serverTUN/record0 auto、FEC20:20、profile OFF）；实际创建run/job后才记RUNNING。
+
+按原保护门需双方UDP/TCP/HTTPS与独立probe无损，Game4真四条lane、runner/socket/ready资源所有证据，原有FAIL均不删。此提交不声称E2实际CPU降低；Normal1 5205和Game4 5205必须单独阶段5%→20%→5%运行（固定5%不能冒充），E6/P6/物理未跑，原E7约80秒下行OPEN。机器回执：[激活与诊断隔离](../evidence/performance-efficiency-e2-game4-off-diagnostic-isolation-trigger-20261008.json)。

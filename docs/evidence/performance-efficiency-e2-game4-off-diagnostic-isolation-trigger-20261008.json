@@ -1,0 +1,36 @@
+{
+  "schema": "wbd-e2-profileoff-game4-sample-activation/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "old_head": "1e36d84c0d738370badf6dda9c90796550ee818b",
+  "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+  "previous_config_only_commit": "1e36d84c0d738370badf6dda9c90796550ee818b",
+  "previous_config_only_run_status": "NO_RUN_OBSERVED_GITHUB_ACTIONS_QUERY_HEAD_SHA_ZERO_ON_CHECK",
+  "previous_config": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1823,
+    "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "workflow_change": "Add post-sample fail-closed invariant: profile OFF has no non-empty client-diag.jsonl or server-diag.jsonl; avoids server ObserveTiming accidentally enabled.",
+  "behavior": "No changes to sample workload, loss seed, rate, formal client/server, source product SHA or generator. No extra performance sample in the same run.",
+  "trigger": "New exact helper SHA of this workflow commit; expect one one-fullstack-sample job; never assume RUN until GitHub lists it",
+  "previous_real_game_failures": [
+    37766819445,
+    37768172504,
+    37780170850,
+    37782210096,
+    37788802499
+  ],
+  "status": "ACTIVATION_PENDING_ACTIONS",
+  "cpu_gain": "INCONCLUSIVE",
+  "prior_normal_pass_run": 37793297374,
+  "normal_5205": "NOT_RUN",
+  "game4_5205": "NOT_RUN",
+  "e7_80s": "OPEN",
+  "physical": "NOT_RUN"
+}
