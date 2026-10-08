@@ -52,8 +52,8 @@ ip netns exec "$BIZ" tcpdump -n -U -i biz0 -s 96 -B 8192 -w "$ART/inner-biz.pcap
 CAP_PIDS+=("$!")
 ip netns exec "$TGT" tcpdump -n -U -i tgt0 -s 96 -B 8192 -w "$ART/inner-target.pcap" "ip" 2>"$ART/inner-target.tcpdump.log" &
 CAP_PIDS+=("$!")''')
-    swap('--seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log"',
-         '--seed "$SEED" --fixed-loss "$WBD_LARGE_LOSS" --output "$ART/stage-events.jsonl" > "$ART/stage.log"')
+    swap('--post-loss "$POST_LOSS"     --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log"',
+         '--post-loss "$POST_LOSS"     --seed "$SEED" --fixed-loss "$WBD_LARGE_LOSS" --output "$ART/stage-events.jsonl" > "$ART/stage.log"')
     def replace_role(role,bind,peer,out):
         nonlocal s
         patt=r'^ip netns exec "\$'+('TGT' if role=='target' else 'BIZ')+r'" python3 "\$GEN".*$'
