@@ -107,7 +107,8 @@ def udp_recv(s,role,t,peer,stop):
             else:t.add("corrupt")
             continue
         kind,seq,length,sent=got
-        if kind==3 and role=="target":
+        if kind==3:
+            if role=="target": peer[0]=src
             try:s.sendto(udp_packet(4,seq,96,0x515151,sent),src)
             except OSError:t.add("probe_send_errors")
             continue
@@ -119,7 +120,7 @@ def udp_recv(s,role,t,peer,stop):
                 values=d.setdefault(key,[])
                 if len(values)<10000:values.append(max(0,stamp-sent))
             continue
-        if kind==4 and role=="biz":
+        if kind==4:
             with t.lock:
                 if seq in t.probes:t.d["duplicates"]+=1
                 else:
@@ -171,14 +172,19 @@ def udp_send(s,role,peer,start,stop,rate,seed,scenario,t):
                 except OSError:t.add("send_errors")
         total+=length;seq+=1
 
-def probe(s,remote,start,stop,t):
+def probe(s,remote,start,stop,t,offset_s=0):
     for seq in range(1500):
-        target=start+seq*200_000_000
+        target=start+int(offset_s*1e9)+seq*200_000_000
         if target>=start+300_000_000_000 or stop.is_set():break
         wait(target)
+        destination=remote() if callable(remote) else remote
+        t.add("offered_bytes",96)
+        if destination is None:
+            t.add("probe_send_errors")
+            continue
         try:
-            s.sendto(udp_packet(3,seq,96,0x515151,ns()),remote)
-            t.add("probe_sent");t.add("offered_bytes",96);t.add("sent_bytes",96)
+            s.sendto(udp_packet(3,seq,96,0x515151,ns()),destination)
+            t.add("probe_sent");t.add("sent_bytes",96)
             t.bucket("send_bucket_10ms",ns(),96)
         except OSError:t.add("probe_send_errors")
 
@@ -339,7 +345,9 @@ def run(args):
             jobs.append(threading.Thread(target=probe,args=(probe_socket,(remote[0],remote[1]+2),start,stop,t),daemon=True))
         else:
             probe_socket=setup_udp(own[0],own[1]+2)
-            jobs.append(threading.Thread(target=udp_recv,args=(probe_socket,"target",t,[None],stop),daemon=True))
+            reverse_peer=[None]
+            jobs.append(threading.Thread(target=udp_recv,args=(probe_socket,"target",t,reverse_peer,stop),daemon=True))
+            jobs.append(threading.Thread(target=probe,args=(probe_socket,lambda:reverse_peer[0],start,stop,t,1.0),daemon=True))
     if tcp_rate:
         if args.role=="target":
             ls=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
