@@ -144,7 +144,7 @@
     "No exact-source sustained 300s A/B/C evidence"
   ],
   "driver_a": {
-    "state": "NOT_RUN",
+    "state": "A_UDP_GENERATOR_UNIT_PASS_FULLSTACK_NOT_RUN",
     "features": [
       "two independent data emitters via real UDP sockets",
       "separate probe socket and recv thread",
@@ -152,6 +152,11 @@
       "large-datagram ACK RTT metadata",
       "effective socket buffer readback"
     ],
-    "known_qualification_gap": "No fullstack nor loss run; driver unit preflight pending"
+    "known_qualification_gap": "No fullstack nor loss run; driver unit preflight pending",
+    "precheck_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37727958387",
+    "path_generator": "tools/prepare_longmix_udp.py",
+    "impairment": "tools/longmix_constant_stage.py",
+    "client_linux_capture": "TPROXY (client TUN absent, server real shared TUN must read back 9000)",
+    "validation": "GENERATED_SCRIPT_PREFLIGHT_PENDING"
   }
 }

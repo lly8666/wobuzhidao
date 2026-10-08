@@ -7,6 +7,9 @@ on:
       - "tools/test_longmix_profile.py"
       - "tools/longmix_udp_business.py"
       - "tools/test_longmix_udp_business.py"
+      - "tools/longmix_constant_stage.py"
+      - "tools/prepare_longmix_udp.py"
+      - "tools/test_prepare_longmix_udp.py"
       - ".github/workflows/next-longmix-preflight.yml"
   workflow_dispatch:
 
@@ -29,6 +32,17 @@ jobs:
         run: |
           python3 tools/test_longmix_profile.py
           python3 tools/test_longmix_udp_business.py
+          python3 tools/test_prepare_longmix_udp.py
+          python3 - <<'PY'
+          import json, sys
+          from pathlib import Path
+          sys.path.insert(0, "tools")
+          from longmix_profile import sample_matrix
+          Path("artifacts").mkdir(exist_ok=True)
+          Path("artifacts/longmix-precheck-input.json").write_text(json.dumps(sample_matrix()[0]))
+          PY
+          python3 tools/prepare_longmix_udp.py --sample artifacts/longmix-precheck-input.json --artifact-dir artifacts/longmix-precheck
+          bash -n artifacts/longmix-precheck/generated-longmix-udp-a.sh
       - name: Kernel IPv4 fragment / EMSGSIZE functional boundary
         run: |
           sudo apt-get update
