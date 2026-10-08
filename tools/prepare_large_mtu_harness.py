@@ -86,6 +86,8 @@ CAP_PIDS+=("$!")''')
     "tools/large_mtu_loss_stage.py",
     "tools/prepare_large_mtu_harness.py",
     "tools/check_large_mtu_mixed.py",
+    "tools/large_mtu_resource_report.py",
+    "tools/check_strict_weaknet.py",
 ]
 '''.rstrip()+s[end:]
     swap('"schema": 1, "source_sha": source,',
