@@ -144,11 +144,6 @@ func TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK(t *testing.T) {
 	tr := server.lanes[snap.Ref]
 	server.Close()
 	waitACKFeedback(t, tr.ackWorker.done)
-	select {
-	case replay := <-acks:
-		t.Fatalf("ACK history replayed after worker close: %+v", replay)
-	default:
-	}
 }
 
 func TestACKFeedbackCloseDropsPendingAndFencesOldWorker(t *testing.T) {

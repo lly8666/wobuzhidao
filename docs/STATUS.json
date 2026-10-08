@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_ACK_TEST_HANDSHAKE_ACTIONS_WORKFLOW_REPAIR_RACE_PENDING",
+    "phase": "E4_ACK_TEST_INFLIGHT_CLOSE_ASSERTION_CORRECTED_ACTIONS_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1078,6 +1078,15 @@
           "root": "malformed added long-regex workflow step",
           "fixed_in": "THIS_COMMIT",
           "reference_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37856284837"
+        },
+        "test_followup_failure": {
+          "run_id": 37856286059,
+          "job_id": 113581128291,
+          "workflow": "next-lifecycle",
+          "outcome": "FAIL",
+          "observed": "TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK newly added post-close channel empty assertion fails with ACK already in-flight before Close",
+          "disposition": "REVERT_ONLY_NEW_OVERSTRICT_ASSERTION_KEEP_SEPARATE_CLOSE_FENCING_TEST_AND_ENTERED_HANDSHAKE",
+          "corrected_in": "THIS_COMMIT"
         }
       },
       "protectors": {
@@ -1093,8 +1102,8 @@
       }
     }
   },
-  "next_task": "Check exact new corrected workflow Foundation run with actual jobs and repeated 100x nonrace/30x -race and full go test -race ./...; prior run37856284837 failed workflow validation before any jobs, not a Go assertion/race result. If green, proceed individual protected Game4 lossless same product SOURCE ba8ed1 seed1840 (new one-sample Action), then Normal1/Game2 one-run-per-case. Historical failed samples retained; CPU UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-ack-feedback-foundation-yaml-validation-repair.md",
+  "next_task": "Check new commit's exact-source next-foundation directed 100x unit, 30x race and full go test -race plus lifecycle. Older run37856286059 FAIL newly imposed post-Close channel empty assertion while in-flight send may legitimately complete, removed without relaxing original latest-only/NoHOL bounds; run37856284837 no jobs workflow malformed, historical failure remains. Only after real Actions PASS dispatch separate ba8ed1 protectors starting Game4 lossless seed1840.",
+  "latest_log": "docs/devlog/20261009-ack-feedback-close-inflight-contract-correction.md",
   "qualification_scope": "Current E4 product ba8ed1 / helper 32db: one Game4 true staged5205 300s 3Mbps each way profile OFF PASS_SCOPED_ACTIONS run37853468730; latest helper foundation race run37853468530 FAIL in ACK test. Other protectors and CPU benefit NOT_RUN/UNPROVEN; previous integrated bf11fbf and historic FAIL remain source-scoped.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "Game4 4-lane configured real mixed staged5205 profile-off scoped PASS run37853468730, other source protections pending; helper foundation race FAIL run37853468530",
@@ -1107,7 +1116,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "New Foundation workflow valid-format repair; directed 100x no-race/30x -race and full Go race pending execution (old no-jobs failure retained)",
+    "Await corrected deterministic ACK regression with no invalid after-close channel-empty assertion; full Actions Foundation/lifecycle PENDING, no performance dispatch",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
@@ -1171,6 +1180,14 @@
       "scope": "ACK_test_repeat_foundation_workflow_validation",
       "status": "FAIL",
       "note": "Zero jobs; malformed YAML from long regex insertion, unit and race NOT_RUN; corrected in successor commit, do not mark race PASS."
+    },
+    {
+      "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "helper_sha": "ffd1239f2399fb04361f02803d55e6225a890178",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37856286059",
+      "scope": "ACK_test_lifecycle_overstrict_close_test",
+      "status": "FAIL",
+      "note": "TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK new extra channel-empty after Close assertion, already in-flight native ACK may complete after Close. Remove invented condition, retain original latest-only and distinct TestACKFeedbackCloseDropsPendingAndFencesOldWorker."
     }
   ],
   "required_read_set": [
