@@ -84,6 +84,7 @@
     "SOURCE c853935e5356a9bc99d380befb5a8ac8e0c08d97 Linux raw SO_RCVBUF configuration + established clean-RTT 200ms RTO candidate: scoped Actions Normal/Game/r12(core/race/lifecycle/network), raw A/B, 10ms HOL scan and P6 3 targets PASS; ACTIONS_READY_FOR_PHYSICAL only"
   ],
   "in_progress": [
+    "2026-10-08 MTU candidate 954a151 exact-source Actions run37739744820: Linux unit/race/arm64 build PASS, Linux real netns TUN PASS, Windows unit FAIL (script still restricted to TunnelMTU=9000). Corrected script range in next product commit; candidate requalification NOT_RUN.",
     "2026-10-08 最新用户决定：独立产品候选从b4ea061导出Windows/Linux内层TUN MTU；新源码Actions功能/性能NOT_RUN；长混测12条FAIL保留。",
     "Nativeclient ACK/nativewrite vsdecode latency boundary diagnosis",
     "Remaining20nativeconfigurationcase gaps",
@@ -92,8 +93,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "2026-10-08 highest priority: qualify exact-SHA automatic inner-TUN MTU candidate through independent GitHub Actions functionality before any 300s performance run; verify Windows owned MTU plan, Linux real kernel shared-TUN MTU, TCP MSS, UDP small/medium integrity, DF behavior, then one independent performance sample per Actions run old/new source. Preserve original longmix 12 FAIL, B offer shortage and A20 stall OPEN.",
-  "latest_log": "docs/devlog/20261008-143800-mtu-auto-inner-budget-candidate.md",
+  "next_task": "Exact-SHA Windows script MTU range fix must pass a new GitHub Actions run; first candidate run37739744820 had Windows FAIL and remains recorded. Then independently qualify Windows Wintun Apply/owned-only cleanup, Linux shared TUN actual netns plan, TCP MSS/PMTU/DF/UDP small and medium with real sockets. Only after functional PASS launch independent 300s performance comparison one sample/run; frozen b4ea061 and longmix 12 FAIL remain.",
+  "latest_log": "docs/devlog/20261008-145500-windows-derived-mtu-script-fix.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10838,7 +10839,7 @@
     "evidence": "docs/evidence/raw-rto-c853935-physical-20261008.json"
   },
   "mtu_auto_inner_20261008": {
-    "state": "CANDIDATE_ACTIONS_NOT_RUN",
+    "state": "CANDIDATE_SCRIPT_FIX_ACTIONS_NOT_RUN",
     "parent_product_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "product_sha": null,
     "functional": "NOT_RUN",
@@ -10848,6 +10849,16 @@
     "logical_ipv4_limit": 9000,
     "udp_frame_payload_limit": 8936,
     "evidence": "docs/evidence/mtu-auto-inner-20261008.json",
-    "latest_log": "docs/devlog/20261008-143800-mtu-auto-inner-budget-candidate.md"
+    "latest_log": "docs/devlog/20261008-145500-windows-derived-mtu-script-fix.md",
+    "initial_candidate_sha": "954a15130b6f8d9125c5e3ffa0b0dffbf114f99b",
+    "first_action_run": {
+      "id": 37739744820,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37739744820",
+      "source_sha": "954a15130b6f8d9125c5e3ffa0b0dffbf114f99b",
+      "linux_unit_race": "PASS",
+      "linux_real_tun": "PASS",
+      "windows_unit": "FAIL",
+      "root_cause": "scripts/windows_client_network.ps1 ValidateRange(9000,9000) rejected 1249"
+    }
   }
 }

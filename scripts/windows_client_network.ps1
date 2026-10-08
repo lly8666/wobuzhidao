@@ -3,7 +3,7 @@ param(
     [string]$Action = 'Render',
     [string]$AdapterAlias = 'WBD',
     [string]$TunnelAddress4 = '',
-    [ValidateRange(9000,9000)][uint32]$TunnelMTU = 9000,
+    [ValidateRange(576,9000)][uint32]$TunnelMTU = 1500,
     [string]$Underlay4 = '',
     [uint32]$PhysicalInterfaceIndex = 0,
     [string]$PhysicalNextHop4 = '',
