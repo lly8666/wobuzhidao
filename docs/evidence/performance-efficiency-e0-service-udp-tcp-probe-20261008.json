@@ -1,0 +1,59 @@
+{
+  "schema": "wbd-e0-optin-server-service-tick-split/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "525a27f1899be1d99b2f0e8100e4f079da17b537",
+  "instrumented_parent_product_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
+  "new_product_sha": "THIS_GITHUB_COMMIT",
+  "prior_evidence": {
+    "run_id": 37780170850,
+    "artifact_id": 11552790293,
+    "original_classification": "FAIL",
+    "original_issues": [
+      "LOSSLESS_UDP_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_s2c"
+    ],
+    "server_service_tick_s": 18.711386306,
+    "server_service_tick_max_ms": 209.802524,
+    "server_service_tick_over_10ms": 278,
+    "server_runtime_tick_s": 12.373387955,
+    "server_ready_overflow": 315310,
+    "c2s_udp_missing": 2105
+  },
+  "hypotheses": [
+    "UDPServer.Tick sweeps idle UDP mappings under lock, potential contention; no heavy send work evident from code",
+    "TCPServer.Tick iterates live flows, computes RetransmitDue, and may synchronously send retransmitted TCP frames over four-lane tunnel, a plausible heavy tail; unproven without split timing"
+  ],
+  "instrumentation": [
+    {
+      "path": "internal/platformflow/service.go",
+      "change": "Add opt-in TickTimed(now) calling UDP.Tick then TCP.Tick with per-subcall durations, without altering existing Tick(now)"
+    },
+    {
+      "path": "internal/runtimeentry/lifecycle.go",
+      "change": "When ObserveTiming true use service.TickTimed and accumulate UDP/TCP; when false call unchanged group.service.Tick(now)"
+    },
+    {
+      "path": "internal/runtimeentry/perf_diag.go",
+      "change": "Add tick_service_udp and tick_service_tcp DurationDiagnostic to existing opt-in snapshots"
+    },
+    {
+      "path": "internal/runtimeentry/server_tick_phase_diag_test.go",
+      "change": "Assert total_ns and serializable new fields"
+    }
+  ],
+  "safety": [
+    "No new packet timers, goroutines or queues; no original Tick code changed and call order preserved",
+    "Only diagnostic ON execution adds clock observation; OFF uses exact original service.Tick",
+    "No changes to business protocol FEC 20:20/auto MTU/4096 ready and shadow/first-arrival/generation/crypto",
+    "New source must pass Actions Linux/Windows core/race before any own-source Game4 trial",
+    "Product CPU on/off not comparable; original Game4 lossless FAIL preserved"
+  ],
+  "test_status": "NEW_SOURCE_NOT_TESTED_ACTIONS_PENDING",
+  "next": "After foundation success, pin exact product commit SHA and run ONE new Game4 mixed lossless profile-on Actions seed1820, measure split durations + queue overflow and UDP/probe integrity",
+  "e1_e5": "NO_OPTIMIZATION_IMPLEMENTED",
+  "e6_p6": "NOT_RUN",
+  "e7": "OPEN_DEFERRED",
+  "physical": "NOT_RUN"
+}

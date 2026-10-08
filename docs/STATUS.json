@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_SERVER_SERVICE_TICK_DOMINANT_FAIL_MORE_GRANULAR_REQUIRED",
+    "phase": "E0_SERVER_SERVICE_TICK_UDP_TCP_INSTRUMENTATION_NOT_TESTED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -352,10 +352,22 @@
       "service_tick_max_ms": 209.802524,
       "runtime_tick_total_s": 12.373387955,
       "evidence": "docs/evidence/performance-efficiency-e0-game4-tick-phase-fail-37780170850.json"
+    },
+    "e0_service_subphase": {
+      "state": "SOURCE_CANDIDATE_NOT_TESTED",
+      "parent_head": "525a27f1899be1d99b2f0e8100e4f079da17b537",
+      "new_product_sha": "NEW_COMMIT_GITHUB_SHA",
+      "fields": [
+        "tick_service_udp",
+        "tick_service_tcp"
+      ],
+      "previous_run": 37780170850,
+      "previous_fail": true,
+      "evidence": "docs/evidence/performance-efficiency-e0-service-udp-tcp-probe-20261008.json"
     }
   },
-  "next_task": "E0: exact instrumented Game4 source fa97f6ad profile-on run37780170850 original FAIL, server ready overflow315310, C2S UDP2105 missing/probes32/30, tick_service=18.711s / 60.14% tick wall / max209.8ms vs tick_runtime12.373s. Next isolate platformflow.Server.Tick -> UDP.Tick vs TCP.Tick via opt-in diagnostic-only subphase on new source, unit/race/Windows first, then independent one Game4 mixed 4lane 3Mbps/dir 300s+3s lossless profileON Action with exact frozen source+helper. Do not assume TCP bottleneck or enlarge 4096, and preserve old failures. Only choose minimal no-HOL product E1 optimization after evidence and four protectors. E6/P6/physical NOT_RUN, E7 80s OPEN.",
-  "latest_log": "docs/devlog/20261008-game4-tick-service-60-percent-fail.md",
+  "next_task": "E0 wait for Actions next-foundation on exact new source with platformflow.Server.TickTimed only on ObserveTiming ON; ensure Linux/Windows unit/race+privileged tests PASS. Then pin this exact source commit SHA as PRODUCT_SOURCE in one helper commit with sample Game4 mixed 3Mbps/dir 300s lossless 300ms profileON seed1820, one Action case; report actual service tick UDP vs TCP wall times, ready overflow, all UDP and probe missing; do NOT infer product optimization from diagnostics. Existing run37780170850 original FAIL C2S UDP2105, probes32/30 and ready overflow315310. No E1 candidate validated; 80s S2C OPEN E7; P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-service-udp-vs-tcp-tick-probe.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

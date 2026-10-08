@@ -15,6 +15,8 @@ func TestServerPipelineTickPhaseDiagnosticSnapshot(t *testing.T) {
 	p.tickSweep.observe(2 * time.Millisecond)
 	p.tickRuntime.observe(4 * time.Millisecond)
 	p.tickService.observe(3 * time.Millisecond)
+	p.tickServiceUDP.observe(time.Millisecond)
+	p.tickServiceTCP.observe(2 * time.Millisecond)
 	p.tickBookkeeping.observe(time.Millisecond)
 
 	got := p.snapshot(true)
@@ -23,6 +25,8 @@ func TestServerPipelineTickPhaseDiagnosticSnapshot(t *testing.T) {
 		got.TickSweep.TotalNS != uint64(2*time.Millisecond) ||
 		got.TickRuntime.TotalNS != uint64(4*time.Millisecond) ||
 		got.TickService.TotalNS != uint64(3*time.Millisecond) ||
+		got.TickServiceUDP.TotalNS != uint64(time.Millisecond) ||
+		got.TickServiceTCP.TotalNS != uint64(2*time.Millisecond) ||
 		got.TickBookkeeping.TotalNS != uint64(time.Millisecond) {
 		t.Fatalf("missing server tick phase counters: %+v", got)
 	}
@@ -34,7 +38,7 @@ func TestServerPipelineTickPhaseDiagnosticSnapshot(t *testing.T) {
 	if err := json.Unmarshal(raw, &fields); err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range []string{"tick_retransmit", "tick_sweep", "tick_runtime", "tick_service", "tick_bookkeeping"} {
+	for _, key := range []string{"tick_retransmit", "tick_sweep", "tick_runtime", "tick_service", "tick_service_udp", "tick_service_tcp", "tick_bookkeeping"} {
 		if len(fields[key]) == 0 {
 			t.Fatalf("missing diagnostic JSON field %q", key)
 		}

@@ -2089,10 +2089,14 @@ func (s *LifecycleServer) tick(now time.Time) error {
 			s.pipeline.tickRuntime.observe(time.Since(tickPhase))
 			tickPhase = time.Now()
 		}
-		group.service.Tick(now)
 		if s.cfg.ObserveTiming {
+			udpWall, tcpWall := group.service.TickTimed(now)
+			s.pipeline.tickServiceUDP.observe(udpWall)
+			s.pipeline.tickServiceTCP.observe(tcpWall)
 			s.pipeline.tickService.observe(time.Since(tickPhase))
 			tickPhase = time.Now()
+		} else {
+			group.service.Tick(now)
 		}
 		s.mu.Lock()
 		replacements := make([]*serverLifecycleLane, 0, len(group.retiring))
