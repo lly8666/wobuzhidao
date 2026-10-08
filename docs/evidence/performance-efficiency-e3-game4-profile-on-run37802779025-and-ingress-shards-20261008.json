@@ -1,0 +1,123 @@
+{
+  "schema": "wbd-e3-game4-profileon-ingress-shard-candidate/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "bb28b07c305fa11f53bcd854460e2851d19acd1b",
+  "source_diagnostic": {
+    "run_id": 37802779025,
+    "job_id": 113399041023,
+    "artifact_id": 11561433657,
+    "conclusion": "failure",
+    "analyzer": "FAIL",
+    "issues": [
+      "LOSSLESS_UDP_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_s2c"
+    ],
+    "source_sha": "19e5b19245bed8691bbb5e7053ad27a0268c893d",
+    "helper_sha": "bb28b07c305fa11f53bcd854460e2851d19acd1b",
+    "profile": "on",
+    "seed": 1826,
+    "mode": "game",
+    "active_physical_lanes_both": 4,
+    "rate_mbps_each": 3,
+    "loss_percent": 0,
+    "duration_s": 300,
+    "drain_s": 3,
+    "auto_server_tun_mtu": 1273,
+    "c2s_udp_missing": 319,
+    "c2s_missing_by_size": {
+      "96": 176,
+      "256": 38,
+      "512": 32,
+      "1000": 10,
+      "1372": 39,
+      "4068": 24
+    },
+    "s2c_udp_missing": 0,
+    "probe_missing_c2s_s2c": [
+      1,
+      2
+    ],
+    "probe_p99_ms_c2s_s2c": [
+      783.698254,
+      771.482286
+    ],
+    "tcp_flows_each": 304,
+    "http_https": "20/20; 10 cert verified",
+    "server_raw_reads": 2919960,
+    "server_segments_handled": 2846374,
+    "server_ready_overflow": 73586,
+    "server_ready_capacity": 4096,
+    "server_queue_max_age_ms": 233.659234,
+    "server_queue_age_over10ms": 1025258,
+    "server_tick_runtime_wall_s": 13.042866674,
+    "server_tick_runtime_max_ms": 23.819031,
+    "game_async_tick_scheduled": 3106,
+    "game_async_tick_coalesced": 71,
+    "server_udp_sendqueue_drops": 0,
+    "netem_drops": 0,
+    "local_socket_or_interface_drops": 0,
+    "cpu_s_profile_on": 352.14,
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "cpu_psi_some_avg10_max": 35.12,
+    "host_busy_max_percent": 84.89010989010988,
+    "sha256": {
+      "summary.json": "59e89cf84934902cce09f0e37c237982a3ee685f23979848b31dffd3ca59f7a2",
+      "efficiency-ledger.json": "f6e1deff5d4c634034e3fa644709fe0862cd03a94717789cfa0bf3c2e3288f18",
+      "server-diag.jsonl": "ec799e3e4d00794d1ce53a717f52ada24fdd9d130d4bdb6a0d467da6f37eb9b0"
+    }
+  },
+  "prior_profile_off": {
+    "run_id": 37801415227,
+    "conclusion": "failure",
+    "c2s_udp_missing": 37,
+    "probe_missing": [
+      0,
+      0
+    ],
+    "note": "DIAG ON vs OFF not comparable for CPU or stable loss-reduction claims"
+  },
+  "stage_b_product_source": {
+    "status": "UNTESTED_NEW_COMMIT",
+    "modified": [
+      "internal/runtimeentry/game_ingress_shards.go",
+      "internal/runtimeentry/lifecycle.go",
+      "internal/runtimeentry/game_ingress_shards_test.go"
+    ],
+    "algorithm": "Raw read sends each Game four-tuple from initial SYN to FIN to a stable worker shard indexed by source port modulo desired(2..4). All faketcp/TLS/FEC/lease/generation/PacketID authentication still takes place inside original handleSegment. No pre-auth dedupe.",
+    "total_record_capacity": 4096,
+    "control_queue_capacity": 256,
+    "worker_queue_per_lane": "(4096-256)/desired",
+    "worker_count": "2..4 Game; 0 Normal",
+    "normal_queue_capacity": 4096,
+    "drop_policy": "existing oldest-drop, all queues reflected in pipeline overflow stats",
+    "termination": "cancel and join workers before server close",
+    "fatal_policy": "worker failure causes main run to stop",
+    "expected_risks": [
+      "parallel bootstrap and admission race",
+      "shard hash collisions",
+      "per-shard overflow while other shards idle",
+      "weaknet repair latency/FIN lifecycle regressions"
+    ]
+  },
+  "qualifications": {
+    "foundation": "NOT_RUN",
+    "lifecycle": "NOT_RUN",
+    "game4_off": "NOT_RUN",
+    "game2_off": "NOT_RUN",
+    "normal_lossless": "NOT_RUN_NEW_SHA",
+    "normal_true_5205": "NOT_RUN",
+    "game_true_5205": "NOT_RUN",
+    "e3_final": "BLOCKED",
+    "e2_cpu_gain": "UNPROVEN",
+    "e7_80s": "OPEN",
+    "physical": "NOT_RUN"
+  },
+  "guardrails": [
+    "Do not equate raw queue overflow count with exact missing logical datagrams",
+    "Never compare ON CPU to OFF as improvement",
+    "One real sample per Actions run, no A/B matrix",
+    "No fixed9000 MTU, no FEC/RTO/wire change, no main/physical machine edits"
+  ]
+}

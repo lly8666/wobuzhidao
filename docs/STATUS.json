@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E3_BOUNDED_GAME_TCP_ASYNC_GAME4_LOSSLESS_FAIL_37_VS_PREVIOUS_1906_DIAGNOSTIC_NEXT",
+    "phase": "E3_GAME_INGRESS_SHARDS_GLOBAL_4096_SOURCE_UNTESTED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -527,15 +527,15 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
     },
     "game_architecture": {
-      "state": "BASE_RACE_LIFECYCLE_PASS_GAME4_LOSSLESS_FAIL_37_UNDELIVERED",
+      "state": "STAGE_B_SOURCE_COMMITTED_TESTS_PENDING",
       "parent_head": "8e6a26567511e19901f01f24ee31e82136c1736e",
-      "source_sha": "19e5b19245bed8691bbb5e7053ad27a0268c893d",
-      "stage": "A_BOUNDED_ONE_WORKER_NO_BACKLOG_FOR_GAME_TCP_TICK",
+      "source_sha": "THIS_COMMIT",
+      "stage": "B_PRE_AUTH_FOURTUPLE_STABLE_SHARD_NO_QUEUE_CAPACITY_INCREASE",
       "architecture": "docs/GAME_MODE_INGRESS_ARCHITECTURE_20261008.md",
-      "evidence": "docs/evidence/performance-efficiency-e3-game4-async-first-0loss-run37801415227.json",
+      "evidence": "docs/evidence/performance-efficiency-e3-game4-profile-on-run37802779025-and-ingress-shards-20261008.json",
       "foundation": "NOT_RUN",
       "lifecycle": "NOT_RUN",
-      "new_game4_lossless": "PENDING_ACTION",
+      "new_game4_lossless": "NOT_RUN",
       "new_game2_lossless": "NOT_RUN",
       "normal_5205": "NOT_RUN",
       "game4_5205": "NOT_RUN",
@@ -584,11 +584,39 @@
           "size_profile": "ordinary",
           "diagnostic_mode": "on"
         }
-      }
+      },
+      "run_game4_profile_on": 37802779025,
+      "run_game4_profile_on_original": "FAIL",
+      "run_game4_profile_on_issues": [
+        "LOSSLESS_UDP_MISSING_c2s",
+        "LOSSLESS_PROBE_MISSING_c2s",
+        "LOSSLESS_PROBE_MISSING_s2c"
+      ],
+      "game_actual_lanes_both": 4,
+      "game_raw_ingress_reads": 2919960,
+      "game_raw_ingress_handled": 2846374,
+      "game_raw_ready_overflow": 73586,
+      "game_raw_queue_max_age_ms": 233.659234,
+      "game_probe_missing": [
+        1,
+        2
+      ],
+      "game_udp_c2s_missing": 319,
+      "game_udp_sendqueue_overflow": 0,
+      "new_ingress_budget": 4096,
+      "game_control_depth": 256,
+      "normal_depth": 4096,
+      "game_worker_count": "2..4 FIXED",
+      "per_game_worker_depth": "3840 / desired",
+      "authentication": "UNCHANGED_AFTER_SHARD",
+      "worker_join_before_owner_close": true,
+      "normal5205": "NOT_RUN",
+      "game5205": "NOT_RUN",
+      "cpu_gain": "UNPROVEN"
     }
   },
-  "next_task": "E3 StageA game4 profileOFF run37801415227 original FAIL only LOSSLESS_UDP_MISSING_c2s, 37/103062 UDP app missing (was1906 previous Game4 OFF run37797087655), probes0/0 missing, TCP/HTTPS hash clean, qdisc/socket drops0; observed strong progress but NO PASS. Next independent profileON exact product19e5b192 Game4 4lane mixed 3Mbps/dir 0loss 300ms+3s seed1826 one sample; measure actual active physical lanes4, service main raw ready overflow, queue age, asynchronous TCP tick scheduled/coalesced counters, per-lane duplicates/FEC/repair and probes, host evidence, NEVER compare ON/OFF CPU. If current overflow remains material, Stage B per-lane parallel recv under single global bounded capacity after auth and no-fake-PacketID dedup, with core/race/weaknet protection. True staged 5205 5/20/5 remains NOT_RUN and Gate E3 BLOCKED. E2 CPU gain unproven; E7 old 80s downlink OPEN; E6/P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e3-game4-async-98-percent-loss-reduction-but-fail-next-hotspot.md",
+  "next_task": "Exact new product source commit Stage B: run foundation Linux/Windows Go unit/race/fuzz, privileged TUN/TPROXY and lifecycle. NEW 2..4 shard workers route Game FakeTCP whole four-tuple from SYN via same worker FIFO from raw reader before main loop, 256 control+desired*(3840/desired)=4096 total records; Normal desired1 same4096 queue. All security/lane/TUN PacketID owner checks unchanged, but concurrency from handshake to FIN is expanded, potential race and close hang/weaknet regression must be detected before any performance Action. Previous StageA Game4 profileON run37802779025 originally FAIL: server ingress overflow73586 of 2919960, C2S UDP missing319, probe missing1/2, real 4 lanes, source19e5b192. If foundation PASS, pin candidate product exact SHA and run one independent Game4 profileOFF 0loss 300ms/300s+3s 3Mbps each direction mixed real TPROXY/TUN; retain genuine original analyzer verdict and resource fields. Then Game2, Normal lossless and true staged 5205 5/20/5 each independent Action. All prior FAIL, E2 CPU gain unproven; E7 80s S2C OPEN; E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e3-game4-read-queue-overflow-stage-b-ordered-shard-candidate.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

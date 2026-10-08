@@ -1265,8 +1265,20 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 	if s == nil || ctx == nil {
 		return ErrEndpointConfig
 	}
-	defer s.Close()
-	readCh := newServerReadQueue()
+	// The Game ingress fanout divides the original total 4096-record
+	// budget instead of multiplying it per lane. Join consumers before
+	// closing the owner/table to preserve generation and FIN fences.
+	runCtx, cancelWorkers := context.WithCancel(ctx)
+	var workerWG sync.WaitGroup
+	defer func() {
+		cancelWorkers()
+		workerWG.Wait()
+		s.Close()
+	}()
+	shards, controlDepth := newGameIngressShards(s.cfg.DesiredLanes)
+	readCh := make(chan segmentRead, controlDepth)
+	workerErrors := make(chan error, 1)
+	s.runGameIngressWorkers(runCtx, shards, workerErrors, &workerWG)
 	go func() {
 		var previousRead time.Time
 		for {
@@ -1296,7 +1308,15 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 				return
 			default:
 			}
-			dropped, droppedOld, accepted := offerLatestBounded(readCh, read)
+			// Partition Game packet handling at the raw read boundary, before
+			// the shared receive/tick loop can block. The source four-tuple
+			// stays on the same ordered worker from SYN through FIN, and
+			// the worker still performs the full FakeTCP and TLS checks.
+			dest := readCh
+			if index := s.gameIngressIndex(seg, shards); index >= 0 {
+				dest = shards.in[index]
+			}
+			dropped, droppedOld, accepted := offerLatestBounded(dest, read)
 			if droppedOld && s.cfg.ObserveTiming {
 				s.pipeline.overflowDrop(len(dropped.seg.Payload), time.Since(dropped.readyAt))
 			}
@@ -1315,6 +1335,8 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
+		case err := <-workerErrors:
+			return err
 		case read := <-readCh:
 			handleStarted := time.Now()
 			if s.cfg.ObserveTiming && read.err == nil {
