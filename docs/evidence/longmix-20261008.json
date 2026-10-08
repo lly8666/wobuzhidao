@@ -135,10 +135,68 @@
       "loss_percent": 0,
       "seed": 2608102,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": null,
-      "action_url": null,
-      "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete"
+      "helper_sha": "d9a284097df4143ab1bbfc4847b59095d2183dbf",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37732512345",
+      "classification": "FAIL",
+      "reason": "Lossless TCP B real fullstack source injection only56.37% target, actual stream goodput5.64Mbps each direction, 250/300 short TCP transactions, with measured socket backpressure and kernel TCP retrans despite netem0; six long stream hashes byte-perfect. Capacity attribution unproven; helper short stream serial schedule creates missed slots.",
+      "valid_sample": {
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37732512345",
+        "artifact_id": 11529938114,
+        "artifact_digest": "sha256:fd28503894790f70527f1f8714166019479aae5aad17af48153c94462a1212ff",
+        "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "d9a284097df4143ab1bbfc4847b59095d2183dbf",
+        "classification": "FAIL",
+        "workload": "B",
+        "loss_percent": 0,
+        "seed": 2608102,
+        "duration_s": 300,
+        "drain_s": 10,
+        "tcp_target_mbps_per_direction": 10,
+        "offered_per_direction_bytes": 375000000,
+        "send_and_receive_bytes_each_direction": 211383552,
+        "goodput_mbps_each_direction": 5.63689472,
+        "source_injection_coverage_each_direction": 0.563689472,
+        "long_tcp_flows_each_direction": 3,
+        "three_stream_hash_integrity": "all six sent/received complete equal SHA256 and bytes",
+        "tcp_socket_timeout_backpressure_per_long_flow": "1351..1385",
+        "tcp_max_write_block_ms_approx": 200,
+        "tcp_mss": "kernel reported 8948 snd_mss / 9000 pmtu after connection",
+        "kernel_tcp_retrans_seg": {
+          "biz": 355,
+          "target": 327
+        },
+        "short_transaction_96B": {
+          "offered": 300,
+          "returned": 250,
+          "missing_or_unstarted": 50,
+          "first_skipped_sec": 5,
+          "repeated_pattern": "approximately every 6 seconds",
+          "rtt_returned_p99_ms": 1205.197182,
+          "rtt_returned_p50_ms": 1201.717154,
+          "note": "Includes TCP three-way handshake and separate request/reply RTT, not equal to UDP one-round-trip p99; 50 MISSED_SCHEDULE due serial helper"
+        },
+        "netem": {
+          "c2s_actual_percent": 0,
+          "s2c_actual_percent": 0,
+          "c2s_attempted": 1268717,
+          "s2c_attempted": 1274211
+        },
+        "runner": {
+          "vcpus": 4,
+          "avg_busy_pct_approx": 8.01,
+          "steal_pct": 0,
+          "cpu_psi_avg10_some_max": 28.89,
+          "memory_psi_avg10_some_max": 0,
+          "all_netns_interface_drop": 0,
+          "raw_rcvbuf_actual_bytes": {
+            "client": 1048576,
+            "server": 1048576
+          }
+        },
+        "capacity_classification": "NOT_ATTRIBUTED: no earliest sustained runner saturation; TCP source backpressure and retrans on real IPv4 under 0 netem loss are evidenced; 4vCPU avg busy8% and 0 steer/ifdrops are not sufficient for CAPACITY_LIMITED",
+        "tcp_independent_96B_UDP_probe": "NOT_RUN_FOR_B",
+        "client_capture": "Linux TPROXY; client TUN unsupported"
+      }
     },
     {
       "workload": "B",
@@ -373,7 +431,7 @@
     ]
   },
   "tcp_b_candidate": {
-    "status": "B0_DISPATCH_REQUESTED",
+    "status": "B0_PRODUCT_FAIL_AND_SHORT_HELPER_BUG_REQUIRES_FIX",
     "path": "tools/longmix_tcp_business.py",
     "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "semantics": "three bidirectional TCP long streams, one 96B short connection per second, per flow SHA256, TCP_INFO/MSS and partial send/backpressure counts; not a product performance proof",
@@ -381,7 +439,7 @@
     "samples": "NOT_RUN",
     "script_generator": "tools/prepare_longmix_tcp.py",
     "summary_validator": "tools/check_longmix_tcp_compact.py",
-    "fullstack_run": null,
+    "fullstack_run": "https://github.com/lly8666/wobuzhidao/actions/runs/37732512345",
     "warning": "Only helper; every B and C product sample remains NOT_RUN",
     "preflight_helper_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731561854",
     "performance_samples": "NOT_RUN",
@@ -395,6 +453,23 @@
       "loss_percent": 0,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "action_url": null
-    }
+    },
+    "classification": "FAIL",
+    "artifact_id": 11529938114,
+    "short_client_bug": "serial TCP 1Hz handshake+request RTT about1.2s exceeds schedule; 50 skipped starts; fix concurrent bounded short request scheduling before further qualification"
+  },
+  "minimal_product_repair": {
+    "branch": "investigation/longmix-no-udp-truncation-20261008",
+    "source_sha": "2f7bb59e91e27d7c84622d91f7e169f3b7241d5d",
+    "functional_action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37732745397",
+    "classification": "PASS_FUNCTIONAL_ONLY",
+    "correction": "server UDP socket read now MaxPayload+1 and drops/tracks full oversize datagrams without silent truncation; OpenWrt ingress flags MSG_TRUNC and counts; subsequent small datagram unaffected",
+    "not_fixed": [
+      "Legal 8972/8973/65507 UDP over Linux TPROXY remains incapable of delivery",
+      "Windows/Linux ARM big tail not rechecked",
+      "80s S2C interruption remains OPEN"
+    ],
+    "physical": "NOT_RUN",
+    "fullstack_performance_on_new_source": "NOT_RUN"
   }
 }

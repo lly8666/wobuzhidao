@@ -90,10 +90,12 @@
     "Currentproduct full70/18/1800s NOT_RUN",
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)",
-    "Linux TPROXY platformflow oversize 8936B boundary, truncated S2C replies; fullstack 2026-10-08 A/0 FAIL; source b4 unchanged"
+    "Linux TPROXY platformflow oversize 8936B boundary, truncated S2C replies; fullstack 2026-10-08 A/0 FAIL; source b4 unchanged",
+    "B/0 lossless real TCP 56% source injection, 250/300 shorts, backpressure and retrans; no CAPACITY proof",
+    "Linux platformflow UDP no-silent-truncation isolated product candidate2f7bb59 functional Actions PASS, large UDP support still OPEN"
   ],
-  "next_task": "B/0% TCP fullstack 300s single independent run requested after exact helper f0df085 preflight 37732031850 success; source b4, seed2608102, Normal1 FEC20:20, 10Mbps/direction TCP, 3 long and 1Hz short, 300ms one-way. Retrieve real run/stream SHA/MSS/netem/error and classify; don't assume PASS. A/p0 37731062203 valid FAIL >8936 Linux TPROXY MaxPayload remains, other 10/11 untouched. C NOT_RUN. Do not equate Linux TPROXY with Windows/ARM or merge physical issues.",
-  "latest_log": "docs/devlog/20261008-longmix-b0-dispatch.md",
+  "next_task": "B/0 fixed-b4 Action 37732512345 real300s FAIL: TCP both dir5.6369Mbps /10 target, 56.37% source injection; 3 each direction TCP stream hashes exact; socket backpressure 1351-1385 timeouts/connection and ~355/327 Linux TCP retrans with netem0, 250/300 TCP short requests, 50 skipped due helper serial RTT1.2s >1Hz. Fix bounded concurrent short generator separately, repeat B0. Product min no-silent-UDP-truncation source2f7bb59 functionality Actions37732745397 PASS, NOT fullstack, leaves legal oversized UDP path OPEN. A0 run37731062203 original FAIL remains. C unqualified. DO NOT blame runner without earliest capacity evidence; 4vCPU busy8% avg 0 steal no interface drops. M03 native 80s S2C and UDP65507 1.225s separate OPEN.",
+  "latest_log": "docs/devlog/20261008-longmix-b0-fullstack-fail-and-min-guard.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10887,17 +10889,17 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "B0_DISPATCH_REQUESTED_A0_FAIL",
+    "state": "A0_FAIL_B0_FAIL_SHORT_HELPER_AND_TCP_BACKPRESSURE_ANALYZE",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "1171220c9c679b7ddcf9ed65973299636de90c2e",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37730618843",
     "fullstack_samples": {
       "PASS": 0,
-      "FAIL": 1,
+      "FAIL": 2,
       "CAPACITY_LIMITED": 0,
       "INVALID": 0,
       "UNSUPPORTED": 0,
-      "NOT_RUN": 11
+      "NOT_RUN": 10
     },
     "evidence": "docs/evidence/longmix-20261008.json",
     "physical": "NOT_RUN",
@@ -10991,7 +10993,79 @@
       "physical": "NOT_RUN"
     },
     "scope_warning": "client Linux real OpenWrt TPROXY, not Windows or Linux TUN; original Windows-ARM M03 remains separate",
-    "tcp_b_state": "B0_REQUESTED_NOT_YET_RESULT",
-    "b_preflight": "https://github.com/lly8666/wobuzhidao/actions/runs/37732031850"
+    "tcp_b_state": "B0_FAIL_SOURCE_INJECTION_56PCT_AND_SHORT_SERIAL_BUG",
+    "b_preflight": "https://github.com/lly8666/wobuzhidao/actions/runs/37732031850",
+    "tcp_b_sample": {
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37732512345",
+      "artifact_id": 11529938114,
+      "artifact_digest": "sha256:fd28503894790f70527f1f8714166019479aae5aad17af48153c94462a1212ff",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "helper_sha": "d9a284097df4143ab1bbfc4847b59095d2183dbf",
+      "classification": "FAIL",
+      "workload": "B",
+      "loss_percent": 0,
+      "seed": 2608102,
+      "duration_s": 300,
+      "drain_s": 10,
+      "tcp_target_mbps_per_direction": 10,
+      "offered_per_direction_bytes": 375000000,
+      "send_and_receive_bytes_each_direction": 211383552,
+      "goodput_mbps_each_direction": 5.63689472,
+      "source_injection_coverage_each_direction": 0.563689472,
+      "long_tcp_flows_each_direction": 3,
+      "three_stream_hash_integrity": "all six sent/received complete equal SHA256 and bytes",
+      "tcp_socket_timeout_backpressure_per_long_flow": "1351..1385",
+      "tcp_max_write_block_ms_approx": 200,
+      "tcp_mss": "kernel reported 8948 snd_mss / 9000 pmtu after connection",
+      "kernel_tcp_retrans_seg": {
+        "biz": 355,
+        "target": 327
+      },
+      "short_transaction_96B": {
+        "offered": 300,
+        "returned": 250,
+        "missing_or_unstarted": 50,
+        "first_skipped_sec": 5,
+        "repeated_pattern": "approximately every 6 seconds",
+        "rtt_returned_p99_ms": 1205.197182,
+        "rtt_returned_p50_ms": 1201.717154,
+        "note": "Includes TCP three-way handshake and separate request/reply RTT, not equal to UDP one-round-trip p99; 50 MISSED_SCHEDULE due serial helper"
+      },
+      "netem": {
+        "c2s_actual_percent": 0,
+        "s2c_actual_percent": 0,
+        "c2s_attempted": 1268717,
+        "s2c_attempted": 1274211
+      },
+      "runner": {
+        "vcpus": 4,
+        "avg_busy_pct_approx": 8.01,
+        "steal_pct": 0,
+        "cpu_psi_avg10_some_max": 28.89,
+        "memory_psi_avg10_some_max": 0,
+        "all_netns_interface_drop": 0,
+        "raw_rcvbuf_actual_bytes": {
+          "client": 1048576,
+          "server": 1048576
+        }
+      },
+      "capacity_classification": "NOT_ATTRIBUTED: no earliest sustained runner saturation; TCP source backpressure and retrans on real IPv4 under 0 netem loss are evidenced; 4vCPU avg busy8% and 0 steer/ifdrops are not sufficient for CAPACITY_LIMITED",
+      "tcp_independent_96B_UDP_probe": "NOT_RUN_FOR_B",
+      "client_capture": "Linux TPROXY; client TUN unsupported"
+    },
+    "product_min_fix": {
+      "branch": "investigation/longmix-no-udp-truncation-20261008",
+      "source_sha": "2f7bb59e91e27d7c84622d91f7e169f3b7241d5d",
+      "functional_action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37732745397",
+      "classification": "PASS_FUNCTIONAL_ONLY",
+      "correction": "server UDP socket read now MaxPayload+1 and drops/tracks full oversize datagrams without silent truncation; OpenWrt ingress flags MSG_TRUNC and counts; subsequent small datagram unaffected",
+      "not_fixed": [
+        "Legal 8972/8973/65507 UDP over Linux TPROXY remains incapable of delivery",
+        "Windows/Linux ARM big tail not rechecked",
+        "80s S2C interruption remains OPEN"
+      ],
+      "physical": "NOT_RUN",
+      "fullstack_performance_on_new_source": "NOT_RUN"
+    }
   }
 }
