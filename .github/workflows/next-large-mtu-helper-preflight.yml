@@ -1,0 +1,75 @@
+name: next-large-mtu-helper-preflight
+on:
+  push:
+    branches:
+      - agent/large-mtu-mixed-20261008
+    paths:
+      - "tools/large_mtu_mixed_business.py"
+      - "tools/large_mtu_loss_stage.py"
+      - "tools/prepare_large_mtu_harness.py"
+      - "tools/check_large_mtu_mixed.py"
+      - ".github/workflows/next-large-mtu-helper-preflight.yml"
+      - ".github/workflows/next-large-mtu-mixed.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  helper-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python and generated bash are syntactically valid
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/large_mtu_mixed_business.py \
+            tools/large_mtu_loss_stage.py tools/prepare_large_mtu_harness.py \
+            tools/check_large_mtu_mixed.py
+          for kind in udp tcp mixed; do
+            python3 tools/prepare_large_mtu_harness.py --output "/tmp/large-$kind.sh" \
+              --workload "$kind" --loss 0
+            bash -n "/tmp/large-$kind.sh"
+          done
+      - name: Verify sole real endpoint pair and inner MTU safeguards
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          s=pathlib.Path("/tmp/large-udp.sh").read_text()
+          assert s.count('ip netns exec "$TGT" python3 "$GEN"')==1
+          assert s.count('ip netns exec "$BIZ" python3 "$GEN"')==1
+          assert '"$GEN" --role target' in s
+          assert '"$GEN" --role biz' in s
+          assert "--route-mode all" in s
+          assert 'link set "$dev" mtu 9000' in s
+          assert '--server-record-limit 1250 --mtu 1400' in s
+          assert '--client-record-limit 1300 --mtu 1400' in s
+          assert 'wbdg0' in s
+          assert 'WBD_LARGE_LOSS' in s
+          assert 'WBD_HARNESS_SHA' in s
+          assert 'DURATION 120' not in s
+          print("WBD_LARGE_FULLSTACK_TEMPLATE_PASS")
+          PY
+      - name: Validate UDP boundaries and deterministic mix without performance loop
+        run: |
+          python3 - <<'PY'
+          import errno,importlib.util,socket
+          spec=importlib.util.spec_from_file_location("mixed","tools/large_mtu_mixed_business.py")
+          m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+          assert len(m.A)==100 and len(m.C)==100
+          for size in (96,8972,8973,65507):
+            p=m.udp_packet(1,17,size,4,1234)
+            assert len(p)==size and m.decode_udp(p)==(1,17,size,1234)
+          with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as s:
+            s.setsockopt(socket.IPPROTO_IP,getattr(socket,"IP_MTU_DISCOVER",10),0)
+            s.bind(("127.0.0.1",0))
+            assert s.sendto(m.udp_packet(1,1,65507,2,2),s.getsockname())==65507
+            try:s.sendto(b"x"*65508,s.getsockname())
+            except OSError as ex:assert ex.errno==errno.EMSGSIZE,ex
+            else:raise AssertionError("UDP65508 must reject, not truncate")
+          print("WBD_UDP_BOUNDARY_PASS")
+          PY
+      - name: No runtime or throughput qualification in preflight
+        run: |
+          echo "helper_sha=$GITHUB_SHA; real netns and 300s endpoints NOT_RUN in preflight"
