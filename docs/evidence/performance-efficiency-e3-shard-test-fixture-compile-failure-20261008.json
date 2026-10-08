@@ -1,0 +1,39 @@
+{
+  "schema": "wbd-e3-ingress-shard-test-fixture-compile-repair/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "df02ad1b1e0158b6482ca60b156d32d0e454732a",
+  "old_actions": {
+    "foundation": {
+      "run_id": 37806291845,
+      "linux_unit": "FAIL",
+      "cause": "New test type literal fields mismatch",
+      "privileged_tproxy_and_shared_tun": "SUCCESS"
+    },
+    "lifecycle": {
+      "run_id": 37806292258,
+      "conclusion": "failure",
+      "cause": "new runtimeentry test build failed"
+    }
+  },
+  "original_compiler_errors": [
+    "unknown field ListenPort in struct literal of type LifecycleServerConfig",
+    "unknown field bytes in struct literal of type segmentRead",
+    "segmentRead has no field bytes"
+  ],
+  "fix": {
+    "file": "internal/runtimeentry/game_ingress_shards_test.go",
+    "details": [
+      "Use embedded ServerConfig{ListenPort:443} for LifecycleServerConfig literal",
+      "Build synthetic segmentRead with faketcp.Segment.SrcPort rather than nonexisting bytes field",
+      "Read record token from segmentRead.seg.SrcPort for FIFO and isolation checks"
+    ],
+    "runtime_product_code": "UNCHANGED",
+    "new_test_status": "NOT_RUN_UNTIL_NEW_SOURCE_ACTIONS"
+  },
+  "requirements": [
+    "Preserve prior Actions FAIL in evidence; do not claim source tests PASS",
+    "No performance Actions until exact-source foundation/race and lifecycle all success",
+    "No main/physical machine fixed MTU changes, E7 80s remains OPEN"
+  ]
+}

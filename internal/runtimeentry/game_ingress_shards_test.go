@@ -32,7 +32,7 @@ func TestGameIngressShardsOneGlobalBudgetNormalUnchanged(t *testing.T) {
 }
 
 func TestGameIngressStableFourTupleAcrossHandshakeGenerationAndFIN(t *testing.T) {
-	s := &LifecycleServer{cfg: LifecycleServerConfig{ListenPort: 443}}
+	s := &LifecycleServer{cfg: LifecycleServerConfig{ServerConfig: ServerConfig{ListenPort: 443}}}
 	for _, n := range []int{2, 3, 4} {
 		shards, _ := newGameIngressShards(n)
 		mapping := make(map[int]bool)
@@ -72,24 +72,24 @@ func TestGameIngressSlowLaneCannotConsumeOtherLaneBudget(t *testing.T) {
 	shards, _ := newGameIngressShards(4)
 	first, second := shards.in[0], shards.in[1]
 	for i := 0; i < cap(first); i++ {
-		if _, _, accepted := offerLatestBounded(first, segmentRead{bytes: i}); !accepted {
+		if _, _, accepted := offerLatestBounded(first, segmentRead{seg: faketcp.Segment{SrcPort: uint16(i)}}); !accepted {
 			t.Fatal("could not fill lane 1 budget")
 		}
 	}
 	if len(second) != 0 {
 		t.Fatal("slow lane 1 consumed lane 2 capacity")
 	}
-	_, old, ok := offerLatestBounded(first, segmentRead{bytes: 99999})
+	_, old, ok := offerLatestBounded(first, segmentRead{seg: faketcp.Segment{SrcPort: 65000}})
 	if !ok || !old || len(first) != cap(first) {
 		t.Fatalf("full lane must shed exactly one oldest item; accepted=%t dropped=%t len=%d", ok, old, len(first))
 	}
-	if got := (<-first).bytes; got != 1 {
+	if got := (<-first).seg.SrcPort; got != 1 {
 		t.Fatalf("lane FIFO after oldest shedding got=%d, want 1", got)
 	}
-	if _, old, ok = offerLatestBounded(second, segmentRead{bytes: 234}); !ok || old {
+	if _, old, ok = offerLatestBounded(second, segmentRead{seg: faketcp.Segment{SrcPort: 234}}); !ok || old {
 		t.Fatal("healthy lane blocked because another lane was full")
 	}
-	if got := (<-second).bytes; got != 234 {
+	if got := (<-second).seg.SrcPort; got != 234 {
 		t.Fatalf("healthy lane got wrong packet %d", got)
 	}
 }
