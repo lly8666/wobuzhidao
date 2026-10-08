@@ -108,6 +108,1325 @@ jobs:
           go test ./internal/faketcp ./internal/windowsclient -count=1 -run='Npcap|PhysicalUnderlay'
           echo 'WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN'
 
+      - name: Repeat blocked ACK/no-HOL and close regressions
+        if: runner.os == 'Linux'
+        run: |
+          go test ./internal/runtimeowner -count=100 -run='^TestACKFeedback(BlockedWriteKeepsNoHOLAndOnlyLatestACK|CloseDropsPendingAndFencesOldWorker|ErrorIsLatchedAndReportedByTick|SuccessfulPiggybackCancelsOnlyGapFreePending|FINConfirmationRemainsSynchronous)
+      - name: Directed parser fuzz
+        if: runner.os == 'Linux'
+        run: go test ./internal/tlsrecord -run='^$' -fuzz='^FuzzDecoderOpenPayload$' -fuzztime=15s
+      - name: Generate independent P1 reference vectors
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          go run ./tools/tlsrecordvector > artifacts/tlsrecord-vectors.json
+          cat artifacts/tlsrecord-vectors.json
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
+        with:
+          name: tlsrecord-reference-${{ github.sha }}
+          path: artifacts/tlsrecord-vectors.json
+          if-no-files-found: error
+
+
+  p2-kernel-fallback:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build privileged P2 kernel-network test
+        shell: bash
+        run: go test -c ./internal/realityfront -o /tmp/p2-kernel-fallback.test
+      - name: Kernel TCP/TLS fallback with continuous pcap
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          if ! command -v tcpdump >/dev/null 2>&1 || ! command -v iptables >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tcpdump iptables
+          fi
+
+          cleanup() {
+            set +e
+            if test -n "${TCPDUMP_PID:-}"; then
+              # Protocol sockets are already closed. This bounded wait only lets
+          # tcpdump drain packets already queued in the kernel capture socket;
+          # it does not pace or alter FakeTCP/TLS traffic.
+          sleep 1
+          sudo kill -INT "$TCPDUMP_PID" 2>/dev/null || true
+              wait "$TCPDUMP_PID" 2>/dev/null || true
+            fi
+            sudo iptables -D OUTPUT -p tcp -s 127.0.0.2 --sport 24443 --tcp-flags RST RST -j DROP 2>/dev/null || true
+            sudo chmod -R a+r artifacts 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          sudo iptables -I OUTPUT 1 -p tcp -s 127.0.0.2 --sport 24443 --tcp-flags RST RST -j DROP
+          sudo tcpdump -i lo -s 0 -U -w artifacts/p2-fallback.pcap 'tcp port 24443' 2>artifacts/p2-tcpdump.stderr &
+          TCPDUMP_PID=$!
+          sleep 1
+
+          sudo env WBD_P2_KERNEL_NET=1 GITHUB_SHA="$GITHUB_SHA" /tmp/p2-kernel-fallback.test             -test.v -test.run '^TestKernelTLSFallbackVerifiedHTTPAndNormalClose$'             | tee artifacts/p2-kernel-test.log
+
+          # The protocol test has already closed its sockets. Give tcpdump a
+          # bounded drain interval for packets already queued in the capture
+          # socket before stopping capture; this does not pace product traffic.
+          sleep 1
+          sudo kill -INT "$TCPDUMP_PID"
+          wait "$TCPDUMP_PID" || true
+          TCPDUMP_PID=""
+          sudo chmod -R a+r artifacts
+
+          cat artifacts/p2-tcpdump.stderr
+          python tools/check_p2_pcap.py             --pcap artifacts/p2-fallback.pcap             --tcpdump-stderr artifacts/p2-tcpdump.stderr             --server-ip 127.0.0.2             --port 24443             --source-sha "$GITHUB_SHA"             --output artifacts/p2-pcap-summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p2-kernel-fallback-${{ github.sha }}
+          path: |
+            artifacts/p2-fallback.pcap
+            artifacts/p2-tcpdump.stderr
+            artifacts/p2-kernel-test.log
+            artifacts/p2-pcap-summary.json
+          if-no-files-found: warn
+
+
+  p4-linux-shared-tun-privileged:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [iptables, nft]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Install privileged shared-TUN tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ip >/dev/null 2>&1 || ! command -v iptables >/dev/null 2>&1 || ! command -v nft >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables nftables
+          fi
+          sudo modprobe tun
+          test -c /dev/net/tun
+      - name: Build Linux shared-TUN privileged test
+        shell: bash
+        run: go test -c ./internal/linuxserver -o /tmp/p4-linux-shared-tun.test
+      - name: Qualify real shared TUN apply and cleanup
+        shell: bash
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          NS="wbdp4-${BACKEND}-$$"
+          cleanup() {
+            set +e
+            sudo ip netns del "$NS" 2>/dev/null || true
+            sudo chmod -R a+r artifacts 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          sudo ip netns add "$NS"
+
+          NFT_FORWARD=''
+          if test "$BACKEND" = nft; then
+            sudo ip netns exec "$NS" nft add table inet filter
+            printf '%s\n' 'add chain inet filter forward { type filter hook forward priority 0; policy drop; }' | sudo ip netns exec "$NS" nft -f -
+            NFT_FORWARD='inet:filter:forward'
+          else
+            sudo ip netns exec "$NS" iptables -P FORWARD DROP
+          fi
+
+          sudo ip netns exec "$NS" env             WBD_P4_LINUX_TUN_NET=1             WBD_P4_FIREWALL_BACKEND="$BACKEND"             WBD_P4_NFT_FORWARD="$NFT_FORWARD"             GITHUB_SHA="$GITHUB_SHA"             /tmp/p4-linux-shared-tun.test               -test.v -test.run '^TestPrivilegedSharedTUNRuntime$'             | tee "artifacts/p4-linux-shared-tun-${BACKEND}.log"
+
+          if test "$BACKEND" = nft; then
+            sudo ip netns exec "$NS" nft list chain inet filter forward | grep -q 'policy drop'
+            if sudo ip netns exec "$NS" nft -a list ruleset | grep -q 'wbd-shared-tun-'; then
+              echo 'WBD shared-TUN nft marker survived cleanup' >&2
+              exit 1
+            fi
+          else
+            test "$(sudo ip netns exec "$NS" iptables -S FORWARD | head -n 1)" = '-P FORWARD DROP'
+            if sudo ip netns exec "$NS" sh -c "iptables -S; iptables -t nat -S" | grep -q 'wbd-shared-tun-'; then
+              echo 'WBD shared-TUN iptables marker survived cleanup' >&2
+              exit 1
+            fi
+          fi
+          if sudo ip netns exec "$NS" ip link show dev wbdg0 >/dev/null 2>&1; then
+            echo 'WBD shared TUN survived cleanup' >&2
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p4-linux-shared-tun-${{ matrix.backend }}-${{ github.sha }}
+          path: artifacts/p4-linux-shared-tun-${{ matrix.backend }}.log
+          if-no-files-found: warn
+
+  p4-openwrt-tproxy-privileged:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Install OpenWrt TPROXY qualification tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ip >/dev/null 2>&1 || ! command -v nft >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 nftables python3
+          fi
+          sudo modprobe nf_tproxy_ipv4 2>/dev/null || true
+          sudo modprobe nft_tproxy 2>/dev/null || true
+      - name: Build OpenWrt TPROXY privileged test
+        shell: bash
+        run: go test -c ./internal/openwrtclient -o /tmp/p4-openwrt-tproxy.test
+      - name: Qualify real TCP UDP TPROXY ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          sudo scripts/openwrt_tproxy_netns.sh /tmp/p4-openwrt-tproxy.test             | tee artifacts/p4-openwrt-tproxy.log
+          grep -q 'WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
+          grep -q 'WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0 ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p4-openwrt-tproxy-${{ github.sha }}
+          path: artifacts/p4-openwrt-tproxy.log
+          if-no-files-found: warn
+
+  p5-https-measurement-base:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run controlled real HTTPS measurement harness
+        shell: bash
+        env:
+          WBD_P5_HTTPS_MEASURE: '1'
+          WBD_P5_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-https-base
+          WBD_P5_SPARSE_MEASURE: '1'
+          WBD_P5_SPARSE_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-sparse-single
+          WBD_P5_CONCURRENT_MEASURE: '1'
+          WBD_P5_CONCURRENT_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-natural-concurrency
+          WBD_P5_FEC_MEASURE: '1'
+          WBD_P5_FEC_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-fixed-fec
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_ARTIFACT_DIR" "$WBD_P5_SPARSE_ARTIFACT_DIR" "$WBD_P5_CONCURRENT_ARTIFACT_DIR" "$WBD_P5_FEC_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^(TestP5ControlledHTTPSMeasurementHarness|TestP5SparseSingleConnectionMeasurementHarness|TestP5NaturalConcurrencyMeasurementHarness|TestP5FixedFECMeasurementHarness)$' -v \
+            | tee "$WBD_P5_ARTIFACT_DIR/test.log" "$WBD_P5_SPARSE_ARTIFACT_DIR/test.log" "$WBD_P5_CONCURRENT_ARTIFACT_DIR/test.log" "$WBD_P5_FEC_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_measurement.py \
+            --manifest "$WBD_P5_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_ARTIFACT_DIR/summary.json"
+          python3 tools/check_p5_sparse_measurement.py \
+            --manifest "$WBD_P5_SPARSE_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_SPARSE_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_SPARSE_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_SPARSE_ARTIFACT_DIR/summary.json"
+          python3 tools/check_p5_concurrent_measurement.py \
+            --manifest "$WBD_P5_CONCURRENT_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_CONCURRENT_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_CONCURRENT_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_CONCURRENT_ARTIFACT_DIR/summary.json"
+          python3 tools/check_p5_fec_measurement.py \
+            --manifest "$WBD_P5_FEC_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_FEC_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_FEC_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_FEC_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-https-measurement-base-${{ github.sha }}
+          path: |
+            artifacts/p5-https-base
+            artifacts/p5-sparse-single
+            artifacts/p5-natural-concurrency
+            artifacts/p5-fixed-fec
+          if-no-files-found: error
+
+  p5-weaknet-5-20-5:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run prescribed 300ms weak-network HTTPS qualification
+        shell: bash
+        env:
+          WBD_P5_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-weaknet-5-20-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5WeakNetwork5205MeasurementHarness$' -v \
+            | tee "$WBD_P5_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_weaknet_measurement.py \
+            --manifest "$WBD_P5_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-weaknet-5-20-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-weaknet-5-20-5-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-weaknet-5-30-5:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run prescribed 300ms 5-30-5 weak-network HTTPS qualification
+        shell: bash
+        env:
+          WBD_P5_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-weaknet-5-30-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5WeakNetwork5305MeasurementHarness$' -v \
+            | tee "$WBD_P5_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_weaknet_5305_measurement.py \
+            --manifest "$WBD_P5_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-weaknet-5-30-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-weaknet-5-30-5-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-load:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        mbps: [5, 10, 15, 20]
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run controlled aggregate-inner load qualification
+        shell: bash
+        env:
+          WBD_P5_LOAD_MEASURE: '1'
+          WBD_P5_LOAD_MBPS: ${{ matrix.mbps }}
+          WBD_P5_LOAD_RUN: ${{ matrix.run }}
+          WBD_P5_LOAD_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-load-${{ matrix.mbps }}mbps-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_LOAD_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5LoadMeasurementHarness$' -v \
+            | tee "$WBD_P5_LOAD_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_load_measurement.py \
+            --manifest "$WBD_P5_LOAD_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_LOAD_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_LOAD_ARTIFACT_DIR/outer.pcap" \
+            --load "$WBD_P5_LOAD_ARTIFACT_DIR/load.jsonl" \
+            --resources "$WBD_P5_LOAD_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_LOAD_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-load-${{ matrix.mbps }}mbps-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-load-${{ matrix.mbps }}mbps-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-load-40:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run controlled 40Mbps aggregate-inner capacity target
+        shell: bash
+        env:
+          WBD_P5_LOAD_MEASURE: '1'
+          WBD_P5_LOAD_MBPS: '40'
+          WBD_P5_LOAD_RUN: ${{ matrix.run }}
+          WBD_P5_LOAD_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-load-40mbps-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_LOAD_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5LoadMeasurementHarness$' -v \
+            | tee "$WBD_P5_LOAD_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_load_measurement.py \
+            --manifest "$WBD_P5_LOAD_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_LOAD_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_LOAD_ARTIFACT_DIR/outer.pcap" \
+            --load "$WBD_P5_LOAD_ARTIFACT_DIR/load.jsonl" \
+            --resources "$WBD_P5_LOAD_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_LOAD_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-load-40mbps-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-load-40mbps-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-fec2020-weaknet-5-20-5:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run fixed-FEC 20:20 weaknet 5-20-5 qualification
+        shell: bash
+        env:
+          WBD_P5_FEC2020_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-20-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5FEC2020WeakNetwork5205MeasurementHarness$' -v \
+            | tee "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_fec2020_weaknet_5205_measurement.py \
+            --manifest "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-fec2020-weaknet-5-20-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-20-5-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-fec2020-weaknet-5-30-5:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run fixed-FEC 20:20 weaknet 5-30-5 qualification
+        shell: bash
+        env:
+          WBD_P5_FEC2020_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-30-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5FEC2020WeakNetwork5305MeasurementHarness$' -v \
+            | tee "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_fec2020_weaknet_5305_measurement.py \
+            --manifest "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-fec2020-weaknet-5-30-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-30-5-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-soak:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run historical low-load 31 minute soak regression (explicit only; not strict target-rate qualification)
+        shell: bash
+        env:
+          WBD_P5_SOAK_MEASURE: '1'
+          WBD_P5_SOAK_RUN: ${{ matrix.run }}
+          WBD_P5_SOAK_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-soak-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_SOAK_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -timeout=40m -run=TestP5ThirtyMinuteSoakMeasurementHarness -v | tee "$WBD_P5_SOAK_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_soak_measurement.py \
+            --manifest "$WBD_P5_SOAK_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_SOAK_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_SOAK_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_SOAK_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_SOAK_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_SOAK_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_SOAK_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-soak-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-soak-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p6-release-candidate:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            goos: linux
+            goarch: amd64
+            native: 'true'
+          - runner: ubuntu-24.04
+            goos: linux
+            goarch: arm64
+            native: 'false'
+          - runner: windows-2022
+            goos: windows
+            goarch: amd64
+            native: 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build exact-SHA P6 release candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="p6-rc-${GITHUB_SHA:0:12}"
+          out="artifacts/p6-${{ matrix.goos }}-${{ matrix.goarch }}"
+          python tools/p6_build_release.py \
+            --source-sha "$GITHUB_SHA" \
+            --version "$version" \
+            --target-os "${{ matrix.goos }}" \
+            --target-arch "${{ matrix.goarch }}" \
+            --output-dir "$out"
+          native_arg=""
+          if test "${{ matrix.native }}" = "true"; then
+            native_arg="--run-native"
+          fi
+          python tools/check_p6_release.py \
+            --bundle-dir "$out" \
+            --source-sha "$GITHUB_SHA" \
+            --target-os "${{ matrix.goos }}" \
+            --target-arch "${{ matrix.goarch }}" \
+            $native_arg
+          cat "$out/manifest.json"
+          cat "$out/actions-receipt.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p6-release-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }}
+          path: artifacts/p6-${{ matrix.goos }}-${{ matrix.goarch }}
+          if-no-files-found: error
+
+          go test -race ./internal/runtimeowner -count=30 -run='^TestACKFeedback(BlockedWriteKeepsNoHOLAndOnlyLatestACK|CloseDropsPendingAndFencesOldWorker|ErrorIsLatchedAndReportedByTick|SuccessfulPiggybackCancelsOnlyGapFreePending|FINConfirmationRemainsSynchronous)
+      - name: Directed parser fuzz
+        if: runner.os == 'Linux'
+        run: go test ./internal/tlsrecord -run='^$' -fuzz='^FuzzDecoderOpenPayload$' -fuzztime=15s
+      - name: Generate independent P1 reference vectors
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          go run ./tools/tlsrecordvector > artifacts/tlsrecord-vectors.json
+          cat artifacts/tlsrecord-vectors.json
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
+        with:
+          name: tlsrecord-reference-${{ github.sha }}
+          path: artifacts/tlsrecord-vectors.json
+          if-no-files-found: error
+
+
+  p2-kernel-fallback:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build privileged P2 kernel-network test
+        shell: bash
+        run: go test -c ./internal/realityfront -o /tmp/p2-kernel-fallback.test
+      - name: Kernel TCP/TLS fallback with continuous pcap
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          if ! command -v tcpdump >/dev/null 2>&1 || ! command -v iptables >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tcpdump iptables
+          fi
+
+          cleanup() {
+            set +e
+            if test -n "${TCPDUMP_PID:-}"; then
+              # Protocol sockets are already closed. This bounded wait only lets
+          # tcpdump drain packets already queued in the kernel capture socket;
+          # it does not pace or alter FakeTCP/TLS traffic.
+          sleep 1
+          sudo kill -INT "$TCPDUMP_PID" 2>/dev/null || true
+              wait "$TCPDUMP_PID" 2>/dev/null || true
+            fi
+            sudo iptables -D OUTPUT -p tcp -s 127.0.0.2 --sport 24443 --tcp-flags RST RST -j DROP 2>/dev/null || true
+            sudo chmod -R a+r artifacts 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          sudo iptables -I OUTPUT 1 -p tcp -s 127.0.0.2 --sport 24443 --tcp-flags RST RST -j DROP
+          sudo tcpdump -i lo -s 0 -U -w artifacts/p2-fallback.pcap 'tcp port 24443' 2>artifacts/p2-tcpdump.stderr &
+          TCPDUMP_PID=$!
+          sleep 1
+
+          sudo env WBD_P2_KERNEL_NET=1 GITHUB_SHA="$GITHUB_SHA" /tmp/p2-kernel-fallback.test             -test.v -test.run '^TestKernelTLSFallbackVerifiedHTTPAndNormalClose$'             | tee artifacts/p2-kernel-test.log
+
+          # The protocol test has already closed its sockets. Give tcpdump a
+          # bounded drain interval for packets already queued in the capture
+          # socket before stopping capture; this does not pace product traffic.
+          sleep 1
+          sudo kill -INT "$TCPDUMP_PID"
+          wait "$TCPDUMP_PID" || true
+          TCPDUMP_PID=""
+          sudo chmod -R a+r artifacts
+
+          cat artifacts/p2-tcpdump.stderr
+          python tools/check_p2_pcap.py             --pcap artifacts/p2-fallback.pcap             --tcpdump-stderr artifacts/p2-tcpdump.stderr             --server-ip 127.0.0.2             --port 24443             --source-sha "$GITHUB_SHA"             --output artifacts/p2-pcap-summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p2-kernel-fallback-${{ github.sha }}
+          path: |
+            artifacts/p2-fallback.pcap
+            artifacts/p2-tcpdump.stderr
+            artifacts/p2-kernel-test.log
+            artifacts/p2-pcap-summary.json
+          if-no-files-found: warn
+
+
+  p4-linux-shared-tun-privileged:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [iptables, nft]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Install privileged shared-TUN tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ip >/dev/null 2>&1 || ! command -v iptables >/dev/null 2>&1 || ! command -v nft >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables nftables
+          fi
+          sudo modprobe tun
+          test -c /dev/net/tun
+      - name: Build Linux shared-TUN privileged test
+        shell: bash
+        run: go test -c ./internal/linuxserver -o /tmp/p4-linux-shared-tun.test
+      - name: Qualify real shared TUN apply and cleanup
+        shell: bash
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          NS="wbdp4-${BACKEND}-$$"
+          cleanup() {
+            set +e
+            sudo ip netns del "$NS" 2>/dev/null || true
+            sudo chmod -R a+r artifacts 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          sudo ip netns add "$NS"
+
+          NFT_FORWARD=''
+          if test "$BACKEND" = nft; then
+            sudo ip netns exec "$NS" nft add table inet filter
+            printf '%s\n' 'add chain inet filter forward { type filter hook forward priority 0; policy drop; }' | sudo ip netns exec "$NS" nft -f -
+            NFT_FORWARD='inet:filter:forward'
+          else
+            sudo ip netns exec "$NS" iptables -P FORWARD DROP
+          fi
+
+          sudo ip netns exec "$NS" env             WBD_P4_LINUX_TUN_NET=1             WBD_P4_FIREWALL_BACKEND="$BACKEND"             WBD_P4_NFT_FORWARD="$NFT_FORWARD"             GITHUB_SHA="$GITHUB_SHA"             /tmp/p4-linux-shared-tun.test               -test.v -test.run '^TestPrivilegedSharedTUNRuntime$'             | tee "artifacts/p4-linux-shared-tun-${BACKEND}.log"
+
+          if test "$BACKEND" = nft; then
+            sudo ip netns exec "$NS" nft list chain inet filter forward | grep -q 'policy drop'
+            if sudo ip netns exec "$NS" nft -a list ruleset | grep -q 'wbd-shared-tun-'; then
+              echo 'WBD shared-TUN nft marker survived cleanup' >&2
+              exit 1
+            fi
+          else
+            test "$(sudo ip netns exec "$NS" iptables -S FORWARD | head -n 1)" = '-P FORWARD DROP'
+            if sudo ip netns exec "$NS" sh -c "iptables -S; iptables -t nat -S" | grep -q 'wbd-shared-tun-'; then
+              echo 'WBD shared-TUN iptables marker survived cleanup' >&2
+              exit 1
+            fi
+          fi
+          if sudo ip netns exec "$NS" ip link show dev wbdg0 >/dev/null 2>&1; then
+            echo 'WBD shared TUN survived cleanup' >&2
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p4-linux-shared-tun-${{ matrix.backend }}-${{ github.sha }}
+          path: artifacts/p4-linux-shared-tun-${{ matrix.backend }}.log
+          if-no-files-found: warn
+
+  p4-openwrt-tproxy-privileged:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Install OpenWrt TPROXY qualification tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ip >/dev/null 2>&1 || ! command -v nft >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 nftables python3
+          fi
+          sudo modprobe nf_tproxy_ipv4 2>/dev/null || true
+          sudo modprobe nft_tproxy 2>/dev/null || true
+      - name: Build OpenWrt TPROXY privileged test
+        shell: bash
+        run: go test -c ./internal/openwrtclient -o /tmp/p4-openwrt-tproxy.test
+      - name: Qualify real TCP UDP TPROXY ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          sudo scripts/openwrt_tproxy_netns.sh /tmp/p4-openwrt-tproxy.test             | tee artifacts/p4-openwrt-tproxy.log
+          grep -q 'WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
+          grep -q 'WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0 ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p4-openwrt-tproxy-${{ github.sha }}
+          path: artifacts/p4-openwrt-tproxy.log
+          if-no-files-found: warn
+
+  p5-https-measurement-base:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run controlled real HTTPS measurement harness
+        shell: bash
+        env:
+          WBD_P5_HTTPS_MEASURE: '1'
+          WBD_P5_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-https-base
+          WBD_P5_SPARSE_MEASURE: '1'
+          WBD_P5_SPARSE_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-sparse-single
+          WBD_P5_CONCURRENT_MEASURE: '1'
+          WBD_P5_CONCURRENT_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-natural-concurrency
+          WBD_P5_FEC_MEASURE: '1'
+          WBD_P5_FEC_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-fixed-fec
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_ARTIFACT_DIR" "$WBD_P5_SPARSE_ARTIFACT_DIR" "$WBD_P5_CONCURRENT_ARTIFACT_DIR" "$WBD_P5_FEC_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^(TestP5ControlledHTTPSMeasurementHarness|TestP5SparseSingleConnectionMeasurementHarness|TestP5NaturalConcurrencyMeasurementHarness|TestP5FixedFECMeasurementHarness)$' -v \
+            | tee "$WBD_P5_ARTIFACT_DIR/test.log" "$WBD_P5_SPARSE_ARTIFACT_DIR/test.log" "$WBD_P5_CONCURRENT_ARTIFACT_DIR/test.log" "$WBD_P5_FEC_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_measurement.py \
+            --manifest "$WBD_P5_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_ARTIFACT_DIR/summary.json"
+          python3 tools/check_p5_sparse_measurement.py \
+            --manifest "$WBD_P5_SPARSE_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_SPARSE_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_SPARSE_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_SPARSE_ARTIFACT_DIR/summary.json"
+          python3 tools/check_p5_concurrent_measurement.py \
+            --manifest "$WBD_P5_CONCURRENT_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_CONCURRENT_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_CONCURRENT_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_CONCURRENT_ARTIFACT_DIR/summary.json"
+          python3 tools/check_p5_fec_measurement.py \
+            --manifest "$WBD_P5_FEC_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_FEC_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_FEC_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_FEC_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-https-measurement-base-${{ github.sha }}
+          path: |
+            artifacts/p5-https-base
+            artifacts/p5-sparse-single
+            artifacts/p5-natural-concurrency
+            artifacts/p5-fixed-fec
+          if-no-files-found: error
+
+  p5-weaknet-5-20-5:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run prescribed 300ms weak-network HTTPS qualification
+        shell: bash
+        env:
+          WBD_P5_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-weaknet-5-20-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5WeakNetwork5205MeasurementHarness$' -v \
+            | tee "$WBD_P5_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_weaknet_measurement.py \
+            --manifest "$WBD_P5_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-weaknet-5-20-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-weaknet-5-20-5-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-weaknet-5-30-5:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run prescribed 300ms 5-30-5 weak-network HTTPS qualification
+        shell: bash
+        env:
+          WBD_P5_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-weaknet-5-30-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5WeakNetwork5305MeasurementHarness$' -v \
+            | tee "$WBD_P5_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_weaknet_5305_measurement.py \
+            --manifest "$WBD_P5_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-weaknet-5-30-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-weaknet-5-30-5-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-load:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        mbps: [5, 10, 15, 20]
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run controlled aggregate-inner load qualification
+        shell: bash
+        env:
+          WBD_P5_LOAD_MEASURE: '1'
+          WBD_P5_LOAD_MBPS: ${{ matrix.mbps }}
+          WBD_P5_LOAD_RUN: ${{ matrix.run }}
+          WBD_P5_LOAD_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-load-${{ matrix.mbps }}mbps-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_LOAD_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5LoadMeasurementHarness$' -v \
+            | tee "$WBD_P5_LOAD_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_load_measurement.py \
+            --manifest "$WBD_P5_LOAD_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_LOAD_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_LOAD_ARTIFACT_DIR/outer.pcap" \
+            --load "$WBD_P5_LOAD_ARTIFACT_DIR/load.jsonl" \
+            --resources "$WBD_P5_LOAD_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_LOAD_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-load-${{ matrix.mbps }}mbps-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-load-${{ matrix.mbps }}mbps-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-load-40:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run controlled 40Mbps aggregate-inner capacity target
+        shell: bash
+        env:
+          WBD_P5_LOAD_MEASURE: '1'
+          WBD_P5_LOAD_MBPS: '40'
+          WBD_P5_LOAD_RUN: ${{ matrix.run }}
+          WBD_P5_LOAD_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-load-40mbps-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_LOAD_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5LoadMeasurementHarness$' -v \
+            | tee "$WBD_P5_LOAD_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_load_measurement.py \
+            --manifest "$WBD_P5_LOAD_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_LOAD_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_LOAD_ARTIFACT_DIR/outer.pcap" \
+            --load "$WBD_P5_LOAD_ARTIFACT_DIR/load.jsonl" \
+            --resources "$WBD_P5_LOAD_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_LOAD_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-load-40mbps-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-load-40mbps-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-fec2020-weaknet-5-20-5:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run fixed-FEC 20:20 weaknet 5-20-5 qualification
+        shell: bash
+        env:
+          WBD_P5_FEC2020_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-20-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5FEC2020WeakNetwork5205MeasurementHarness$' -v \
+            | tee "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_fec2020_weaknet_5205_measurement.py \
+            --manifest "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-fec2020-weaknet-5-20-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-20-5-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-fec2020-weaknet-5-30-5:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run fixed-FEC 20:20 weaknet 5-30-5 qualification
+        shell: bash
+        env:
+          WBD_P5_FEC2020_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-30-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5FEC2020WeakNetwork5305MeasurementHarness$' -v \
+            | tee "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_fec2020_weaknet_5305_measurement.py \
+            --manifest "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_FEC2020_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-fec2020-weaknet-5-30-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-30-5-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p5-soak:
+    needs: repository-contract
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run historical low-load 31 minute soak regression (explicit only; not strict target-rate qualification)
+        shell: bash
+        env:
+          WBD_P5_SOAK_MEASURE: '1'
+          WBD_P5_SOAK_RUN: ${{ matrix.run }}
+          WBD_P5_SOAK_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-soak-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_SOAK_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -timeout=40m -run=TestP5ThirtyMinuteSoakMeasurementHarness -v | tee "$WBD_P5_SOAK_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_soak_measurement.py \
+            --manifest "$WBD_P5_SOAK_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_SOAK_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_SOAK_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_SOAK_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_SOAK_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_SOAK_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_SOAK_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-soak-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-soak-run${{ matrix.run }}
+          if-no-files-found: error
+
+  p6-release-candidate:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            goos: linux
+            goarch: amd64
+            native: 'true'
+          - runner: ubuntu-24.04
+            goos: linux
+            goarch: arm64
+            native: 'false'
+          - runner: windows-2022
+            goos: windows
+            goarch: amd64
+            native: 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build exact-SHA P6 release candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="p6-rc-${GITHUB_SHA:0:12}"
+          out="artifacts/p6-${{ matrix.goos }}-${{ matrix.goarch }}"
+          python tools/p6_build_release.py \
+            --source-sha "$GITHUB_SHA" \
+            --version "$version" \
+            --target-os "${{ matrix.goos }}" \
+            --target-arch "${{ matrix.goarch }}" \
+            --output-dir "$out"
+          native_arg=""
+          if test "${{ matrix.native }}" = "true"; then
+            native_arg="--run-native"
+          fi
+          python tools/check_p6_release.py \
+            --bundle-dir "$out" \
+            --source-sha "$GITHUB_SHA" \
+            --target-os "${{ matrix.goos }}" \
+            --target-arch "${{ matrix.goarch }}" \
+            $native_arg
+          cat "$out/manifest.json"
+          cat "$out/actions-receipt.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p6-release-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }}
+          path: artifacts/p6-${{ matrix.goos }}-${{ matrix.goarch }}
+          if-no-files-found: error
+
       - name: Race
         if: runner.os == 'Linux'
         run: go test -race ./... -count=1

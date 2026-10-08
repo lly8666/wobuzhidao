@@ -35,16 +35,23 @@ func TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK(t *testing.T) {
 	}
 	var fresh []faketcp.Segment
 	acks := make(chan faketcp.Segment, 8)
+	entered := make(chan struct{})
 	release := make(chan struct{})
 	var once sync.Once
 	unblock := func() { once.Do(func() { close(release) }) }
 	defer unblock()
 	var calls atomic.Int64
 	cc, sc := transportPair(func(seg faketcp.Segment) error { fresh = append(fresh, seg); return nil }, func(seg faketcp.Segment) error {
-		acks <- seg
 		if calls.Add(1) == 1 {
+			// The callback has been counted and is committed to waiting
+			// for release. An ACK channel send alone does not order the
+			// independent calls counter observation.
+			acks <- seg
+			close(entered)
 			<-release
+			return nil
 		}
+		acks <- seg
 		return nil
 	}, 1, 1000)
 	sc.AsyncACKFeedback = true
@@ -93,10 +100,11 @@ func TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("receive waited for native ACK write")
 	}
+	waitACKFeedback(t, entered)
 	select {
 	case <-acks:
 	case <-time.After(time.Second):
-		t.Fatal("worker emit did not begin")
+		t.Fatal("worker did not publish the first ACK")
 	}
 	// Both an out-of-order first arrival and the missing earlier record must
 	// deliver while the same native ACK write remains blocked.
@@ -136,6 +144,11 @@ func TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK(t *testing.T) {
 	tr := server.lanes[snap.Ref]
 	server.Close()
 	waitACKFeedback(t, tr.ackWorker.done)
+	select {
+	case replay := <-acks:
+		t.Fatalf("ACK history replayed after worker close: %+v", replay)
+	default:
+	}
 }
 
 func TestACKFeedbackCloseDropsPendingAndFencesOldWorker(t *testing.T) {
