@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-08T10:05:24.504975+08:00",
+  "updated_at": "2026-10-08T10:45:29.310136+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Root owns sequential fixed-b4 physical M03/1553 and1554 then Game4rotation/1555. Two Normal300s completed: inherit208KiB raw61/business0 versus actual1MiB raw0/business10 uplink; p9973.27/74.01ms and2980/2980 each. Keep zero-loss analyzer FAIL for1552, no duplicate load/development/dispatch, no global system settings or FEC/4096 changes. Finish exact-source targeted native evidence; broader P7 and historical failures remainOPEN.",
-  "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-first-pair.md",
+  "next_task": "Fixedb4 five targeted native300s completed/clean; no active owned load. Priority OPEN M03/1554 initial~80s S2C interruption: all1557 target requests echoed, client78missing/no new authenticated records; raw send increases but selectedNIC matchingS2C/40000 stalls, gen2/40001 restores. Diagnose emitter tuple/header and kernel OUTPUT/routing/conntrack/qdisc boundary with bounded defaultoff evidence before code fixes. Later1225ms large-packet tail separate. Actualdefault1MiB verified without system/cap/config change; Normal10 residual10 retainsFAIL, Game4rotation3M zero loss/PASS. NoHOL is PASS_ACTIONS per user; no mandatory duplicate physical block. Do not redeploy old3a/c853, enlargeFEC/4096/horizon, duplicate loads or dispatch multiple performance samples in oneAction. Normal10 continuous96..1372 mixed alreadytested; maxUDP mixed10M needs helperqualification if pursued. BroaderP7/old failures remainOPEN.",
+  "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10703,7 +10703,7 @@
     "raw_socket_buffer_changed": false
   },
   "linux_raw_receive_buffer": {
-    "state": "SCOPED_FORCE_ACTUAL_1M_NATIVE_PARTIAL",
+    "state": "DEFAULT_ACTUAL_1M_NATIVE_VERIFIED_OTHER_FAILURES_OPEN",
     "source_ref": "qualification/raw-scoped-buffer-20261008",
     "base_source": "92f18755791108d9bc2d54b00bc97da50b17c9eb",
     "product_parent": "3a594a34191159bd7224f35ba9117cdf6f239c69",
@@ -10711,7 +10711,7 @@
     "semantics": "Bounded request bytes;0inherit; ordinary SO_RCVBUF readback then only iflimited scoped SO_RCVBUFFORCE with existingCAP_NET_ADMIN; report actual/forced/error; no globals/new privilege",
     "global_sysctl_changed": false,
     "so_rcvbufforce": true,
-    "arm_rmem_observation": "Global default/max212992 unchanged; sourcec853 ordinary defaultrequest524288 actual425984 limited; sourceb4 scoped force uses existingcap actual1048576 limitedfalse, measured ownedfd during1552.0inherit1551 actual212992.",
+    "arm_rmem_observation": "Defaults212992 unchanged; c853 ordinary425984 limited; b4 existingcap scoped force actual1048576. Original config key absent/default524288, restored byte-for-byte, service remainsactual1MiB withoutmanualsysctl.",
     "kernel_filter": "EXISTING_BPF_PRESERVED",
     "actions": {
       "state": "PASS_EXACT_SOURCE_AUDIT_16_RUNS",
@@ -10720,11 +10720,11 @@
       "linux_server": 37713153050,
       "p6": 37713269147
     },
-    "physical": "TWO_COMPLETED_SOURCE_B4",
-    "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-first-pair.md",
+    "physical": "FIVE_COMPLETED_FAILURES_RETAINED",
+    "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "default_request_bytes": 524288,
-    "raw_drop_root_cause": "OPEN",
+    "raw_drop_root_cause": "Scoped low-kernel-cap contribution supported; default four rawdrop0, residualNormalloss and1554S2C interruption not explained by receive budget",
     "historical_parameter_ref": "qualification/raw-rcvbuf-20261007",
     "historical_c853_actions": {
       "foundation": 37647915603,
@@ -10826,15 +10826,15 @@
     "physical": "NOT_RUN_NEW_SOURCE"
   },
   "raw_buffer_scoped_portability": {
-    "state": "PARTIAL_NATIVE",
+    "state": "ACTIONS_AND_ACTUAL_NATIVE_BUFFER_VERIFIED_OTHER_FAILURES_OPEN",
     "based_on_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
     "reason": "User20261008 authorizes program handling when kernel defaults prevent request; ARM probe ordinary425984 vs requested target1048576, scoped privileged override works without sysctl",
     "implementation": "ordinary SO_RCVBUF/readback then only if limited attempt SO_RCVBUFFORCE on same receive fd; existing CAP_NET_ADMIN only; permission/unsupported degradation reported;0 preserves inherit",
     "steady_overhead_added": false,
     "new_privileges_requested": false,
     "global_sysctl_changed": false,
-    "physical": "TWO_COMPLETED_SOURCE_B4",
-    "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-first-pair.md",
+    "physical": "FIVE_COMPLETED_FAILURES_RETAINED",
+    "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md",
     "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "source_ref": "qualification/raw-scoped-buffer-20261008",
     "actions_evidence": "docs/evidence/raw-scoped-buffer-b4ea061-actions-20261008.json",
@@ -10846,18 +10846,43 @@
     "bundle": "WBD-P7-c853935",
     "independent_actions_audit": "PASS_EXACT_SOURCE_JOBS_PACKAGE_HASHES_ORIGINAL_METRICS",
     "physical_samples": 3,
-    "active_test": "C853 controller endedclean; b4 deploy/audit then owned native1551..1555",
+    "active_test": "NONE; c8533 retained, b4 five completed and clean, new S2C interruption diagnosis OPEN",
     "evidence": "docs/evidence/raw-rto-c853935-physical-20261008.json"
   },
   "physical_raw_scoped": {
-    "state": "PARTIAL_TWO_COMPLETED_SOURCE_B4",
+    "state": "TARGETED_FIVE_COMPLETED_FAILURES_RETAINED",
     "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "source_ref": "qualification/raw-scoped-buffer-20261008",
-    "physical_samples": 2,
-    "active_test": "M03/1553 then1554 then S17/1555, one load at a time",
+    "physical_samples": 5,
+    "active_test": "NONE_OWNED_SEQUENCE_FINISHED_CLEAN",
     "evidence": "docs/evidence/raw-scoped-buffer-b4ea061-physical-20261008.json",
-    "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-first-pair.md",
+    "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md",
     "matched_native_rtt_baseline": "NOT_RUN",
-    "full_p7": false
+    "full_p7": false,
+    "raw_default_actual_bytes": 1048576,
+    "global_sysctl_changed": false,
+    "original_config_restored_byte_for_byte": true,
+    "raw_drop_fix_scope": "Default1MiB four samples rawdrop0; inherit208KiB baseline61; no all-cause or zero-business-loss claim",
+    "mtu_state": "1553PASS_1554FAIL_STARTUP_S2C_INTERRUPTION_AND_LATER_LARGE_LATE",
+    "game_rotation": "1555_SCOPED_PASS_3M_2980_PROBES_ZERO_BUSINESS_LOSS"
+  },
+  "nohol_qualification": {
+    "state": "PASS_ACTIONS",
+    "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "foundation_run": 37713152863,
+    "commands": [
+      "go test ./... -count=1",
+      "go test -race ./... -count=1"
+    ],
+    "source_test_evidence": [
+      "internal/runtimeowner/runtime_test.go::TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence",
+      "internal/runtimeowner/ack_feedback_test.go::TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK",
+      "internal/linkdata/cross_mtu_sparse_recovery_test.go::TestCrossInnerMTUTinyTailFECRecoveryDoesNotHOLSmallDatagram",
+      "internal/tlsrecord/record_test.go::TestDecoderNoHOLAndMultiRecord"
+    ],
+    "accepted_by_user": "2026-10-08 Actions evidence sufficient; no mandatory physical duplicate",
+    "scope": "Missing earlier record/ACK-write concurrency and missing large tiny-tail do not block later independent datagram; separate from outage/missing/late/timely physical gates.",
+    "evidence": "docs/evidence/raw-scoped-buffer-b4ea061-physical-20261008.json",
+    "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   }
 }

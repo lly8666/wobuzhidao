@@ -1,5 +1,7 @@
 # 原生与Actions五分钟工况验收
 
+2026-10-08用户确认：固定SOURCE有Actions并发无HOL证据即可认定该功能门PASS_ACTIONS，不强制再做物理重复。当前b4ea061的core/race包含乱序独立记录、ACK写出被阻塞时继续交付及大包尾碎片缺失时独立小包先交付，证据见STATUS.nohol_qualification与最新devlog。吞吐/p99/缺失/失活/MTU及时门仍分别验收，不能被该PASS抵消；串行MTU助手仅提供自身边界/及时恢复证据。原生五条新SOURCE结果与初期80s下行中断按STATUS最新记录，不被以下历史日期覆盖。
+
 2026-10-07当前：d6cb6ce 14定向Actions/24RTT/P6/lifecycle36+aggregate PASS；实机S17 Game4轮换300s约3M、业务loss0/2980探针全回/p99135.42ms，raw686压力保留，worker9refs与逐lane换代观测PASS。53普通样本/24工况/19NOT_RUN另2诊断，S01/S16/M03 FAIL不改；按用户要求快速批量独立Actions筛查其他FEC，标准WEAKNET_QUALIFICATION10.5/10.6，优先性能/延迟/noHOL。每性能Action一条，先STATUS/latest_log。
 
 原生未加人工loss不等于已知无损线路；原分析器zero-loss reference及FAIL保留，性能与本机receive pressure分别报告，未定义新放宽门。RTT p99同时列sent/received/timeouts，不把未返回项删掉后宣称全请求低尾延迟；詳见WEAKNET_QUALIFICATION第10.5节。
