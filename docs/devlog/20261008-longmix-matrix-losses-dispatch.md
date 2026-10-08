@@ -13,3 +13,5 @@
 - A/30% [37734257494](https://github.com/lly8666/wobuzhidao/actions/runs/37734257494) 独立正式Action已出现。现在另行请求B/5%、seed2608102、TCP真实双向3长/1Hz短、每方向固定10Mbps不重分配，300ms单程/双向netem5%/Normal1 FEC20:20/300秒+drain；实际kernel TCP MSS/retrans、注入不足、短请求缺失独立评估，原B0原始FAIL保留。
 
 - B/5% 子Action [37734359638](https://github.com/lly8666/wobuzhidao/actions/runs/37734359638) 已创建，判定仍pending。本次B/20%单独请求Normal1/FEC20:20、真实全双向3长TCP与1Hz短TCP，seed2608102、每方向原定10M且不因为TCP背压减额，双向netem20%，300s+drain；检查MSS、TCP_INFO重传、流hash、短连接缺失、独立源是否达到99%注入。
+
+- B/20% [37734464340](https://github.com/lly8666/wobuzhidao/actions/runs/37734464340) 已创建一条独立产品性能Action。现在请求单独B/30%，同源b4+同负载/seed2608102，双向固定30% netem/300ms单程、300秒业务+drain，不降目标10Mbps、不称TCP正常流内重传是外层跨HOL；每向有效source、flow hash、backpressure、实际接口drops/PSI均须审计。
