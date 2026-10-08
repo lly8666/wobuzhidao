@@ -1,0 +1,63 @@
+{
+  "schema": "wbd-e0-game4-tick-phase-diagnostic-sample/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "source_product_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
+  "source_instrumentation_commit": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
+  "preflight_actions": {
+    "run_id": 37779734501,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37779734501",
+    "status": "success",
+    "jobs": [
+      "active-go-tests ubuntu-24.04 includes Go unit/race and fuzz",
+      "active-go-tests windows-2022",
+      "p4-openwrt-tproxy-privileged",
+      "p4-linux-shared-tun-privileged nft and iptables",
+      "p2-kernel-fallback",
+      "repository-contract"
+    ]
+  },
+  "sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1819,
+    "product_source_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "helper_sha": "NEW_COMMIT_GITHUB_SHA",
+  "status": "NOT_RUN_PENDING_GITHUB_PUSH",
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "one_case_only": true,
+  "measurement_contract": {
+    "duration_business_s": 300,
+    "drain_s": 3,
+    "one_way_delay_ms": 300,
+    "loss_percent": 0,
+    "fec": "20:20",
+    "padding": "off",
+    "outer_mtu": 1400,
+    "record_limit_auto": 0,
+    "formal_default_tick_ms": 100,
+    "real_client_server": true,
+    "linux_tproxy": true,
+    "linux_server_tun": true,
+    "encrypted_outer_transport": true,
+    "profile_on": true
+  },
+  "questions": [
+    "Which part of Game4 server tick dominates: retransmit, sweep, runtime FEC/repair, platform service, or replacement/idle bookkeeping?",
+    "Does the 319041/3063073 userspace bounded ready overflow persist on same product except opt-in timings?",
+    "What are probe-missing, UDP missing and late/p99, raw receive/send counts, batch usage, FEC per lane, host quota/PSI?",
+    "Is a diagnostic enough to justify a no-HOL small change? No conclusions before run"
+  ],
+  "restrictions": [
+    "profile-on CPU cannot be compared to off CPU as improvement",
+    "new diagnostic timing itself can alter Game4 queue behavior",
+    "original Game4 zero-loss off run37766819445 and on run37768172504 remain FAIL",
+    "do not expand 4096 ready queue, socket buffers, introduce busy polling, modify wire/generation/MTU",
+    "E1-E5 no optimization validated; E6/P6/physical NOT_RUN; E7 80s OPEN"
+  ]
+}

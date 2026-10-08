@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_TICK_SUBPHASE_INSTRUMENTATION_CANDIDATE",
+    "phase": "E0_GAME4_TICK_PHASES_ONE_PROFILEON_SAMPLE_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -303,8 +303,8 @@
       "evidence": "docs/evidence/performance-efficiency-e0-normal-profileon-run37777409229.json"
     },
     "e0_game4_tick_subphase": {
-      "state": "SOURCE_CANDIDATE_NOT_TESTED",
-      "candidate_product_source_sha": "GITHUB_SHA_OF_THIS_COMMIT",
+      "state": "FOUNDATION_PASS_MEASUREMENT_PENDING",
+      "candidate_product_source_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
       "parent_product_source_sha": "c0b5431e6938c081093d3f87cfa548b45788475d",
       "previous_diagnostic_run": 37768172504,
       "previous_overflow": 319041,
@@ -316,11 +316,43 @@
         "tick_bookkeeping"
       ],
       "evidence": "docs/evidence/performance-efficiency-e0-server-tick-phase-instrumentation-20261008.json",
-      "qualification": "NOT_RUN"
+      "qualification": "NOT_RUN",
+      "preflight_run": 37779734501,
+      "preflight_decision": "PASS",
+      "new_sample": {
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1819,
+        "product_source_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
+        "mode": "game",
+        "lanes": 4,
+        "rate_mbps": 3,
+        "size_profile": "ordinary",
+        "diagnostic_mode": "on"
+      }
+    },
+    "e0_game4_tick_phase_sample": {
+      "state": "QUEUED_ACTION",
+      "source_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
+      "helper_sha": "GITHUB_SHA_NEW_COMMIT",
+      "config": {
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1819,
+        "product_source_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
+        "mode": "game",
+        "lanes": 4,
+        "rate_mbps": 3,
+        "size_profile": "ordinary",
+        "diagnostic_mode": "on"
+      },
+      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+      "run_id": null,
+      "evidence": "docs/evidence/performance-efficiency-e0-game4-tick-phase-sample-candidate-20261008.json"
     }
   },
-  "next_task": "E0: inspect next-foundation for tick-phase opt-in instrument source commit; do not call PASS from code commit. If unit/race/compile pass, pin this exact candidate product SHA in .github/efficiency-e0-sample.json, dispatch ONE profile-ON Game4 4lane mixed 3Mbps/dir 300s+3s drain no-loss 300ms seed1819 Action; analyze server tick_retransmit/sweep/runtime/service/bookkeeping inclusive wall time, ready overflow/age, real four lane & FEC repair raw syscall and probe UDP. This is diagnostic not CPU optimization, never compare on to off. Previously Game4 profile-off run37766819445 FAIL and on run37768172504 FAIL; Normal singlelane diagnostic run37777409229 scoped PASS, 8936 boundary run37774168539 FAIL. E1–E6 no product optimizations/guards, E7 downlink 80s OPEN; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-game4-tick-subphase-instrumentation.md",
+  "next_task": "E0 inspect one exact-product-source fa97f6ad game4 mixed 4lane 3Mbps/dir lossless profile ON seed1819, real 300s +3s drain Actions after successful foundation37779734501; report original analyzer PASS/FAIL and new server_pipeline tick_retransmit/sweep/runtime/service/bookkeeping + handler/queue read/drop, per lane/FEC/raw batch, PSI and probe missing. New helper SHA own commit. Do not compare ON/OFF CPU or claim benefit, original Game4 off37766819445/on37768172504 FAIL retained. If root cause measurable, next minimal E1 common path or bounded Game4 fairness candidate requires unit/race and four independent Normal lossless/5205 Game4 lossless/5205 protection Actions. E6 P6 physical NOT_RUN, E7 80s OPEN.",
+  "latest_log": "docs/devlog/20261008-e0-game4-tick-phases-one-source-qualification.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
