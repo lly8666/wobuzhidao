@@ -1,0 +1,182 @@
+{
+  "schema": "wbd-e3-game4-phase5205-off-repeat-pass-and-shard-sample-v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "old_head": "1146448d6340cf2e09b525189d233222d7ec9501",
+  "original_product_source": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+  "verified_real_off": {
+    "run_id": 37820693938,
+    "job_id": 113460658733,
+    "artifact_id": 11569621303,
+    "helper_sha": "ae493d92740b219d9aa47bad08f6161b42215f25",
+    "original_decision": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "seed": 1835,
+    "mode": "game",
+    "lanes_configured": 4,
+    "profile": "off",
+    "logical_mbps_each_direction": 3,
+    "drain_s": 3,
+    "physical_lane_count": "NOT_COLLECTED_OFF",
+    "phase_udp": {
+      "c2s": {
+        "pre": [
+          25792,
+          0
+        ],
+        "stress": [
+          51503,
+          0
+        ],
+        "post": [
+          25767,
+          0
+        ]
+      },
+      "s2c": {
+        "pre": [
+          25792,
+          0
+        ],
+        "stress": [
+          51503,
+          0
+        ],
+        "post": [
+          25767,
+          0
+        ]
+      }
+    },
+    "phase_probe": {
+      "c2s": {
+        "pre": [
+          375,
+          0
+        ],
+        "stress": [
+          750,
+          0
+        ],
+        "post": [
+          375,
+          0
+        ]
+      },
+      "s2c": {
+        "pre": [
+          370,
+          0
+        ],
+        "stress": [
+          750,
+          0
+        ],
+        "post": [
+          375,
+          0
+        ]
+      }
+    },
+    "goodput_mbps": {
+      "c2s": 2.97231648,
+      "s2c": 2.97231648
+    },
+    "probe_p99_ms": {
+      "c2s": 620.465599,
+      "s2c": 617.456751
+    },
+    "http_https": "20/20;10 verified certs",
+    "tcp_flows_each": 304,
+    "hash_mismatch": 0,
+    "netem_realized_pct": {
+      "pre": [
+        5.006,
+        5.016
+      ],
+      "stress": [
+        20.056,
+        20.068
+      ],
+      "post": [
+        4.958,
+        4.998
+      ]
+    },
+    "local_socket_drop": 0,
+    "host_busy_peak_pct": 63.06068601583114,
+    "runner_cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "cpu_psi_some_avg10_max": 27.36,
+    "cgroup_cpu_quota_cores": null,
+    "product_cpu_s": 210.67,
+    "read_queue_drops": "NOT_COLLECTED_OFF",
+    "sha256": {
+      "summary.json": "8fc45a8d7dff995e46c04bf8577964d1cf10016d96052af48e92f7d69f8d643e",
+      "efficiency-ledger.json": "2d13b57c1f550351b251e13b0134b4dbc1a6a33537b4b0f02aa166eb8d3e1756",
+      "manifest.json": "aa2953fd8be569774ad2b1131c450f5db7e5c6ce45710974f5023b5976eed68e",
+      "stage-events.jsonl": "d79565f7997c39b3ecec3f443e8f2fbc945fe3fe19619e6e6385fe543dd4c4d7"
+    }
+  },
+  "existing_on": {
+    "run_id": 37818615929,
+    "original": "PASS_SCOPED_ACTIONS",
+    "runner_cpu_model": "AMD EPYC 7763",
+    "full_udp_missing": [
+      2,
+      0
+    ],
+    "phase_stress_missing": [
+      0,
+      0
+    ],
+    "probe_missing": [
+      0,
+      0
+    ],
+    "preauth_ready_drop": 32963,
+    "physical_game_lanes": 4
+  },
+  "existing_off_fail": {
+    "run_id": 37817466498,
+    "original": "FAIL",
+    "runner_cpu_model": "AMD EPYC 7763",
+    "phase_stress_s2c_udp_missing": 446,
+    "phase_stress_sent": 51503,
+    "profile": "off"
+  },
+  "runner_stratum_conclusion": "Two independent Game4 true5205 OFF successes on AMD EPYC 9V45 (runs37813762304,37820693938), one OFF failure on AMD EPYC7763 run37817466498. Same product but different helper seeds/runtime hosts; not sufficient to conclude causal pure capacity, stable cross-run PASS or CPU gain.",
+  "instrumentation_source": "1146448d6340cf2e09b525189d233222d7ec9501",
+  "instrumentation_qualification": {
+    "foundation": {
+      "run_id": 37821298585,
+      "result": "success",
+      "jobs": "Windows/Linux Go unit/race/fuzz + shared real TUN/OpenWrt TPROXY + contract"
+    },
+    "lifecycle": {
+      "run_id": 37821298273,
+      "result": "success"
+    }
+  },
+  "next_one_sample": {
+    "workload": "mixed",
+    "loss": 5205,
+    "seed": 1836,
+    "product_source_sha": "1146448d6340cf2e09b525189d233222d7ec9501",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "next_one_sample_helper": "THIS_NEW_COMMIT",
+  "next_intent": "Game4 one 5205 profileON 300s sample with per-shard enqueued, handled, oldestDropped, rejected, queuePeak, queueAge and handler wall to localize pre-auth 32963 global outer drops without increasing 4096 global cap; guard compare ON/OFF",
+  "exits": {
+    "E3_stageB_5205_off_repeat": "PASS_SCOPED_RUN37820693938",
+    "E3_stageB_reproducibility": "INCONCLUSIVE_7763_OFF_FAIL_REMAINS",
+    "E3_shard_diagnostics": "FOUNDATION_PASS_SAMPLE_PENDING",
+    "E3_final": "BLOCKED",
+    "E2_cpu_gain": "NOT_PROVEN",
+    "E7_80s": "OPEN",
+    "E6_P6_physical": "NOT_RUN"
+  }
+}
