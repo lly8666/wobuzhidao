@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
   ],
-  "next_task": "Exact b4 A/0% third independent retry requested after Actions helper preflight 37730618843 PASS; earlier A/0% attempts 37729338574 and 37729716707 preserved INVALID (no business). Check new relay and child strict run for actual 300s fullstack, first-valid per-size, netem, missing/late, and capacity evidence. No products changed. B/C and 11 other matrix cells NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-longmix-a-p0-third-attempt-dispatch.md",
+  "next_task": "A0 helper source 1171220 preflight Actions 37730618843 PASS. Request commit 803bdfa changed .github/longmix-dispatch-request but as of check no relay run appeared; no product sample was started. Reissue same one sample request as separate harmless formatting-only changed request file to test push event visibility; guard checks frozen helper SHA and exact b4. If both requests later run, preserve independent runs, do not coalesce or cherry-pick. Product B/C and other matrix cells NOT_RUN. Native M03 outage and late remains OPEN.",
+  "latest_log": "docs/devlog/20261008-longmix-a-p0-dispatch-visibility.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10886,7 +10886,7 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A_P0_THIRD_ATTEMPT_DISPATCH_REQUESTED",
+    "state": "A_P0_REISSUE_RELAY_TRIGGER_PENDING",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "1171220c9c679b7ddcf9ed65973299636de90c2e",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37730618843",
