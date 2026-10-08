@@ -61,6 +61,14 @@ CAP_PIDS+=("$!")''')
     swap('--post-loss "$POST_LOSS"     --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log"',
          '--post-loss "$POST_LOSS"     --seed "$SEED" --fixed-loss "$WBD_LARGE_LOSS" --output "$ART/stage-events.jsonl" > "$ART/stage.log"')
     swap("--server-record-limit 1250 --mtu 1400", "--server-record-limit 0 --mtu 1400")
+    swap("-subj '/CN=qual.test'   -keyout", "-subj '/CN=qual.test' -addext 'subjectAltName=DNS:qual.test'   -keyout")
+    # HTTP and authenticated HTTPS share this one traffic sample. Owned
+    # sidecars run only for TCP/mixed, and are included in PID cleanup.
+    swap('BIZ_PID=""\nTGT_PID=""\nSTAGE_PID=""',
+         'BIZ_PID=""\nTGT_PID=""\nWEB_BIZ_PID=""\nWEB_TGT_PID=""\nSTAGE_PID=""')
+    swap('for pid in "$BIZ_PID" "$TGT_PID" "$STAGE_PID" "$SAMPLER_PID" "$CLIENT_PID" "$SERVER_PID"; do',
+         'for pid in "$BIZ_PID" "$TGT_PID" "$WEB_BIZ_PID" "$WEB_TGT_PID" "$STAGE_PID" "$SAMPLER_PID" "$CLIENT_PID" "$SERVER_PID"; do')
+
     # A normal profile-off performance run must not enable per-record timings.
     # Server ObserveTiming is coupled to diagnostic-jsonl, not CPU pprof.
     if os.environ.get("WBD_EFF_DIAGNOSTIC", "0") == "0":
@@ -80,6 +88,17 @@ CAP_PIDS+=("$!")''')
         if n!=1:raise RuntimeError("missing exact role line "+role)
     replace_role("target","8.8.8.8:18080","10.40.0.2:28080","target")
     replace_role("biz","10.40.0.2:28080","8.8.8.8:18080","biz")
+    swap('wait "$BIZ_PID"; BIZ_PID=""\nwait "$TGT_PID"; TGT_PID=""',
+         '''if [[ "$WBD_LARGE_WORKLOAD" != udp ]]; then
+  ip netns exec "$TGT" python3 "$GITHUB_WORKSPACE/tools/efficiency_http_https.py" --role target --bind 8.8.8.8 --peer 10.40.0.2 --start-ns "$START_NS" --seed "$SEED" --tls-cert "$CERT" --tls-key "$KEY" --source "$GITHUB_SHA" --helper "$WBD_HARNESS_SHA" --output "$ART/target-http.json" > "$ART/target-http.log" 2>&1 &
+  WEB_TGT_PID="$!"
+  ip netns exec "$BIZ" python3 "$GITHUB_WORKSPACE/tools/efficiency_http_https.py" --role biz --bind 10.40.0.2 --peer 8.8.8.8 --start-ns "$START_NS" --seed "$SEED" --tls-cert "$CERT" --tls-key "$KEY" --source "$GITHUB_SHA" --helper "$WBD_HARNESS_SHA" --output "$ART/biz-http.json" > "$ART/biz-http.log" 2>&1 &
+  WEB_BIZ_PID="$!"
+fi
+wait "$BIZ_PID"; BIZ_PID=""
+wait "$TGT_PID"; TGT_PID=""
+if [[ -n "$WEB_BIZ_PID" ]]; then wait "$WEB_BIZ_PID"; WEB_BIZ_PID=""; fi
+if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
     swap('workflow_rel = ".github/workflows/next-shared-blackhole.yml" if blackhole_ms else ".github/workflows/next-strict-weaknet.yml"',
          'workflow_rel = ".github/workflows/next-efficiency-e0-single.yml"')
     begin=s.index('harness = [\n')
@@ -90,6 +109,7 @@ CAP_PIDS+=("$!")''')
     "scripts/build_seeded_tc.sh",
     "tools/strict_resource_sampler.py",
     "tools/large_mtu_mixed_business.py",
+    "tools/efficiency_http_https.py",
     "tools/large_mtu_loss_stage.py",
     "tools/prepare_large_mtu_harness.py",
     "tools/check_large_mtu_mixed.py",
@@ -108,6 +128,8 @@ CAP_PIDS+=("$!")''')
          '''"packet_sizes_count_cycle": ({"udp":{"96":30,"256":20,"512":14,"1000":10,"1372":9,"4068":6,"8972":5,"8973":4,"65507":2},"mixed":{"96":50,"256":20,"512":10,"1372":8,"8972":5,"8973":5,"65507":2}} if os.environ["WBD_EFF_SIZE_PROFILE"]=="jumbo" else {"udp":{"96":30,"256":20,"512":15,"1000":15,"1372":10,"4068":10},"mixed":{"96":50,"256":20,"512":10,"1000":5,"1372":10,"4068":5}}),
         "inner_edge_mtu": 9000, "server_shared_tun_mtu": "actual ip-link receipt",
         "record_limit_configured": 0, "formal_default_tick_ms": 100,
+        "http_https_short_requests": 0 if os.environ["WBD_LARGE_WORKLOAD"]=="udp" else 20,
+        "tcp_reserved_https_mbps": 0 if os.environ["WBD_LARGE_WORKLOAD"]=="udp" else 0.02,
         "client_ingress": "TPROXY; no client TUN in this Linux strict topology",
         "outer_connection_mtu": 1400, "route_mode": "all",
         "netem_loss_both_directions_percent": int(os.environ["WBD_LARGE_LOSS"]),''')

@@ -70,7 +70,7 @@ jobs:
                   f.write("%s=%s\n"%(name,value))
           print("ONE_E0_SAMPLE",d,"helper",helper)
           PY
-          python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py
+          python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py tools/efficiency_http_https.py
           python3 tools/perf_sample_guard.py claim --identity "efficiency-e0:${GITHUB_SHA}:product${PRODUCT_SOURCE}" --receipt "$ART/sample-claim.json"
       - name: Generate one strict fullstack scenario
         run: |
@@ -115,7 +115,7 @@ jobs:
           python3 tools/check_large_mtu_mixed.py --artifact-dir "$ART" \
             --source "$PRODUCT_SOURCE" --helper "$WBD_HELPER_SOURCE" \
             --workload "$WBD_LARGE_WORKLOAD" --loss "$WBD_LARGE_LOSS" \
-            --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" --size-profile "$WBD_EFF_SIZE_PROFILE" --output "$ART/summary.json"
+            --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" --size-profile "$WBD_EFF_SIZE_PROFILE" --mode "$WBD_STRICT_MODE" --lanes "$WBD_STRICT_LANES" --output "$ART/summary.json"
       - name: Emergency raw pcap cleanup and hash
         if: always()
         run: |
@@ -151,6 +151,10 @@ jobs:
             ${{ env.ART }}/inner-*-route.txt
             ${{ env.ART }}/runner-host.txt
             ${{ env.ART }}/resources.jsonl
+            ${{ env.ART }}/biz-http.json
+            ${{ env.ART }}/target-http.json
+            ${{ env.ART }}/biz-http.log
+            ${{ env.ART }}/target-http.log
             ${{ env.ART }}/client-diag.jsonl
             ${{ env.ART }}/server-diag.jsonl
             ${{ env.ART }}/product-binary-sha256.txt

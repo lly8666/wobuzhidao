@@ -325,7 +325,9 @@ def run(args):
     start=args.start_ns;end=start+300_000_000_000
     stop=threading.Event();t=Totals(start);jobs=[]
     own=addr(args.bind);remote=addr(args.peer)
-    rate=args.rate_mbps
+    # HTTP+verified HTTPS sidecars reserve 20kbps total budget in TCP cases;
+    # their bounded 20 x 2KiB replies use < 2kbps. No extra bulk traffic.
+    rate=args.rate_mbps-(0.02 if args.workload!="udp" else 0)
     udp_rate=rate if args.workload=="udp" else (rate/2 if args.workload=="mixed" else 0)
     tcp_rate=rate if args.workload=="tcp" else (rate/2 if args.workload=="mixed" else 0)
     if udp_rate:

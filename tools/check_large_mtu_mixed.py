@@ -157,6 +157,8 @@ def main():
     a.add_argument("--seed",type=int,required=True);a.add_argument("--output",required=True)
     a.add_argument("--target-mbps",type=float,choices=[3.0,10.0],required=True)
     a.add_argument("--size-profile",choices=["ordinary","jumbo"],required=True)
+    a.add_argument("--mode",choices=["normal","game"],required=True)
+    a.add_argument("--lanes",type=int,choices=[1,4],required=True)
     x=a.parse_args();root=Path(x.artifact_dir)
     issues=[];capture_receipts=[]
     try:
@@ -164,6 +166,9 @@ def main():
         if manifest["source_sha"]!=x.source or manifest["harness_sha"]!=x.helper:issues.append("SOURCE_HELPER_MISMATCH")
         if (manifest["config"]["duration_s"]!=300 or manifest["config"]["outer_connection_mtu"]!=1400 or manifest["config"].get("drain_s")!=3 or manifest["config"].get("formal_default_tick_ms")!=100 or manifest["config"].get("record_limit_configured")!=0):issues.append("WRONG_MANIFEST")
         if manifest["scenario"]!=x.workload+"-p"+str(x.loss):issues.append("WRONG_WORKLOAD_LOSS")
+        if (manifest.get("mode")!=x.mode or manifest["config"].get("lanes")!=x.lanes or
+            manifest["config"].get("application_mbps_each_direction")!=x.target_mbps):
+            issues.append("WRONG_MODE_LANES_RATE")
         biz=json.loads((root/"biz.json").read_text());target=json.loads((root/"target.json").read_text())
         if any(d["source_sha"]!=x.source or d["helper_sha"]!=x.helper or d["seed"]!=x.seed or d.get("size_profile")!=x.size_profile or d.get("configured_per_direction_mbps")!=x.target_mbps for d in (biz,target)):issues.append("PROCESS_IDENTITY")
         b=biz["counters"];t=target["counters"]
@@ -199,7 +204,9 @@ def main():
                             "tcp":tcp,"continuity":bucket_gap(src,dst)}
             if achieved<.99:issues.append("INSUFFICIENT_INJECTION_"+key)
             if src["send_errors"] or src.get("corrupt",0) or dst.get("corrupt",0):issues.append("PAYLOAD_OR_SEND_ERROR_"+key)
-            if tcp["mismatch_total"] and x.loss==0:issues.append("TCP_HASH_MISMATCH_"+key)
+            if tcp["mismatch_total"]:issues.append("TCP_HASH_MISMATCH_"+key)
+            if x.workload in ("tcp","mixed") and any(str(i) not in src.get("tcp_tx",{}) for i in range(4)):
+                issues.append("TCP_FOUR_SUSTAINED_FLOWS_MISSING_"+key)
             if x.loss==0 and any(v["missing"] for v in sz.values()):issues.append("LOSSLESS_UDP_MISSING_"+key)
         probe_summary={}
         for name,side in (("c2s",b),("s2c",t)):
@@ -213,6 +220,30 @@ def main():
                                  "max_ms":max(probe)/1e6 if probe else None}
             if side["probe_sent"]<1450:issues.append("PROBE_COVERAGE_"+name)
             if x.loss==0 and probe_summary[name]["missing"]:issues.append("LOSSLESS_PROBE_MISSING_"+name)
+        web={}
+        if x.workload in ("tcp","mixed"):
+            web_b=json.loads((root/"biz-http.json").read_text())
+            web_t=json.loads((root/"target-http.json").read_text())
+            for receipt,role in ((web_b,"biz"),(web_t,"target")):
+                if (receipt.get("product_source_sha")!=x.source or
+                    receipt.get("helper_sha")!=x.helper or
+                    receipt.get("seed")!=x.seed or receipt.get("role")!=role):
+                    issues.append("SOURCE_HELPER_MISMATCH_HTTP_"+role)
+            returned=web_b.get("returned",0)
+            delays=[v["duration_ns"]/1e6 for v in web_b.get("completed",[])]
+            web={"http_https_requests":web_b.get("requests"),
+                 "returned":returned,"missing":max(0,20-returned),
+                 "https_certificate_verified":web_b.get("tls_verified",0),
+                 "returned_p99_ms":percentile(delays,.99),
+                 "return_failures":web_b.get("failed",[]),
+                 "http_server_served":web_t.get("http_served"),
+                 "https_server_served":web_t.get("https_served"),
+                 "server_errors":web_t.get("server_errors")}
+            if (web["http_https_requests"]!=20 or returned!=20 or
+                web["https_certificate_verified"]!=10 or
+                web["http_server_served"]!=10 or web["https_server_served"]!=10 or
+                web["server_errors"] or web["return_failures"]):
+                issues.append("HTTP_HTTPS_SHORT_E2E_NOT_QUALIFIED")
         resources=resource_report(root,int(biz["start_monotonic_ns"]),int(biz["start_monotonic_ns"])+300_000_000_000)
         if any(resources["diagnostics"][side]["present"] for side in ("client","server")):issues.append("PROFILE_OFF_DIAGNOSTIC_ENABLED")
         if resources["strict_resource"].get("errors"):
@@ -225,7 +256,7 @@ def main():
                 "helper_sha":x.helper,"workload":x.workload,"loss_percent":x.loss,"seed":x.seed,"size_profile":x.size_profile,"target_mbps":x.target_mbps,
                 "netem_realized":netem,"mtu":links,"route_mode":"all",
                 "path":"biz -> client TPROXY -> raw TCP-shaped -> router netem -> shared server TUN -> target",
-                "direction":direction,"probe":probe_summary,"resources":resources}
+                "direction":direction,"probe":probe_summary,"web":web,"resources":resources}
     except Exception as ex:
         issues.append("ANALYZER_EXCEPTION:"+repr(ex));result={"error":repr(ex)}
     finally:

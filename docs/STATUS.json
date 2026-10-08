@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_ORDINARY_UDP_NORMAL_OFF_PASS_PARTIAL",
+    "phase": "E0_TCP_HTTPS_CANDIDATE_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -89,10 +89,27 @@
       },
       "evidence": "docs/evidence/performance-efficiency-e0-udp-normal-off-37761141407.json",
       "comparable_cpu_benefit": "NONE"
+    },
+    "e0_tcp_https": {
+      "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "helper_source_sha": "new exact commit SHA/GITHUB_SHA",
+      "planned_sample": {
+        "workload": "tcp",
+        "loss": 0,
+        "seed": 1802,
+        "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+        "mode": "normal",
+        "lanes": 1,
+        "rate_mbps": 10,
+        "size_profile": "ordinary"
+      },
+      "planned_scope": "four sustained TCP streams + 300 framed short +20 verified HTTP(S)",
+      "status": "NOT_YET_QUALIFIED",
+      "evidence": "docs/evidence/performance-efficiency-e0-tcp-https-candidate-20261008.json"
     }
   },
-  "next_task": "E0: build and Actions-qualify true four-flow sustained TCP + short certificate-verified HTTP/HTTPS, then TCP+UDP mixed and Game4 3Mbps each direction; each separate single-sample Action. Ensure total business byte budget and probe return/missing, 3s drain, automatic MTU/record. Profile-on diagnostic ledger separate; no cross-AMD/Intel CPU improvement comparison. E1 starts only after credible E0 normal+Game profile-off and cost ledger; 80s downlink deferred E7 OPEN, P6 and physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-ordinary-udp-true-profile-off-baseline.md",
+  "next_task": "E0: inspect exactly one new helper-sha TCP Normal10 lossless seed1802 with four long flows and real cert-validated 10 HTTP+10 HTTPS; fail closed on missing/late/hash/TLS, check real TUN auto-MTU, 3s drain, profile off, resource/drop and runner. Then independent TCP+UDP mixed5+5 and Game4 3Mbps runs and separate jumbo/diagnostic ledger. E1-E7 not yet begun; 80s S2C OPEN until E7, P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-four-tcp-flow-short-verified-https-candidate.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
