@@ -1,0 +1,221 @@
+{
+  "schema": "wbd-efficiency-e0-game4-diagnostic-result/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "0b9370bebfdda7ff372fb346fddd60b9d96d259b",
+  "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "helper_source_sha": "0b9370bebfdda7ff372fb346fddd60b9d96d259b",
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "actions": {
+    "run_id": 37768172504,
+    "job_id": 113280833800,
+    "artifact_id": 11547016894,
+    "attempt": 1,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37768172504",
+    "workflow_conclusion": "failure",
+    "measurement_step": "success",
+    "analyzer_step": "failure",
+    "ledger_step": "success",
+    "original_classification": "FAIL",
+    "original_issues": [
+      "LOSSLESS_UDP_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_s2c"
+    ]
+  },
+  "raw_artifact_sha256": {
+    "summary.json": "592efc7ddae575b14f1a7abf99cbb02f9d4f1aecffb272507c0fa3275d84d69b",
+    "efficiency-ledger.json": "c2e72ac676cc8529d4e1429faceb2a5df4f550f1d2f3f50b4fe8611bfe11eeab",
+    "manifest.json": "90a4e3711a200b98c2186ec52636ce83eaf40637a0026ca66da41ef597bf0040",
+    "sample-claim.json": "b07701e9bd4dabc97cfe34246a2770b39d6065f2a3ad4e2c2ce01101d037ce91",
+    "client-cpu-top.txt": "f621bedef2e53ddb6dcd53557385cda681b6b872b99e9f942a7dacb8239ea5f2",
+    "server-cpu-top.txt": "3b5b1b37367dada328fc6b233683e4291ce77e58bf2d88209b6fd831b8ea2ff4"
+  },
+  "config": {
+    "mode": "game",
+    "lanes": 4,
+    "workload": "mixed",
+    "size_profile": "ordinary",
+    "seed": 1814,
+    "loss_percent": 0,
+    "duration_s": 300,
+    "drain_s": 3,
+    "one_way_delay_ms": 300,
+    "logical_business_target_mbps_each_direction": 3,
+    "outer_mtu": 1400,
+    "record_limit_configured_auto": 0,
+    "measured_server_tun_mtu": 1273,
+    "fec": "20:20",
+    "padding": "off",
+    "diagnostic": "on",
+    "go_cpu_block_mutex_profile": true,
+    "formal_default_tick_ms": 100
+  },
+  "business": {
+    "c2s": {
+      "total_logical_sent_mbps_including_http": 2.9761871466666663,
+      "bulk_delivered_mbps": 2.9404685866666664,
+      "udp_missing": 2040,
+      "udp_missing_by_size": {
+        "96": 1040,
+        "256": 379,
+        "512": 190,
+        "1000": 83,
+        "1372": 222,
+        "4068": 126
+      },
+      "probes_sent": 1500,
+      "probes_returned": 1465,
+      "probes_missing": 35,
+      "probe_returned_only_p99_ms": 796.564854,
+      "probe_returned_max_ms": 1781.114099,
+      "longest_active_zero_recv_ms": 270,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_hash_or_length_mismatch": 0
+    },
+    "s2c": {
+      "total_logical_sent_mbps_including_http": 2.977328213333333,
+      "bulk_delivered_mbps": 2.97231648,
+      "udp_missing": 0,
+      "probes_sent": 1495,
+      "probes_returned": 1471,
+      "probes_missing": 24,
+      "probe_returned_only_p99_ms": 801.184587,
+      "probe_returned_max_ms": 875.051675,
+      "longest_active_zero_recv_ms": 40,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_hash_or_length_mismatch": 0
+    },
+    "web_http_https": {
+      "requests": 20,
+      "returned": 20,
+      "verified_https_cert_and_body": 10,
+      "missing": 0
+    },
+    "integrity": {
+      "tcp_hash_and_length_mismatch": 0,
+      "udp_corruption_reported": 0,
+      "missing_udp_and_probes_remain_fail": true
+    },
+    "probe_all_request_p99": "NOT_DETERMINED_TIMEOUTS_PRESENT; report returned-only p99 alongside missing+late; no fabricated 0"
+  },
+  "runtime_game_evidence": {
+    "client": {
+      "desired_lanes": 4,
+      "active_logical_lanes": 4,
+      "physical_lanes": 4,
+      "GameLogicalOutbound": 134422,
+      "GameLaneCopies": 537688,
+      "GameDelivered": 134334,
+      "GameDuplicates": 403002,
+      "GameLaneMismatches": 0
+    },
+    "server": {
+      "desired_lanes": 4,
+      "active_logical_lanes": 4,
+      "physical_lanes": 4,
+      "GameLogicalOutbound": 134334,
+      "GameLaneCopies": 537336,
+      "GameDelivered": 128951,
+      "GameDuplicates": 381248,
+      "GameLaneMismatches": 0
+    },
+    "lane_ids": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "lane_generation_per_id": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "meaning": "4 real negotiated active Game lanes with duplication/dedupe, not merely CLI lanes"
+  },
+  "earliest_measured_drop_boundary": {
+    "component": "LifecycleServer.Run userspace ready readCh queue after accepted raw socket receive, before handleSegment/FEC",
+    "product_source_files": [
+      "internal/runtimeentry/lifecycle.go:1269-1340",
+      "internal/runtimeentry/perf_diag.go:10-93",
+      "internal/runtimeentry/runtime.go:438-448"
+    ],
+    "queue_depth": 4096,
+    "peak_measured_ready": 4098,
+    "raw_receive_messages_server": 3063073,
+    "handler_samples_server": 2744032,
+    "difference_raw_reads_minus_handler_samples": 319041,
+    "overflow_drops": 319041,
+    "overflow_bytes": 173002418,
+    "ready_queue_bytes_peak": 4732069,
+    "queue_age_max_ms": 273.081465,
+    "dropped_oldest_age_max_ms": 222.441981,
+    "queue_age_over_10ms_samples": 1124615,
+    "client_raw_send_messages": 3063073,
+    "raw_receive_equals_client_raw_send": true,
+    "raw_receiver_interface_socket_drops": 0,
+    "server_udp_owned_work_queue_overflow_drops": 0,
+    "client_udp_owned_work_queue_overflow_drops": 0,
+    "client_segment_mux_route_overflow_drops": 0,
+    "note": "Counter matching supports this as earliest directly evidenced boundary, but these are outer segments and not one-to-one comparable with application UDP datagrams; no per-packet causal trace"
+  },
+  "fec_decoder_observation": {
+    "server_lane_expired_missing_sources": [
+      605,
+      584,
+      567,
+      620
+    ],
+    "server_lane_recovered_sources": [
+      6880,
+      7034,
+      7463,
+      7734
+    ],
+    "server_lane_pressure_retirements": [
+      558,
+      651,
+      616,
+      613
+    ],
+    "forensic_only": "FEC bounded recovery and pressure retire independent counts; do not infer one-to-one lost business UDP"
+  },
+  "resource": {
+    "runner_cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "visible_vcpus": 4,
+    "cgroup_cpu_quota_cores": null,
+    "steal_max_percent": 0,
+    "cpu_psi_some_avg10_max": 22.47,
+    "host_busy_max_percent": 80.16759776536313,
+    "client_cpu_seconds": 190.95,
+    "server_cpu_seconds": 166.11,
+    "total_cpu_seconds": 357.06,
+    "client_peak_rss_mib": 110.88,
+    "server_peak_rss_mib": 98.99,
+    "socket_or_interface_drops": 0,
+    "approximate_profile_flat_server_syscall6_s": 52.69,
+    "approximate_profile_flat_server_fec_xormul_s": 30.28,
+    "server_tick_wall_max_ms": 226.854411,
+    "source": "one diagnostic-ON run; time spans and counters overlap, not CPU-off comparison",
+    "capacity_limited_evidenced": false
+  },
+  "cross_run": {
+    "profile_off_failed_run_id": 37766819445,
+    "profile_off_helper_sha": "aa2200c833dd557d2c926e5ea4fd5316897b610a",
+    "profile_off_c2s_udp_missing": 2154,
+    "profile_off_probes_missing": [
+      26,
+      33
+    ],
+    "profile_on_c2s_udp_missing": 2040,
+    "profile_on_probes_missing": [
+      35,
+      24
+    ],
+    "interpretation": "Independent same-product-source Game4 failures. No cross-run CPU improvement due to profiling and runner variability."
+  },
+  "conclusion": "FAIL; GAME4_E0_LOSSLESS_NOT_QUALIFIED; userspace bounded-read-queue overflow strongly evidenced; no CPU improvement and no CAPACITY_LIMITED proof",
+  "next_task": "Focused read-only audit scheduling/queue pressure and configuration, then source-level counter test or precise hypothesis under Actions. Do not enlarge ready queue, busy spin, requeue fresh or claim E1 success until four guards. Preserve all original failures and E7 downlink 80s OPEN."
+}
