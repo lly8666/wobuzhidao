@@ -183,9 +183,10 @@
     "alternative": {
       "path": ".github/workflows/next-strict-weaknet.yml",
       "qualification_kind": "longmix-a",
-      "status": "PENDING_PREFLIGHT",
+      "status": "PREFLIGHT_PASS_READY_SINGLE_SAMPLE",
       "one_job_one_sample": true,
-      "original_qualification_unchanged": true
+      "original_qualification_unchanged": true,
+      "preflight_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37729244017"
     }
   },
   "analyzer": {
