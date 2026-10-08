@@ -142,6 +142,47 @@ def size_direction(src,dst):
                     "over_1s":0,"over_3s":0}
     return sizes,rtt
 
+def phase_delivery(src,dst,kind):
+    """Actual send-time-attributed first-delivery ledger, not qdisc inference.
+
+    'pre/stress/post' belong to the sender's monotonic timestamp embedded
+    in the real business UDP wire; a delayed packet stays in its original
+    damage phase, rather than being reassigned to the arrival phase.
+    """
+    tags=("pre","stress","post")
+    tx=src.get(kind+"_stage_tx",{})
+    rx=dst.get(kind+"_stage_rx",{})
+    if not isinstance(tx,dict) or not isinstance(rx,dict):
+        raise ValueError("malformed "+kind+" stage telemetry")
+    if any(name not in tx for name in tags) or any(name not in rx for name in tags):
+        raise ValueError("missing "+kind+" stage telemetry in real endpoint receipts")
+    out={}
+    for name in tags:
+        send=tx[name];received=rx[name]
+        n=send.get("count",0);ok=received.get("count",0)
+        if not isinstance(n,int) or not isinstance(ok,int) or n<0 or ok<0 or ok>n:
+            raise ValueError("invalid "+kind+" phase counts "+name)
+        sent_sizes=send.get("by_size",{});recv_sizes=received.get("by_size",{})
+        sizes={}
+        for k in set(sent_sizes)|set(recv_sizes):
+            a=sent_sizes.get(k,0);b=recv_sizes.get(k,0)
+            if b>a or a<0 or b<0:
+                raise ValueError("invalid "+kind+" phase size "+name+"/"+k)
+            sizes[k]={"sent":a,"delivered":b,"missing":a-b}
+        if sum(v["sent"] for v in sizes.values())!=n or sum(v["delivered"] for v in sizes.values())!=ok:
+            raise ValueError("inconsistent "+kind+" phase-by-size count "+name)
+        over1=received.get("over_1s",0);over3=received.get("over_3s",0)
+        if not (0<=over3<=over1<=ok):
+            raise ValueError("invalid "+kind+" deadline counters "+name)
+        out[name]={"sent":n,"delivered":ok,"missing":n-ok,
+                   "over_1s":over1,"over_3s":over3,
+                   "max_delivered_age_ms":received.get("max_delay_ns",0)/1e6,
+                   "by_size":sizes}
+    if (tx.get("outside",{}).get("count",0)!=0 or
+        rx.get("outside",{}).get("count",0)!=0):
+        raise ValueError(kind+" sent timestamp outside 300s business")
+    return out
+
 def tcp_direction(src,dst):
     s=src.get("tcp_tx",{});r=dst.get("tcp_rx",{})
     mismatch=[]
@@ -260,6 +301,37 @@ def main():
                             "source_probe_send_errors":src.get("probe_send_errors",0),
                             "udp_by_size":sz,"large_udp_roundtrip_ms":rtt,
                             "tcp":tcp,"continuity":bucket_gap(src,dst)}
+            if x.loss==5205 and x.workload in ("udp","mixed"):
+                # Require actual per-send-phase business delivery and deadline
+                # measurements, not just the pre/stress/post netem qdisc trace.
+                try:
+                    udp_phases=phase_delivery(src,dst,"udp")
+                    probe_phases=phase_delivery(src,dst,"probe")
+                    tx_udp=sum(v["sent_datagrams"] for v in sz.values())
+                    rx_udp=sum(v["delivered"] for v in sz.values())
+                    if (sum(row["sent"] for row in udp_phases.values())!=tx_udp
+                        or sum(row["delivered"] for row in udp_phases.values())!=rx_udp
+                        or sum(row["sent"] for row in probe_phases.values())!=src["probe_sent"]
+                        or sum(row["delivered"] for row in probe_phases.values())!=dst["probe_received"]):
+                        raise ValueError("stage counters disagree with business size/probe totals")
+                    direction[key]["phase_delivery_5205"]={
+                        "udp":udp_phases,"probe":probe_phases,
+                        "attribution":"actual_sender_monotonic_timestamp_not_arrival_stage",
+                        "max_due_ms":3000}
+                    for phase in ("pre","stress","post"):
+                        udp=udp_phases[phase];probe=probe_phases[phase]
+                        if udp["sent"]<100 or probe["sent"]<100:
+                            issues.append("5205_STAGE_COVERAGE_"+key+"_"+phase)
+                        if udp["missing"]>udp["sent"]*0.001:
+                            issues.append("5205_STAGE_UDP_LOSS_OVER_0P1PCT_"+key+"_"+phase)
+                        if probe["missing"]>max(1,probe["sent"]*0.01):
+                            issues.append("5205_STAGE_PROBE_LOSS_OVER_1PCT_"+key+"_"+phase)
+                        if udp["over_3s"] or probe["over_3s"]:
+                            issues.append("5205_STAGE_DELIVERY_OVER_3S_"+key+"_"+phase)
+                except ValueError as err:
+                    direction[key]["phase_delivery_5205"]={"status":"INVALID",
+                       "reason":str(err)}
+                    issues.append("5205_PHASE_DELIVERY_INVALID_"+key)
             if achieved<.99:issues.append("INSUFFICIENT_INJECTION_"+key)
             if src["send_errors"]:issues.append("GENERATOR_SEND_ERROR_"+key)
             if src.get("corrupt",0) or dst.get("corrupt",0):issues.append("PAYLOAD_CORRUPT_OR_MALFORMED_"+key)

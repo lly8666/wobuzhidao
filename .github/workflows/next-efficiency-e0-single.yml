@@ -76,8 +76,9 @@ jobs:
                   f.write("%s=%s\n"%(name,value))
           print("ONE_E0_SAMPLE",d,"helper",helper)
           PY
-          python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py tools/efficiency_http_https.py tools/efficiency_cost_ledger.py tools/test_efficiency_5205_waveform.py
+          python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py tools/efficiency_http_https.py tools/efficiency_cost_ledger.py tools/test_efficiency_5205_waveform.py tools/test_efficiency_5205_phase_delivery.py
           python3 tools/test_efficiency_5205_waveform.py
+          python3 tools/test_efficiency_5205_phase_delivery.py
           # Fail before the 300s sample if any helper CLI forgets the configured profile.
           python3 tools/large_mtu_mixed_business.py --help | grep -Fq '{ordinary,jumbo,boundary}'
           python3 tools/check_large_mtu_mixed.py --help | grep -Fq '{ordinary,jumbo,boundary}'

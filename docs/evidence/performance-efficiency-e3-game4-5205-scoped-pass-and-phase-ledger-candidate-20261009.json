@@ -1,0 +1,164 @@
+{
+  "schema": "wbd-e3-5205-game4-actual-business-and-phase-ledger-candidate/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "8a76a9432dcaae512393ed9b221fa027be2dc92a",
+  "prior_run": {
+    "run_id": 37813762304,
+    "job_id": 113436985714,
+    "artifact_id": 11566053468,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37813762304",
+    "conclusion": "success",
+    "original_analysis": "PASS_SCOPED_ACTIONS",
+    "original_issues": [],
+    "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "helper_sha": "8a76a9432dcaae512393ed9b221fa027be2dc92a",
+    "seed": 1831,
+    "workload": {
+      "mode": "game",
+      "lanes_requested": 4,
+      "profile": "off",
+      "loss_waveform": "5% for75s,20% for150s,5% for75s",
+      "one_way_delay_ms": 300,
+      "duration_s": 300,
+      "drain_s": 3,
+      "rate_mbps_each_direction": 3,
+      "mtu_server_tun_actual": 1273,
+      "auto_record_cap": 0,
+      "fec": "20:20"
+    },
+    "netem_phase_measured": {
+      "pre": {
+        "offset_s": [
+          -0.004821422,
+          74.989532691
+        ],
+        "c2s_percent": 4.99516010896728,
+        "s2c_percent": 4.9935441220522465
+      },
+      "stress": {
+        "offset_s": [
+          74.998486587,
+          224.989530574
+        ],
+        "c2s_percent": 20.04949860373611,
+        "s2c_percent": 20.08265262804335
+      },
+      "post": {
+        "offset_s": [
+          225.008803215,
+          299.989487652
+        ],
+        "c2s_percent": 4.986449209793466,
+        "s2c_percent": 4.979258580753149
+      }
+    },
+    "business": {
+      "c2s": {
+        "goodput_mbps": 2.97231648,
+        "udp_datagrams": 103062,
+        "udp_missing": 0,
+        "probe_sent": 1500,
+        "probe_returned": 1500,
+        "probe_missing": 0,
+        "probe_p99_ms": 619.992949,
+        "tcp_flows_received": 304,
+        "tcp_hash_mismatch": 0
+      },
+      "s2c": {
+        "goodput_mbps": 2.97231648,
+        "udp_datagrams": 103062,
+        "udp_missing": 0,
+        "probe_sent": 1495,
+        "probe_returned": 1495,
+        "probe_missing": 0,
+        "probe_p99_ms": 618.607291,
+        "tcp_flows_received": 304,
+        "tcp_hash_mismatch": 0
+      },
+      "http_https": {
+        "returned": 20,
+        "expected": 20,
+        "https_verified": 10
+      }
+    },
+    "resources": {
+      "product_cpu_total_seconds": 210.04,
+      "client_cpu_s": 104.9,
+      "server_cpu_s": 105.14,
+      "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+      "vcpus": 4,
+      "quota_cores": null,
+      "host_psi_some_peak": 29.34,
+      "socket_drops": 0,
+      "interface_drops": 0,
+      "compare_with_older_AMD_7763": "INVALID_CPU_DIFFERENT_HOST_MODEL_AND_PROFILE_STRATUM"
+    },
+    "file_sha256": {
+      "summary.json": "3b3d1e2816896a8132cce404a59c7a9ea8f4c83f350909c8f04b4d947910b0f0",
+      "efficiency-ledger.json": "e58c10b3d0bdd352f90307635ac5d4230efc7c003700bfc60337927cc40bec55",
+      "manifest.json": "781a44da05afc27f173e2563eaebf4f8aef9133ac4b5c5bf0618dde95995e107",
+      "stage-events.jsonl": "f898c33d2df1b993b4f189a5d02a0fb2d7643a2e79bbe55c53874aa1a8498fa6"
+    }
+  },
+  "gap": "All 300s global business delivery is complete, but per-sent-phase UDP and probes timing/deadline (1s/3s) attribution previously NOT_COLLECTED. Do not claim full 5205 stage-specific recovery qualification or cost benefit.",
+  "new_phase_candidate": {
+    "state": "CODE_NOT_TESTED",
+    "paths": [
+      "tools/large_mtu_mixed_business.py",
+      "tools/check_large_mtu_mixed.py",
+      "tools/test_efficiency_5205_phase_delivery.py",
+      ".github/workflows/next-efficiency-e0-single.yml"
+    ],
+    "details": [
+      "Actual sent monotonic ns already contained in packet header is used for source phase attribution; receive counts attributed to send phase, never arrival phase",
+      "Counters per phase pre(0..75),stress(75..225),post(225..300) for first valid UDP datagram and unique small-probe response; per-size submitted/delivered/missing and late >1s/>3s plus max age; no per-packet log or data queue",
+      "Analyzer validates phase sums against existing UDP size/probe totals and rejects malformed/missing stage evidence; stage UDP loss max0.1% and probe max1%, no successfully delivered packet over3s",
+      "New deterministic test checks exact boundaries, missing classification despite arrival in next phase, late deadline, duplicate/impossible attribution, and fail-closed legacy missing fields",
+      "Pre-sample Actions runs Python py_compile, true waveform test, and new phase ledger test before formal one-sample 300s load"
+    ],
+    "stage_thresholds": {
+      "udp_loss_over_percent": 0.1,
+      "probe_loss_over_percent": 1,
+      "delivered_later_than_seconds": 3
+    },
+    "phase_boundary_caveat": "send-phase classification uses product packet's real sender monotonic timestamp with shared Linux clock; qdisc waveform changes at boundaries within a few ms, recorded separately",
+    "untouched_product_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "unchanged": [
+      "Go source and encrypted protocol",
+      "Game lanes/owner/FEC/500ms inner TCP RTO",
+      "MTU automatic record cap zero",
+      "4096 total Game raw queue budget",
+      "business sender pacing rate profile",
+      "one Action run exactly one 300s sample"
+    ]
+  },
+  "next_single_case": {
+    "config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1832,
+      "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+      "mode": "game",
+      "lanes": 4,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "helper_source_sha": "THIS_NEW_COMMIT_SHA",
+    "state": "PENDING_GITHUB_ACTIONS"
+  },
+  "release_status": {
+    "E3": "BLOCKED_FULL_PHASE_AND_REPEAT_GUARDS",
+    "E2_CPU_GAIN": "UNPROVEN",
+    "E6_P6_PHYSICAL": "NOT_RUN",
+    "E7_80S": "OPEN"
+  },
+  "previous_historical_failures": [
+    37766819445,
+    37788802499,
+    37797087655,
+    37801415227,
+    37802779025
+  ]
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E3_NORMAL_5205_TRUE_NETEM_WAVEFORM_SCOPED_PASS_GAME4_5205_SAMPLE_TRIGGERING",
+    "phase": "E3_GAME4_5205_WAVEFORM_ALL_UDP_AND_PROBE_DELIVERED_PHASE_LEDGER_HELPER_CANDIDATE",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -527,12 +527,12 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
     },
     "game_architecture": {
-      "state": "GAME4_ON_OFF_AND_GAME2_ON_SCOPED_PASS_NORMAL5205_PHASE_CANDIDATE_PENDING",
+      "state": "GAME4_5205_SCOPED_PASS_ZERO_UDP_PROBE_MISSING_STAGE_TIMING_HELPER_CANDIDATE",
       "parent_head": "8e6a26567511e19901f01f24ee31e82136c1736e",
       "source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
       "stage": "B_PRE_AUTH_FOURTUPLE_STABLE_SHARD_NO_QUEUE_CAPACITY_INCREASE",
       "architecture": "docs/GAME_MODE_INGRESS_ARCHITECTURE_20261008.md",
-      "evidence": "docs/evidence/performance-efficiency-e3-normal5205-waveform-scoped-pass-run37812674106.json",
+      "evidence": "docs/evidence/performance-efficiency-e3-game4-5205-scoped-pass-and-phase-ledger-candidate-20261009.json",
       "foundation": "PASS",
       "lifecycle": "PASS",
       "new_game4_lossless": "NOT_RUN",
@@ -706,7 +706,7 @@
       },
       "normal5205_state": "QUEUED_ONE_SAMPLE",
       "normal5205_full_phase_delivery": "NOT_MEASURED",
-      "e3_final": "BLOCKED",
+      "e3_final": "BLOCKED_PHASE_ATTRIBUTION_AND_CPU_GUARDS",
       "normal5205_run": 37812674106,
       "normal5205_original": "PASS_SCOPED_ACTIONS",
       "normal5205_udp_missing": [
@@ -730,12 +730,38 @@
         "size_profile": "ordinary",
         "diagnostic_mode": "off"
       },
-      "game4_5205_run": null,
-      "game4_5205_state": "PENDING_ACTION"
+      "game4_5205_run": 37813762304,
+      "game4_5205_state": "PENDING_ACTION",
+      "game4_5205_original": "PASS_SCOPED_ACTIONS",
+      "game4_5205_original_issues": [],
+      "game4_5205_udp_missing": [
+        0,
+        0
+      ],
+      "game4_5205_probe_missing": [
+        0,
+        0
+      ],
+      "game4_5205_actual_loss": "5.0/20.0/5.0pct both directions",
+      "game4_5205_cpu_s": 210.04,
+      "game4_5205_runner": "AMD EPYC 9V45 not matched to EPYC 7763 prior",
+      "stage_5205_delivery": "NOT_MEASURED_ON_37813762304",
+      "phase_attributed_helper": "CANDIDATE_NEW_ACTION_NEEDED",
+      "next_helper_config": {
+        "workload": "mixed",
+        "loss": 5205,
+        "seed": 1832,
+        "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+        "mode": "game",
+        "lanes": 4,
+        "rate_mbps": 3,
+        "size_profile": "ordinary",
+        "diagnostic_mode": "off"
+      }
     }
   },
-  "next_task": "E3: exact StageB product2acfede Normal1 true300s waveform5205 run37812674106 actual qdisc5/20/5 both, original PASS_SCOPED but c2s UDP23 missing s2c UDP34 missing probes0/2; do NOT claim all packet no loss or full stage-attributed5205 protection. Next independent Game4 true staged5205 real mixed3Mbps/dir 300ms/300s+3s profileOFF seed1831 one Actions on same source pinned helper SHA. Read original analyzer and stage injection receipts, UDP/TCP/HTTPS/probe/CPU; preserve FAIL. Further phase-specific application delivery and repair deadline ledger required before E3 final. Game2 ON and Game4 ON/OFF 0loss scoped PASS, Game2 OFF and Normal StageB 0loss not yet, E2 CPU gain not proved, E7 80s OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e3-normal5205-waveform-scoped-pass-game4-next.md",
+  "next_task": "E3: Game4 StageB source2acfede off 5205 wave run37813762304 original PASS_SCOPED, TRUE qdisc stages5.0/20.0/5.0 each side, 103062 UDP each direction ALL delivered, probes1500/1500 1495/1495, TCP304/304 + HTTP(S)20/20, CPU210.04s AMD EPYC9V45 (not comparable CPU savings). But per-send-phase UDP/probe 1s/3s deadline attribution was NOT_COLLECTED. This helper commit implements real sender monotonic phase counters + read-only analyzer per-phase 0.1% UDP/1% probe limits and strict3s deadline, plus deterministic new waveform tests as preflight; source Go SAME sha. Next query exact helper Actions, read foundation and one Game4 real 5205 stage-attributed sample seed1832 profileOFF, never inherit old PASS. If fails inspect stage counts and fix without relaxing wire/threshold; one sample/Action. Afterwards separate Normal1 5205 stage ledger, Game2 OFF 0loss and Normal1 StageB 0loss, matched CPU repeats, E6 3x4, P6/physical NOT_RUN, E7 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261009-e3-game4-5205-zero-loss-full-300s-and-phase-ledger-candidate.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

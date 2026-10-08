@@ -65,6 +65,7 @@ class Totals:
                 "skipped_bytes":0,"corrupt":0,"duplicates":0,"probe_sent":0,
                 "probe_received":0,"probe_send_errors":0,
                 "probe_rtt_ns":[],"probe_events":[],
+                "udp_stage_tx":{},"udp_stage_rx":{},"probe_stage_tx":{},"probe_stage_rx":{},
                 "udp_tx":{},"udp_rx":{},"tcp_tx":{},"tcp_rx":{},
                 "receive_bucket_10ms":{},"send_bucket_10ms":{},
                 "tcp_connections_failed":0,"tcp_connect_attempts":0,
@@ -83,6 +84,29 @@ class Totals:
         if index<0 or index>33000: return
         with self.lock:
             s=self.d[key]; k=str(index);s[k]=s.get(k,0)+n
+    def stage_record(self, metric, sent_ns, received_ns=None, size=None):
+        # Single-aggregate update; raw UDP packets are never copied to a
+        # per-packet log, and no business scheduler/timing policy changes.
+        with self.lock:
+            self.stage_record_locked(metric,sent_ns,received_ns,size)
+
+    def stage_record_locked(self,metric,sent_ns,received_ns=None,size=None):
+        """Called only while holding Totals.lock."""
+        offset=sent_ns-self.start
+        phase=("outside" if offset < 0 or offset >= 300_000_000_000 else
+               "pre" if offset < 75_000_000_000 else
+               "stress" if offset < 225_000_000_000 else "post")
+        row=self.d[metric].setdefault(phase,{"count":0,"by_size":{},
+                 "over_1s":0,"over_3s":0,"max_delay_ns":0})
+        row["count"]+=1
+        if size is not None:
+            label=str(size);row["by_size"][label]=row["by_size"].get(label,0)+1
+        if received_ns is not None:
+            delay=max(0,received_ns-sent_ns)
+            if delay>1_000_000_000:row["over_1s"]+=1
+            if delay>3_000_000_000:row["over_3s"]+=1
+            row["max_delay_ns"]=max(row["max_delay_ns"],delay)
+
     def snap(self):
         with self.lock:
             out=json.loads(json.dumps(self.d))
@@ -130,6 +154,7 @@ def udp_recv(s,role,t,peer,stop):
                 else:
                     t.probes.add(seq);t.d["probe_received"]+=1
                     t.d["probe_rtt_ns"].append(stamp-sent)
+                    t.stage_record_locked("probe_stage_rx",sent,stamp,96)
                     if len(t.d["probe_events"])<3000:
                         t.d["probe_events"].append([seq,sent,stamp])
             continue
@@ -140,6 +165,7 @@ def udp_recv(s,role,t,peer,stop):
                 t.d["duplicates"]+=1;continue
             t.seen.add(key)
         t.record("udp_rx",length,1,length)
+        t.stage_record("udp_stage_rx",sent,stamp,length)
         if length in (8972,8973,65507,8936,8937):
             receipt_kind={8972:5,8973:6,65507:7,8936:8,8937:9}[length]
             try:s.sendto(udp_packet(receipt_kind,seq,96,0x929292,sent),src)
@@ -172,8 +198,10 @@ def udp_send(s,role,peer,start,stop,rate,seed,scenario,size_profile,t):
                 t.add("send_errors")
             else:
                 try:
-                    s.sendto(udp_packet(1,seq,length,seed,ns()),peer[0])
+                    sent_at=ns()
+                    s.sendto(udp_packet(1,seq,length,seed,sent_at),peer[0])
                     t.record("udp_tx",length,1,length)
+                    t.stage_record("udp_stage_tx",sent_at,size=length)
                     t.add("sent_bytes",length)
                     t.bucket("send_bucket_10ms",ns(),length)
                 except OSError:t.add("send_errors")
@@ -190,8 +218,10 @@ def probe(s,remote,start,stop,t,offset_s=0):
             t.add("probe_send_errors")
             continue
         try:
-            s.sendto(udp_packet(3,seq,96,0x515151,ns()),destination)
+            sent_at=ns()
+            s.sendto(udp_packet(3,seq,96,0x515151,sent_at),destination)
             t.add("probe_sent");t.add("sent_bytes",96)
+            t.stage_record("probe_stage_tx",sent_at,size=96)
             t.bucket("send_bucket_10ms",ns(),96)
         except OSError:t.add("probe_send_errors")
 
