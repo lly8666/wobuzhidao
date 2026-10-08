@@ -1,0 +1,442 @@
+{
+  "schema_version": 1,
+  "product_source_sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+  "product_branch": "work/mtu-record-auto-20261008",
+  "evidence_branch": "investigation/mtu-record-auto-qualification-20261008",
+  "baseline_parent": "db3f27ff7633fabe2c003d9432ba57f6efd1093d",
+  "record_budget": {
+    "auto_cap": 0,
+    "outer_ipv4_tcp_header_bytes": 40,
+    "tls_record_overhead": 31,
+    "fec_enabled_header_bytes": 56,
+    "raw_ipv4_link_fragment_header_bytes_if_oversized": 20,
+    "per_direction_default_record_wire": {
+      "outer1300": 1260,
+      "outer1400": 1360,
+      "outer1500": 1460
+    },
+    "interface_mtu_fec_off": {
+      "outer1300": 1229,
+      "outer1400": 1329,
+      "outer1500": 1429
+    },
+    "interface_mtu_fec_on": {
+      "outer1300": 1173,
+      "outer1400": 1273,
+      "outer1500": 1373
+    },
+    "validation": "explicit nonzero cap is a ceiling; actual negotiated peer MSS and headers can force smaller runtime records"
+  },
+  "actions": {
+    "run_id": 37745760068,
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "source_sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068",
+    "jobs_total": 39,
+    "jobs_pass": 39,
+    "jobs_fail": 0,
+    "artifact_ids": [],
+    "job_rows": [
+      {
+        "name": "linux-real-tun-mtu",
+        "id": 113206739667,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206739667"
+      },
+      {
+        "name": "linux-unit-race-build",
+        "id": 113206740022,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740022"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1300-loss0",
+        "id": 113206740430,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740430"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1300-loss10",
+        "id": 113206740446,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740446"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1300-loss5",
+        "id": 113206740395,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740395"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1400-loss0",
+        "id": 113206740467,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740467"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1400-loss10",
+        "id": 113206740458,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740458"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1400-loss5",
+        "id": 113206740549,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740549"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1300-loss0",
+        "id": 113206740599,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740599"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1300-loss10",
+        "id": 113206740445,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740445"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1300-loss5",
+        "id": 113206740459,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740459"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1400-loss0",
+        "id": 113206740576,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740576"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1400-loss10",
+        "id": 113206741826,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206741826"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1400-loss5",
+        "id": 113206741912,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206741912"
+      },
+      {
+        "name": "mtu-kernel-udp-o1300-loss0",
+        "id": 113206740438,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740438"
+      },
+      {
+        "name": "mtu-kernel-udp-o1300-loss10",
+        "id": 113206740502,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740502"
+      },
+      {
+        "name": "mtu-kernel-udp-o1300-loss5",
+        "id": 113206740543,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740543"
+      },
+      {
+        "name": "mtu-kernel-udp-o1400-loss0",
+        "id": 113206740402,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740402"
+      },
+      {
+        "name": "mtu-kernel-udp-o1400-loss10",
+        "id": 113206740442,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740442"
+      },
+      {
+        "name": "mtu-kernel-udp-o1400-loss5",
+        "id": 113206740414,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206740414"
+      },
+      {
+        "name": "mtu-link-tcp-o1300-loss0",
+        "id": 113206742045,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206742045"
+      },
+      {
+        "name": "mtu-link-tcp-o1300-loss10",
+        "id": 113206742040,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206742040"
+      },
+      {
+        "name": "mtu-link-tcp-o1300-loss5",
+        "id": 113206741937,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206741937"
+      },
+      {
+        "name": "mtu-link-tcp-o1400-loss0",
+        "id": 113206742133,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206742133"
+      },
+      {
+        "name": "mtu-link-tcp-o1400-loss10",
+        "id": 113206742148,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206742148"
+      },
+      {
+        "name": "mtu-link-tcp-o1400-loss5",
+        "id": 113206742189,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206742189"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1300-loss0",
+        "id": 113206743496,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743496"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1300-loss10",
+        "id": 113206743449,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743449"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1300-loss5",
+        "id": 113206743463,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743463"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1400-loss0",
+        "id": 113206743591,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743591"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1400-loss10",
+        "id": 113206743839,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743839"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1400-loss5",
+        "id": 113206743849,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743849"
+      },
+      {
+        "name": "mtu-link-udp-o1300-loss0",
+        "id": 113206742269,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206742269"
+      },
+      {
+        "name": "mtu-link-udp-o1300-loss10",
+        "id": 113206743010,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743010"
+      },
+      {
+        "name": "mtu-link-udp-o1300-loss5",
+        "id": 113206742233,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206742233"
+      },
+      {
+        "name": "mtu-link-udp-o1400-loss0",
+        "id": 113206743221,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743221"
+      },
+      {
+        "name": "mtu-link-udp-o1400-loss10",
+        "id": 113206743371,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743371"
+      },
+      {
+        "name": "mtu-link-udp-o1400-loss5",
+        "id": 113206743368,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206743368"
+      },
+      {
+        "name": "windows-unit-build",
+        "id": 113206739957,
+        "sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068/job/113206739957"
+      }
+    ]
+  },
+  "matrix": {
+    "kind": [
+      "tcp",
+      "udp",
+      "udp-jumbo"
+    ],
+    "outer": [
+      1300,
+      1400
+    ],
+    "loss_percent": [
+      0,
+      5,
+      10
+    ],
+    "scope": [
+      "kernel socket veth netns",
+      "WBD LINK FEC off"
+    ],
+    "matrix_job_count": 36,
+    "additional_jobs": [
+      "linux-unit-race-build",
+      "windows-unit-build",
+      "linux-real-tun-mtu"
+    ],
+    "linux_kernel_udp_payload_delivery": [
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss": 0,
+        "sent": 88,
+        "received": 88
+      },
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss": 5,
+        "sent": 88,
+        "received": 84
+      },
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss": 10,
+        "sent": 88,
+        "received": 75
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss": 0,
+        "sent": 88,
+        "received": 88
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss": 5,
+        "sent": 88,
+        "received": 81
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss": 10,
+        "sent": 88,
+        "received": 72
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss": 0,
+        "sent": 8,
+        "received": 8
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss": 5,
+        "sent": 8,
+        "received": 0
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss": 10,
+        "sent": 8,
+        "received": 1
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss": 0,
+        "sent": 8,
+        "received": 8
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss": 5,
+        "sent": 8,
+        "received": 2
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss": 10,
+        "sent": 8,
+        "received": 2
+      }
+    ]
+  },
+  "verdict": {
+    "functional": "PASS_39_OF_39_HOSTED_SCOPES_ONLY",
+    "windows_go_unit_build_and_owned_mtu_mock": "PASS",
+    "linux_unit_race_build_arm64": "PASS",
+    "real_linux_kernel_tun_mtu_installation": "PASS",
+    "native_windows_wintun": "NOT_RUN",
+    "actual_wbd_client_server_encrypted_tunnel": "NOT_RUN",
+    "high_udp_full_product_8936_65507": "NOT_QUALIFIED",
+    "fec_on_wbd_data_plane": "NOT_RUN",
+    "cpu_pps_p99_throughput": "NOT_RUN",
+    "path_mtu_discovery": "NOT_IMPLEMENTED",
+    "prior_longmix_12_fail": "RETAINED_UNMODIFIED"
+  }
+}

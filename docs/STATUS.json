@@ -10873,45 +10873,59 @@
     }
   },
   "mtu_record_auto_20261008": {
-    "status": "CANDIDATE_ACTIONS_NOT_RUN",
+    "status": "HOSTED_FUNCTIONAL_PASS_39_OF_39_PERFORMANCE_NOT_RUN",
     "branch": "work/mtu-record-auto-20261008",
-    "parent_source_sha": "db3f27ff7633fabe2c003d9432ba57f6efd1093d",
-    "record_default": "0=auto outer connection MTU minus normal header",
-    "inner_mtu": "max(576,LinkFrameMTU) for IPv4",
-    "expected": {
+    "tested_sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+    "evidence_branch": "investigation/mtu-record-auto-qualification-20261008",
+    "record_default": "0=auto outer MTU minus serialized IPv4/TCP header",
+    "inner_mtu": "max(576, LinkFrameMTU) for raw IPv4",
+    "tested": {
       "outer": [
         1300,
-        1400,
-        1500
+        1400
       ],
-      "record": [
-        1260,
-        1360,
-        1460
+      "loss_percent": [
+        0,
+        5,
+        10
       ],
-      "tun_fec_off": [
-        1229,
-        1329,
-        1429
+      "traffic": [
+        "tcp",
+        "udp",
+        "udp-jumbo"
       ],
-      "tun_fec_on": [
-        1173,
-        1273,
-        1373
-      ]
+      "kernel_udp_zero_loss": "88/88",
+      "kernel_udp_jumbo_zero_loss": "8/8",
+      "matrix_jobs": 36,
+      "linux_unit_race_build_arm64": "PASS",
+      "windows_unit_build_mock": "PASS",
+      "real_linux_kernel_tun": "PASS"
     },
     "functional": {
-      "status": "NOT_RUN"
+      "status": "PASS_HOSTED_ONLY",
+      "run_id": 37745760068,
+      "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37745760068",
+      "source_sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+      "job_count": 39,
+      "success": 39,
+      "failure": 0,
+      "artifact_ids": []
     },
     "performance": {
       "status": "NOT_RUN"
     },
-    "windows_physical": {
+    "physical_windows": {
       "status": "NOT_RUN"
     },
-    "previous_longmix": {
-      "count": 12,
-      "result": "FAIL",
+    "end_to_end_wbd": {
+      "status": "NOT_RUN"
+    },
+    "native_udp_large_platformflow": {
+      "status": "NOT_QUALIFIED"
+    },
+    "historical_longmix": {
+      "samples": 12,
+      "conclusion": "FAIL",
       "retained": true
     }
   }
