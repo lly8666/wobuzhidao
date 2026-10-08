@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_GAME4_5205_OFF_SCOPED_PASS_ACK_TEST_HANDSHAKE_ACTIONS_PENDING",
+    "phase": "E4_ACK_TEST_HANDSHAKE_ACTIONS_WORKFLOW_REPAIR_RACE_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1067,9 +1067,18 @@
         "failed_test": "TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK",
         "race_detector_report": "NOT_OBSERVED_IN_LOG",
         "test_assertion_race": "ACK channel send before calls.Add",
-        "resolution": "TEST_CALLBACK_ENTERED_HANDSHAKE_ADDED_DIRECTED_REPEATS_AND_RACE_ACTIONS_PENDING",
+        "resolution": "REPAIRED_REPEAT_COMMANDS_FROM_PRIOR_WORKFLOW_BASE_IN_NEW_COMMIT_ACTIONS_PENDING",
         "prior_source_foundation_pass": 37853003357,
-        "corrective_change": "TEST_ONLY_NO_RUNTIME_PRODUCT_SEMANTICS_CHANGED"
+        "corrective_change": "TEST_ONLY_NO_RUNTIME_PRODUCT_SEMANTICS_CHANGED",
+        "workflow_failure": {
+          "run_id": 37856284837,
+          "head_sha": "ffd1239f2399fb04361f02803d55e6225a890178",
+          "result": "FAIL_BEFORE_ANY_JOBS_WORKFLOW_INVALID",
+          "tests": "NOT_RUN",
+          "root": "malformed added long-regex workflow step",
+          "fixed_in": "THIS_COMMIT",
+          "reference_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37856284837"
+        }
       },
       "protectors": {
         "game4_true5205": "PASS_SCOPED_ONE_OFF_SAMPLE",
@@ -1084,8 +1093,8 @@
       }
     }
   },
-  "next_task": "Read the new exact helper HEAD's next-foundation directed 100x nonrace/30x race and full race jobs; distinguish assertion from race-detector signal. Do not mark PASS until complete. After foundation passes freeze ba8ed1 product source and issue individually Game4 lossless same seed1840, Normal1 lossless/5205, Game2 lossless/5205 under independent one-sample Action runs, then diagnostic ON + lowRTT sparse; do not claim CPU saving without 3 matched OFF samples per source and resource stratum. Historical fails and E7 outage OPEN.",
-  "latest_log": "docs/devlog/20261009-ack-feedback-entered-handshake-race-protection.md",
+  "next_task": "Check exact new corrected workflow Foundation run with actual jobs and repeated 100x nonrace/30x -race and full go test -race ./...; prior run37856284837 failed workflow validation before any jobs, not a Go assertion/race result. If green, proceed individual protected Game4 lossless same product SOURCE ba8ed1 seed1840 (new one-sample Action), then Normal1/Game2 one-run-per-case. Historical failed samples retained; CPU UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-ack-feedback-foundation-yaml-validation-repair.md",
   "qualification_scope": "Current E4 product ba8ed1 / helper 32db: one Game4 true staged5205 300s 3Mbps each way profile OFF PASS_SCOPED_ACTIONS run37853468730; latest helper foundation race run37853468530 FAIL in ACK test. Other protectors and CPU benefit NOT_RUN/UNPROVEN; previous integrated bf11fbf and historic FAIL remain source-scoped.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "Game4 4-lane configured real mixed staged5205 profile-off scoped PASS run37853468730, other source protections pending; helper foundation race FAIL run37853468530",
@@ -1098,7 +1107,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 new test-only ACK callback entered handshake and Actions 100x/30x directed repeats plus full Go race PENDING",
+    "New Foundation workflow valid-format repair; directed 100x no-race/30x -race and full Go race pending execution (old no-jobs failure retained)",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
@@ -1154,6 +1163,14 @@
       "scope": "E4_helper_foundation_linux_race",
       "status": "FAIL",
       "note": "TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK ACK channel-before-calls assertion, no race detector warning observed; requires deterministic entered test and race rerun"
+    },
+    {
+      "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "helper_sha": "ffd1239f2399fb04361f02803d55e6225a890178",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37856284837",
+      "scope": "ACK_test_repeat_foundation_workflow_validation",
+      "status": "FAIL",
+      "note": "Zero jobs; malformed YAML from long regex insertion, unit and race NOT_RUN; corrected in successor commit, do not mark race PASS."
     }
   ],
   "required_read_set": [
