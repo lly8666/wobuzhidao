@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """Actions-only static proof that UDP A uses independent socket source paths."""
 import unittest
-from longmix_udp_business import ACK_KIND, ACK_SIZE, Audit, PROBE_PORT, DATA_PORT
+from longmix_udp_business import ACK_KIND, ACK_SIZE, Audit, PROBE_PORT, DATA_PORT, whole_measured_mbps
 from longmix_profile import A_UDP_SHARE, WeightedUDPSlots
 from realpath_udp_duplex import decode_packet, make_packet, KIND_C2S
 
 class LongmixUDPContract(unittest.TestCase):
+    def test_argparse_rate_float_passes_exact_integer_byte_accounting(self):
+        self.assertEqual(whole_measured_mbps(10.0), 10)
+        self.assertEqual(whole_measured_mbps(10), 10)
+        for bad in (10.001, -10.0, 0.0, float("inf"), float("nan"), True, "10"):
+            with self.subTest(value=bad), self.assertRaises(ValueError):
+                whole_measured_mbps(bad)
+
     def test_real_payload_endpoints_and_independent_probe_port(self):
         self.assertNotEqual(DATA_PORT, PROBE_PORT)
         self.assertEqual(ACK_SIZE, 96)

@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
   ],
-  "next_task": "Preflight 37729610843 PASS for env fix. Request a fresh independent A/0%-seed2608101/b4 Action; previous 37729338574 INVALID (no product startup) retained. Inspect runtime/process path and numeric 300s summary, B/C NOT_RUN, other11 NOT_RUN. No physical or product changes.",
-  "latest_log": "docs/devlog/20261008-longmix-a-p0-retry-request.md",
+  "next_task": "A/0% retry run37729716707 ran actual b4 endpoint processes with route-mode all/raw-rbuf 1MiB and fixed 300s netem, BUT both business helpers exited ValueError invalid Mbps (argparse 10.0 sent into integer-only bytes_per_second). Raw result INVALID_INPUT/HARNESS, never product FAIL/PASS; missing biz/target/manifest. Current fix normalizes proven whole-Mbps CLI float at helper main edge, first preflight in Actions, then dispatch one independent replacement run if preflight PASS. Retain prior 37729338574 INVALID. B/C and other losses NOT_RUN; separate native M03 outage/tail OPEN.",
+  "latest_log": "docs/devlog/20261008-longmix-a-p0-run37729716707-invalid-rate.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10886,7 +10886,7 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A_P0_RETRY2_DISPATCH_REQUESTED",
+    "state": "A_P0_RATE_TYPE_FIX_PREFLIGHT_PENDING",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "PENDING_PRECHECK",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37729610843",
@@ -10913,6 +10913,18 @@
       "helper_sha": "6f51248b95281298d96c38cc859cac6b1bd2be23",
       "seed": 2608101,
       "loss_percent": 0
+    },
+    "second_sample": {
+      "run": "https://github.com/lly8666/wobuzhidao/actions/runs/37729716707",
+      "classification": "INVALID",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "helper_sha": "9b22df8eb74c144fcaf686e4e1b4e717e2216ae8",
+      "artifact_id": 11529671540,
+      "artifact_sha256": "0994bb3b498493b7e1be0b6e7b567104a6620fb9a103e5bb116825a98d30fdc7",
+      "failed_boundary": "two real business sender processes raised ValueError invalid Mbps; no business payload sent; 300s qdisc not valid throughput or loss",
+      "root": "argparse float 10.0 vs bytes_per_second requires int",
+      "product_processes": "started and raw buffer effective 1048576 both sides",
+      "business_sample": "INVALID"
     }
   }
 }

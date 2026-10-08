@@ -8,6 +8,7 @@ the 32-byte audit envelope; only numeric metadata leaves the runner.
 import argparse
 import collections
 import json
+import math
 import socket
 import threading
 import time
@@ -32,6 +33,14 @@ IP_MTU_DISCOVER = 10
 IP_PMTUDISC_DONT = 0
 DATA_PORT = 18080
 PROBE_PORT = 18082
+
+
+def whole_measured_mbps(value):
+    """Normalize argparse float only after verifying exact whole-Mbps input."""
+    if (type(value) not in (int, float) or not math.isfinite(value)
+            or value <= 0 or value != int(value)):
+        raise ValueError("rate must be a positive whole Mbps value")
+    return int(value)
 
 
 def new_socket(bind):
@@ -366,7 +375,8 @@ def main():
                                  probe_audit, stop)))
         thread_list[-1].start()
     cpu0 = time.process_time()
-    active_data_sender(data, get_peer, args.role, args.seed, args.rate_mbps,
+    active_data_sender(data, get_peer, args.role, args.seed,
+                       whole_measured_mbps(args.rate_mbps),
                        start, args.duration, audit, stop)
     wait_until(stop_ns)
     stop.set()
