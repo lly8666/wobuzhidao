@@ -115,7 +115,8 @@ func SteadyDataTCPHeaderLen() int { return 20 }
 // SegmentTCPHeaderLen returns the exact TCP header MarshalSegment will emit for
 // this segment/persona, including negotiated control options such as SACK.
 func SegmentTCPHeaderLen(seg Segment, persona PacketPersona) int {
-	return 20 + len(segmentOptions(seg, persona))
+	var optionStorage [40]byte
+	return 20 + len(segmentOptionsInto(seg, persona, optionStorage[:]))
 }
 
 // MarshalSegment serializes the options carried by Segment itself. This is
@@ -123,7 +124,11 @@ func SegmentTCPHeaderLen(seg Segment, persona PacketPersona) int {
 // when the peer offered them. The legacy MarshalIPv4TCP helpers below keep the
 // fixed WBD client SYN presentation.
 func MarshalSegment(seg Segment, ipID uint16, persona PacketPersona) []byte {
-	opts := segmentOptions(seg, persona)
+	// SACK and SYN options are at most 36 bytes. Keep the short option
+	// scratch local and copy it into the final owned wire packet; no
+	// separately allocated options survive this call.
+	var optionStorage [40]byte
+	opts := segmentOptionsInto(seg, persona, optionStorage[:])
 	buf := make([]byte, 40+len(opts)+len(seg.Payload))
 	return marshalIPv4TCPSegmentInto(buf, seg, opts, ipID, persona)
 }
@@ -243,9 +248,60 @@ func marshalIPv4TCPSegmentInto(buf []byte, seg Segment, opts []byte, ipID uint16
 	return buf
 }
 
+// segmentOptions preserves the historical ownership behavior for internal
+// helpers/tests that need a separate options slice. The steady raw marshal
+// instead uses caller-supplied stack scratch to avoid a second allocation.
 func segmentOptions(seg Segment, persona PacketPersona) []byte {
+	var storage [40]byte
+	opts := segmentOptionsInto(seg, persona, storage[:])
+	if len(opts) == 0 {
+		return nil
+	}
+	return append([]byte(nil), opts...)
+}
+
+// segmentOptionsInto writes up to 36 option bytes into caller-owned scratch.
+// It preserves the SYN persona order, negotiated MSS/SACK/WS and RFC2018
+// SACK padding exactly. The caller never returns an alias to this scratch.
+func segmentOptionsInto(seg Segment, persona PacketPersona, storage []byte) []byte {
+	opts := storage[:0]
 	if seg.Flags&FlagSYN != 0 {
-		return segmentSYNOptions(seg, persona)
+		appendMSS := func() {
+			if !seg.MSSSet {
+				return
+			}
+			opts = append(opts, 2, 4, 0, 0)
+			binary.BigEndian.PutUint16(opts[len(opts)-2:], seg.MSS)
+		}
+		appendSACK := func() {
+			if seg.SACKPermitted {
+				opts = append(opts, 4, 2)
+			}
+		}
+		appendWS := func() {
+			if seg.WindowScaleSet {
+				opts = append(opts, 3, 3, seg.WindowScale)
+			}
+		}
+		if persona == PacketPersonaWindows11 {
+			appendMSS()
+			if seg.WindowScaleSet {
+				opts = append(opts, 1)
+				appendWS()
+			}
+			if seg.SACKPermitted {
+				opts = append(opts, 1, 1)
+				appendSACK()
+			}
+		} else {
+			appendMSS()
+			appendSACK()
+			appendWS()
+		}
+		for len(opts)%4 != 0 {
+			opts = append(opts, 1)
+		}
+		return opts
 	}
 	if seg.Flags&FlagACK == 0 || seg.SACKN <= 0 {
 		return nil
@@ -256,60 +312,13 @@ func segmentOptions(seg Segment, persona PacketPersona) []byte {
 	}
 	optionLen := 2 + 8*n
 	paddedLen := (optionLen + 3) &^ 3
-	opts := make([]byte, paddedLen)
+	opts = storage[:paddedLen]
+	clear(opts)
 	opts[0], opts[1] = 5, byte(optionLen)
 	for i := 0; i < n; i++ {
 		off := 2 + 8*i
 		binary.BigEndian.PutUint32(opts[off:off+4], seg.SACK[i].Start)
 		binary.BigEndian.PutUint32(opts[off+4:off+8], seg.SACK[i].End)
-	}
-	return opts
-}
-
-func segmentSYNOptions(seg Segment, persona PacketPersona) []byte {
-	if seg.Flags&FlagSYN == 0 {
-		return nil
-	}
-	opts := make([]byte, 0, synOptionLen)
-	appendMSS := func() {
-		if !seg.MSSSet {
-			return
-		}
-		opts = append(opts, 2, 4, 0, 0)
-		binary.BigEndian.PutUint16(opts[len(opts)-2:], seg.MSS)
-	}
-	appendSACK := func() {
-		if seg.SACKPermitted {
-			opts = append(opts, 4, 2)
-		}
-	}
-	appendWS := func() {
-		if !seg.WindowScaleSet {
-			return
-		}
-		opts = append(opts, 3, 3, seg.WindowScale)
-	}
-
-	if persona == PacketPersonaWindows11 {
-		appendMSS()
-		if seg.WindowScaleSet {
-			opts = append(opts, 1)
-			appendWS()
-		}
-		if seg.SACKPermitted {
-			opts = append(opts, 1, 1)
-			appendSACK()
-		}
-	} else {
-		appendMSS()
-		appendSACK()
-		if seg.WindowScaleSet {
-			opts = append(opts, 1)
-			appendWS()
-		}
-	}
-	for len(opts)%4 != 0 {
-		opts = append(opts, 1)
 	}
 	return opts
 }

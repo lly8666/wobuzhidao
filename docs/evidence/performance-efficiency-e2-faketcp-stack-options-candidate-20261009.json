@@ -1,0 +1,52 @@
+{
+  "schema": "wbd-e2-faketcp-options-allocation-candidate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "07b8d7711a749e4fbc151c5712039e8cf2002803",
+  "date": "2026-10-09",
+  "product_source_sha": "THIS_COMMIT_SHA",
+  "qualification": "SOURCE_NOT_TESTED",
+  "paths": [
+    "internal/faketcp/packet.go",
+    "internal/faketcp/packet_options_alloc_test.go"
+  ],
+  "optimization": "MarshalSegment and SegmentTCPHeaderLen now use a fixed 40-byte local scratch for TCP SYN/SACK option bytes (maximum 36), then copy into a separately owned final IPv4/TCP packet; segmentOptions retains separately allocated compatibility result; no RTO/FEC/wire/MTU/queue change",
+  "tests": [
+    "Existing packet/syn compatibility tests",
+    "New SYN Linux+Windows and 4 SACK blocks wire/checksum/parse parity",
+    "AllocsPerRun <=1 final packet and header length 0 allocations"
+  ],
+  "prior_profiling": {
+    "run": 37821931789,
+    "source": "1146448d6340cf2e09b525189d233222d7ec9501",
+    "classification": "PASS_SCOPED_ACTIONS",
+    "diagnostic": "on",
+    "cpu_model": "AMD EPYC 9V45",
+    "server_cpu_flat_syscall_pct": 30.53,
+    "server_cpu_flat_fec_xor_mul_pct": 12.06,
+    "client_cpu_flat_syscall_pct": 30.32,
+    "client_cpu_flat_fec_xor_mul_pct": 12.53,
+    "client_raw_send_calls": 2359470,
+    "client_raw_sent_segments": 3590514,
+    "client_raw_write_mutex_wait_total_s": 79.239035917
+  },
+  "older_5205_off": {
+    "run": 37817466498,
+    "host": "AMD EPYC 7763",
+    "classification": "FAIL",
+    "s2c_stress_udp_missing": 446
+  },
+  "running_old_source_repeat": {
+    "run": 37851028041,
+    "old_product": "1146448d6340cf2e09b525189d233222d7ec9501",
+    "old_helper": "07b8d7711a749e4fbc151c5712039e8cf2002803",
+    "seed": 1837,
+    "profile": "off",
+    "classification": "PENDING_NOT_APPLICABLE_TO_NEW_SOURCE"
+  },
+  "required": [
+    "Exact new SHA Linux/Windows unit Go-race and privileged TUN/TPROXY and lifecycle",
+    "Independent profileOFF true staged 5205 and normal/game traffic after core tests",
+    "Three resource-stratum matched profileOFF observations before CPU benefit",
+    "No main or physical machine edits; E7 80s open; E6/P6 physical not run"
+  ]
+}

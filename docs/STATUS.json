@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E3_GAME4_5205_DIAG_ON_PASS_4SHARDS_ZERO_DROPS_OFF_REPLICATION_QUEUED",
+    "phase": "E2_FAKETCP_SACK_OPTIONS_SOURCE_UNTESTED_E3_5205_OFF_REPEAT_RUNNING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -955,10 +955,23 @@
         "status": "PENDING_ACTION",
         "helper_sha": "THIS_COMMIT_SHA"
       }
+    },
+    "e2_faketcp_options": {
+      "source_sha": "THIS_COMMIT_SHA",
+      "state": "SOURCE_NOT_TESTED",
+      "changed": [
+        "internal/faketcp/packet.go",
+        "internal/faketcp/packet_options_alloc_test.go"
+      ],
+      "goal": "remove per-ACK SACK and SYN separate options allocation",
+      "foundation": "NOT_RUN",
+      "lifecycle": "NOT_RUN",
+      "performance": "NOT_RUN",
+      "evidence": "docs/evidence/performance-efficiency-e2-faketcp-stack-options-candidate-20261009.json"
     }
   },
-  "next_task": "E3 StageB: query exact new helper commit for one independent Game4 mixed staged5205 loss5/20/5 profile OFF seed1837, frozen source1146448, each direction3Mbps 300s+3s. Preserve prior AMD EPYC7763 OFF run37817466498 original FAIL (stress S2C UDP446 missing/probes) and AMD EPYC9V45 OFF37820693938 PASS. Latest 9V45 ON37821931789 passes full phases and shows 4 physical lane, 4x960 shard no drops, global ready0, CPU222.44s ON (not OFF comparable). Require new off runner stratum and exact phase integrity plus host busy/PSI; only then targeted code change or next Game2/Normal true5205. E3 not stable across hosts; no CPU gain proven, E7 80s OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e3-shards-5205-diagnostic-pass-seed1837-off-replication.md",
+  "next_task": "E2 FakeTCP SYN/SACK packet options stack scratch candidate new product source: first exact commit foundation Linux/Windows Go unit/race/fuzz, privileged TUN/TPROXY, lifecycle; tests check byte-identical wire and exactly one final owned packet allocation. Old source1146448 Game4 5205 OFF seed1837 run37851028041 helper07b8d771 is separately running, inspect original verdict without claiming it tests new source. No CPU gain claim until comparable profileOFF multiplets; retain AMD EPYC7763 5205 FAIL run37817466498, E3 host-stratum not qualified, E7 80s OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e2-faketcp-sack-syn-options-stack-scratch-candidate.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
