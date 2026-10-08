@@ -1,0 +1,74 @@
+{
+  "schema": "wbd-efficiency-e0-boundary-analyzer-interface-failure/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "head_before": "ebaf9b31a6e9e1d3eac032e4e4195536c46da77f",
+  "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "helper_sha": "ebaf9b31a6e9e1d3eac032e4e4195536c46da77f",
+  "run_id": 37773093696,
+  "job_id": 113297223452,
+  "artifact_id": 11548811219,
+  "attempt": 1,
+  "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37773093696",
+  "original_actions_conclusion": "failure",
+  "steps": {
+    "sample": "success",
+    "analyzer": "failure",
+    "ledger": "failure",
+    "fail_closed": "failure"
+  },
+  "classification": "INVALID_ANALYZER_INPUT_CHOICE",
+  "original_cli_error": "check_large_mtu_mixed.py: error: argument --size-profile: invalid choice: 'boundary' (choose from ordinary, jumbo)",
+  "qualifications": {
+    "analyzed_business": "NOT_QUALIFIED_NO_SUMMARY",
+    "product_failure": "NOT_EVALUATED",
+    "netem_stage": "MEASURED_VALID_DURATION_ONLY",
+    "source_input_quality": "NOT_EVALUATED",
+    "not_an_EOL_performance_pass": true
+  },
+  "manifest_sha256": "e9c49a8b1d2a2ff400739a0228ec8802f71a6cdc8d0960631153f2b7746ebae2",
+  "stage_events_sha256": "865b28f81be01af53c3d6bf840cb6532d20f6f6489b592aee061779f52b690ed",
+  "claim_sha256": "08ea58089f83642f3d002e0c5cf921f893ac7e49474803d56f20f0188a8fa9e1",
+  "raw_stage": {
+    "business_start_monotonic_ns": 341948522886,
+    "business_end_monotonic_ns": 641952677510,
+    "drain_end_monotonic_ns": 644963447586,
+    "business_duration_s": 300.004154624,
+    "drain_duration_s": 3.010770076,
+    "configured_drain_s": 3,
+    "legitimate_size_cycle": {
+      "96": 50,
+      "256": 10,
+      "512": 10,
+      "1372": 10,
+      "4068": 10,
+      "8936": 5,
+      "8937": 4,
+      "65507": 1
+    },
+    "outer_mtu": 1400,
+    "auto_record_limit": 0
+  },
+  "repair": [
+    "Add boundary to analyzer --size-profile argparse choices",
+    "Fail closed BEFORE building/running any new 300s sample if generator or analyzer --help omits boundary via preflight grep"
+  ],
+  "next_sample": {
+    "workload": "udp",
+    "loss": 0,
+    "seed": 1817,
+    "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "size_profile": "boundary",
+    "diagnostic_mode": "off"
+  },
+  "prev_product_fail_evidence": "docs/evidence/performance-efficiency-e0-jumbo-fail-37769772363.json",
+  "caveats": [
+    "Old Actions run remains failure and not a product PASS/FAIL outcome; no business json uploaded by helper so post-hoc complete lossless cannot be inferred",
+    "Actual stage source test succeeded, 3.011s drain validated read-only; analyzer never ran its own checks",
+    "New helper SHA must qualify itself on independent source-fixed single run, no blind same-source rerun",
+    "Game4 profile-off and on failures remain OPEN and require bottleneck remediation",
+    "No E1 product optimization or physical runs"
+  ]
+}

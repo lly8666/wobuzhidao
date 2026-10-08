@@ -156,7 +156,7 @@ def main():
     a.add_argument("--loss",type=int,choices=[0,5,20,30],required=True)
     a.add_argument("--seed",type=int,required=True);a.add_argument("--output",required=True)
     a.add_argument("--target-mbps",type=float,choices=[3.0,10.0],required=True)
-    a.add_argument("--size-profile",choices=["ordinary","jumbo"],required=True)
+    a.add_argument("--size-profile",choices=["ordinary","jumbo","boundary"],required=True)
     a.add_argument("--mode",choices=["normal","game"],required=True)
     a.add_argument("--lanes",type=int,choices=[1,4],required=True)
     a.add_argument("--diagnostic-mode",choices=["0","1"],required=True)

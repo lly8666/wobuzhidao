@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_JUMBO_FAIL_STAGE_DRAIN_FIX_BOUNDARY_SAMPLE_QUEUED",
+    "phase": "E0_BOUNDARY_ANALYZER_INVALID_FIX_REQUALIFY",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -255,11 +255,23 @@
       "evidence": "docs/evidence/performance-efficiency-e0-jumbo-fail-37769772363.json"
     },
     "e0_boundary": {
-      "state": "NOT_RUN_PENDING_ACTION",
+      "state": "INVALID_ANALYZER_INPUT_CHOICE",
+      "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "helper_sha": "ebaf9b31a6e9e1d3eac032e4e4195536c46da77f",
+      "run_id": 37773093696,
+      "artifact_id": 11548811219,
+      "measurement_step": "success",
+      "analyzer_step": "failure",
+      "actual_stage_drain_s": 3.010770076,
+      "business_by_size": "NOT_QUALIFIED",
+      "evidence": "docs/evidence/performance-efficiency-e0-boundary-analyzer-invalid-37773093696.json"
+    },
+    "e0_boundary_requalification": {
+      "state": "QUEUED_FOR_ACTION",
       "config": {
         "workload": "udp",
         "loss": 0,
-        "seed": 1816,
+        "seed": 1817,
         "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
         "mode": "normal",
         "lanes": 1,
@@ -267,13 +279,13 @@
         "size_profile": "boundary",
         "diagnostic_mode": "off"
       },
+      "helper_sha": "new helper exact GITHUB_SHA",
       "workflow": ".github/workflows/next-efficiency-e0-single.yml",
-      "helper_sha": "new GITHUB_SHA of this helper commit",
       "run_id": null
     }
   },
-  "next_task": "E0 inspect one new exact-helper boundary profile-off Normal UDP 10Mbps/dir 300s seed1816, real 3s stage drain; by-size 8936/8937/65507 delivery, small independent 96..4068, actual corrupt/malformed/send error separate, probes returned+missing/p99, actual derived TUN MTU and capacity/drop. Preserve run37769772363 Normal jumbo original FAIL (each direction 8972:6850,8973:5480,65507:2738 all missing; 96..4068 and probes survived), and prior Game4 off/on FAIL run37766819445/37768172504 with sustained 319041 server ready overflow. Product bf11fbf only, no E1 code before baseline and 4 formal protection guards. Old TCP-only FAIL37762364098 OPEN, 80s S2C deferred E7 OPEN, E6/P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-jumbo-fail-receipt-and-boundary-draintime-correction.md",
+  "next_task": "E0 inspect corrected exact-helper one-sample Normal boundary UDP 10Mbps/dir lossless 300s seed1817, profile-off, analyzer accepts boundary, measured 3s drain, by-size 8936/8937/65507 and 96..4068, source/receiver corrupt separately, probes + p99. Prior run37773093696 INVALID_ANALYZER_INPUT_CHOICE sample success/analysis arg mismatch, NOT business PASS/FAIL, do not delete. Prior jumbo run37769772363 original product FAIL, Game4 off/on FAIL 37766819445/37768172504 with 319041 server userspace ready queue overflows in diagnostic run, TCP-only FAIL37762364098. After boundary prioritize server Game4 handler/tick/FEC/emit hotspot and repair under strict guards; E1-E6 NOT_STARTED, E7 80s downlink OPEN, P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-204800-e0-boundary-parser-invalid-preflight-fix.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

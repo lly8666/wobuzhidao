@@ -1,0 +1,11 @@
+# E0：boundary真实300秒已执行但analyzer接口漏profile，必须保持INVALID（2026-10-08）
+
+目标分支仅 `next/performance-efficiency-20261008`、父HEAD `ebaf9b31a6e9e1d3eac032e4e4195536c46da77f`，产品冻结SOURCE `bf11fbfbe64d518e7ba189d51bfb4512df4df733`，旧helperSOURCE `ebaf9b31a6e9e1d3eac032e4e4195536c46da77f`。唯一独立正式client/server + TPROXY/encrypted/TUN [run 37773093696](https://github.com/lly8666/wobuzhidao/actions/runs/37773093696)，job113297223452、artifact11548811219、seed1816、Normal1、每方向10Mbps、UDP 96/256/512/1372/4068/8936/8937/65507混合，0%netem、300ms单向、FEC20:20、padding off、自动record-limit0，profile off。**原workflow failure不改**：sample测量步骤success，但分析器argparse `--size-profile`choices仍`ordinary,jumbo`漏`boundary`，结束报 `invalid choice: 'boundary'`，因此**summary缺失**、ledger因summary缺失也失败，原封不动记`INVALID_ANALYZER_INPUT_CHOICE`，不得宣称实际大包PASS或产品FAIL。禁止拿这个Action与旧CAPACITY/优化收益比较，完整业务by-size stats并未上传无法从artifact回放。
+
+原始stage-events SHA256 `865b28f81be01af53c3d6bf840cb6532d20f6f6489b592aee061779f52b690ed`，实读business_start=341948522886、end=641952677510、drain_end=644963447586ns，**业务300.004s、真实drain3.011s**，从原不正确15s已修；manifest SHA256 `e9c49a8b1d2a2ff400739a0228ec8802f71a6cdc8d0960631153f2b7746ebae2`，并列显示边界含8936/8937+1和65507。只说明样本发出和计时实况，不说明业务交付/完整性。
+
+本轮新增helper变更最小：`tools/check_large_mtu_mixed.py`加入`boundary`argparse choices；`next-efficiency-e0-single.yml`在严格单case claim前运行原generator与analyzer `--help | grep -Fq '{ordinary,jumbo,boundary}'`，若遗漏就在进入300s真实测量之前fail closed。不改产品代码、FEC/4096、Game/MTU/资源界，也不重做固定9000。新样本单配置仍Normal1/boundary/每向10Mbps/300s+3s drain，**不同seed1817**、自身新的helper SHA，触发一个workflow run只有一个性能测量job，无matrix/A-B/同run重复测试。失败并非原码未交付结论，重新样本是助手实证修复后的必要独立资格，不是重复派旧large-mtu历史任务。
+
+旧Normal jumbo正式[run37769772363](https://github.com/lly8666/wobuzhidao/actions/runs/37769772363)原始FAIL仍在STATUS，8972/8973/65507B两向完全不交付且有合并PAYLOAD错误；Game4 profileoff [run37766819445](https://github.com/lly8666/wobuzhidao/actions/runs/37766819445)与profileon[run37768172504](https://github.com/lly8666/wobuzhidao/actions/runs/37768172504)均有真实无损C2S UDP和探针缺失，Server用户态ready队列连续溢出319041段，未证明纯宿主容量不足。不能为修CPU盲目放大4096 ready/Socket或使fresh等ACK；E1–E6资格、P6同源包/长测/物理均NOT_RUN，80秒下行原FAIL留E7 OPEN。
+
+证据：[本轮边界INVALID结构化回执](../evidence/performance-efficiency-e0-boundary-analyzer-invalid-37773093696.json)。
