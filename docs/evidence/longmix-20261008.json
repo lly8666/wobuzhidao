@@ -168,12 +168,24 @@
   },
   "dispatch_approach": {
     "path": ".github/workflows/next-longmix-one-sample-dispatch.yml",
-    "state": "ONE_A_P0_REQUESTED_PENDING_ACTIONS",
+    "state": "FIRST_DISPATCH_FAILED_NO_PERFORMANCE_RUN",
     "protected": "Only request-file push to orchestrator; no measurement in dispatch controller; all real measurement must be workflow_dispatch separate run",
     "helper_preflight": {
       "sha": "77a5251bb8abfea84b7b0ba2a69707fc7e21b037",
       "run": "https://github.com/lly8666/wobuzhidao/actions/runs/37728834800",
       "result": "PASS"
+    },
+    "failure": {
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37728910965",
+      "classification": "FAIL_DISPATCH_ONLY",
+      "reason": "GitHub HTTP404: workflow next-longmix-udp-sample.yml not found on default branch; no performance child created"
+    },
+    "alternative": {
+      "path": ".github/workflows/next-strict-weaknet.yml",
+      "qualification_kind": "longmix-a",
+      "status": "PENDING_PREFLIGHT",
+      "one_job_one_sample": true,
+      "original_qualification_unchanged": true
     }
   },
   "analyzer": {

@@ -54,5 +54,10 @@ jobs:
             echo "RERUN_REFUSED: dispatch must not duplicate a performance run"
             exit 1
           fi
-          gh workflow run next-longmix-udp-sample.yml             --ref investigation/longmix-20261008             -f workload=A -f loss_percent="$WBD_LOSS"             -f seed="$WBD_SEED" -f product_source_sha="$WBD_SOURCE"
+          gh workflow run next-strict-weaknet.yml \
+            --ref investigation/longmix-20261008 \
+            -f qualification_kind=longmix-a -f loss_percent="$WBD_LOSS" \
+            -f mode=normal -f scenario=lossless -f seed="$WBD_SEED" \
+            -f rate_mbps=10 -f lanes=1 -f fec_parity=20 \
+            -f product_source_sha="$WBD_SOURCE"
           echo "ONE_RUN_DISPATCH_REQUESTED sample=A loss=$WBD_LOSS seed=$WBD_SEED source=$WBD_SOURCE head=$GITHUB_SHA"

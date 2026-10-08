@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
   ],
-  "next_task": "A/0%/seed2608101 exact b4 single-sample dispatch request filed. Verify controller actual Actions run, and child performance run ID before any measurement claim; if new branch-only workflow cannot receive workflow_dispatch, record dispatch failure and adapt through existing workflow without touching main/frozen branch. B/C and 12 outcomes remain NOT_RUN until verified. M03 80s downlink & 1.225s late separately OPEN.",
-  "latest_log": "docs/devlog/20261008-longmix-udp-a-p0-first-dispatch.md",
+  "next_task": "Controller 37728910965 confirmed NO performance run: HTTP404 branch-only new workflow not on default branch. Adapt existing next-strict-weaknet.yml workflow with explicitly selected longmix-a single-run path on isolated branch; preserve original formal/profile behavior. Run preflight, then make a NEW one-sample request only if preflight success. SOURCE exact b4, 12 A/B/C still NOT_RUN, M03 80s outage and 1.225s tail OPEN.",
+  "latest_log": "docs/devlog/20261008-longmix-existing-dispatch-workflow.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10886,7 +10886,7 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A_P0_DISPATCH_REQUESTED_NOT_YET_CONFIRMED",
+    "state": "STRICT_WORKFLOW_FALLBACK_PREFLIGHT_PENDING",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "PENDING_PRECHECK",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37728834800",
@@ -10903,6 +10903,7 @@
     "separate_open": [
       "M03/1554 80s S2C interruption",
       "M03/1554 UDP65507 late 1225.578ms"
-    ]
+    ],
+    "dispatch_failure": "https://github.com/lly8666/wobuzhidao/actions/runs/37728910965"
   }
 }
