@@ -192,3 +192,15 @@ Promotion后新业务只由active generation生成并发送；old Ref的FenceOut
 
 自动TunnelID取SHA256("wbd-installation-v1"+NUL+account+NUL+InstallationID)前16字节，account等于通过认证的username，设备ID不属于秘密认证。服务端在池内随机唯一分配，内存期限7天，认证重连续期；健康/retiring owner仍占用时不可复用。每逻辑Tunnel保持初次DesiredLanes，换代不能临时改变模式；不同Tunnel可以Normal1/Game4并存。全旧lane明确FIN或长期没有认证记录后，可在新LaneID1接入时安全关闭旧owner，重新按新DesiredLanes构造，设备/IP租约不变。到期租约回收使用同一安全detach，但只能由7天期限触发，不能把丢keepalive当业务idle。成功受保护回复地址先绑定尚未建业务的placeholder owner，再创建平台网络地址。健康旧lane遇到地址不同的新候选只拒绝候选；所有旧lane失活或DORMANT时要求清理并重建平台owner，不热换地址，不等待旧业务缺口。
 
+
+## 2026-10-08 接口MTU静态选取（候选）
+
+外层wire原有 `pathmtu.Derive` 公式不变。接口MTU新增 `max(576, configured_budget.LinkFragmentPayloadMTU)`，configured预算由已知配置outer IPv4/TCP头、record limit、FEC/LINK容量计算，而不是假装已知道全部lane的peer MSS。Windows Wintun用server→client的client-record-limit；Linux shared TUN用client→server的server-record-limit。实际lane按真实peer MSS、协商record和可得实际路径约束继续独立计算；静态TUN与有效单record大小不保证相同，如更小则LINK正常有界多片。逻辑IPv4包上限9000及UDP frame 8936不变，DF只约束IP碎片，不禁止LINK分片。静态预算不是路径自动探测或大UDP兼容证明，旧9000数据和FAIL需保留。
+
+
+## 2026-10-08 外层 MTU 驱动 record/接口 MTU 自动上限（后续优化候选）
+
+每端 CLI `client-record-limit` / `server-record-limit` 默认 **0=auto**，只在处理配置时求一次：
+`record_wire_limit = min(configured_outer_ipv4_mtu - configured_outer_ipv4_header - configured_outer_tcp_header, tlsrecord.MaxWireLen, explicit_nonzero_record_cap_if_any)`。当前正常 data header 为 20+20；逐 lane 运行时仍由真实 MSS、实际头长、协商 record 及更低路径约束收紧。record 的 V2 受保护 admission 协商字段和格式不变；未启用新的 PMTUD 或动态共享 TUN 调整。两端 `--mtu` 建议一致，不一致时无双向单 record 保证。
+
+内层 IPv4 包不可能以保留的 WBDLFRG1 8 字节魔数开头，因此能放进 `LinkFrameMTU` 的普通 IPv4 包是**无 LINK 分片头的裸包**。`DerivedInterfaceMTU = max(576, LinkFrameMTU)`，不应使用 `LinkFragmentPayloadMTU` 重复扣 20B；只有超出 LINK frame 后分片的各段才各带 20B 分片头。计算后的 record→TLS-like31B→FEC-on56B→LinkFrame/TUN 是同一原预算链，并不修改 wire、FEC、repair。举例外层1300/1400/1500、FEC off 的双方默认 record 是1260/1360/1460，静态 TUN 为1229/1329/1429；FEC-on 则 TUN1173/1273/1373。合法 IPv4 的 576 下限可能强制 LINK 分片，不作单 record 保证。明确配置比自动小的 record cap 生效；大于外层的 cap 被外层限幅。旧 9000 逻辑 IP 校验/8936 UDP 平台限制不因此改变；不能宣称原生大 UDP 或性能已达标。

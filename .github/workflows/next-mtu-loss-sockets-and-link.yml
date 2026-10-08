@@ -1,0 +1,57 @@
+name: next-mtu-loss-sockets-and-link
+on:
+  push:
+    branches: ['work/mtu-loss-matrix-20261008']
+  workflow_dispatch:
+permissions: { contents: read }
+jobs:
+  mtu-functional-matrix:
+    name: mtu-${{ matrix.scope }}-${{ matrix.kind }}-o${{ matrix.outer }}-loss${{ matrix.loss }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        scope: [kernel, link]
+        kind: [tcp, udp, udp-jumbo]
+        outer: [1300, 1400]
+        loss: [0, 5, 10]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exact source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo "SOURCE_SHA=$GITHUB_SHA"
+          echo "SCENARIO scope=${{ matrix.scope }} kind=${{ matrix.kind }} outer=${{ matrix.outer }} loss=${{ matrix.loss }}"
+      - name: Linux socket fixture dependencies
+        if: matrix.scope == 'kernel'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq iproute2
+      - uses: actions/setup-go@v5
+        if: matrix.scope == 'link'
+        with: { go-version: '1.23.12', cache: false }
+      - name: Exactly one isolated functional scenario
+        shell: bash
+        env:
+          SCOPE: ${{ matrix.scope }}
+          KIND: ${{ matrix.kind }}
+          OUTER: ${{ matrix.outer }}
+          LOSS: ${{ matrix.loss }}
+          WBD_MTU_MATRIX: '1'
+          WBD_MTU_KIND: ${{ matrix.kind }}
+          WBD_MTU_OUTER: ${{ matrix.outer }}
+          WBD_MTU_LOSS: ${{ matrix.loss }}
+        run: |
+          set -euo pipefail
+          if [[ "$SCOPE" == kernel ]]; then
+            sudo --preserve-env=GITHUB_ACTIONS python3 tools/test_mtu_loss_sockets.py \
+              --kind "$KIND" --outer "$OUTER" --loss "$LOSS"
+          else
+            go test ./internal/linkdata -run '^TestActionsMTULossWire$' -count=1 -v
+          fi

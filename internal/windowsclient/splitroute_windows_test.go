@@ -17,7 +17,7 @@ func TestLargeSplitSnapshotPowerShellRender(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := BuildNetworkPlan(Config{AdapterAlias: "WBD", Lease4: netip.MustParsePrefix("10.66.0.2/32"), Server4: netip.MustParseAddr("198.51.100.10"), Physical: PhysicalPath{InterfaceIndex: 12, NextHop4: netip.MustParseAddr("192.168.1.1")}, StatePath: filepath.Join(t.TempDir(), "state.json"), Bypass4: bypass})
+	p, err := BuildNetworkPlan(Config{AdapterAlias: "WBD", TunnelMTU: 1249, Lease4: netip.MustParsePrefix("10.66.0.2/32"), Server4: netip.MustParseAddr("198.51.100.10"), Physical: PhysicalPath{InterfaceIndex: 12, NextHop4: netip.MustParseAddr("192.168.1.1")}, StatePath: filepath.Join(t.TempDir(), "state.json"), Bypass4: bypass})
 	if err != nil {
 		t.Fatal(err)
 	}

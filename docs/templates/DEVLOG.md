@@ -16,6 +16,8 @@
 
 SOURCE_SHA、run/job链接、测试内容、PASS/FAIL/NOT_RUN/UNSUPPORTED、artifact和日志位置。未运行必须明确，不编造结果。
 
+性能修改另列父/候选SOURCE、helper/config/seed、profile是否off、实际业务注入/首达/超时、CPU与runner资源层、可比性及收益噪声；容量不足保留CAPACITY_LIMITED。每性能Action一条，原有功能PASS不继承为性能。
+
 ## 问题、排查与风险
 
 观察事实、假设、已排除项、未验证边界。失败试验也保留，不把推测写结论。

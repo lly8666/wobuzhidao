@@ -67,7 +67,7 @@ func runWindows() error {
 		routeKeyHex        = flag.String("route-key-hex", "", "hex route key")
 		username           = flag.String("username", "", "protected admission username")
 		password           = flag.String("password", "", "protected admission password")
-		clientLimit        = flag.Uint("client-record-limit", 1300, "server-to-client TLS-like record wire limit")
+		clientLimit        = flag.Uint("client-record-limit", 0, "server-to-client TLS-like record wire limit; 0=auto outer MTU budget")
 		mtu                = flag.Int("mtu", 1500, "connection MTU")
 		tlsStartupPadding  = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
 		fecParity          = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
@@ -122,6 +122,14 @@ func runWindows() error {
 	if err != nil {
 		return err
 	}
+	// A zero record cap is auto: the largest steady-state TLS-like record
+	// that fits the operator's outer IPv4 MTU. A nonzero cap remains an upper
+	// bound and is still clamped by this outer packet ceiling.
+	effectiveRecordLimit, err := pathmtu.ResolveConfiguredRecordWireLimit(*mtu, 20, 20, int(*clientLimit))
+	if err != nil {
+		return err
+	}
+	*clientLimit = uint(effectiveRecordLimit)
 	if *idleDormant < 0 || *rotateMin < 0 || *rotateMax < 0 ||
 		(*rotateMin == 0) != (*rotateMax == 0) || (*rotateMin > 0 && *rotateMax < *rotateMin) {
 		return errors.New("invalid lifecycle durations")
@@ -208,14 +216,15 @@ func runWindows() error {
 	if err := runtimeentry.ValidateClientHealth(runtimeentry.TunnelClientConfig{KeepaliveInterval: *keepalive, DeadAfter: *deadAfter, ReconnectMin: *reconnectMin, ReconnectMax: *reconnectMax}); err != nil {
 		return err
 	}
-	if _, err := pathmtu.Derive(pathmtu.Config{ConnectionMTU: *mtu, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: int(*clientLimit), ParityShards: *fecParity}); err != nil {
+	tunMTU, err := pathmtu.DeriveTunnelInterfaceMTU(pathmtu.Config{ConnectionMTU: *mtu, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: int(*clientLimit), ParityShards: *fecParity})
+	if err != nil {
 		return err
 	}
 	if strings.TrimSpace(*adapterAlias) == "" || strings.ContainsAny(*adapterAlias, "\r\n") || strings.TrimSpace(*statePath) == "" || strings.TrimSpace(*scriptPath) == "" {
 		return errors.New("invalid adapter or network paths")
 	}
 	if *checkConfig {
-		out := map[string]string{}
+		out := map[string]string{"derived-inner-tun-mtu": fmt.Sprint(tunMTU)}
 		flag.VisitAll(func(f *flag.Flag) {
 			if f.Name == "password" || f.Name == "route-key-hex" {
 				out[f.Name] = "configured"
@@ -377,6 +386,7 @@ func runWindows() error {
 	}
 	networkPlan, err := windowsclient.BuildNetworkPlan(windowsclient.Config{
 		AdapterAlias: *adapterAlias,
+		TunnelMTU:    uint32(tunMTU),
 		Lease4:       leasePrefix,
 		Server4:      serverIP,
 		Physical:     physical,

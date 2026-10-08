@@ -114,6 +114,38 @@ func effectivePeerMSS(cfg Config) (int, bool, error) {
 	return int(cfg.PeerMSS), true, nil
 }
 
+// ResolveConfiguredRecordWireLimit returns the largest legal steady-state
+// record wire limit under the configured outer IPv4 MTU. A configured limit of
+// zero means automatic; a nonzero value is an upper bound, never an override
+// of the outer packet budget. Runtime lanes must still apply real peer MSS,
+// actual packet headers and any lower discovered path/device limit.
+func ResolveConfiguredRecordWireLimit(connectionMTU, ipv4HeaderLen, tcpHeaderLen, configuredLimit int) (int, error) {
+	if err := ValidateConnectionMTU(connectionMTU); err != nil {
+		return 0, err
+	}
+	if err := validateHeaderLen("ipv4_header", ipv4HeaderLen, MinIPv4HeaderLen, MaxIPv4HeaderLen); err != nil {
+		return 0, err
+	}
+	if err := validateHeaderLen("tcp_header", tcpHeaderLen, MinTCPHeaderLen, MaxTCPHeaderLen); err != nil {
+		return 0, err
+	}
+	if configuredLimit < 0 || configuredLimit > tlsrecord.MaxWireLen ||
+		(configuredLimit != 0 && configuredLimit <= tlsrecord.FixedWireOverhead+LinkFragmentHeaderLen) {
+		return 0, fmt.Errorf("%w: configured record cap=%d", ErrRecordLimit, configuredLimit)
+	}
+	wire := connectionMTU - ipv4HeaderLen - tcpHeaderLen
+	if wire > tlsrecord.MaxWireLen {
+		wire = tlsrecord.MaxWireLen
+	}
+	if configuredLimit != 0 && configuredLimit < wire {
+		wire = configuredLimit
+	}
+	if wire <= tlsrecord.FixedWireOverhead+LinkFragmentHeaderLen {
+		return 0, fmt.Errorf("%w: outer MTU=%d leaves record wire=%d", ErrConnectionMTU, connectionMTU, wire)
+	}
+	return wire, nil
+}
+
 func Derive(cfg Config) (Budget, error) {
 	if err := ValidateConnectionMTU(cfg.ConnectionMTU); err != nil {
 		return Budget{}, err
@@ -195,6 +227,35 @@ func Derive(cfg Config) (Budget, error) {
 		LinkFragmentOverhead: LinkFragmentHeaderLen,
 		LinkFragmentPayloadMTU: linkFrameMTU - LinkFragmentHeaderLen,
 	}, nil
+}
+
+// DeriveTunnelInterfaceMTU derives a stable IPv4 interface MTU from the
+// configured outer envelope, direction-specific record limit and FEC budget.
+// Inner IPv4 packets cannot begin with reserved LINK fragment magic, so a
+// packet fitting LinkFrameMTU is sent unwrapped: do NOT deduct the 20-byte
+// LINK fragment header again. When the configured (not necessarily actual
+// negotiated peer/path) budget applies it fits one record. Runtime lanes
+// still apply the actual peer MSS; a shared TUN cannot follow one lane's MSS.
+// This is not PMTU discovery. At the IPv4 576 floor LINK may fragment.
+func DeriveTunnelInterfaceMTU(cfg Config) (int, error) {
+	effective := cfg.ConnectionMTU
+	if cfg.LocalPacketMTU > 0 && cfg.LocalPacketMTU < effective {
+		effective = cfg.LocalPacketMTU
+	}
+	nominalMSS := effective - cfg.IPv4HeaderLen - cfg.TCPHeaderLen
+	if nominalMSS <= 0 || nominalMSS > 65535 {
+		return 0, ErrConnectionMTU
+	}
+	cfg.PeerMSSSet = true
+	cfg.PeerMSS = uint16(nominalMSS)
+	b, err := Derive(cfg)
+	if err != nil {
+		return 0, err
+	}
+	if b.LinkFrameMTU < MinConnectionMTU {
+		return MinConnectionMTU, nil
+	}
+	return b.LinkFrameMTU, nil
 }
 
 // MaxFECWireDatagram is the maximum FEC datagram presented to TLS-like record

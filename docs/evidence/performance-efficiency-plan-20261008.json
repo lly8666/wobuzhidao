@@ -1,0 +1,80 @@
+{
+  "state": "PLAN_AND_CONTINUITY_PUBLISHED_INTEGRATION_PENDING",
+  "working_branch": "next/performance-efficiency-20261008",
+  "main_document_base": "82c3c614a824b9b033901077aff26127bb6044cc",
+  "mtu_parent": "c480ccef30962358b33da936d9ba19def6061f70",
+  "mtu_product_change": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+  "mtu_functional_job_audit": {
+    "run": 37747140769,
+    "source_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+    "state": "SUCCESS_JOBS_API_VERIFIED",
+    "jobs": 39,
+    "successful": 39,
+    "scope": "core and split kernel/FEC functional only; artifacts not independently rehashed in this planning turn; not throughput/p99 qualification"
+  },
+  "new_cpu_optimization_implemented": false,
+  "new_performance_tests": "NOT_RUN",
+  "integrated_source_core": "PENDING_ACTIONS",
+  "physical_new_source": "NOT_RUN",
+  "history_snapshots": {
+    "AGENTS.md": {
+      "snapshot": "docs/history/20261008-before-efficiency-agents.txt",
+      "source_commit": "82c3c614a824b9b033901077aff26127bb6044cc",
+      "source_utf8_sha256": "c479ded33720df879addaacf3c765255524a6d3a69114fd0d8120b583f562df0",
+      "snapshot_sha256": "c479ded33720df879addaacf3c765255524a6d3a69114fd0d8120b583f562df0",
+      "source_git_blob_oid": "39ca8d413be058494334855399d1f81469e3c820"
+    },
+    "README.md": {
+      "snapshot": "docs/history/20261008-before-efficiency-readme.md",
+      "source_commit": "82c3c614a824b9b033901077aff26127bb6044cc",
+      "source_utf8_sha256": "1510ade27f65b965bb919e389495de1960b389715cc6e93c4455a68acc4aff40",
+      "snapshot_sha256": "1510ade27f65b965bb919e389495de1960b389715cc6e93c4455a68acc4aff40",
+      "source_git_blob_oid": "ed99306e946537543f1b35f353a595e389b30a03"
+    },
+    "docs/STATUS.json": {
+      "snapshot": "docs/history/20261008-before-efficiency-status.json",
+      "source_commit": "82c3c614a824b9b033901077aff26127bb6044cc",
+      "source_utf8_sha256": "3dfeb654f30d4ac1d3deeb12a11fd2bda81367033c0ac6daf7345df9ec6778a8",
+      "snapshot_sha256": "3dfeb654f30d4ac1d3deeb12a11fd2bda81367033c0ac6daf7345df9ec6778a8",
+      "source_git_blob_oid": "f3bc18c288f29220a14949e6eccf1027c977faac"
+    },
+    "docs/ROADMAP.md": {
+      "snapshot": "docs/history/20261008-before-efficiency-roadmap.md",
+      "source_commit": "82c3c614a824b9b033901077aff26127bb6044cc",
+      "source_utf8_sha256": "a8136af0701f45f145344fb55659e4ad01ffc949663349e8ae143935984bd315",
+      "snapshot_sha256": "a8136af0701f45f145344fb55659e4ad01ffc949663349e8ae143935984bd315",
+      "source_git_blob_oid": "560c4d89cad626040d9b5fbc372f8416760a6321"
+    },
+    "docs/DEVELOPMENT_PLAN.md": {
+      "snapshot": "docs/history/20261008-before-efficiency-development_plan.md",
+      "source_commit": "82c3c614a824b9b033901077aff26127bb6044cc",
+      "source_utf8_sha256": "004b4fd7925a4f3ca7a47dd91f364f7a92116f31234d5bfe3aee8c9976d39c6d",
+      "snapshot_sha256": "004b4fd7925a4f3ca7a47dd91f364f7a92116f31234d5bfe3aee8c9976d39c6d",
+      "source_git_blob_oid": "e350e334597300fb540a0f85bdaee32716968168"
+    },
+    "docs/ACCEPTANCE.md": {
+      "snapshot": "docs/history/20261008-before-efficiency-acceptance.md",
+      "source_commit": "82c3c614a824b9b033901077aff26127bb6044cc",
+      "source_utf8_sha256": "d3bc31ff54985ffcb367471d50f4d026a8707036f7511128b7505cf82d98fc32",
+      "snapshot_sha256": "d3bc31ff54985ffcb367471d50f4d026a8707036f7511128b7505cf82d98fc32",
+      "source_git_blob_oid": "fef1ba6f01a3f0eaf3d6a48e72a21d1b757313ea"
+    },
+    "mtu_parent_status": {
+      "snapshot": "docs/history/20261008-mtu-parent-status.json",
+      "source_commit": "c480ccef30962358b33da936d9ba19def6061f70",
+      "snapshot_sha256": "335ee6e8443fb0f49105f67356b5b17c0e0f005456e593db8a2093a226aa9d86"
+    }
+  },
+  "preserved_failures": [
+    "b4 Normal upper residual10",
+    "b4 M03 78missing/initial~80s S2C outage",
+    "b4 later maxUDP1225.578ms",
+    "historical paired RTT/native late/missing and NOT_RUN"
+  ],
+  "deferred_issue": {
+    "state": "OPEN_DEFERRED_UNTIL_AFTER_E6",
+    "user_decision": "2026-10-08; not resolved/waived"
+  },
+  "test_policy": "one performance Action run one sample",
+  "memory_policy": "bounded preallocation/pools allowed; queuebloat forbidden"
+}

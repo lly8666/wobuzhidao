@@ -3,7 +3,7 @@ package windowsclient
 import (
 	"errors"
 	"fmt"
-	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 	"github.com/lly8666/wobuzhidao/internal/splitroute"
 	"net/netip"
 	"path/filepath"
@@ -36,6 +36,7 @@ type Config struct {
 	Direct4      []netip.Prefix
 	Bypass4      []netip.Prefix
 	StatePath    string
+	TunnelMTU    uint32 // explicitly chosen inner IPv4 interface MTU
 }
 
 type OwnedRoute struct {
@@ -89,6 +90,9 @@ func BuildNetworkPlan(cfg Config) (NetworkPlan, error) {
 		return NetworkPlan{}, fmt.Errorf("%w: state path", ErrNetworkPlan)
 	}
 
+	if err := pathmtu.ValidateConnectionMTU(int(cfg.TunnelMTU)); err != nil {
+		return NetworkPlan{}, fmt.Errorf("%w: tunnel mtu=%d: %v", ErrNetworkPlan, cfg.TunnelMTU, err)
+	}
 	lease := netip.PrefixFrom(cfg.Lease4.Addr().Unmap(), 32)
 	server := cfg.Server4.Unmap()
 	nextHop := cfg.Physical.NextHop4.Unmap()
@@ -152,7 +156,7 @@ func BuildNetworkPlan(cfg Config) (NetworkPlan, error) {
 		Server4:           server,
 		Physical:          PhysicalPath{InterfaceIndex: cfg.Physical.InterfaceIndex, NextHop4: nextHop},
 		StatePath:         filepath.Clean(cfg.StatePath),
-		TunnelMTU:         logicaltunnel.MaxLeasedIPv4PacketLen,
+		TunnelMTU:         cfg.TunnelMTU,
 		UnderlayRoute:     underlay,
 		DirectRoutes:      direct,
 		CaptureRoutes:     capture,

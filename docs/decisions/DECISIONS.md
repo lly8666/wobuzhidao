@@ -42,3 +42,12 @@
 2026-10-03（用户要求优先解决带宽）：已有无损成本账本证明FEC混合长度导致parity字节膨胀，采用20:20最多3固定长度组256/512/MTU；共享block-start ID、即时systematic、原独立8ms期限与v1 decoder，不改变FEC档位/repair/Game/缓存。低冗余档位保留单组避免partial比例变动。新候选须独立Actions资格，暂缓长测工具开发；不凭旧final18或理论预算标PASS。
 
 2026-10-04（交付前逐秒审计）：原b1所有声明门PASS，但Normal换代1s窗口实际最多61.264%业务包loss，被60s阶段平均1.7585%掩盖。决定只分离active发送权与现有retiring接收在途权限，不扩大/延长状态、不建立第二控制协议、不引入HOL。旧代仅在现有有限retiring集合内验证/交付，retire后立即fence；Game dedupe/lease/MAC/PN维持。新增soak1s原发送窗口最终unique loss≤阶段link loss+2pp，原阶段门不放宽；原b1按新门FAIL保留。新候选完成精确SHA回归再打包，不宣称旧候选已最终交付。
+
+### 2026-10-08 用户决定恢复外层预算驱动内层MTU
+
+为优先处理普通TCP/UDP吞吐、首次有效交付、p99与no-HOL，接受极大UDP在高丢包下更多IP分片的代价；Windows及Linux shared TUN接口MTU由现有pathmtu预算自动导出，不再永久9000。无新增用户MTU、无wire/FEC/Game/repair/4096调整。静态接口不是动态peer MSS/PMTU，不能保证单LINK片；逻辑9000与UDP frame8936不改，历史证据原样保留。候选资格为NOT_RUN，必须新精确SHA Actions测试。
+
+
+### 2026-10-08 后续优化：从外层MTU自动派生各层可用上限
+
+保留唯一 `--mtu` 用户外层配置、可选方向record cap；将两端旧固定1300/1250默认转为0=auto，并按配置头预算和真正的tlsrecord最大值限幅。更小的手工cap继续收紧，实际lane保留MSS/真实headers/path预算。共享TUN取静态方向LinkFrameMTU（裸IPv4不扣不存在的LINK分片头），576最低接口限制可导致额外LINK分片。不能把该变更描述成线上实测吞吐提升，也不改协议字段、FEC/repair/Game、逻辑9000/UDP8936、旧longmix失败。必须以新 SHA 独立 Actions 验证。

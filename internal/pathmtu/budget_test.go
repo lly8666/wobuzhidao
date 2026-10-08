@@ -183,3 +183,90 @@ func TestInvalidBudgetsFailClosed(t *testing.T) {
 		t.Fatalf("fec zero fragment payload err=%v", err)
 	}
 }
+
+func TestDeriveTunnelInterfaceMTU(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		outer, local, record, parity, want int
+	}{
+		{"windows1400", 1400, 0, 1300, 0, 1269},
+		{"windows1500-record", 1500, 0, 1300, 0, 1269},
+		{"server1400", 1400, 0, 1250, 0, 1219},
+		{"server-fec20", 1400, 0, 1250, 20, 1163},
+		{"windows-fec4", 1400, 0, 1300, 4, 1213},
+		{"local-smaller", 1500, 1200, 1300, 0, 1129},
+		{"minimum-outer", 576, 0, 1300, 20, 576},
+		{"record-fec", 1400, 0, 800, 20, 713},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := DeriveTunnelInterfaceMTU(Config{
+				ConnectionMTU: tc.outer, LocalPacketMTU: tc.local,
+				IPv4HeaderLen: 20, TCPHeaderLen: 20,
+				RecordWireLimit: tc.record, ParityShards: tc.parity,
+			})
+			if err != nil || got != tc.want {
+				t.Fatalf("inner=%d err=%v want=%d", got, err, tc.want)
+			}
+			if got < MinConnectionMTU || got > tc.outer {
+				t.Fatalf("interface MTU outside budget: %d", got)
+			}
+		})
+	}
+	got, err := DeriveTunnelInterfaceMTU(Config{
+		ConnectionMTU: 1400, IPv4HeaderLen: 60, TCPHeaderLen: 60,
+		RecordWireLimit: 2000,
+	})
+	if err != nil || got != 1249 {
+		t.Fatalf("variable real headers: mtu=%d err=%v", got, err)
+	}
+	got, err = DeriveTunnelInterfaceMTU(Config{
+		ConnectionMTU: 1400, IPv4HeaderLen: 20, TCPHeaderLen: 20,
+		RecordWireLimit: 1300, PeerMSSSet: true, PeerMSS: 400,
+	})
+	if err != nil || got != 1269 {
+		t.Fatalf("single peer unexpectedly changed shared plan: mtu=%d err=%v", got, err)
+	}
+	for _, bad := range []Config{
+		{ConnectionMTU: 575, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: 1300},
+		{ConnectionMTU: 1400, IPv4HeaderLen: 21, TCPHeaderLen: 20, RecordWireLimit: 1300},
+		{ConnectionMTU: 1400, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: 30, ParityShards: 20},
+		{ConnectionMTU: 1400, LocalPacketMTU: 575, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: 1300},
+	} {
+		if n, e := DeriveTunnelInterfaceMTU(bad); e == nil {
+			t.Fatalf("bad budget accepted as %d: %+v", n, bad)
+		}
+	}
+}
+
+func TestAutoRecordWireLimitAndSingleRecordInnerMTU(t *testing.T) {
+	for _, tc := range []struct { outer, cap, parity, wantRecord, wantInner int }{
+		{576, 0, 0, 536, 576},
+		{1300, 0, 0, 1260, 1229},
+		{1400, 0, 0, 1360, 1329},
+		{1500, 0, 0, 1460, 1429},
+		{1500, 1250, 0, 1250, 1219},
+		{1400, 2000, 0, 1360, 1329},
+		{1300, 1200, 0, 1200, 1169},
+		{1400, 0, 20, 1360, 1273},
+		{1300, 0, 20, 1260, 1173},
+		{1500, 0, 20, 1460, 1373},
+	} {
+		wire, err := ResolveConfiguredRecordWireLimit(tc.outer, 20, 20, tc.cap)
+		if err != nil || wire != tc.wantRecord { t.Fatalf("outer=%d cap=%d wire=%d err=%v want=%d", tc.outer, tc.cap, wire, err, tc.wantRecord) }
+		tun, err := DeriveTunnelInterfaceMTU(Config{
+			ConnectionMTU: tc.outer, IPv4HeaderLen: 20, TCPHeaderLen: 20,
+			RecordWireLimit: wire, ParityShards: tc.parity,
+		})
+		if err != nil || tun != tc.wantInner { t.Fatalf("outer=%d cap=%d parity=%d tun=%d err=%v want=%d", tc.outer, tc.cap, tc.parity, tun, err, tc.wantInner) }
+	}
+	for _, test := range []struct { outer, ip, tcp, cap int }{
+		{575,20,20,0}, {9001,20,20,0}, {1400,24,20,-1},
+		{1400,21,20,0}, {1400,20,21,0}, {1400,20,20,51},
+		{1400,20,20,17000},
+	} {
+		if n, err := ResolveConfiguredRecordWireLimit(test.outer,test.ip,test.tcp,test.cap); err == nil { t.Fatalf("invalid cap accepted: %+v => %d",test,n) }
+	}
+	if got,err:=ResolveConfiguredRecordWireLimit(1400,20,32,0); err!=nil || got!=1348 {
+		t.Fatalf("actual TCP header budget=%d err=%v",got,err)
+	}
+}

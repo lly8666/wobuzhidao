@@ -61,8 +61,8 @@ func runServer() error {
 		username           = flag.String("username", "", "protected admission username")
 		password           = flag.String("password", "", "protected admission password")
 		decoy              = flag.String("decoy", "", "ordinary TLS fallback target host:port")
-		serverLimit        = flag.Uint("server-record-limit", 1250, "client-to-server TLS-like record wire limit")
-		mtu                = flag.Int("mtu", 1500, "outer IPv4 connection MTU; shared inner TUN uses the leased packet limit")
+		serverLimit        = flag.Uint("server-record-limit", 0, "client-to-server TLS-like record wire limit; 0=auto outer MTU budget")
+		mtu                = flag.Int("mtu", 1500, "outer IPv4 connection MTU; shared inner TUN auto-derived from record/FEC/LINK budget")
 		tlsStartupPadding  = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
 		fecParity          = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		firewall           = flag.String("firewall", "auto", "shared-TUN firewall backend: auto|nft|iptables")
@@ -99,6 +99,14 @@ func runServer() error {
 	if err != nil {
 		return err
 	}
+	// A zero record cap is auto: the largest steady-state TLS-like record
+	// that fits the operator's outer IPv4 MTU. A nonzero cap remains an upper
+	// bound and is still clamped by this outer packet ceiling.
+	effectiveRecordLimit, err := pathmtu.ResolveConfiguredRecordWireLimit(*mtu, 20, 20, int(*serverLimit))
+	if err != nil {
+		return err
+	}
+	*serverLimit = uint(effectiveRecordLimit)
 	if *idleDormant < 0 {
 		return errors.New("idle-dormant must be non-negative")
 	}
@@ -182,13 +190,17 @@ func runServer() error {
 		return err
 	}
 
-	// The inner TUN must not fragment packets to the outer carrier ceiling
-	// before LINK applies that ceiling. Keep config validation independent of
-	// the supported inner packet limit, including --check-config.
-	if err := pathmtu.ValidateConnectionMTU(*mtu); err != nil {
+	// Shared-TUN interface MTU is static across lanes, derived from the
+	// inbound configured record/FEC envelope. The runtime still budgets
+	// every lane using actual peer MSS and LINK-fragments when required.
+	innerMTU, err := pathmtu.DeriveTunnelInterfaceMTU(pathmtu.Config{
+		ConnectionMTU: *mtu, IPv4HeaderLen: 20, TCPHeaderLen: 20,
+		RecordWireLimit: int(*serverLimit), ParityShards: *fecParity,
+	})
+	if err != nil {
 		return err
 	}
-	plan, err := linuxserver.BuildNetworkPlan(*tunName, leasePool, logicaltunnel.MaxLeasedIPv4PacketLen, linuxserver.FirewallBackend(*firewall), *nftForward)
+	plan, err := linuxserver.BuildNetworkPlan(*tunName, leasePool, innerMTU, linuxserver.FirewallBackend(*firewall), *nftForward)
 	if err != nil {
 		return err
 	}
@@ -199,7 +211,7 @@ func runServer() error {
 		return errors.New("static lease is outside lease-pool")
 	}
 	if *checkConfig {
-		out := map[string]string{}
+		out := map[string]string{"derived-inner-tun-mtu": fmt.Sprint(innerMTU)}
 		flag.VisitAll(func(f *flag.Flag) {
 			if f.Name == "password" || f.Name == "route-key-hex" {
 				out[f.Name] = "configured"

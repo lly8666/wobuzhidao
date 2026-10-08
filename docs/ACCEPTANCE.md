@@ -1,26 +1,14 @@
 # Actions 验收契约
 
-2026-10-07当前：固定d6产品/49harness的36独立FECscreen已收齐，12无损业务/probe零loss、36完整性/profile/input/capture/environment通过且socketdrop0；32sample分析PASS、31workflowSUCCESS，133/144配对RTT通过、11FAIL保留。FEC恢复吞吐曲线符合计入分片的参考，冻结FEC实现；低档位单lane多秒尾延迟仍OPEN，非全产品定稿。off单条无损batch检查误判已仅修测试：preflight与独立off基线PASS。原生53样本/24工况/19NOT_RUN、S01/S16/M03旧FAIL不改。每性能Action一条，先STATUS/latest_log。
+当前任务只看STATUS.json；本轮实施及每步验收见PERFORMANCE_EFFICIENCY_PLAN.md。历史验收事实保留原evidence/devlog，不从旧SOURCE继承新资格。整理前全文见history/20261008-before-efficiency-acceptance.md。
 
-受控无损仍零业务/探针loss；受控有损沿用loss-tolerant-v1原门。原生WAN原始零损失参考FAIL保留，功能/完整性/清理、性能质量、接收压力与归因分别记录，不追溯改PASS。完整口径见WEAKNET_QUALIFICATION第10.5节，尤其返回探针条件p99及覆盖/有限样本边界。
+所有开发构建/Go/unit/race/fuzz/功能/性能在Actions。每性能run严格一条样本、一个测量job，普通功能可多job，aggregate只读。profile默认off，诊断另run。源/助手/配置/seed、runner资源与实际网络注入可核验，CI绿不等于端到端PASS。
 
-各FEC档位的实际k/r、partial与理论残余检测标准见WEAKNET_QUALIFICATION第10.6节；优先性能/延迟/no-HOL，正式20:20门不变，其他档位弱网专项尚未运行，不能套零loss或直接套名义比例。
+受控无损要求合法业务完整/零无故loss；弱网按WEAKNET_QUALIFICATION实际k/r/partial及网络相关性，不统一零loss。用户允许高丢包超inner大UDP无法恢复，但正常包门、完整性、无跨业务HOL、资源有界和恢复稳定不降低。预期API拒绝独立计数，禁止截断/吞错。
 
-2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
+p99与未回/迟到、deadline交付率并列，不删超时美化；CPU用产品与助手分开的CPU-s/有效交付量，不能靠丢业务省CPU。不同runner资源层比较，多重复；CAPACITY_LIMITED/INVALID/UNSUPPORTED/NOT_RUN和PASS/FAIL分开。
 
-> 当前决策（覆盖下文历史下一步）：2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。 所有性能测试严格一个Action run一条样本，禁止同run A/B与matrix。
-
-## 环境与证据
-
-2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。
-
-2026-10-05用户已授权并执行远端原生Windows→ARM测试；此为物理阶段授权例外，不改变开发期产品构建/测试在Actions的规则。固定6181db6的Normal1双向10M两份120s和Game4双向3M一份120s业务loss0、DNS/TCP/验证证书HTTPS与owned退出清理通过对应门。首轮summary timeout及约4.16M部分结果、fresh Normal AF_PACKET drops+125保留未解，整体physical_status=PARTIAL，不是PHYSICAL_PASS/RELEASE_QUALIFIED。GUI实际操作、人为弱网、长测仍NOT_RUN。[本轮日志](devlog/20261005-014639-native-wan-no-pcap.md)、[原始计数及hash](evidence/physical-native-6181db6-20261005.json)为历史120秒证据入口。该轮没有pcap，仅8秒C2S头部计数；最新五分钟短窗口与D01失败见上段，不宣称全时TLS指纹完整验收。
-
-开发期所有构建和测试只在 GitHub Actions；本地不运行 go test、编译、fuzz、性能或网络试验。最终物理资格在 P7，不能提前成为开发依赖。
-
-每次运行保存产品 SOURCE_SHA、harness SHA、依赖/toolchain、runner 架构与 CPU/内存、完整配置、种子、原始 stdout/stderr、分析器结果。收到新结果先核实源 SHA，不能只看 workflow 全绿或其他 agent 摘要。
-
-当前已存在foundation、定向稳态/生命周期/padding、独立strict weaknet、shared blackhole、完整生命周期、实际配置、target soak和P6打包工作流。基础CI绿不代表端到端已通过；交付前的可执行门及精确SOURCE_SHA收口见PREDELIVERY_ACCEPTANCE与STATUS。普通unit/race可并行，性能run一条样本，汇总只读产物。
+本分支集成MTU后真实压力NOT_RUN。b4的NoHOL用户接受PASS_ACTIONS，但新热路径改动仍需相关core/race回归；物理不用重复同项阻塞。80秒下行OPEN_DEFERRED至优化后，不能宣布PHYSICAL_PASS或RELEASE_QUALIFIED。
 
 ## P1 基础
 
@@ -86,83 +74,11 @@ P5 流量外观专项：受控真实 HTTPS 覆盖新外层首连接、已建lane
 
 P7只在主流程已稳定后由用户安排，最终核对真实链路外观、业务DNS/UDP/TCP、Game/rotation/DORMANT和退出网络恢复。不提前调用物理机、不因为未测物理停止P1..P6。
 
-## 2026-09-21 增强验收（当前发布前必需）
 
-[WEAKNET_QUALIFICATION.md](WEAKNET_QUALIFICATION.md) 是本契约组成部分，其第3至8节定义持续负载、18份独立样本、真实网络、严格逐方向/逐阶段目标、runner诊断、模块矩阵与关闭证据；第1.1节定义高/低丢包的解释优先级。新增门槛优先于旧P5的低频HTTPS和无损15秒load资格；不追溯删除旧证据，也不沿用旧CLOSED代表新增通过。第1.1节只降低“严格TCP外观/单次rotation成功”的门控地位，不降低业务loss/goodput/latency/continuity/resource和基本正确性门槛。相关核心回归有红灯须定位修复，不以仅打包job绿替代同SHA完整回归。
+## 本优化分支附加退出门
 
-## TLS启动填充小功能（待 exact-SHA Actions）
+每E1..E5相关core/race及独立Normal lossless/5205、Game4 lossless/5205保护，收益要满足方案中的可比资源和重复要求。E6补真实TCP/UDP/mixed丢包矩阵、容量/配置70/生命周期36/strict18/1800s/必要黑洞和P6，逐项注明SOURCE与覆盖限制，失败原样保留。
 
-实现及完整关闭门槛见 [TLS_STARTUP_PADDING](TLS_STARTUP_PADDING.md)。默认off、无等待/no-HOL、全FEC source/parity区分、Game共享预算、生命周期/失败rollback/资源上限必须覆盖；真实二进制TUN与平台转发专项必须证明启用和实际padding，不得用core/serializer替代。2b2bd9e core/race/fuzz及70配置中的正式程序开关功能覆盖已PASS；独立双入口稀疏HTTPS/开关on弱网配对专项仍未全部关闭，不能宣称消除了TLS-in-TLS。通过后只关闭此小功能；历史主线HOLD已由用户于2026-09-23解除。
+配置/GUI与平台验收继续取PARAMETERS、WINDOWS_GUI、LINUX_SERVER、SPLIT_ROUTING、LIFECYCLE_ACCEPTANCE、PREDELIVERY_ACCEPTANCE的现有专项，不能因整理入口删功能门。Windows真实驱动、ARM原生与互联网PMTU不由Linuxhosted替代。
 
-
-### 生命周期专项（V2，2026-09-23）— COMPLETE / 性能资格独立失败
-
-生命周期移植的**功能正确性专项已完成**，最终资格 SOURCE_SHA `0b206a07f91513133a80a147656b637c286ce3e2`。这不等于整体弱网吞吐合格，也不关闭整个 P4/P5。
-
-- core：`next-lifecycle` run 35803458197 / job 106998829058 PASS；参数目录、Linux/Windows 编译、普通与 acceptance-tag unit、focused race PASS。
-- 回归：`next-foundation` run 35803458187 PASS；`next-p4-steady-targeted` run 35803458203 全 PASS。
-- 真实进程矩阵：`next-lifecycle-fullstack` run 35803458184，36/36 sample 和 aggregate job 107001464744 PASS；aggregate artifact 10727500614。L0–L7 全部两个独立 seed，L0 额外覆盖 FEC off/20 × padding off/on。
-- L3 只丢 health 使用 pre-seal acceptance hook，不按包长猜；L5 分别验证 SYN/TLS/admission/detach；L6 从双端 DORMANT 前置状态在全黑洞下触发失败 wake，清障后再唤醒，并在独立 clear-path cutoff 阶段要求100/100 unique，无 corruption/unexpected；L7 使用未缩放的15s keepalive/90s dead-after。
-- 真实 Actions 暴露并修复过 unilateral-server-idle 竞态：server 现在等待当前 authoritative lane 的 client PeerFIN 承诺再自动休眠。产品修复提交为 `65ff2ef27dd763cba2f7293e6ef6274bca6632c3`，最终验收 SHA `0b206a07f91513133a80a147656b637c286ce3e2` 包含后续 harness 契约修正但不再修改产品 Go 逻辑。
-- 高丢包/黑洞下不要求第一次换 lane 成功。永久旧四元组黑洞必须由新 TLS/generation 恢复；所有四元组临时黑洞允许清障后旧 authoritative lane 自然恢复。共同硬门是有界 retry/candidate/retiring/resource、稳定 TunnelID/lease、发生 replacement 时 generation fencing，以及恢复后持续30s业务交付。
-
-目标速率弱网**没有通过整体吞吐资格**。同 SHA 的 `next-strict-weaknet` run 35803458166 / aggregate job 107000004406 / artifact 10727035867 跑完18/18独立样本：CORRECTNESS 与 CAPTURE 18/18 PASS，INPUT_VALIDITY 17/18 PASS，ENVIRONMENT 18/18 FAIL，PERFORMANCE 18/18 为 CAPACITY_LIMITED。Normal/5205 seed101 的额外输入失败是 S2C skipped_slots=37。最早异常在 lossless：server AF_PACKET packet-socket 已大量 drop，Normal三seed约0.70M–1.39M，Game三seed约1.45M；代表样本 server packet rmem 达约1.002×buffer上限，同时 C2S goodput 已严重塌陷。该证据早于20%/30%丢包阶段，因此性能 FAIL 必须保留为容量边界，不得用“高丢包第一次换lane失败”解释，也不得恢复严格 ACK/HOL 或扩大4096/全局缓存来掩盖。
-
-strict 样本继续分别统计 FEC、Game复制、repair、health、padding、初始握手/重连；本轮 padding=0，所有样本 reconnect_flow_count=0。Game 四lane每方向 health=32条=1280B TLS-like wire，Normal单lane为8条=320B；Game replication extra与FEC/repair均保留原始 artifact，不与最终业务恢复重复相加。
-
-结论：`WEAKNET_LIFECYCLE` 功能专项 COMPLETE；整体 target-rate weaknet qualification = **FAIL_CAPACITY_LIMITED**。2026-09-23 用户已明确恢复性能主线，按 WEAKNET_QUALIFICATION 第9节修复与验收；功能通过不因此关闭 P4/P5、P6/P7。
-
-
-
-2026-09-23双端退役补充：按WEAKNET_QUALIFICATION第10.4节联合验收发送备份放弃和接收缺口退休。后续业务不等待；缺口具有不因后续流量/逐洞推进重置的绝对期限和有界索引。无需逐包通知；不能伪造尾部进度/FIN，保留迟到首次交付和PeerFIN生命周期。方案待实现，不能标PASS。
-
-## 2026-10-03 V10.2 目标速率120秒资格 — PASS / 长测仍待完成
-
-产品SOURCE_SHA `56eb5413c3cf2e559b82026e8a5783508764e2f4`，新冻结ref `perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2`，正式18条独立Action run（两模式×三场景×seeds101/202/303）全部五分类PASS。控制器与artifact-only汇总 [37065816473](https://github.com/lly8666/wobuzhidao/actions/runs/37065816473) PASS；分析器独立固定6dafa657af9f577f8cc21256276bfb44d8ee3fd1，revision2校验全矩阵、每条基线分类、独立run receipt及逐阶段配对RTT，errors=[]。artifact11252477679，GitHub digest `sha256:01f4c0e467fb7e28f92ead0d15019c603be1e2429d30eeed35ce539ee59c816b`，详见 `docs/evidence/v10p2-final18.json`。
-
-- 固定真实raw/TPROXY/TUN路径、每向300ms、120s、FEC20:20、padding off、64/256/1200B混合业务，Normal每向10Mbps/1lane，Game每向逻辑3Mbps/4lane。
-- stress最差有效吞吐：Normal 20%约9.99945Mbps、30%约9.97760Mbps；Game 20%约2.98564Mbps、30%约2.98568Mbps。最大业务byte loss分别0/0.22048%及0.47966/0.48109%；不得改写成所有有损样本业务丢失0。
-- 18/18 socket drop为0；全部无损阶段repair/abandoned为0。RTT stress p95约602.28–617.73ms；跨独立基线、全部阶段p95增量最大18.094ms/p99增量最大36.070ms，原200/500ms门未放宽。有损post5恢复窗口起点offset1–2s，再验证连续3秒，不能把窗口起点误说成完整恢复确认耗时。
-- 线上IP/原业务输入：Normal约5.09–5.61倍、Game4约20.63–22.23倍。CPU跨VM异质；Normal无损client约49.97–96.35CPU-s/120s，不宣称新版固定省CPU百分比。
-
-这是正式120秒目标速率资格完成，不是P5整阶段关闭：同版本目标负载>=30min Normal/Game长测仍NOT_RUN；P6重新打包NOT_RUN，P7物理NOT_RUN。旧689dea19资格、V10.1 17PASS/1CAPACITY_LIMITED及其他历史失败永久保留，本轮诊断canary未混入final18。
-
-### 2026-10-03：带宽修复候选独立资格
-
-20:20固定长度组产品不能继承V10.2 final18。候选须Actions Linux/Windows unit/build、race验证（包括低档位逐字节兼容、跨组无HOL、8ms期限、ID回绕和ownership），再按同业务输入/MTU/FEC/Game/raw路径的独立性能run验收outer IP/input、source/parity字节与数量。禁止拿减少发生器输入/关闭冗余算改善。无损业务loss0/满速、原始drops0/repair0、完整性、配对RTT及原分类硬门仍适用；有损资源/恢复必须通过。当前NOT_RUN，状态与证据见STATUS。
-
-2026-10-03本子任务ACTIONS_PASS：SOURCE_SHA f240d5177c6a8aaa02de570079926b2600c480fd；foundation37091267143、生命周期37/37jobs37091267131、正式18与aggregate37091747064全部PASS。socketdrop0、无损loss/repair/abandoned0，全部阶段p95/p99最大增量27.49/30.30ms。省带宽35–38%，Normal5305最差loss1.35%较旧0.22%为明确质量取舍，按既有有损门通过，不能隐去或声称与旧完全等质。证据evidence/fec20-size-class-bandwidth.json；长测/P6/P7未通过。
-
-
-## 2026-10-03 顺序资源优化定向收口
-
-当前产品资格SOURCE_SHA ca8175d18acd7f7e3e1db5379a58d9f85417dd97。5个资源原子步骤+1个接入队列故障隔离修复，逐项Actions unit/build/race后分别独立Normal/Game5205；12条合格样本与逐阶段RTT/loss门PASS，最新36/36生命周期及aggregate PASS。见STATUS、最新日志及evidence/resource-optimization-5205.json，历史native接线失败/队列致退出/瞬态超时保留。优化实际触发且正确性、吞吐、延迟过门，不据跨VM单样本宣称固定CPU下降；SACK主导的5205下ACK收益未证实。当前不再继续微改，下一步固定最新SOURCE_SHA全18复验，随后有界长测框架与>=1800s目标速率Normal/Game独立run；P5/P6/P7未整体关闭。每性能Action一条样本，FEC deadline8ms、4096/3s和socket buffer不调大。
-
-## Windows GUI 用户新增验收
-
-执行 WINDOWS_GUI.md：所有Windows flag对应可编辑字段或明确managed操作；每普通字段调用真实Go只读校验并核对最终值，7FEC×4lanes功能组合、非法/未知/重复JSON拒绝。中文GUI真实控件保存/profile恢复/切换先校验后旧cleanup/失败不抢接、stdin stop/EOF、缺Npcap引导、秘密隐藏、不同CWD中文空格目录、应用输出目录界限、官方Wintunhash和可下载ZIP须Actions PASS。模拟Session不能替代物理NIC收发、驱动安装/UAC和跨服务器真实业务，后者P7 NOT_RUN。驱动系统目录写入限制明确告知；不能以便携名义隐藏Wintun系统注册。
-
-## 2026-10-04 Windows GUI 便携专项已交付
-
-固定SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，预发布标签 `windows-gui-rc-20261004-9857bdb`。GUI Action37185477501原始attempt1的206项检查PASS（29普通字段/全部managed操作、28FEC×lane功能组合、模拟切换与清理、1500owned route mock、地址表更新、路径限制、真实WinForms截图）；foundation37185477537的7active jobs PASS、9历史扩展SKIPPED，Windows/Linux unit/build与Linux race/fuzz及平台专项PASS。其它同源网络/lifecycle/padding/steady结果、artifact与包哈希见[evidence/windows-gui-9857bdb.json](evidence/windows-gui-9857bdb.json)和STATUS.windows_gui。
-
-[下载预发布](https://github.com/lly8666/wobuzhidao/releases/tag/windows-gui-rc-20261004-9857bdb)。本Windows GUI包包含原版Wintun DLL及许可，用户已明确接受系统驱动安装；上文d9历史P6包不含驱动的描述仅适用该旧包。Npcap仍不随包，使用官方安装引导。应用配置/日志/临时文件留程序目录；驱动注册写系统为公开例外。真实Npcap/Wintun/NIC/UAC/跨服务器业务是P7 NOT_RUN；本轮没有新增吞吐/弱网性能或full70/strict18/1800s/36生命周期资格，不把d9历史结果继承为985。文档HEAD不改变固定来源。
-
-## 2026-10-04 Linux部署/自动多客户端与最新配套包
-
-固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3的foundation/Linux-Windows unit-build/Linux race、并发10次回归、GUI208、真实DNS/IPv6/分流、systemd12与native12检查PASS；36生命周期及aggregate37/37 jobs成功。自动7天内存唯一IPv4、认证续期/在线保护、同账号Normal1/Game4双向TCP/UDP隔离、server重启换IP重建、正常模式切换同IP、客户端SIGKILL无FIN后92s原端口恢复和foreign/live保护均实际测试。系统journal与客户端安装ID不是IP持久映射。
-
-每Action一条的独立Normal1双向10Mbps/Game4双向3Mbps、FEC20:20、300ms单向、5%→20%→5%/120s/seed101，两者五分类全PASS；20%阶段双向字节损失均0、socketdrop0，p95约614.10/607.50ms。CPU原始Normal65.11/65.50、Game96.21/91.42 CPU-s，不能据不同host与基线比较声称固定CPU提升/退化。
-
-固定[预发布linux-server-rc-20261004-6181db6](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)，三同源ZIP/manifest每个文件和GitHub资产哈希已核验。完整回执、失败链及边界见[evidence/linux-server-6181db6.json](evidence/linux-server-6181db6.json)。最新full70/strict18/1800s、startup-padding on完整专项、Windows/ARM原生/物理P7仍NOT_RUN，不能继承2b历史全量成绩。仅Linux本版本owned journal可自动恢复，未知历史残留不自动接管；冷进程无FIN同端口恢复使用至少90s/3keepalive保护，不承诺即时强替。
-
-当前profile实现冻结与11配对RTT例外详见WEAKNET_QUALIFICATION10.7；36快速screen不关闭全产品性能/FEC精确oracle/完整资格，原FAIL保留。
-
-## 2026-10-07 Lane方向锁 exact-source Actions结论
-
-- 固定SOURCE/HARNESS：`3a594a34191159bd7224f35ba9117cdf6f239c69`，固定ref：`qualification/lane-duplex-20261007`。不继承父版本资格。
-- Core/受影响门：foundation 37602221629、lifecycle-fullstack 37602535872、default-network 37602539898、splitroute 37602544149、config 37602548438、linux-server 37602552100 PASS。
-- Normal：r12 profile 37602556519仅诊断；r12 lossless/5305 37602559653/37602563270；正式20:20 lossless/5205 37602567530/37602571402。正式20:20 paired stress p99约605.904→613.274ms（+7.370ms），60/60 probes，drop=0。r12普通5305的约2168ms p99明确保留为OPEN现象。
-- Game4（每方向逻辑3Mbps，20:20）：lossless/5205 seed1479为37605009121/37605011893，lossless/5305 seed1484为37605015130/37605017713。5205 paired p99 +1.808ms，5305 +4.852ms；stress两方向完整3Mbps、60/60 probes、integrity counters正常、drop=0。不可直接下载的大artifact由Actions只读scan 37605933377核验10ms桶：5305和两个lossless最长0ms，5205最长单个10ms。
-- P6：37606109601 PASS，aggregate明确 `HOSTED_PACKAGE_ONLY`；linux/amd64 artifact 11475186403 sha256 `accd0ed8d38416405d16fab5b493f6c88f6c0e11dd9864ca9e08f891d0ffb5e7`，linux/arm64 11474687727 sha256 `796062547d99777864ab53117dbef695c94eab157a04b95822dafa073923c976`，windows/amd64 11474354633 sha256 `a4553ebf6412b354ec49f1792981a58c8d1fd184243ca58745685e8e917d8b90`；manifest/file hashes本轮再次逐项复算0 mismatch。
-- 判定：`ACTIONS_READY_FOR_PHYSICAL`。不写 `PHYSICAL_PASS` 或 `RELEASE_QUALIFIED`。历史284ms根因OPEN；旧11 RTT FAIL、S01/S16/M03、full70/final18/1800s及其余NOT_RUN继续有效。
+E7处理延后的失活与剩余迟到后交原聊天物理复验。若E6样本被失活阻塞，标真实FAIL/不能评价收益并转E7，不强行凑通过。

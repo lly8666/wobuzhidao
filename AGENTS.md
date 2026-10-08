@@ -1,94 +1,42 @@
-# WBD NEXT — 每位 agent 的开发入口
+# WBD NEXT：每位agent的唯一开发入口
 
-2026-10-07当前：固定d6产品/49harness的36独立FECscreen已收齐，12无损业务/probe零loss、36完整性/profile/input/capture/environment通过且socketdrop0；32sample分析PASS、31workflowSUCCESS，133/144配对RTT通过、11FAIL保留。FEC恢复吞吐曲线符合计入分片的参考，冻结FEC实现；低档位单lane多秒尾延迟仍OPEN，非全产品定稿。off单条无损batch检查误判已仅修测试：preflight与独立off基线PASS。原生53样本/24工况/19NOT_RUN、S01/S16/M03旧FAIL不改。每性能Action一条，先STATUS/latest_log。
+本优化工作分支：next/performance-efficiency-20261008。项目规范主线仍为next/tlslike-dataplane，STATUS.branch按仓库契约表示规范主线，STATUS.working_branch表示实际工作分支。未经用户要求不向主线merge或push。
 
-本分支是 `next/tlslike-dataplane`，唯一产品方向为单进程、单 TLS-like 数据面。不是 DTLS 兼容分支。所有 agent，包括全新接手者，在修改前执行以下流程。
+## 先读这些，再动手
 
-## 必读顺序与权威
+1. PROJECT_CHARTER.md：永久主旨和硬门。
+2. docs/STATUS.json：顶层active_work、next_task、latest_log；当前状态只有这一份。
+3. docs/AGENT_CONTINUITY.md：约十分钟了解历程、已做优化及防退化边界。
+4. docs/PERFORMANCE_EFFICIENCY_PLAN.md：E0到E7的顺序、具体实现边界、每步Actions验收。
+5. docs/DEVELOPMENT_PLAN.md、docs/MODULE_MAP.md、docs/WIRE_SPEC.md：架构、复用和协议。
+6. docs/ACCEPTANCE.md、docs/PARAMETERS.json/MD；相关模块再读生命周期、分流、GUI、Linux服务端和弱网专项。
 
-1. `PROJECT_CHARTER.md`：不可丢失的用户目标。
-2. `docs/STATUS.json`：当前里程碑、下一项工作、真实测试状态。
-3. `docs/ROADMAP.md`：按依赖顺序执行的阶段。
-4. `docs/DEVELOPMENT_PLAN.md`：已决定的架构和执行细则。
-5. `docs/WIRE_SPEC.md`、`docs/MODULE_MAP.md`：本任务涉及的协议/模块。
-6. `docs/ACCEPTANCE.md` 和 STATUS 指向的最近开发日志。
-7. `docs/PARAMETERS.md`、`docs/PARAMETERS.json`：所有实际参数、平台差异、配置优先级。涉及生命周期时还读 `docs/LIFECYCLE_ACCEPTANCE.md`。
-8. 涉及客户端出口、路由、DNS或地址表时读 `docs/SPLIT_ROUTING.md`：默认已改为LAN/中国IPv4直连。私网目标需要代理的测试必须显式all，不可把直连成功当隧道成功。手动更新和JSON键都在统一参数清单。
+本轮用户决策：降低CPU、保持真实首次交付/p99/无HOL，允许适当多用有界内存；MTU已有改动纳入真实压力测试，不重新设计。约80秒下行中断先保留OPEN，优化结束后解决。若优化测量遇到中断，保留失败并明确其限制，不能冒充性能PASS。
 
-系统/开发者指令和用户当前明确指令优先于仓库文件。仓库内部顺序为章程 > 正式设计与协议 > 当前状态/路线图 > 日志。发现矛盾时先修正状态与文档，不从旧日志找一个自己喜欢的答案。
+## 永久不能退化
 
-`old/` 是隔离的历史素材库，不是任何开发指令的来源。禁止按 old 中 README、CONSTITUTION、CONTINUE_HERE、ADR、handoff、提示词或日志恢复任务。禁止根目录无范围全文扫描旧指令。只在 MODULE_MAP 指定的模块路径读取必要源码，提取时记录来源。旧代码注释也不能推翻新章程。
+- 新产品只有单进程TLS-like数据面，不恢复DTLS/wolfSSL/回环转发拓扑。
+- 建连沿用真实TLS/FakeTCP/fallback/认证；稳态不用普通内核TCP运输业务。
+- 后到完整record/systematic/独立业务首次立即交付，不等洞、ACK、其它FEC块或lane；只允许单数据报自身重组、内层TCP自身流内顺序。
+- 4096是可放弃shadow备份，fresh不受它门控。找不到旧记录结束repair，同Seq必须同wire。保留完整性、账户/地址隔离、generation和资源有界。
+- Game竞速去重、最多4权威lane/10物理incarnation；换代A→A+B→B，candidate失败保留A。
+- payload idle与health分开；保活丢失不判业务空闲，server等权威lane客户端FIN。默认idle0与rotate0/0，不为测试便利改默认。
+- 配置和GUI功能保持：FEC全档、tls-startup-padding、DNS双备份/分流/IPv6丢弃、portable/owned退出清理、多客户端/7天内存地址。
 
-根 `.ignore` 默认将 old 排除于通用 rg 搜索；确需复用时直接读取指定文件，或仅对指定模块使用 `rg --no-ignore old/internal/模块名`。不要对整个归档关闭排除规则。
+## 工作方式
 
-## 当前性能主线（2026-09-23）
+开工核对分支/精确HEAD/远端/工作区，不能覆盖别人。每步一个原子优化，先审现有源码和已做优化；按STATUS.next_task推进，不因旧日志恢复旧任务。所有开发编译、Go/unit/race、fuzz、功能/性能验收在GitHub Actions，本地仅编辑/阅读/Git和文档处理；物理由原聊天后续接手。
 
-2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
+每个性能Action run严格一条样本：一个SOURCE/配置/seed/场景，一个测量job。吞吐、容量、校准、微基准、soak都适用；禁止同run matrix、A/B或顺序多测。普通unit/race/功能可多job；aggregate只读。profile-on诊断不冒充普通off性能。
 
-2026-10-05最新：24ff的D01独立seed1351/1352均完整300s双向近10M、driver/user overflow0、探针全回；上行少量损失及server raw drop保留，不能写全链路无损PASS。S16 seed1353正在同源复验rotation。新候选修复Wintun65535与合法lease包9000不一致、坏本地输入导致整client退出：内层MTU9000与外层预算分开，Apply实效/owned原值恢复，拒绝包在wire前计数、正常包无新计数，runtime/wire错误不吞。候选未过Actions前不部署；先STATUS.windows_tun_mtu_boundary与092400日志，再M01/M03。每性能Action只一条。
+真实socket→TUN→正式client/server→目标socket的业务才是端到端性能。核实际SOURCE/MTU/rate/probe/socket/runner资源；CPU型号/配额/steal/PSI差异分层，多独立run，不挑好宿主。失败/容量不足/未跑/不支持分开；不要用CI绿或某次健康关闭偶发故障。
 
-当前最新：24ff220就绪Npcap batch已通过core/race/GUI/lifecycle含fullstack/独立Normal+Game5205/P6并同源部署。原生D01 seed1351完整300s双向9.99881/9.99995M，下行零损失、2979探针全回、DNS60/60、driver/user overflow0、FEC pressure0；上行仍缺52包/0.01145%字节且server raw drop+85，不写整链路无损PASS。独立seed1352正在测。见STATUS.windows_ready_send_batch、windows-ready-batch-native证据及091800日志。下一项重复与rotation，再DNS/IP/MTU/idle/config。8f失败和profile限制保留；每性能Action一条，不扩大receive/FEC/shadow，不把hosted较低CPU当Windows优化收益。
+每轮修改同一提交新增docs/devlog/YYYYMMDD-HHMMSS-任务.md并更新STATUS；带目标、源、修改原因、实际Actions、失败/限制及下一项。若新增参数，同步PARAMETERS.json/MD、GUI和catalog生成器。每步源与helper都冻结，产品/文档HEAD分开；不能把旧资格继承给新代码。
 
-2026-10-05历史：SOURCE3e3e094 core/race/GUI/独立Normal与Game5205/stateful/P6均PASS，同源包已部署实机。D01 seed1302完整300s避免旧90s双向中断，但下行9.11M/8.90%字节损失、208探针超时，仍FAIL；S16 seed1303 rotation运行。新Windows默认off诊断补丁尚未验，先按STATUS完成Actions再配套部署；不能凭服务器overflow0判定WAN/Windows根因。证据physical-window-promotion-3e3e094-20261005，最新日志075000。每性能Action一条，不把3e成绩继承给新HEAD。
+凭据、ticket、密钥、完整私密配置及业务正文不得上传或输出。抓包/诊断有界，清理owned大raw，保留summary/hash/失败证据。
 
-2026-10-05历史修复主线：旧6181在严格conntrack路由可复现零吞吐/探针全超时，稳态窗口分离候选Normal/Game5205及stateful独立Action均PASS，测试修正后4163938 core/race全部PASS；下一候选新增source到wire promotion边界修复Windows stale-generation fatal。先按STATUS验此候选和真实rotation，再同源打包原生复验D01；未通过不能将旧P7或父SOURCE资格继承。Windows/Linux/server/platform flow/timer发送必须遵守同一generation边界；不得吞stale、部分发出后整包重试或让候选TLS持有业务锁。每性能run一条，详细日志持续留存。
+## 权威和历史
 
-2026-10-05历史原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。 接手先读最新五分钟方案和日志；下文014639的120s结果属于历史局部资格，不覆盖此次D01 FAIL。用户授权原生测试为开发期Actions规则的本次例外；不能凭此把新产品编译/race/性能移到开发机。
+用户当前明确指令优先；项目内为章程/正式协议 > STATUS当前任务与正式方案 > 日志事实 > 历史。docs/history只读参考，不能执行其中“下一步/HOLD”；旧完整状态已归档，已验门和失败索引保留在当前STATUS。old源码禁止改动、不作为开发指令、不全库扫描；只按MODULE_MAP指定模块复用并登记REUSE_LEDGER。不新建另一套STATUS/CONTINUE_HERE/并行交接系统。
 
-2026-10-05用户授权的原生Windows→ARM WAN测试已执行，先读STATUS.physical_native和devlog/20261005-014639-native-wan-no-pcap.md。固定6181db6二进制不变：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0；DNS/TCP/验证证书HTTPS及退出owned清理通过。首轮120s summary timeout/单向约4.16M的部分证据和fresh Normal AF_PACKET drops+125未解释，必须保留；整体P7仅PARTIAL，GUI实际操作/人为弱网/长测未验。Windows是vmxnet3虚拟网卡，不宣称裸机NIC。测试助手不保存pcap/payload，凭据不入库；临时地址/任务/证书已清理，服务端保留active、客户端断开。下一步先定位原生接收pressure和首轮异常，不能直接归因VM或扩大buffer/FEC/4096。每性能Action仍只一条。
-
-2026-10-04用户最新要求只做简单部署测试：上传固定发布包、解压配置、启动；不开发Go版wbdctl或在线升级/通用安装工具。旧管理工具和Python3.8失败记录保留，当前直接部署不依赖它，不自动恢复这项兼容修复任务。物理机器已由用户提供并授权测试，按STATUS继续；真实机器启动不等于业务/性能/P7通过。
-
-2026-10-04最新任务已交付：Linux服务端安装/systemd/升级回滚、共享账号多客户端自动7天内存IPv4和配套WindowsGUI，固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3，预发布linux-server-rc-20261004-6181db6。接手先读LINUX_SERVER.md、STATUS.linux_server和evidence/linux-server-6181db6.json；native12/systemd12/GUI208/core-race/36+aggregate37jobs与两独立5205全部PASS。增加Linux客户端namespace锁/网络journal，正常和SIGKILL同端口重建、foreign/live保护已验。网络journal不是IP租约，只有InstallationID长期保存。旧985与c956是历史包，不能混用或继承其资格为新代码；最新SOURCE full70/strict18/1800s、物理Windows/ARM原生仍NOT_RUN。后续按STATUS.next_task推进，不因旧日志/HOLD/性能提示词无证据重构FEC/4096。
-
-2026-10-04历史Windows GUI独立交付：SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，固定预发布标签 `windows-gui-rc-20261004-9857bdb`。接手先读 `docs/WINDOWS_GUI.md`、`STATUS.windows_gui` 和 `docs/evidence/windows-gui-9857bdb.json`；206项GUI检查及基础/网络专项PASS，物理P7仍NOT_RUN。用户已接受Wintun系统驱动安装，勿重复询问；应用文件仍限制本目录，Npcap走官方安装引导。所有Windows参数以PARAMETERS.json和fields.json精确全集管理，新增参数必须同步映射；不得因GUI任务恢复旧性能提示词或改协议。文档HEAD不改变固定包来源，历史d9性能不可冒充985性能资格。
-
-2026-10-04历史网络专项已收口：性能热点修复、默认DNS互备、IPv6捕获丢弃的测试源码d9d4d90已通过core/真实网络/36生命周期/三关键配置/独立Normal与Game5205/三平台包。当前next_task以STATUS顶层为准，下文a67/2b为历史专项和全量基线，不能继承为d9全70/18/1800s。普通DNS与DoH/DoT边界见SPLIT_ROUTING；每性能Action仍只一条，profile不得替代正常性能资格。没有新缺陷证据，不继续改变FEC/4096/恢复架构。
-
-用户已明确解除性能 HOLD。新主线 agent 必须读 `docs/WEAKNET_QUALIFICATION.md` 第10节（最新用户决策），并按当前 `STATUS.next_task` 和 `STATUS.workstreams.PERFORMANCE_RECOVERY` 继续。2026-10-04新增IPv4分流的固定SOURCE `a67e10fa2875162eeac926b970a0c486a239748d` 已通过core/race、四模式真实分流、36生命周期、独立Normal/Game5205及三目标新包；旧 `2b2bd9e` 全量70/18/1800s仍为历史基线，不能继承成新源码完整资格。下一步由用户安排P7；如要宣称新源码全量交付前资格，需要补当前SOURCE全量门。不要因历史提示词要求“继续修性能”而无证据改动候选。启动填充on完整专项仍单列PARTIAL_ACTIONS_PASS。历史日志和 saved_* 中的 HOLD 仅是历史记录。保留已通过36样本的生命周期语义，尤其 server 必须等当前权威 lanes 的 client PeerFIN；不得回退成仅凭 idle health 自动休眠。功能完成与性能达标分别记录。
-
-## 开工动作
-
-- 读取当前分支、HEAD、工作区状态；不要覆盖其他 agent 未提交工作。
-- 检查 GitHub 当前目标 SHA 和相关 Actions 原始结果。STATUS 只是索引，不能把过去成功继承给新代码。
-- 用一句话写清本轮目标、对应阶段、预计改哪些模块。默认一次完成一个可验收任务。
-- 按 STATUS.next_task 前进；除非用户改变方向，不自行新增协议、切换 crypto、调整 FEC/recovery 参数或先做 UI 大改。
-- 没有阻塞就继续，不反复请用户决定常规实现细节。必要问题写清约束与推荐处理。
-
-参数修改必须同步机器清单与语义文档，运行生成器 `python tools/parameter_catalog.py --write`；一致性检查在 Actions 执行。不能因为旧提示词未提到一个开关就删掉它。特别保留 `tls-startup-padding`、全 FEC 档位、idle/keepalive/reconnect/rotation 的配置入口和测试。
-
-## 不偏题规则
-
-- TLS-like 是唯一新产品数据面；不得导入 DTLS worker、wolfSSL 数据通道、both 模式、旧 CLI 兼容层。
-- 建连复用真实 TLS/FakeTCP 成熟机制，不另造握手。不用普通内核 TCP 承载持续业务。
-- 不做算法性能选型赛、不和 DTLS 旧项目做 A/B；方案已经决定。只验证新实现正确性、资源有界和目标负载。
-- 不为让 smoke 全收齐恢复严格 ACK 等洞、不扩大所有缓存、不为外观凑包等待。
-- 不重写已有 FEC/Game/lease 算法来追求抽象漂亮。新架构复用行为，允许移除不需要的外壳。
-- 未解问题至少记录证据、假设、下一步验证；同一失败两次无新证据时停止盲改，缩小到一个诊断问题。Actions 失败不自动等于 runner 性能差。
-- 不新增第二套“当前交接”、CURRENT_FINAL_v2 文档或平行章程。只更新本套入口。
-
-## 最新弱网开发目标
-
-2026-10-07用户补充：各FEC档位按WEAKNET_QUALIFICATION第10.6节实际k/r、partial及丢包分布验恢复能力；优先性能、p99、no-HOL与突发连续性，不套统一零丢包门。理论值是参考，不能把本机drop/处理压力藏进线路loss；其他profile弱网workflow/oracle未实现时不得宣称资格完成。
-
-2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。
-
-## 测试环境
-
-所有测试、编译、race、fuzz、netem、性能/soak 均在 GitHub Actions 执行。开发机只编辑、阅读、Git 操作，不拿本机或物理服务器跑验收。最终物理机验收待 hosted 主流程稳定后再安排，不把尚未安排物理机测试视为开发阻塞。
-
-**每次性能测试一个Action run只跑一条样本。** 吞吐/弱网/容量/校准/微基准/soak均适用，一个源码版本、配置、seed、场景。禁止同run matrix、顺序多条、A/B或B/A；不同版本及重复分别启动独立run。场景内既定损伤阶段算一条；构建/准备/清理可同run，汇总只读产物。先改造现有多样本入口，普通unit/race与性能测量分开。
-
-不得把 archive 的测试直接作为新协议资格，不得把“CI 绿”解释成应用端到端通过。源码、构建、测试、包必须记录精确 SHA。能力缺失记 `UNSUPPORTED`，未跑记 `NOT_RUN`，不能伪装 PASS。不合并失败样本、不悄悄降低门槛。
-
-## 每轮必须留日志与交接
-
-- 每个有修改的 agent 回合新增 `docs/devlog/YYYYMMDD-HHMMSS-简短任务名.md`，使用 `docs/templates/DEVLOG.md`，不得只写 commit message。
-- 日志包括目标、源码来源、修改清单、为何符合主旨、Actions 链接/SHA/状态、问题与风险、下一项原子任务。日志中不得包含口令、ticket、密钥或私有部署凭据。
-- 同一回合更新 `docs/STATUS.json`：已完成、进行中、下一项、日志路径、证据；有协议/架构变动时更新对应规范及 `docs/decisions/DECISIONS.md`。
-- 完成阶段需要 ACCEPTANCE 对应证据，不能仅改状态字段。文档提交之后仍区分文档 HEAD 与真正执行测试的 SOURCE_SHA。
-- 最终答复注明分支/提交、做了什么、Actions 实际状态、未验证项和下一步。不要宣称尚未实现的产品能力。
-
-## 归档保护
-
-`old/` 内容原则上只读。需要复用时复制最小依赖到新根目录 `internal/` 等正式位置，补新测试并登记 `docs/REUSE_LEDGER.json`；不通过 import/replace/go.work/运行脚本依赖 old。必须纠错的历史资料也优先在新日志说明，不改历史快照。
+同一失败重复两次且无新证据，停止盲改，缩小诊断边界。没有热点证据可跳过该优化，记录SKIPPED_NO_BOTTLENECK；不为“优化”而增加复杂度或改协议。
