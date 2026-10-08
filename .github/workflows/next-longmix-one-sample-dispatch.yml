@@ -30,8 +30,8 @@ jobs:
               raise SystemExit("invalid dispatch record keys")
           x=d["sample"]
           validate_sample(x)
-          if x["workload"] not in ("A","B"):
-              raise SystemExit("Only qualified A and B may dispatch; C not ready")
+          if x["workload"] not in ("A","B","C"):
+              raise SystemExit("Only frozen A B C fixed single samples may dispatch")
           helper=d["validated_helper_sha"]
           if len(helper)!=40 or any(c not in "0123456789abcdef" for c in helper):
               raise SystemExit("invalid helper sha")

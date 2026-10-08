@@ -2,7 +2,7 @@
 """Actions-only static proof that UDP A uses independent socket source paths."""
 import unittest
 from longmix_udp_business import ACK_KIND, ACK_SIZE, Audit, PROBE_PORT, DATA_PORT, whole_measured_mbps
-from longmix_profile import A_UDP_SHARE, WeightedUDPSlots
+from longmix_profile import A_UDP_SHARE, C_UDP_SHARE, WeightedUDPSlots
 from realpath_udp_duplex import decode_packet, make_packet, KIND_C2S
 
 class LongmixUDPContract(unittest.TestCase):
@@ -12,6 +12,16 @@ class LongmixUDPContract(unittest.TestCase):
         for bad in (10.001, -10.0, 0.0, float("inf"), float("nan"), True, "10"):
             with self.subTest(value=bad), self.assertRaises(ValueError):
                 whole_measured_mbps(bad)
+
+    def test_c_udp_shares_and_accounting_while_a_unchanged(self):
+        for workload,shares,target in (("A",A_UDP_SHARE,10),("C",C_UDP_SHARE,5)):
+            self.assertEqual(sum(percent for _,percent in shares),100)
+            self.assertGreater(len(shares),2)
+            a=Audit(1000,300,10,shares)
+            sizes=[x["payload_bytes"] for x in a.snapshot()["per_size"]]
+            self.assertEqual(sizes,[size for size,_ in shares])
+        self.assertIn(8972,[size for size,_ in A_UDP_SHARE])
+        self.assertIn(65507,[size for size,_ in C_UDP_SHARE])
 
     def test_real_payload_endpoints_and_independent_probe_port(self):
         self.assertNotEqual(DATA_PORT, PROBE_PORT)

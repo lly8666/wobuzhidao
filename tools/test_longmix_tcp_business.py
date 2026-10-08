@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Functional planning of long/full-duplex TCP only; never performance proof."""
 import hashlib
+import socket
+import threading
+import time
 import unittest
 from longmix_profile import TCP_WRITE_SIZES, TCP_LONG_CONNECTIONS, TCP_SHORT_CONNECTIONS
 from longmix_tcp_business import (
-    HEADER,MAGIC,SHORT_BYTES,SHORT_HZ,OneFlow,tcp_info
+    HEADER,MAGIC,SHORT_BYTES,SHORT_HZ,SHORT_IN_FLIGHT_CAP,OneFlow,tcp_info,short_client
 )
 
 class DummySocket:
@@ -36,6 +39,55 @@ class TcpWorkloadContract(unittest.TestCase):
         self.assertEqual(len({f.byte_value for f in fs}),3)
         self.assertNotEqual(fs[0].byte_value,
                             OneFlow("target",0,DummySocket(),100000000,300,10,1_250_000/3).byte_value)
+
+    def test_real_slow_1200ms_requests_still_start_every_one_second(self):
+        # Functional helper test: peer waits longer than the request cadence.
+        # The former serial implementation deterministically skipped 1/6.
+        seed=2608102
+        listener=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        listener.bind(("127.0.0.1",0))
+        listener.listen(8)
+        listener.settimeout(6)
+        received=[]
+        failures=[]
+        def handle(conn):
+            try:
+                conn.settimeout(5)
+                header=conn.recv(HEADER.size,socket.MSG_WAITALL)
+                magic,seq=HEADER.unpack(header)
+                if magic!=MAGIC:raise ValueError("bad TCP magic")
+                sec=seq-1000
+                payload=conn.recv(SHORT_BYTES,socket.MSG_WAITALL)
+                if payload!=bytes([(seed+sec)&255])*SHORT_BYTES:
+                    raise ValueError("request payload wrong")
+                time.sleep(1.25)
+                conn.sendall(bytes([(seed+sec+101)&255])*SHORT_BYTES)
+                received.append(sec)
+            except Exception as ex:
+                failures.append(str(ex))
+            finally:
+                conn.close()
+        handlers=[]
+        def accept_three():
+            for _ in range(3):
+                conn,_=listener.accept()
+                t=threading.Thread(target=handle,args=(conn,),daemon=True)
+                t.start()
+                handlers.append(t)
+        accept=threading.Thread(target=accept_three,daemon=True)
+        accept.start()
+        samples=[]
+        due=time.monotonic_ns()+100_000_000
+        short_client(listener.getsockname(),due,3,seed,samples)
+        accept.join(timeout=6)
+        for t in handlers:t.join(timeout=6)
+        listener.close()
+        self.assertEqual(failures,[])
+        self.assertEqual(sorted(received),[0,1,2])
+        self.assertEqual([row["sec"] for row in samples],[0,1,2])
+        self.assertTrue(all(row["classification"]=="RETURNED" for row in samples))
+        self.assertTrue(all(row["rtt_ns"]>1_000_000_000 for row in samples))
+        self.assertEqual(SHORT_IN_FLIGHT_CAP,8)
 
     def test_full_1m_app_write_does_not_claim_it_is_one_ip_packet(self):
         b=bytes([99])*1048576

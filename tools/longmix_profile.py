@@ -20,6 +20,7 @@ FEC_PARITY = 20
 PROBE_PAYLOAD = 96
 PROBE_HZ = 10
 LARGE_ACK_RESERVE_BPS = 8192
+C_LARGE_ACK_RESERVE_BPS = 4096
 LOSS_PERCENTS = (0, 5, 20, 30)
 A_UDP_SHARE = ((96, 5), (256, 5), (512, 5), (1000, 5),
                (1372, 5), (4068, 10), (8972, 15), (8973, 20), (65507, 30))
@@ -54,7 +55,7 @@ def udp_main_bytes_per_second(workload):
     # A separate, always-on 96-byte probe stream and its reverse replies
     # consume identical explicit reservations in BOTH directional UDP quotas.
     return (bytes_per_second(workload.udp_mbps) - PROBE_PAYLOAD * PROBE_HZ
-            - LARGE_ACK_RESERVE_BPS)
+            - (C_LARGE_ACK_RESERVE_BPS if workload.name == 'C' else LARGE_ACK_RESERVE_BPS))
 
 class WeightedUDPSlots:
     """Deterministic virtual byte-fair queue, independent of loss/replies.

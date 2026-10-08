@@ -14,7 +14,7 @@ import threading
 import time
 from pathlib import Path
 
-from longmix_profile import (A_UDP_SHARE, PROBE_HZ, PROBE_PAYLOAD,
+from longmix_profile import (A_UDP_SHARE, C_UDP_SHARE, PROBE_HZ, PROBE_PAYLOAD,
                              WeightedUDPSlots, bytes_per_second)
 from realpath_udp_duplex import (
     KIND_C2S, KIND_S2C, KIND_PROBE, KIND_PROBE_REPLY, KIND_REGISTER,
@@ -26,7 +26,8 @@ ACK_SIZE = 96
 # Keep an independent reverse ACK allowance per direction; never backfill
 # unused bandwidth into another workload. Main sender remains <= nominal 10M.
 ACK_RESERVED_BYTES_PER_SECOND = 8192
-MAX_ACK_EVENTS = 16000
+C_ACK_RESERVED_BYTES_PER_SECOND = 4096
+MAX_ACK_EVENTS = 32768
 MAX_SEND_LAG_NS = 10_000_000
 RECV_BUFFER = 4 << 20
 IP_MTU_DISCOVER = 10
@@ -54,8 +55,9 @@ def new_socket(bind):
 
 
 class Audit:
-    def __init__(self, start_ns, duration_s, drain_s):
+    def __init__(self, start_ns, duration_s, drain_s, shares=A_UDP_SHARE):
         self.stats = Stats(start_ns, duration_s, drain_s)
+        self.shares = tuple(shares)
         self.lock = threading.Lock()
         self.offered = collections.Counter()
         self.attempted = collections.Counter()
@@ -85,8 +87,11 @@ class Audit:
         self.stats.note_send(now_ns, size, lag_ns)
         with self.lock:
             self.successful[size] += 1
-            if size in (8973, 65507):
-                self.big_sent[seq] = (size, now_ns)
+            if size in (8972, 8973, 65507):
+                if len(self.big_sent) < MAX_ACK_EVENTS:
+                    self.big_sent[seq] = (size, now_ns)
+                else:
+                    self.ack_events_dropped += 1
 
     def on_received(self, packet, now_ns, kind):
         # A single data receiver serializes duplicate/valid-first accounting.
@@ -106,6 +111,9 @@ class Audit:
             if seq in self.last_ack_seen:
                 self.ack_duplicate += 1
                 return
+            if len(self.last_ack_seen) >= MAX_ACK_EVENTS:
+                self.ack_events_dropped += 1
+                return
             self.last_ack_seen.add(seq)
             sent = self.big_sent.get(seq)
             if sent is None:
@@ -124,7 +132,7 @@ class Audit:
         st = self.stats.snapshot()
         with self.lock:
             per_size = []
-            for size, pct in A_UDP_SHARE:
+            for size, pct in self.shares:
                 good = self.received_latency_by_size.get(size, [])
                 ack = self.ack_rtt_ns.get(size, [])
                 per_size.append({
@@ -151,6 +159,7 @@ class Audit:
                 "ack_duplicate": self.ack_duplicate, "ack_unknown": self.ack_unknown,
                 "ack_emit_errors": self.ack_emit_errors,
                 "ack_event_cap": MAX_ACK_EVENTS,
+                "ack_events_dropped": self.ack_events_dropped,
                 "recv_header_errors": self.recv_header_errors,
                 "register_received": self.register_received,
                 "probe_request_received": self.probe_request_received,
@@ -171,14 +180,15 @@ def register_until_start(sock, peer, start_ns, seed, stop):
 
 
 def active_data_sender(sock, get_peer, role, seed, rate, start_ns,
-                       duration, audit, stop):
+                       duration, audit, stop, shares=A_UDP_SHARE,
+                       ack_reserve=ACK_RESERVED_BYTES_PER_SECOND):
     if rate <= 0:
         return
     kind = KIND_C2S if role == "biz" else KIND_S2C
-    main_per_sec = bytes_per_second(rate) - PROBE_PAYLOAD * PROBE_HZ - ACK_RESERVED_BYTES_PER_SECOND
+    main_per_sec = bytes_per_second(rate) - PROBE_PAYLOAD * PROBE_HZ - ack_reserve
     if main_per_sec <= 0:
         raise ValueError("nonpositive UDP main allocation")
-    sizes = WeightedUDPSlots(A_UDP_SHARE)
+    sizes = WeightedUDPSlots(shares)
     cumulative = 0
     seq = 0
     end_ns = start_ns + int(duration * 1e9)
@@ -246,7 +256,7 @@ def active_data_receiver(sock, get_peer, set_peer, role, audit, stop_ns, stop):
                 audit.stats.unexpected += 1
             continue
         accepted = audit.on_received(p, now, expected_kind)
-        if accepted and p["size"] in (8973, 65507):
+        if accepted and p["size"] in (8972, 8973, 65507):
             # A 96-byte independent ACK to correlate the large datagram's RTT.
             # ACK loss is separate from the target's valid-first receive.
             try:
@@ -320,6 +330,7 @@ def probe_sender(sock, peer, start_ns, duration, seed, audit, stop):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--role", choices=("biz", "target"), required=True)
+    ap.add_argument("--workload", choices=("A","C"), default="A")
     ap.add_argument("--bind", required=True)
     ap.add_argument("--peer")
     ap.add_argument("--start-ns", type=int, required=True)
@@ -330,8 +341,12 @@ def main():
     ap.add_argument("--output", required=True)
     ap.add_argument("--bounded-stats", action="store_true")
     args = ap.parse_args()
-    if args.duration != 300 or args.drain != 10 or args.rate_mbps != 10:
-        ap.error("A qualification must be 300s+10s and 10Mbps each direction")
+    expected_rate = 10 if args.workload == "A" else 5
+    if args.duration != 300 or args.drain != 10 or args.rate_mbps != expected_rate:
+        ap.error("A and C require 300s+10s and their fixed UDP 10/5Mbps quotas")
+    shares = A_UDP_SHARE if args.workload == "A" else C_UDP_SHARE
+    ack_reserve = (ACK_RESERVED_BYTES_PER_SECOND if args.workload == "A"
+                   else C_ACK_RESERVED_BYTES_PER_SECOND)
     if args.role == "biz" and not args.peer:
         ap.error("biz requires an explicit tunnel destination")
     bind = parse_addr(args.bind)
@@ -355,8 +370,8 @@ def main():
     start = args.start_ns
     stop_ns = start + int((args.duration + args.drain) * 1e9)
     stop = threading.Event()
-    audit = Audit(start, args.duration, args.drain)
-    probe_audit = Audit(start, args.duration, args.drain)
+    audit = Audit(start, args.duration, args.drain, shares)
+    probe_audit = Audit(start, args.duration, args.drain, shares)
     thread_list = [
         threading.Thread(target=active_data_receiver,
                          args=(data, get_peer, set_peer, args.role, audit, stop_ns, stop)),
@@ -377,13 +392,14 @@ def main():
     cpu0 = time.process_time()
     active_data_sender(data, get_peer, args.role, args.seed,
                        whole_measured_mbps(args.rate_mbps),
-                       start, args.duration, audit, stop)
+                       start, args.duration, audit, stop, shares, ack_reserve)
     wait_until(stop_ns)
     stop.set()
     for t in thread_list:
         t.join(timeout=1)
     result = {
-        "schema": "wbd-longmix-udp-a/v1",
+        "schema": "wbd-longmix-udp-"+args.workload.lower()+"/v1",
+        "workload": args.workload,
         "role": args.role, "source_seed": args.seed,
         "start_monotonic_ns": start, "duration_s": args.duration,
         "drain_s": args.drain, "rate_target_mbps": args.rate_mbps,
@@ -400,19 +416,19 @@ def main():
         "probe_request_received": probe_audit.probe_request_received,
         "probe_reply_errors": probe_audit.probe_reply_errors,
         "byte_quota": {
-            "total": int(bytes_per_second(10)),
+            "total": int(bytes_per_second(expected_rate)),
             "probe_reserved_per_second": PROBE_PAYLOAD * PROBE_HZ,
-            "large_ack_reserved_per_second": ACK_RESERVED_BYTES_PER_SECOND,
+            "large_ack_reserved_per_second": ack_reserve,
             "main_sender_limit_per_second":
-                int(bytes_per_second(10) - PROBE_PAYLOAD * PROBE_HZ -
-                    ACK_RESERVED_BYTES_PER_SECOND),
+                int(bytes_per_second(expected_rate) - PROBE_PAYLOAD * PROBE_HZ -
+                    ack_reserve),
             "unused_reserved_budget_not_reallocated": True,
         }
     }
     data.close()
     probe.close()
     Path(args.output).write_text(json.dumps(result, separators=(",", ":")) + "\n")
-    print("WBD_LONGMIX_UDP_A_RECORDED", args.role,
+    print("WBD_LONGMIX_UDP_RECORDED", args.workload, args.role,
           "sent", result["data"]["stats"]["sent_bytes"],
           "received", result["data"]["stats"]["recv_unique_bytes"])
 

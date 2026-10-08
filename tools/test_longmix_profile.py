@@ -49,7 +49,7 @@ class PlanContract(unittest.TestCase):
         self.assertEqual(PROBE_HZ, 10)
         self.assertEqual(PROBE_PAYLOAD, 96)
         self.assertEqual(udp_main_bytes_per_second(WORKLOADS["A"]), 1240848)
-        self.assertEqual(udp_main_bytes_per_second(WORKLOADS["C"]), 615848)
+        self.assertEqual(udp_main_bytes_per_second(WORKLOADS["C"]), 619944)
         self.assertEqual(udp_main_bytes_per_second(WORKLOADS["B"]), 0)
         self.assertEqual(bytes_per_second(10), 1250000)
 

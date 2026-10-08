@@ -456,7 +456,9 @@
     },
     "classification": "FAIL",
     "artifact_id": 11529938114,
-    "short_client_bug": "serial TCP 1Hz handshake+request RTT about1.2s exceeds schedule; 50 skipped starts; fix concurrent bounded short request scheduling before further qualification"
+    "short_client_bug": "serial TCP 1Hz handshake+request RTT about1.2s exceeds schedule; 50 skipped starts; fix concurrent bounded short request scheduling before further qualification",
+    "short_client_fix": "candidate: bounded concurrency8, scheduled 1Hz independent TCP short requests; new socket functional test 1.25s service latency; qualification pending",
+    "repeat_b0": "NOT_RUN"
   },
   "minimal_product_repair": {
     "branch": "investigation/longmix-no-udp-truncation-20261008",
@@ -471,5 +473,52 @@
     ],
     "physical": "NOT_RUN",
     "fullstack_performance_on_new_source": "NOT_RUN"
+  },
+  "mixed_c_candidate": {
+    "status": "HELPER_PREFLIGHT_PENDING",
+    "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "helper_sha": "PENDING_PREFLIGHT",
+    "fullstack_samples": "NOT_RUN",
+    "nominal_each_direction_mbps": 10,
+    "tcp_mbps": 5,
+    "udp_mbps": 5,
+    "share_C": [
+      [
+        96,
+        10
+      ],
+      [
+        512,
+        10
+      ],
+      [
+        1372,
+        10
+      ],
+      [
+        8972,
+        15
+      ],
+      [
+        8973,
+        25
+      ],
+      [
+        65507,
+        30
+      ]
+    ],
+    "udp_probe_hz": 10,
+    "tcp_long_connections": 3,
+    "tcp_short_requests_hz": 1,
+    "udp_ack_reserved_bytes_per_second": 4096,
+    "udp_main_limit_bytes_per_second": 619944,
+    "protocols_one_sample": true,
+    "scope": "one formal client/server pair, real UDP and TCP business processes, Linux netns/TPROXY/TUN/AF_PACKET, do not confuse with parallel performance samples",
+    "warnings": [
+      "Linux TPROXY cannot currently carry UDP>8936; expect C0 failure independent of real TCP results",
+      "TCP source backpressure may limit target injection",
+      "No C real run started"
+    ]
   }
 }

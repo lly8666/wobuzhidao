@@ -220,33 +220,66 @@ class OneFlow:
         }
 
 
+SHORT_IN_FLIGHT_CAP = 8
+
+
+def short_request(peer, sec, seed, due_ns, samples, slots):
+    """One independently scheduled genuine TCP request/response stream."""
+    now = now_ns()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(3.0)
+    try:
+        sock.connect(peer)
+        sock.sendall(HEADER.pack(MAGIC, 1000+sec))
+        data = bytes([(seed+sec)&255])*SHORT_BYTES
+        sock.sendall(data)
+        got = read_exact(sock, SHORT_BYTES, now_ns()+4_000_000_000)
+        if got != bytes([(seed+sec+101)&255])*SHORT_BYTES:
+            raise ValueError("short reply integrity mismatch")
+        samples.append({"sec":sec, "classification":"RETURNED",
+                        "rtt_ns":now_ns()-now,
+                        "start_lag_ns":max(0, now-due_ns),
+                        "tx_bytes":SHORT_BYTES, "rx_bytes":SHORT_BYTES,
+                        "tcp_maxseg":sock.getsockopt(socket.IPPROTO_TCP,TCP_MAXSEG_OPT)})
+    except (OSError, ValueError, TimeoutError, ConnectionError) as ex:
+        samples.append({"sec":sec, "classification":"FAIL",
+                        "start_lag_ns":max(0,now-due_ns),
+                        "error":str(ex)[:130]})
+    finally:
+        sock.close()
+        slots.release()
+
+
 def short_client(peer, start_ns, duration_s, seed, samples):
-    for sec in range(int(duration_s)):
-        if len(samples)>=MAX_SHORT_EVENTS:
-            break
-        wait_until_ns(start_ns+sec*1_000_000_000)
-        now=now_ns()
-        if now>start_ns+int((sec+1)*1e9):
-            samples.append({"sec":sec,"classification":"MISSED_SCHEDULE"})
-            continue
-        sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        sock.settimeout(2.0)
-        try:
-            sock.connect(peer)
-            sock.sendall(HEADER.pack(MAGIC,1000+sec))
-            payload=bytes([(seed+sec)&255])*SHORT_BYTES
-            sock.sendall(payload)
-            got=read_exact(sock,SHORT_BYTES,now_ns()+3_000_000_000)
-            if got!=bytes([(seed+sec+101)&255])*SHORT_BYTES:
-                raise ValueError("short reply integrity mismatch")
-            samples.append({"sec":sec,"classification":"RETURNED",
-                            "rtt_ns":now_ns()-now,"tx_bytes":SHORT_BYTES,
-                            "rx_bytes":SHORT_BYTES,
-                            "tcp_maxseg":sock.getsockopt(socket.IPPROTO_TCP,TCP_MAXSEG_OPT)})
-        except (OSError,ValueError,TimeoutError,ConnectionError) as ex:
-            samples.append({"sec":sec,"classification":"FAIL","error":str(ex)[:130]})
-        finally:
-            sock.close()
+    """Independent 1Hz starts; no serial 600ms+600ms wait causing skipped slots.
+
+    At most eight simultaneous application requests. Missing schedule slots
+    are counted explicitly, not folded into returned RTT or hidden as loss.
+    """
+    slots = threading.BoundedSemaphore(SHORT_IN_FLIGHT_CAP)
+    threads = []
+    try:
+        for sec in range(int(duration_s)):
+            if len(samples) >= MAX_SHORT_EVENTS:
+                break
+            due = start_ns+sec*1_000_000_000
+            wait_until_ns(due)
+            now = now_ns()
+            if now>due+100_000_000:
+                samples.append({"sec":sec,"classification":"MISSED_SCHEDULE",
+                                "start_lag_ns":now-due})
+                continue
+            if not slots.acquire(blocking=False):
+                samples.append({"sec":sec,"classification":"MISSED_CONCURRENCY_BUDGET"})
+                continue
+            worker=threading.Thread(target=short_request,
+                   args=(peer,sec,seed,due,samples,slots),daemon=True)
+            worker.start()
+            threads.append(worker)
+    finally:
+        for worker in threads:
+            worker.join(timeout=5)
+        samples.sort(key=lambda x:x["sec"])
 
 
 def short_server(sock, index, seed, samples, stop_ns):
