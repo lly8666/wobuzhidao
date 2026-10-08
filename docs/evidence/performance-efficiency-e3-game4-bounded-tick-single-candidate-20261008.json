@@ -1,0 +1,68 @@
+{
+  "schema": "wbd-e3-game4-zero-backlog-async-maintenance-first-sample/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_source_commit": "19e5b19245bed8691bbb5e7053ad27a0268c893d",
+  "new_helper_sha": "OWN_SHA_AFTER_GITHUB_COMMIT",
+  "product_source_sha": "19e5b19245bed8691bbb5e7053ad27a0268c893d",
+  "workload_config": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1825,
+    "product_source_sha": "19e5b19245bed8691bbb5e7053ad27a0268c893d",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "qualification_before_dispatch": {
+    "foundation": {
+      "id": 37800870550,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37800870550",
+      "conclusion": "success",
+      "jobs": "repository contract, Linux/Windows unit, Go -race and fuzz, Linux TUN nft/iptables, OpenWrt TPROXY, kernel fallback"
+    },
+    "lifecycle": {
+      "id": 37800870646,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37800870646",
+      "conclusion": "success",
+      "coverage": "lifecycle and race, generation, previous receiver regression"
+    }
+  },
+  "performance_run": {
+    "status": "NOT_OBSERVED_UNTIL_ACTIONS_CREATES_RUN",
+    "one_sample": true,
+    "workflow": ".github/workflows/next-efficiency-e0-single.yml"
+  },
+  "sample_contract": {
+    "game_lanes": 4,
+    "logical_mbps_each_direction": 3,
+    "workload": "mixed_real_tcp_udp_http_https",
+    "loss_percent": 0,
+    "delay_one_way_ms": 300,
+    "duration_s": 300,
+    "drain_s": 3,
+    "profile": "off",
+    "outer_mtu": 1400,
+    "auto_record_limit": 0,
+    "fec": "20:20",
+    "padding": "off",
+    "formal_client_tproxy_server_tun": true
+  },
+  "primary_failure_exit": [
+    "C2S and S2C UDP missing zero under lossless outer qdisc",
+    "Independently probed C2S S2C missing zero, p99 no artificial gap, no TCP/HTTP/HTTPS hash regression",
+    "Whole workflow analyzer gate PASS, not just business traffic step",
+    "host qdisc/socket/softirq/PSI/CPU quota, CPU/GiB, lossless integrity and actual TUN MTU"
+  ],
+  "considerations": [
+    "No Go allocations reported on true diagnostic-OFF unless collected independently",
+    "Ready overflow counters require separate profile-ON run; do not claim they are zero",
+    "Coalesced TCP ticks can delay true-loss repair; complete staged 5205 separately",
+    "One worker per logical tunnel 0 queued, not a new inbound pot; authenticated owner common PacketID remains",
+    "Old Game4 E2 profile-off run37797087655 FAIL C2S UDP1906 probes23/31, and old 37788802499 profile ON FAIL ready317739",
+    "Product CPU normalized across same stratum with 3 independent references before claims",
+    "E7 80s S2C OPEN; P6 and physical NOT_RUN"
+  ]
+}
