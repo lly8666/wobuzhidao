@@ -1,0 +1,122 @@
+{
+  "schema": "wbd-efficiency-e0-profileoff-baseline/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "baseline_helper_sha": "e2551aebbeeed5220dc35666f60879ad54cf7ac1",
+  "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "workflow": "next-efficiency-e0-single.yml",
+  "run_id": 37761141407,
+  "job_id": 113257560841,
+  "run_attempt": 1,
+  "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37761141407",
+  "artifact_id": 11542641955,
+  "artifact_name": "efficiency-e0-sample-37761141407",
+  "artifact_bytes": 338780,
+  "original_workflow_result": "success",
+  "original_analysis": "PASS_SCOPED_ACTIONS",
+  "original_issues": [],
+  "qualified_scope": "E0 Normal single-lane ordinary UDP lossless profile-off 300s, not E0 entire workload, not CPU optimization",
+  "settings": {
+    "workload": "udp",
+    "sizes_bytes": [
+      96,
+      256,
+      512,
+      1000,
+      1372,
+      4068
+    ],
+    "loss_percent": 0,
+    "seed": 1801,
+    "lanes": 1,
+    "mode": "normal",
+    "logical_rate_mbps_per_direction": 10,
+    "duration_s": 300,
+    "drain_s": 3,
+    "one_way_netem_delay_ms": 300,
+    "padding": "off",
+    "fec": "20:20",
+    "configured_outer_mtu": 1400,
+    "formal_record_limit_configured": 0,
+    "actual_server_tun_mtu": 1273,
+    "formal_default_tick_ms": 100,
+    "profile_enabled": false,
+    "diagnostic_jsonl_present": false
+  },
+  "directions": {
+    "c2s": {
+      "sent_bytes": 375002412,
+      "receiver_bytes": 374858412,
+      "sent_mbps": 10.00006432,
+      "goodput_mbps": 9.99622432,
+      "udp_datagram_missing": 0,
+      "udp_corrupt": 0,
+      "send_error": 0,
+      "inject_skipped": 0,
+      "probe_sent": 1500,
+      "probe_returned": 1500,
+      "probe_missing": 0,
+      "returned_p99_ms": 602.418384,
+      "active_zero_business_10ms_buckets": 0
+    },
+    "s2c": {
+      "sent_bytes": 375001932,
+      "receiver_bytes": 374858412,
+      "sent_mbps": 10.00005152,
+      "goodput_mbps": 9.99622432,
+      "udp_datagram_missing": 0,
+      "udp_corrupt": 0,
+      "send_error": 0,
+      "inject_skipped": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1495,
+      "probe_missing": 0,
+      "returned_p99_ms": 602.328961,
+      "active_zero_business_10ms_buckets": 0
+    }
+  },
+  "cpu_resources": {
+    "host_cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "runner_os": "ubuntu-24.04 Azure Linux",
+    "architecture": "x86_64",
+    "logical_cpus": 4,
+    "cgroup_cpu_quota": "unavailable/not established, do not assume unrestricted",
+    "host_steal_max_percent": 0,
+    "host_busy_max_percent": 30.340557275541794,
+    "cpu_psi_some_avg10_max": 31.89,
+    "client_cpu_seconds_300s": 146.66,
+    "server_cpu_seconds_300s": 146.35,
+    "client_hwm_mib": 32.3046875,
+    "server_hwm_mib": 32.84765625,
+    "packet_socket_drop": 0,
+    "interface_drop": 0,
+    "capacity_limit_evidenced": false,
+    "host_contention_limitation": "CPU PSI up to 31.89%, no cgroup quota proof. Cannot infer headroom solely from drop0."
+  },
+  "binary_sha256": {
+    "client": "f14409ad6bcc8a0296be59a319de35e35f5a86e21cfbc348c1dde35dc6eeeec5",
+    "server": "498728fcea780294643e0dd82273a82824294de9c05d67f641a959513dbefe16"
+  },
+  "comparison_prohibited": {
+    "prior_37755799764": {
+      "helper": "863e4e4552696cc11e3bcf2b2fd5438f2f9cb28d",
+      "cpu_client_s": 118.26,
+      "cpu_server_s": 118.02,
+      "host_cpu": "Intel Xeon Platinum 8370C",
+      "diagnostics": "on_server_per_record",
+      "drain_s": 15
+    },
+    "reason": "different CPU models, diag on/off, drain, scheduler/noise; not A/B, no measured benefit"
+  },
+  "unknowns": [
+    "no TCP/HTTP/HTTPS/mixed/Game4",
+    "no jumbo 8936 boundary/8972/8973/65507 coverage",
+    "normal CPU budget is a baseline observation without allocation/batch/repair Go diagnostic",
+    "separate diagnostic-on run required for allocation/batch/repair ledger",
+    "runner cgroup quota unresolved",
+    "E1-E7 and E6/P6 not done",
+    "E7 original 80s downlink OPEN, physical NOT_RUN"
+  ],
+  "no_performance_improvement_claim": true,
+  "never_physical_pass": true
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_HELPER_PREFLIGHT_FAILURE_FIXED_PENDING_RUN",
+    "phase": "E0_ORDINARY_UDP_NORMAL_OFF_PASS_PARTIAL",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -22,7 +22,7 @@
     },
     "optimization_implemented": false,
     "integration_core": "PASS_SOURCE_BF11FBF",
-    "ordinary_performance": "NOT_QUALIFIED",
+    "ordinary_performance": "NORMAL_UDP_LOSSLESS_PROFILE_OFF_PASS_SCOPED_ONLY",
     "physical": "NOT_RUN_NEW_SOURCE",
     "e0_audit": {
       "state": "AUDIT_ONLY",
@@ -35,7 +35,7 @@
     "e0_helper": {
       "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
       "helper_sha": "workflow GITHUB_SHA of helper candidate commit",
-      "status": "SCENARIO_PREFLIGHT_FIXED_PENDING_ACTIONS",
+      "status": "ACTIONS_NORMAL_UDP_TRUE_OFF_PASS_SCOPED",
       "sample": {
         "workload": "udp",
         "loss": 0,
@@ -74,10 +74,25 @@
       "reason": "NameError_os_missing",
       "measurement": "NOT_RUN",
       "evidence": "docs/evidence/performance-efficiency-e0-run37760789251-preflight-fail.json"
+    },
+    "e0_profile_off_baseline": {
+      "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "helper_source_sha": "e2551aebbeeed5220dc35666f60879ad54cf7ac1",
+      "run_id": 37761141407,
+      "artifact_id": 11542641955,
+      "original_decision": "PASS_SCOPED_ACTIONS",
+      "scope": "E0 Normal single-lane ordinary UDP lossless profile-off 300s, not E0 entire workload, not CPU optimization",
+      "runner_cpu": "AMD EPYC 7763",
+      "cpu_s": {
+        "client": 146.66,
+        "server": 146.35
+      },
+      "evidence": "docs/evidence/performance-efficiency-e0-udp-normal-off-37761141407.json",
+      "comparable_cpu_benefit": "NONE"
     }
   },
-  "next_task": "E0: first read exact-helper successor Actions with preflight import fixed; user-specified Normal UDP ordinary 10Mbps/dir 300s 3s drain profile truly off. Preserve run37760789251 preflight failure; no performance data from it. Next independent E0 TCP/mixed/Game4/jumbo runs and diagnostics CPU/PPS/alloc/batch/repair ledger. E1-E7 not complete; 80s S2C OPEN deferred E7, no physical.",
-  "latest_log": "docs/devlog/20261008-e0-preflight-import-failure-and-repair.md",
+  "next_task": "E0: build and Actions-qualify true four-flow sustained TCP + short certificate-verified HTTP/HTTPS, then TCP+UDP mixed and Game4 3Mbps each direction; each separate single-sample Action. Ensure total business byte budget and probe return/missing, 3s drain, automatic MTU/record. Profile-on diagnostic ledger separate; no cross-AMD/Intel CPU improvement comparison. E1 starts only after credible E0 normal+Game profile-off and cost ledger; 80s downlink deferred E7 OPEN, P6 and physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-ordinary-udp-true-profile-off-baseline.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
