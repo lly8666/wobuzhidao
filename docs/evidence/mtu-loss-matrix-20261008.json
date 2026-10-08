@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "scope": "HOSTED_SIMULATION_NO_WBD_E2E",
+  "source_sha": "db3f27ff7633fabe2c003d9432ba57f6efd1093d",
+  "test_branch": "work/mtu-loss-matrix-20261008",
+  "evidence_branch": "investigation/mtu-loss-matrix-qualification-20261008",
+  "history": [
+    {
+      "run_id": 37743142959,
+      "source_sha": "42938b7252b2be0043ddaa62d6d516eeec909c81",
+      "conclusion": "FAIL",
+      "passed": 35,
+      "failed": 1,
+      "failure": "1300/5pct kernel UDP fewer than 10 of 88 actually delivered; original fixture lacked count diagnostics",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743142959",
+      "attempt": 1
+    },
+    {
+      "run_id": 37743460100,
+      "source_sha": "ad1dffcd40e324a2bd0a8ac0adb1bb41378952c0",
+      "conclusion": "FAIL",
+      "passed": 24,
+      "failed": 12,
+      "failure": "runner tc netem seed argument rejected during qdisc creation for all lossy kernel jobs",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743460100",
+      "attempt": 1
+    },
+    {
+      "run_id": 37743578571,
+      "source_sha": "db3f27ff7633fabe2c003d9432ba57f6efd1093d",
+      "conclusion": "PASS",
+      "passed": 36,
+      "failed": 0,
+      "failure": null,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571",
+      "attempt": 1
+    }
+  ],
+  "latest": {
+    "run_id": 37743578571,
+    "source_sha": "db3f27ff7633fabe2c003d9432ba57f6efd1093d",
+    "conclusion": "PASS",
+    "job_count": 36,
+    "successful": 36,
+    "failed": 0,
+    "attempt": 1,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571",
+    "artifact_ids": [],
+    "jobs": [
+      {
+        "name": "mtu-kernel-tcp-o1300-loss0",
+        "job_id": 113199709394,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709394"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1300-loss10",
+        "job_id": 113199709438,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709438"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1300-loss5",
+        "job_id": 113199709371,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709371"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1400-loss0",
+        "job_id": 113199709348,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709348"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1400-loss10",
+        "job_id": 113199709291,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709291"
+      },
+      {
+        "name": "mtu-kernel-tcp-o1400-loss5",
+        "job_id": 113199709226,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709226"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1300-loss0",
+        "job_id": 113199709293,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709293"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1300-loss10",
+        "job_id": 113199709393,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709393"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1300-loss5",
+        "job_id": 113199709349,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709349"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1400-loss0",
+        "job_id": 113199709275,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709275"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1400-loss10",
+        "job_id": 113199711036,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199711036"
+      },
+      {
+        "name": "mtu-kernel-udp-jumbo-o1400-loss5",
+        "job_id": 113199710936,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199710936"
+      },
+      {
+        "name": "mtu-kernel-udp-o1300-loss0",
+        "job_id": 113199709353,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709353"
+      },
+      {
+        "name": "mtu-kernel-udp-o1300-loss10",
+        "job_id": 113199709224,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709224"
+      },
+      {
+        "name": "mtu-kernel-udp-o1300-loss5",
+        "job_id": 113199709376,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709376"
+      },
+      {
+        "name": "mtu-kernel-udp-o1400-loss0",
+        "job_id": 113199709463,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709463"
+      },
+      {
+        "name": "mtu-kernel-udp-o1400-loss10",
+        "job_id": 113199709288,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709288"
+      },
+      {
+        "name": "mtu-kernel-udp-o1400-loss5",
+        "job_id": 113199709377,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199709377"
+      },
+      {
+        "name": "mtu-link-tcp-o1300-loss0",
+        "job_id": 113199711093,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199711093"
+      },
+      {
+        "name": "mtu-link-tcp-o1300-loss10",
+        "job_id": 113199711208,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199711208"
+      },
+      {
+        "name": "mtu-link-tcp-o1300-loss5",
+        "job_id": 113199710873,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199710873"
+      },
+      {
+        "name": "mtu-link-tcp-o1400-loss0",
+        "job_id": 113199711161,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199711161"
+      },
+      {
+        "name": "mtu-link-tcp-o1400-loss10",
+        "job_id": 113199711367,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199711367"
+      },
+      {
+        "name": "mtu-link-tcp-o1400-loss5",
+        "job_id": 113199711080,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199711080"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1300-loss0",
+        "job_id": 113199712823,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199712823"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1300-loss10",
+        "job_id": 113199712854,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199712854"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1300-loss5",
+        "job_id": 113199712957,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199712957"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1400-loss0",
+        "job_id": 113199713011,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199713011"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1400-loss10",
+        "job_id": 113199713250,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199713250"
+      },
+      {
+        "name": "mtu-link-udp-jumbo-o1400-loss5",
+        "job_id": 113199713088,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199713088"
+      },
+      {
+        "name": "mtu-link-udp-o1300-loss0",
+        "job_id": 113199711105,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199711105"
+      },
+      {
+        "name": "mtu-link-udp-o1300-loss10",
+        "job_id": 113199712451,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199712451"
+      },
+      {
+        "name": "mtu-link-udp-o1300-loss5",
+        "job_id": 113199711167,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199711167"
+      },
+      {
+        "name": "mtu-link-udp-o1400-loss0",
+        "job_id": 113199712523,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199712523"
+      },
+      {
+        "name": "mtu-link-udp-o1400-loss10",
+        "job_id": 113199712766,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199712766"
+      },
+      {
+        "name": "mtu-link-udp-o1400-loss5",
+        "job_id": 113199712738,
+        "status": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37743578571/job/113199712738"
+      }
+    ]
+  },
+  "matrix": {
+    "outer_mtus": [
+      1300,
+      1400
+    ],
+    "loss_percent": [
+      0,
+      5,
+      10
+    ],
+    "traffic": [
+      "tcp",
+      "udp",
+      "udp-jumbo"
+    ],
+    "scope": [
+      "kernel",
+      "link"
+    ],
+    "parallel_max": 6
+  },
+  "assertions": {
+    "tcp": "Full ordered stream incl >MTU writes at each loss level; Linux TCP retransmits, peer MSS <= inner MTU minus 40.",
+    "udp": "At 0pct all 88/88 per kernel job; 5/10pct received datagram exact-byte validated, no guaranteed 100pct delivery.",
+    "jumbo": "At 0pct all 8/8 per kernel job, incl UDP payload 65507; 5/10pct missing jumbo allowed due IP fragment loss; no truncation on successful receive.",
+    "df": "IPv4 DF oversize UDP returns EMSGSIZE; 65508B UDP IPv4 limit returns EMSGSIZE.",
+    "link": "Budget 1250 wire cap, LINK frame 1219, FEC off; exact bytes of completed datagrams after seeded frame erasure; no app/TUN qualification."
+  },
+  "examples": {
+    "kernel_udp_1300_loss0": {
+      "delivered": 88,
+      "sent": 88
+    },
+    "kernel_udp_1300_loss5": {
+      "delivered": 81,
+      "sent": 88
+    },
+    "kernel_udp_1300_loss10": {
+      "delivered": 77,
+      "sent": 88
+    },
+    "kernel_udp_jumbo_1300_loss0": {
+      "delivered": 8,
+      "sent": 8
+    },
+    "kernel_udp_jumbo_1300_loss5": {
+      "delivered": 1,
+      "sent": 8
+    },
+    "kernel_udp_jumbo_1300_loss10": {
+      "delivered": 1,
+      "sent": 8
+    },
+    "kernel_udp_jumbo_1400_loss5": {
+      "delivered": 0,
+      "sent": 8
+    },
+    "link_udp_jumbo_1300_loss0": {
+      "delivered": 48,
+      "sent": 48
+    },
+    "link_udp_jumbo_1300_loss10": {
+      "delivered": 18,
+      "sent": 48
+    }
+  },
+  "explicit_not_run": [
+    "Actual Windows Wintun",
+    "whole WBD client-server encrypted dataplane",
+    "platformflow 8936 end-to-end",
+    "FEC enabled",
+    "physical WAN/NIC",
+    "intermediate-hop PMTUD ICMP",
+    "300-second performance",
+    "CPU PPS p99"
+  ]
+}
