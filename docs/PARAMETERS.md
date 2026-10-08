@@ -120,3 +120,16 @@ Linux 客户端和服务端统一参数 `raw-recv-buffer` 表示传给 `SO_RCVBU
 客户端在建lane之后配置接口，但后续replacement lane的实际peer MSS可能不同；服务端TUN是跨客户端共享的。静态接口估算不使用某个单独peer的MSS，runtime记录预算仍使用真实协商MSS、实际长度及路径限幅，必要时LINK再次分片。此改动不是PMTU探测；路径本地比外层配置更小时必须取得真实证据和修正预算，不会因30%丢包自动缩小。保留网络计划原owned-only Wintun MTU Apply/Cleanup和Linux managed journal恢复。
 
 `logicaltunnel.MaxLeasedIPv4PacketLen=9000`是独立逻辑IP包校验边界；`platformflow.MaxPayload=8936`是独立UDP帧能力缺口，绝不能把缩小TUN MTU误报为已支持8972/8973/65507B UDP，也不能静默截断或拆成多个应用UDP消息。DF只限制IP片，不限制LINK片。历史内层9000减少巨大UDP IP分片的收益与原12条长测FAIL保持不动，普通TCP MSS、UDP完整性、p99/吞吐需新SHA Actions资格验证后才能评估。
+
+
+## 2026-10-08 外层 MTU 自动预算增量（以本节取代上述早期静态推导样例）
+
+不增加第二个用户 MTU。Windows/Linux 客户端 `client-record-limit` 与 Linux 服务端 `server-record-limit` 默认从固定1300/1250改为 `0`（auto），由当前 `--mtu` 扣配置外层IPv4/TCP头求出最大可用 record wire 上限；显式非零值是上限，无法突破外层预算。runtime仍独立限制实际 peer MSS、实际头/路径，握手保持原 v2 negotiation。Windows 和 Linux shared TUN 用各自入向记录的有效 budget 推导 `max(576, LinkFrameMTU)`，因为普通未 LINK 分片的 IPv4 包不消耗20字节分片封套。FEC启用时照扣56字节。不强制双端一致配置；但 MTU 或手工record cap不同可令对端某些包在运行时LINK分片。推荐对称的外层 MTU、仅在实测有必要时人工调低 record cap。
+
+| 外层MTU | 默认双向record wire | FEC关闭时TUN | FEC开启时TUN |
+| --- | --- | --- | --- |
+| 1300 | 1260 | 1229 | 1173 |
+| 1400 | 1360 | 1329 | 1273 |
+| 1500 | 1460 | 1429 | 1373 |
+
+不改变 `logicaltunnel.MaxLeasedIPv4PacketLen=9000`、`platformflow.MaxPayload=8936`、旧12条longmix FAIL。0/5/10% hosted kernel+LINK 矩阵不等于真实Wintun、完整WBD加密通道、实际网络PMTU或性能验收。修改候选按其独立 Actions SHA/STATUS 记录结论，不能援引旧成功来替代。

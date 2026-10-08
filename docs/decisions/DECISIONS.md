@@ -46,3 +46,8 @@
 ### 2026-10-08 用户决定恢复外层预算驱动内层MTU
 
 为优先处理普通TCP/UDP吞吐、首次有效交付、p99与no-HOL，接受极大UDP在高丢包下更多IP分片的代价；Windows及Linux shared TUN接口MTU由现有pathmtu预算自动导出，不再永久9000。无新增用户MTU、无wire/FEC/Game/repair/4096调整。静态接口不是动态peer MSS/PMTU，不能保证单LINK片；逻辑9000与UDP frame8936不改，历史证据原样保留。候选资格为NOT_RUN，必须新精确SHA Actions测试。
+
+
+### 2026-10-08 后续优化：从外层MTU自动派生各层可用上限
+
+保留唯一 `--mtu` 用户外层配置、可选方向record cap；将两端旧固定1300/1250默认转为0=auto，并按配置头预算和真正的tlsrecord最大值限幅。更小的手工cap继续收紧，实际lane保留MSS/真实headers/path预算。共享TUN取静态方向LinkFrameMTU（裸IPv4不扣不存在的LINK分片头），576最低接口限制可导致额外LINK分片。不能把该变更描述成线上实测吞吐提升，也不改协议字段、FEC/repair/Game、逻辑9000/UDP8936、旧longmix失败。必须以新 SHA 独立 Actions 验证。

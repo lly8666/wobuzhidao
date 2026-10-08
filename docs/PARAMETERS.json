@@ -25,8 +25,8 @@
       },
       "client-record-limit": {
         "type": "Uint",
-        "default_expression": "1300",
-        "help": "server-to-client TLS-like record wire limit",
+        "default_expression": "0",
+        "help": "server-to-client TLS-like record wire limit; 0=auto outer MTU budget",
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
@@ -314,8 +314,8 @@
       },
       "client-record-limit": {
         "type": "Uint",
-        "default_expression": "1300",
-        "help": "server-to-client TLS-like record wire limit",
+        "default_expression": "0",
+        "help": "server-to-client TLS-like record wire limit; 0=auto outer MTU budget",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
@@ -729,8 +729,8 @@
       },
       "server-record-limit": {
         "type": "Uint",
-        "default_expression": "1250",
-        "help": "client-to-server TLS-like record wire limit",
+        "default_expression": "0",
+        "help": "client-to-server TLS-like record wire limit; 0=auto outer MTU budget",
         "source": "cmd/wbd-server/main_linux.go",
         "json": true
       },

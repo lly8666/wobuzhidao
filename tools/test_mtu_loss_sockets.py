@@ -21,7 +21,7 @@ import time
 A, B = "198.18.44.1", "198.18.44.2"
 PORT = 28641
 PMTUDISC_DONT, PMTUDISC_DO = 0, 2
-OUTER_TO_INNER = {1300: 1209, 1400: 1249}  # current Windows derived, FEC off
+OUTER_TO_INNER = {1300: 1229, 1400: 1329}  # auto record=outer-40, FEC off: inner=record-31
 
 
 def checked(cmd, timeout=55):
