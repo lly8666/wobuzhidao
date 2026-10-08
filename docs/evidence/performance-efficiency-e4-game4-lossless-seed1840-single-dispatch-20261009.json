@@ -27,10 +27,11 @@
     "actual_tun_mtu": "READ_FROM_ARTIFACT"
   },
   "single_sample_per_run": true,
-  "run_id": null,
-  "artifact_id": null,
-  "analyzer": "NOT_RUN",
-  "result": "PENDING_ACTION",
+  "run_id": 37857040784,
+  "artifact_id": 11583983972,
+  "analyzer": "FAIL",
+  "result": "FAIL_RESOURCE_AUDIT_WARNINGS_LOCAL_SOCKET_DROP",
   "no_inherited_pass": true,
-  "no_cpu_claim": true
+  "no_cpu_claim": true,
+  "resolved_evidence": "docs/evidence/performance-efficiency-e4-game4-lossless-off-run37857040784.json"
 }

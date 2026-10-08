@@ -1,0 +1,168 @@
+{
+  "schema": "wbd-efficiency-one-sample-original-analysis/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "2b51c960b9959f98e546e7fabca2e116e5ac8f45",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_sha": "2b51c960b9959f98e546e7fabca2e116e5ac8f45",
+  "run_id": 37857040784,
+  "job_id": 113583590325,
+  "artifact_id": 11583983972,
+  "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37857040784",
+  "source_checkout_and_sample_config": "PASS",
+  "sample_step": "success",
+  "profile_off_enforced": "success",
+  "analyzer_step_outcome": "failure",
+  "ledger_step_outcome": "success",
+  "final_action": "failure",
+  "original_analyzer": "FAIL",
+  "original_issues": [
+    "RESOURCE_AUDIT_WARNINGS",
+    "LOCAL_SOCKET_DROP"
+  ],
+  "original_capacity_limited_evidenced": false,
+  "sha256": {
+    "manifest.json": "05e01b64bf21239383698b72d19c01a59f769ad915ff8f16a90929494e483a61",
+    "summary.json": "959cbe6db8218787432c5e29ad12767ed334a566619d4c334b9c903a8226d76f",
+    "efficiency-ledger.json": "990cdf9b4086c7c81d744c39e2b672607db645115ab25c948dd76428a23bbdbb"
+  },
+  "sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1840,
+    "mode": "game",
+    "lanes_configured": 4,
+    "profile": "off",
+    "padding": "off",
+    "fec": "20:20",
+    "one_way_delay_ms": 300,
+    "each_direction_logical_mbps": 3,
+    "duration_s": 300,
+    "drain_s": 3,
+    "record_cap_configured": 0,
+    "server_tun_mtu_actual": 1273,
+    "path": "biz real socket->formal OpenWrt TPROXY client->raw TCP-shaped->router netem->formal server->shared TUN->target real socket",
+    "actual_active_lanes": "NOT_COLLECTED_PROFILE_OFF"
+  },
+  "network": {
+    "netem_drops_both": 0,
+    "c2s_outer_packets_attempted": 2850155,
+    "s2c_outer_packets_attempted": 2836372,
+    "interface_link_drop_deltas_all_zero": true,
+    "socket_skmem_drop": {
+      "client_packet": 33,
+      "server_packet": 86,
+      "other_socket_types": 0
+    },
+    "packet_socket_receive_buffer_bytes": {
+      "client": 1048576,
+      "server": 1048576
+    },
+    "packet_socket_rmem_max_bytes_sampled": {
+      "client": 203776,
+      "server": 120064
+    },
+    "drop_cumulative_first_increase_sampled_seconds_since_start": {
+      "client": {
+        "previous_s": 154,
+        "first_nonzero_s": 155,
+        "from": 0,
+        "to": 33
+      },
+      "server": {
+        "previous_s": 98,
+        "first_nonzero_s": 99,
+        "from": 0,
+        "to": 86
+      }
+    },
+    "time_attribution_limit": "approximate 1s resource sampler; increment recorded between neighboring samples, NOT exact packet drop instant",
+    "sampled_rmem_caveat": "only 1s observations, low values do NOT rule out shorter receive bursts/overflow, no proven capacity-limited root cause"
+  },
+  "business": {
+    "udp_per_direction": {
+      "all_sent": 103062,
+      "all_delivered": 103062,
+      "missing": 0,
+      "corrupt_or_malformed": 0,
+      "by_size_delivered_and_sent": {
+        "96": 51550,
+        "256": 20612,
+        "512": 10300,
+        "1000": 5150,
+        "1372": 10300,
+        "4068": 5150
+      }
+    },
+    "probe_c2s": {
+      "sent": 1500,
+      "returned": 1500,
+      "missing": 0,
+      "over_1s": 0,
+      "over_3s": 0,
+      "p99_ms": 613.791008,
+      "max_ms": 643.575772
+    },
+    "probe_s2c": {
+      "sent": 1495,
+      "returned": 1495,
+      "missing": 0,
+      "over_1s": 0,
+      "over_3s": 0,
+      "p99_ms": 616.014422,
+      "max_ms": 669.1766
+    },
+    "tcp_each_direction": {
+      "sent": 304,
+      "received": 304,
+      "hash_or_length_mismatches": 0,
+      "connect_failed": 0
+    },
+    "web": {
+      "http_https": 20,
+      "returned": 20,
+      "https_verified": 10
+    },
+    "direction_goodput_mbps": {
+      "c2s": 2.97231648,
+      "s2c": 2.97231648
+    },
+    "longest_active_10ms_empty_receive_gap_ms": {
+      "c2s": 40,
+      "s2c": 60
+    },
+    "gap_measurement_note": "diagnostic and not definitive HOL"
+  },
+  "resources": {
+    "runner": "AMD EPYC 9V45 96-Core Processor",
+    "logical_cpus": 4,
+    "cgroup_quota_cores": "UNKNOWN",
+    "process_cpu_s": {
+      "client": 83.34,
+      "server": 83.63,
+      "total": 166.97
+    },
+    "total_cpu_s_per_delivered_gib": 804.0688450332262,
+    "host_busy_max_percent": 50.13123359580052,
+    "cpu_psi_some_avg10_max": 28.07,
+    "steal_max_percent": 0,
+    "softirq_max_percent": 12.860892388451443,
+    "rss_peak_mib": {
+      "client": 90.171875,
+      "server": 86.35546875
+    },
+    "malloc_total": "NOT_COLLECTED",
+    "alloc_bytes_total": "NOT_COLLECTED"
+  },
+  "limitations": [
+    "Business delivery and HTTP(S) complete but original strict analyzer FAIL due nonzero packet socket drops; never relabel PASS",
+    "No 8937/65507B business large packet test in this ordinary case",
+    "Lossless EPYC9V45 cannot be treated as CPU A/B with 5205 EPYC9V74, also different loss profiles",
+    "Profile OFF does not establish physical 4 concurrent lane count or per-shard queue/handler time",
+    "One source/loss/seed independent sample; not proof of product full qualification",
+    "No causal attribution of sampled bursts to scheduler, FEC, Internet or host from this artifact alone",
+    "No new performance candidate until lossless socket drops understood and protector retested",
+    "Earlier 5205 scoped PASS 37853468730, historic other failure runs, TCP-only and 80s E7 outage remain unchanged",
+    "E6/P6/physical NOT_RUN"
+  ],
+  "next_decision": "HOLD_PERFORMANCE_PROTECTOR_GATE_DIAGNOSE_TRANSIENT_PACKET_SOCKET_DROPS_NOT_EXPAND_QUEUES_OR_SELECT_CLEAN_HOST_SAMPLE"
+}
