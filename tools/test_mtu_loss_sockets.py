@@ -209,8 +209,7 @@ def main():
                 checked(["ip", "-n", ns, "link", "set", dev, "mtu", str(inner), "up"])
                 if args.loss:
                     checked(["ip", "netns", "exec", ns, "tc", "qdisc", "add",
-                             "dev", dev, "root", "netem", "loss", str(args.loss) + "%",
-                             "seed", str(20261008 + args.outer * 10 + args.loss + (0 if ns == ns_a else 100000))])
+                             "dev", dev, "root", "netem", "loss", str(args.loss) + "%"])
             command = [sys.executable, str(Path(__file__).resolve()),
                        "--kind", args.kind, "--outer", str(args.outer),
                        "--loss", str(args.loss), "--inner", str(inner),
