@@ -48,6 +48,8 @@ jobs:
           assert 'wbdg0' in s
           assert 'WBD_LARGE_LOSS' in s
           assert 'WBD_HARNESS_SHA' in s
+          assert s.count('-C 16 -W 8') == 4
+          assert s.count('-C 16 -W 4') == 2
           assert 'DURATION 120' not in s
           print("WBD_LARGE_FULLSTACK_TEMPLATE_PASS")
           PY
