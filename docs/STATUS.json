@@ -94,8 +94,8 @@
     "B/0 lossless real TCP 56% source injection, 250/300 shorts, backpressure and retrans; no CAPACITY proof",
     "Linux platformflow UDP no-silent-truncation isolated product candidate2f7bb59 functional Actions PASS, large UDP support still OPEN"
   ],
-  "next_task": "B/p0 after fixed-short generator separate child Action37733833093 IN_PROGRESS; while that independent run uses its own runner, dispatch exactly one C/p0 real mixed 5Mbps TCP+5Mbps UDP per direction Action (helper31ac preflight37733698703 PASS, seed2608103, b4). No shared same-run product endpoints; C expected Linux TPROXY>8936 UDP FAIL; record TCP and independent small probes to assess cross-business continuity. Other conditions NOT_RUN; no full matrix PASS/physical.",
-  "latest_log": "docs/devlog/20261008-longmix-c0-dispatch.md",
+  "next_task": "Single isolated A/5% 300s source b4 request pending after A0 known FAIL and B0 repeat/C0 separate running Actions; exact helper static-qualified at 37733698703. A5 records all9 payload sizes, 96 probe, big ACK timeouts, independent small continuity even if >8936 Linux platformflow remains blocked. Do not close native M03 cases; no physical.",
+  "latest_log": "docs/devlog/20261008-longmix-matrix-losses-dispatch.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10889,7 +10889,7 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "B0_REPEAT_RUNNING_C0_DISPATCH_REQUESTED",
+    "state": "LOSS_MATRIX_A5_DISPATCH_REQUESTED",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
@@ -11071,6 +11071,14 @@
     "b_recheck": "NOT_RUN_PENDING_HELPER_PREFLIGHT",
     "tcp_b_repeat_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37733833093",
     "mixed_c_state": "C0_DISPATCH_REQUESTED",
-    "mixed_c_source": "b4ea061178a6e09b7e7c8587d72b4b8535492567"
+    "mixed_c_source": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "current_request": {
+      "workload": "A",
+      "loss_percent": 5,
+      "seed": 2608101,
+      "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "classification": "NOT_RUN_REQUESTED"
+    }
   }
 }
