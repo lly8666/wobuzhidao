@@ -11,6 +11,7 @@ import json
 import math
 import struct
 from pathlib import Path
+from large_mtu_resource_report import report as resource_report
 
 def percentile(x,q):
     if not x:return None
@@ -208,11 +209,18 @@ def main():
                                  "max_ms":max(probe)/1e6 if probe else None}
             if side["probe_sent"]<1450:issues.append("PROBE_COVERAGE_"+name)
             if x.loss==0 and probe_summary[name]["missing"]:issues.append("LOSSLESS_PROBE_MISSING_"+name)
+        resources=resource_report(root,int(biz["start_monotonic_ns"]),int(biz["start_monotonic_ns"])+300_000_000_000)
+        if resources["strict_resource"].get("errors"):
+            issues.append("RESOURCE_AUDIT_WARNINGS")
+        if resources["strict_resource"].get("socket_drop_max",0):
+            issues.append("LOCAL_SOCKET_DROP")
+        if any(v.get("rx",0)>0 or v.get("tx",0)>0 for v in resources["strict_resource"].get("link_drop_delta",{}).values()):
+            issues.append("LOCAL_INTERFACE_DROP")
         result={"schema":"wbd-large-mtu-analysis/v1","product_source_sha":x.source,
                 "helper_sha":x.helper,"workload":x.workload,"loss_percent":x.loss,"seed":x.seed,
                 "netem_realized":netem,"mtu":links,"route_mode":"all",
                 "path":"biz -> client TPROXY -> raw TCP-shaped -> router netem -> shared server TUN -> target",
-                "direction":direction,"probe":probe_summary}
+                "direction":direction,"probe":probe_summary,"resources":resources}
     except Exception as ex:
         issues.append("ANALYZER_EXCEPTION:"+repr(ex));result={"error":repr(ex)}
     finally:
@@ -234,6 +242,7 @@ def main():
     result.update({"capture_cleanup":{"deleted_raw_pcap":True,"capture_receipts":capture_receipts},
                    "issues":issues,
                    "classification":"INVALID" if any(y.startswith(("ANALYZER_EXCEPTION","PROCESS_IDENTITY","SOURCE_HELPER","WRONG_MANIFEST","WRONG_WORKLOAD","CAPTURE_PARSE")) for y in issues) else
+                   "CAPACITY_LIMITED" if any(z.startswith("INSUFFICIENT_INJECTION") for z in issues) and result.get("resources",{}).get("capacity_limited_evidenced") else
                    "FAIL" if issues else "PASS_SCOPED_ACTIONS",
                    "never_physical_pass":True})
     Path(x.output).write_text(json.dumps(result,indent=2,sort_keys=True))
