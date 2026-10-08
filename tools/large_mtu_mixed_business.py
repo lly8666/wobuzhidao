@@ -89,8 +89,8 @@ def setup_udp(ip,port):
     s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,4<<20)
     s.setsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF,4<<20)
-    if hasattr(socket,"IP_MTU_DISCOVER"):
-        s.setsockopt(socket.IPPROTO_IP,socket.IP_MTU_DISCOVER,getattr(socket,"IP_PMTUDISC_DONT",0))
+    # Linux IP_MTU_DISCOVER=10, IP_PMTUDISC_DONT=0. Never rely on defaults.
+    s.setsockopt(socket.IPPROTO_IP,getattr(socket,"IP_MTU_DISCOVER",10),getattr(socket,"IP_PMTUDISC_DONT",0))
     s.bind((ip,port))
     return s
 
@@ -111,6 +111,14 @@ def udp_recv(s,role,t,peer,stop):
             try:s.sendto(udp_packet(4,seq,96,0x515151,sent),src)
             except OSError:t.add("probe_send_errors")
             continue
+        if kind in (5,6,7) and role in ("biz","target"):
+            size={5:8972,6:8973,7:65507}[kind]
+            with t.lock:
+                key=str(size)
+                d=t.d.setdefault("udp_big_rtt_ns",{})
+                values=d.setdefault(key,[])
+                if len(values)<10000:values.append(max(0,stamp-sent))
+            continue
         if kind==4 and role=="biz":
             with t.lock:
                 if seq in t.probes:t.d["duplicates"]+=1
@@ -127,6 +135,10 @@ def udp_recv(s,role,t,peer,stop):
                 t.d["duplicates"]+=1;continue
             t.seen.add(key)
         t.record("udp_rx",length,1,length)
+        if length in (8972,8973,65507):
+            receipt_kind={8972:5,8973:6,65507:7}[length]
+            try:s.sendto(udp_packet(receipt_kind,seq,96,0x929292,sent),src)
+            except OSError:t.add("probe_send_errors")
         t.add("received_bytes",length)
         t.bucket("receive_bucket_10ms",stamp,length)
 
@@ -309,6 +321,7 @@ def run(args):
     tcp_rate=10 if args.workload=="tcp" else (5 if args.workload=="mixed" else 0)
     if udp_rate:
         s=setup_udp(*own)
+        own_rcvbuf=s.getsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF)
         other=[remote if args.role=="biz" else None]
         jobs.append(threading.Thread(target=udp_recv,args=(s,args.role,t,other,stop),daemon=True))
         if args.role=="biz":
@@ -319,6 +332,7 @@ def run(args):
                     time.sleep(.2)
             jobs.append(threading.Thread(target=register,daemon=True))
         jobs.append(threading.Thread(target=udp_send,args=(s,args.role,other,start,stop,udp_rate,args.seed+(1 if args.role=="biz" else 2),args.workload,t),daemon=True))
+    if udp_rate or tcp_rate:
         if args.role=="biz":
             probe_socket=setup_udp(own[0],own[1]+2)
             jobs.append(threading.Thread(target=udp_recv,args=(probe_socket,"biz",t,[remote],stop),daemon=True))
@@ -332,7 +346,7 @@ def run(args):
             ls.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
             ls.bind((own[0],own[1]+1));ls.listen(32)
             # Three long connections split 98% of the TCP quota.
-            jobs.append(threading.Thread(target=target_tcp,args=(ls,t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000)*.98/3),daemon=True))
+            jobs.append(threading.Thread(target=target_tcp,args=(ls,t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000-PROBE_BYTES_PER_SECOND/125000)/3),daemon=True))
         else:
             jobs.append(threading.Thread(target=business_tcp,args=((remote[0],remote[1]+1),t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000)*.98/3),daemon=True))
     for th in jobs:th.start()
@@ -340,7 +354,8 @@ def run(args):
     stop.set()
     for th in jobs:th.join(timeout=2)
     if udp_rate:
-        s.close();probe_socket.close()
+        s.close()
+    if udp_rate or tcp_rate: probe_socket.close()
     if tcp_rate and args.role=="target": ls.close()
     output={"schema":"wbd-large-mixed/v1","role":args.role,"workload":args.workload,
             "source_sha":args.source,"helper_sha":args.helper,
@@ -349,7 +364,7 @@ def run(args):
             "tcp_budget_mbps":tcp_rate,"seed":args.seed,
             "ip_mtu_discover":"IP_PMTUDISC_DONT for UDP (DF off)",
             "udp_size_cycle":collections.Counter(A if args.workload=="udp" else C),
-            "udp_socket_buffers": {"recv":s.getsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF) if udp_rate and s.fileno()!=-1 else None},
+            "udp_socket_buffers": {"requested": 4<<20, "recv_effective": own_rcvbuf if udp_rate else None},
             "counters":t.snap()}
     Path(args.output).write_text(json.dumps(output,indent=2,sort_keys=True))
     print("WBD_MIXED_DONE role=%s workload=%s sent=%d rx=%d" %
