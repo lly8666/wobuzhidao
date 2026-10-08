@@ -7,8 +7,12 @@
   "branch": "investigation/longmix-20261008",
   "helper_sha": "PENDING_PRECHECK",
   "precheck": {
-    "classification": "NOT_RUN",
-    "action_url": null
+    "classification": "FAIL",
+    "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37727548578",
+    "static_tests": "PASS_5_OF_5",
+    "repository_policy": "PASS",
+    "kernel_fixture": "NOT_RUN",
+    "reason": "sudo scrubbed GITHUB_ACTIONS=true; existing fixture explicitly refuses non-Actions environment; fixed env passthrough on helper only"
   },
   "round1": [
     {

@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
   ],
-  "next_task": "Longmix Actions专项: first qualify tools/longmix_profile.py preflight, then add real A/B/C bidirectional UDP+TCP generators and strict netns/TUN 300s harness with actual MTU9000/outer1400, sample guard and bounded metrics; only after helper preflight dispatch 12 independent 0/5/20/30 samples at exact b4 SOURCE, keep M03/1554 downlink outage and 1225.578ms late separately OPEN. No physical work or product changes without trace.",
-  "latest_log": "docs/devlog/20261008-longmix-harness-entry.md",
+  "next_task": "Run corrected longmix preflight on Actions: first attempt 37727548578 failed only because sudo dropped GITHUB_ACTIONS=true required by existing privileged kernel fixture; 5/5 plan tests and repository/policy PASS. Then implement and qualify real TCP/UDP 300s product-path drivers before any 12 performance sample dispatch. Frozen b4 untouched. 80s outage and 1225.578ms late remain separate OPEN.",
+  "latest_log": "docs/devlog/20261008-longmix-preflight-sudo-env.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10886,10 +10886,10 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "HELPER_PLAN_UNVALIDATED",
+    "state": "HELPER_PRECHECK_FAILED_ENV_FIX_PENDING",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "PENDING_PRECHECK",
-    "precheck_action": "NOT_RUN",
+    "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37727548578",
     "fullstack_samples": {
       "PASS": 0,
       "FAIL": 0,
