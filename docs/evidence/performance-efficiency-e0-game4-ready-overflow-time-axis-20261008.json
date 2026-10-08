@@ -1,0 +1,131 @@
+{
+  "schema": "wbd-efficiency-e0-ready-queue-artifact-only-timeline/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "helper_sha": "0b9370bebfdda7ff372fb346fddd60b9d96d259b",
+  "original_run": 37768172504,
+  "original_job": 113280833800,
+  "original_artifact": 11547016894,
+  "original_analyzer": "FAIL",
+  "raw_server_diag_jsonl_sha256": "NOT_COLLECTED_FILE_DIGEST; raw JSONL remains Actions artifact (no claim of hash)",
+  "method": "Read-only per-snapshot first difference of monotonic service and cumulative server_pipeline.reads/handler.samples/overflow_drops, align with exact stage-events business_start using resources.jsonl unix-monotonic offset. No traffic emitted.",
+  "business_start_monotonic_ns": 347690523647,
+  "analysis_inputs": [
+    "server-diag.jsonl",
+    "resources.jsonl",
+    "stage-events.jsonl"
+  ],
+  "server_profile_on": true,
+  "result": {
+    "windows": [
+      {
+        "start_s": 0,
+        "end_s": 30,
+        "observed_server_raw_reads": 303184,
+        "observed_handler_samples": 270267,
+        "server_ready_overflow_drops": 32882,
+        "overflow_per_read": 0.10845,
+        "handler_wall_s": 6.92,
+        "tick_wall_s": 2.98
+      },
+      {
+        "start_s": 30,
+        "end_s": 60,
+        "observed_server_raw_reads": 329569,
+        "observed_handler_samples": 286626,
+        "server_ready_overflow_drops": 42847,
+        "overflow_per_read": 0.13,
+        "handler_wall_s": 7.67,
+        "tick_wall_s": 3.58
+      },
+      {
+        "start_s": 60,
+        "end_s": 120,
+        "observed_server_raw_reads": 676200,
+        "observed_handler_samples": 599314,
+        "server_ready_overflow_drops": 76904,
+        "overflow_per_read": 0.11373,
+        "handler_wall_s": 15.68,
+        "tick_wall_s": 6.73
+      },
+      {
+        "start_s": 120,
+        "end_s": 180,
+        "observed_server_raw_reads": 594401,
+        "observed_handler_samples": 548594,
+        "server_ready_overflow_drops": 45843,
+        "overflow_per_read": 0.07713,
+        "handler_wall_s": 14.39,
+        "tick_wall_s": 5.48
+      },
+      {
+        "start_s": 180,
+        "end_s": 240,
+        "observed_server_raw_reads": 588171,
+        "observed_handler_samples": 520628,
+        "server_ready_overflow_drops": 67594,
+        "overflow_per_read": 0.11492,
+        "handler_wall_s": 13.34,
+        "tick_wall_s": 5.76
+      },
+      {
+        "start_s": 240,
+        "end_s": 300,
+        "observed_server_raw_reads": 568271,
+        "observed_handler_samples": 515276,
+        "server_ready_overflow_drops": 52971,
+        "overflow_per_read": 0.09321,
+        "handler_wall_s": 13.12,
+        "tick_wall_s": 5.39
+      }
+    ],
+    "sum_overflow_drops_during_300s": 319041,
+    "max_1second_overflow": {
+      "elapsed_s": 200,
+      "overflow_drops": 15861,
+      "raw_reads": 28710,
+      "handled": 12848,
+      "handler_wall_s": 0.541,
+      "tick_wall_s": 0.441
+    },
+    "server_raw_total_reads": 3063073,
+    "server_handled_total": 2744032,
+    "overflow_total": 319041,
+    "overflow_ratio_total": 0.10415716504307929,
+    "loss0_netem": true,
+    "all_six_windows_have_overflow": true,
+    "not_only_one_traffic_spike": true,
+    "server_handler_and_tick_same_select_loop": true,
+    "bounded_drop_oldest_not_buffer_unlimited": true
+  },
+  "interpretation": [
+    "Multiple independent 30-60s windows show server ready overflow; not a unique one-off 80s downlink outage; do not conflate with deferred E7 failure",
+    "Game4 raw outer segment demand bursts 25-28k in some one-second bins and ready queue saturates; run profile-on, cannot infer profile-off CPU causal effect",
+    "A read-to-handler queue overflow is earliest verified userspace drop. No segment→application UDP event mapping, cannot add counts directly to business UDP missing",
+    "Do not increase reader queue or socket buffer by default; early first-arrival/no cross-flow HOL, bounded queue and low p99 remain hard gates",
+    "Host CPU PSI/busy and unknown quota mean not proven CAPACITY_LIMITED"
+  ],
+  "previous_failures_unmodified": [
+    37766819445,
+    37768172504,
+    37762364098
+  ],
+  "next_one_sample": {
+    "workload": "udp",
+    "loss": 0,
+    "seed": 1815,
+    "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "size_profile": "jumbo",
+    "diagnostic_mode": "off"
+  },
+  "next_workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "next_purpose": "Verify integrated SOURCE genuine large-UDP MTU/fragmentation lossless boundary with 8972/8973/65507B and small independent probes on Normal 10Mbps each direction; original 12 large-MTU from obsolete SOURCE still FAIL; this does not resolve Game4 or prove all boundary 8936/8937.",
+  "not_covered": [
+    "8936/8937 exact platformflow boundary remains NOT_RUN",
+    "E1-E6,5205/5305, E7 80s still OPEN, P6/native/physical NOT_RUN"
+  ]
+}

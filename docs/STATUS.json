@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_PROFILEON_FAIL_SERVER_READY_QUEUE_OVERFLOW_LOCATED",
+    "phase": "E0_GAME4_OVERFLOW_TEMPORAL_AUDITED_NORMAL_JUMBO_QUEUED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -208,10 +208,36 @@
       "capacity_limited_evidenced": false,
       "profile_on_not_comparable": true,
       "evidence": "docs/evidence/performance-efficiency-e0-game4-diag-37768172504.json"
+    },
+    "e0_game4_time_axis": {
+      "state": "ARTIFACT_ONLY_ANALYSIS",
+      "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "helper_sha": "0b9370bebfdda7ff372fb346fddd60b9d96d259b",
+      "run_id": 37768172504,
+      "ready_overflow_total": 319041,
+      "all_6_windows_have_overflow": true,
+      "evidence": "docs/evidence/performance-efficiency-e0-game4-ready-overflow-time-axis-20261008.json"
+    },
+    "e0_next_jumbo": {
+      "state": "PENDING_ACTION",
+      "config": {
+        "workload": "udp",
+        "loss": 0,
+        "seed": 1815,
+        "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+        "mode": "normal",
+        "lanes": 1,
+        "rate_mbps": 10,
+        "size_profile": "jumbo",
+        "diagnostic_mode": "off"
+      },
+      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+      "helper_sha": "exact pushed HEAD in Actions",
+      "run_id": null
     }
   },
-  "next_task": "E0: exact bf11fbf Game4 off run37766819445 FAIL and independent ON diagnostic run37768172504 FAIL; server ready userspace 4096-slot inbound queue dropped319041/3063073 received segments (=reads-handler difference), queue age max273ms, zero packet-socket/interface drops; true Game4 active four lanes and copies. Read lifecycle.go offerLatestBounded / synchronous handler+tick and perf counters. First bounded test/audit at server processing scheduling/ingress fairness or new temporal evidence; do NOT blindly enlarge queue, buffer, or claim capacity. No profile-on vs off CPU comparison. Keep UDP lossless fails, TCP-only FAIL run37762364098, jumbo unqualified. Ensure E0 baseline and four unit/race + independent Normal lossless/5205 and Game4 lossless/5205 guards before E1 product optimization. E6 P6 physical NOT_RUN, 80s S2C OPEN E7.",
-  "latest_log": "docs/devlog/20261008-194800-e0-game4-diagnostic-server-ready-overflow.md",
+  "next_task": "E0 inspect new exact-helper one-sample Normal UDP jumbo/small mixture 10Mbps per direction lossless seed1815, 300s+3s drain, profile-off; record actual TUN and MTU budgeting, input/send errors, missing/corrupt by 96..65507 size, probe missing/returned, p99+timeouts, runner CPU/PSI/quota/socket/drop; no PASS unless valid. In parallel keep Game4 off FAIL run37766819445 + on FAIL37768172504 server ready overflow319041 sustained all time bins (see evidence), avoid blindly enlarging queue or user-space latency. 8936/8937 exact frame boundary remains untested. TCP-only FAIL37762364098 remains. E1 blocked pending E0 and four protection runs. E6/P6/physical NOT_RUN; E7 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261008-201300-e0-game4-ready-overflow-timeline-and-normal-jumbo.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
