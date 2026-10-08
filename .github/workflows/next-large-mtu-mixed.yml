@@ -41,21 +41,29 @@ jobs:
           import json,os
           from pathlib import Path
           d=json.loads(Path(".github/large-mtu-sample.json").read_text())
-          assert set(d)=={"workload","loss","seed","product_source_sha"}
+          assert set(d)=={"workload","loss","seed","product_source_sha","helper_source_sha"}
           assert d["workload"] in ("udp","tcp","mixed")
           assert type(d["loss"]) is int and d["loss"] in (0,5,20,30)
           assert type(d["seed"]) is int and 1<=d["seed"]<=999999
           assert d["product_source_sha"]==os.environ["PRODUCT_SOURCE"]
+          import re,subprocess
+          helper=d["helper_source_sha"]
+          assert re.fullmatch(r"[0-9a-f]{40}",helper)
+          parent=subprocess.check_output(["git","rev-parse","HEAD^"],text=True).strip()
+          assert parent==helper,("sample branch must add only config to exact helper commit",parent,helper)
+          changed=subprocess.check_output(["git","diff","--name-only","HEAD^","HEAD"],text=True).strip().splitlines()
+          assert changed==[".github/large-mtu-sample.json"],changed
           ref="agent/large-mtu-sample-%s-p%d-seed%d"%(d["workload"],d["loss"],d["seed"])
           assert os.environ["GITHUB_REF_NAME"]==ref
           with open(os.environ["GITHUB_ENV"],"a") as f:
               f.write("WBD_LARGE_WORKLOAD=%s\n"%d["workload"])
               f.write("WBD_LARGE_LOSS=%d\n"%d["loss"])
               f.write("WBD_STRICT_SEED=%d\n"%d["seed"])
-          print("one performance sample",ref,"product",d["product_source_sha"],"helper",os.environ["GITHUB_SHA"])
+              f.write("WBD_HELPER_SOURCE=%s\n"%helper)
+          print("one performance sample",ref,"product",d["product_source_sha"],"helper",helper)
           PY
           python3 tools/perf_sample_guard.py claim \
-            --identity "large-mtu:${GITHUB_REF_NAME}:product${PRODUCT_SOURCE}:helper${GITHUB_SHA}" \
+            --identity "large-mtu:${GITHUB_REF_NAME}:product${PRODUCT_SOURCE}:helper${WBD_HELPER_SOURCE}" \
             --receipt "$ART/sample-claim.json"
       - name: Install isolated network tools
         run: |
@@ -90,7 +98,7 @@ jobs:
         continue-on-error: true
         run: |
           sudo --preserve-env=GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_FEC_PARITY,WBD_STRICT_FEC_SCREEN,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS,WBD_LARGE_WORKLOAD,WBD_LARGE_LOSS \
-            env GITHUB_SHA="$PRODUCT_SOURCE" WBD_HARNESS_SHA="$GITHUB_SHA" \
+            env GITHUB_SHA="$PRODUCT_SOURCE" WBD_HARNESS_SHA="$WBD_HELPER_SOURCE" \
               WBD_STRICT_ARTIFACT_DIR="$ART" bash "$ART/generated.sh"
       - name: Read-only analyze and delete raw capture
         id: analyze
@@ -98,7 +106,7 @@ jobs:
         continue-on-error: true
         run: |
           python3 tools/check_large_mtu_mixed.py --artifact-dir "$ART" \
-            --source "$PRODUCT_SOURCE" --helper "$GITHUB_SHA" \
+            --source "$PRODUCT_SOURCE" --helper "$WBD_HELPER_SOURCE" \
             --workload "$WBD_LARGE_WORKLOAD" --loss "$WBD_LARGE_LOSS" \
             --seed "$WBD_STRICT_SEED" --output "$ART/summary.json"
       - name: Emergency raw pcap cleanup and hash
