@@ -1,0 +1,158 @@
+{
+  "schema": "wbd-e2-stack-options-5205-game4-receipt-game2-single-next/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "0e7ad5ea1b1afcf9c0cbc9cd62e0d03b53c829b5",
+  "source": "ea7248974b52fcb1688679be54607e881797a743",
+  "helper": "0e7ad5ea1b1afcf9c0cbc9cd62e0d03b53c829b5",
+  "run": {
+    "id": 37851931918,
+    "job_id": 113566686570,
+    "artifact_id": 11583240622,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37851931918",
+    "original_actions": "success",
+    "original_analyzer": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "sample": "success",
+    "ledger": "success",
+    "profile": "off",
+    "seed": 1838,
+    "workload": "mixed",
+    "loss": "true staged 5%-20%-5%",
+    "mode": "game",
+    "lanes_requested": 4,
+    "actual_lanes": "NOT_OBSERVED_PROFILE_OFF",
+    "duration_s": 300,
+    "drain_s": 3,
+    "one_way_delay_ms": 300,
+    "rate_mbps_each_direction": 3,
+    "outer_mtu": 1400,
+    "auto_record_cap": 0,
+    "actual_tun_mtu": 1273,
+    "fec": "20:20"
+  },
+  "business": {
+    "c2s": {
+      "udp_pre": {
+        "sent": 25792,
+        "delivered": 25792,
+        "missing": 0
+      },
+      "udp_stress": {
+        "sent": 51503,
+        "delivered": 51503,
+        "missing": 0
+      },
+      "udp_post": {
+        "sent": 25767,
+        "delivered": 25761,
+        "missing": 6
+      },
+      "probe_missing": 0,
+      "probe_sent": 1500,
+      "probe_returned": 1500,
+      "probe_p99_ms": 762.946591,
+      "goodput_mbps": 2.972165013333333
+    },
+    "s2c": {
+      "udp_pre": {
+        "sent": 25792,
+        "delivered": 25792,
+        "missing": 0
+      },
+      "udp_stress": {
+        "sent": 51503,
+        "delivered": 51503,
+        "missing": 0
+      },
+      "udp_post": {
+        "sent": 25767,
+        "delivered": 25767,
+        "missing": 0
+      },
+      "probe_missing": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1495,
+      "probe_p99_ms": 753.223249,
+      "goodput_mbps": 2.97231648
+    },
+    "tcp_flows_per_direction": 304,
+    "tcp_mismatch_total": 0,
+    "http_https_requests": 20,
+    "http_https_returned": 20,
+    "https_certificate_verified": 10
+  },
+  "resources": {
+    "host_cpu": "AMD EPYC 7763 64-Core Processor",
+    "vcpus": 4,
+    "quota_cores": null,
+    "host_busy_peak_percent": 88.98071625344353,
+    "cpu_psi_some_avg10_max": 43.54,
+    "client_cpu_s": 190.95,
+    "server_cpu_s": 192.97,
+    "product_total_cpu_s": 383.92,
+    "socket_drop": 0,
+    "interface_drop": 0,
+    "alloc_off": "NOT_COLLECTED",
+    "capacity_limited_evidenced": false
+  },
+  "historic_references": [
+    {
+      "run": 37817466498,
+      "source": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+      "host": "AMD EPYC 7763",
+      "conclusion": "FAIL",
+      "s2c_stress_missing_udp": 446,
+      "probe_missing": true,
+      "cpu_s": 392.51
+    },
+    {
+      "run": 37851028041,
+      "source": "1146448d6340cf2e09b525189d233222d7ec9501",
+      "host": "AMD EPYC 9V45",
+      "conclusion": "FAIL",
+      "reason": "server AF_PACKET packet socket drops 140",
+      "cpu_s": 221.97
+    },
+    {
+      "run": 37820693938,
+      "source": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+      "host": "AMD EPYC 9V45",
+      "conclusion": "PASS_SCOPED_ACTIONS",
+      "cpu_s": 210.67
+    }
+  ],
+  "artifact_sha256": {
+    "summary.json": "4a480cfaa869d4eab9f713a72147a062b3ff4ad7c479631a8daa3a495bbe9d72",
+    "efficiency-ledger.json": "c8076d862ae76f2091c261dd2d82c25783f7f6c05e1a7dbbac1ada464c1222ff",
+    "manifest.json": "a6095fafa97084b0c52fead3ce9b93a243eb3ae6135181f6f5d031c8f86e9804",
+    "stage-events.jsonl": "45890bd01a9ce7c8391801da9bc252e6b52e2fede1486dc59b374b4ca0c467e9",
+    "sample-claim.json": "8161ee23b4da2909248e56146aa15b618ceef6b1096305cc5fba059524a3c1ab"
+  },
+  "qualification": {
+    "e2_new_source_game4_true5205": "PASS_SCOPED_ONLY_WITH_SIX_UDP_POST_MISSING",
+    "e2_new_source_normal_true5205": "NOT_RUN",
+    "e2_new_source_game2_true5205": "NOT_RUN",
+    "e2_cpu_gain": "NOT_PROVEN",
+    "e3_7763_stability": "NOT_PROVEN_ONE_NEW_SUCCESS_OLD_FAIL",
+    "e7_80s": "OPEN",
+    "e6_p6_physical": "NOT_RUN"
+  },
+  "next_one_sample": {
+    "config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1839,
+      "product_source_sha": "ea7248974b52fcb1688679be54607e881797a743",
+      "mode": "game",
+      "lanes": 2,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "source": "ea7248974b52fcb1688679be54607e881797a743",
+    "helper": "THIS_NEW_GITHUB_SHA",
+    "goal": "Game2 two-lane true staged5205 independently, all original phase fidelity and resource guard, one action one case",
+    "status": "PENDING_ACTION"
+  }
+}

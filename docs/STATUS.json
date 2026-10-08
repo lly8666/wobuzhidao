@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_FAKETCP_OPTIONS_CORE_PASS_GAME4_5205_OFF_OLD_SOURCE_SOCKET_DROP_FAIL_NEW_SAMPLE_QUEUED",
+    "phase": "E2_STACK_OPTIONS_GAME4_5205_7763_SCOPED_PASS_SIX_POST_MISSING_GAME2_NEXT",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -967,7 +967,7 @@
     },
     "e2_faketcp_options": {
       "source_sha": "ea7248974b52fcb1688679be54607e881797a743",
-      "state": "CORE_AND_LIFECYCLE_PASS_PERFORMANCE_NOT_RUN",
+      "state": "FOUNDATION_LIFECYCLE_PASS_GAME4_5205_SCOPED_PASS_NOT_STABLE",
       "changed": [
         "internal/faketcp/packet.go",
         "internal/faketcp/packet_options_alloc_test.go"
@@ -976,13 +976,34 @@
       "foundation": "PASS_RUN37851556278",
       "lifecycle": "PASS_RUN37851556229",
       "performance": "NOT_RUN",
-      "evidence": "docs/evidence/performance-efficiency-e3-5205-off-1837-socket-drop-fail-e2-options-next-20261009.json",
+      "evidence": "docs/evidence/performance-efficiency-e2-faketcp-options-game4-5205-run37851931918.json",
       "new_source_performance": "PENDING_ACTION_SEED1838",
-      "cpu_gain": "NOT_PROVEN"
+      "cpu_gain": "UNPROVEN_SINGLE_RUNNER_STRATUM",
+      "new_source_game4_5205_run": 37851931918,
+      "new_source_game4_5205_original": "PASS_SCOPED_ACTIONS",
+      "post_c2s_udp_missing": 6,
+      "twenty_percent_both_udp_missing": 0,
+      "socket_drop": 0,
+      "host_stratum": "AMD EPYC 7763",
+      "cpu_s": 383.92,
+      "next_game2_5205": {
+        "config": {
+          "workload": "mixed",
+          "loss": 5205,
+          "seed": 1839,
+          "product_source_sha": "ea7248974b52fcb1688679be54607e881797a743",
+          "mode": "game",
+          "lanes": 2,
+          "rate_mbps": 3,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "off"
+        },
+        "state": "PENDING_ACTION"
+      }
     }
   },
-  "next_task": "E2 FakeTCP stack SACK options source ea724897 core/race foundation37851556278 and lifecycle37851556229 PASS. Next exact new product ea724897 one Game4 staged5205 mixed3Mbps per dir profileOFF seed1838 300s+3s under new helper HEAD; get original business+resource verdict including packet socket drops and runner CPU class. Old 1146448 source Game4 seed1837 run37851028041 genuine FAIL RESOURCE_AUDIT_WARNINGS/LOCAL_SOCKET_DROP: all UDP/probe recovered but server AF_PACKET ss_packet drops140; do not relabel PASS. Previous AMD EPYC7763 5205 OFF run37817466498 FAIL 446 S2C stress UDP missing. New source CPU gain UNPROVEN; after evidence choose raw send lock/syscall or FEC hotspot optimization with unit/race+normal/game 5205 and 3 comparable OFF. E7 80s OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e3-off-5205-1837-resource-fail-options-source-next.md",
+  "next_task": "E2 stack SACK options exact product ea724897 on AMD EPYC7763 Game4 true5205 OFF seed1838 run37851931918 original PASS_SCOPED issues[], 20% stress UDP both 0 missing, C2S post5% 6 UDP missing, probes0/0, socket/interface0, CPU383.92s on 7763 high busy88.98 PSI43.54. Preserve older same host class true5205 OFF run37817466498 original FAIL S2C stress446 missing; not stable yet, no causal CPU claim. Next one independent Game2 lanes2 staged5205 mixed3Mbps per direction seed1839 profileOFF 300s+3s pinned same product, own helper; verify original per-phase business/host/drop then separate Normal1 true5205 and 0loss, lowRTT and 3 comparable OFF. E7 80s S2C OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e2-game4-5205-7763-scoped-pass-next-game2-protection.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
