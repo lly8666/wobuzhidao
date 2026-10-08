@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_FAKETCP_SACK_OPTIONS_SOURCE_UNTESTED_E3_5205_OFF_REPEAT_RUNNING",
+    "phase": "E2_FAKETCP_OPTIONS_CORE_PASS_GAME4_5205_OFF_OLD_SOURCE_SOCKET_DROP_FAIL_NEW_SAMPLE_QUEUED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -527,7 +527,7 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
     },
     "game_architecture": {
-      "state": "GAME4_STAGED5205_ON_PASS_BUT_7763_OFF_FAILED_NEEDS_STRATIFIED_REPEAT",
+      "state": "STAGEB_RECOVERS_ALL_BUSINESS_OLD_SOURCE_BUT_SOCKET_DROP_FAIL_AND_7763_FAIL",
       "parent_head": "8e6a26567511e19901f01f24ee31e82136c1736e",
       "source_sha": "1146448d6340cf2e09b525189d233222d7ec9501",
       "stage": "B_PRE_AUTH_FOURTUPLE_STABLE_SHARD_NO_QUEUE_CAPACITY_INCREASE",
@@ -954,24 +954,35 @@
         },
         "status": "PENDING_ACTION",
         "helper_sha": "THIS_COMMIT_SHA"
-      }
+      },
+      "latest_5205_off_repeat_run": 37851028041,
+      "latest_5205_off_repeat_original": "FAIL",
+      "latest_5205_off_repeat_issues": [
+        "RESOURCE_AUDIT_WARNINGS",
+        "LOCAL_SOCKET_DROP"
+      ],
+      "latest_5205_off_repeat_socket_drops": 140,
+      "next_product_source": "ea7248974b52fcb1688679be54607e881797a743",
+      "latest_evidence": "docs/evidence/performance-efficiency-e3-5205-off-1837-socket-drop-fail-e2-options-next-20261009.json"
     },
     "e2_faketcp_options": {
-      "source_sha": "THIS_COMMIT_SHA",
-      "state": "SOURCE_NOT_TESTED",
+      "source_sha": "ea7248974b52fcb1688679be54607e881797a743",
+      "state": "CORE_AND_LIFECYCLE_PASS_PERFORMANCE_NOT_RUN",
       "changed": [
         "internal/faketcp/packet.go",
         "internal/faketcp/packet_options_alloc_test.go"
       ],
       "goal": "remove per-ACK SACK and SYN separate options allocation",
-      "foundation": "NOT_RUN",
-      "lifecycle": "NOT_RUN",
+      "foundation": "PASS_RUN37851556278",
+      "lifecycle": "PASS_RUN37851556229",
       "performance": "NOT_RUN",
-      "evidence": "docs/evidence/performance-efficiency-e2-faketcp-stack-options-candidate-20261009.json"
+      "evidence": "docs/evidence/performance-efficiency-e3-5205-off-1837-socket-drop-fail-e2-options-next-20261009.json",
+      "new_source_performance": "PENDING_ACTION_SEED1838",
+      "cpu_gain": "NOT_PROVEN"
     }
   },
-  "next_task": "E2 FakeTCP SYN/SACK packet options stack scratch candidate new product source: first exact commit foundation Linux/Windows Go unit/race/fuzz, privileged TUN/TPROXY, lifecycle; tests check byte-identical wire and exactly one final owned packet allocation. Old source1146448 Game4 5205 OFF seed1837 run37851028041 helper07b8d771 is separately running, inspect original verdict without claiming it tests new source. No CPU gain claim until comparable profileOFF multiplets; retain AMD EPYC7763 5205 FAIL run37817466498, E3 host-stratum not qualified, E7 80s OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e2-faketcp-sack-syn-options-stack-scratch-candidate.md",
+  "next_task": "E2 FakeTCP stack SACK options source ea724897 core/race foundation37851556278 and lifecycle37851556229 PASS. Next exact new product ea724897 one Game4 staged5205 mixed3Mbps per dir profileOFF seed1838 300s+3s under new helper HEAD; get original business+resource verdict including packet socket drops and runner CPU class. Old 1146448 source Game4 seed1837 run37851028041 genuine FAIL RESOURCE_AUDIT_WARNINGS/LOCAL_SOCKET_DROP: all UDP/probe recovered but server AF_PACKET ss_packet drops140; do not relabel PASS. Previous AMD EPYC7763 5205 OFF run37817466498 FAIL 446 S2C stress UDP missing. New source CPU gain UNPROVEN; after evidence choose raw send lock/syscall or FEC hotspot optimization with unit/race+normal/game 5205 and 3 comparable OFF. E7 80s OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e3-off-5205-1837-resource-fail-options-source-next.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

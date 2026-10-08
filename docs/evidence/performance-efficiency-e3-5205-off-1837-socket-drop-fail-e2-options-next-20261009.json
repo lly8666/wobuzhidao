@@ -1,0 +1,109 @@
+{
+  "schema": "wbd-e3-5205-off-resource-fail-and-new-faketcp-one-sample/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "ea7248974b52fcb1688679be54607e881797a743",
+  "old_case": {
+    "id": 37851028041,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37851028041",
+    "job_id": 113563676395,
+    "artifact_id": 11582206404,
+    "old_helper_sha": "07b8d7711a749e4fbc151c5712039e8cf2002803",
+    "old_product_sha": "1146448d6340cf2e09b525189d233222d7ec9501",
+    "seed": 1837,
+    "workload": "mixed",
+    "mode": "game",
+    "lanes": 4,
+    "loss_waveform": "5%-20%-5%",
+    "profile": "off",
+    "original_actions_conclusion": "failure",
+    "original_analyzer": "FAIL",
+    "original_issues": [
+      "RESOURCE_AUDIT_WARNINGS",
+      "LOCAL_SOCKET_DROP"
+    ],
+    "sample_step": "success",
+    "analyzer_step": "failure",
+    "ledger_step": "success",
+    "business": {
+      "goodput_mbps_each": 2.97231648,
+      "udp_missing_both": [
+        0,
+        0
+      ],
+      "probe_missing_both": [
+        0,
+        0
+      ],
+      "each_way_pre_udp": "25792/25792",
+      "each_way_stress_udp": "51503/51503",
+      "each_way_post_udp": "25767/25767",
+      "tcp_flows_each": 304,
+      "http_https_completed": 20,
+      "https_cert_verified": 10,
+      "probe_p99_ms_c2s_s2c": [
+        619.969248,
+        617.187874
+      ]
+    },
+    "resources": {
+      "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+      "vcpus": 4,
+      "host_busy_max_percent": 61.43617021276596,
+      "cpu_psi_some_avg10_max": 28.46,
+      "client_cpu_s": 111.14,
+      "server_cpu_s": 110.83,
+      "total_cpu_s": 221.97,
+      "socket_packet_drops_server": 140,
+      "socket_other_drops": 0,
+      "interface_drops": 0,
+      "cgroup_cpu_quota": null,
+      "capacity_limited_evidenced": false,
+      "server_socket_rcvbuf_bytes": 1048576,
+      "server_socket_max_rmem_bytes": 140800
+    },
+    "artifact_sha256": {
+      "summary.json": "f58a1d8f92d7ff6d1b078ab9b5ede74db4d79b5d2289072e03aeb2153c58e5d4",
+      "efficiency-ledger.json": "b919334829905f77365ae5f29d2fb02f875890ad0f86ea45f0c0c9a2ed04d238",
+      "manifest.json": "97486a231cdcf21f6c5b26045a2f9467e86a3403f969016c56c6c35e59b93c04",
+      "stage-events.jsonl": "2af5fca5c51b71d4dcb5aef5079bbd28ef9cedc10bfb88fe3b51d534295df93f"
+    }
+  },
+  "new_faketcp_product": {
+    "source_sha": "ea7248974b52fcb1688679be54607e881797a743",
+    "change": "only FakeTCP SYN/SACK options stack temporary, one final owned IPv4 packet; no RTO/auto MTU/FEC/queue/order changes",
+    "foundation": {
+      "run": 37851556278,
+      "conclusion": "success"
+    },
+    "lifecycle": {
+      "run": 37851556229,
+      "conclusion": "success"
+    },
+    "real_business": "NOT_RUN_ON_THIS_SOURCE"
+  },
+  "next_case": {
+    "config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1838,
+      "product_source_sha": "ea7248974b52fcb1688679be54607e881797a743",
+      "mode": "game",
+      "lanes": 4,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "helper_sha": "NEXT_COMMIT_SHA",
+    "single_sample_per_action": true,
+    "source_exact": true,
+    "strict_expected": "Game4 true staged5205 3Mbps/dir 300s 300ms one-way+3s drain profileOFF; original FAIL/PASS incl packet socket drop, phase business and CPU/GiB"
+  },
+  "cautions": [
+    "Old 140 AF_PACKET server socket drops are real audit failures, not a pure capacity exemption; retain original workflow FAIL",
+    "Business all recovered does not override audit failure",
+    "Other AMD EPYC7763 original 5205 OFF run37817466498 remains FAIL 446 S2C stress UDP missing",
+    "New test/source core PASS does not establish CPU gain or Game4 stability",
+    "Physical NOT_RUN, E7 80s S2C OPEN, E6/P6 NOT_RUN"
+  ]
+}
