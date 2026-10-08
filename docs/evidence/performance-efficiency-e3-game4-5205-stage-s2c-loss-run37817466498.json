@@ -1,0 +1,211 @@
+{
+  "schema": "wbd-e3-game4-5205-full-stage-business-loss-strong-fail/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "23a29a54b2cddef48984feb4b8f1974cbbee5a19",
+  "action": {
+    "id": 37817466498,
+    "job_id": 113449651873,
+    "artifact_id": 11567927452,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37817466498",
+    "original_decision": "FAIL",
+    "issues": [
+      "5205_STAGE_UDP_LOSS_OVER_0P1PCT_s2c_stress",
+      "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_s2c"
+    ],
+    "exact_source": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "exact_helper": "23a29a54b2cddef48984feb4b8f1974cbbee5a19",
+    "seed": 1833,
+    "profile": "off",
+    "sample_step": "success",
+    "preflight": "success",
+    "analyzer_step": "success",
+    "ledger_step": "success",
+    "final_fail_closed": "failure"
+  },
+  "scenario": {
+    "one_real_300s": true,
+    "drain_s": 3,
+    "game_lanes_configured": 4,
+    "game_physical_lanes": "NOT_MEASURED_PROFILE_OFF",
+    "rate_mbps_each_direction": 3,
+    "loss_waveform": "5/20/5 each direction",
+    "one_way_delay_ms": 300,
+    "outer_mtu": 1400,
+    "actual_tun_mtu": 1273,
+    "record_cap_auto_zero": true,
+    "fec": "20:20",
+    "padding": "off"
+  },
+  "qdisc_stages": {
+    "pre": {
+      "c2s_pct": 5.012,
+      "s2c_pct": 4.956
+    },
+    "stress": {
+      "c2s_pct": 20.042,
+      "s2c_pct": 20.044
+    },
+    "post": {
+      "c2s_pct": 4.999,
+      "s2c_pct": 5.014
+    }
+  },
+  "stage_business": {
+    "c2s": {
+      "pre": {
+        "udp_sent": 25792,
+        "udp_delivered": 25790,
+        "udp_missing": 2,
+        "probe_sent": 375,
+        "probe_returned": 375,
+        "probe_missing": 0,
+        "udp_over_1s": 1,
+        "udp_over_3s": 0,
+        "udp_max_delay_ms": 2429.03
+      },
+      "stress": {
+        "udp_sent": 51503,
+        "udp_delivered": 51503,
+        "udp_missing": 0,
+        "probe_sent": 750,
+        "probe_returned": 744,
+        "probe_missing": 6,
+        "udp_over_1s": 0,
+        "udp_over_3s": 0
+      },
+      "post": {
+        "udp_sent": 25767,
+        "udp_delivered": 25767,
+        "udp_missing": 0,
+        "probe_sent": 375,
+        "probe_returned": 375,
+        "probe_missing": 0
+      }
+    },
+    "s2c": {
+      "pre": {
+        "udp_sent": 25792,
+        "udp_delivered": 25792,
+        "udp_missing": 0,
+        "probe_sent": 370,
+        "probe_returned": 370,
+        "probe_missing": 0
+      },
+      "stress": {
+        "udp_sent": 51503,
+        "udp_delivered": 51057,
+        "udp_missing": 446,
+        "udp_missing_percent": 0.8659689726812031,
+        "probe_sent": 750,
+        "probe_returned": 743,
+        "probe_missing": 7,
+        "udp_over_1s": 0,
+        "udp_over_3s": 0,
+        "udp_max_delivered_delay_ms": 589.12
+      },
+      "post": {
+        "udp_sent": 25767,
+        "udp_delivered": 25767,
+        "udp_missing": 0,
+        "probe_sent": 375,
+        "probe_returned": 375,
+        "probe_missing": 0
+      }
+    }
+  },
+  "totals": {
+    "c2s_udp_missing": 2,
+    "s2c_udp_missing": 446,
+    "c2s_probe_missing": 6,
+    "s2c_probe_missing": 7,
+    "tcp_integrity_flows_each": 304,
+    "https_requests_returned": 20,
+    "https_verified": 10,
+    "c2s_goodput_mbps": 2.972303,
+    "s2c_goodput_mbps": 2.96583
+  },
+  "resource": {
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "visible_cpus": 4,
+    "product_cpu_seconds": 392.51,
+    "host_busy_peak_percent": 88.73626373626374,
+    "psi_some_peak": 39.62,
+    "softirq_peak_percent": 14.2061,
+    "steal_peak_percent": 0,
+    "quota_cores": null,
+    "socket_drop": 0,
+    "profile_off_user_ready_overflow": "NOT_COLLECTED",
+    "capacity_only_causality": "NOT_PROVEN"
+  },
+  "sha256": {
+    "summary.json": "5b3578bf44610cee554d4ec9f5171998518b25df55d39f1ee0b640e05d2175bc",
+    "efficiency-ledger.json": "870dc49112a4f2f7ca48b3982e403d7642d990f59cb6127e54611c1e7398e6cb",
+    "manifest.json": "dfb462bb140fff41f33a4030c292f2efbfd2413f08b2a4a79871e4f4c0618dd1",
+    "stage-events.jsonl": "75cc6c590832951d67db366d19bb7d5fbe738ff38d07aeb4b14cdaa0fd17edb6"
+  },
+  "prior_5205_samples": [
+    {
+      "run": 37813762304,
+      "result": "PASS_SCOPED_ACTIONS",
+      "source": "same",
+      "helper": "8a76a943",
+      "udp_missing": [
+        0,
+        0
+      ],
+      "host": "AMD EPYC 9V45",
+      "phase_business_attribution": "NOT_COLLECTED"
+    },
+    {
+      "run": 37816217223,
+      "result": "ORIGINAL_FAIL_ANALYZER_ECHO_DIRECTION_BUG",
+      "source": "same",
+      "helper": "d6ba32e",
+      "udp_missing": [
+        0,
+        0
+      ],
+      "host": "Intel Xeon Platinum8370C"
+    },
+    {
+      "run": 37817466498,
+      "result": "FAIL_REAL_STAGE_20PCT_S2C_UDP_LOSS",
+      "source": "same",
+      "helper": "23a29a54b2cddef48984feb4b8f1974cbbee5a19",
+      "udp_missing": [
+        2,
+        446
+      ],
+      "host": "AMD EPYC7763"
+    }
+  ],
+  "next": {
+    "diagnostic_config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1834,
+      "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+      "mode": "game",
+      "lanes": 4,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "on"
+    },
+    "why": "Isolate real 4-lane stage20 impairment loss to bounded-shard ready overflow, concurrent owner/repair or host scheduling; diagnostics ON only; preserve all original application loss and stage counts",
+    "one_case_per_action": true
+  },
+  "exclusions": [
+    "Do not relabel runner as capacity_limited without specific evidence",
+    "No extra shard queue capacity, no FEC/RTO change, no product source change until diagnosed",
+    "Do not equate profile ON CPU with off, no CPU gain claim",
+    "No E7 80s resolution and P6 physical still NOT_RUN"
+  ],
+  "status": {
+    "E3": "STAGE_5205_HARD_FAIL",
+    "E2_CPU": "UNPROVEN",
+    "E6": "NOT_RUN",
+    "E7_80S": "OPEN",
+    "P6_PHYSICAL": "NOT_RUN"
+  }
+}
