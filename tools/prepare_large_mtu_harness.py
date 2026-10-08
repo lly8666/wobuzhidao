@@ -37,6 +37,11 @@ for spec in "$BIZ biz0" "$CLI cbiz" "$SRV slan" "$TGT tgt0"; do
 done
 
 ip -n "$BIZ" route add default via 10.40.0.1''')
+    # Limit on-disk raw captures to <=8 x 16MiB outer per tap and 4 x
+    # 16MiB inner per tap; no unbounded multi-minute pcap accumulation.
+    for tap in ("c2s-pre", "c2s-post", "s2c-pre", "s2c-post"):
+        swap('-s 256 -B 16384 -w "$ART/'+tap+'.pcap"',
+             '-s 96 -B 16384 -C 16 -W 8 -w "$ART/'+tap+'.pcap"')
     swap('--username qual --password qualpass --client-record-limit 1300 --mtu 1400',
          '--username qual --password qualpass --client-record-limit 1300 --mtu 1400 --route-mode all')
     swap('printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"',
@@ -48,9 +53,9 @@ ip -n "$TGT" -d -j link show tgt0 > "$ART/inner-target-link.json"
 ip netns exec "$BIZ" ip route get 8.8.8.8 > "$ART/inner-biz-route.txt"
 ip netns exec "$TGT" ip route get 10.66.0.2 > "$ART/inner-target-route.txt"
 # Read-only bounded snaplen; analyzer consumes metadata then deletes all pcaps.
-ip netns exec "$BIZ" tcpdump -n -U -i biz0 -s 96 -B 8192 -w "$ART/inner-biz.pcap" "ip" 2>"$ART/inner-biz.tcpdump.log" &
+ip netns exec "$BIZ" tcpdump -n -U -i biz0 -s 96 -B 8192 -C 16 -W 4 -w "$ART/inner-biz.pcap" "ip" 2>"$ART/inner-biz.tcpdump.log" &
 CAP_PIDS+=("$!")
-ip netns exec "$TGT" tcpdump -n -U -i tgt0 -s 96 -B 8192 -w "$ART/inner-target.pcap" "ip" 2>"$ART/inner-target.tcpdump.log" &
+ip netns exec "$TGT" tcpdump -n -U -i tgt0 -s 96 -B 8192 -C 16 -W 4 -w "$ART/inner-target.pcap" "ip" 2>"$ART/inner-target.tcpdump.log" &
 CAP_PIDS+=("$!")''')
     swap('--post-loss "$POST_LOSS"     --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log"',
          '--post-loss "$POST_LOSS"     --seed "$SEED" --fixed-loss "$WBD_LARGE_LOSS" --output "$ART/stage-events.jsonl" > "$ART/stage.log"')
