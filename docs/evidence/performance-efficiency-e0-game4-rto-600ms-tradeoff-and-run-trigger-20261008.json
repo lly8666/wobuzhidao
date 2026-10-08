@@ -1,0 +1,89 @@
+{
+  "schema": "wbd-e0-game4-rto-tradeoff-and-ci-blocker/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "29eed57fd2e5a903a8cbc1c39c43759af0b18d80",
+  "main_modified": false,
+  "physical_executed": false,
+  "source_product_optimized_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+  "test_only_commit": "THIS_NEW_COMMIT",
+  "new_test": "internal/platformflow/tcp_rto_tradeoff_e0_test.go",
+  "test_goal": "Deterministically demonstrate default 500ms inner TCP RTO produces retry before a 600ms no-loss RTT ACK, and that hypothetical 700ms avoids that retry but delays true-loss repair; assert bytes/FIN/ACK and no duplicate app delivery. No product RTO changed.",
+  "test_result": "NOT_RUN_NO_NEW_ACTIONS",
+  "new_optimization": "NONE_TEST_ONLY",
+  "static_code_identity": {
+    "default_RTO_ms": 500,
+    "client_server_path_one_way_ms": 300,
+    "approx_min_rtt_ms": 600,
+    "outcome_scope": "Relative times are synthetic deterministic unit fixtures, not observed RTT distribution or loss causality."
+  },
+  "prior_evidence": {
+    "normal_off": {
+      "run_id": 37793297374,
+      "original_decision": "PASS_SCOPED_ACTIONS",
+      "delivered_mbps_each_direction": 9.97230784,
+      "product_cpu_s": 244.07,
+      "same_cpu_single_reference_run": 37764510941,
+      "reference_cpu_s": 237.79,
+      "comparison": "ONE_PAIR +2.64% CANDIDATE; CPU BENEFIT INCONCLUSIVE"
+    },
+    "game4_off_prior": {
+      "run_id": 37766819445,
+      "original_decision": "FAIL"
+    },
+    "game4_on_diagnostic": {
+      "run_id": 37788802499,
+      "original_decision": "FAIL",
+      "due_frames": 7231,
+      "tcp_tick_emit_wall_s": 18.363001025,
+      "server_ready_overflow_drops": 317739,
+      "udp_c2s_missing": 2510,
+      "probes_missing": [
+        29,
+        28
+      ]
+    }
+  },
+  "actions_issue": {
+    "two_git_ref_heads_with_no_runs": [
+      "1e36d84c0d738370badf6dda9c90796550ee818b",
+      "15ebcb8b8bcc7c70c393ddc06250c4daf4b20402"
+    ],
+    "contents_api_commit": "29eed57fd2e5a903a8cbc1c39c43759af0b18d80",
+    "contents_api_one_case": {
+      "workload": "mixed",
+      "loss": 0,
+      "seed": 1824,
+      "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+      "mode": "game",
+      "lanes": 4,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "exact_contents_head_run_count_at_audit": 0,
+    "active_cause": "UNDETERMINED; actions workflow disablement/permission/automation may be relevant but unverified",
+    "workflow_on_default_branch": false,
+    "no_dispatch_tool_available": true,
+    "do_not_replay_old_sha": true
+  },
+  "requirements": [
+    "Never classify Game4 as PASS or FAIL on unexecuted E2 sample",
+    "Preserve all prior historical Game4 FAIL",
+    "Do not raise fixed RTO just to fix a high RTT sample; need genuinely staged 5205 loss tolerance & low RTT sparse profile",
+    "Never alter main or physical machines, fixed MTU9000, first arrival, bounded buffers, FEC20:20",
+    "Only one sample per performance Action; no within-run A/B",
+    "Require Actions Linux/Windows core/race for test-only change before claiming TEST_PASS"
+  ],
+  "exit_status": {
+    "E0_game4_hotspot": "DIAGNOSED_NOT_FIXED",
+    "E2_normal_lossless": "SCOPED_PASS",
+    "E2_cpu_gain": "INCONCLUSIVE",
+    "E2_game4_lossless": "NO_RUN_NEW_SOURCE",
+    "E2_normal_5205": "NOT_RUN",
+    "E2_game4_5205": "NOT_RUN",
+    "E1_to_E6": "INCOMPLETE",
+    "E7_80s": "OPEN",
+    "P6_physical": "NOT_RUN"
+  }
+}
