@@ -5,6 +5,8 @@ on:
     paths:
       - "tools/longmix_profile.py"
       - "tools/test_longmix_profile.py"
+      - "tools/longmix_udp_business.py"
+      - "tools/test_longmix_udp_business.py"
       - ".github/workflows/next-longmix-preflight.yml"
   workflow_dispatch:
 
@@ -24,7 +26,9 @@ jobs:
           python3 tools/check_repository.py
           python3 tools/check_performance_workflow_policy.py
       - name: Validate 12-sample immutable plan and fair-by-byte pacing
-        run: python3 tools/test_longmix_profile.py
+        run: |
+          python3 tools/test_longmix_profile.py
+          python3 tools/test_longmix_udp_business.py
       - name: Kernel IPv4 fragment / EMSGSIZE functional boundary
         run: |
           sudo apt-get update

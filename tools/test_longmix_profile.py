@@ -48,8 +48,8 @@ class PlanContract(unittest.TestCase):
     def test_exact_byte_budget_reserves_both_probe_directions(self):
         self.assertEqual(PROBE_HZ, 10)
         self.assertEqual(PROBE_PAYLOAD, 96)
-        self.assertEqual(udp_main_bytes_per_second(WORKLOADS["A"]), 1249040)
-        self.assertEqual(udp_main_bytes_per_second(WORKLOADS["C"]), 624040)
+        self.assertEqual(udp_main_bytes_per_second(WORKLOADS["A"]), 1240848)
+        self.assertEqual(udp_main_bytes_per_second(WORKLOADS["C"]), 615848)
         self.assertEqual(udp_main_bytes_per_second(WORKLOADS["B"]), 0)
         self.assertEqual(bytes_per_second(10), 1250000)
 

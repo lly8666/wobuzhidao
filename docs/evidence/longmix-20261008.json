@@ -7,12 +7,11 @@
   "branch": "investigation/longmix-20261008",
   "helper_sha": "PENDING_PRECHECK",
   "precheck": {
-    "classification": "FAIL",
-    "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37727548578",
-    "static_tests": "PASS_5_OF_5",
-    "repository_policy": "PASS",
-    "kernel_fixture": "NOT_RUN",
-    "reason": "sudo scrubbed GITHUB_ACTIONS=true; existing fixture explicitly refuses non-Actions environment; fixed env passthrough on helper only"
+    "classification": "PASS_PLAN_AND_KERNEL_ONLY",
+    "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37727692438",
+    "plan_tests": "5/5 PASS",
+    "kernel_fixture": "PASS",
+    "description": "Plan and existing Linux kernel IPv4 fragments/EMSGSIZE only; no fullstack product qualification; new UDP A helper still unvalidated"
   },
   "round1": [
     {
@@ -143,5 +142,16 @@
     "M03/1554 initial roughly 80s downlink stop",
     "M03/1554 post recovery UDP65507 RTT 1225.578ms",
     "No exact-source sustained 300s A/B/C evidence"
-  ]
+  ],
+  "driver_a": {
+    "state": "NOT_RUN",
+    "features": [
+      "two independent data emitters via real UDP sockets",
+      "separate probe socket and recv thread",
+      "nine payloads with byte-fair pacing",
+      "large-datagram ACK RTT metadata",
+      "effective socket buffer readback"
+    ],
+    "known_qualification_gap": "No fullstack nor loss run; driver unit preflight pending"
+  }
 }
