@@ -1,0 +1,151 @@
+{
+  "schema": "wbd-e2-marshal-normal-lossless-receipt/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "old_head": "fc4e2f5b67e39648de79ffafe15527b10021ddde",
+  "exact_product_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+  "exact_helper_sha": "fc4e2f5b67e39648de79ffafe15527b10021ddde",
+  "run": {
+    "id": 37793297374,
+    "job_id": 113366070010,
+    "artifact_id": 11557912024,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37793297374",
+    "status": "completed",
+    "conclusion": "success",
+    "original_analyzer": "PASS_SCOPED_ACTIONS",
+    "original_issues": [],
+    "sample": "success",
+    "ledger": "success"
+  },
+  "files_sha256": {
+    "summary.json": "4306300ddd069b2f2b6984bc17e1fdadfb1763356f6520dc22f8010605cac3ec",
+    "efficiency-ledger.json": "d69ab608dccf08279de44bad5e0739f8e8d5fdd70edb4e1c409e717abeeaceba",
+    "manifest.json": "523cef85aefed1bc513d4765240cdc84e4f3d08ce64d4fa0e103bfca7e6f718e",
+    "sample-claim.json": "0498aceb7ab5b926143d503294930de63a132f72384cd5beeb6b4e0d1add29d4"
+  },
+  "config": {
+    "mode": "normal",
+    "lanes": 1,
+    "workload": "mixed",
+    "size_profile": "ordinary",
+    "loss": 0,
+    "seed": 1822,
+    "rate_mbps_each_direction": 10,
+    "duration_s": 300,
+    "measured_business_duration_s": 300.025211847,
+    "measured_drain_s": 3.012847717,
+    "one_way_ms": 300,
+    "auto_record_limit": 0,
+    "outer_mtu": 1400,
+    "measured_real_server_tun_mtu": 1273,
+    "fec": "20:20",
+    "padding": "off",
+    "profile": "off"
+  },
+  "business": {
+    "c2s": {
+      "sent_mbps": 9.97614784,
+      "delivered_mbps": 9.97230784,
+      "udp_missing": 0,
+      "probes_returned": 1500,
+      "probes_sent": 1500,
+      "probe_missing": 0,
+      "returned_only_p99_ms": 604.255736
+    },
+    "s2c": {
+      "sent_mbps": 9.97613504,
+      "delivered_mbps": 9.97230784,
+      "udp_missing": 0,
+      "probes_returned": 1495,
+      "probes_sent": 1495,
+      "probe_missing": 0,
+      "returned_only_p99_ms": 604.357633
+    },
+    "two_direction_delivered_bytes": 747968658,
+    "tcp_integrity": "ALL_304_EACH_DIRECTION",
+    "http_https": {
+      "requests": 20,
+      "returned": 20,
+      "https_verified": 10,
+      "missing": 0
+    },
+    "qdisc_loss_realized_percent": 0,
+    "socket_drop": 0,
+    "interface_drop": 0
+  },
+  "runner": {
+    "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "visible_vcpus": 4,
+    "quota_cores": null,
+    "host_busy_max_percent": 34.39153439153439,
+    "cpu_psi_some_avg10_max": 31.14,
+    "host_steal_max_percent": 0,
+    "client_cpu_s": 122.91,
+    "server_cpu_s": 121.16,
+    "total_cpu_s": 244.07,
+    "seconds_per_delivered_gib": 350.37319302178565,
+    "peak_rss_mib": {
+      "client": 40.94140625,
+      "server": 41.38671875
+    },
+    "qdisc_outer_pps": {
+      "c2s": 8502.546666666667,
+      "s2c": 8529.956666666667
+    }
+  },
+  "historical_reference": {
+    "run_id": 37764510941,
+    "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+    "helper_sha": "46beb0e78e039093dcff8f9914b5e1664bb2bf74",
+    "seed": 1803,
+    "original_decision": "PASS_SCOPED_ACTIONS",
+    "same_cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "visible_vcpus": 4,
+    "profile": "off",
+    "delivered_bytes_both_directions": 747968658,
+    "product_cpu_s_total": 237.79,
+    "cpu_seconds_per_delivered_gib": 341.35797750092354,
+    "client_cpu_s": 119.71,
+    "server_cpu_s": 118.08,
+    "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37764510941",
+    "comparison": "SINGLE_CROSS_RUN_PRELIMINARY; +6.28CPU-s (+2.64%) on candidate, NOT EFFICIENCY_WIN or established regression; distinct seed, runner instance, process noise and quantification guard requires at least 3 independent per source stratum"
+  },
+  "allocation": {
+    "unit_test": "TestMarshalPacketOneAllocation PASSED IN FOUNDATION 37792796931",
+    "profile_off_malloc_bytes": "NOT_COLLECTED",
+    "claim": "Static removal of one buffer/second copy plus unit allocation test, not observed system-wide alloc/GiB"
+  },
+  "capacity_limited_evidenced": false,
+  "legacy_game_fail": {
+    "run_id": 37788802499,
+    "udp_missing_c2s": 2510,
+    "probe_missing": [
+      29,
+      28
+    ],
+    "ready_overflow": 317739,
+    "original_classification": "FAIL"
+  },
+  "next_single_sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1823,
+    "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "next_actions": "PENDING_TRIGGER_COMMIT",
+  "exits": {
+    "normal_lossless": "PASS_SCOPED",
+    "normal_5205": "NOT_RUN",
+    "game4_lossless": "NOT_RUN_THIS_SOURCE",
+    "game4_5205": "NOT_RUN",
+    "e2_final": "BLOCKED",
+    "e1_e3_e6": "NOT_DONE",
+    "e7_80s": "OPEN",
+    "physical": "NOT_RUN"
+  }
+}
