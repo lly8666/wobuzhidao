@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
   ],
-  "next_task": "Existing strict-workflow longmix-a branch gate preflight 37729244017 SUCCESS (helpers/policy/real kernel). Request one A loss0 seed2608101 b4 sample via default-known strict workflow. Verify actual dispatched run ID and authentic source/MTU/netem before interpreting any metric. B/C remaining NOT_RUN; 80s outage and 1225.578ms late separate OPEN.",
-  "latest_log": "docs/devlog/20261008-longmix-a-existing-workflow-dispatch.md",
+  "next_task": "A p0 first child run37729338574 FAIL/INVALID helper startup: sudo env missing WBD_STRICT_ARTIFACT_DIR, fullstack never started. Explicitly fixed; Actions preflight then independent A p0 rerun. Other11 scenarios remain NOT_RUN; B/C drivers missing. No physical actions or frozen ref movement; 80s outage and 1.225s late remain independent OPEN.",
+  "latest_log": "docs/devlog/20261008-longmix-a-env-early-invalid.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10886,7 +10886,7 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A_P0_EXISTING_WORKFLOW_DISPATCH_REQUESTED",
+    "state": "A_P0_FIRST_INVALID_HARNESS_ENV_FIXED_PREFLIGHT_PENDING",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "PENDING_PRECHECK",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37729244017",
@@ -10904,6 +10904,15 @@
       "M03/1554 80s S2C interruption",
       "M03/1554 UDP65507 late 1225.578ms"
     ],
-    "dispatch_failure": "https://github.com/lly8666/wobuzhidao/actions/runs/37728910965"
+    "dispatch_failure": "https://github.com/lly8666/wobuzhidao/actions/runs/37728910965",
+    "first_sample": {
+      "run": "https://github.com/lly8666/wobuzhidao/actions/runs/37729338574",
+      "classification": "INVALID",
+      "reason": "WBD_STRICT_ARTIFACT_DIR missing at generated shell line 6; no WBD business runtime",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "helper_sha": "6f51248b95281298d96c38cc859cac6b1bd2be23",
+      "seed": 2608101,
+      "loss_percent": 0
+    }
   }
 }

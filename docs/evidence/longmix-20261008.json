@@ -11,7 +11,8 @@
     "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37727692438",
     "plan_tests": "5/5 PASS",
     "kernel_fixture": "PASS",
-    "description": "Plan and existing Linux kernel IPv4 fragments/EMSGSIZE only; no fullstack product qualification; new UDP A helper still unvalidated"
+    "description": "Plan and existing Linux kernel IPv4 fragments/EMSGSIZE only; no fullstack product qualification; new UDP A helper still unvalidated",
+    "latest_helper_pass": "https://github.com/lly8666/wobuzhidao/actions/runs/37729244017"
   },
   "round1": [
     {
@@ -19,10 +20,10 @@
       "loss_percent": 0,
       "seed": 2608101,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": null,
-      "action_url": null,
-      "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete"
+      "helper_sha": "6f51248b95281298d96c38cc859cac6b1bd2be23",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37729338574",
+      "classification": "INVALID",
+      "reason": "pre-product generated shell exited missing WBD_STRICT_ARTIFACT_DIR, no business data"
     },
     {
       "workload": "A",
@@ -164,7 +165,15 @@
     "classification": "NOT_RUN",
     "scenario": "One fixed 300s A sample per workflow_dispatch run",
     "actual_sample_started": false,
-    "known_limit": "GitHub workflow_dispatch may require workflow entry in main; do not mark dispatched before actual workflow run appears"
+    "known_limit": "GitHub workflow_dispatch may require workflow entry in main; do not mark dispatched before actual workflow run appears",
+    "first_attempt": {
+      "run": "https://github.com/lly8666/wobuzhidao/actions/runs/37729338574",
+      "classification": "INVALID",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "helper_sha": "6f51248b95281298d96c38cc859cac6b1bd2be23",
+      "elapsed_measured_seconds": 0,
+      "reason": "sudo missing artifact dir env"
+    }
   },
   "dispatch_approach": {
     "path": ".github/workflows/next-longmix-one-sample-dispatch.yml",

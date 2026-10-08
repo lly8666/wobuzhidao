@@ -206,7 +206,7 @@ jobs:
         continue-on-error: true
         run: |
           sudo --preserve-env=GITHUB_WORKSPACE,WBD_LONGMIX_LOSS,WBD_HARNESS_SHA,WBD_STRICT_ARTIFACT_DIR,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_FEC_PARITY,WBD_STRICT_FEC_SCREEN,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS,WBD_STRICT_TC \
-            env GITHUB_SHA="$TESTED_SOURCE_SHA" bash "$ART/generated-longmix-udp-a.sh"
+            env WBD_STRICT_ARTIFACT_DIR="$ART" GITHUB_SHA="$TESTED_SOURCE_SHA" bash "$ART/generated-longmix-udp-a.sh"
 
       - name: Validate size-specific first delivery and actual impairment
         id: longmix_validate

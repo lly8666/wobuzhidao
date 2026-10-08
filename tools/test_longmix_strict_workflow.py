@@ -15,6 +15,7 @@ class StrictLongmixGate(unittest.TestCase):
         self.assertIn("if: inputs.qualification_kind == 'longmix-a'",t)
         self.assertIn('if: always() && inputs.qualification_kind != \'longmix-a\'',t)
         self.assertIn("WBD_LONGMIX_LOSS",t)
+        self.assertIn('env WBD_STRICT_ARTIFACT_DIR="$ART" GITHUB_SHA="$TESTED_SOURCE_SHA"',t)
         self.assertIn('TESTED_SOURCE_SHA',t)
         self.assertIn('WBD_HARNESS_SHA',t)
         self.assertIn("tools/check_longmix_udp_compact.py",t)
