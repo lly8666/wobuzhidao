@@ -1,0 +1,58 @@
+{
+  "schema": "wbd-e0-game4-server-udp-tcp-substage-single/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "source_product_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
+  "helper_sha": "GITHUB_SHA_THIS_COMMIT",
+  "status": "NOT_RUN_PENDING_TRIGGER",
+  "foundation": {
+    "run_id": 37781751279,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37781751279",
+    "decision": "PASS",
+    "jobs": [
+      "linux core/race/fuzz/arm64",
+      "windows core and Npcap hosted contract",
+      "linux shared TUN nft and iptables",
+      "OpenWrt TPROXY privileged",
+      "P2 kernel fallback",
+      "repository contract"
+    ]
+  },
+  "config": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1820,
+    "product_source_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "measurement_contract": {
+    "one_sample_per_run": true,
+    "duration_s": 300,
+    "drain_s": 3,
+    "loss": 0,
+    "one_way_delay_ms": 300,
+    "logical_business_mbps_each_direction": 3,
+    "tcp_udp_http_https_fullstack": true,
+    "real_server_tun": true,
+    "client_tproxy": true,
+    "encrypted_raw_transport": true,
+    "fec": "20:20",
+    "outer_mtu": 1400,
+    "auto_record_limit": 0,
+    "profile": "on"
+  },
+  "expected_evidence": [
+    "server_pipeline.tick_service_udp and tick_service_tcp samples/total_ns/max_ns/over_10ms",
+    "server_pipeline.tick_service total and ready overflow and queue age",
+    "real 4 lane Game copies/dedupe, UDP missing/probes and HTTP/TCP hashes",
+    "host CPU/PSI/steal/quota, FEC/source/repair, no p99 survivor-only bias"
+  ],
+  "safety": "Diagnostic-on only; no code behavior patch or CPU benefit. Prior profile ON run37780170850 FAIL (service_tick18.711s and ready overflow315310), profile OFF run37766819445 FAIL, E7 80s OPEN",
+  "e1_e6": "NOT_QUALIFIED",
+  "physical": "NOT_RUN"
+}

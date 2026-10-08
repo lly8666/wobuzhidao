@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_SERVER_SERVICE_TICK_UDP_TCP_INSTRUMENTATION_NOT_TESTED",
+    "phase": "E0_GAME4_TICK_SERVICE_UDP_TCP_PROFILEON_SAMPLE_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -354,7 +354,7 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-tick-phase-fail-37780170850.json"
     },
     "e0_service_subphase": {
-      "state": "SOURCE_CANDIDATE_NOT_TESTED",
+      "state": "FOUNDATION_PASS",
       "parent_head": "525a27f1899be1d99b2f0e8100e4f079da17b537",
       "new_product_sha": "NEW_COMMIT_GITHUB_SHA",
       "fields": [
@@ -363,11 +363,33 @@
       ],
       "previous_run": 37780170850,
       "previous_fail": true,
-      "evidence": "docs/evidence/performance-efficiency-e0-service-udp-tcp-probe-20261008.json"
+      "evidence": "docs/evidence/performance-efficiency-e0-service-udp-tcp-probe-20261008.json",
+      "product_source_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
+      "foundation_run": 37781751279,
+      "foundation_result": "success"
+    },
+    "e0_game4_service_substage": {
+      "state": "QUEUED_ACTION",
+      "source_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
+      "helper_sha": "NEW_GITHUB_SHA",
+      "config": {
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1820,
+        "product_source_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
+        "mode": "game",
+        "lanes": 4,
+        "rate_mbps": 3,
+        "size_profile": "ordinary",
+        "diagnostic_mode": "on"
+      },
+      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+      "evidence": "docs/evidence/performance-efficiency-e0-game4-udp-tcp-substage-single-candidate.json",
+      "run_id": null
     }
   },
-  "next_task": "E0 wait for Actions next-foundation on exact new source with platformflow.Server.TickTimed only on ObserveTiming ON; ensure Linux/Windows unit/race+privileged tests PASS. Then pin this exact source commit SHA as PRODUCT_SOURCE in one helper commit with sample Game4 mixed 3Mbps/dir 300s lossless 300ms profileON seed1820, one Action case; report actual service tick UDP vs TCP wall times, ready overflow, all UDP and probe missing; do NOT infer product optimization from diagnostics. Existing run37780170850 original FAIL C2S UDP2105, probes32/30 and ready overflow315310. No E1 candidate validated; 80s S2C OPEN E7; P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-service-udp-vs-tcp-tick-probe.md",
+  "next_task": "E0 inspect independently dispatched game4 4lane mixed profile ON lossless 300s seed1820 one-sample Action, exact PRODUCT_SOURCE a5ee53e and next helper own SHA; first preserve analyzer PASS/FAIL, then server tick_service_udp vs tick_service_tcp total/max/over10ms, ready overflow/age, UDP/probe TCP/HTTPS, CPU/PSI/quota/fec/raw batch. Keep Game4 older runs37766819445,37768172504,37780170850 FAIL and boundary 8937/65507 unsupported; no profile ON/OFF CPU benefit claim. If service TCP has blocking Send, investigate safe bounded scheduling without new queue/HOL; core/race then four independent Normal lossless/5205 Game4 lossless/5205 guards. E7 80s OPEN; E6/P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-game4-tick-service-udp-tcp-candidate.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
