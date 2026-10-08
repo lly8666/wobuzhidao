@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_GAME4_OFF_SAMPLE_TRIGGER_WITH_DIAG_ISOLATION_GUARD",
+    "phase": "E2_NORMAL_OFF_PASS_CPU_GAIN_INCONCLUSIVE_GAME4_ACTIONS_NO_RUN",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -437,7 +437,7 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-tcp-emit-fail-37788802499.json"
     },
     "e2_marshal_candidate": {
-      "state": "NORMAL_LOSSLESS_PASS_SCOPED_CPU_GAIN_INCONCLUSIVE",
+      "state": "NORMAL_LOSSLESS_SCOPED_PASS_GAME4_NO_RUN_CI_BLOCKED",
       "parent_head": "eec0cb8077daa8f011285066d136d574c93abc0b",
       "new_product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
       "candidate_evidence": "docs/evidence/performance-efficiency-e2-one-buffer-marshal-candidate-20261008.json",
@@ -463,7 +463,7 @@
           "diagnostic_mode": "off"
         }
       },
-      "cpu_gain": "NOT_MEASURED",
+      "cpu_gain": "INCONCLUSIVE_SINGLE_REFERENCE_CANDIDATE_HIGHER",
       "source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
       "normal_lossless_run": 37793297374,
       "normal_lossless_issues": [],
@@ -471,7 +471,7 @@
       "cpu_reference_s": 237.79,
       "first_comparison": "CANDIDATE_2P64_PERCENT_HIGHER_SINGLE_RUN_NOT_PROVEN_REGRESSION",
       "profile_off_go_mallocs": "NOT_COLLECTED",
-      "evidence": "docs/evidence/performance-efficiency-e2-normal-lossless-run37793297374.json",
+      "evidence": "docs/evidence/performance-efficiency-e2-game4-actions-no-run-20261008.json",
       "game4_lossless_next": {
         "config": {
           "workload": "mixed",
@@ -484,8 +484,12 @@
           "size_profile": "ordinary",
           "diagnostic_mode": "off"
         },
-        "state": "RETRIGGERED_BY_WORKFLOW_CHANGE",
-        "requested_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a"
+        "state": "NO_RUN_OBSERVED",
+        "requested_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+        "attempted_helper_shas": [
+          "1e36d84c0d738370badf6dda9c90796550ee818b",
+          "15ebcb8b8bcc7c70c393ddc06250c4daf4b20402"
+        ]
       },
       "protectors": {
         "normal_lossless": "PASS_SCOPED",
@@ -493,11 +497,13 @@
         "game4_lossless": "PENDING_ACTION",
         "game4_5205": "NOT_RUN"
       },
-      "qualifier_warning": "config-only commit 1e36d84 had zero GitHub Actions observed, not PASS"
+      "qualifier_warning": "config-only commit 1e36d84 had zero GitHub Actions observed, not PASS",
+      "normal_5205": "NOT_RUN",
+      "game4_5205": "NOT_RUN"
     }
   },
-  "next_task": "E2: confirm new one-fullstack-sample GitHub Actions run for exact product 673a8ab, Game4 off lossless mixed 3Mbps/dir seed1823 triggered by workflow own helper sha after adding true profile-off no diag-jsonl guard. If no run, report NO_RUN not qualified; if run, read original verdict and UDP/probe/HTTP/TCP, real active lanes, ready drops diagnostic-off unavailable, CPU/PSI/drop. Prior Normal PASS run37793297374 with same-CPU reference+2.64% one-run cost is INCONCLUSIVE, never claim saved CPU. Normal/Game true 5205 not run; E2 BLOCKED. E7 80s OPEN, E6 P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e2-game4-profileoff-sample-activation.md",
+  "next_task": "E2: After two exact GitHub push heads (1e36d84 sample config; 15ebcb8 workflow profile-off isolation) no performance Actions run observed, inspect Actions workflow trigger availability and re-query exact head_sha first. Preserve no-run not qualified; DO NOT fabricate or rerun unrelated old SHA. Actual next protection Game4 lossless mixed4 lanes 3Mbps/dir seed1823 product 673a8ab profile OFF one-sample, then true separate 5205 5%/20%/5% guards. Normal off run37793297374 scoped PASS but one same-CPU reference CPU +2.64%, no proven gain, Go alloc NOT_COLLECTED. All old Game4 FAIL remain. E1/E3-E6 and E6/P6 physical NOT_RUN; E7 80s OPEN.",
+  "latest_log": "docs/devlog/20261008-e2-game4-action-trigger-not-registered.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

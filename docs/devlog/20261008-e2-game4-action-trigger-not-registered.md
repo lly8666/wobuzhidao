@@ -1,0 +1,10 @@
+# E2：Game4真实保护样本尚未获GitHub Actions运行号，严禁填充PASS/FAIL（2026-10-08）
+
+目标分支仅`next/performance-efficiency-20261008`；本轮父HEAD `15ebcb8b8bcc7c70c393ddc06250c4daf4b20402`。正式E2源`673a8ab0b2295d495e67cd7d4a42e23a70d38a7a`消除Frame→IPv4两次buffer分配的一次中间wire复制，现有core/Linux/Windows/race+privileged/lifecycle已PASS。真实[Normal lossless run37793297374](https://github.com/lly8666/wobuzhidao/actions/runs/37793297374) profile-OFF原样`PASS_SCOPED_ACTIONS`、双向各9.972Mbps、TCP/UDP/HTTPS/探针全完整，CPU=244.07s。历史同型AMD EPYC9V74 Normal OFF [37764510941](https://github.com/lly8666/wobuzhidao/actions/runs/37764510941) 237.79s，单对比新候选+2.64%，**无CPU收益证明，不得叫E2完成或单次确认回归**。profile-OFF的Go alloc总账在ledger中`NOT_COLLECTED`，但单元测试验证有效packet一分配。
+
+本轮连续两次GitHub提交试图启动**一run只一个case**的Game4 lossless 4lane mixed各向3Mbps/300s+3s/profile-OFF/seed1823，产品SOURCE始终是上面的E2 commit：
+1. `1e36d84c0d738370badf6dda9c90796550ee818b`修改唯一`.github/efficiency-e0-sample.json`，Actions按精确`head_sha`查询为**0 runs**；
+2. `15ebcb8b8bcc7c70c393ddc06250c4daf4b20402`新增有用的profile-OFF fail-closed真实`client-diag.jsonl/server-diag.jsonl`检查（诊断JSONL会开启server逐record耗时），仅编辑workflow但按该精确head查询仍为**0 runs**。
+GitHub refs均更新成功，至少到本次查询时没有run/job/artifact，也没有性能测量；原因未查明，不能猜计费、Runner不足、GitHub禁用，不能反复为凑RUN盲提交相同样本。**Game4针对E2的真实结果必须维持`NO_RUN / NOT_QUALIFIED`，不能写PASS/FAIL。** 自动MTU、TCP RTO/游戏4lane/4096/FEC20:20均未被修改。
+
+所有原Game4 FAIL仍真实开放：[37766819445](https://github.com/lly8666/wobuzhidao/actions/runs/37766819445) profile OFF丢业务；[37768172504](https://github.com/lly8666/wobuzhidao/actions/runs/37768172504)、[37780170850](https://github.com/lly8666/wobuzhidao/actions/runs/37780170850)、[37782210096](https://github.com/lly8666/wobuzhidao/actions/runs/37782210096)、[37788802499](https://github.com/lly8666/wobuzhidao/actions/runs/37788802499)诊断ON均FAIL，用户态ready overflow、C2S UDP及probe丢失。当前helper仍保留一个Normal profile-OFF真实PASS和Game4待跑的config+workflow；恢复后第一动作是重查真实run/job并以精确SOURCE+helper SHA核验，不把docs commit当作测试。5205需真实阶段5%→20%→5%，当前固定loss5不算。E1/E3-E6保护和E6/P6/physical未达成，原E7 80秒S2C OPEN。机器证据：[本轮Actions触发状态](../evidence/performance-efficiency-e2-game4-actions-no-run-20261008.json)。

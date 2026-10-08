@@ -1,0 +1,82 @@
+{
+  "schema": "wbd-e2-game4-action-not-observed/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "head_before": "15ebcb8b8bcc7c70c393ddc06250c4daf4b20402",
+  "working_product_source": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+  "last_real_success": {
+    "run_id": 37793297374,
+    "helper_sha": "fc4e2f5b67e39648de79ffafe15527b10021ddde",
+    "profile": "off",
+    "mode": "normal",
+    "loss_percent": 0,
+    "classification": "PASS_SCOPED_ACTIONS",
+    "client_cpu_s": 122.91,
+    "server_cpu_s": 121.16,
+    "reference_cpu_s_total": 237.79,
+    "candidate_cpu_s_total": 244.07,
+    "improvement_claim": false
+  },
+  "unobserved_triggers": [
+    {
+      "sha": "1e36d84c0d738370badf6dda9c90796550ee818b",
+      "files": [
+        ".github/efficiency-e0-sample.json",
+        "docs/STATUS.json",
+        "docs/devlog/...",
+        "docs/evidence/..."
+      ],
+      "expected": "one Game4 sample",
+      "head_sha_workflow_run_count_at_audit": 0
+    },
+    {
+      "sha": "15ebcb8b8bcc7c70c393ddc06250c4daf4b20402",
+      "files": [
+        ".github/workflows/next-efficiency-e0-single.yml",
+        "docs/STATUS.json",
+        "docs/devlog/...",
+        "docs/evidence/..."
+      ],
+      "expected": "one Game4 sample",
+      "head_sha_workflow_run_count_at_audit": 0
+    }
+  ],
+  "pending_config": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1823,
+    "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "workflow_source_assert": "PRODUCT_SOURCE exact commit 673a8ab, candidate helper at invoking SHA",
+  "diagnostic_off_hardening": "Step Enforce true profile-off measurement asserts no nonempty server/client diag.jsonl; not evaluated because no run observed",
+  "status": "NO_GITHUB_ACTIONS_RUN_OBSERVED_FOR_TWO_EXACT_HEADS",
+  "cannot_conclude": [
+    "no job_id",
+    "no artifact",
+    "no Game4 pass/fail for E2 source",
+    "no CPU/pps/alloc comparison for Game4",
+    "no 5205 formal guard for this candidate"
+  ],
+  "causality": "GitHub workflow activation/delivery unknown; do not claim disabled/quota exceeded or missing settings without evidence",
+  "future_manual_or_agent_process": "When actual run appears for one of these exact SHAs, check job/artifact and record true verdict. If no run, use supported workflow trigger/permission surface; never invent run URL/time.",
+  "preserved_historical_game_fails": [
+    37766819445,
+    37768172504,
+    37780170850,
+    37782210096,
+    37788802499
+  ],
+  "other": {
+    "normal_5205": "NOT_RUN",
+    "game4_5205": "NOT_RUN",
+    "e2_gain": "INCONCLUSIVE",
+    "e6_p6_physical": "NOT_RUN",
+    "e7_80s": "OPEN"
+  }
+}
