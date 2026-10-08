@@ -459,10 +459,10 @@
     "short_client_bug": "serial TCP 1Hz handshake+request RTT about1.2s exceeds schedule; 50 skipped starts; fix concurrent bounded short request scheduling before further qualification",
     "short_client_fix": "candidate: bounded concurrency8, scheduled 1Hz independent TCP short requests; new socket functional test 1.25s service latency; qualification pending",
     "repeat_b0": {
-      "status": "DISPATCH_REQUESTED",
+      "status": "IN_PROGRESS",
       "validated_helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
       "preflight_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
-      "action_url": null,
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733833093",
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "seed": 2608102,
       "loss": 0
@@ -483,7 +483,7 @@
     "fullstack_performance_on_new_source": "NOT_RUN"
   },
   "mixed_c_candidate": {
-    "status": "HELPER_PREFLIGHT_PASS_C0_NOT_RUN",
+    "status": "C0_DISPATCH_REQUESTED",
     "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
     "fullstack_samples": "NOT_RUN",
@@ -533,6 +533,14 @@
       "classification": "FAIL_UNIT",
       "reason": "Test wrongly compares second argv slot '-u' of both distinct Python subprocesses, not third argv script program path; generator correct program paths; no performance tested"
     },
-    "preflight_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703"
+    "preflight_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
+    "c0": {
+      "status": "NOT_RUN_REQUESTED",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "seed": 2608103,
+      "loss_percent": 0,
+      "helper_preflight_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
+      "action_url": null
+    }
   }
 }

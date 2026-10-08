@@ -94,8 +94,8 @@
     "B/0 lossless real TCP 56% source injection, 250/300 shorts, backpressure and retrans; no CAPACITY proof",
     "Linux platformflow UDP no-silent-truncation isolated product candidate2f7bb59 functional Actions PASS, large UDP support still OPEN"
   ],
-  "next_task": "B0 independent repeat helper 31ac81d preflight 37733698703 PASS; concurrent 1Hz short TCP generator functional slow-1.25s fixture PASS. Dispatch new run one sample B/p0/seed2608102/source b4. Compare with original B0 37732512345 short250/300 and TCP injection56.37% — keep first FAIL, determine if stream throughput still low after scheduler repair. C0 helper also preflight qualified, request later in separate commit after B relay confirmed, never same performance Action. A0 FAIL unchanged; product guard2f7 functional only; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-longmix-b0-fixed-short-repeat-request.md",
+  "next_task": "B/p0 after fixed-short generator separate child Action37733833093 IN_PROGRESS; while that independent run uses its own runner, dispatch exactly one C/p0 real mixed 5Mbps TCP+5Mbps UDP per direction Action (helper31ac preflight37733698703 PASS, seed2608103, b4). No shared same-run product endpoints; C expected Linux TPROXY>8936 UDP FAIL; record TCP and independent small probes to assess cross-business continuity. Other conditions NOT_RUN; no full matrix PASS/physical.",
+  "latest_log": "docs/devlog/20261008-longmix-c0-dispatch.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10889,7 +10889,7 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "B0_REPEAT_SHORT_FIXED_DISPATCH_REQUESTED",
+    "state": "B0_REPEAT_RUNNING_C0_DISPATCH_REQUESTED",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
@@ -11068,6 +11068,9 @@
       "fullstack_performance_on_new_source": "NOT_RUN"
     },
     "candidate_c": "5Mbps TCP+5Mbps UDP, independent real Linux sockets on each side; 300s; run NOT_RUN",
-    "b_recheck": "NOT_RUN_PENDING_HELPER_PREFLIGHT"
+    "b_recheck": "NOT_RUN_PENDING_HELPER_PREFLIGHT",
+    "tcp_b_repeat_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37733833093",
+    "mixed_c_state": "C0_DISPATCH_REQUESTED",
+    "mixed_c_source": "b4ea061178a6e09b7e7c8587d72b4b8535492567"
   }
 }
