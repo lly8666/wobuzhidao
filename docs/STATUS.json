@@ -10914,5 +10914,100 @@
       "result": "FAIL",
       "retained": true
     }
+  },
+  "mtu_fec2020_matrix_20261008": {
+    "status": "HOSTED_FEC2020_FUNCTIONAL_PASS_39_OF_39",
+    "candidate_source_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+    "branch": "work/mtu-fec2020-matrix-20261008",
+    "evidence_branch": "investigation/mtu-fec2020-qualification-20261008",
+    "fec_profile": "20:20",
+    "outer_mtu": [
+      1300,
+      1400
+    ],
+    "loss_percent": [
+      0,
+      5,
+      10
+    ],
+    "traffic": [
+      "tcp",
+      "udp",
+      "udp-jumbo"
+    ],
+    "inner_mtu": {
+      "outer1300": 1173,
+      "outer1400": 1273
+    },
+    "functional": {
+      "conclusion": "PASS",
+      "run_id": 37747140769,
+      "source_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+      "job_count": 39,
+      "success": 39,
+      "failed": 0,
+      "artifact_ids": [],
+      "scopes": [
+        "real_linux_kernel_tcp_udp_no_fec_codec",
+        "actual_wbd_fec20_20_link_wire",
+        "linux_tun_mtu",
+        "linux_and_windows_build_mock"
+      ]
+    },
+    "observations": {
+      "fec_link_jumbo_loss10_outer1300": "32/32 complete, 64 recovered FEC source fragments",
+      "fec_link_jumbo_loss10_outer1400": "31/32 complete, 51 recovered FEC source fragments",
+      "kernel_jumbo_loss10_outer1300": "3/8 without WBD FEC",
+      "kernel_jumbo_loss10_outer1400": "4/8 without WBD FEC"
+    },
+    "history": [
+      {
+        "run_id": 37746842830,
+        "source_sha": "11470f16700950b9af90beef384234cfcb0e967c",
+        "status": "FAIL",
+        "jobs": 0,
+        "reason": "invalid generated workflow YAML; no test jobs executed",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37746842830"
+      },
+      {
+        "run_id": 37746929808,
+        "source_sha": "7b756a27d72b7a8d795a46ccc065039e8effc04e",
+        "status": "FAIL",
+        "jobs": 39,
+        "passed": 17,
+        "failed": 22,
+        "reason": "new test fixture referenced undefined Go LINK constant; lossy kernel UDP ARP discovery could blackhole traffic (5% cases showed 0/88); source-specific failures retained",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37746929808"
+      },
+      {
+        "run_id": 37747140769,
+        "source_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "status": "PASS",
+        "jobs": 39,
+        "passed": 39,
+        "failed": 0,
+        "reason": null,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769"
+      }
+    ],
+    "performance": {
+      "status": "NOT_RUN"
+    },
+    "physical_windows": {
+      "status": "NOT_RUN"
+    },
+    "complete_WBD_e2e": {
+      "status": "NOT_RUN"
+    },
+    "native_udp_max_payload": {
+      "status": "NOT_QUALIFIED",
+      "platformflow_payload_limit": 8936,
+      "logical_ipv4_length": 9000
+    },
+    "prior_longmix": {
+      "samples": 12,
+      "conclusion": "FAIL",
+      "retained": true
+    }
   }
 }

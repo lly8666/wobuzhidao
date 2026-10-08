@@ -1,0 +1,690 @@
+{
+  "schema_version": 1,
+  "product_source_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+  "product_parent_sha": "68cd1a45fe4d87e48da70eda7a3a19d0016d847b",
+  "product_branch": "work/mtu-fec2020-matrix-20261008",
+  "evidence_branch": "investigation/mtu-fec2020-qualification-20261008",
+  "verdict": "HOSTED_FEC20_20_FUNCTIONAL_PASS_39_OF_39_PERFORMANCE_NOT_RUN",
+  "history": [
+    {
+      "run_id": 37746842830,
+      "source_sha": "11470f16700950b9af90beef384234cfcb0e967c",
+      "status": "FAIL",
+      "jobs": 0,
+      "reason": "invalid generated workflow YAML; no test jobs executed",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37746842830"
+    },
+    {
+      "run_id": 37746929808,
+      "source_sha": "7b756a27d72b7a8d795a46ccc065039e8effc04e",
+      "status": "FAIL",
+      "jobs": 39,
+      "passed": 17,
+      "failed": 22,
+      "reason": "new test fixture referenced undefined Go LINK constant; lossy kernel UDP ARP discovery could blackhole traffic (5% cases showed 0/88); source-specific failures retained",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37746929808"
+    },
+    {
+      "run_id": 37747140769,
+      "source_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+      "status": "PASS",
+      "jobs": 39,
+      "passed": 39,
+      "failed": 0,
+      "reason": null,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769"
+    }
+  ],
+  "latest_run": {
+    "id": 37747140769,
+    "attempt": 1,
+    "source_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+    "status": "completed",
+    "conclusion": "success",
+    "job_count": 39,
+    "success": 39,
+    "failure": 0,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769",
+    "artifact_ids": [],
+    "jobs": [
+      {
+        "name": "fec20-fec-link-tcp-o1300-loss0",
+        "job_id": 113211189872,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211189872"
+      },
+      {
+        "name": "fec20-fec-link-tcp-o1300-loss10",
+        "job_id": 113211190160,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211190160"
+      },
+      {
+        "name": "fec20-fec-link-tcp-o1300-loss5",
+        "job_id": 113211190042,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211190042"
+      },
+      {
+        "name": "fec20-fec-link-tcp-o1400-loss0",
+        "job_id": 113211190171,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211190171"
+      },
+      {
+        "name": "fec20-fec-link-tcp-o1400-loss10",
+        "job_id": 113211190167,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211190167"
+      },
+      {
+        "name": "fec20-fec-link-tcp-o1400-loss5",
+        "job_id": 113211190109,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211190109"
+      },
+      {
+        "name": "fec20-fec-link-udp-jumbo-o1300-loss0",
+        "job_id": 113211191774,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211191774"
+      },
+      {
+        "name": "fec20-fec-link-udp-jumbo-o1300-loss10",
+        "job_id": 113211191997,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211191997"
+      },
+      {
+        "name": "fec20-fec-link-udp-jumbo-o1300-loss5",
+        "job_id": 113211191978,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211191978"
+      },
+      {
+        "name": "fec20-fec-link-udp-jumbo-o1400-loss0",
+        "job_id": 113211192013,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211192013"
+      },
+      {
+        "name": "fec20-fec-link-udp-jumbo-o1400-loss10",
+        "job_id": 113211192636,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211192636"
+      },
+      {
+        "name": "fec20-fec-link-udp-jumbo-o1400-loss5",
+        "job_id": 113211192621,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211192621"
+      },
+      {
+        "name": "fec20-fec-link-udp-o1300-loss0",
+        "job_id": 113211190501,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211190501"
+      },
+      {
+        "name": "fec20-fec-link-udp-o1300-loss10",
+        "job_id": 113211191291,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211191291"
+      },
+      {
+        "name": "fec20-fec-link-udp-o1300-loss5",
+        "job_id": 113211190421,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211190421"
+      },
+      {
+        "name": "fec20-fec-link-udp-o1400-loss0",
+        "job_id": 113211191514,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211191514"
+      },
+      {
+        "name": "fec20-fec-link-udp-o1400-loss10",
+        "job_id": 113211191660,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211191660"
+      },
+      {
+        "name": "fec20-fec-link-udp-o1400-loss5",
+        "job_id": 113211191567,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211191567"
+      },
+      {
+        "name": "fec20-kernel-tcp-o1300-loss0",
+        "job_id": 113211188188,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188188"
+      },
+      {
+        "name": "fec20-kernel-tcp-o1300-loss10",
+        "job_id": 113211188053,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188053"
+      },
+      {
+        "name": "fec20-kernel-tcp-o1300-loss5",
+        "job_id": 113211188222,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188222"
+      },
+      {
+        "name": "fec20-kernel-tcp-o1400-loss0",
+        "job_id": 113211188092,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188092"
+      },
+      {
+        "name": "fec20-kernel-tcp-o1400-loss10",
+        "job_id": 113211188306,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188306"
+      },
+      {
+        "name": "fec20-kernel-tcp-o1400-loss5",
+        "job_id": 113211188139,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188139"
+      },
+      {
+        "name": "fec20-kernel-udp-jumbo-o1300-loss0",
+        "job_id": 113211188372,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188372"
+      },
+      {
+        "name": "fec20-kernel-udp-jumbo-o1300-loss10",
+        "job_id": 113211188225,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188225"
+      },
+      {
+        "name": "fec20-kernel-udp-jumbo-o1300-loss5",
+        "job_id": 113211188430,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188430"
+      },
+      {
+        "name": "fec20-kernel-udp-jumbo-o1400-loss0",
+        "job_id": 113211188413,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188413"
+      },
+      {
+        "name": "fec20-kernel-udp-jumbo-o1400-loss10",
+        "job_id": 113211189723,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211189723"
+      },
+      {
+        "name": "fec20-kernel-udp-jumbo-o1400-loss5",
+        "job_id": 113211189742,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211189742"
+      },
+      {
+        "name": "fec20-kernel-udp-o1300-loss0",
+        "job_id": 113211188063,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188063"
+      },
+      {
+        "name": "fec20-kernel-udp-o1300-loss10",
+        "job_id": 113211188217,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188217"
+      },
+      {
+        "name": "fec20-kernel-udp-o1300-loss5",
+        "job_id": 113211188133,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188133"
+      },
+      {
+        "name": "fec20-kernel-udp-o1400-loss0",
+        "job_id": 113211188243,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188243"
+      },
+      {
+        "name": "fec20-kernel-udp-o1400-loss10",
+        "job_id": 113211188054,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188054"
+      },
+      {
+        "name": "fec20-kernel-udp-o1400-loss5",
+        "job_id": 113211188145,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188145"
+      },
+      {
+        "name": "linux-real-tun-mtu",
+        "job_id": 113211187668,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211187668"
+      },
+      {
+        "name": "linux-unit-race-build",
+        "job_id": 113211187989,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211187989"
+      },
+      {
+        "name": "windows-unit-build",
+        "job_id": 113211188079,
+        "head_sha": "c480ccef30962358b33da936d9ba19def6061f70",
+        "conclusion": "success",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37747140769/job/113211188079"
+      }
+    ]
+  },
+  "config": {
+    "fec_profile": "20:20",
+    "data_shards": 20,
+    "parity_shards": 20,
+    "outer_mtus": [
+      1300,
+      1400
+    ],
+    "loss_percent": [
+      0,
+      5,
+      10
+    ],
+    "auto_record_wire": {
+      "1300": 1260,
+      "1400": 1360
+    },
+    "inner_tun_mtu": {
+      "1300": 1173,
+      "1400": 1273
+    },
+    "tls_fixed_overhead": 31,
+    "fec_header": 56,
+    "link_fragment_header_if_oversize": 20
+  },
+  "scopes": {
+    "kernel": "Real Linux TCP/UDP sockets/netns veth using FEC-derived inner MTU; no FEC is executed inside kernel scope",
+    "fec_link": "Real WBD LINK and production FEC20:20 size-class encoder/decoder; systematic, partial/full parity, erasure and recovery; no TLS-like encryption or full WBD socket",
+    "windows": "Hosted Windows Go unit/build and PowerShell owned MTU journal/mock at FEC-derived 1173 and 1273",
+    "linux": "Go unit/race/build + ARM64 cross-compile + real kernel TUN MTU set"
+  },
+  "metrics": {
+    "fec_link_cases": [
+      {
+        "kind": "tcp",
+        "outer": 1300,
+        "loss_percent": 0,
+        "sent": 120,
+        "delivered": 120,
+        "recovered_sources": 0,
+        "lost_sources": 0,
+        "lost_parity": 0,
+        "job_id": 113211189872
+      },
+      {
+        "kind": "tcp",
+        "outer": 1300,
+        "loss_percent": 5,
+        "sent": 120,
+        "delivered": 120,
+        "recovered_sources": 8,
+        "lost_sources": 8,
+        "lost_parity": 7,
+        "job_id": 113211190042
+      },
+      {
+        "kind": "tcp",
+        "outer": 1300,
+        "loss_percent": 10,
+        "sent": 120,
+        "delivered": 118,
+        "recovered_sources": 25,
+        "lost_sources": 27,
+        "lost_parity": 25,
+        "job_id": 113211190160
+      },
+      {
+        "kind": "tcp",
+        "outer": 1400,
+        "loss_percent": 0,
+        "sent": 120,
+        "delivered": 120,
+        "recovered_sources": 0,
+        "lost_sources": 0,
+        "lost_parity": 0,
+        "job_id": 113211190171
+      },
+      {
+        "kind": "tcp",
+        "outer": 1400,
+        "loss_percent": 5,
+        "sent": 120,
+        "delivered": 120,
+        "recovered_sources": 5,
+        "lost_sources": 5,
+        "lost_parity": 19,
+        "job_id": 113211190109
+      },
+      {
+        "kind": "tcp",
+        "outer": 1400,
+        "loss_percent": 10,
+        "sent": 120,
+        "delivered": 120,
+        "recovered_sources": 25,
+        "lost_sources": 25,
+        "lost_parity": 24,
+        "job_id": 113211190167
+      },
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss_percent": 0,
+        "sent": 130,
+        "delivered": 130,
+        "recovered_sources": 0,
+        "lost_sources": 0,
+        "lost_parity": 0,
+        "job_id": 113211190501
+      },
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss_percent": 5,
+        "sent": 130,
+        "delivered": 130,
+        "recovered_sources": 4,
+        "lost_sources": 4,
+        "lost_parity": 15,
+        "job_id": 113211190421
+      },
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss_percent": 10,
+        "sent": 130,
+        "delivered": 128,
+        "recovered_sources": 31,
+        "lost_sources": 33,
+        "lost_parity": 23,
+        "job_id": 113211191291
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss_percent": 0,
+        "sent": 130,
+        "delivered": 130,
+        "recovered_sources": 0,
+        "lost_sources": 0,
+        "lost_parity": 0,
+        "job_id": 113211191514
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss_percent": 5,
+        "sent": 130,
+        "delivered": 130,
+        "recovered_sources": 16,
+        "lost_sources": 16,
+        "lost_parity": 10,
+        "job_id": 113211191567
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss_percent": 10,
+        "sent": 130,
+        "delivered": 127,
+        "recovered_sources": 25,
+        "lost_sources": 28,
+        "lost_parity": 26,
+        "job_id": 113211191660
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss_percent": 0,
+        "sent": 32,
+        "delivered": 32,
+        "recovered_sources": 0,
+        "lost_sources": 0,
+        "lost_parity": 0,
+        "job_id": 113211191774
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss_percent": 5,
+        "sent": 32,
+        "delivered": 32,
+        "recovered_sources": 24,
+        "lost_sources": 24,
+        "lost_parity": 28,
+        "job_id": 113211191978
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss_percent": 10,
+        "sent": 32,
+        "delivered": 32,
+        "recovered_sources": 64,
+        "lost_sources": 64,
+        "lost_parity": 47,
+        "job_id": 113211191997
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss_percent": 0,
+        "sent": 32,
+        "delivered": 32,
+        "recovered_sources": 0,
+        "lost_sources": 0,
+        "lost_parity": 0,
+        "job_id": 113211192013
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss_percent": 5,
+        "sent": 32,
+        "delivered": 32,
+        "recovered_sources": 21,
+        "lost_sources": 21,
+        "lost_parity": 23,
+        "job_id": 113211192621
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss_percent": 10,
+        "sent": 32,
+        "delivered": 31,
+        "recovered_sources": 51,
+        "lost_sources": 52,
+        "lost_parity": 54,
+        "job_id": 113211192636
+      }
+    ],
+    "kernel_udp_cases": [
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss_percent": 0,
+        "sent": 88,
+        "delivered": 88,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188063
+      },
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss_percent": 5,
+        "sent": 88,
+        "delivered": 82,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188133
+      },
+      {
+        "kind": "udp",
+        "outer": 1300,
+        "loss_percent": 10,
+        "sent": 88,
+        "delivered": 81,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188217
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss_percent": 0,
+        "sent": 88,
+        "delivered": 88,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188243
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss_percent": 5,
+        "sent": 88,
+        "delivered": 82,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188145
+      },
+      {
+        "kind": "udp",
+        "outer": 1400,
+        "loss_percent": 10,
+        "sent": 88,
+        "delivered": 78,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188054
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss_percent": 0,
+        "sent": 8,
+        "delivered": 8,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188372
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss_percent": 5,
+        "sent": 8,
+        "delivered": 4,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188430
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1300,
+        "loss_percent": 10,
+        "sent": 8,
+        "delivered": 3,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188225
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss_percent": 0,
+        "sent": 8,
+        "delivered": 8,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211188413
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss_percent": 5,
+        "sent": 8,
+        "delivered": 5,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211189742
+      },
+      {
+        "kind": "udp-jumbo",
+        "outer": 1400,
+        "loss_percent": 10,
+        "sent": 8,
+        "delivered": 4,
+        "fec_coding_in_kernel_scope": false,
+        "job_id": 113211189723
+      }
+    ],
+    "fec_link_jumbo_delivery_examples": [
+      "32/32 1300 loss0",
+      "32/32 1300 loss5",
+      "32/32 1300 loss10",
+      "32/32 1400 loss0",
+      "32/32 1400 loss5",
+      "31/32 1400 loss10"
+    ]
+  },
+  "caveats": {
+    "FEC_no_absolute_delivery_guarantee": true,
+    "sample_sizes_not_throughput": true,
+    "full_WBD_encrypted_client_server": "NOT_RUN",
+    "physical_Windows_Wintun": "NOT_RUN",
+    "true_product_udp_8936_and_65507": "NOT_QUALIFIED",
+    "platformflow_udp_8936_limit_unchanged": true,
+    "logical_ip_9000_limit_unchanged": true,
+    "PMTUD": "NOT_IMPLEMENTED",
+    "physical_WAN": "NOT_RUN",
+    "performance_CPU_PPS_p99": "NOT_RUN",
+    "frozen_baseline": "UNCHANGED",
+    "longmix_12_legacy_FAIL": "RETAINED"
+  }
+}
