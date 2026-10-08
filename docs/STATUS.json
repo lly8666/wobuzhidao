@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_AUDIT_COMPLETE_HELPER_NOT_QUALIFIED",
+    "phase": "E0_HELPER_CANDIDATE_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -31,10 +31,27 @@
       "evidence": "docs/evidence/performance-efficiency-e0-large-mtu-audit-20261008.json",
       "performance_claim": "NONE",
       "new_perf_samples": 0
+    },
+    "e0_helper": {
+      "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "helper_sha": "workflow GITHUB_SHA of helper candidate commit",
+      "status": "NOT_YET_QUALIFIED",
+      "sample": {
+        "workload": "udp",
+        "loss": 0,
+        "seed": 1801,
+        "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+        "mode": "normal",
+        "lanes": 1,
+        "rate_mbps": 10,
+        "size_profile": "ordinary"
+      },
+      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+      "evidence": "docs/evidence/performance-efficiency-e0-helper-candidate-20261008.json"
     }
   },
-  "next_task": "E0 continue: prior large-mtu 12 Actions FAIL audited (see docs/evidence/performance-efficiency-e0-large-mtu-audit-20261008.json); do not replay them. Repair/freeze exact integration-source real client/server helper: auto record cap0, derive actual MTU+default100ms tick, total logical byte-rate 10Mbps Normal/3Mbps Game4, true UDP/TCP/mixed and probe+CPU/PPS/alloc/batch/repair ledger; exact helper preflight in Actions, then independent one-sample profile-off runs. Resolve E0 validity before E1. 80s S2C deferred E7 OPEN; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-170400-e0-large-mtu-audit.md",
+  "next_task": "E0: inspect first exact helper-source single-sample Actions outcome (Normal UDP ordinary lossless 10Mbps/dir seed1801, 300s) from next-efficiency-e0-single.yml; fix reproducible helper defects, never silently mark PASS. Then separate Normal TCP/mixed and Game4 3Mbps/dir runs, plus jumbo boundary, profile-off CPU/PPS/alloc/batch/repair ledger, runner capacity stratification. E1 only after E0 credible baseline; 80s S2C deferred E7 OPEN.",
+  "latest_log": "docs/devlog/20261008-171200-e0-helper-single-action-candidate.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

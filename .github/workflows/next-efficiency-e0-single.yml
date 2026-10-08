@@ -1,0 +1,172 @@
+name: next-efficiency-e0-single
+run-name: efficiency-e0-${{ github.sha }}
+on:
+  push:
+    branches: ["next/performance-efficiency-20261008"]
+    paths:
+      - ".github/efficiency-e0-sample.json"
+      - ".github/workflows/next-efficiency-e0-single.yml"
+      - "tools/large_mtu_*"
+      - "tools/prepare_large_mtu_harness.py"
+permissions:
+  contents: read
+jobs:
+  one-fullstack-sample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      ART: "${{ github.workspace }}/artifacts/large-mtu-single"
+      PRODUCT_SOURCE: bf11fbfbe64d518e7ba189d51bfb4512df4df733
+      WBD_STRICT_MODE: normal
+      WBD_STRICT_SCENARIO: lossless
+      WBD_STRICT_RATE_MBPS: "10"
+      WBD_STRICT_LANES: "1"
+      WBD_STRICT_FEC_PARITY: "20"
+      WBD_STRICT_FEC_SCREEN: "0"
+      WBD_STRICT_CPU_PROFILE: "0"
+      WBD_STRICT_STATEFUL_GATE: "0"
+      WBD_STRICT_WAN_NEIGHBORS: dynamic
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Enforce one exact sample
+        run: |
+          set -euo pipefail
+          mkdir -p "$ART"
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          d=json.loads(Path(".github/efficiency-e0-sample.json").read_text())
+          assert set(d)=={"workload","loss","seed","product_source_sha","mode","lanes","rate_mbps","size_profile"}
+          assert d["workload"] in ("udp","tcp","mixed")
+          assert type(d["loss"]) is int and d["loss"] in (0,5,20,30)
+          assert type(d["seed"]) is int and 1<=d["seed"]<=999999
+          assert d["mode"] in ("normal","game")
+          assert (d["mode"],d["lanes"],d["rate_mbps"]) in (("normal",1,10),("game",4,3))
+          assert d["size_profile"] in ("ordinary","jumbo")
+          assert d["product_source_sha"]==os.environ["PRODUCT_SOURCE"]
+          helper=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          assert helper==os.environ["GITHUB_SHA"]
+          assert os.environ["GITHUB_REF_NAME"]=="next/performance-efficiency-20261008"
+          with open(os.environ["GITHUB_ENV"],"a") as f:
+              for name, value in {
+                  "WBD_LARGE_WORKLOAD":d["workload"],
+                  "WBD_LARGE_LOSS":d["loss"],
+                  "WBD_STRICT_SEED":d["seed"],
+                  "WBD_STRICT_MODE":d["mode"],
+                  "WBD_STRICT_RATE_MBPS":d["rate_mbps"],
+                  "WBD_STRICT_LANES":d["lanes"],
+                  "WBD_EFF_SIZE_PROFILE":d["size_profile"],
+                  "WBD_HELPER_SOURCE":helper,
+              }.items():
+                  f.write("%s=%s\n"%(name,value))
+          print("ONE_E0_SAMPLE",d,"helper",helper)
+          PY
+          python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py
+          python3 tools/perf_sample_guard.py claim --identity "efficiency-e0:${GITHUB_SHA}:product${PRODUCT_SOURCE}" --receipt "$ART/sample-claim.json"
+      - name: Install isolated network tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl \
+            build-essential bison flex pkg-config libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+      - name: Build frozen source and pinned seeded tc
+        run: |
+          set -euo pipefail
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+          test "$(git rev-parse "${PRODUCT_SOURCE}^{commit}")" = "$PRODUCT_SOURCE"
+          git worktree add --detach "$RUNNER_TEMP/wbd-source" "$PRODUCT_SOURCE"
+          cd "$RUNNER_TEMP/wbd-source"
+          go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+          sha256sum "$ART/wbd-client" "$ART/wbd-server" > "$ART/product-binary-sha256.txt"
+          "$ART/wbd-client" --version > "$ART/client-version.txt"
+          "$ART/wbd-server" --version > "$ART/server-version.txt"
+      - name: Generate one strict fullstack scenario
+        run: |
+          python3 tools/prepare_large_mtu_harness.py --output "$ART/generated.sh" \
+            --workload "$WBD_LARGE_WORKLOAD" --loss "$WBD_LARGE_LOSS"
+          bash -n "$ART/generated.sh"
+      - name: Run real 300s client/server TCP and UDP sample
+        id: sample
+        continue-on-error: true
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_FEC_PARITY,WBD_STRICT_FEC_SCREEN,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS,WBD_LARGE_WORKLOAD,WBD_LARGE_LOSS,WBD_EFF_SIZE_PROFILE \
+            env GITHUB_SHA="$PRODUCT_SOURCE" WBD_HARNESS_SHA="$WBD_HELPER_SOURCE" \
+              WBD_STRICT_ARTIFACT_DIR="$ART" bash "$ART/generated.sh"
+      - name: Read-only analyze and delete raw capture
+        id: analyze
+        if: always()
+        continue-on-error: true
+        run: |
+          python3 tools/check_large_mtu_mixed.py --artifact-dir "$ART" \
+            --source "$PRODUCT_SOURCE" --helper "$WBD_HELPER_SOURCE" \
+            --workload "$WBD_LARGE_WORKLOAD" --loss "$WBD_LARGE_LOSS" \
+            --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" --size-profile "$WBD_EFF_SIZE_PROFILE" --output "$ART/summary.json"
+      - name: Emergency raw pcap cleanup and hash
+        if: always()
+        run: |
+          sudo env ART="$ART" python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path(os.environ["ART"])
+          rows=[]
+          for p in root.glob("*.pcap*"):
+              d=hashlib.sha256()
+              with p.open("rb") as f:
+                  for b in iter(lambda:f.read(1048576),b""):d.update(b)
+              rows.append({"name":p.name,"bytes":p.stat().st_size,"sha256":d.hexdigest()})
+              p.unlink()
+          (root/"fallback-pcap-cleanup.json").write_text(json.dumps(rows,indent=2))
+          PY
+          sudo chmod -R a+rX "$ART"
+      - name: Upload compact numerical evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: efficiency-e0-sample-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            ${{ env.ART }}/sample-claim.json
+            ${{ env.ART }}/summary.json
+            ${{ env.ART }}/manifest.json
+            ${{ env.ART }}/generated.sh.receipt.json
+            ${{ env.ART }}/fallback-pcap-cleanup.json
+            ${{ env.ART }}/stage-events.jsonl
+            ${{ env.ART }}/inner-*.json
+            ${{ env.ART }}/inner-*-route.txt
+            ${{ env.ART }}/runner-host.txt
+            ${{ env.ART }}/resources.jsonl
+            ${{ env.ART }}/client-diag.jsonl
+            ${{ env.ART }}/server-diag.jsonl
+            ${{ env.ART }}/product-binary-sha256.txt
+            ${{ env.ART }}/client-version.txt
+            ${{ env.ART }}/server-version.txt
+            ${{ env.ART }}/client-ss-raw-after.txt
+            ${{ env.ART }}/server-ss-raw-after.txt
+            ${{ env.ART }}/client-links-after.json
+            ${{ env.ART }}/server-links-after.json
+            ${{ env.ART }}/router-links-after.json
+            ${{ env.ART }}/qdisc-*-after.json
+      - name: Fail closed on sample or analysis failure
+        if: always()
+        env:
+          SAMPLE: ${{ steps.sample.outcome }}
+          ANALYZER: ${{ steps.analyze.outcome }}
+        run: |
+          echo "sample=$SAMPLE analyzer=$ANALYZER"
+          test "$SAMPLE" = success && test "$ANALYZER" = success
