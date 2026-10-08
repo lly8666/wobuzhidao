@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_STACK_OPTIONS_GAME4_5205_7763_SCOPED_PASS_SIX_POST_MISSING_GAME2_NEXT",
+    "phase": "E4_RAW_RECV16_SEND8_SOURCE_CANDIDATE_UNTESTED_GAME2_5205_OLD_SOURCE_RUNNING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1000,10 +1000,28 @@
         },
         "state": "PENDING_ACTION"
       }
+    },
+    "e4_raw_recv_batch": {
+      "state": "SOURCE_NOT_TESTED",
+      "source_sha": "THIS_COMMIT",
+      "parent_head": "8f646743f3134d280d9c7b18c1a7b3aca16323ad",
+      "recv_batch_before": 8,
+      "recv_batch_after": 16,
+      "send_batch_preserved": 8,
+      "net_queue_capacity_unchanged": 4096,
+      "tests": [
+        "internal/faketcp/raw_receive_sixteen_linux_test.go"
+      ],
+      "foundation": "NOT_RUN",
+      "lifecycle": "NOT_RUN",
+      "real_source_traffic": "NOT_RUN",
+      "game2_old_source_run": 37852789098,
+      "evidence": "docs/evidence/performance-efficiency-e4-raw-receive16-with-send8-candidate-20261009.json",
+      "cpu_gain": "NOT_PROVEN"
     }
   },
-  "next_task": "E2 stack SACK options exact product ea724897 on AMD EPYC7763 Game4 true5205 OFF seed1838 run37851931918 original PASS_SCOPED issues[], 20% stress UDP both 0 missing, C2S post5% 6 UDP missing, probes0/0, socket/interface0, CPU383.92s on 7763 high busy88.98 PSI43.54. Preserve older same host class true5205 OFF run37817466498 original FAIL S2C stress446 missing; not stable yet, no causal CPU claim. Next one independent Game2 lanes2 staged5205 mixed3Mbps per direction seed1839 profileOFF 300s+3s pinned same product, own helper; verify original per-phase business/host/drop then separate Normal1 true5205 and 0loss, lowRTT and 3 comparable OFF. E7 80s S2C OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e2-game4-5205-7763-scoped-pass-next-game2-protection.md",
+  "next_task": "E4: exact new Linux receive-only recvmmsg batch16 and unchanged synchronous send batch8 source build Linux/Windows unit + Go race/fuzz + real privileged TUN/TPROXY and lifecycle before any new performance sample. Existing SACK-stack source ea72489 Game2 true5205 OFF seed1839 sample 37852789098 independently running; verdict must be read separately, not inherited by E4. If new E4 gates pass issue one Game4 true staged5205 profileOFF single Action pinned E4 product SHA, compare real UDP/probe, packet socket drops, CPU/model/PSI. Old StageB 9V45 socket drop140 FAIL run37851028041, 7763 stress UDP446 FAIL run37817466498 and newer 7763 Game4 scoped pass37851931918 (C2S post 6 missing) all retain. E7 80s OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e4-raw-recvmsg16-preserve-send8-candidate.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

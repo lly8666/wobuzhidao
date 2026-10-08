@@ -1,0 +1,77 @@
+{
+  "schema": "wbd-e4-receive-only-recvmmsg16-candidate/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "source_parent": "8f646743f3134d280d9c7b18c1a7b3aca16323ad",
+  "new_source": "THIS_NEW_COMMIT_SHA",
+  "qualification": "SOURCE_UNTESTED",
+  "motivation": {
+    "prior_real_resource_failure": {
+      "run_id": 37851028041,
+      "source": "1146448d6340cf2e09b525189d233222d7ec9501",
+      "analyzer": "FAIL",
+      "issues": [
+        "RESOURCE_AUDIT_WARNINGS",
+        "LOCAL_SOCKET_DROP"
+      ],
+      "server_AF_PACKET_socket_drops": 140,
+      "all_app_udp_missing": 0,
+      "all_probes_missing": 0
+    },
+    "hot_profile": {
+      "run": 37821931789,
+      "profile": "on",
+      "server_flat_syscall_pct": 30.53,
+      "client_flat_syscall_pct": 30.32,
+      "server_raw_receive_calls": 1386907,
+      "server_raw_receive_messages": 3152943
+    },
+    "notes": [
+      "Kernel receive drop is not proven caused by batch size; burst peaks invisible to 1s buffer sampling",
+      "Existing SENDMMSG includes <=8 segments while sync holding sender lock; don't increase it as a side effect",
+      "Socket packet drop is a hard FAIL even if FEC eventually recovers application traffic"
+    ]
+  },
+  "change": {
+    "file": "internal/faketcp/raw_batch_linux.go",
+    "original_send_batch": 8,
+    "new_send_batch": 8,
+    "original_receive_batch": 8,
+    "new_receive_batch": 16,
+    "recvmmsg_flags": "MSG_WAITFORONE unchanged; returns first packet without filling batch; next packets only if already available",
+    "capacity": "Fixed 8 additional reusable raw frame scratch buffers per raw endpoint; do not increase Game 4096 userspace queue or any repair shadow/window",
+    "wire": "UNCHANGED",
+    "record_mtu": "AUTOMATIC_UNCHANGED",
+    "RTO": "UNCHANGED",
+    "fec": "20:20 UNCHANGED"
+  },
+  "regression": {
+    "file": "internal/faketcp/raw_receive_sixteen_linux_test.go",
+    "tests": [
+      "One syscall reads 16 prequeued independently owned and ordered raw TCP frames; source receive ring refill cannot alter returned packets",
+      "Single sparse packet must be delivered without waiting for 16 slots",
+      "Send rawBatchSize remains exactly8; original 8-batch sender tests remain"
+    ],
+    "status": "NOT_RUN_EXACT_NEW_SOURCE"
+  },
+  "other_cases": {
+    "game4_new_stack_options_run": 37851931918,
+    "original": "PASS_SCOPED",
+    "cpu_high_stratum_7763_s": 383.92,
+    "post_c2s_udp_missing": 6,
+    "game2_5205_running": {
+      "run": 37852789098,
+      "source": "ea7248974b52fcb1688679be54607e881797a743",
+      "helper": "8f646743f3134d280d9c7b18c1a7b3aca16323ad",
+      "seed": 1839,
+      "status": "QUEUED_OR_RUNNING_NOT_INHERITED_BY_E4"
+    }
+  },
+  "requirements": [
+    "Exact new source unit Linux/Windows, Go race, privileged TUN/TPROXY, lifecycle before performance",
+    "Then one independent Game4 true 5205 profileOFF run on own exact product/source/helper SHA; compare in same CPU model strata only, not same-run AB",
+    "E4 not complete without zero socket drop, actual UDP/probe and resource guard across multiple runs",
+    "Old AMD EPYC7763 5205 FAIL, 9V45 socket drop FAIL and older E3 original FAIL retained",
+    "E7 80s downlink OPEN; E6/P6 physical NOT_RUN; no main modifications"
+  ]
+}

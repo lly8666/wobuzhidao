@@ -14,7 +14,15 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// Keep the synchronous send lock/batch at its original 8 records: changing
+// sender lock hold length risks delaying control ACK and Game first arrivals.
 const rawBatchSize = 8
+
+// recvmmsg(MSG_WAITFORONE) waits only for the first packet and then takes
+// already queued packets without a fill delay. Increasing this bounded
+// receive-only batch reduces syscall cadence under 4-lane bursts without
+// changing any wire data or the 4096-record downstream admission limit.
+const rawReceiveBatchSize = 16
 
 // Native mmsghdr layout follows the architecture-specific unix.Msghdr.
 // Go's struct tail alignment supplies the native padding after the uint32.
@@ -24,10 +32,10 @@ type rawMessage struct {
 }
 
 type rawReceiveBatch struct {
-	frames      [rawBatchSize][]byte
-	iov         [rawBatchSize]unix.Iovec
-	from        [rawBatchSize]unix.RawSockaddrLinklayer
-	msg         [rawBatchSize]rawMessage
+	frames      [rawReceiveBatchSize][]byte
+	iov         [rawReceiveBatchSize]unix.Iovec
+	from        [rawReceiveBatchSize]unix.RawSockaddrLinklayer
+	msg         [rawReceiveBatchSize]rawMessage
 	next, count int
 }
 
@@ -202,7 +210,7 @@ func (e *RawIPv4Endpoint) readRawFrame() ([]byte, bool, error) {
 		if e.recvBatch == nil {
 			b := new(rawReceiveBatch)
 			b.frames[0] = e.recvBuf
-			for i := 1; i < rawBatchSize; i++ {
+			for i := 1; i < rawReceiveBatchSize; i++ {
 				b.frames[i] = make([]byte, len(e.recvBuf))
 			}
 			e.recvBatch = b
@@ -219,7 +227,7 @@ func (e *RawIPv4Endpoint) readRawFrame() ([]byte, bool, error) {
 				}}
 			}
 			n, _, errno := unix.Syscall6(unix.SYS_RECVMMSG, uintptr(e.recvFD),
-				uintptr(unsafe.Pointer(&b.msg[0])), rawBatchSize, unix.MSG_WAITFORONE, 0, 0)
+				uintptr(unsafe.Pointer(&b.msg[0])), rawReceiveBatchSize, unix.MSG_WAITFORONE, 0, 0)
 			runtime.KeepAlive(b)
 			if e.ioStats.enabled.Load() {
 				e.ioStats.rxCalls.Add(1)
