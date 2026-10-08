@@ -23,7 +23,7 @@
       "helper_sha": "56f39aff649fc6aa508fb3897bab6ff9b0d77cf8",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731062203",
       "classification": "FAIL",
-      "reason": "Actual 300s product fullstack failed legal UDP 8972/8973/65507 all sizes, 0 first-delivered each direction; other six sizes all first-delivered; zero netem drops. Limit is Linux OpenWrt platformflow 8936B MaxPayload, not Windows TUN.",
+      "reason": "valid 300s real UDP fullstack but >8936B large data never valid; netem verified; no size-specific latency when missing",
       "prior_attempts": [
         {
           "run": "https://github.com/lly8666/wobuzhidao/actions/runs/37729338574",
@@ -98,6 +98,35 @@
         "product_boundary": "platformflow.MaxPayload=logicaltunnel.MaxLeasedIPv4PacketLen - 20 - 44 = 8936B; OpenWrt UDP ingress drops UDP payload>MaxPayload; server UDP readUpstream uses buf len MaxPayload and truncates larger target replies, subsequently client reports corrupt header",
         "capacity": "NO_CAPACITY_ATTRIBUTION; deterministic max payload path independent of observed netem drops",
         "physical": "NOT_RUN"
+      },
+      "final_matrix_receipt": {
+        "workload": "A",
+        "loss_percent": 0,
+        "seed": 2608101,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "56f39aff649fc6aa508fb3897bab6ff9b0d77cf8",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731062203",
+        "artifact_id": 11530166388,
+        "artifact_digest": "sha256:aeaaff9ab27fe8ae6f3fa5c72923b2ea4479ccc84f99086f9544c0112c9de054",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          3.474,
+          3.474
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 601.15,
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "small_udp_96_to_4068_delivered": "mostly/all, retained individual per-size in immutable artifact",
+        "p99_protocol": "independent 96B UDP request/response",
+        "small_first_delivery_max_zero_window_ms_s2c": 300
       }
     },
     {
@@ -107,8 +136,8 @@
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "3698b11f7bc572f125e027b1d5b608ae395a588b",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734052485",
-      "classification": "NOT_RUN",
-      "reason": "Action in progress, pending summary",
+      "classification": "FAIL",
+      "reason": "valid 300s real UDP fullstack but >8936B large data never valid; netem verified; no size-specific latency when missing",
       "request_helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
       "requested": {
         "workload": "A",
@@ -117,6 +146,35 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "A",
+        "loss_percent": 5,
+        "seed": 2608101,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "3698b11f7bc572f125e027b1d5b608ae395a588b",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734052485",
+        "artifact_id": 11531530669,
+        "artifact_digest": "sha256:4b4fa499b91d42e48e2d6bd89787116ee605d20fecb2d0e3dc05b4975b5320f9",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 5.03,
+          "s2c": 5
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          3.474,
+          3.474
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 653.06,
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "small_udp_96_to_4068_delivered": "mostly/all, retained individual per-size in immutable artifact",
+        "p99_protocol": "independent 96B UDP request/response",
+        "small_first_delivery_max_zero_window_ms_s2c": 300
       }
     },
     {
@@ -126,8 +184,8 @@
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "5712582abb6246baed9071fa8e6185f12a7db26c",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734152474",
-      "classification": "NOT_RUN",
-      "reason": "Action in progress, numeric results pending",
+      "classification": "FAIL",
+      "reason": "valid 300s real UDP fullstack but >8936B large data never valid; netem verified; no size-specific latency when missing",
       "requested": {
         "workload": "A",
         "loss_percent": 20,
@@ -135,6 +193,35 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "A",
+        "loss_percent": 20,
+        "seed": 2608101,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "5712582abb6246baed9071fa8e6185f12a7db26c",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734152474",
+        "artifact_id": 11530479251,
+        "artifact_digest": "sha256:553fdae5193abb865765ad64d9961314f9ae5cdb6f259f2d5e683dbebeb58308",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 20.1,
+          "s2c": 20.029
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          3.474,
+          3.463
+        ],
+        "probe_returned": 2988,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 672.64,
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "small_udp_96_to_4068_delivered": "mostly/all, retained individual per-size in immutable artifact",
+        "p99_protocol": "independent 96B UDP request/response",
+        "small_first_delivery_max_zero_window_ms_s2c": 1020
       }
     },
     {
@@ -142,10 +229,10 @@
       "loss_percent": 30,
       "seed": 2608101,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": null,
+      "helper_sha": "d9e549df9c6c0f3c6e1dd75004e3197503a6c28c",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734257494",
-      "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete",
+      "classification": "FAIL",
+      "reason": "valid 300s real UDP fullstack but >8936B large data never valid; netem verified; no size-specific latency when missing",
       "requested": {
         "workload": "A",
         "loss_percent": 30,
@@ -153,6 +240,35 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "A",
+        "loss_percent": 30,
+        "seed": 2608101,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "d9e549df9c6c0f3c6e1dd75004e3197503a6c28c",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734257494",
+        "artifact_id": 11531380802,
+        "artifact_digest": "sha256:5430a9f5c9238d829469d04b462cbe12e786ccaabf8bc081424595ae2d3c3efd",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 30.076,
+          "s2c": 30.037
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          3.461,
+          3.467
+        ],
+        "probe_returned": 2986,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 681.34,
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "small_udp_96_to_4068_delivered": "mostly/all, retained individual per-size in immutable artifact",
+        "p99_protocol": "independent 96B UDP request/response",
+        "small_first_delivery_max_zero_window_ms_s2c": 300
       }
     },
     {
@@ -160,10 +276,10 @@
       "loss_percent": 0,
       "seed": 2608102,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": "d9a284097df4143ab1bbfc4847b59095d2183dbf",
-      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37732512345",
+      "helper_sha": "085932d9f7d43bbb2aedf67c78370e90fa634bb5",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733833093",
       "classification": "FAIL",
-      "reason": "Lossless TCP B real fullstack source injection only56.37% target, actual stream goodput5.64Mbps each direction, 250/300 short TCP transactions, with measured socket backpressure and kernel TCP retrans despite netem0; six long stream hashes byte-perfect. Capacity attribution unproven; helper short stream serial schedule creates missed slots.",
+      "reason": "valid 300s real TCP fullstack but target 10Mbps injection only roughly 52-57%; stream integrity retained, no runner capacity proof",
       "valid_sample": {
         "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37732512345",
         "artifact_id": 11529938114,
@@ -253,7 +369,35 @@
           "netem_s2c_percent": 0,
           "conclusion": "FIXED SHORT GENERATOR FUNCTIONAL, BUT SOURCE INJECTION FAIL PERSISTS; no CAPACITY attribution"
         }
-      ]
+      ],
+      "final_matrix_receipt": {
+        "workload": "B",
+        "loss_percent": 0,
+        "seed": 2608102,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "085932d9f7d43bbb2aedf67c78370e90fa634bb5",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733833093",
+        "artifact_id": 11530149511,
+        "artifact_digest": "sha256:d84f7b272e2c5f46e17272d97afffe0a6aea99865e27ef7cb3f25bdbdb736660",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          5.667,
+          5.667
+        ],
+        "probe_returned": 300,
+        "probe_offered": 300,
+        "probe_returned_p99_ms": 1228.4,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "input_validity": "FAIL_10Mbps_source_coverage",
+        "p99_protocol": "96B short TCP connect+transaction ~two RTT"
+      }
     },
     {
       "workload": "B",
@@ -262,8 +406,8 @@
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "cd115258ea5a1626a908446d8319d79ee96e9705",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734359638",
-      "classification": "NOT_RUN",
-      "reason": "Action child created, result pending",
+      "classification": "FAIL",
+      "reason": "valid 300s real TCP fullstack but target 10Mbps injection only roughly 52-57%; stream integrity retained, no runner capacity proof",
       "requested": {
         "workload": "B",
         "loss_percent": 5,
@@ -271,6 +415,34 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "B",
+        "loss_percent": 5,
+        "seed": 2608102,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "cd115258ea5a1626a908446d8319d79ee96e9705",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734359638",
+        "artifact_id": 11530889910,
+        "artifact_digest": "sha256:5b35eeb38764704d88fbba7e82b70226a7051c1197a1f59040f273184c7489c1",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 5.01,
+          "s2c": 5.008
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          5.548,
+          5.577
+        ],
+        "probe_returned": 300,
+        "probe_offered": 300,
+        "probe_returned_p99_ms": 1264.92,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "input_validity": "FAIL_10Mbps_source_coverage",
+        "p99_protocol": "96B short TCP connect+transaction ~two RTT"
       }
     },
     {
@@ -280,8 +452,8 @@
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "40db46aa0b09b162bd57eddaed51716db3dd680e",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734464340",
-      "classification": "NOT_RUN",
-      "reason": "child independent Action active; numeric pending",
+      "classification": "FAIL",
+      "reason": "valid 300s real TCP fullstack but target 10Mbps injection only roughly 52-57%; stream integrity retained, no runner capacity proof",
       "requested": {
         "workload": "B",
         "loss_percent": 20,
@@ -289,6 +461,34 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "B",
+        "loss_percent": 20,
+        "seed": 2608102,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "40db46aa0b09b162bd57eddaed51716db3dd680e",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734464340",
+        "artifact_id": 11530609465,
+        "artifact_digest": "sha256:af9be837f075f5a9a56322bbc23731126b6878661d9225f2b77c8d64ead84c7a",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 20.013,
+          "s2c": 19.978
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          5.488,
+          5.458
+        ],
+        "probe_returned": 300,
+        "probe_offered": 300,
+        "probe_returned_p99_ms": 1390.11,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "input_validity": "FAIL_10Mbps_source_coverage",
+        "p99_protocol": "96B short TCP connect+transaction ~two RTT"
       }
     },
     {
@@ -296,10 +496,10 @@
       "loss_percent": 30,
       "seed": 2608102,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": null,
+      "helper_sha": "ac94bfdfbb4a15d0f98c8996159289e32115b65f",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734569538",
-      "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete",
+      "classification": "FAIL",
+      "reason": "valid 300s real TCP fullstack but target 10Mbps injection only roughly 52-57%; stream integrity retained, no runner capacity proof",
       "requested": {
         "workload": "B",
         "loss_percent": 30,
@@ -307,6 +507,34 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "B",
+        "loss_percent": 30,
+        "seed": 2608102,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "ac94bfdfbb4a15d0f98c8996159289e32115b65f",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734569538",
+        "artifact_id": 11531531597,
+        "artifact_digest": "sha256:d94ca7818fd1549fb67279d6a96fdd68e55e6bb7544ce58aa46c8888b23ab184",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 29.966,
+          "s2c": 29.995
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          5.249,
+          5.309
+        ],
+        "probe_returned": 300,
+        "probe_offered": 300,
+        "probe_returned_p99_ms": 1896.86,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "input_validity": "FAIL_10Mbps_source_coverage",
+        "p99_protocol": "96B short TCP connect+transaction ~two RTT"
       }
     },
     {
@@ -317,7 +545,7 @@
       "helper_sha": "072edc5c6955c2f2aa783305bc3700f8a450daf2",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733929493",
       "classification": "FAIL",
-      "reason": "Fullstack C0 netem zero; UDP large 8972/8973/65507 never reaches target/client valid, S2C reply 9142 corrupted due platformflow 8936 cap; TCP streams byte-perfect, active 4.92688/5Mbps below strict99%; independent UDP96 3000/3000 p99~627ms and 300/300 TCP shorts. No evidence of cross business HOL; source b4",
+      "reason": "valid 300s mixed real socket 5+5, legal large UDP never valid, TCP streams intact and small UDP delivered",
       "valid_sample": {
         "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733929493",
         "artifact_id": 11530159636,
@@ -394,6 +622,39 @@
         ],
         "cross_business_evidence": "Large UDP systematically missing but 3 independent real TCP long streams delivered matching hashes and 300/300 TCP shorts, UDP small streams all delivered, UDP96 probe3000/3000; no global cross-flow stop despite large failure; TCP per-stream ordered stalls do not equal outer HOL",
         "runner_capacity": "NOT_PROVEN"
+      },
+      "final_matrix_receipt": {
+        "workload": "C",
+        "loss_percent": 0,
+        "seed": 2608103,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "072edc5c6955c2f2aa783305bc3700f8a450daf2",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733929493",
+        "artifact_id": 11530159636,
+        "artifact_digest": "sha256:7b0f1d95867aae8412020df53b7db81d985fcb52ec6ed6e43939478f98a14114",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          1.488,
+          1.488
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 627.11,
+        "tcp_goodput_mbps_c2s_s2c": [
+          4.927,
+          4.927
+        ],
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "short_tcp_returned": "300/300",
+        "p99_protocol": "independent 96B UDP request/response"
       }
     },
     {
@@ -403,8 +664,8 @@
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "c462e59b2fd23e03747ce6099dbb7d80e8ed3a03",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734795819",
-      "classification": "NOT_RUN",
-      "reason": "child dispatched and running, awaiting numeric results",
+      "classification": "FAIL",
+      "reason": "valid 300s mixed real socket 5+5, legal large UDP never valid, TCP streams intact and small UDP delivered",
       "requested": {
         "workload": "C",
         "loss_percent": 5,
@@ -412,6 +673,39 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "C",
+        "loss_percent": 5,
+        "seed": 2608103,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "c462e59b2fd23e03747ce6099dbb7d80e8ed3a03",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734795819",
+        "artifact_id": 11531138306,
+        "artifact_digest": "sha256:1b1dffd6bf40cb9db49ef3798138a42db68ceb283844699918811dcbd839dccd",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 4.971,
+          "s2c": 4.997
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          1.488,
+          1.488
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 636.79,
+        "tcp_goodput_mbps_c2s_s2c": [
+          4.927,
+          4.927
+        ],
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "short_tcp_returned": "300/300",
+        "p99_protocol": "independent 96B UDP request/response"
       }
     },
     {
@@ -421,8 +715,8 @@
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "6124409d26946a94659ccceed5acabde771a1458",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734908160",
-      "classification": "NOT_RUN",
-      "reason": "independent action running, no numeric conclusion",
+      "classification": "FAIL",
+      "reason": "valid 300s mixed real socket 5+5, legal large UDP never valid, TCP streams intact and small UDP delivered",
       "requested": {
         "workload": "C",
         "loss_percent": 20,
@@ -430,6 +724,39 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "C",
+        "loss_percent": 20,
+        "seed": 2608103,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "6124409d26946a94659ccceed5acabde771a1458",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734908160",
+        "artifact_id": 11531193279,
+        "artifact_digest": "sha256:89653c536f4fb23a24a9a568c089f524388909baffcfba957c63c7254b86ced7",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 20.02,
+          "s2c": 20.007
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          1.485,
+          1.486
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 698.88,
+        "tcp_goodput_mbps_c2s_s2c": [
+          4.927,
+          4.927
+        ],
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "short_tcp_returned": "300/300",
+        "p99_protocol": "independent 96B UDP request/response"
       }
     },
     {
@@ -437,10 +764,10 @@
       "loss_percent": 30,
       "seed": 2608103,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": null,
-      "action_url": null,
-      "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete",
+      "helper_sha": "cbf74e3205f6e25626404a5027036bc238bff5eb",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37735039340",
+      "classification": "FAIL",
+      "reason": "valid 300s mixed real socket 5+5, legal large UDP never valid, TCP streams intact and small UDP delivered",
       "requested": {
         "workload": "C",
         "loss_percent": 30,
@@ -448,6 +775,39 @@
         "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
         "duration_s": 300,
         "drain_s": 10
+      },
+      "final_matrix_receipt": {
+        "workload": "C",
+        "loss_percent": 30,
+        "seed": 2608103,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "cbf74e3205f6e25626404a5027036bc238bff5eb",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37735039340",
+        "artifact_id": 11531841500,
+        "artifact_digest": "sha256:0f47dcc8c795a337079dbe27c00dc3d2fad779095752b8d7d1cb0c8e14d72c49",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 30.033,
+          "s2c": 29.991
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          1.472,
+          1.478
+        ],
+        "probe_returned": 2989,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 698.21,
+        "tcp_goodput_mbps_c2s_s2c": [
+          4.927,
+          4.927
+        ],
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "short_tcp_returned": "300/300",
+        "p99_protocol": "independent 96B UDP request/response"
       }
     }
   ],
@@ -869,5 +1229,392 @@
       "state": "REQUESTED",
       "run_url": null
     }
-  ]
+  ],
+  "first_round_complete": {
+    "schema": "longmix-12-sample-raw-aggregate/v1",
+    "state": "COMPLETE_WITH_12_RAW_FAIL",
+    "aggregation_kind": "read_only_of_distinct_existing_runs",
+    "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "all_sample_artifacts_retain_numeric_summaries": true,
+    "exact_run_count": 12,
+    "results": [
+      {
+        "workload": "A",
+        "loss_percent": 0,
+        "seed": 2608101,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "56f39aff649fc6aa508fb3897bab6ff9b0d77cf8",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731062203",
+        "artifact_id": 11530166388,
+        "artifact_digest": "sha256:aeaaff9ab27fe8ae6f3fa5c72923b2ea4479ccc84f99086f9544c0112c9de054",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          3.474,
+          3.474
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 601.15,
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "small_udp_96_to_4068_delivered": "mostly/all, retained individual per-size in immutable artifact",
+        "p99_protocol": "independent 96B UDP request/response",
+        "small_first_delivery_max_zero_window_ms_s2c": 300
+      },
+      {
+        "workload": "A",
+        "loss_percent": 5,
+        "seed": 2608101,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "3698b11f7bc572f125e027b1d5b608ae395a588b",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734052485",
+        "artifact_id": 11531530669,
+        "artifact_digest": "sha256:4b4fa499b91d42e48e2d6bd89787116ee605d20fecb2d0e3dc05b4975b5320f9",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 5.03,
+          "s2c": 5
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          3.474,
+          3.474
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 653.06,
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "small_udp_96_to_4068_delivered": "mostly/all, retained individual per-size in immutable artifact",
+        "p99_protocol": "independent 96B UDP request/response",
+        "small_first_delivery_max_zero_window_ms_s2c": 300
+      },
+      {
+        "workload": "A",
+        "loss_percent": 20,
+        "seed": 2608101,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "5712582abb6246baed9071fa8e6185f12a7db26c",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734152474",
+        "artifact_id": 11530479251,
+        "artifact_digest": "sha256:553fdae5193abb865765ad64d9961314f9ae5cdb6f259f2d5e683dbebeb58308",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 20.1,
+          "s2c": 20.029
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          3.474,
+          3.463
+        ],
+        "probe_returned": 2988,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 672.64,
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "small_udp_96_to_4068_delivered": "mostly/all, retained individual per-size in immutable artifact",
+        "p99_protocol": "independent 96B UDP request/response",
+        "small_first_delivery_max_zero_window_ms_s2c": 1020
+      },
+      {
+        "workload": "A",
+        "loss_percent": 30,
+        "seed": 2608101,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "d9e549df9c6c0f3c6e1dd75004e3197503a6c28c",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734257494",
+        "artifact_id": 11531380802,
+        "artifact_digest": "sha256:5430a9f5c9238d829469d04b462cbe12e786ccaabf8bc081424595ae2d3c3efd",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 30.076,
+          "s2c": 30.037
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          3.461,
+          3.467
+        ],
+        "probe_returned": 2986,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 681.34,
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "small_udp_96_to_4068_delivered": "mostly/all, retained individual per-size in immutable artifact",
+        "p99_protocol": "independent 96B UDP request/response",
+        "small_first_delivery_max_zero_window_ms_s2c": 300
+      },
+      {
+        "workload": "B",
+        "loss_percent": 0,
+        "seed": 2608102,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "085932d9f7d43bbb2aedf67c78370e90fa634bb5",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733833093",
+        "artifact_id": 11530149511,
+        "artifact_digest": "sha256:d84f7b272e2c5f46e17272d97afffe0a6aea99865e27ef7cb3f25bdbdb736660",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          5.667,
+          5.667
+        ],
+        "probe_returned": 300,
+        "probe_offered": 300,
+        "probe_returned_p99_ms": 1228.4,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "input_validity": "FAIL_10Mbps_source_coverage",
+        "p99_protocol": "96B short TCP connect+transaction ~two RTT"
+      },
+      {
+        "workload": "B",
+        "loss_percent": 5,
+        "seed": 2608102,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "cd115258ea5a1626a908446d8319d79ee96e9705",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734359638",
+        "artifact_id": 11530889910,
+        "artifact_digest": "sha256:5b35eeb38764704d88fbba7e82b70226a7051c1197a1f59040f273184c7489c1",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 5.01,
+          "s2c": 5.008
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          5.548,
+          5.577
+        ],
+        "probe_returned": 300,
+        "probe_offered": 300,
+        "probe_returned_p99_ms": 1264.92,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "input_validity": "FAIL_10Mbps_source_coverage",
+        "p99_protocol": "96B short TCP connect+transaction ~two RTT"
+      },
+      {
+        "workload": "B",
+        "loss_percent": 20,
+        "seed": 2608102,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "40db46aa0b09b162bd57eddaed51716db3dd680e",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734464340",
+        "artifact_id": 11530609465,
+        "artifact_digest": "sha256:af9be837f075f5a9a56322bbc23731126b6878661d9225f2b77c8d64ead84c7a",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 20.013,
+          "s2c": 19.978
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          5.488,
+          5.458
+        ],
+        "probe_returned": 300,
+        "probe_offered": 300,
+        "probe_returned_p99_ms": 1390.11,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "input_validity": "FAIL_10Mbps_source_coverage",
+        "p99_protocol": "96B short TCP connect+transaction ~two RTT"
+      },
+      {
+        "workload": "B",
+        "loss_percent": 30,
+        "seed": 2608102,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "ac94bfdfbb4a15d0f98c8996159289e32115b65f",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734569538",
+        "artifact_id": 11531531597,
+        "artifact_digest": "sha256:d94ca7818fd1549fb67279d6a96fdd68e55e6bb7544ce58aa46c8888b23ab184",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 29.966,
+          "s2c": 29.995
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          5.249,
+          5.309
+        ],
+        "probe_returned": 300,
+        "probe_offered": 300,
+        "probe_returned_p99_ms": 1896.86,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "input_validity": "FAIL_10Mbps_source_coverage",
+        "p99_protocol": "96B short TCP connect+transaction ~two RTT"
+      },
+      {
+        "workload": "C",
+        "loss_percent": 0,
+        "seed": 2608103,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "072edc5c6955c2f2aa783305bc3700f8a450daf2",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733929493",
+        "artifact_id": 11530159636,
+        "artifact_digest": "sha256:7b0f1d95867aae8412020df53b7db81d985fcb52ec6ed6e43939478f98a14114",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          1.488,
+          1.488
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 627.11,
+        "tcp_goodput_mbps_c2s_s2c": [
+          4.927,
+          4.927
+        ],
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "short_tcp_returned": "300/300",
+        "p99_protocol": "independent 96B UDP request/response"
+      },
+      {
+        "workload": "C",
+        "loss_percent": 5,
+        "seed": 2608103,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "c462e59b2fd23e03747ce6099dbb7d80e8ed3a03",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734795819",
+        "artifact_id": 11531138306,
+        "artifact_digest": "sha256:1b1dffd6bf40cb9db49ef3798138a42db68ceb283844699918811dcbd839dccd",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 4.971,
+          "s2c": 4.997
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          1.488,
+          1.488
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 636.79,
+        "tcp_goodput_mbps_c2s_s2c": [
+          4.927,
+          4.927
+        ],
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "short_tcp_returned": "300/300",
+        "p99_protocol": "independent 96B UDP request/response"
+      },
+      {
+        "workload": "C",
+        "loss_percent": 20,
+        "seed": 2608103,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "6124409d26946a94659ccceed5acabde771a1458",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734908160",
+        "artifact_id": 11531193279,
+        "artifact_digest": "sha256:89653c536f4fb23a24a9a568c089f524388909baffcfba957c63c7254b86ced7",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 20.02,
+          "s2c": 20.007
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          1.485,
+          1.486
+        ],
+        "probe_returned": 3000,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 698.88,
+        "tcp_goodput_mbps_c2s_s2c": [
+          4.927,
+          4.927
+        ],
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "short_tcp_returned": "300/300",
+        "p99_protocol": "independent 96B UDP request/response"
+      },
+      {
+        "workload": "C",
+        "loss_percent": 30,
+        "seed": 2608103,
+        "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "cbf74e3205f6e25626404a5027036bc238bff5eb",
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37735039340",
+        "artifact_id": 11531841500,
+        "artifact_digest": "sha256:0f47dcc8c795a337079dbe27c00dc3d2fad779095752b8d7d1cb0c8e14d72c49",
+        "raw_action_conclusion": "failure",
+        "raw_summary_classification": "FAIL",
+        "actual_netem_drop_percent": {
+          "c2s": 30.033,
+          "s2c": 29.991
+        },
+        "duration_s": 300,
+        "drain_s": 10,
+        "corresponding_goodput_mbps_c2s_s2c": [
+          1.472,
+          1.478
+        ],
+        "probe_returned": 2989,
+        "probe_offered": 3000,
+        "probe_returned_p99_ms": 698.21,
+        "tcp_goodput_mbps_c2s_s2c": [
+          4.927,
+          4.927
+        ],
+        "udp_fullsize_8972_8973_65507_first_valid_both_directions": 0,
+        "tcp_long_stream_hash_integrity": "six unidirectional streams hash/byte match",
+        "short_tcp_returned": "300/300",
+        "p99_protocol": "independent 96B UDP request/response"
+      }
+    ],
+    "categories": {
+      "PASS": 0,
+      "FAIL": 12,
+      "CAPACITY_LIMITED": 0,
+      "INVALID": 0,
+      "UNSUPPORTED": 0,
+      "NOT_RUN": 0
+    },
+    "limitations": [
+      "client OpenWrt Linux TPROXY not native Windows Wintun or Linux client TUN",
+      "B input validity below 99% and cannot attribute to hosted runner without earliest capacity evidence",
+      "A and C legal long UDP >8936 cannot pass current platformflow without product change; not evidence Windows TUN has same bug",
+      "conditional RTT p99 excludes missing, which are separately shown",
+      "A/C long UDP big RTT entirely unavailable because all failed to deliver",
+      "resource/FEC/repair time lines require per-action artifact review",
+      "A/20 s2c 1020ms zero-first-delivery window needs origin/runner/source qualification before classifying HOL"
+    ]
+  }
 }
