@@ -24,3 +24,5 @@
 ## C有损矩阵
 
 - B/30 Action [37734569538](https://github.com/lly8666/wobuzhidao/actions/runs/37734569538) 独立正式已启动。现在单独请求C/5%/seed2608103/sourceb4，TCP5M+UDP5M每向不挪配额、真实多TCP+多UDP同一份产品端点，0.3s每方向/双向netem5%/300s+drain，实测loss与Probe/bytes哈希需另审。不能将C0缺失的合法大UDP从C5 loss分母移走或归因30% FEC。
+
+- C/5% [37734795819](https://github.com/lly8666/wobuzhidao/actions/runs/37734795819) 单独产品Run已创建，数值未读；现在请求另一条C/20% (seed2608103, FEC20:20, TCP5M+UDP5M每向，双向20%真实netem, 300ms每向, 300s+drain)，各出一份正式客户端+服务端/真Linux sockets。UDP原大包在0丢包下硬失败仍列在正常丢失分母，不能选幸存小包p99关闭该缺陷。

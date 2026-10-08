@@ -1,7 +1,7 @@
 {
   "sample": {
     "workload": "C",
-    "loss_percent": 5,
+    "loss_percent": 20,
     "seed": 2608103,
     "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "duration_s": 300,
