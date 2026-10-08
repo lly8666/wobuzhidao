@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RECV16_FOUNDATION_LIFECYCLE_PASS_GAME4_5205_OFF_QUEUED",
+    "phase": "E4_RECV16_GAME4_OFF_PENDING_E2_GAME2_TRUE5205_SCOPED_PASS",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -999,7 +999,14 @@
           "diagnostic_mode": "off"
         },
         "state": "PENDING_ACTION"
-      }
+      },
+      "game2_true5205_run": 37852789098,
+      "game2_true5205_original": "PASS_SCOPED_ACTIONS",
+      "game2_true5205_s2c_stress_missing_udp": 1,
+      "game2_runner": "AMD EPYC 7763",
+      "game2_cpu_s": 221.32,
+      "game2_evidence": "docs/evidence/performance-efficiency-e2-game2-5205-off-run37852789098.json",
+      "qualification": "GAME2_SCOPED_PASS_NEW_E4_SOURCE_NOT_TESTED"
     },
     "e4_raw_recv_batch": {
       "state": "UNIT_RACE_LIFECYCLE_PASS_GAME4_ONE_CASE_QUEUED",
@@ -1034,11 +1041,13 @@
         "status": "PENDING_ACTION",
         "evidence": "docs/evidence/performance-efficiency-e4-raw-recv16-game4-5205-single-qualification-20261009.json"
       },
-      "game2_previous_source_run": 37852789098
+      "game2_previous_source_run": 37852789098,
+      "first_real_game4_5205_run": 37853468730,
+      "first_real_game4_5205_original": "PENDING"
     }
   },
-  "next_task": "E4 first inspect exact helper HEAD one Game4 true staged5205 5/20/5 mixed3Mbps/dir Game4 300ms/300s+3s seed1840 profileOFF SOURCE ba8ed1 and new helper sha, one Action only; record original issues and pre/stress/post UDP/probes, TCP/HTTPS, AF_PACKET socket drops, raw receive calls/msg, runner CPU model/PSI and TUN MTU. Core37853003357 and lifecycle37853003378 all PASS. Separately inspect previous Game2 two-lane 5205 run37852789098 old product ea724897 seed1839 original outcome (not E4 qualification). E4 not done or CPU gain proven; retain historical 7763 S2C446 FAIL and 9V45 AF_PACKET socket140 FAIL. Then independent E4 Game2/Normal true5205, zero loss and low RTT, matched OFF triple. E7 80s OPEN; E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e4-recv16-raw-game4-5205-off-first-sample.md",
+  "next_task": "First check E4 recvmsg16 source ba8ed1 Game4 true staged5205 OFF seed1840 run37853468730 new-helper SHA32db36d7, original analyzer and per-stage UDP/probes, extra AF_PACKET packet socket drops, runner stratum, true server MTU. Old E2 stack-SACK source ea724897 Game2 true5205 off run37852789098 original PASS_SCOPED with S2C stress 1/51503 4068B UDP missing, all C2S UDP0, probes0/0 and AF_PACKET drops0, CPU221.32s on AMD EPYC7763, cannot inherit as E4 test. After new E4 real pass/fail, separate Normal1 and Game2 new-source true5205/lossless under one-sample actions, lowRTT and 3 matched runner strata before CPU gain. Old AMD EPYC7763 Game4 stress446 FAIL run37817466498 and 9V45 packet140drop FAIL run37851028041 retained, E7 80s OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e2-game2-5205-scoped-pass-one-s2c-stress-udp-missing.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

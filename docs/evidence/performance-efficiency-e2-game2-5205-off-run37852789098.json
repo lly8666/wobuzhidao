@@ -1,0 +1,143 @@
+{
+  "schema": "wbd-e2-game2-two-lane-true-5205-off-run-receipt/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "run": {
+    "id": 37852789098,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37852789098",
+    "job_id": 113569692828,
+    "artifact_id": 11583371315,
+    "attempt": 1,
+    "original_actions": "success",
+    "original_analyzer": "PASS_SCOPED_ACTIONS",
+    "original_issues": [],
+    "sample_step": "success",
+    "analyzer_step": "success",
+    "cost_ledger_step": "success",
+    "product_sha": "ea7248974b52fcb1688679be54607e881797a743",
+    "helper_sha": "8f646743f3134d280d9c7b18c1a7b3aca16323ad",
+    "seed": 1839,
+    "mode": "game",
+    "lanes_configured": 2,
+    "lanes_measured": "NOT_COLLECTED_PROFILE_OFF",
+    "workload": "mixed",
+    "profile": "off",
+    "loss": "true_staged_5_20_5",
+    "duration_s": 300,
+    "drain_s": 3,
+    "one_way_ms": 300,
+    "rate_mbps_each_direction": 3,
+    "real_server_tun_mtu": 1273,
+    "auto_record_cap": 0,
+    "outer_mtu": 1400,
+    "fec": "20:20"
+  },
+  "per_phase_udp": {
+    "c2s": {
+      "pre": {
+        "sent": 25792,
+        "delivered": 25792,
+        "missing": 0
+      },
+      "stress": {
+        "sent": 51503,
+        "delivered": 51503,
+        "missing": 0
+      },
+      "post": {
+        "sent": 25767,
+        "delivered": 25767,
+        "missing": 0
+      }
+    },
+    "s2c": {
+      "pre": {
+        "sent": 25792,
+        "delivered": 25792,
+        "missing": 0
+      },
+      "stress": {
+        "sent": 51503,
+        "delivered": 51502,
+        "missing": 1,
+        "missing_size_bytes": 4068
+      },
+      "post": {
+        "sent": 25767,
+        "delivered": 25767,
+        "missing": 0
+      }
+    }
+  },
+  "probe": {
+    "c2s": {
+      "sent": 1500,
+      "returned": 1500,
+      "missing": 0,
+      "p99_returned_only_ms": 690.58605
+    },
+    "s2c": {
+      "sent": 1495,
+      "returned": 1495,
+      "missing": 0,
+      "p99_returned_only_ms": 691.073069
+    }
+  },
+  "tcp": {
+    "flows_each_direction": 304,
+    "hash_mismatch": 0
+  },
+  "web": {
+    "requests": 20,
+    "returned": 20,
+    "certificates_verified": 10
+  },
+  "resources": {
+    "runner": "AMD EPYC 7763 64-Core Processor",
+    "vcpus": 4,
+    "cgroup_quota_cores": null,
+    "host_busy_max_percent": 52.69121813031161,
+    "cpu_psi_some_avg10_max": 34.02,
+    "client_cpu_s": 110.51,
+    "server_cpu_s": 110.81,
+    "total_product_cpu_s": 221.32,
+    "normalized_cpu_s_per_delivered_gib": 1065.8187913924053,
+    "packet_socket_drop": 0,
+    "interface_drops": 0,
+    "profile_off_go_malloc_alloc": "NOT_COLLECTED"
+  },
+  "realized_loss": {
+    "c2s": {
+      "pre": 5.021889026015092,
+      "stress": 20.01377186831054,
+      "post": 4.969158369548473
+    },
+    "s2c": {
+      "pre": 5.001832210464685,
+      "stress": 19.958506415263003,
+      "post": 4.950039499613685
+    }
+  },
+  "artifact_sha256": {
+    "summary.json": "b4df4a809aa418d5d40239022596b6a9d174dcec8aa134849645b0f7a874f6ca",
+    "efficiency-ledger.json": "bc8548acbe59f2d2540fd0ed29377e9967f35326f3c4bf8507bf125eddb9a1d1",
+    "manifest.json": "c6fb001cdf92cfd8d0aaab6bccb5100236b599339c9e47119403c67263194da4",
+    "stage-events.jsonl": "213849b45d0a1de600fd7e524c7e0d9d8db1f22bbce8df32ead908340bb2418d",
+    "sample-claim.json": "66b213e205cfe7e14ab54f547f386e536d46bbe2f5b9e743f0c2bab95db88c19"
+  },
+  "future": {
+    "new_e4_product_source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "new_e4_game4_one_sample_run": 37853468730,
+    "current_state": "RUNNING_OR_QUEUED_NOT_THIS_SOURCE",
+    "e2_game2_conclusion": "PASS_SCOPED_ONLY_1_S2C_STRESS_MISSING",
+    "e4_game2": "NOT_RUN",
+    "e3_high_host_stability": "NOT_QUALIFIED",
+    "e7_80s": "OPEN",
+    "e6_p6_physical": "NOT_RUN"
+  },
+  "other_prior_original_fails": [
+    37817466498,
+    37851028041
+  ],
+  "no_main_or_physical_modifications": true
+}
