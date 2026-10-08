@@ -89,10 +89,11 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN",
     "Linux raw AF_PACKET per-socket receive buffer qualification",
-    "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
+    "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)",
+    "Linux TPROXY platformflow oversize 8936B boundary, truncated S2C replies; fullstack 2026-10-08 A/0 FAIL; source b4 unchanged"
   ],
-  "next_task": "Fixed-b4 A0 Action 37731062203 is in_progress; analyzer must still examine actual business bytes and route. Real TCP B helper candidate now prepared for Actions unit/static shell preflight: 3 full-duplex long TCP and 1Hz 96-byte short TCP, B direction 10Mbps, SHA256 stream integrity, TCP_INFO MSS/retrans, backpressure. No B sample executed. C not integrated, P7 physical untouched.",
-  "latest_log": "docs/devlog/20261008-longmix-tcp-b-script-preflight.md",
+  "next_task": "A/0 exact b4 FULLSTACK run 37731062203 raw FAIL: six <=4068B sizes all delivered both directions, three legal UDP sizes 8972/8973/65507 zero first-delivery both directions; 0 netem drops and independent96 probes3000/3000. Code boundary platformflow MaxPayload=9000-20-44=8936: Linux OpenWrt UDP ingress rejects larger before tunnel; server platformflow UDP readUpstream(buf MaxPayload) truncates target->biz replies, corrupt16224. This path uses Linux TPROXY (client TUN UNSUPPORTED), cannot claim Windows TUN failure or equivalence. Need first isolate/reject-no-truncation targeted functional fix or product-supported large UDP path; do not expand FEC/4096 or blame runner. B TCP helper preflight 37731561854 PASS but B performance NOT_RUN; C NOT_RUN. Original M03/1554 80s downlink and 1.225s large tail remain separate.",
+  "latest_log": "docs/devlog/20261008-longmix-a-p0-real-fullstack-fail-maxpayload.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10886,17 +10887,17 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A0_RUNNING_TCP_B_PREFLIGHT_PENDING",
+    "state": "A_P0_FULLSTACK_FAIL_LINUX_TPROXY_8936_BOUNDARY",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "1171220c9c679b7ddcf9ed65973299636de90c2e",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37730618843",
     "fullstack_samples": {
       "PASS": 0,
-      "FAIL": 0,
+      "FAIL": 1,
       "CAPACITY_LIMITED": 0,
       "INVALID": 0,
       "UNSUPPORTED": 0,
-      "NOT_RUN": 12
+      "NOT_RUN": 11
     },
     "evidence": "docs/evidence/longmix-20261008.json",
     "physical": "NOT_RUN",
@@ -10927,11 +10928,68 @@
       "business_sample": "INVALID"
     },
     "current_sample": {
-      "run": "https://github.com/lly8666/wobuzhidao/actions/runs/37731062203",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731062203",
+      "artifact_id": 11530166388,
+      "artifact_digest": "sha256:aeaaff9ab27fe8ae6f3fa5c72923b2ea4479ccc84f99086f9544c0112c9de054",
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "56f39aff649fc6aa508fb3897bab6ff9b0d77cf8",
-      "configuration": "Normal1 FEC20:20 p0 300ms each direction 300s A UDP",
-      "status": "IN_PROGRESS_NOT_YET_CLASSIFIED"
-    }
+      "classification": "FAIL",
+      "seconds": 300,
+      "loss_percent": 0,
+      "seed": 2608101,
+      "source_send_bytes": {
+        "c2s": 372252412,
+        "s2c": 372241936
+      },
+      "first_receive_bytes": {
+        "c2s": 130281240,
+        "s2c": 130279736
+      },
+      "goodput_mbps": {
+        "c2s": 3.4741664,
+        "s2c": 3.4741262933333332
+      },
+      "netem_actual_drops": {
+        "c2s": 0,
+        "s2c": 0
+      },
+      "netem_attempts": {
+        "c2s": 1295756,
+        "s2c": 1423793
+      },
+      "small_payload_96_to_4068": "both directions every successfully sent validated and first delivered",
+      "large_payload": {
+        "8972": {
+          "c2s_sent": 6223,
+          "c2s_received": 0,
+          "s2c_sent": 6222,
+          "s2c_received": 0
+        },
+        "8973": {
+          "c2s_sent": 8297,
+          "c2s_received": 0,
+          "s2c_sent": 8297,
+          "s2c_received": 0
+        },
+        "65507": {
+          "c2s_sent": 1705,
+          "c2s_received": 0,
+          "s2c_sent": 1705,
+          "s2c_received": 0
+        }
+      },
+      "client_received_corrupt_reply_count": 16224,
+      "probe": {
+        "sent": 3000,
+        "returned": 3000,
+        "timeouts": 0,
+        "returned_rtt_p99_ms": 601.147977
+      },
+      "client_tun": "UNSUPPORTED; Linux TPROXY not Wintun/TUN",
+      "product_boundary": "platformflow.MaxPayload=logicaltunnel.MaxLeasedIPv4PacketLen - 20 - 44 = 8936B; OpenWrt UDP ingress drops UDP payload>MaxPayload; server UDP readUpstream uses buf len MaxPayload and truncates larger target replies, subsequently client reports corrupt header",
+      "capacity": "NO_CAPACITY_ATTRIBUTION; deterministic max payload path independent of observed netem drops",
+      "physical": "NOT_RUN"
+    },
+    "scope_warning": "client Linux real OpenWrt TPROXY, not Windows or Linux TUN; original Windows-ARM M03 remains separate"
   }
 }

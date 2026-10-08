@@ -20,10 +20,10 @@
       "loss_percent": 0,
       "seed": 2608101,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": "9b22df8eb74c144fcaf686e4e1b4e717e2216ae8",
-      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37729716707",
-      "classification": "INVALID",
-      "reason": "Two INVALID independent attempts: 37729338574 missing sudo artifact env; 37729716707 sender 10.0 argparse float vs byte-accounting integer error. No valid workload delivered",
+      "helper_sha": "56f39aff649fc6aa508fb3897bab6ff9b0d77cf8",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731062203",
+      "classification": "FAIL",
+      "reason": "Actual 300s product fullstack failed legal UDP 8972/8973/65507 all sizes, 0 first-delivered each direction; other six sizes all first-delivered; zero netem drops. Limit is Linux OpenWrt platformflow 8936B MaxPayload, not Windows TUN.",
       "prior_attempts": [
         {
           "run": "https://github.com/lly8666/wobuzhidao/actions/runs/37729338574",
@@ -35,7 +35,70 @@
           "classification": "INVALID",
           "reason": "generator float Mbps type; no business bytes"
         }
-      ]
+      ],
+      "valid_sample": {
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731062203",
+        "artifact_id": 11530166388,
+        "artifact_digest": "sha256:aeaaff9ab27fe8ae6f3fa5c72923b2ea4479ccc84f99086f9544c0112c9de054",
+        "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "helper_sha": "56f39aff649fc6aa508fb3897bab6ff9b0d77cf8",
+        "classification": "FAIL",
+        "seconds": 300,
+        "loss_percent": 0,
+        "seed": 2608101,
+        "source_send_bytes": {
+          "c2s": 372252412,
+          "s2c": 372241936
+        },
+        "first_receive_bytes": {
+          "c2s": 130281240,
+          "s2c": 130279736
+        },
+        "goodput_mbps": {
+          "c2s": 3.4741664,
+          "s2c": 3.4741262933333332
+        },
+        "netem_actual_drops": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "netem_attempts": {
+          "c2s": 1295756,
+          "s2c": 1423793
+        },
+        "small_payload_96_to_4068": "both directions every successfully sent validated and first delivered",
+        "large_payload": {
+          "8972": {
+            "c2s_sent": 6223,
+            "c2s_received": 0,
+            "s2c_sent": 6222,
+            "s2c_received": 0
+          },
+          "8973": {
+            "c2s_sent": 8297,
+            "c2s_received": 0,
+            "s2c_sent": 8297,
+            "s2c_received": 0
+          },
+          "65507": {
+            "c2s_sent": 1705,
+            "c2s_received": 0,
+            "s2c_sent": 1705,
+            "s2c_received": 0
+          }
+        },
+        "client_received_corrupt_reply_count": 16224,
+        "probe": {
+          "sent": 3000,
+          "returned": 3000,
+          "timeouts": 0,
+          "returned_rtt_p99_ms": 601.147977
+        },
+        "client_tun": "UNSUPPORTED; Linux TPROXY not Wintun/TUN",
+        "product_boundary": "platformflow.MaxPayload=logicaltunnel.MaxLeasedIPv4PacketLen - 20 - 44 = 8936B; OpenWrt UDP ingress drops UDP payload>MaxPayload; server UDP readUpstream uses buf len MaxPayload and truncates larger target replies, subsequently client reports corrupt header",
+        "capacity": "NO_CAPACITY_ATTRIBUTION; deterministic max payload path independent of observed netem drops",
+        "physical": "NOT_RUN"
+      }
     },
     {
       "workload": "A",
@@ -150,11 +213,12 @@
   ],
   "product_changes": "NONE",
   "physical": "NOT_RUN",
-  "capacity": "NOT_EVALUATED",
+  "capacity": "NOT_PROVEN",
   "known_open": [
     "M03/1554 initial roughly 80s downlink stop",
     "M03/1554 post recovery UDP65507 RTT 1225.578ms",
-    "No exact-source sustained 300s A/B/C evidence"
+    "No exact-source sustained 300s A/B/C evidence",
+    "Exact-b4 Linux TPROXY platformflow rejects >8936 UDP ingress and truncates >8936 server replies; full 8972/8973/65507 over this Linux path FAIL"
   ],
   "driver_a": {
     "state": "A_UDP_GENERATOR_UNIT_PASS_FULLSTACK_NOT_RUN",
@@ -194,6 +258,69 @@
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "9b22df8eb74c144fcaf686e4e1b4e717e2216ae8",
       "reason": "Actual product ran and raw socket effective 1048576, but both Python business generators threw ValueError before sending any sustained payload; manifest/biz.json/target.json absent"
+    },
+    "third_attempt": {
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731062203",
+      "artifact_id": 11530166388,
+      "artifact_digest": "sha256:aeaaff9ab27fe8ae6f3fa5c72923b2ea4479ccc84f99086f9544c0112c9de054",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "helper_sha": "56f39aff649fc6aa508fb3897bab6ff9b0d77cf8",
+      "classification": "FAIL",
+      "seconds": 300,
+      "loss_percent": 0,
+      "seed": 2608101,
+      "source_send_bytes": {
+        "c2s": 372252412,
+        "s2c": 372241936
+      },
+      "first_receive_bytes": {
+        "c2s": 130281240,
+        "s2c": 130279736
+      },
+      "goodput_mbps": {
+        "c2s": 3.4741664,
+        "s2c": 3.4741262933333332
+      },
+      "netem_actual_drops": {
+        "c2s": 0,
+        "s2c": 0
+      },
+      "netem_attempts": {
+        "c2s": 1295756,
+        "s2c": 1423793
+      },
+      "small_payload_96_to_4068": "both directions every successfully sent validated and first delivered",
+      "large_payload": {
+        "8972": {
+          "c2s_sent": 6223,
+          "c2s_received": 0,
+          "s2c_sent": 6222,
+          "s2c_received": 0
+        },
+        "8973": {
+          "c2s_sent": 8297,
+          "c2s_received": 0,
+          "s2c_sent": 8297,
+          "s2c_received": 0
+        },
+        "65507": {
+          "c2s_sent": 1705,
+          "c2s_received": 0,
+          "s2c_sent": 1705,
+          "s2c_received": 0
+        }
+      },
+      "client_received_corrupt_reply_count": 16224,
+      "probe": {
+        "sent": 3000,
+        "returned": 3000,
+        "timeouts": 0,
+        "returned_rtt_p99_ms": 601.147977
+      },
+      "client_tun": "UNSUPPORTED; Linux TPROXY not Wintun/TUN",
+      "product_boundary": "platformflow.MaxPayload=logicaltunnel.MaxLeasedIPv4PacketLen - 20 - 44 = 8936B; OpenWrt UDP ingress drops UDP payload>MaxPayload; server UDP readUpstream uses buf len MaxPayload and truncates larger target replies, subsequently client reports corrupt header",
+      "capacity": "NO_CAPACITY_ATTRIBUTION; deterministic max payload path independent of observed netem drops",
+      "physical": "NOT_RUN"
     }
   },
   "dispatch_approach": {
