@@ -1,0 +1,7 @@
+{
+  "workload": "udp",
+  "loss": 0,
+  "seed": 1701,
+  "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+  "helper_source_sha": "add2b74a7a439382a8fb24ff91c7637295e33fe9"
+}
