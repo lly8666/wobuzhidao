@@ -1,0 +1,213 @@
+{
+  "schema": "wbd-e0-game4-tick-subphase-real-receipt/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "pre_head": "e6db9bc965d3a4d6492d7b0253b2db832d6ccf25",
+  "source_product_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
+  "source_helper_sha": "e6db9bc965d3a4d6492d7b0253b2db832d6ccf25",
+  "run_id": 37780170850,
+  "job_id": 113320978683,
+  "artifact_id": 11552790293,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37780170850",
+  "attempt": 1,
+  "original_actions_conclusion": "failure",
+  "measurement": "success",
+  "analyzer": "failure",
+  "cost_ledger": "success",
+  "original_classification": "FAIL",
+  "original_issues": [
+    "LOSSLESS_UDP_MISSING_c2s",
+    "LOSSLESS_PROBE_MISSING_c2s",
+    "LOSSLESS_PROBE_MISSING_s2c"
+  ],
+  "raw_artifact_sha256": {
+    "summary.json": "56fbc302e1d0ac2918e9c5d30f177356693e1db4e0c4d109cb28bede89e715ee",
+    "efficiency-ledger.json": "3d19601f7100a82d1f58dfcf07d2bf78140975e71113e3e350f26dbe1feb68d1",
+    "manifest.json": "180f0b0339808887aaf864fbcbe9445337e4496173e9d4c5887053e7761ba638",
+    "stage-events.jsonl": "b84e5b1ebe96d85f814e3ce553633e97e492553b8322e91e56f6ccff413b680a",
+    "server-diag.jsonl": "5796b54fa1843ea30121f0c3f2f4a75ce6fc408d2074093e40452b34ca26a032",
+    "client-diag.jsonl": "32735f4501f00e4131d4d8b988ec01195f386c860e75c0c516d5cb8e2eceed5b",
+    "server-cpu-top.txt": "c1eb45c560a4aa075f22bdc3ae305e085114e78acb6d1c522e0a8efe0ac9432e"
+  },
+  "config": {
+    "mode": "game",
+    "lanes": 4,
+    "workload": "mixed",
+    "profile": "on",
+    "loss_percent": 0,
+    "seed": 1819,
+    "logical_rate_per_direction_mbps": 3,
+    "duration_s": 300,
+    "actual_stage_duration_s": 300.0400452,
+    "drain_s": 2.962328589,
+    "one_way_delay_ms": 300,
+    "real_formal_client_server": true,
+    "outer_mtu": 1400,
+    "client_server_auto_record_limit": 0,
+    "actual_server_tun_mtu": 1273,
+    "formal_default_tick_ms": 100,
+    "fec": "20:20",
+    "padding": "off"
+  },
+  "by_direction": {
+    "c2s": {
+      "sent_mbps": 2.97615648,
+      "goodput_mbps": 2.9389556266666665,
+      "udp_missing_by_size": {
+        "96": 1131,
+        "256": 387,
+        "512": 138,
+        "1000": 63,
+        "1372": 245,
+        "4068": 141
+      },
+      "udp_missing_total": 2105,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_hash_errors": 0,
+      "probe_sent": 1500,
+      "probe_returned": 1468,
+      "probe_missing": 32,
+      "returned_only_probe_p99_ms": 811.016139,
+      "longest_active_no_delivery_gap_ms": 270
+    },
+    "s2c": {
+      "sent_mbps": 2.97614368,
+      "goodput_mbps": 2.97231648,
+      "udp_missing_by_size": {
+        "96": 0,
+        "256": 0,
+        "512": 0,
+        "1000": 0,
+        "1372": 0,
+        "4068": 0
+      },
+      "udp_missing_total": 0,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_hash_errors": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1465,
+      "probe_missing": 30,
+      "returned_only_probe_p99_ms": 811.842607
+    },
+    "http_https": {
+      "requests": 20,
+      "returned": 20,
+      "https_verified": 10,
+      "returned_only_p99_ms": 2695.639143,
+      "missing": 0
+    }
+  },
+  "actual_game_owner": {
+    "client": {
+      "active_lanes": 4,
+      "physical_lanes": 4,
+      "game_logical_outbound": 134495,
+      "game_lane_copies": 537980,
+      "game_duplicates": 403566
+    },
+    "server": {
+      "active_lanes": 4,
+      "physical_lanes": 4,
+      "game_logical_outbound": 134522,
+      "game_lane_copies": 538088,
+      "game_delivered": 129057,
+      "game_duplicates": 381180
+    }
+  },
+  "server_pipeline": {
+    "ready_capacity": 4096,
+    "raw_reads": 3068638,
+    "handler_samples": 2753328,
+    "ready_overflow_drops": 315310,
+    "ready_overflow_bytes": 173020590,
+    "ready_peak": 4098,
+    "queue_age_max_ms": 259.405876,
+    "handler_wall_seconds": 73.297428188,
+    "handler_max_ms": 20.280582,
+    "tick_samples": 3217,
+    "tick_wall_seconds": 31.11344483,
+    "tick_max_ms": 210.944941,
+    "tick_over_10ms": 379,
+    "tick_subphases": [
+      {
+        "name": "retransmit",
+        "samples": 3217,
+        "total_wall_seconds": 0.013452073,
+        "max_ms": 1.117092,
+        "over_10ms": 0,
+        "percent_of_total": 0.043
+      },
+      {
+        "name": "sweep",
+        "samples": 3217,
+        "total_wall_seconds": 0.002389098,
+        "max_ms": 0.055444,
+        "over_10ms": 0,
+        "percent_of_total": 0.008
+      },
+      {
+        "name": "runtime",
+        "samples": 3174,
+        "total_wall_seconds": 12.373387955,
+        "max_ms": 15.976262,
+        "over_10ms": 27,
+        "percent_of_total": 39.769
+      },
+      {
+        "name": "service",
+        "samples": 3174,
+        "total_wall_seconds": 18.711386306,
+        "max_ms": 209.802524,
+        "over_10ms": 278,
+        "percent_of_total": 60.139
+      },
+      {
+        "name": "bookkeeping",
+        "samples": 3174,
+        "total_wall_seconds": 0.004220051,
+        "max_ms": 0.680919,
+        "over_10ms": 0,
+        "percent_of_total": 0.014
+      }
+    ],
+    "timing_wall_not_cpu": true,
+    "subphases_not_exhaustive_of_outer_tick": true
+  },
+  "host": {
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "logical_cpus": 4,
+    "quota_cores": null,
+    "host_busy_max_percent": 81.5934065934066,
+    "cpu_psi_some_avg10_max": 38.55,
+    "steal_max_percent": 0,
+    "client_cpu_s": 194.31,
+    "server_cpu_s": 169.2,
+    "total_cpu_s": 363.51,
+    "profile_server_syscall6_flat_seconds": 53.15,
+    "profile_server_fec_xormul_flat_seconds": 29.39,
+    "capacity_limited_evidenced": false
+  },
+  "root_cause_limit": "Service.Tick and Runtime.Tick wall time contributions strongly observed. Cannot tell UDP.Tick vs TCP.Tick within service; wall time, scheduler latency and profiling overhead do not prove either is the unique cause of missing UDP. Do not compare CPU against profile-off or prior different host.",
+  "next_focus": {
+    "source": "internal/platformflow/service.go:149-155",
+    "subcalls": [
+      "udp.Tick(now)",
+      "tcp.Tick(now)"
+    ],
+    "tcp_path": "internal/platformflow/tcp.go:847-870; loops live flows, calls RetransmitDue and serial flow.tunnel.Send",
+    "udp_path": "internal/platformflow/udp.go:631-645; idle-flow sweeping",
+    "next_probe": "Opt-in per-subcall timing on actual Game4 SOURCE and one independent profile-on sample; no behavioral changes or per-packet timers"
+  },
+  "previous_run_still_fail": [
+    37766819445,
+    37768172504,
+    37762364098,
+    37769772363,
+    37774168539
+  ],
+  "e1_e6": "NOT_QUALIFIED",
+  "e7_80s": "OPEN_DEFERRED",
+  "physical": "NOT_RUN"
+}

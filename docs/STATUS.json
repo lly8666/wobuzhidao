@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_TICK_PHASES_ONE_PROFILEON_SAMPLE_PENDING",
+    "phase": "E0_GAME4_SERVER_SERVICE_TICK_DOMINANT_FAIL_MORE_GRANULAR_REQUIRED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -332,27 +332,30 @@
       }
     },
     "e0_game4_tick_phase_sample": {
-      "state": "QUEUED_ACTION",
+      "state": "FAIL",
       "source_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
-      "helper_sha": "GITHUB_SHA_NEW_COMMIT",
-      "config": {
-        "workload": "mixed",
-        "loss": 0,
-        "seed": 1819,
-        "product_source_sha": "fa97f6ad916b35f0ecb157a8d97fac3ef082b1c9",
-        "mode": "game",
-        "lanes": 4,
-        "rate_mbps": 3,
-        "size_profile": "ordinary",
-        "diagnostic_mode": "on"
-      },
-      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
-      "run_id": null,
-      "evidence": "docs/evidence/performance-efficiency-e0-game4-tick-phase-sample-candidate-20261008.json"
+      "helper_sha": "e6db9bc965d3a4d6492d7b0253b2db832d6ccf25",
+      "run_id": 37780170850,
+      "artifact_id": 11552790293,
+      "original_issues": [
+        "LOSSLESS_UDP_MISSING_c2s",
+        "LOSSLESS_PROBE_MISSING_c2s",
+        "LOSSLESS_PROBE_MISSING_s2c"
+      ],
+      "c2s_udp_missing": 2105,
+      "probe_missing": [
+        32,
+        30
+      ],
+      "ready_overflow_drops": 315310,
+      "service_tick_total_s": 18.711386306,
+      "service_tick_max_ms": 209.802524,
+      "runtime_tick_total_s": 12.373387955,
+      "evidence": "docs/evidence/performance-efficiency-e0-game4-tick-phase-fail-37780170850.json"
     }
   },
-  "next_task": "E0 inspect one exact-product-source fa97f6ad game4 mixed 4lane 3Mbps/dir lossless profile ON seed1819, real 300s +3s drain Actions after successful foundation37779734501; report original analyzer PASS/FAIL and new server_pipeline tick_retransmit/sweep/runtime/service/bookkeeping + handler/queue read/drop, per lane/FEC/raw batch, PSI and probe missing. New helper SHA own commit. Do not compare ON/OFF CPU or claim benefit, original Game4 off37766819445/on37768172504 FAIL retained. If root cause measurable, next minimal E1 common path or bounded Game4 fairness candidate requires unit/race and four independent Normal lossless/5205 Game4 lossless/5205 protection Actions. E6 P6 physical NOT_RUN, E7 80s OPEN.",
-  "latest_log": "docs/devlog/20261008-e0-game4-tick-phases-one-source-qualification.md",
+  "next_task": "E0: exact instrumented Game4 source fa97f6ad profile-on run37780170850 original FAIL, server ready overflow315310, C2S UDP2105 missing/probes32/30, tick_service=18.711s / 60.14% tick wall / max209.8ms vs tick_runtime12.373s. Next isolate platformflow.Server.Tick -> UDP.Tick vs TCP.Tick via opt-in diagnostic-only subphase on new source, unit/race/Windows first, then independent one Game4 mixed 4lane 3Mbps/dir 300s+3s lossless profileON Action with exact frozen source+helper. Do not assume TCP bottleneck or enlarge 4096, and preserve old failures. Only choose minimal no-HOL product E1 optimization after evidence and four protectors. E6/P6/physical NOT_RUN, E7 80s OPEN.",
+  "latest_log": "docs/devlog/20261008-game4-tick-service-60-percent-fail.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
