@@ -221,7 +221,39 @@
         "capacity_classification": "NOT_ATTRIBUTED: no earliest sustained runner saturation; TCP source backpressure and retrans on real IPv4 under 0 netem loss are evidenced; 4vCPU avg busy8% and 0 steer/ifdrops are not sufficient for CAPACITY_LIMITED",
         "tcp_independent_96B_UDP_probe": "NOT_RUN_FOR_B",
         "client_capture": "Linux TPROXY; client TUN unsupported"
-      }
+      },
+      "repeats": [
+        {
+          "classification": "FAIL",
+          "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733833093",
+          "artifact_id": 11530149511,
+          "artifact_digest": "sha256:d84f7b272e2c5f46e17272d97afffe0a6aea99865e27ef7cb3f25bdbdb736660",
+          "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+          "helper_sha": "085932d9f7d43bbb2aedf67c78370e90fa634bb5",
+          "sent_recv_bytes_per_direction": [
+            212506656,
+            212506560
+          ],
+          "goodput_mbps_per_direction": [
+            5.66684416,
+            5.6668416
+          ],
+          "injection_coverage_per_direction": [
+            0.566684416,
+            0.56668416
+          ],
+          "streams_hash_integrity": "six individual bidirectional long streams byte-perfect",
+          "short_tcp": {
+            "offered": 300,
+            "returned": 300,
+            "missed": 0,
+            "rtt_returned_p99_ms": 1228.398205
+          },
+          "netem_c2s_percent": 0,
+          "netem_s2c_percent": 0,
+          "conclusion": "FIXED SHORT GENERATOR FUNCTIONAL, BUT SOURCE INJECTION FAIL PERSISTS; no CAPACITY attribution"
+        }
+      ]
     },
     {
       "workload": "B",
@@ -265,7 +297,7 @@
       "seed": 2608102,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": null,
-      "action_url": null,
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734569538",
       "classification": "NOT_RUN",
       "reason": "Business driver/fullstack preflight not yet complete",
       "requested": {
@@ -282,10 +314,87 @@
       "loss_percent": 0,
       "seed": 2608103,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": null,
-      "action_url": null,
-      "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete"
+      "helper_sha": "072edc5c6955c2f2aa783305bc3700f8a450daf2",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733929493",
+      "classification": "FAIL",
+      "reason": "Fullstack C0 netem zero; UDP large 8972/8973/65507 never reaches target/client valid, S2C reply 9142 corrupted due platformflow 8936 cap; TCP streams byte-perfect, active 4.92688/5Mbps below strict99%; independent UDP96 3000/3000 p99~627ms and 300/300 TCP shorts. No evidence of cross business HOL; source b4",
+      "valid_sample": {
+        "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733929493",
+        "artifact_id": 11530159636,
+        "artifact_digest": "sha256:7b0f1d95867aae8412020df53b7db81d985fcb52ec6ed6e43939478f98a14114",
+        "helper_sha": "072edc5c6955c2f2aa783305bc3700f8a450daf2",
+        "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "classification": "FAIL",
+        "seed": 2608103,
+        "loss_percent": 0,
+        "duration_s": 300,
+        "drain_s": 10,
+        "actual_netem_drops": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "tcp_goodput_mbps_per_direction": [
+          4.92688384,
+          4.92688384
+        ],
+        "tcp_source_coverage": 0.985376768,
+        "tcp_long_streams_each_direction": 3,
+        "tcp_byte_hash_integrity": "ALL_MATCH",
+        "tcp_short": {
+          "offered": 300,
+          "returned": 300,
+          "missed": 0,
+          "rtt_p99_ms": 1230.8453
+        },
+        "udp_goodput_mbps_per_direction": [
+          1.48754848,
+          1.48769344
+        ],
+        "udp_source_offered_bytes_per_direction": 185983529,
+        "udp_source_send_bytes": [
+          185969120,
+          185983529
+        ],
+        "udp_first_receive_bytes": [
+          55783068,
+          55788504
+        ],
+        "udp_small_payloads_96_512_1372": "Every sent complete packet delivered both directions",
+        "udp_large": {
+          "8972": {
+            "c2s_sent": 3109,
+            "c2s_recv": 0,
+            "s2c_sent": 3109,
+            "s2c_recv": 0
+          },
+          "8973": {
+            "c2s_sent": 5180,
+            "c2s_recv": 0,
+            "s2c_sent": 5181,
+            "s2c_recv": 0
+          },
+          "65507": {
+            "c2s_sent": 852,
+            "c2s_recv": 0,
+            "s2c_sent": 852,
+            "s2c_recv": 0
+          }
+        },
+        "udp_s2c_corrupt_datagrams": 9142,
+        "independent_udp96_probe": {
+          "sent": 3000,
+          "returned": 3000,
+          "missing": 0,
+          "conditional_rtt_p99_ms": 627.108222
+        },
+        "udp_10ms_max_zero_first_delivery_window_ms": 300,
+        "overall_goodput_mbps_per_direction": [
+          6.41443232,
+          6.41457728
+        ],
+        "cross_business_evidence": "Large UDP systematically missing but 3 independent real TCP long streams delivered matching hashes and 300/300 TCP shorts, UDP small streams all delivered, UDP96 probe3000/3000; no global cross-flow stop despite large failure; TCP per-stream ordered stalls do not equal outer HOL",
+        "runner_capacity": "NOT_PROVEN"
+      }
     },
     {
       "workload": "C",
@@ -295,7 +404,15 @@
       "helper_sha": null,
       "action_url": null,
       "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete"
+      "reason": "Business driver/fullstack preflight not yet complete",
+      "requested": {
+        "workload": "C",
+        "loss_percent": 5,
+        "seed": 2608103,
+        "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "duration_s": 300,
+        "drain_s": 10
+      }
     },
     {
       "workload": "C",
@@ -508,13 +625,15 @@
     "short_client_bug": "serial TCP 1Hz handshake+request RTT about1.2s exceeds schedule; 50 skipped starts; fix concurrent bounded short request scheduling before further qualification",
     "short_client_fix": "candidate: bounded concurrency8, scheduled 1Hz independent TCP short requests; new socket functional test 1.25s service latency; qualification pending",
     "repeat_b0": {
-      "status": "IN_PROGRESS",
+      "status": "FULLSTACK_FAIL",
       "validated_helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
       "preflight_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
       "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733833093",
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "seed": 2608102,
-      "loss": 0
+      "loss": 0,
+      "short_coverage": "300/300",
+      "injection_coverage": 0.5667
     }
   },
   "minimal_product_repair": {
@@ -532,7 +651,7 @@
     "fullstack_performance_on_new_source": "NOT_RUN"
   },
   "mixed_c_candidate": {
-    "status": "C0_DISPATCH_REQUESTED",
+    "status": "C0_FULLSTACK_FAIL_C_LOSS_NEXT",
     "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
     "fullstack_samples": "NOT_RUN",
@@ -584,12 +703,81 @@
     },
     "preflight_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
     "c0": {
-      "status": "NOT_RUN_REQUESTED",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733929493",
+      "artifact_id": 11530159636,
+      "artifact_digest": "sha256:7b0f1d95867aae8412020df53b7db81d985fcb52ec6ed6e43939478f98a14114",
+      "helper_sha": "072edc5c6955c2f2aa783305bc3700f8a450daf2",
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "classification": "FAIL",
       "seed": 2608103,
       "loss_percent": 0,
-      "helper_preflight_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
-      "action_url": null
+      "duration_s": 300,
+      "drain_s": 10,
+      "actual_netem_drops": {
+        "c2s": 0,
+        "s2c": 0
+      },
+      "tcp_goodput_mbps_per_direction": [
+        4.92688384,
+        4.92688384
+      ],
+      "tcp_source_coverage": 0.985376768,
+      "tcp_long_streams_each_direction": 3,
+      "tcp_byte_hash_integrity": "ALL_MATCH",
+      "tcp_short": {
+        "offered": 300,
+        "returned": 300,
+        "missed": 0,
+        "rtt_p99_ms": 1230.8453
+      },
+      "udp_goodput_mbps_per_direction": [
+        1.48754848,
+        1.48769344
+      ],
+      "udp_source_offered_bytes_per_direction": 185983529,
+      "udp_source_send_bytes": [
+        185969120,
+        185983529
+      ],
+      "udp_first_receive_bytes": [
+        55783068,
+        55788504
+      ],
+      "udp_small_payloads_96_512_1372": "Every sent complete packet delivered both directions",
+      "udp_large": {
+        "8972": {
+          "c2s_sent": 3109,
+          "c2s_recv": 0,
+          "s2c_sent": 3109,
+          "s2c_recv": 0
+        },
+        "8973": {
+          "c2s_sent": 5180,
+          "c2s_recv": 0,
+          "s2c_sent": 5181,
+          "s2c_recv": 0
+        },
+        "65507": {
+          "c2s_sent": 852,
+          "c2s_recv": 0,
+          "s2c_sent": 852,
+          "s2c_recv": 0
+        }
+      },
+      "udp_s2c_corrupt_datagrams": 9142,
+      "independent_udp96_probe": {
+        "sent": 3000,
+        "returned": 3000,
+        "missing": 0,
+        "conditional_rtt_p99_ms": 627.108222
+      },
+      "udp_10ms_max_zero_first_delivery_window_ms": 300,
+      "overall_goodput_mbps_per_direction": [
+        6.41443232,
+        6.41457728
+      ],
+      "cross_business_evidence": "Large UDP systematically missing but 3 independent real TCP long streams delivered matching hashes and 300/300 TCP shorts, UDP small streams all delivered, UDP96 probe3000/3000; no global cross-flow stop despite large failure; TCP per-stream ordered stalls do not equal outer HOL",
+      "runner_capacity": "NOT_PROVEN"
     }
   },
   "matrix_dispatch_history": [
@@ -637,6 +825,14 @@
       "workload": "B",
       "loss_percent": 30,
       "seed": 2608102,
+      "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
+      "state": "IN_PROGRESS",
+      "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734569538"
+    },
+    {
+      "workload": "C",
+      "loss_percent": 5,
+      "seed": 2608103,
       "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
       "state": "REQUESTED",
       "run_url": null

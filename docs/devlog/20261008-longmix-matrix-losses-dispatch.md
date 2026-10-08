@@ -15,3 +15,12 @@
 - B/5% 子Action [37734359638](https://github.com/lly8666/wobuzhidao/actions/runs/37734359638) 已创建，判定仍pending。本次B/20%单独请求Normal1/FEC20:20、真实全双向3长TCP与1Hz短TCP，seed2608102、每方向原定10M且不因为TCP背压减额，双向netem20%，300s+drain；检查MSS、TCP_INFO重传、流hash、短连接缺失、独立源是否达到99%注入。
 
 - B/20% [37734464340](https://github.com/lly8666/wobuzhidao/actions/runs/37734464340) 已创建一条独立产品性能Action。现在请求单独B/30%，同源b4+同负载/seed2608102，双向固定30% netem/300ms单程、300秒业务+drain，不降目标10Mbps、不称TCP正常流内重传是外层跨HOL；每向有效source、flow hash、backpressure、实际接口drops/PSI均须审计。
+
+## 两份无损新结果(失败保留原始)
+
+- B/0修正短流后独立repeat https://github.com/lly8666/wobuzhidao/actions/runs/37733833093 原始**FAIL**、artifact11530149511 sha256:d84f7b272e2c5f46e17272d97afffe0a6aea99865e27ef7cb3f25bdbdb736660；短TCP并发助手已使原250/300改善为300/300、返回p99 1228.398ms，但3长TCP各方向仅212506656/212506560B，goodput5.66684Mbps/目标10，source coverage56.67%，stream SHA全部一致。零netem drop，无足够runner饱和证据，不能CAPACITY_LIMITED或PASS。原B0 FAIL仍保留。
+- C/0独立正式 https://github.com/lly8666/wobuzhidao/actions/runs/37733929493 原始**FAIL**、artifact11530159636 sha256:7b0f1d95867aae8412020df53b7db81d985fcb52ec6ed6e43939478f98a14114。每向UDP offered185983529B、first valid约55.78MB=1.488Mbps/5M；8972/8973/65507三档全部0有效回包，另96/512/1372三档每个已送包完整。S2C 9142个payload CRC/头错误（恰是大UDP大小档数量），因既知b4 TPROXY MaxPayload8936截断；双向netem实drop0。每向真实TCP3条长连接hash逐条正确、goodput4.92688Mbps/5M目标约98.54%（严格99%未过），300/300短TCP返回p99约1230.845ms，独立96B UDP探针3000/3000 p99约627.108ms，最大UDP10ms无交付桶窗口300ms，能证明大UDP全损时其它独立TCP/小UDP还在交付，不表示原生Windows路径无HOL。总goodput每向6.4144Mbps/10M，FAIL不能隐去大包未返回而拿小包p99说通过。
+
+## C有损矩阵
+
+- B/30 Action [37734569538](https://github.com/lly8666/wobuzhidao/actions/runs/37734569538) 独立正式已启动。现在单独请求C/5%/seed2608103/sourceb4，TCP5M+UDP5M每向不挪配额、真实多TCP+多UDP同一份产品端点，0.3s每方向/双向netem5%/300s+drain，实测loss与Probe/bytes哈希需另审。不能将C0缺失的合法大UDP从C5 loss分母移走或归因30% FEC。
