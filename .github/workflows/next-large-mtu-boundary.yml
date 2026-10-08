@@ -1,0 +1,56 @@
+name: next-large-mtu-boundary
+on:
+  push:
+    branches: ["agent/large-mtu-mixed-20261008"]
+    paths: [".github/workflows/next-large-mtu-boundary.yml"]
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  linux-real-kernel-mtu9000:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kernel DF/on/off, 8972, 8973, 65507, 65508 and recovery
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq iproute2 tcpdump
+          sudo modprobe tun || true
+          sudo env GITHUB_ACTIONS=true python3 tools/test_inner_mtu9000_fragment_kernel.py > inner-mtu-9000.json
+          cat inner-mtu-9000.json
+      - name: Real UDP max-send and reject fixture
+        run: |
+          python3 tools/test_native_mtu_target.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: large-mtu-kernel-boundaries
+          path: inner-mtu-9000.json
+  product-go-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-go@v5
+        with: {go-version: "1.23.12"}
+      - name: Run exact frozen product boundary tests
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/exact-product" b4ea061178a6e09b7e7c8587d72b4b8535492567
+          cd "$RUNNER_TEMP/exact-product"
+          go test ./internal/windowsclient ./internal/platformflow ./internal/pathmtu ./internal/linkdata ./internal/runtimeowner -count=1
+  windows-hosted-boundary:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Windows helper compile and TUN MTU ownership, no real Npcap/Wintun
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -Path tools/native_mtu_probe.cs
+          ./tools/test_windows_tun_mtu.ps1
+          ./tools/test_physical_fragment_ownership.ps1
+          Write-Output "Windows native network path: UNSUPPORTED (no real Wintun/Npcap in hosted workflow)"
