@@ -65,8 +65,8 @@ def qdisc(row):
         if q.get("kind")!="netem":continue
         st=q.get("stats",{})
         b=st.get("basic",st)
-        sent+=int(b.get("packets",0))
-        drop+=int(q.get("stats",{}).get("queue",{}).get("drops",b.get("drops",0)))
+        sent+=int(q.get("packets",b.get("packets",0)))
+        drop+=int(q.get("drops",st.get("queue",{}).get("drops",b.get("drops",0))))
     return {"passed_packets":sent,"drops":drop}
 
 def packet_loss(stage):
