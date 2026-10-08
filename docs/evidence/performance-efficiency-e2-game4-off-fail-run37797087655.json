@@ -1,0 +1,138 @@
+{
+  "schema": "wbd-e2-game4-off-real-fail-and-preflight/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "79a8727536896d5575519c41549bfd49ab1c9fa4",
+  "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+  "helper_sha": "29eed57fd2e5a903a8cbc1c39c43759af0b18d80",
+  "run": {
+    "id": 37797087655,
+    "job_id": 113379259057,
+    "artifact_id": 11559027536,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37797087655",
+    "conclusion": "failure",
+    "analyzer": "FAIL",
+    "issues": [
+      "LOSSLESS_UDP_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_s2c"
+    ],
+    "sample_step": "success",
+    "profile_off_check": "success",
+    "ledger": "success",
+    "final_gate": "failure"
+  },
+  "foundation": {
+    "id": 37797087519,
+    "job_id": 113379260737,
+    "conclusion": "failure",
+    "reason": [
+      "Each change needs STATUS update",
+      "Each change needs a new development log"
+    ],
+    "nature": "HELPER_COMMIT_CONTRACT_FAILURE_NOT_PRODUCT_UNIT_OR_RACE_FAILURE",
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37797087519"
+  },
+  "artifact_sha256": {
+    "summary.json": "fa7f16c5e0c2e526d5f784704f93b71a557e9250bccb12cd63ad229ea6bc76f9",
+    "efficiency-ledger.json": "337f696121c245db665332083c4fdfc29944ef298caa9a060d6be42dc0762c84",
+    "manifest.json": "51d95da54a2804119825e0e46317f415df0f7c2c03a8b44c2d89a3c2a8d9351e",
+    "stage-events.jsonl": "93a7b85ee671441a6cc7b48a8c07a17f7c1ab793ecf00be611da12785d250aa1"
+  },
+  "config": {
+    "mode": "game",
+    "lanes_requested": 4,
+    "lanes_telemetry_available": "NOT_COLLECTED_PROFILE_OFF",
+    "workload": "mixed",
+    "rate_mbps_each_direction": 3,
+    "one_way_delay_ms": 300,
+    "loss_percent": 0,
+    "seed": 1824,
+    "profile": "off",
+    "duration_s": 300,
+    "drain_s": 3,
+    "fec": "20:20",
+    "padding": "off",
+    "outer_mtu": 1400,
+    "auto_record_limit": 0,
+    "measured_server_tun_mtu": 1273
+  },
+  "directions": {
+    "c2s": {
+      "sent_mbps": 2.97615648,
+      "goodput_mbps": 2.9434186666666666,
+      "udp_missing": 1906,
+      "udp_missing_sizes": {
+        "96": 1113,
+        "256": 267,
+        "512": 130,
+        "1000": 67,
+        "1372": 209,
+        "4068": 120
+      },
+      "probe_sent": 1500,
+      "probe_returned": 1477,
+      "probe_missing": 23,
+      "probe_returned_p99_ms": 788.270332,
+      "tcp_flows_received": 304,
+      "tcp_hash_errors": 0
+    },
+    "s2c": {
+      "sent_mbps": 2.97614368,
+      "goodput_mbps": 2.97231648,
+      "udp_missing": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1464,
+      "probe_missing": 31,
+      "probe_returned_p99_ms": 787.601,
+      "tcp_flows_received": 304,
+      "tcp_hash_errors": 0
+    }
+  },
+  "web": {
+    "requests": 20,
+    "returned": 20,
+    "https_cert_verified": 10
+  },
+  "resources": {
+    "client_cpu_s": 179.88,
+    "server_cpu_s": 159.31,
+    "product_cpu_s": 339.19,
+    "seconds_per_delivered_gib": 1641.3973097373703,
+    "client_peak_rss_mib": 104.29296875,
+    "server_peak_rss_mib": 96.26171875,
+    "cpu_psi_some_max": 38.75,
+    "host_busy_max_percent": 79.50819672131148,
+    "cgroup_cpu_quota_cores": null,
+    "socket_drops": 0,
+    "interface_drops": 0,
+    "netem_dropped": 0,
+    "capacity_limited_evidenced": false
+  },
+  "classifications": {
+    "E2_Normal_lossless": "PASS_SCOPED_ACTIONS_RUN37793297374",
+    "E2_Game4_lossless": "FAIL_RUN37797087655",
+    "E2_CPU_improvement": "INCONCLUSIVE_NOT_PROVEN",
+    "E2_final": "BLOCKED",
+    "E1_E3_E6": "NOT_COMPLETED",
+    "E7_80s": "OPEN",
+    "P6_physical": "NOT_RUN"
+  },
+  "workflow_change": {
+    "purpose": "Always run check_repository.py and require STATUS+new devlog for each performance helper commit before 300s traffic",
+    "implementation": "Insert fail-closed git push CHANGE_BASE preflight prior to sample config verification",
+    "remove_workflow_self_trigger": true,
+    "reason": "Workflow-only edits should not spend an automatic 300s sample; future explicit sample JSON change remains a push trigger.",
+    "one_sample_per_run": true,
+    "new_performance_sample_this_commit": "NOT_REQUESTED",
+    "test_status": "PENDING_NEXT_FOUNDATION_ACTIONS"
+  },
+  "limits": [
+    "Original Game4 FAIL retained; passing TCP and HTTP does not excuse UDP/probe missing",
+    "Profile-off runtime lanes queue telemetry intentionally unavailable; do not claim 4 physically measured on this run",
+    "No CPU gains from mismatched hosts; do not confuse normal and game workloads",
+    "Test-only RTO 600ms tradeoff added at 79a and not yet verified by Actions",
+    "True 5205 is 5%/20%/5%, not fixed5",
+    "Do not change main, physical networks, auto MTU, RTO or bounded ready buffers"
+  ]
+}

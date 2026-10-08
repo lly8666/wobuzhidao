@@ -5,7 +5,6 @@ on:
     branches: ["next/performance-efficiency-20261008"]
     paths:
       - ".github/efficiency-e0-sample.json"
-      - ".github/workflows/next-efficiency-e0-single.yml"
       - "tools/large_mtu_*"
       - "tools/prepare_large_mtu_harness.py"
 permissions:
@@ -37,6 +36,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Fail closed on helper STATUS and devlog contract
+        env:
+          CHANGE_BASE: ${{ github.event.before }}
+        run: python3 tools/check_repository.py
       - name: Enforce one exact sample
         run: |
           set -euo pipefail

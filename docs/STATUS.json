@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_RTO_TRADEOFF_TEST_ADDED_E2_ACTIONS_TRIGGERS_BLOCKED",
+    "phase": "E2_NORMAL_LOSSLESS_PASS_GAME4_OFF_FAIL_HELPER_CONTRACT_FAIL_PREFLIGHT_FIXED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -437,7 +437,7 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-tcp-emit-fail-37788802499.json"
     },
     "e2_marshal_candidate": {
-      "state": "NORMAL_PASS_GAME4_NO_RUN_AFTER_CONTENTS_API_ALSO",
+      "state": "NORMAL_SCOPED_PASS_GAME4_OFF_FAIL_CPU_GAIN_UNPROVEN",
       "parent_head": "eec0cb8077daa8f011285066d136d574c93abc0b",
       "new_product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
       "candidate_evidence": "docs/evidence/performance-efficiency-e2-one-buffer-marshal-candidate-20261008.json",
@@ -471,7 +471,7 @@
       "cpu_reference_s": 237.79,
       "first_comparison": "CANDIDATE_2P64_PERCENT_HIGHER_SINGLE_RUN_NOT_PROVEN_REGRESSION",
       "profile_off_go_mallocs": "NOT_COLLECTED",
-      "evidence": "docs/evidence/performance-efficiency-e2-game4-actions-no-run-20261008.json",
+      "evidence": "docs/evidence/performance-efficiency-e2-game4-off-fail-run37797087655.json",
       "game4_lossless_next": {
         "state": "NO_RUN_OBSERVED_AFTER_CONTENTS_API",
         "config": {
@@ -494,12 +494,28 @@
       "protectors": {
         "normal_lossless": "PASS_SCOPED",
         "normal_5205": "NOT_RUN",
-        "game4_lossless": "PENDING_ACTION",
+        "game4_lossless": "FAIL",
         "game4_5205": "NOT_RUN"
       },
       "qualifier_warning": "config-only commit 1e36d84 had zero GitHub Actions observed, not PASS",
       "normal_5205": "NOT_RUN",
-      "game4_5205": "NOT_RUN"
+      "game4_5205": "NOT_RUN",
+      "game4_lossless_run": 37797087655,
+      "game4_lossless_original_issues": [
+        "LOSSLESS_UDP_MISSING_c2s",
+        "LOSSLESS_PROBE_MISSING_c2s",
+        "LOSSLESS_PROBE_MISSING_s2c"
+      ],
+      "game4_lossless_cpu_s": 339.19,
+      "game4_lossless_udp_c2s_missing": 1906,
+      "game4_lossless_probe_missing": [
+        23,
+        31
+      ],
+      "game4_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+      "test_helper_foundation_fail_run": 37797087519,
+      "test_helper_foundation_error": "STATUS_AND_NEW_DEVLOG_MISSING_IN_HELPER_COMMIT",
+      "e2_completion": "BLOCKED"
     },
     "e0_rto_tradeoff": {
       "state": "TEST_SOURCE_COMMITTED_NOT_RUN",
@@ -511,8 +527,8 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
     }
   },
-  "next_task": "First inspect exact newer GitHub Actions workflow runs and branch on recovery; three independent commit triggers 1e36d84, 15ebcb8 and Contents API 29eed57 all observed NO_RUN; do not invent reasons or run old SHA. E0 new deterministic RTO tradeoff tests source committed, NOT_RUN; need exact-source Linux/Windows unit/race before claiming tests. New Game4 one-sample config seed1824 profileOFF mixed4 3Mbps/dir product 673a8ab still NO_RUN/NOT_QUALIFIED. To address Game4 ready overflow317739 and C2S UDP2510, weigh unnecessary 500ms retrans on ~600ms RTT vs delay of real loss repair (hypothetical 700ms RTO not approved). E2 Normal off PASS run37793297374 but single-reference CPU+2.64% and no malloc collected, no benefit claim. Exact 5205 Normal/Game stages 5/20/5 and Game4 0loss pending separate Actions; E1/E3-E6 unfinished, E7 80s S2C OPEN, P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-game4-rto-risk-contract-and-actions-no-run.md",
+  "next_task": "E2 Game4 source673a8ab profile-off run37797087655 original FAIL: c2s UDP 1906 missing; probes23/31 missing; TCP/HTTPS complete; productCPU339.19s, socket/if0, profile OFF no active-ready telemetry. Do not claim Game4 fixed. Helper 29eed foundation run37797087519 separate FAIL due missing STATUS and new devlog in same commit; new workflow now fails closed on check_repository.py before sampling, and no longer self-triggers on pure workflow edits. Verify next foundation workflow for exact new HEAD and new E0 RTO tradeoff unit/race; if no run, mark NOT_RUN until it appears (GitHub event delivery delayed). Next product correction should target high RTT 500ms spurious retransmit + synchronous emit but protect real 5205/5305 and noHOL. Four independent Normal lossless (pass), Normal5205 (not run), Game4 lossless (fail), Game4 5205 (not run); E2 CPU no proven gain, E7 80s OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e2-game4-off-fail-and-performance-preflight-contract.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
