@@ -126,7 +126,15 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
          '"one_way_delay_ms": 300, "duration_s": 300, "stages_s": [[0,300,int(os.environ["WBD_LARGE_LOSS"])]],')
     swap('"drain_s": 10,','"drain_s": 3,')
     swap('"packet_sizes_equal_count_cycle": [64, 256, 1200],',
-         '''"packet_sizes_count_cycle": ({"udp":{"96":30,"256":20,"512":14,"1000":10,"1372":9,"4068":6,"8972":5,"8973":4,"65507":2},"mixed":{"96":50,"256":20,"512":10,"1372":8,"8972":5,"8973":5,"65507":2}} if os.environ["WBD_EFF_SIZE_PROFILE"]=="jumbo" else {"udp":{"96":30,"256":20,"512":15,"1000":15,"1372":10,"4068":10},"mixed":{"96":50,"256":20,"512":10,"1000":5,"1372":10,"4068":5}}),
+         '''"packet_sizes_count_cycle": (
+          {"udp":{"96":50,"256":10,"512":10,"1372":10,"4068":10,"8936":5,"8937":4,"65507":1},
+           "mixed":{"96":50,"256":10,"512":10,"1372":10,"4068":10,"8936":5,"8937":4,"65507":1}}
+          if os.environ["WBD_EFF_SIZE_PROFILE"]=="boundary" else
+          ({"udp":{"96":30,"256":20,"512":14,"1000":10,"1372":9,"4068":6,"8972":5,"8973":4,"65507":2},
+            "mixed":{"96":50,"256":20,"512":10,"1372":8,"8972":5,"8973":5,"65507":2}}
+           if os.environ["WBD_EFF_SIZE_PROFILE"]=="jumbo" else
+           {"udp":{"96":30,"256":20,"512":15,"1000":15,"1372":10,"4068":10},
+            "mixed":{"96":50,"256":20,"512":10,"1000":5,"1372":10,"4068":5}})),
         "inner_edge_mtu": 9000, "server_shared_tun_mtu": "actual ip-link receipt",
         "record_limit_configured": 0, "formal_default_tick_ms": 100,
         "http_https_short_requests": 0 if os.environ["WBD_LARGE_WORKLOAD"]=="udp" else 20,

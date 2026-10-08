@@ -23,6 +23,8 @@ A_JUMBO = [96]*30+[256]*20+[512]*14+[1000]*10+[1372]*9+[4068]*6+[8972]*5+[8973]*
 C_JUMBO = [96]*50+[256]*20+[512]*10+[1372]*8+[8972]*5+[8973]*5+[65507]*2
 A_ORDINARY = [96]*30+[256]*20+[512]*15+[1000]*15+[1372]*10+[4068]*10
 C_ORDINARY = [96]*50+[256]*20+[512]*10+[1000]*5+[1372]*10+[4068]*5
+BOUNDARY = [96]*50+[256]*10+[512]*10+[1372]*10+[4068]*10+[8936]*5+[8937]*4+[65507]*1
+assert len(BOUNDARY)==100
 TCP_WRITES = (256, 4096, 65536, 1048576)
 PROBE_BYTES_PER_SECOND = 96*5
 SHORT_BYTES_PER_SECOND = 24576
@@ -114,8 +116,8 @@ def udp_recv(s,role,t,peer,stop):
             try:s.sendto(udp_packet(4,seq,96,0x515151,sent),src)
             except OSError:t.add("probe_send_errors")
             continue
-        if kind in (5,6,7) and role in ("biz","target"):
-            size={5:8972,6:8973,7:65507}[kind]
+        if kind in (5,6,7,8,9) and role in ("biz","target"):
+            size={5:8972,6:8973,7:65507,8:8936,9:8937}[kind]
             with t.lock:
                 key=str(size)
                 d=t.d.setdefault("udp_big_rtt_ns",{})
@@ -138,8 +140,8 @@ def udp_recv(s,role,t,peer,stop):
                 t.d["duplicates"]+=1;continue
             t.seen.add(key)
         t.record("udp_rx",length,1,length)
-        if length in (8972,8973,65507):
-            receipt_kind={8972:5,8973:6,65507:7}[length]
+        if length in (8972,8973,65507,8936,8937):
+            receipt_kind={8972:5,8973:6,65507:7,8936:8,8937:9}[length]
             try:s.sendto(udp_packet(receipt_kind,seq,96,0x929292,sent),src)
             except OSError:t.add("probe_send_errors")
         t.add("received_bytes",length)
@@ -147,7 +149,7 @@ def udp_recv(s,role,t,peer,stop):
 
 def udp_send(s,role,peer,start,stop,rate,seed,scenario,size_profile,t):
     if rate<=0:return
-    values=(A_JUMBO if scenario=="udp" else C_JUMBO) if size_profile=="jumbo" else (A_ORDINARY if scenario=="udp" else C_ORDINARY)
+    values=BOUNDARY if size_profile=="boundary" else ((A_JUMBO if scenario=="udp" else C_JUMBO) if size_profile=="jumbo" else (A_ORDINARY if scenario=="udp" else C_ORDINARY))
     # Fixed 100-slot count weights. Accounting and pacing are in total payload BYTES.
     budget=max(1.0,rate*125000-PROBE_BYTES_PER_SECOND)
     total=0; seq=0; end=start+300_000_000_000
@@ -385,7 +387,7 @@ def run(args):
             "configured_per_direction_mbps":args.rate_mbps,"size_profile":args.size_profile,"udp_budget_mbps":udp_rate,
             "tcp_budget_mbps":tcp_rate,"seed":args.seed,
             "ip_mtu_discover":"IP_PMTUDISC_DONT for UDP (DF off)",
-            "udp_size_cycle":collections.Counter((A_JUMBO if args.workload=="udp" else C_JUMBO) if args.size_profile=="jumbo" else (A_ORDINARY if args.workload=="udp" else C_ORDINARY)),
+            "udp_size_cycle":collections.Counter(BOUNDARY if args.size_profile=="boundary" else ((A_JUMBO if args.workload=="udp" else C_JUMBO) if args.size_profile=="jumbo" else (A_ORDINARY if args.workload=="udp" else C_ORDINARY))),
             "udp_socket_buffers": {"requested": 4<<20, "recv_effective": own_rcvbuf if udp_rate else None},
             "counters":t.snap()}
     Path(args.output).write_text(json.dumps(output,indent=2,sort_keys=True))
@@ -400,6 +402,6 @@ if __name__=="__main__":
     p.add_argument("--seed",type=int,required=True);p.add_argument("--start-ns",type=int,required=True)
     p.add_argument("--source",required=True);p.add_argument("--helper",required=True)
     p.add_argument("--output",required=True)
-    p.add_argument("--size-profile",choices=["ordinary","jumbo"],required=True)
+    p.add_argument("--size-profile",choices=["ordinary","jumbo","boundary"],required=True)
     p.add_argument("--rate-mbps",type=float,choices=[3.0,10.0],required=True)
     run(p.parse_args())

@@ -40,8 +40,8 @@ def main():
             event("business_start")
             while time.monotonic_ns()<x.start_ns+300_000_000_000:time.sleep(.05)
             event("business_end")
-            # Keep same base delay through fixed drain, no silent change in impairment.
-            while time.monotonic_ns()<x.start_ns+315_000_000_000:time.sleep(.05)
+            # Preserve the same impairment for the exact three-second drain, not fifteen.
+            while time.monotonic_ns()<x.start_ns+303_000_000_000:time.sleep(.05)
             event("drain_end")
             tc(x.namespace,x.tc_bin,x.c2s_dev,0,x.seed*100+91)
             tc(x.namespace,x.tc_bin,x.s2c_dev,0,x.seed*100+92)

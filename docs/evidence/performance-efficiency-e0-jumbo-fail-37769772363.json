@@ -1,0 +1,138 @@
+{
+  "schema": "wbd-efficiency-e0-normal-jumbo-fail-and-boundary-candidate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "head_before_change": "03a64401907a847f6f0a107cacdf9330e7f7d9ad",
+  "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "original_helper_sha": "03a64401907a847f6f0a107cacdf9330e7f7d9ad",
+  "original_run_id": 37769772363,
+  "job_id": 113286187863,
+  "artifact_id": 11547309891,
+  "attempt": 1,
+  "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37769772363",
+  "original_workflow_conclusion": "failure",
+  "original_measurement_step": "success",
+  "original_analyzer_step": "success",
+  "original_ledger_step": "success",
+  "original_analyzer_classification": "FAIL",
+  "original_issues": [
+    "PAYLOAD_OR_SEND_ERROR_c2s",
+    "LOSSLESS_UDP_MISSING_c2s",
+    "PAYLOAD_OR_SEND_ERROR_s2c",
+    "LOSSLESS_UDP_MISSING_s2c"
+  ],
+  "original_artifact_sha256": {
+    "summary.json": "516e7c6e9826f1d8a778d7d705f5920bbf9f465e10bcff7421359a206c6bcce4",
+    "efficiency-ledger.json": "7eedbb9022d467fec5e0455def7206a1ca7e4ab7500361e246542baed1a4a416",
+    "manifest.json": "48e826b010c0f2033864eb41426dd2c5b238c62f8fa0920253456eac56aca79e",
+    "sample-claim.json": "1a6d62efd49eb65f24aac1bdd3512cad500e64ee4abb71d9897fe1e723e6e6ff"
+  },
+  "sample_conditions": {
+    "mode": "normal",
+    "workload": "udp",
+    "size_profile": "jumbo",
+    "loss_percent": 0,
+    "seed": 1815,
+    "lanes": 1,
+    "off": true,
+    "target_each_direction_mbps": 10,
+    "duration_s": 300,
+    "business_generator_drain_s": 3,
+    "actual_netem_stage_drain_s": 15,
+    "outer_mtu": 1400,
+    "automatic_record_cap_configured": 0,
+    "measured_server_tun_mtu": 1273,
+    "one_way_delay_ms": 300,
+    "fec": "20:20",
+    "padding": "off"
+  },
+  "direction": {
+    "c2s": {
+      "logical_sent_bytes": 374968286,
+      "logical_mbps": 9.999154293333333,
+      "delivered_bytes": 84835880,
+      "goodput_mbps": 2.2622901333333334,
+      "all_small_packet_lengths": [
+        96,
+        256,
+        512,
+        1000,
+        1372,
+        4068
+      ],
+      "small_packet_missing": 0,
+      "large_missing_by_size": {
+        "8972": 6850,
+        "8973": 5480,
+        "65507": 2738
+      },
+      "large_returned_receipts": 0,
+      "probe_sent": 1500,
+      "probe_returned": 1500,
+      "probe_missing": 0,
+      "probe_returned_only_p99_ms": 600.937917,
+      "generator_send_errors": 0
+    },
+    "s2c": {
+      "logical_sent_bytes": 374967806,
+      "logical_mbps": 9.999141493333335,
+      "delivered_bytes": 84835880,
+      "goodput_mbps": 2.2622901333333334,
+      "small_packet_missing": 0,
+      "large_missing_by_size": {
+        "8972": 6850,
+        "8973": 5480,
+        "65507": 2738
+      },
+      "large_returned_receipts": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1495,
+      "probe_missing": 0,
+      "probe_returned_only_p99_ms": 600.97814,
+      "generator_send_errors": 0
+    }
+  },
+  "observations": {
+    "server_real_tun_mtu": 1273,
+    "host_cpu_model": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "visible_cpus": 4,
+    "cgroup_quota_cores": null,
+    "host_steal_max_percent": 0,
+    "host_busy_max_percent": 12.72264631043257,
+    "cpu_psi_some_avg10_max": 33.81,
+    "client_cpu_s": 33.92,
+    "server_cpu_s": 35.14,
+    "socket_interface_drop": 0,
+    "capacity_limited_evidenced": false,
+    "profile_on": false
+  },
+  "qualification": "FAIL_NOT_LOSSLESS_JUMBO",
+  "integrity_caveat": "original combined PAYLOAD_OR_SEND_ERROR classification does not distinguish malformed/corrupt from generator send errors; generator send_errors=0. New analyzer separates source/receiver malformed count and send errors; do not assert corruption from aggregate flag alone.",
+  "cpu_caveat": "CPU low because 77% logical business bytes failed to arrive, not a performance optimization result. Do not compare across hosts or profile modes.",
+  "mtu_budget_contract": "Existing auto cap/derived TUN preserved, no revert to fixed9000 or old 1250/1300 record cap",
+  "new_helper_changes": [
+    "Fix stage business_end-to-drain_end from 15s to real 3s and validate timing in analyzer",
+    "Add independent boundary size cycle: 8936 B (5%), 8937 B (4%), 65507 B (1%) alongside 96,256,512,1372,4068; 8936/8937 original generator lacked",
+    "Classify SEND_ERROR and CORRUPT_OR_MALFORMED separately without loosening any lossless guard",
+    "Workflow allow only new explicit boundary profile and maintain exactly one sample/one run",
+    "Full helper SHA is current new GitHub commit; must requalify; no inherited PASS"
+  ],
+  "new_sample": {
+    "workload": "udp",
+    "loss": 0,
+    "seed": 1816,
+    "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "size_profile": "boundary",
+    "diagnostic_mode": "off"
+  },
+  "new_workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "limitations": [
+    "Existing Game4 profile-off run37766819445 FAIL and profile-on run37768172504 FAIL, 319041 userspace server ready overflow on diagnostics, unchanged",
+    "Large-size result still FAIL and high UDP fragment path may be unsupported/rejected, not quietly removed",
+    "A profile with unsupported 65507 cannot be globally PASS; analyze each packet size, missing, returned probe p99 separately",
+    "Helper work only, no product-source implementation yet",
+    "E1-E6/E7 80s downlink/P6/native physical NOT_RUN or OPEN as indicated"
+  ]
+}

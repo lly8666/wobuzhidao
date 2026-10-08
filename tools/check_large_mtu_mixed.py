@@ -175,6 +175,15 @@ def main():
         b=biz["counters"];t=target["counters"]
         stages=[json.loads(l) for l in (root/"stage-events.jsonl").read_text().splitlines()]
         netem=packet_loss(stages)
+        # Enforce actual on-wire impairment stage timing. A manifest claiming
+        # drain_s=3 cannot silently keep real endpoints/tc running for 15s.
+        stage_start=next(row["monotonic_ns"] for row in stages if row["event"]=="business_start")
+        stage_end=next(row["monotonic_ns"] for row in stages if row["event"]=="business_end")
+        drain_end=next(row["monotonic_ns"] for row in stages if row["event"]=="drain_end")
+        if not (299_500_000_000<=stage_end-stage_start<=300_500_000_000):
+            issues.append("BUSINESS_STAGE_DURATION_MISMATCH")
+        if not (2_500_000_000<=drain_end-stage_end<=3_500_000_000):
+            issues.append("DRAIN_STAGE_DURATION_MISMATCH")
         if any(z["attempted"]<100 for z in netem.values()):issues.append("NETEM_NO_EFFECTIVE_TRAFFIC")
         for side in ("c2s","s2c"):
             z=netem[side]
@@ -201,10 +210,15 @@ def main():
                             "target_mbps":x.target_mbps,"target_achievement":achieved,
                             "injection_skipped_bytes":src.get("skipped_bytes",0),
                             "generator_send_errors":src["send_errors"],
+                            "source_corrupt_or_malformed_count":src.get("corrupt",0),
+                            "receiver_corrupt_or_malformed_count":dst.get("corrupt",0),
+                            "source_probe_send_errors":src.get("probe_send_errors",0),
                             "udp_by_size":sz,"large_udp_roundtrip_ms":rtt,
                             "tcp":tcp,"continuity":bucket_gap(src,dst)}
             if achieved<.99:issues.append("INSUFFICIENT_INJECTION_"+key)
-            if src["send_errors"] or src.get("corrupt",0) or dst.get("corrupt",0):issues.append("PAYLOAD_OR_SEND_ERROR_"+key)
+            if src["send_errors"]:issues.append("GENERATOR_SEND_ERROR_"+key)
+            if src.get("corrupt",0) or dst.get("corrupt",0):issues.append("PAYLOAD_CORRUPT_OR_MALFORMED_"+key)
+            if src.get("probe_send_errors",0):issues.append("PROBE_SEND_ERROR_"+key)
             if tcp["mismatch_total"]:issues.append("TCP_HASH_MISMATCH_"+key)
             if x.workload in ("tcp","mixed") and any(str(i) not in src.get("tcp_tx",{}) for i in range(4)):
                 issues.append("TCP_FOUR_SUSTAINED_FLOWS_MISSING_"+key)

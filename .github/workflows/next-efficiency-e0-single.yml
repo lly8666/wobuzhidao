@@ -51,7 +51,7 @@ jobs:
           assert type(d["seed"]) is int and 1<=d["seed"]<=999999
           assert d["mode"] in ("normal","game")
           assert (d["mode"],d["lanes"],d["rate_mbps"]) in (("normal",1,10),("game",4,3))
-          assert d["size_profile"] in ("ordinary","jumbo")
+          assert d["size_profile"] in ("ordinary","jumbo","boundary")
           assert d["diagnostic_mode"] in ("off","on")
           assert d["product_source_sha"]==os.environ["PRODUCT_SOURCE"]
           helper=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()

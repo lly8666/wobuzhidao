@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_OVERFLOW_TEMPORAL_AUDITED_NORMAL_JUMBO_QUEUED",
+    "phase": "E0_JUMBO_FAIL_STAGE_DRAIN_FIX_BOUNDARY_SAMPLE_QUEUED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -234,10 +234,46 @@
       "workflow": ".github/workflows/next-efficiency-e0-single.yml",
       "helper_sha": "exact pushed HEAD in Actions",
       "run_id": null
+    },
+    "e0_jumbo": {
+      "state": "FAIL",
+      "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "helper_sha": "03a64401907a847f6f0a107cacdf9330e7f7d9ad",
+      "run_id": 37769772363,
+      "artifact_id": 11547309891,
+      "original_issues": [
+        "PAYLOAD_OR_SEND_ERROR_c2s",
+        "LOSSLESS_UDP_MISSING_c2s",
+        "PAYLOAD_OR_SEND_ERROR_s2c",
+        "LOSSLESS_UDP_MISSING_s2c"
+      ],
+      "small_lens_lossless": true,
+      "large_missing_each_direction": 15068,
+      "probe_missing_both": 0,
+      "capacity_limited_evidenced": false,
+      "actual_stage_drain_s": 15,
+      "evidence": "docs/evidence/performance-efficiency-e0-jumbo-fail-37769772363.json"
+    },
+    "e0_boundary": {
+      "state": "NOT_RUN_PENDING_ACTION",
+      "config": {
+        "workload": "udp",
+        "loss": 0,
+        "seed": 1816,
+        "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+        "mode": "normal",
+        "lanes": 1,
+        "rate_mbps": 10,
+        "size_profile": "boundary",
+        "diagnostic_mode": "off"
+      },
+      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+      "helper_sha": "new GITHUB_SHA of this helper commit",
+      "run_id": null
     }
   },
-  "next_task": "E0 inspect new exact-helper one-sample Normal UDP jumbo/small mixture 10Mbps per direction lossless seed1815, 300s+3s drain, profile-off; record actual TUN and MTU budgeting, input/send errors, missing/corrupt by 96..65507 size, probe missing/returned, p99+timeouts, runner CPU/PSI/quota/socket/drop; no PASS unless valid. In parallel keep Game4 off FAIL run37766819445 + on FAIL37768172504 server ready overflow319041 sustained all time bins (see evidence), avoid blindly enlarging queue or user-space latency. 8936/8937 exact frame boundary remains untested. TCP-only FAIL37762364098 remains. E1 blocked pending E0 and four protection runs. E6/P6/physical NOT_RUN; E7 80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261008-201300-e0-game4-ready-overflow-timeline-and-normal-jumbo.md",
+  "next_task": "E0 inspect one new exact-helper boundary profile-off Normal UDP 10Mbps/dir 300s seed1816, real 3s stage drain; by-size 8936/8937/65507 delivery, small independent 96..4068, actual corrupt/malformed/send error separate, probes returned+missing/p99, actual derived TUN MTU and capacity/drop. Preserve run37769772363 Normal jumbo original FAIL (each direction 8972:6850,8973:5480,65507:2738 all missing; 96..4068 and probes survived), and prior Game4 off/on FAIL run37766819445/37768172504 with sustained 319041 server ready overflow. Product bf11fbf only, no E1 code before baseline and 4 formal protection guards. Old TCP-only FAIL37762364098 OPEN, 80s S2C deferred E7 OPEN, E6/P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-jumbo-fail-receipt-and-boundary-draintime-correction.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
