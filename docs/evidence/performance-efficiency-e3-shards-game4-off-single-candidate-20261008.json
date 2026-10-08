@@ -1,0 +1,96 @@
+{
+  "schema": "wbd-e3-shard-ingress-one-game4-qualifier/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+  "helper_sha": "THIS_NEW_COMMIT",
+  "state": "QUEUED_ONE_ACTION",
+  "preflight": {
+    "foundation": {
+      "run_id": 37806656658,
+      "conclusion": "success",
+      "jobs": [
+        "repo contract",
+        "Linux Go unit",
+        "Windows Go unit",
+        "Go race",
+        "Go directed fuzz",
+        "OpenWrt TPROXY privileged",
+        "Linux TUN nft/iptables privileged",
+        "kernel fallback"
+      ]
+    },
+    "lifecycle": {
+      "run_id": 37806656647,
+      "conclusion": "success"
+    }
+  },
+  "single_sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1827,
+    "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "exact_workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "contract": {
+    "business_duration_s": 300,
+    "drain_s": 3,
+    "outer_loss_pct": 0,
+    "one_way_delay_ms": 300,
+    "per_direction_logical_mbps": 3,
+    "real_linux_client_tproxy_server_tun": true,
+    "outer_encrypted": true,
+    "auto_record_limit": 0,
+    "outer_mtu": 1400,
+    "game_lanes": 4,
+    "fec": "20:20",
+    "padding": "off",
+    "profile": "off"
+  },
+  "compare_to": {
+    "before_stage_b_off": {
+      "run_id": 37801415227,
+      "source_sha": "19e5b19245bed8691bbb5e7053ad27a0268c893d",
+      "original": "FAIL",
+      "udp_c2s_missing": 37,
+      "probe_missing": [
+        0,
+        0
+      ]
+    },
+    "before_stage_b_on": {
+      "run_id": 37802779025,
+      "original": "FAIL",
+      "server_ready_dropped": 73586,
+      "udp_c2s_missing": 319,
+      "probe_missing": [
+        1,
+        2
+      ],
+      "profile": "on",
+      "caution": "ON not comparable with OFF for CPU or outcome causal claim"
+    }
+  },
+  "acceptance": [
+    "original analyzer PASS_SCOPED_ACTIONS no issues: C2S/S2C ordinary UDP missing0 and independent probes missing0",
+    "TCP 4 long+300 short each way intact; HTTP/HTTPS20/20 and certificate verification",
+    "Game configured4 but physical4 proof needs independent profileON run; do not infer from OFF",
+    "netem/socket/interface raw drops0 and source/helper binary SHA correct",
+    "new total ingress queue budget remains4096; no increase in ready cap",
+    "real CPU per deliveredGiB benchmark requires 3 profileOFF matched-runner cases; profile OFF Go allocs NOT_COLLECTED",
+    "Game2 and true staged 5205 5/20/5 independent per Action, NOT inherited"
+  ],
+  "unchanged": [
+    "Normal1 original queue4096 and single handler",
+    "TLS/FEC/owner generation/lease/PacketID first valid dedupe",
+    "auto negotiated record MTU 0",
+    "TCP RTO500ms and FEC20:20",
+    "original historical FAIL and E7 80s OPEN",
+    "P6/physical NOT_RUN"
+  ]
+}
