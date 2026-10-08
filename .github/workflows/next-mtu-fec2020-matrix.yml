@@ -53,7 +53,7 @@ jobs:
             sudo --preserve-env=GITHUB_ACTIONS python3 tools/test_mtu_loss_sockets.py \
               --kind "$KIND" --outer "$OUTER" --loss "$LOSS" --fec-parity 20
           else
-            go test ./internal/linkdata -run '^TestActionsMTUFEC2020Wire
+            go test ./internal/linkdata -run '^TestActionsMTUFEC2020Wire$' -count=1 -v
           fi
 
   linux-unit-race-build:
@@ -118,66 +118,3 @@ jobs:
           done
           sudo ip netns exec "$ns" ip link del dev wbdmtu
           echo "FEC20_TUN_BOUNDS_PASS sha=$GITHUB_SHA"
- -count=1 -v
-          fi
-
-  linux-unit-race-build:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with: { go-version: '1.23.12', cache: false }
-      - name: Verify exact SHA, parameter catalog, unit, race, native and ARM64 build
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          python3 tools/parameter_catalog.py
-          go test ./... -count=1
-          go test -race ./... -count=1
-          go build ./...
-          GOOS=linux GOARCH=arm64 go build ./...
-  windows-unit-build:
-    runs-on: windows-2022
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with: { go-version: '1.23.12', cache: false }
-      - name: Native Windows Go build and unit
-        shell: pwsh
-        run: |
-          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) { throw "SHA mismatch" }
-          go test ./... -count=1
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          go build ./...
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Owned-only MTU set, rollback, legacy restore
-        shell: pwsh
-        run: |
-          ./tools/test_windows_tun_mtu.ps1
-          ./tools/test_windows_splitroute.ps1
-  linux-real-tun-mtu:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - name: Verify real Linux kernel TUN derived MTU values
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq iproute2
-          ns=wbd-auto-record-mtu
-          trap 'sudo ip netns del "$ns" >/dev/null 2>&1 || true' EXIT
-          sudo ip netns add "$ns"
-          sudo ip netns exec "$ns" ip tuntap add dev wbdmtu mode tun
-          for mtu in 576 1173 1229 1273 1329 1373 1429; do
-            sudo ip netns exec "$ns" ip link set dev wbdmtu mtu "$mtu" up
-            actual=$(sudo ip netns exec "$ns" cat /sys/class/net/wbdmtu/mtu)
-            test "$actual" = "$mtu"
-          done
-          sudo ip netns exec "$ns" ip link del dev wbdmtu
-          echo "AUTO_RECORD_TUN_BOUNDS_PASS sha=$GITHUB_SHA"
