@@ -5,11 +5,11 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-10-08",
+  "updated_at": "2026-10-09",
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RECV16_GAME4_OFF_PENDING_E2_GAME2_TRUE5205_SCOPED_PASS",
+    "phase": "E4_GAME4_TRUE5205_ONE_OFF_SCOPED_PASS_FOUNDATION_RACE_FAIL",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -22,7 +22,7 @@
     },
     "optimization_implemented": true,
     "integration_core": "PASS_SOURCE_BF11FBF",
-    "ordinary_performance": "NORMAL_UDP_MIXED_OFF_PASS_SCOPED_TCP_ONLY_FAIL_GAME4_OFF_AND_ON_FAIL",
+    "ordinary_performance": "E4_GAME4_5205_OFF_ONE_SCOPED_PASS_NORMAL1_GAME2_LOSSLESS_PROTECTORS_PENDING_FOUNDATION_RACE_FAIL_HISTORICAL_FAILS_RETAINED",
     "physical": "NOT_RUN_NEW_SOURCE",
     "e0_audit": {
       "state": "AUDIT_ONLY",
@@ -1009,7 +1009,7 @@
       "qualification": "GAME2_SCOPED_PASS_NEW_E4_SOURCE_NOT_TESTED"
     },
     "e4_raw_recv_batch": {
-      "state": "UNIT_RACE_LIFECYCLE_PASS_GAME4_ONE_CASE_QUEUED",
+      "state": "GAME4_TRUE5205_PROFILEOFF_ONE_PASS_SCOPED_FOUNDATION_RACE_ASSERTION_FAIL",
       "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
       "parent_head": "8f646743f3134d280d9c7b18c1a7b3aca16323ad",
       "recv_batch_before": 8,
@@ -1021,7 +1021,7 @@
       ],
       "foundation": "PASS_RUN37853003357",
       "lifecycle": "PASS_RUN37853003378",
-      "real_source_traffic": "NOT_RUN_YET",
+      "real_source_traffic": "GAME4_TRUE5205_37853468730_PASS_SCOPED_ACTIONS",
       "game2_old_source_run": 37852789098,
       "evidence": "docs/evidence/performance-efficiency-e4-raw-receive16-with-send8-candidate-20261009.json",
       "cpu_gain": "UNPROVEN",
@@ -1037,30 +1037,69 @@
           "size_profile": "ordinary",
           "diagnostic_mode": "off"
         },
-        "helper_sha": "THIS_HELPER_COMMIT",
-        "status": "PENDING_ACTION",
-        "evidence": "docs/evidence/performance-efficiency-e4-raw-recv16-game4-5205-single-qualification-20261009.json"
+        "helper_sha": "32db36d7f3a5ef8177372e76effc775cf070dbb0",
+        "status": "COMPLETED_PASS_SCOPED_ACTIONS",
+        "evidence": "docs/evidence/performance-efficiency-e4-game4-5205-off-run37853468730.json",
+        "run_id": 37853468730,
+        "job_id": 113571933555,
+        "artifact_id": 11582763655
       },
       "game2_previous_source_run": 37852789098,
       "first_real_game4_5205_run": 37853468730,
-      "first_real_game4_5205_original": "PENDING"
+      "first_real_game4_5205_original": "PASS_SCOPED_ACTIONS",
+      "game4_real_5205_review": {
+        "run_id": 37853468730,
+        "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+        "helper_sha": "32db36d7f3a5ef8177372e76effc775cf070dbb0",
+        "original_analyzer": "PASS_SCOPED_ACTIONS",
+        "issues": [],
+        "udp_missing_both": 0,
+        "probe_missing_both": 0,
+        "socket_extra_drop": 0,
+        "runner_cpu_model": "AMD EPYC 9V74",
+        "product_cpu_s": 265.02,
+        "actual_server_tun_mtu": 1273,
+        "evidence": "docs/evidence/performance-efficiency-e4-game4-5205-off-run37853468730.json"
+      },
+      "foundation_later_helper_run": {
+        "run_id": 37853468530,
+        "status": "FAIL",
+        "failed_test": "TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK",
+        "race_detector_report": "NOT_OBSERVED_IN_LOG",
+        "test_assertion_race": "ACK channel send before calls.Add",
+        "resolution": "PENDING_ACTIONS",
+        "prior_source_foundation_pass": 37853003357
+      },
+      "protectors": {
+        "game4_true5205": "PASS_SCOPED_ONE_OFF_SAMPLE",
+        "game4_lossless": "NOT_RUN_CURRENT_SOURCE",
+        "normal1_lossless": "NOT_RUN_CURRENT_SOURCE",
+        "normal1_true5205": "NOT_RUN_CURRENT_SOURCE",
+        "game2_lossless": "NOT_RUN_CURRENT_SOURCE",
+        "game2_true5205": "NOT_RUN_CURRENT_SOURCE",
+        "diagnostic_on": "NOT_RUN_CURRENT_SOURCE",
+        "low_rtt_sparse": "NOT_RUN_CURRENT_SOURCE",
+        "cpu_gain": "UNPROVEN"
+      }
     }
   },
-  "next_task": "First check E4 recvmsg16 source ba8ed1 Game4 true staged5205 OFF seed1840 run37853468730 new-helper SHA32db36d7, original analyzer and per-stage UDP/probes, extra AF_PACKET packet socket drops, runner stratum, true server MTU. Old E2 stack-SACK source ea724897 Game2 true5205 off run37852789098 original PASS_SCOPED with S2C stress 1/51503 4068B UDP missing, all C2S UDP0, probes0/0 and AF_PACKET drops0, CPU221.32s on AMD EPYC7763, cannot inherit as E4 test. After new E4 real pass/fail, separate Normal1 and Game2 new-source true5205/lossless under one-sample actions, lowRTT and 3 matched runner strata before CPU gain. Old AMD EPYC7763 Game4 stress446 FAIL run37817466498 and 9V45 packet140drop FAIL run37851028041 retained, E7 80s OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e2-game2-5205-scoped-pass-one-s2c-stress-udp-missing.md",
-  "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
-  "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
-  "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
+  "next_task": "First repair ACK test deterministic entered handshake for failed foundation race run37853468530, retain original FAIL, run Actions repeated directed test and go test -race. Then freeze E4 SOURCE ba8ed1/helper by exact SHA and dispatch each protection as separate performance Action: Game4 lossless same seed1840, Normal1 lossless+5205 and Game2 lossless+5205 matched seeds. Profile ON diagnostics and low RTT sparse protection separately, no CPU benefit until matched >=3 OFF per parent/candidate resource stratum. All previous failures E7 outage OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e4-game4-5205-off-scoped-pass-race-fail.md",
+  "qualification_scope": "Current E4 product ba8ed1 / helper 32db: one Game4 true staged5205 300s 3Mbps each way profile OFF PASS_SCOPED_ACTIONS run37853468730; latest helper foundation race run37853468530 FAIL in ACK test. Other protectors and CPU benefit NOT_RUN/UNPROVEN; previous integrated bf11fbf and historic FAIL remain source-scoped.",
+  "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "last_tested_scope": "Game4 4-lane configured real mixed staged5205 profile-off scoped PASS run37853468730, other source protections pending; helper foundation race FAIL run37853468530",
   "physical_status": "PARTIAL",
   "completed": [
     "Optimization implementation/testing sequence and runner-capacity policy documented",
     "Concise agent entry/current architecture/roadmap prepared; pre-cleanup STATUS and entry snapshots retained",
     "Existing MTU automatic budgets/code and functional helpers merged; latest b4 failures preserved",
-    "Exact integrated bf11fbf foundation/lifecycle-core/GUI Actions all SUCCESS; ordinary efficiency still NOT_RUN"
+    "Exact integrated bf11fbf foundation/lifecycle-core/GUI Actions all SUCCESS; ordinary efficiency still NOT_RUN",
+    "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E0 helper audit and ordinary real-process baseline NOT_STARTED",
-    "CPU improvement NOT_RUN",
+    "E4 next: fix ACKFeedback blocked-native emit test entered handshake and Actions race without changing product unnecessarily",
+    "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
+    "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
   ],
   "actions": [
@@ -1098,6 +1137,22 @@
       "scope": "integration_functional",
       "status": "PASS",
       "note": "next-windows-gui: portable build/manifest, owned network restoration, native GUI parameter/widgets/switching/portable writes; no fullstack performance or physical claim"
+    },
+    {
+      "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "helper_sha": "32db36d7f3a5ef8177372e76effc775cf070dbb0",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37853468730",
+      "scope": "E4_Game4_real_5205_profile_off_one_sample",
+      "status": "PASS_SCOPED_ACTIONS",
+      "note": "original issues=[]; 300s+3s, UDP and probes all delivered, CPU265.02s on EPYC9V74; not CPU gain or other configurations; evidence docs/evidence/performance-efficiency-e4-game4-5205-off-run37853468730.json"
+    },
+    {
+      "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "helper_sha": "32db36d7f3a5ef8177372e76effc775cf070dbb0",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37853468530",
+      "scope": "E4_helper_foundation_linux_race",
+      "status": "FAIL",
+      "note": "TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK ACK channel-before-calls assertion, no race detector warning observed; requires deterministic entered test and race rerun"
     }
   ],
   "required_read_set": [

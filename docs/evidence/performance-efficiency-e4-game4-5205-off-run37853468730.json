@@ -1,0 +1,203 @@
+{
+  "schema": "wbd-efficiency-independent-artifact-review/v1",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_sha": "32db36d7f3a5ef8177372e76effc775cf070dbb0",
+  "branch": "next/performance-efficiency-20261008",
+  "run_id": 37853468730,
+  "job_id": 113571933555,
+  "artifact_id": 11582763655,
+  "original_action": "success",
+  "original_analyzer": "PASS_SCOPED_ACTIONS",
+  "issues": [],
+  "reviewed_sha256": {
+    "manifest.json": "7adb31294428f9a9fdb97e21bdb068183a45922c18dcd0f7d61a170de3ac3dd1",
+    "summary.json": "41179df998130b24f856aa7ba3880af93bfcf57747eba33a66c14ee42e587c07",
+    "efficiency-ledger.json": "8ca906e459081e7d95713c57557651975b3a029b7a819a514274dda52caf742f"
+  },
+  "sample": {
+    "workload": "mixed",
+    "loss": 5205,
+    "seed": 1840,
+    "mode": "game",
+    "lanes_configured": 4,
+    "lanes_actually_observed": "NOT_COLLECTED_PROFILE_OFF",
+    "each_direction_logical_mbps": 3,
+    "seconds_active": 300,
+    "drain_seconds": 3,
+    "one_way_delay_ms": 300,
+    "fec": "20:20",
+    "padding": "off",
+    "profile": "off",
+    "outer_mtu": 1400,
+    "actual_server_tun_mtu": 1273,
+    "record_cap_configured": 0,
+    "path": "biz real socket -> client TPROXY -> raw FakeTCP/TLS-like -> router netem -> server raw -> shared TUN -> target real socket"
+  },
+  "stages": {
+    "pre": [
+      0,
+      75,
+      5
+    ],
+    "stress": [
+      75,
+      225,
+      20
+    ],
+    "post": [
+      225,
+      300,
+      5
+    ],
+    "sender_timestamp_attribution": true,
+    "realized_loss_percent": {
+      "c2s": [
+        5.03403685246644,
+        20.053046310317953,
+        4.980250976937524
+      ],
+      "s2c": [
+        5.033103698370127,
+        20.097619922046228,
+        4.992816807563492
+      ]
+    }
+  },
+  "business": {
+    "udp_lengths_bytes": [
+      96,
+      256,
+      512,
+      1000,
+      1372,
+      4068
+    ],
+    "udp_sent_and_delivered_each_direction": {
+      "pre": [
+        25792,
+        25792
+      ],
+      "stress": [
+        51503,
+        51503
+      ],
+      "post": [
+        25767,
+        25767
+      ]
+    },
+    "udp_missing_each_direction": 0,
+    "udp_corrupt_or_malformed_each_direction": 0,
+    "udp_by_size_sent_delivered_each_direction": {
+      "96": [
+        51550,
+        51550
+      ],
+      "256": [
+        20612,
+        20612
+      ],
+      "512": [
+        10300,
+        10300
+      ],
+      "1000": [
+        5150,
+        5150
+      ],
+      "1372": [
+        10300,
+        10300
+      ],
+      "4068": [
+        5150,
+        5150
+      ]
+    },
+    "udp_over_1s_and_3s_each_direction": 0,
+    "probe": {
+      "c2s": [
+        1500,
+        1500
+      ],
+      "s2c": [
+        1495,
+        1495
+      ],
+      "missing": [
+        0,
+        0
+      ],
+      "over_1s": [
+        0,
+        0
+      ],
+      "over_3s": [
+        0,
+        0
+      ],
+      "p99_returned_ms": [
+        621.309656,
+        623.435425
+      ]
+    },
+    "tcp_flows_hash_matched_each_direction": [
+      304,
+      304
+    ],
+    "http_https": [
+      20,
+      20
+    ],
+    "https_cert_verified": [
+      10,
+      10
+    ],
+    "active_10ms_empty_largest_gap_ms": {
+      "c2s": 60,
+      "s2c": 60
+    },
+    "goodput_mbps_each_direction": 2.97231648
+  },
+  "resources": {
+    "host": "AMD EPYC 9V74 80-Core Processor",
+    "logical_cpus": 4,
+    "cgroup_quota_cores": null,
+    "client_cpu_s": 132.39,
+    "server_cpu_s": 132.63,
+    "total_product_cpu_s": 265.02,
+    "product_cpu_s_per_delivered_gib": 1276.2431892597808,
+    "host_busy_max_percent": 72.79792746113989,
+    "psi_cpu_some_avg10_max": 32.22,
+    "steal_max_percent": 0,
+    "softirq_max_percent": 16.79790026246719,
+    "peak_rss_mib": {
+      "client": 98.49609375,
+      "server": 98.1171875
+    },
+    "socket_extra_drops": 0,
+    "interface_extra_drops": 0,
+    "profileoff_go_mallocs": "NOT_COLLECTED",
+    "profileoff_go_alloc_bytes": "NOT_COLLECTED"
+  },
+  "limitations": [
+    "One formally completed Game4 staged5205 sample only, not Game4 0loss or Normal1/Game2 protections",
+    "Not CPU benefit; cross-host 9V74 vs 7763 comparisons invalid",
+    "No profile-on lane count / per-shard internal overflow measurement in this OFF artifact",
+    "Does not prove 8937/65507B legal complete product behavior or TCP-only prior failure",
+    "Foundation run 37853468530 failed a race-mode test assertion; still OPEN",
+    "Historical Game4 run 37817466498 UDP446 missing and run 37851028041 AF_PACKET drops140 remain FAIL",
+    "E7 ~80s downlink outage remains OPEN_DEFERRED; E6/P6 and physical NOT_RUN"
+  ],
+  "foundation_failure": {
+    "run_id": 37853468530,
+    "job_id": 113571983626,
+    "workflow_conclusion": "failure",
+    "failed_step": "Race",
+    "test": "TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK",
+    "observed": "ACKWorkerRunning=true ACKWorkerAttempts=1 calls=0; ACK channel is written before calls.Add(1)",
+    "race_detector_report_in_excerpt": false,
+    "fix_status": "PENDING_VERIFICATION"
+  },
+  "raw_cleanup": "artifact retains bounded numeric summaries; original owned pcap deleted"
+}
