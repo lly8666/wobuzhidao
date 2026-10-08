@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_TCP_SYNCHRONOUS_EMIT_99P79_PERCENT_FAIL",
+    "phase": "E2_ONE_BUFFER_MARSHAL_SOURCE_CANDIDATE_E0_GAME4_FAIL_OPEN",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -20,7 +20,7 @@
       "mtu_functional_parent": "c480ccef30962358b33da936d9ba19def6061f70",
       "integration_SOURCE_SHA": "bf11fbfbe64d518e7ba189d51bfb4512df4df733"
     },
-    "optimization_implemented": false,
+    "optimization_implemented": true,
     "integration_core": "PASS_SOURCE_BF11FBF",
     "ordinary_performance": "NORMAL_UDP_MIXED_OFF_PASS_SCOPED_TCP_ONLY_FAIL_GAME4_OFF_AND_ON_FAIL",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -435,10 +435,20 @@
       ],
       "local_socket_drops": 0,
       "evidence": "docs/evidence/performance-efficiency-e0-game4-tcp-emit-fail-37788802499.json"
+    },
+    "e2_marshal_candidate": {
+      "state": "CODE_COMMITTED_TESTS_PENDING",
+      "parent_head": "eec0cb8077daa8f011285066d136d574c93abc0b",
+      "new_product_source_sha": "THIS_COMMIT_SHA",
+      "candidate_evidence": "docs/evidence/performance-efficiency-e2-one-buffer-marshal-candidate-20261008.json",
+      "expected_saved_allocations_per_frame": 1,
+      "actual_cpu_gain": "NOT_MEASURED",
+      "protection_status": "NOT_RUN",
+      "game4_existing_fails_open": true
     }
   },
-  "next_task": "E0: Game4 scan-vs-emit run37788802499 original FAIL; 7231 TCP due frames/300s and synchronous TunnelFlow.Send uses18.363 of TCP tick18.402s (99.79%), scan31.9ms, max tick emit218.68ms, server ready317739 overflow; c2s UDP2510 missing and probes29/28. Candidate is common TCP retransmit emit efficiency or avoid premature 500ms retry on ~600ms path, BUT do not blindly raise RTO or move to queues. Inspect Send APIs and generation fencing for no-wait batching and source-level unit tests. Only implement narrow behavior-preserving patch with core/race and four independent Normal lossless/5205 Game4 lossless/5205 Actions. Preserve previous Game4 failures; E1–E6 NOT_DONE and E7 80s OPEN; P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-game4-tcp-tick-emit-dominates.md",
+  "next_task": "E2 candidate: run Linux/Windows core/unit/race/fuzz/privileged real TPROXY+TUN and lifecycle for exact one-buffer MarshalPacket source commit; do not claim gain. If success, pin exact new product SOURCE in one-helper config and issue single Normal1 mixed 10Mbps/dir 0%loss 300s+3s profile-off Actions run, check CPU/GiB, Go allocs per effective GiB, raw sendmmsg/recvmmsg, real UDP/TCP/HTTPS hash/duplex/probe p99. Game4 still historical lossless FAIL run37788802499, ready drop317739 and 500ms RTO ~600ms RTT hypothesis not fixed. Need Normal1 5205/Game4 lossless+5205 independent actions to advance E2. E1/E3-E6 unfinished, E7 80s OPEN, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e2-single-owned-packet-buffer-candidate.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

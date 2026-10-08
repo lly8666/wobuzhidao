@@ -48,22 +48,26 @@ type Frame struct {
 	Payload []byte
 }
 
-func MarshalFrame(f Frame) ([]byte, error) {
+// frameHeaderFields validates before any output allocation. Keeping this
+// shared with MarshalPacket preserves MarshalFrame's errors and exact wire.
+func frameHeaderFields(f Frame) (byte, [16]byte, uint16, error) {
 	if f.FlowID == 0 {
-		return nil, fmt.Errorf("%w: zero flow id", ErrMalformed)
+		return 0, [16]byte{}, 0, fmt.Errorf("%w: zero flow id", ErrMalformed)
 	}
 	if len(f.Payload) > MaxPayload {
-		return nil, fmt.Errorf("%w: payload=%d max=%d", ErrLimit, len(f.Payload), MaxPayload)
+		return 0, [16]byte{}, 0, fmt.Errorf("%w: payload=%d max=%d", ErrLimit, len(f.Payload), MaxPayload)
 	}
+	return validateFrame(f)
+}
+
+// writeFrameValidated writes the identical frame into caller-owned storage.
+// The caller must allocate FrameHeaderSize+len(f.Payload) and validate using
+// frameHeaderFields first; no payload reference escapes this owned packet.
+func writeFrameValidated(out []byte, f Frame, family byte, addr [16]byte, port uint16) {
 	var flags byte
 	if f.FIN {
 		flags = flagFIN
 	}
-	family, addr, port, err := validateFrame(f)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]byte, FrameHeaderSize+len(f.Payload))
 	copy(out[:4], frameMagic[:])
 	out[4] = Version1
 	out[5] = byte(f.Kind)
@@ -75,6 +79,15 @@ func MarshalFrame(f Frame) ([]byte, error) {
 	copy(out[26:42], addr[:])
 	binary.BigEndian.PutUint16(out[42:44], uint16(len(f.Payload)))
 	copy(out[44:], f.Payload)
+}
+
+func MarshalFrame(f Frame) ([]byte, error) {
+	family, addr, port, err := frameHeaderFields(f)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]byte, FrameHeaderSize+len(f.Payload))
+	writeFrameValidated(out, f, family, addr, port)
 	return out, nil
 }
 

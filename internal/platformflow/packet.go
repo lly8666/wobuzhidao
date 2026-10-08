@@ -15,11 +15,11 @@ func MarshalPacket(lease netip.Addr, frame Frame) ([]byte, error) {
 	if !lease.IsValid() || !lease.Is4() {
 		return nil, logicaltunnel.ErrSourceSpoof
 	}
-	wire, err := MarshalFrame(frame)
+	family, addr, port, err := frameHeaderFields(frame)
 	if err != nil {
 		return nil, err
 	}
-	total := IPv4HeaderSize + len(wire)
+	total := IPv4HeaderSize + FrameHeaderSize + len(frame.Payload)
 	if total > logicaltunnel.MaxLeasedIPv4PacketLen {
 		return nil, fmt.Errorf("%w: service packet=%d", ErrLimit, total)
 	}
@@ -33,7 +33,9 @@ func MarshalPacket(lease netip.Addr, frame Frame) ([]byte, error) {
 	copy(out[12:16], ip[:])
 	copy(out[16:20], ip[:])
 	binary.BigEndian.PutUint16(out[10:12], ipv4Checksum(out[:20]))
-	copy(out[20:], wire)
+	// Build directly into the final owned IPv4 packet. The previous path
+	// allocated an intermediate Frame wire and copied it a second time.
+	writeFrameValidated(out[IPv4HeaderSize:], frame, family, addr, port)
 	return out, nil
 }
 

@@ -1,0 +1,66 @@
+{
+  "schema": "wbd-e2-one-owned-platformflow-marshal-candidate/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "eec0cb8077daa8f011285066d136d574c93abc0b",
+  "product_source_candidate": "THIS_COMMIT_SHA",
+  "workstream": "E2 allocation and duplicate-copy improvement candidate",
+  "problem": {
+    "prior_successful_real_normal_profile_run": 37777409229,
+    "profile_on_client_alloc_bytes": 18948863408,
+    "profile_on_server_alloc_bytes": 18221766304,
+    "prior_game4_fail_run": 37788802499,
+    "prior_game4_original_issues": [
+      "LOSSLESS_UDP_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_s2c"
+    ],
+    "prior_game4_tcp_due_frames": 7231,
+    "prior_game4_tcp_emit_wall_s": 18.363001025,
+    "prior_game4_ready_overflow": 317739,
+    "established_code_path": "platformflow.MarshalPacket invokes MarshalFrame allocating frame wire, then allocates IPv4 packet and copies frame wire; invoked by TunnelFlow.Send before GameOutbound 4-lane envelope/owner/FEC/record"
+  },
+  "change": {
+    "paths": [
+      "internal/platformflow/frame.go",
+      "internal/platformflow/packet.go",
+      "internal/platformflow/marshal_packet_alloc_test.go"
+    ],
+    "details": [
+      "Share single validation path frameHeaderFields for MarshalFrame and MarshalPacket; preserve error validation precedence",
+      "Write frame bytes directly into final owned IPv4 packet using writeFrameValidated, no intermediary wire allocation/copy",
+      "Do not change outward MarshalFrame API or encoding bytes",
+      "Test all service kinds including FIN, ACK, max 8936B payload, bad lease/invalid frames, byte-for-byte equality against reference MarshalFrame+IPv4, returned buffer does not alias source payload",
+      "Test allocated packets per send is at most one in normal Go unit test"
+    ],
+    "anticipated_gain": "One less per-platform-frame allocation and memcpy; pending Actions unit/race and comparable real CPU/alloc per delivered GiB; cannot infer magnitude or claim fixed Game4 ready overflow"
+  },
+  "guarantees": [
+    "No 500ms TCP RTO / retransmission, no transport timer, concurrency, rate, FEC20:20, mode or Game race changes",
+    "No new queue/buffer lifetime crossing, no alias to frame bytes, no 4096 ready/repair shadow change",
+    "No change to exact encrypted wire/MTU/record auto configured0/lease validation",
+    "No CPU gain accepted until independent profile-off samples and protection gates; old Game4 real FAIL retained"
+  ],
+  "qualification": {
+    "new_code": "UNTESTED_UNTIL_GITHUB_FOUNDATION_AND_LIFECYCLE",
+    "perf_lossless": "NOT_RUN_ON_NEW_SOURCE",
+    "normal_5205": "NOT_RUN",
+    "game4_lossless": "NOT_RUN",
+    "game4_5205": "NOT_RUN",
+    "e2_final": "BLOCKED_UNTIL_GUARDS_AND_REPLICATES"
+  },
+  "future_one_case_strategy": "After Linux/Windows unit/race/lifecycle pass pin this exact source SHA in one ordinary Normal mixed lossless 10Mbps each direction 300s 300ms+3s drain profile-off sample, compare business integrity and allocation ledger to reference own runner stratum. Keep one case per Actions run; 5205 and Game4 must be separate runs.",
+  "open": {
+    "prior_tcp_only_fail": 37762364098,
+    "prior_oversized_boundary_fail": 37774168539,
+    "game4_prior_profile_fail_runs": [
+      37766819445,
+      37768172504,
+      37780170850,
+      37782210096,
+      37788802499
+    ],
+    "e7_downlink_80s": "OPEN",
+    "e6_p6_physical": "NOT_RUN"
+  }
+}
