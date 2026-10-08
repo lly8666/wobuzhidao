@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E3_GAME_BOUNDED_ASYNC_TCP_TICK_FOUNDATION_PASS_SINGLE_GAME4_OFF_SAMPLE_PENDING",
+    "phase": "E3_BOUNDED_GAME_TCP_ASYNC_GAME4_LOSSLESS_FAIL_37_VS_PREVIOUS_1906_DIAGNOSTIC_NEXT",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -527,12 +527,12 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
     },
     "game_architecture": {
-      "state": "FOUNDATION_LIFECYCLE_PASS_REAL_GAME4_SAMPLE_TRIGGERING",
+      "state": "BASE_RACE_LIFECYCLE_PASS_GAME4_LOSSLESS_FAIL_37_UNDELIVERED",
       "parent_head": "8e6a26567511e19901f01f24ee31e82136c1736e",
       "source_sha": "19e5b19245bed8691bbb5e7053ad27a0268c893d",
       "stage": "A_BOUNDED_ONE_WORKER_NO_BACKLOG_FOR_GAME_TCP_TICK",
       "architecture": "docs/GAME_MODE_INGRESS_ARCHITECTURE_20261008.md",
-      "evidence": "docs/evidence/performance-efficiency-e3-game4-bounded-tick-single-candidate-20261008.json",
+      "evidence": "docs/evidence/performance-efficiency-e3-game4-async-first-0loss-run37801415227.json",
       "foundation": "NOT_RUN",
       "lifecycle": "NOT_RUN",
       "new_game4_lossless": "PENDING_ACTION",
@@ -556,11 +556,39 @@
         "size_profile": "ordinary",
         "diagnostic_mode": "off"
       },
-      "perf_helper_sha": "THIS_HELPER_COMMIT"
+      "perf_helper_sha": "THIS_HELPER_COMMIT",
+      "first_game4_run": 37801415227,
+      "game4_original_decision": "FAIL",
+      "game4_original_issues": [
+        "LOSSLESS_UDP_MISSING_c2s"
+      ],
+      "game4_udp_c2s_missing": 37,
+      "game4_probe_missing": [
+        0,
+        0
+      ],
+      "previous_game4_udp_missing": 1906,
+      "observed_missing_reduction_percent": 98.05876180482687,
+      "ready_overflow_current": "NOT_COLLECTED_PROFILE_OFF",
+      "cpu_saving": "UNPROVEN",
+      "next_diagnostic": {
+        "status": "QUEUED_ACTION",
+        "config": {
+          "workload": "mixed",
+          "loss": 0,
+          "seed": 1826,
+          "product_source_sha": "19e5b19245bed8691bbb5e7053ad27a0268c893d",
+          "mode": "game",
+          "lanes": 4,
+          "rate_mbps": 3,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "on"
+        }
+      }
     }
   },
-  "next_task": "E3: query exact new helper HEAD Actions run for productSOURCE19e5b192 Game4 real 4lane mixed 3Mbps/dir 0%loss 300ms one-way 300s+3s drain seed1825 diagnosticOFF, one sample; first original analyzer business FAIL/PASS then full UDP/probe/TCP/HTTPS/drops/host CPU. Foundation37800870550 and lifecycle37800870646 PASS. If no run observed yet, wait for registration in later process rather than invent. Old Game4 E2 OFF run37797087655 FAIL c2s UDP1906 missing, probes23/31 missing; old Game profileON run37788802499 ready overflow317739 and sync TCP emit18.363s. Because new design coalesces busy TCP ticks, true 5205 stage5/20/5 and repair p99 guard hard. Game2 separate run and Normal guards; E3 not final until all. E2 CPU gain unproven, E7 80s OPEN, E6/P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e3-game4-async-maintenance-first-real-profileoff.md",
+  "next_task": "E3 StageA game4 profileOFF run37801415227 original FAIL only LOSSLESS_UDP_MISSING_c2s, 37/103062 UDP app missing (was1906 previous Game4 OFF run37797087655), probes0/0 missing, TCP/HTTPS hash clean, qdisc/socket drops0; observed strong progress but NO PASS. Next independent profileON exact product19e5b192 Game4 4lane mixed 3Mbps/dir 0loss 300ms+3s seed1826 one sample; measure actual active physical lanes4, service main raw ready overflow, queue age, asynchronous TCP tick scheduled/coalesced counters, per-lane duplicates/FEC/repair and probes, host evidence, NEVER compare ON/OFF CPU. If current overflow remains material, Stage B per-lane parallel recv under single global bounded capacity after auth and no-fake-PacketID dedup, with core/race/weaknet protection. True staged 5205 5/20/5 remains NOT_RUN and Gate E3 BLOCKED. E2 CPU gain unproven; E7 old 80s downlink OPEN; E6/P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e3-game4-async-98-percent-loss-reduction-but-fail-next-hotspot.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
