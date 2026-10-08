@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
   ],
-  "next_task": "Longmix A path generator preflight run37728195228 PASS, no fullstack measurement yet. New single-A workflow + numeric verifier pending helper preflight and repository default-branch dispatch compatibility. Do NOT claim throughput/per-size/p99/runner CAPACITY until one genuine fixed b4 real socket run completes. B/C unsupported by helper and 12 formal samples NOT_RUN. M03 80s outage and 1.225s tail independent OPEN.",
-  "latest_log": "docs/devlog/20261008-longmix-a-single-workflow-gate.md",
+  "next_task": "A/0%/seed2608101 exact b4 single-sample dispatch request filed. Verify controller actual Actions run, and child performance run ID before any measurement claim; if new branch-only workflow cannot receive workflow_dispatch, record dispatch failure and adapt through existing workflow without touching main/frozen branch. B/C and 12 outcomes remain NOT_RUN until verified. M03 80s downlink & 1.225s late separately OPEN.",
+  "latest_log": "docs/devlog/20261008-longmix-udp-a-p0-first-dispatch.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10886,10 +10886,10 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A_SINGLE_WORKFLOW_HELPER_PREFLIGHT_PENDING",
+    "state": "A_P0_DISPATCH_REQUESTED_NOT_YET_CONFIRMED",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "PENDING_PRECHECK",
-    "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37728195228",
+    "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37728834800",
     "fullstack_samples": {
       "PASS": 0,
       "FAIL": 0,
