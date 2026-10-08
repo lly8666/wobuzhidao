@@ -1,0 +1,173 @@
+{
+  "schema": "wbd-e0-game4-optin-tcp-tick-emission-cost/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "old_head": "a4518b6535d94ff4c79dd44d196e943fa41e47a9",
+  "product_source_sha": "408a5cfb44883d959073c4d41c07c23a767a72db",
+  "helper_sha": "a4518b6535d94ff4c79dd44d196e943fa41e47a9",
+  "run": {
+    "id": 37788802499,
+    "job_id": 113350384633,
+    "artifact_id": 11555084630,
+    "attempt": 1,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37788802499",
+    "original_actions_conclusion": "failure",
+    "analyzer": "FAIL",
+    "original_issues": [
+      "LOSSLESS_UDP_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_s2c"
+    ],
+    "sample_step": "success",
+    "analyzer_step": "success",
+    "cost_ledger_step": "success"
+  },
+  "sha256": {
+    "summary.json": "14f149b985d0294273a61a789b7ea8be131a41ed4858fde7e0f608c6f27fdea0",
+    "efficiency-ledger.json": "94ee6a49bfb51b23411ea3d621cf46429f9ac0c2847f1f7542baa9a7ef0a9253",
+    "manifest.json": "b0b9455a72db164d40072e8ff0b984fade9317e1197899ac0840d113f481d10e",
+    "stage-events.jsonl": "064402c58d5e6b4e11d12ae47214b8ef012ce5d6ce833b0ee08d7d77ff785140",
+    "server-diag.jsonl": "64dfa3103f15fc59efd82849c08e2a8d89869b0907919dac9415e2903134fd71",
+    "client-diag.jsonl": "5a963dc3cfbb5846833cf6d139c57bc7103d159d4f8f3cd996da1bdf8b65d58b",
+    "server-cpu-top.txt": "8eb1f42aafbbb32474796ca00aca44afa9df97111db7aa3611c8df44239587c6"
+  },
+  "config": {
+    "mode": "game",
+    "lanes": 4,
+    "workload": "mixed",
+    "size_profile": "ordinary",
+    "diagnostic": "on",
+    "seed": 1821,
+    "loss_percent": 0,
+    "one_way_ms": 300,
+    "scheduled_business_s": 300,
+    "drain_s": 3,
+    "logical_each_direction_mbps": 3,
+    "fec": "20:20",
+    "outer_mtu": 1400,
+    "client_server_auto_record_cap": 0,
+    "real_tproxy_and_tun": true
+  },
+  "direction": {
+    "c2s": {
+      "sent_mbps": 2.97615648,
+      "goodput_mbps": 2.938091306666667,
+      "udp_missing_by_size": {
+        "96": 1376,
+        "256": 452,
+        "512": 195,
+        "1000": 114,
+        "1372": 258,
+        "4068": 115
+      },
+      "udp_missing_total": 2510,
+      "probe_sent": 1500,
+      "probe_returned": 1471,
+      "probe_missing": 29,
+      "returned_probe_p99_ms": 810.899846,
+      "maximum_returned_probe_ms": 2543.087349,
+      "tcp_hash_errors": 0
+    },
+    "s2c": {
+      "sent_mbps": 2.97614368,
+      "goodput_mbps": 2.97231648,
+      "udp_missing_total": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1467,
+      "probe_missing": 28,
+      "returned_probe_p99_ms": 812.275572,
+      "maximum_returned_probe_ms": 2609.938756,
+      "tcp_hash_errors": 0
+    },
+    "https": {
+      "requests": 20,
+      "returned": 20,
+      "https_cert_verified": 10,
+      "missing": 0,
+      "returned_only_p99_ms": 2630.898685
+    }
+  },
+  "ready": {
+    "reader_reads": 3053523,
+    "handled_segments": 2735784,
+    "reader_minus_handler": 317739,
+    "server_ready_overflow_drops": 317739,
+    "ready_capacity": 4096,
+    "peak": 4098,
+    "queue_age_max_ms": 267.595475
+  },
+  "tick_server": {
+    "tick_total_s": 30.492099079,
+    "tick_max_ms": 219.45994,
+    "tick_service_total_s": 18.406340067,
+    "tick_service_tcp_total_s": 18.401930219,
+    "tick_service_udp_total_s": 0.004409848,
+    "tcp_flows_scanned": 15812,
+    "due_retransmit_frames": 7231,
+    "abort_count": 1,
+    "tcp_flow_snapshot": {
+      "samples": 3173,
+      "wall_s": 0.003289977,
+      "max_ms": 0.02683,
+      "over_10ms": 0
+    },
+    "tcp_scan": {
+      "samples": 3173,
+      "wall_s": 0.031901706,
+      "max_ms": 2.759355,
+      "over_10ms": 0
+    },
+    "tcp_emit": {
+      "samples": 3173,
+      "wall_s": 18.363001025,
+      "max_ms": 218.678372,
+      "over_10ms": 281
+    },
+    "tcp_abort": {
+      "samples": 3173,
+      "wall_s": 0.000061674,
+      "max_ms": 0.061674,
+      "over_10ms": 0
+    },
+    "fraction_of_tcp_wall_in_emit": 0.9978845048570064,
+    "average_emit_wall_ms_per_due_frame": 2.5394829242151844,
+    "limitations": [
+      "Per-Tick emit is cumulative sequential wall including scheduler and multiple frames; not per-frame p99 nor CPU",
+      "No one-to-one causal trace between 317739 raw segments and 2510 missing application UDP",
+      "Profile-on instrumentation may alter timings and must not be used to claim OFF CPU benefits"
+    ]
+  },
+  "host": {
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "logical_cpus": 4,
+    "quota_cores": null,
+    "cpu_psi_some_avg10_max": 37.77,
+    "host_busy_max_percent": 82.96703296703296,
+    "softirq_max_percent": 12.39193083573487,
+    "steal_max_percent": 0,
+    "cpu_seconds": {
+      "client": 192.96,
+      "server": 167.21,
+      "total": 360.17
+    },
+    "socket_drops": 0,
+    "interface_drops": 0,
+    "capacity_limited_evidenced": false
+  },
+  "hypotheses": [
+    "platformflow TCP RTO default 500ms while requested netem path RTT at least around 600ms causes potential premature TCP data retransmission; not yet measured frame-by-frame nor safe to increase fixed RTO without weaknet guard",
+    "Synchronous TunnelFlow.Send for due frames in same handler select loop duplicates into four Game lanes and FEC; measured 18.36s wall in ~7k due frames",
+    "Existing raw endpoint batching may already run; avoid waiting to collect a batch that delays fresh, and do not enlarge 4096 ready/repair queue"
+  ],
+  "next": "Review TunnelFlow.Send and owner Outbound/Game sources and small no-wait immediate due-frame batching option; assess preservation of per-flow ordering, generation and retry semantics; if unsafe, keep as E0 diagnosis and prefer explicit weaknet-sensitive RTO hypothesis with exact tests before product change.",
+  "qualification": "FAIL_REAL_BUSINESS_NO_GAIN",
+  "legacy_game_failures": [
+    37766819445,
+    37768172504,
+    37780170850,
+    37782210096
+  ],
+  "e1_e6": "NOT_QUALIFIED",
+  "e7_80s": "OPEN_DEFERRED",
+  "physical": "NOT_RUN"
+}
