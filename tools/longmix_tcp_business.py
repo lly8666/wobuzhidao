@@ -344,6 +344,9 @@ def main():
                 thr.start()
                 long_threads.append(thr)
         listen.close()
+        # Remain alive during the fixed drain; the last TCP bytes may arrive
+        # after the 300s active send deadline, especially with 600ms RTT.
+        wait_until_ns(stop)
         if len(flows)!=TCP_LONG_CONNECTIONS:
             early_errors.append("incomplete long connection admission")
     else:

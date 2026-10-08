@@ -8,6 +8,10 @@ on:
       - "tools/longmix_udp_business.py"
       - "tools/longmix_tcp_business.py"
       - "tools/test_longmix_tcp_business.py"
+      - "tools/prepare_longmix_tcp.py"
+      - "tools/test_prepare_longmix_tcp.py"
+      - "tools/check_longmix_tcp_compact.py"
+      - "tools/test_check_longmix_tcp.py"
       - "tools/test_longmix_udp_business.py"
       - "tools/longmix_constant_stage.py"
       - "tools/prepare_longmix_udp.py"
@@ -42,6 +46,18 @@ jobs:
           python3 tools/test_longmix_profile.py
           python3 tools/test_longmix_udp_business.py
           python3 tools/test_longmix_tcp_business.py
+          python3 tools/test_prepare_longmix_tcp.py
+          python3 tools/test_check_longmix_tcp.py
+          python3 - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"tools")
+          from longmix_profile import sample_matrix
+          row=next(x for x in sample_matrix() if x["workload"]=="B")
+          Path("artifacts/longmix-precheck-input-b.json").write_text(json.dumps(row))
+          PY
+          python3 tools/prepare_longmix_tcp.py --sample artifacts/longmix-precheck-input-b.json --artifact-dir artifacts/longmix-b-precheck
+          bash -n artifacts/longmix-b-precheck/generated-longmix-tcp-b.sh
           python3 tools/test_prepare_longmix_udp.py
           python3 tools/test_check_longmix_udp.py
           python3 tools/test_longmix_strict_workflow.py

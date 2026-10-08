@@ -246,11 +246,15 @@
     ]
   },
   "tcp_b_candidate": {
-    "status": "HELPER_PREFLIGHT_PENDING",
+    "status": "NETNS_SCRIPT_AND_ANALYZER_PREFLIGHT_PENDING",
     "path": "tools/longmix_tcp_business.py",
     "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "semantics": "three bidirectional TCP long streams, one 96B short connection per second, per flow SHA256, TCP_INFO/MSS and partial send/backpressure counts; not a product performance proof",
     "workload_c": "NOT_INTEGRATED",
-    "samples": "NOT_RUN"
+    "samples": "NOT_RUN",
+    "script_generator": "tools/prepare_longmix_tcp.py",
+    "summary_validator": "tools/check_longmix_tcp_compact.py",
+    "fullstack_run": null,
+    "warning": "Only helper; every B and C product sample remains NOT_RUN"
   }
 }
