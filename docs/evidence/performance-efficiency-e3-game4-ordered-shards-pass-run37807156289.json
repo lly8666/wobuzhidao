@@ -1,0 +1,193 @@
+{
+  "schema": "wbd-e3-stable-flow-shards-first-game4-business-pass/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "old_head": "263480774d75003776715458dd80a273fad038fb",
+  "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+  "helper_sha": "263480774d75003776715458dd80a273fad038fb",
+  "qualification": {
+    "source_foundation": {
+      "run_id": 37806656658,
+      "conclusion": "success",
+      "suites": [
+        "repo contract",
+        "Linux/Windows Go unit",
+        "Linux Go race and fuzz",
+        "TUN nft/iptables",
+        "OpenWrt TPROXY privileged",
+        "kernel fallback"
+      ]
+    },
+    "source_lifecycle": {
+      "run_id": 37806656647,
+      "conclusion": "success"
+    },
+    "helper_foundation": {
+      "run_id": 37807156279,
+      "conclusion": "success"
+    }
+  },
+  "run": {
+    "id": 37807156289,
+    "job_id": 113414315583,
+    "artifact_id": 11564165429,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37807156289",
+    "original_conclusion": "success",
+    "analyzer": "PASS_SCOPED_ACTIONS",
+    "original_issues": [],
+    "sample_step": "success",
+    "ledger_step": "success",
+    "profile_off_guard": "success",
+    "final_gate": "success"
+  },
+  "config": {
+    "mode": "game",
+    "lanes_configured": 4,
+    "active_physical_lanes": "NOT_COLLECTED_PROFILE_OFF",
+    "workload": "mixed",
+    "rate_mbps_each_direction": 3,
+    "seed": 1827,
+    "loss_percent": 0,
+    "one_way_delay_ms": 300,
+    "real_business_s": 300,
+    "real_drain_s": 3,
+    "fec": "20:20",
+    "padding": "off",
+    "outer_mtu": 1400,
+    "record_limit_configured": 0,
+    "server_real_tun_mtu": 1273,
+    "diagnostic_mode": "off"
+  },
+  "business": {
+    "c2s": {
+      "sent_mbps": 2.97615648,
+      "goodput_mbps": 2.97231648,
+      "udp_missing_by_size": {
+        "96": 0,
+        "256": 0,
+        "512": 0,
+        "1000": 0,
+        "1372": 0,
+        "4068": 0
+      },
+      "probe_sent": 1500,
+      "probe_returned": 1500,
+      "probe_missing": 0,
+      "probe_returned_p99_ms": 633.131373,
+      "probe_returned_max_ms": 664.730296,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_mismatch_total": 0
+    },
+    "s2c": {
+      "sent_mbps": 2.97614368,
+      "goodput_mbps": 2.97231648,
+      "udp_missing_by_size": {
+        "96": 0,
+        "256": 0,
+        "512": 0,
+        "1000": 0,
+        "1372": 0,
+        "4068": 0
+      },
+      "probe_sent": 1495,
+      "probe_returned": 1495,
+      "probe_missing": 0,
+      "probe_returned_p99_ms": 628.434791,
+      "probe_returned_max_ms": 658.19425,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_mismatch_total": 0
+    },
+    "http_https": {
+      "requests": 20,
+      "returned": 20,
+      "https_cert_verified": 10,
+      "missing": 0
+    },
+    "qdisc": {
+      "c2s_attempted": 2816448,
+      "s2c_attempted": 2794393,
+      "c2s_drops": 0,
+      "s2c_drops": 0
+    },
+    "socket_drops": 0,
+    "interfaces_all_zero": true
+  },
+  "resources": {
+    "runner_cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "logical_vcpus": 4,
+    "cgroup_cpu_quota_cores": null,
+    "host_busy_max_percent": 84.35754189944134,
+    "cpu_psi_some_max": 38.85,
+    "steal_max_percent": 0,
+    "client_cpu_s": 165.53,
+    "server_cpu_s": 166.84,
+    "total_product_cpu_s": 332.37,
+    "cpu_seconds_per_delivered_gib": 1600.57712178052,
+    "client_peak_rss_mib": 83.80859375,
+    "server_peak_rss_mib": 80.19140625,
+    "go_allocation_totals": "NOT_COLLECTED_PROFILE_OFF"
+  },
+  "sha256": {
+    "summary.json": "4a1b24a88b631a1872e96d7a5984156b4ce8575d26b416826eda279618f3e574",
+    "efficiency-ledger.json": "89f44dde800d5443c41bfa0a6b536b7a2ffe6005c7ea9c923ff3264d2e4ee8ea",
+    "manifest.json": "5d3c2cf795d78e95f7583ed07004ab890485a6cdf04faaa7fb97597e27523f19",
+    "sample-claim.json": "ba989b2a026df44d5d05efd1c09cc54f556eeecbc672c2841f60324def999bd1",
+    "stage-events.jsonl": "b030fe213ee8ac24c7381077f93c39d0e2f82b0660021c13594a2d97d6afb2a2"
+  },
+  "historical_qualification": {
+    "prior_stage_a_off": {
+      "run_id": 37801415227,
+      "original": "FAIL",
+      "c2s_udp_missing": 37,
+      "probe_missing": [
+        0,
+        0
+      ],
+      "cpu_s": 323.92
+    },
+    "prior_stage_a_on": {
+      "run_id": 37802779025,
+      "original": "FAIL",
+      "ready_overflow": 73586,
+      "c2s_udp_missing": 319,
+      "probes_missing": [
+        1,
+        2
+      ]
+    },
+    "comparison": "Independent seeds, runs and mixed profile types not causal A/B; single run CPU candidate +8.45s vs StageA off without comparable replicates, do not claim gain"
+  },
+  "next_one_sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1828,
+    "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "next_case_state": "NOT_OBSERVED_UNTIL_ACTIONS_RUN_REGISTERED",
+  "next_case_goal": "Profile ON separate Game4 to confirm physical active 4 lanes and aggregate raw ready overflow, per-lane owner copy/dedup, do not use as OFF CPU control.",
+  "hard_gates": {
+    "game4_lossless": "PASS_SCOPED_ONE_SAMPLE",
+    "game2_lossless": "NOT_RUN",
+    "normal1_lossless_new_product": "NOT_RUN",
+    "normal_true_5205": "NOT_RUN",
+    "game_true_5205": "NOT_RUN",
+    "cpu_improvement": "UNPROVEN",
+    "e3_final": "BLOCKED",
+    "e7_80s": "OPEN",
+    "p6_physical": "NOT_RUN"
+  },
+  "limitations": [
+    "OFF only configured4 lanes: no physical active4 measurement; require independent diagnosticON",
+    "Go total allocations NOT_COLLECTED under off",
+    "Game2 unsupported by current analyzer CLI --lanes choices [1,4] and ON verifier hard-coded4; modify independently before testing Game2, not invent a pass",
+    "No same-run A/B or scenario matrix; all old FAIL preserved",
+    "E7 old 80s and E6 full matrix still pending"
+  ]
+}

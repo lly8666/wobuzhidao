@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E3_STAGEB_UNIT_RACE_LIFECYCLE_PASS_GAME4_LOSSLESS_OFF_SINGLE_SAMPLE_QUEUED",
+    "phase": "E3_STAGEB_GAME4_LOSSLESS_OFF_SCOPED_PASS_ON_DIAGNOSTIC_NEXT",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -527,12 +527,12 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
     },
     "game_architecture": {
-      "state": "FOUNDATION_LIFECYCLE_PASS_SINGLE_GAME4_OFF_SAMPLE_TRIGGERING",
+      "state": "STAGE_B_GAME4_LOSSLESS_PASS_SCOPED_ON_DIAGNOSTIC_TRIGGERING",
       "parent_head": "8e6a26567511e19901f01f24ee31e82136c1736e",
       "source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
       "stage": "B_PRE_AUTH_FOURTUPLE_STABLE_SHARD_NO_QUEUE_CAPACITY_INCREASE",
       "architecture": "docs/GAME_MODE_INGRESS_ARCHITECTURE_20261008.md",
-      "evidence": "docs/evidence/performance-efficiency-e3-shards-game4-off-single-candidate-20261008.json",
+      "evidence": "docs/evidence/performance-efficiency-e3-game4-ordered-shards-pass-run37807156289.json",
       "foundation": "PASS",
       "lifecycle": "PASS",
       "new_game4_lossless": "NOT_RUN",
@@ -629,11 +629,38 @@
         "size_profile": "ordinary",
         "diagnostic_mode": "off"
       },
-      "helper_sha": "THIS_NEW_COMMIT"
+      "helper_sha": "THIS_NEW_COMMIT",
+      "helper_foundation_run": 37807156279,
+      "game4_off_run": 37807156289,
+      "game4_off_decision": "PASS_SCOPED_ACTIONS",
+      "game4_off_udp_missing": [
+        0,
+        0
+      ],
+      "game4_off_probes_missing": [
+        0,
+        0
+      ],
+      "game4_off_physical_lane_count": "NOT_COLLECTED_OFF",
+      "game4_off_ready_overflow": "NOT_COLLECTED_OFF",
+      "game4_off_cpu_s": 332.37,
+      "next_diag": {
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1828,
+        "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+        "mode": "game",
+        "lanes": 4,
+        "rate_mbps": 3,
+        "size_profile": "ordinary",
+        "diagnostic_mode": "on"
+      },
+      "game2": "NOT_RUN",
+      "e3_completion": "BLOCKED"
     }
   },
-  "next_task": "E3 StageB source2acfede fixed-budget Game ingress workers foundation37806656658 and lifecycle37806656647 PASS, one upcoming Game4 4lane mixed real client TPROXY/server TUN 3Mbps/dir lossless0%/300ms 300s+3s seed1827 profileOFF Action pinned exact SOURCE and new helper HEAD. Get actual run/job/artifact and original analyzer, UDP/probe missing, TCP/HTTPS, host CPU/PSI netem/socket drops, actual MTU and helper SHA. If Game4 still FAIL preserve and inspect source but do not blindly expand4096. Need independent Game2, Normal1 lossless and truly phased 5205 5/20/5 each one Action, then separate ON for lane/ready telemetry; no E3 completion before all, no CPU gain claim yet. E2 gain unproven, E7 80s S2C OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e3-game4-shards-one-real-lossless-case.md",
+  "next_task": "E3 StageB source2acfede run37807156289 actual Game4 profile OFF 0%loss/300ms/300s+3s mixed3Mbps/dir original PASS_SCOPED_ACTIONS issues[], all 96..4068B UDP missing0 both, probes 1500/1500 and1495/1495 zero missing p99 633.13/628.43ms, TCP 304/dir complete HTTPS20/20, TUN autoMTU1273, CPU332.37s not proven saved. Check next independent profileON Game4 seed1828 exact product2acfede new helper to confirm physical4 lanes and server outer ready overflow, worker fairness and first-arrival duplicates; DO NOT compare ON CPU with OFF. Current analyzer lanes choices [1,4], cannot run Game2 until helper supports 2/3 with real-ON assert. Then Normal1 lossless and true phased 5205 5/20/5, each independent Action, plus 3 matched resource OFF CPU repetitions, E3 blocked until all. All historical FAIL retained, E2 no proven CPU gain, E7 80s S2C OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e3-game4-bounded-shards-first-lossless-pass-next-physical-lanes.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
