@@ -1,0 +1,183 @@
+{
+  "schema": "wbd-e0-boundary-run/v1",
+  "date": "2026-10-08",
+  "repository": "lly8666/wobuzhidao",
+  "branch": "next/performance-efficiency-20261008",
+  "old_head": "82b5867165b55f8b1393817246de64d56dab7468",
+  "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "helper_sha": "82b5867165b55f8b1393817246de64d56dab7468",
+  "run_id": 37774168539,
+  "job_id": 113300760968,
+  "artifact_id": 11549172099,
+  "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37774168539",
+  "action_conclusion": "failure",
+  "sample_step": "success",
+  "analyzer_step": "failure",
+  "ledger_step": "success",
+  "original_decision": "FAIL",
+  "original_issues": [
+    "PAYLOAD_CORRUPT_OR_MALFORMED_c2s",
+    "LOSSLESS_UDP_MISSING_c2s",
+    "PAYLOAD_CORRUPT_OR_MALFORMED_s2c",
+    "LOSSLESS_UDP_MISSING_s2c"
+  ],
+  "sha256": {
+    "summary.json": "b2cd4f2449f428512f3803868428c50115a6da198174d2bfb407a609c2167014",
+    "efficiency-ledger.json": "187888d237708774521704fe3a3d16c92688d16d377a9bcfbf20c00df6fc08d4",
+    "manifest.json": "20ebed99b41be5a13b8ae5bb1baa32e2e8853f3851923a92893610040bbcd700",
+    "sample-claim.json": "e73edab21fb2e0fb027a21e1b89657b11e2ecfc4f5e0f050cab023c3e8b68c9d",
+    "stage-events.jsonl": "28cd9f59102dab9d049dff32f201abed8964d4f1753b36e4354265f7b2abfbb5"
+  },
+  "config": {
+    "mode": "normal",
+    "lanes": 1,
+    "workload": "udp",
+    "profile": "off",
+    "loss": 0,
+    "seed": 1817,
+    "logical_rate_mbps_each_direction": 10,
+    "one_way_delay_ms": 300,
+    "duration_s": 300,
+    "drain_s": 3,
+    "fec": "20:20",
+    "padding": "off",
+    "outer_mtu": 1400,
+    "client_server_auto_record_limit": 0,
+    "actual_server_tun_mtu": 1273
+  },
+  "direction": {
+    "c2s": {
+      "sent_bytes": 374995967,
+      "sent_mbps": 9.999892453333333,
+      "delivered_bytes": 196541912,
+      "goodput_mbps": 5.241117653333333,
+      "generator_send_errors": 0,
+      "source_malformed_count": 8805,
+      "receiver_malformed_count": 0,
+      "probe_sent": 1500,
+      "probe_returned": 1500,
+      "probe_missing": 0,
+      "probe_returned_p99_ms": 601.661968
+    },
+    "s2c": {
+      "sent_bytes": 374995487,
+      "sent_mbps": 9.999879653333334,
+      "delivered_bytes": 196541912,
+      "goodput_mbps": 5.241117653333333,
+      "generator_send_errors": 0,
+      "source_malformed_count": 0,
+      "receiver_malformed_count": 8805,
+      "probe_sent": 1495,
+      "probe_returned": 1495,
+      "probe_missing": 0,
+      "probe_returned_p99_ms": 601.670857
+    }
+  },
+  "by_size_identical_both_directions": {
+    "96": {
+      "sent": 88100,
+      "delivered": 88100,
+      "missing": 0
+    },
+    "256": {
+      "sent": 17620,
+      "delivered": 17620,
+      "missing": 0
+    },
+    "512": {
+      "sent": 17620,
+      "delivered": 17620,
+      "missing": 0
+    },
+    "1372": {
+      "sent": 17620,
+      "delivered": 17620,
+      "missing": 0
+    },
+    "4068": {
+      "sent": 17620,
+      "delivered": 17620,
+      "missing": 0
+    },
+    "8936": {
+      "sent": 8807,
+      "delivered": 8807,
+      "missing": 0
+    },
+    "8937": {
+      "sent": 7044,
+      "delivered": 0,
+      "missing": 7044
+    },
+    "65507": {
+      "sent": 1761,
+      "delivered": 0,
+      "missing": 1761
+    }
+  },
+  "large_datagram_receipts": {
+    "8936": {
+      "c2s_returned": 8807,
+      "s2c_returned": 8807,
+      "c2s_returned_p99_ms": 601.917713,
+      "s2c_returned_p99_ms": 602.000003
+    },
+    "8937": {
+      "c2s_returned": 0,
+      "s2c_returned": 0
+    },
+    "65507": {
+      "c2s_returned": 0,
+      "s2c_returned": 0
+    }
+  },
+  "timing": {
+    "business_duration_s": 300.037211866,
+    "drain_s": 2.959216481,
+    "both_verified_by_analyzer": true
+  },
+  "runner": {
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "logical_cpus": 4,
+    "quota_cores": null,
+    "steal_max_percent": 0,
+    "cpu_psi_some_avg10_max": 28.45,
+    "host_busy_max_percent": 13.917525773195877,
+    "client_cpu_seconds": 41.67,
+    "server_cpu_seconds": 42.03,
+    "combined_cpu_seconds": 83.7,
+    "raw_socket_drop": 0,
+    "interface_drop": 0
+  },
+  "qualification": "FAIL_WITH_SPECIFIC_SUPPORTED_CEILING_AND_OVERSIZE_OBSERVATION",
+  "interpretation": [
+    "8936B UDP payload on normal OpenWrt platformflow realpath 0% loss confirmed 8807/8807 each direction, 8937B and 65507B zero delivered each direction",
+    "Source code platformflow.MaxPayload=8936; openwrtclient SocketAdapter skips n>MaxPayload, but source malformed/receiver malformed counters=8805 each exactly equal 8937+65507 counts; confirm ingress and rejection provenance before declaring every malformed count expected",
+    "Even with near-601ms small-probe p99 and missing=0, lossless whole sample is FAIL; cannot omit oversized offered bytes from lossless denominator retroactively",
+    "Low product CPU from only 5.24/10Mbps delivered is NOT efficiency improvement",
+    "Do not generalize Linux TPROXY MaxPayload to Windows/TUN or inner-IP fragmentation, nor claim 65507 supported",
+    "Original 80s downlink failure remains OPEN deferred E7"
+  ],
+  "order_decision": {
+    "first": "E0 identify shared Normal single-lane CPU/alloc/batch and budget then evaluate E1 common hotpaths one at a time",
+    "blocking_exception": "Game4 currently FAIL in lossless, must diagnose and address existing server ready overflow as prerequisite to claiming four-guard validation; cannot defer all Game4 tests until after E5",
+    "product_changes_now": "NONE"
+  },
+  "new_diagnostic_sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1818,
+    "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "next_workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "next_run": "PENDING_GITHUB_PUSH",
+  "new_unit_or_race": "NOT_RUN_NO_PRODUCT_CHANGES",
+  "e1_e6": "NOT_STARTED",
+  "e7": "OPEN_DEFERRED",
+  "physical": "NOT_RUN"
+}

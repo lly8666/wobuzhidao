@@ -1,11 +1,11 @@
 {
-  "workload": "udp",
+  "workload": "mixed",
   "loss": 0,
-  "seed": 1817,
+  "seed": 1818,
   "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "mode": "normal",
   "lanes": 1,
   "rate_mbps": 10,
-  "size_profile": "boundary",
-  "diagnostic_mode": "off"
+  "size_profile": "ordinary",
+  "diagnostic_mode": "on"
 }
