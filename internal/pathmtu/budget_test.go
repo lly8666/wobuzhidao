@@ -183,3 +183,57 @@ func TestInvalidBudgetsFailClosed(t *testing.T) {
 		t.Fatalf("fec zero fragment payload err=%v", err)
 	}
 }
+
+func TestDeriveTunnelInterfaceMTU(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		outer, local, record, parity, want int
+	}{
+		{"windows1400", 1400, 0, 1300, 0, 1249},
+		{"windows1500-record", 1500, 0, 1300, 0, 1249},
+		{"server1400", 1400, 0, 1250, 0, 1199},
+		{"server-fec20", 1400, 0, 1250, 20, 1143},
+		{"windows-fec4", 1400, 0, 1300, 4, 1193},
+		{"local-smaller", 1500, 1200, 1300, 0, 1109},
+		{"minimum-outer", 576, 0, 1300, 20, 576},
+		{"record-fec", 1400, 0, 800, 20, 693},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := DeriveTunnelInterfaceMTU(Config{
+				ConnectionMTU: tc.outer, LocalPacketMTU: tc.local,
+				IPv4HeaderLen: 20, TCPHeaderLen: 20,
+				RecordWireLimit: tc.record, ParityShards: tc.parity,
+			})
+			if err != nil || got != tc.want {
+				t.Fatalf("inner=%d err=%v want=%d", got, err, tc.want)
+			}
+			if got < MinConnectionMTU || got > tc.outer {
+				t.Fatalf("interface MTU outside budget: %d", got)
+			}
+		})
+	}
+	got, err := DeriveTunnelInterfaceMTU(Config{
+		ConnectionMTU: 1400, IPv4HeaderLen: 60, TCPHeaderLen: 60,
+		RecordWireLimit: 2000,
+	})
+	if err != nil || got != 1229 {
+		t.Fatalf("variable real headers: mtu=%d err=%v", got, err)
+	}
+	got, err = DeriveTunnelInterfaceMTU(Config{
+		ConnectionMTU: 1400, IPv4HeaderLen: 20, TCPHeaderLen: 20,
+		RecordWireLimit: 1300, PeerMSSSet: true, PeerMSS: 400,
+	})
+	if err != nil || got != 1249 {
+		t.Fatalf("single peer unexpectedly changed shared plan: mtu=%d err=%v", got, err)
+	}
+	for _, bad := range []Config{
+		{ConnectionMTU: 575, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: 1300},
+		{ConnectionMTU: 1400, IPv4HeaderLen: 21, TCPHeaderLen: 20, RecordWireLimit: 1300},
+		{ConnectionMTU: 1400, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: 30, ParityShards: 20},
+		{ConnectionMTU: 1400, LocalPacketMTU: 575, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: 1300},
+	} {
+		if n, e := DeriveTunnelInterfaceMTU(bad); e == nil {
+			t.Fatalf("bad budget accepted as %d: %+v", n, bad)
+		}
+	}
+}

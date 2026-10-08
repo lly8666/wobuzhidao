@@ -47,6 +47,7 @@ func TestPhysicalUnderlayFeedsSamePathToNpcapAndNetworkPlan(t *testing.T) {
 	}
 	plan, err := BuildNetworkPlan(Config{
 		AdapterAlias: "WBD",
+		TunnelMTU:    1249,
 		Lease4:       netip.MustParsePrefix("10.66.0.7/32"),
 		Server4:      u.Peer4,
 		Physical:     path,

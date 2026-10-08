@@ -112,3 +112,11 @@ Linux 客户端和服务端统一参数 `raw-recv-buffer` 表示传给 `SO_RCVBU
 启动仅一次设置并立即 getsockopt 验证，日志 `WBD_RAW_RCVBUF` 和 `raw_io.receive_buffer` 固定状态同时记录 `requested_bytes / expected_effective_bytes / effective_bytes / inherited / limited / force_attempted / forced / force_error`；稳态收发不再查询socket、不增加日志、分配或锁。负数或超过64 MiB的请求拒绝启动；setsockopt/getsockopt失败直接报错。受系统上限限制时允许启动但 `limited=true`，不能把请求值冒充已生效值。变更需重启进程才生效；设置 `0` 即可回滚到系统默认。
 
 该参数只存在于 Linux client/server。Windows客户端没有AF_PACKET raw接收socket，CLI没有此参数，Windows JSON出现该键会按未知平台参数拒绝，而不是静默忽略。
+
+## 2026-10-08 新用户决定：接口MTU由外层预算推导（产品候选，Actions NOT_RUN）
+
+保留唯一用户 `--mtu`（默认1500，合法576..9000，CLI > JSON > 默认）；Windows Wintun IPv4 NlMtu 与 Linux server shared TUN 不再固定为9000，而由现有 `pathmtu.Derive` 的预算链派生。扣除配置外层 IPv4/TCP 实际头、入向record上限、TLS-like固定31B、开启FEC时56B和LINK固定20B，得到一个完整内层IPv4包能在单个LINK fragment中容纳的静态上限；IPv4接口下限576，若限制更小由已有LINK分片。记录上限生效时外层1400、FEC off：Windows默认入向1300得1249；Linux server默认入向1250得1199。没有新增另一套MTU配置。
+
+客户端在建lane之后配置接口，但后续replacement lane的实际peer MSS可能不同；服务端TUN是跨客户端共享的。静态接口估算不使用某个单独peer的MSS，runtime记录预算仍使用真实协商MSS、实际长度及路径限幅，必要时LINK再次分片。此改动不是PMTU探测；路径本地比外层配置更小时必须取得真实证据和修正预算，不会因30%丢包自动缩小。保留网络计划原owned-only Wintun MTU Apply/Cleanup和Linux managed journal恢复。
+
+`logicaltunnel.MaxLeasedIPv4PacketLen=9000`是独立逻辑IP包校验边界；`platformflow.MaxPayload=8936`是独立UDP帧能力缺口，绝不能把缩小TUN MTU误报为已支持8972/8973/65507B UDP，也不能静默截断或拆成多个应用UDP消息。DF只限制IP片，不限制LINK片。历史内层9000减少巨大UDP IP分片的收益与原12条长测FAIL保持不动，普通TCP MSS、UDP完整性、p99/吞吐需新SHA Actions资格验证后才能评估。

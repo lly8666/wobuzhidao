@@ -84,6 +84,7 @@
     "SOURCE c853935e5356a9bc99d380befb5a8ac8e0c08d97 Linux raw SO_RCVBUF configuration + established clean-RTT 200ms RTO candidate: scoped Actions Normal/Game/r12(core/race/lifecycle/network), raw A/B, 10ms HOL scan and P6 3 targets PASS; ACTIONS_READY_FOR_PHYSICAL only"
   ],
   "in_progress": [
+    "2026-10-08 最新用户决定：独立产品候选从b4ea061导出Windows/Linux内层TUN MTU；新源码Actions功能/性能NOT_RUN；长混测12条FAIL保留。",
     "Nativeclient ACK/nativewrite vsdecode latency boundary diagnosis",
     "Remaining20nativeconfigurationcase gaps",
     "M03 residualmissing/late diagnosis",
@@ -91,8 +92,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Original chat root: qualified c853935 deployed, sequential physical1541 Normal raw0 then1542 raw524288, M03 1543/1544, Game4 rotation1545 active; no duplicate physical load. Independently qualify new raw per-socket capped-request fallback candidate through Actions before any deployment; no global sysctl, FEC/4096/MTU/RTO changes. Keep r12 tail and all old failures OPEN.",
-  "latest_log": "docs/devlog/20261008-raw-buffer-scoped-portability-candidate.md",
+  "next_task": "2026-10-08 highest priority: qualify exact-SHA automatic inner-TUN MTU candidate through independent GitHub Actions functionality before any 300s performance run; verify Windows owned MTU plan, Linux real kernel shared-TUN MTU, TCP MSS, UDP small/medium integrity, DF behavior, then one independent performance sample per Actions run old/new source. Preserve original longmix 12 FAIL, B offer shortage and A20 stall OPEN.",
+  "latest_log": "docs/devlog/20261008-143800-mtu-auto-inner-budget-candidate.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10835,5 +10836,18 @@
     "physical_samples": 0,
     "active_test": "1541 Normal raw0; sequential controller owns 1542/1543/1544/1545",
     "evidence": "docs/evidence/raw-rto-c853935-physical-20261008.json"
+  },
+  "mtu_auto_inner_20261008": {
+    "state": "CANDIDATE_ACTIONS_NOT_RUN",
+    "parent_product_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "product_sha": null,
+    "functional": "NOT_RUN",
+    "performance": "NOT_RUN",
+    "windows_arm_physical": "NOT_RUN",
+    "longmix_12_raw": "FAIL_UNCHANGED",
+    "logical_ipv4_limit": 9000,
+    "udp_frame_payload_limit": 8936,
+    "evidence": "docs/evidence/mtu-auto-inner-20261008.json",
+    "latest_log": "docs/devlog/20261008-143800-mtu-auto-inner-budget-candidate.md"
   }
 }

@@ -192,3 +192,7 @@ Promotion后新业务只由active generation生成并发送；old Ref的FenceOut
 
 自动TunnelID取SHA256("wbd-installation-v1"+NUL+account+NUL+InstallationID)前16字节，account等于通过认证的username，设备ID不属于秘密认证。服务端在池内随机唯一分配，内存期限7天，认证重连续期；健康/retiring owner仍占用时不可复用。每逻辑Tunnel保持初次DesiredLanes，换代不能临时改变模式；不同Tunnel可以Normal1/Game4并存。全旧lane明确FIN或长期没有认证记录后，可在新LaneID1接入时安全关闭旧owner，重新按新DesiredLanes构造，设备/IP租约不变。到期租约回收使用同一安全detach，但只能由7天期限触发，不能把丢keepalive当业务idle。成功受保护回复地址先绑定尚未建业务的placeholder owner，再创建平台网络地址。健康旧lane遇到地址不同的新候选只拒绝候选；所有旧lane失活或DORMANT时要求清理并重建平台owner，不热换地址，不等待旧业务缺口。
 
+
+## 2026-10-08 接口MTU静态选取（候选）
+
+外层wire原有 `pathmtu.Derive` 公式不变。接口MTU新增 `max(576, configured_budget.LinkFragmentPayloadMTU)`，configured预算由已知配置outer IPv4/TCP头、record limit、FEC/LINK容量计算，而不是假装已知道全部lane的peer MSS。Windows Wintun用server→client的client-record-limit；Linux shared TUN用client→server的server-record-limit。实际lane按真实peer MSS、协商record和可得实际路径约束继续独立计算；静态TUN与有效单record大小不保证相同，如更小则LINK正常有界多片。逻辑IPv4包上限9000及UDP frame 8936不变，DF只约束IP碎片，不禁止LINK分片。静态预算不是路径自动探测或大UDP兼容证明，旧9000数据和FAIL需保留。

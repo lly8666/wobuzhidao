@@ -674,7 +674,7 @@
       "mtu": {
         "type": "Int",
         "default_expression": "1500",
-        "help": "outer IPv4 connection MTU; shared inner TUN uses the leased packet limit",
+        "help": "outer IPv4 connection MTU; shared inner TUN auto-derived from record/FEC/LINK budget",
         "source": "cmd/wbd-server/main_linux.go",
         "json": true
       },

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "branch": "work/mtu-auto-inner-20261008",
+  "parent_product_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+  "candidate_sha": null,
+  "sha_status": "Resolve from actual GitHub branch HEAD and Actions github.sha; a commit cannot contain its own SHA.",
+  "functional": {
+    "status": "NOT_RUN",
+    "runs": [],
+    "artifacts": []
+  },
+  "performance": {
+    "status": "NOT_RUN",
+    "runs": [],
+    "artifacts": []
+  },
+  "physical": {
+    "status": "NOT_RUN"
+  },
+  "previous_longmix": {
+    "sample_count": 12,
+    "result": "FAIL",
+    "retained": true
+  },
+  "open": [
+    "UDP platformflow max8936",
+    "B TCP source injection deficit",
+    "A20 1020ms non-idle zero-delivery window",
+    "physical Windows and Linux/ARM new source"
+  ]
+}

@@ -208,7 +208,8 @@ func runWindows() error {
 	if err := runtimeentry.ValidateClientHealth(runtimeentry.TunnelClientConfig{KeepaliveInterval: *keepalive, DeadAfter: *deadAfter, ReconnectMin: *reconnectMin, ReconnectMax: *reconnectMax}); err != nil {
 		return err
 	}
-	if _, err := pathmtu.Derive(pathmtu.Config{ConnectionMTU: *mtu, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: int(*clientLimit), ParityShards: *fecParity}); err != nil {
+	tunMTU, err := pathmtu.DeriveTunnelInterfaceMTU(pathmtu.Config{ConnectionMTU: *mtu, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: int(*clientLimit), ParityShards: *fecParity})
+	if err != nil {
 		return err
 	}
 	if strings.TrimSpace(*adapterAlias) == "" || strings.ContainsAny(*adapterAlias, "\r\n") || strings.TrimSpace(*statePath) == "" || strings.TrimSpace(*scriptPath) == "" {
@@ -377,6 +378,7 @@ func runWindows() error {
 	}
 	networkPlan, err := windowsclient.BuildNetworkPlan(windowsclient.Config{
 		AdapterAlias: *adapterAlias,
+		TunnelMTU:    uint32(tunMTU),
 		Lease4:       leasePrefix,
 		Server4:      serverIP,
 		Physical:     physical,

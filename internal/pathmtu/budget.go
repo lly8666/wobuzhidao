@@ -197,6 +197,33 @@ func Derive(cfg Config) (Budget, error) {
 	}, nil
 }
 
+// DeriveTunnelInterfaceMTU derives a stable IPv4 interface MTU from the
+// configured outer envelope, record limit, FEC and LINK. The computed limit
+// fits one complete inner IPv4 packet in a LINK fragment when the configured
+// (not a smaller negotiated peer/path) budget applies. Runtime lane budgets
+// still use actual peer MSS; a shared TUN cannot follow one lane's MSS.
+// This is not PMTU discovery. At the 576 interface floor LINK may fragment.
+func DeriveTunnelInterfaceMTU(cfg Config) (int, error) {
+	effective := cfg.ConnectionMTU
+	if cfg.LocalPacketMTU > 0 && cfg.LocalPacketMTU < effective {
+		effective = cfg.LocalPacketMTU
+	}
+	nominalMSS := effective - cfg.IPv4HeaderLen - cfg.TCPHeaderLen
+	if nominalMSS <= 0 || nominalMSS > 65535 {
+		return 0, ErrConnectionMTU
+	}
+	cfg.PeerMSSSet = true
+	cfg.PeerMSS = uint16(nominalMSS)
+	b, err := Derive(cfg)
+	if err != nil {
+		return 0, err
+	}
+	if b.LinkFragmentPayloadMTU < MinConnectionMTU {
+		return MinConnectionMTU, nil
+	}
+	return b.LinkFragmentPayloadMTU, nil
+}
+
 // MaxFECWireDatagram is the maximum FEC datagram presented to TLS-like record
 // protection. With FEC off, the LINK frame itself occupies the record payload.
 func (b Budget) MaxFECWireDatagram() int {

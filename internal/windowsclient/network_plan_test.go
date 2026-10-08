@@ -2,7 +2,6 @@ package windowsclient
 
 import (
 	"errors"
-	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"net/netip"
 	"strings"
 	"testing"
@@ -11,6 +10,7 @@ import (
 func TestBuildNetworkPlanOwnsLeaseRoutesDNSAndIPv6KillSwitch(t *testing.T) {
 	plan, err := BuildNetworkPlan(Config{
 		AdapterAlias: "WBD",
+		TunnelMTU:    1249,
 		Lease4:       netip.MustParsePrefix("10.66.0.7/32"),
 		Server4:      netip.MustParseAddr("198.51.100.10"),
 		Physical:     PhysicalPath{InterfaceIndex: 12, NextHop4: netip.MustParseAddr("192.0.2.1")},
@@ -24,7 +24,7 @@ func TestBuildNetworkPlanOwnsLeaseRoutesDNSAndIPv6KillSwitch(t *testing.T) {
 	if plan.Schema != StateSchema || plan.Lease4.String() != "10.66.0.7/32" {
 		t.Fatalf("plan=%+v", plan)
 	}
-	if plan.TunnelMTU != logicaltunnel.MaxLeasedIPv4PacketLen {
+	if plan.TunnelMTU != 1249 {
 		t.Fatalf("TUN limit mismatch: %d", plan.TunnelMTU)
 	}
 	if plan.UnderlayRoute.Prefix.String() != "198.51.100.10/32" || plan.UnderlayRoute.InterfaceIndex != 12 || plan.UnderlayRoute.NextHop.String() != "192.0.2.1" {
@@ -53,7 +53,7 @@ func TestBuildNetworkPlanOwnsLeaseRoutesDNSAndIPv6KillSwitch(t *testing.T) {
 		t.Fatal(err)
 	}
 	joined := strings.Join(args, " ")
-	for _, want := range []string{"-TunnelMTU 9000", "-AdapterAlias WBD", "-TunnelAddress4 10.66.0.7/32", "-Underlay4 198.51.100.10", "-PhysicalInterfaceIndex 12", "-PhysicalNextHop4 192.0.2.1", "-DNSServer 1.1.1.1,8.8.8.8", "-DirectPrefix4 203.0.113.0/24"} {
+	for _, want := range []string{"-TunnelMTU 1249", "-AdapterAlias WBD", "-TunnelAddress4 10.66.0.7/32", "-Underlay4 198.51.100.10", "-PhysicalInterfaceIndex 12", "-PhysicalNextHop4 192.0.2.1", "-DNSServer 1.1.1.1,8.8.8.8", "-DirectPrefix4 203.0.113.0/24"} {
 		if !strings.Contains(joined, want) {
 			t.Fatalf("args missing %q: %s", want, joined)
 		}
@@ -63,6 +63,7 @@ func TestBuildNetworkPlanOwnsLeaseRoutesDNSAndIPv6KillSwitch(t *testing.T) {
 func TestNetworkPlanRejectsUnsafeIdentityOrPhysicalPath(t *testing.T) {
 	base := Config{
 		AdapterAlias: "WBD",
+		TunnelMTU:    1249,
 		Lease4:       netip.MustParsePrefix("10.66.0.7/32"),
 		Server4:      netip.MustParseAddr("198.51.100.10"),
 		Physical:     PhysicalPath{InterfaceIndex: 12, NextHop4: netip.MustParseAddr("192.0.2.1")},
@@ -80,6 +81,8 @@ func TestNetworkPlanRejectsUnsafeIdentityOrPhysicalPath(t *testing.T) {
 			return c
 		}(),
 		func() Config { c := base; c.StatePath = ""; return c }(),
+		func() Config { c := base; c.TunnelMTU = 0; return c }(),
+		func() Config { c := base; c.TunnelMTU = 9001; return c }(),
 	}
 	for _, c := range cases {
 		if _, err := BuildNetworkPlan(c); !errors.Is(err, ErrNetworkPlan) {
