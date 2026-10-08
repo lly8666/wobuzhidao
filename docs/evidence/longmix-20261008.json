@@ -124,10 +124,10 @@
       "loss_percent": 20,
       "seed": 2608101,
       "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-      "helper_sha": null,
-      "action_url": null,
+      "helper_sha": "5712582abb6246baed9071fa8e6185f12a7db26c",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734152474",
       "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete",
+      "reason": "Action in progress, numeric results pending",
       "requested": {
         "workload": "A",
         "loss_percent": 20,
@@ -145,7 +145,15 @@
       "helper_sha": null,
       "action_url": null,
       "classification": "NOT_RUN",
-      "reason": "Business driver/fullstack preflight not yet complete"
+      "reason": "Business driver/fullstack preflight not yet complete",
+      "requested": {
+        "workload": "A",
+        "loss_percent": 30,
+        "seed": 2608101,
+        "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+        "duration_s": 300,
+        "drain_s": 10
+      }
     },
     {
       "workload": "B",
@@ -572,6 +580,14 @@
     {
       "workload": "A",
       "loss_percent": 20,
+      "seed": 2608101,
+      "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
+      "state": "IN_PROGRESS",
+      "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734152474"
+    },
+    {
+      "workload": "A",
+      "loss_percent": 30,
       "seed": 2608101,
       "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
       "state": "REQUESTED",

@@ -7,3 +7,5 @@
 
 - A/5%正式子Action [37734052485](https://github.com/lly8666/wobuzhidao/actions/runs/37734052485) 已单独启动，当前只记IN_PROGRESS，尚无数字结论。
 - 本次另行请求A/20%，仍同一UDP九档/业务10Mbps每向/seed2608101/Normal1 FEC20:20/300ms单向/netem双向20%/300s+drain。一个新Action一份性能样本，真实netem必须实测；b4 Linux平台流8936硬边界保持已知OPEN，不能将此条件直接替A/0合格。
+
+- A/20% Action [37734152474](https://github.com/lly8666/wobuzhidao/actions/runs/37734152474) 已独立启动，未报告数值前保持IN_PROGRESS；本次单独申请 A/30% exact b4 / Normal1 FEC20:20 / seed2608101 / 两向10Mbps，300ms one-way、两向30% netem、300秒业务+固定drain。不删除未回大包，需独立小包/容量证据与0/5/20配对。
