@@ -1,0 +1,222 @@
+{
+  "schema": "wbd-e3-stageb-5205-profileon-receipt-v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "398548ef0b38a49d0ad4e4234ce3701d0a007bab",
+  "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+  "helper_sha": "398548ef0b38a49d0ad4e4234ce3701d0a007bab",
+  "actions": {
+    "run_id": 37818615929,
+    "job_id": 113453573965,
+    "artifact_id": 11568048181,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37818615929",
+    "conclusion": "success",
+    "analyzer": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "sample_step": "success",
+    "ledger_step": "success"
+  },
+  "artifact_sha256": {
+    "summary.json": "cb63554bee735ece301d0f559dafe48192bf7c12a5d8093a2d44ff5565e3ffdf",
+    "efficiency-ledger.json": "711dc5286f2e6a86bf12699a62bfe143d2267b59e5c18dbb7e6d5e1e751ae5e3",
+    "manifest.json": "bebfe7cc5223302eebd4c0a8bc055f5769a19e4f49ad3d49e168bf477704f68b",
+    "stage-events.jsonl": "bbd4f5028ccf45a29d1fd47f356f48875ac26fb274239794df460424317f6939",
+    "server-diag.jsonl": "5302faafc29c2a66324c3bb87df1d8594ffa0d920b148b5ae8777bd1a1b94229",
+    "client-diag.jsonl": "4ef07c98a4bfdb4d2ec0c026bad952788f3d456a80406b860993077f3cb9a5ca"
+  },
+  "sample": {
+    "workload": "mixed",
+    "loss": 5205,
+    "seed": 1834,
+    "source": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "helper": "398548ef0b38a49d0ad4e4234ce3701d0a007bab",
+    "mode": "game",
+    "lanes": 4,
+    "diagnostic_mode": "on",
+    "rate_mbps_each": 3,
+    "business_duration_s": 300,
+    "drain_s": 3,
+    "one_way_ms": 300,
+    "fec": "20:20",
+    "padding": "off",
+    "outer_mtu": 1400,
+    "auto_record_limit": 0,
+    "server_tun_mtu": 1273,
+    "physical_lanes_client_server": [
+      4,
+      4
+    ]
+  },
+  "actual_netem_pct": {
+    "pre": {
+      "c2s": 5.0014512269790785,
+      "s2c": 4.996783965474314
+    },
+    "stress": {
+      "c2s": 20.01899556007391,
+      "s2c": 20.024180497818865
+    },
+    "post": {
+      "c2s": 4.949727315452626,
+      "s2c": 4.960021904019975
+    }
+  },
+  "phase_udp": {
+    "c2s": {
+      "pre": {
+        "sent": 25792,
+        "missing": 0
+      },
+      "stress": {
+        "sent": 51503,
+        "missing": 0
+      },
+      "post": {
+        "sent": 25767,
+        "missing": 2
+      }
+    },
+    "s2c": {
+      "pre": {
+        "sent": 25792,
+        "missing": 0
+      },
+      "stress": {
+        "sent": 51503,
+        "missing": 0
+      },
+      "post": {
+        "sent": 25767,
+        "missing": 0
+      }
+    }
+  },
+  "phase_probe": {
+    "c2s": {
+      "pre": {
+        "sent": 375,
+        "missing": 0
+      },
+      "stress": {
+        "sent": 750,
+        "missing": 0
+      },
+      "post": {
+        "sent": 375,
+        "missing": 0
+      }
+    },
+    "s2c": {
+      "pre": {
+        "sent": 370,
+        "missing": 0
+      },
+      "stress": {
+        "sent": 750,
+        "missing": 0
+      },
+      "post": {
+        "sent": 375,
+        "missing": 0
+      }
+    }
+  },
+  "business": {
+    "c2s_goodput_mbps": 2.97227616,
+    "s2c_goodput_mbps": 2.97231648,
+    "ordinary_udp_missing": [
+      2,
+      0
+    ],
+    "probe_missing": [
+      0,
+      0
+    ],
+    "probe_returned_only_p99_ms": [
+      938.70567,
+      917.283132
+    ],
+    "tcp_integrity": "304/304 both directions exact hashes",
+    "http_https": "20/20 requests,10 HTTPS cert/body verification",
+    "qdisc_real_drops": "5/20/5 as scheduled",
+    "local_socket_drop": 0,
+    "local_interface_drops": 0
+  },
+  "server_diag": {
+    "receive_messages": 3143009,
+    "handler_samples": 3110046,
+    "outer_ready_overflow": 32963,
+    "ready_capacity": 4096,
+    "ready_peak": 3841,
+    "ready_max_queue_age_ms": 185.263648,
+    "queue_age_over10ms": 1049749,
+    "queue_age_total_s": 75455.782071132,
+    "downstream_udp_overflow": 0,
+    "service_tcp_async_scheduled": 3076,
+    "service_tcp_async_coalesced": 101,
+    "handler_total_wall_s": 303.53300062,
+    "tick_runtime_wall_s": 19.545761543,
+    "raw_receive_calls": 1134539,
+    "raw_receive_messages": 3143009,
+    "raw_send_calls": 2344337,
+    "raw_send_messages": 3545946
+  },
+  "client_diag": {
+    "raw_write_lock_wait_wall_s": 248.081842935,
+    "raw_write_lock_wait_over10ms": 231,
+    "raw_write_lock_hold_wall_s": 61.17917642,
+    "raw_write_calls": 2341040
+  },
+  "resources": {
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "logical_cpus": 4,
+    "host_busy_max_pct": 90.21739130434783,
+    "cpu_psi_some_avg10_max": 41.55,
+    "cgroup_quota_cores": null,
+    "client_cpu_seconds": 209.32,
+    "server_cpu_seconds": 208.57,
+    "total_cpu_seconds": 417.89,
+    "profile": "on"
+  },
+  "prior_independent_off": {
+    "run_id": 37817466498,
+    "conclusion": "failure",
+    "issues": [
+      "5205_STAGE_UDP_LOSS_OVER_0P1PCT_s2c_stress",
+      "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_s2c"
+    ],
+    "stress_s2c_udp_missing": 446,
+    "stress_s2c_udp_sent": 51503,
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "host_busy_peak_percent": 88.74,
+    "profile": "off",
+    "protection_state": "FAIL_RETAINED"
+  },
+  "interpretation": [
+    "ProfileON run passes analyzer's loss/stage thresholds but 32963 user-space pre-auth outer segment drops persist",
+    "2 C2S post UDP missing are below staged 0.1pct threshold, so qualified only under current scoped 5205 analyzer rules, not strict zero-loss guarantee",
+    "ON and OFF run outcomes cannot establish causality or CPU improvement; runner/seed/noise and timing differ",
+    "Prior OFF loss446 S2C in stress remains a genuine failure; no inherited protection PASS",
+    "Raw read queue sharding reduced catastrophic old-stageA >70k drop on zero loss but is not capacity-free; no proof CPU optimized"
+  ],
+  "next_case": {
+    "workload": "mixed",
+    "loss": 5205,
+    "seed": 1835,
+    "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "next_case_state": "PENDING_OWN_COMMIT_ACTUAL_ACTIONS",
+  "exits": {
+    "E3_true5205_stable": "NOT_QUALIFIED_OFF_FAILURE_REMAINS",
+    "E3_5205_diag_on": "PASS_SCOPED_RUN37818615929",
+    "E3_5205_off_repeat": "QUEUED",
+    "E3_CPU_gain": "NOT_PROVEN",
+    "E7_80s": "OPEN",
+    "E6_P6_physical": "NOT_RUN"
+  }
+}

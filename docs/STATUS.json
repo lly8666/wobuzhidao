@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E3_5205_GAME4_REAL_S2C_STRESS_LOSS_446_FAIL_PROFILEON_DIAGNOSTIC_NEXT",
+    "phase": "E3_STAGEB_TRUE5205_PROFILEON_SCOPED_PASS_READY32963_OFF_REPEAT_TRIGGERING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -527,12 +527,12 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
     },
     "game_architecture": {
-      "state": "GAME4_TRUE_5205_PHASE_FAIL_ON_AMD_EPYC7763_DIAGNOSTIC_NEXT",
+      "state": "PROFILEON_TRUE5205_SCOPED_PASS_OFF_REPLICATION_PENDING",
       "parent_head": "8e6a26567511e19901f01f24ee31e82136c1736e",
       "source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
       "stage": "B_PRE_AUTH_FOURTUPLE_STABLE_SHARD_NO_QUEUE_CAPACITY_INCREASE",
       "architecture": "docs/GAME_MODE_INGRESS_ARCHITECTURE_20261008.md",
-      "evidence": "docs/evidence/performance-efficiency-e3-game4-5205-stage-s2c-loss-run37817466498.json",
+      "evidence": "docs/evidence/performance-efficiency-e3-game4-5205-profileon-run37818615929.json",
       "foundation": "PASS",
       "lifecycle": "PASS",
       "new_game4_lossless": "NOT_RUN",
@@ -656,7 +656,7 @@
         "diagnostic_mode": "on"
       },
       "game2": "NOT_RUN",
-      "e3_completion": "BLOCKED",
+      "e3_completion": "BLOCKED_STABILITY_AND_REPLICATION",
       "game4_off_original": "PASS_SCOPED_ACTIONS",
       "game4_on_run": 37808417385,
       "game4_on_original": "PASS_SCOPED_ACTIONS",
@@ -818,11 +818,44 @@
         "diagnostic_mode": "on",
         "status": "QUEUED_SINGLE_ACTION"
       },
-      "phase_5205_completion": "BLOCKED_REAL_STRESS_UDP_MISSING"
+      "phase_5205_completion": "BLOCKED_REAL_STRESS_UDP_MISSING",
+      "true_5205_profile_on_run": 37818615929,
+      "true_5205_profile_on_decision": "PASS_SCOPED_ACTIONS",
+      "true_5205_profile_on_udp_missing": [
+        2,
+        0
+      ],
+      "true_5205_profile_on_probe_missing": [
+        0,
+        0
+      ],
+      "true_5205_profile_on_physical_lanes": 4,
+      "true_5205_profile_on_server_ingress_overflow": 32963,
+      "true_5205_profile_on_async_tick": [
+        3076,
+        101
+      ],
+      "true_5205_profile_on_protection": "DIAGNOSTIC_PASS_DOES_NOT_CLEAR_OFF_FAIL",
+      "true_5205_profile_off_fail_run": 37817466498,
+      "true_5205_profile_off_stress_s2c_missing": 446,
+      "next_off_replication": {
+        "config": {
+          "workload": "mixed",
+          "loss": 5205,
+          "seed": 1835,
+          "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+          "mode": "game",
+          "lanes": 4,
+          "rate_mbps": 3,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "off"
+        },
+        "state": "PENDING_GITHUB_RUN"
+      }
     }
   },
-  "next_task": "E3 StageB product2acfede 5205 full phase Game4 profileOFF run37817466498 original FAIL S2C stress 20% outer damage 446/51503 UDP missing (0.866%, >0.1% gate), C2S pre2 missing, probe C2S stress6/750 S2C stress7/750, all stage totals consistent; TCP/HTTPS complete. Runner AMD EPYC7763 hostbusy88.74% PSI39.62, socket0, capacity_only_not_proven. Prior Game4 run37813762304 scoped PASS with 0 overall missing on different EPYC9V45 runner and seed, cannot inherit. Next single Game4 5205 profileON seed1834 same source/one case to inspect actual 4 lanes, user ready/shard overflow, queue age, repairs & host, no ON/OFF CPU claim. If queue overflow, use per-shard fairness/evidence not larger4096; if no queue overflow inspect repair/FEC 3s. E3 TRUE 5205 FAILED; Normal stage TRUE phase and Game2OFF/NormalOFF still pending; E6/P6/physical NOT_RUN, E7 80s S2C OPEN, E2 CPU gain unproven.",
-  "latest_log": "docs/devlog/20261009-e3-game4-5205-phase-stress-s2c-fail-diagnostic-next.md",
+  "next_task": "E3 StageB productSOURCE2acfede. Latest independent Game4 TRUE phased 5205 profileON seed1834 run37818615929 analyzer PASS_SCOPED, stress 20% UDP missing both0, full C2S post2 UDP missing (<0.1pct), probes both0 missing, actual four lanes, but 32963 outer ready overflow, queue age max185ms. Earlier same product OFF seed1833 run37817466498 FAIL stress S2C 446 UDP missing; cannot overwrite. Next exact-source independent profileOFF seed1835 one sample 300s loss5205 Game4 mixed 3Mbps/dir; require original staged analyzer and resource evidence. If fails, develop opt-in per-shard queue/drop/handler cost and stable fairness under global4096, not enlarge buffer or loosen threshold. Keep client raw writer lock wait ON diagnostic 248s wall as candidate confound (not CPU). Need Normal1 truly staged 5205 and Game2 5205 further guards, E3/CPU not final, E7 80s OPEN, E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e3-5205-profileon-passes-but-ready-overflow-off-repeat.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
