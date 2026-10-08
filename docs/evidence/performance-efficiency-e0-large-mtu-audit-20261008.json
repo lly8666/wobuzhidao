@@ -1,0 +1,186 @@
+{
+  "schema": "wbd-efficiency-e0-audit/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "audit_parent_head": "808f6b84308dacd77d07372ae1d6d2b0494b2162",
+  "integrated_product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "prior_work_branch": "agent/large-mtu-mixed-20261008",
+  "prior_work_head": "f69082a953cf4f52825f0fee2d3ee31bc7d317be",
+  "prior_helper_source_sha": "b02813b49a07618f8dcee4ebcc4d8e9e27306775",
+  "prior_product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+  "prior_workflow_sha": "0289142f6feede2b368fef955a87891baf3f1e00",
+  "audit_scope": "12 existing 300s Actions logs; 3 p0 raw numeric summary artifacts (udp/tcp/mixed); no traffic regenerated",
+  "samples": [
+    {
+      "workload": "udp",
+      "loss_percent": 0,
+      "seed": 1702,
+      "run_id": 37725027842,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725027842",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "PAYLOAD_OR_SEND_ERROR both; LOSSLESS_UDP_MISSING both"
+    },
+    {
+      "workload": "udp",
+      "loss_percent": 5,
+      "seed": 1702,
+      "run_id": 37725402042,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725402042",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "PAYLOAD_OR_SEND_ERROR both"
+    },
+    {
+      "workload": "udp",
+      "loss_percent": 20,
+      "seed": 1702,
+      "run_id": 37725408755,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725408755",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "PAYLOAD_OR_SEND_ERROR both"
+    },
+    {
+      "workload": "udp",
+      "loss_percent": 30,
+      "seed": 1702,
+      "run_id": 37725415262,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725415262",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "PAYLOAD_OR_SEND_ERROR both"
+    },
+    {
+      "workload": "tcp",
+      "loss_percent": 0,
+      "seed": 1702,
+      "run_id": 37725044914,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725044914",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "INSUFFICIENT_INJECTION both"
+    },
+    {
+      "workload": "tcp",
+      "loss_percent": 5,
+      "seed": 1702,
+      "run_id": 37725422951,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725422951",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "INSUFFICIENT_INJECTION both"
+    },
+    {
+      "workload": "tcp",
+      "loss_percent": 20,
+      "seed": 1702,
+      "run_id": 37725429528,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725429528",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "INSUFFICIENT_INJECTION both"
+    },
+    {
+      "workload": "tcp",
+      "loss_percent": 30,
+      "seed": 1702,
+      "run_id": 37725436598,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725436598",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "INSUFFICIENT_INJECTION both"
+    },
+    {
+      "workload": "mixed",
+      "loss_percent": 0,
+      "seed": 1702,
+      "run_id": 37725050456,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725050456",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "PAYLOAD_OR_SEND_ERROR both; LOSSLESS_UDP_MISSING both"
+    },
+    {
+      "workload": "mixed",
+      "loss_percent": 5,
+      "seed": 1702,
+      "run_id": 37725443503,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725443503",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "PAYLOAD_OR_SEND_ERROR both"
+    },
+    {
+      "workload": "mixed",
+      "loss_percent": 20,
+      "seed": 1702,
+      "run_id": 37725451482,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725451482",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "PAYLOAD_OR_SEND_ERROR both"
+    },
+    {
+      "workload": "mixed",
+      "loss_percent": 30,
+      "seed": 1702,
+      "run_id": 37725456776,
+      "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37725456776",
+      "action_conclusion": "failure",
+      "analyzer": "FAIL",
+      "reasons": "PAYLOAD_OR_SEND_ERROR both"
+    }
+  ],
+  "zero_loss_artifacts": [
+    {
+      "workload": "udp",
+      "run": 37725027842,
+      "artifact_id": 11527108014,
+      "c2s_sent_mbps": 10.000901146666667,
+      "c2s_goodput_mbps": 2.2622901333333334,
+      "s2c_sent_mbps": 10.000888346666665,
+      "s2c_goodput_mbps": 2.2622901333333334,
+      "udp_8972_delivered": 0,
+      "udp_8973_delivered": 0,
+      "udp_65507_delivered": 0
+    },
+    {
+      "workload": "tcp",
+      "run": 37725044914,
+      "artifact_id": 11526683804,
+      "c2s_sent_mbps": 5.83653888,
+      "c2s_goodput_mbps": 5.83269888,
+      "s2c_sent_mbps": 5.8365260800000005,
+      "s2c_goodput_mbps": 5.83269888,
+      "integrity_mismatch_total": 0
+    },
+    {
+      "workload": "mixed",
+      "run": 37725050456,
+      "artifact_id": 11527234162,
+      "c2s_sent_mbps": 10.027594266666668,
+      "c2s_goodput_mbps": 5.55480064,
+      "s2c_sent_mbps": 10.027581466666668,
+      "s2c_goodput_mbps": 5.55480064,
+      "udp_8972_delivered": 0,
+      "udp_8973_delivered": 0,
+      "udp_65507_delivered": 0,
+      "integrity_mismatch_total": 0
+    }
+  ],
+  "inherited_helper_risks": [
+    "workflow hardcoded PRODUCT_SOURCE=b4ea061, not integrated bf11fbf",
+    "client/server explicit record-limit 1300/1250, so auto 0 not tested",
+    "inner biz/server LAN edges forced mtu9000, unlike derived product TUN; only server uses real TUN, client TPROXY",
+    "UDP generator kind/length verifies CRC and deterministic body; 8972/8973/65507 all failed zero-loss",
+    "TCP sustained offered less than desired 10Mbps; 3 long flows plus short burst, no independently proven 4 sustained flows",
+    "profile-off selected but no validated ordinary integrated CPU ledger",
+    "no independent Game4x3 300s qualification in these 12"
+  ],
+  "assessment": "AUDIT_COMPLETED_E0_NOT_QUALIFIED",
+  "inherited_performance": "NONE",
+  "deferred_s2c_80_second": "OPEN_DEFERRED_UNTIL_AFTER_E6",
+  "physical_status": "NOT_RUN",
+  "new_perf_runs": 0
+}
