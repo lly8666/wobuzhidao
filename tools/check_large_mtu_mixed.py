@@ -196,15 +196,18 @@ def main():
             if src["send_errors"] or src.get("corrupt",0) or dst.get("corrupt",0):issues.append("PAYLOAD_OR_SEND_ERROR_"+key)
             if tcp["mismatch_total"] and x.loss==0:issues.append("TCP_HASH_MISMATCH_"+key)
             if x.loss==0 and any(v["missing"] for v in sz.values()):issues.append("LOSSLESS_UDP_MISSING_"+key)
-        probe=b.get("probe_rtt_ns",[])
-        probe_summary={"sent":b["probe_sent"],"returned":b["probe_received"],
-                       "missing":b["probe_sent"]-b["probe_received"],
-                       "p50_ms":percentile([v/1e6 for v in probe],.50),
-                       "p95_ms":percentile([v/1e6 for v in probe],.95),
-                       "p99_ms":percentile([v/1e6 for v in probe],.99),
-                       "max_ms":max(probe)/1e6 if probe else None}
-        if b["probe_sent"]<1450:issues.append("PROBE_COVERAGE")
-        if x.loss==0 and probe_summary["missing"]:issues.append("LOSSLESS_PROBE_MISSING")
+        probe_summary={}
+        for name,side in (("c2s",b),("s2c",t)):
+            probe=side.get("probe_rtt_ns",[])
+            probe_summary[name]={"sent":side["probe_sent"],"returned":side["probe_received"],
+                                 "missing":side["probe_sent"]-side["probe_received"],
+                                 "send_errors":side["probe_send_errors"],
+                                 "p50_ms":percentile([v/1e6 for v in probe],.50),
+                                 "p95_ms":percentile([v/1e6 for v in probe],.95),
+                                 "p99_ms":percentile([v/1e6 for v in probe],.99),
+                                 "max_ms":max(probe)/1e6 if probe else None}
+            if side["probe_sent"]<1450:issues.append("PROBE_COVERAGE_"+name)
+            if x.loss==0 and probe_summary[name]["missing"]:issues.append("LOSSLESS_PROBE_MISSING_"+name)
         result={"schema":"wbd-large-mtu-analysis/v1","product_source_sha":x.source,
                 "helper_sha":x.helper,"workload":x.workload,"loss_percent":x.loss,"seed":x.seed,
                 "netem_realized":netem,"mtu":links,"route_mode":"all",
