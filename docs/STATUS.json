@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RAW_RECV16_SEND8_SOURCE_CANDIDATE_UNTESTED_GAME2_5205_OLD_SOURCE_RUNNING",
+    "phase": "E4_RECV16_FOUNDATION_LIFECYCLE_PASS_GAME4_5205_OFF_QUEUED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1002,8 +1002,8 @@
       }
     },
     "e4_raw_recv_batch": {
-      "state": "SOURCE_NOT_TESTED",
-      "source_sha": "THIS_COMMIT",
+      "state": "UNIT_RACE_LIFECYCLE_PASS_GAME4_ONE_CASE_QUEUED",
+      "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
       "parent_head": "8f646743f3134d280d9c7b18c1a7b3aca16323ad",
       "recv_batch_before": 8,
       "recv_batch_after": 16,
@@ -1012,16 +1012,33 @@
       "tests": [
         "internal/faketcp/raw_receive_sixteen_linux_test.go"
       ],
-      "foundation": "NOT_RUN",
-      "lifecycle": "NOT_RUN",
-      "real_source_traffic": "NOT_RUN",
+      "foundation": "PASS_RUN37853003357",
+      "lifecycle": "PASS_RUN37853003378",
+      "real_source_traffic": "NOT_RUN_YET",
       "game2_old_source_run": 37852789098,
       "evidence": "docs/evidence/performance-efficiency-e4-raw-receive16-with-send8-candidate-20261009.json",
-      "cpu_gain": "NOT_PROVEN"
+      "cpu_gain": "UNPROVEN",
+      "next_game4_5205": {
+        "config": {
+          "workload": "mixed",
+          "loss": 5205,
+          "seed": 1840,
+          "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+          "mode": "game",
+          "lanes": 4,
+          "rate_mbps": 3,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "off"
+        },
+        "helper_sha": "THIS_HELPER_COMMIT",
+        "status": "PENDING_ACTION",
+        "evidence": "docs/evidence/performance-efficiency-e4-raw-recv16-game4-5205-single-qualification-20261009.json"
+      },
+      "game2_previous_source_run": 37852789098
     }
   },
-  "next_task": "E4: exact new Linux receive-only recvmmsg batch16 and unchanged synchronous send batch8 source build Linux/Windows unit + Go race/fuzz + real privileged TUN/TPROXY and lifecycle before any new performance sample. Existing SACK-stack source ea72489 Game2 true5205 OFF seed1839 sample 37852789098 independently running; verdict must be read separately, not inherited by E4. If new E4 gates pass issue one Game4 true staged5205 profileOFF single Action pinned E4 product SHA, compare real UDP/probe, packet socket drops, CPU/model/PSI. Old StageB 9V45 socket drop140 FAIL run37851028041, 7763 stress UDP446 FAIL run37817466498 and newer 7763 Game4 scoped pass37851931918 (C2S post 6 missing) all retain. E7 80s OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e4-raw-recvmsg16-preserve-send8-candidate.md",
+  "next_task": "E4 first inspect exact helper HEAD one Game4 true staged5205 5/20/5 mixed3Mbps/dir Game4 300ms/300s+3s seed1840 profileOFF SOURCE ba8ed1 and new helper sha, one Action only; record original issues and pre/stress/post UDP/probes, TCP/HTTPS, AF_PACKET socket drops, raw receive calls/msg, runner CPU model/PSI and TUN MTU. Core37853003357 and lifecycle37853003378 all PASS. Separately inspect previous Game2 two-lane 5205 run37852789098 old product ea724897 seed1839 original outcome (not E4 qualification). E4 not done or CPU gain proven; retain historical 7763 S2C446 FAIL and 9V45 AF_PACKET socket140 FAIL. Then independent E4 Game2/Normal true5205, zero loss and low RTT, matched OFF triple. E7 80s OPEN; E6/P6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e4-recv16-raw-game4-5205-off-first-sample.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

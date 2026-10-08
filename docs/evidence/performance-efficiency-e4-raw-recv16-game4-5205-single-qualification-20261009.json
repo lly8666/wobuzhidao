@@ -1,0 +1,89 @@
+{
+  "schema": "wbd-e4-raw-recvmsg16-game4-single-source-qualification/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "old_head": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "exact_product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_sha": "NEW_HELPER_COMMIT_OWN_SHA",
+  "status": "QUEUED_NOT_YET_RUN",
+  "precise_changes": [
+    "rawReceiveBatchSize=16 instead of 8, recvmmsg MSG_WAITFORONE receives only already ready frames",
+    "rawBatchSize=8 sendmmsg synchronous batch unchanged",
+    "same 4096 Game ingress total budget, user-visible wire and FEC20:20 unchanged, RTO500 unchanged, auto MTU product record cap0"
+  ],
+  "full_source_checks": {
+    "foundation": {
+      "run_id": 37853003357,
+      "conclusion": "success",
+      "checks": "Linux/Windows unit, Go race, fuzz, arm64, privileged OpenWrt TPROXY and Linux TUN nft/iptables, kernel fallback, repo contract"
+    },
+    "lifecycle": {
+      "run_id": 37853003378,
+      "conclusion": "success",
+      "checks": "build, lifecycle, focused race"
+    }
+  },
+  "unit_tests": [
+    "TestRawReceiveSixteenPrequeuedPacketsOwnedAndOrdered",
+    "TestRawReceiveSixteenSparseOneDoesNotWaitToFill",
+    "existing raw 8-batch send/fallback/ownership tests"
+  ],
+  "case": {
+    "workload": "mixed",
+    "loss": 5205,
+    "seed": 1840,
+    "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "network": {
+    "duration_s": 300,
+    "drain_s": 3,
+    "delay_one_way_ms": 300,
+    "loss_waveform_pct": "5→20→5",
+    "real_linux_client_tproxy_server_tun": true,
+    "outer_mtu": 1400,
+    "record_limit_configured": 0,
+    "fec": "20:20",
+    "padding": "off",
+    "logical_rate_mbps_each_direction": 3
+  },
+  "baseline_cases": [
+    {
+      "run_id": 37817466498,
+      "host": "AMD EPYC 7763",
+      "original": "FAIL",
+      "problem": "S2C 20% phase UDP446 missing and probes missing"
+    },
+    {
+      "run_id": 37851028041,
+      "host": "AMD EPYC 9V45",
+      "original": "FAIL",
+      "problem": "server AF_PACKET socket drop 140 even though business UDP/probes all delivered"
+    },
+    {
+      "run_id": 37851931918,
+      "host": "AMD EPYC 7763",
+      "original": "PASS_SCOPED_ACTIONS",
+      "problem": "C2S post phase 6 permanently missing; 20% phase all delivered; CPU383.92s, no CPU gain proof"
+    }
+  ],
+  "other_running_case": {
+    "run_id": 37852789098,
+    "source_sha": "ea7248974b52fcb1688679be54607e881797a743",
+    "helper_sha": "8f646743f3134d280d9c7b18c1a7b3aca16323ad",
+    "case": "Game2 staged 5205 profileOFF seed1839",
+    "status": "PENDING_OR_RUNNING_NOT_INHERITED"
+  },
+  "acceptance": [
+    "one real sample per Action, no AB or matrix",
+    "original analyzer plus each direction pre/stress/post UDP and probe missing p99",
+    "server packet socket and all IF drops, CPU model/PSI/host busy, raw recvmmsg calls/messages, true TUN MTU",
+    "no old failure reclassification; true 5205 is phase waveform 5/20/5",
+    "new SRC not qualified E4 unless business and resources pass and repeated resource strata",
+    "E7 80s S2C open, E6/P6/physical NOT_RUN, no main modification"
+  ]
+}

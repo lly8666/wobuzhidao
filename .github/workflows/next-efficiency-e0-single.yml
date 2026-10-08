@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 45
     env:
       ART: "${{ github.workspace }}/artifacts/large-mtu-single"
-      PRODUCT_SOURCE: ea7248974b52fcb1688679be54607e881797a743
+      PRODUCT_SOURCE: ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072
       WBD_STRICT_MODE: normal
       WBD_STRICT_SCENARIO: lossless
       WBD_STRICT_RATE_MBPS: "10"
