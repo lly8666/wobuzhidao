@@ -157,17 +157,17 @@ func (s *Server) Tick(now time.Time) {
 // TickTimed is the opt-in diagnostic equivalent of Tick. It retains UDP-before-TCP
 // maintenance ordering and does not add a queue, worker, timer, or service wait.
 // Only the diagnostics-enabled lifecycle path calls this method.
-func (s *Server) TickTimed(now time.Time) (udpDuration, tcpDuration time.Duration) {
+func (s *Server) TickTimed(now time.Time) (udpDuration, tcpDuration time.Duration, tcpProfile TCPServerTickProfile) {
 	if s == nil {
-		return 0, 0
+		return 0, 0, TCPServerTickProfile{}
 	}
 	started := time.Now()
 	s.udp.Tick(now)
 	udpDuration = time.Since(started)
 	started = time.Now()
-	s.tcp.Tick(now)
+	tcpProfile = s.tcp.TickTimed(now)
 	tcpDuration = time.Since(started)
-	return udpDuration, tcpDuration
+	return udpDuration, tcpDuration, tcpProfile
 }
 
 func (s *Server) Close() {

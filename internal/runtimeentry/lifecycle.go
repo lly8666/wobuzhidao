@@ -2090,9 +2090,16 @@ func (s *LifecycleServer) tick(now time.Time) error {
 			tickPhase = time.Now()
 		}
 		if s.cfg.ObserveTiming {
-			udpWall, tcpWall := group.service.TickTimed(now)
+			udpWall, tcpWall, tcpPhase := group.service.TickTimed(now)
 			s.pipeline.tickServiceUDP.observe(udpWall)
 			s.pipeline.tickServiceTCP.observe(tcpWall)
+			s.pipeline.tickTCPFlowSnapshot.observe(tcpPhase.Snapshot)
+			s.pipeline.tickTCPScan.observe(tcpPhase.Scan)
+			s.pipeline.tickTCPEmit.observe(tcpPhase.Emit)
+			s.pipeline.tickTCPAbort.observe(tcpPhase.Abort)
+			s.pipeline.tickTCPFlows.Add(tcpPhase.Flows)
+			s.pipeline.tickTCPDueFrames.Add(tcpPhase.DueFrames)
+			s.pipeline.tickTCPAborts.Add(tcpPhase.Aborts)
 			s.pipeline.tickService.observe(time.Since(tickPhase))
 			tickPhase = time.Now()
 		} else {

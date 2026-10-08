@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_TCP_TICK_SYNC_MAINTENANCE_HOTSPOT_FAIL",
+    "phase": "E0_TCP_SCAN_EMIT_OPTIN_SOURCE_UNTESTED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -393,10 +393,26 @@
       ],
       "capacity_limited_evidenced": false,
       "evidence": "docs/evidence/performance-efficiency-e0-game4-tcp-tick-fail-37782210096.json"
+    },
+    "e0_tcp_scan_emit": {
+      "state": "SOURCE_NOT_TESTED",
+      "source_sha": "THIS_COMMIT",
+      "original_failure_run": 37782210096,
+      "fields": [
+        "tick_tcp_flow_snapshot",
+        "tick_tcp_scan",
+        "tick_tcp_emit",
+        "tick_tcp_abort",
+        "tick_tcp_flows",
+        "tick_tcp_due_frames",
+        "tick_tcp_aborts"
+      ],
+      "evidence": "docs/evidence/performance-efficiency-e0-tcp-tick-scan-emit-probe-20261008.json",
+      "helper_sha": null
     }
   },
-  "next_task": "E0: profile-ON Game4 run37782210096 original FAIL; server service.Tick16.58s, TCPServer.Tick16.5756s / max225.24ms / 236 executions>10ms, UDPServer.Tick0.0029s; server ready overflow268478; C2S UDP1555 missing + probes22/24 missing; NEW socket drop37/PSI37.58, cannot reclassify as pure capacity. Inspect TCPServer.Tick snapshot/RetransmitDue vs synchronous flow.tunnel.Send in receiver-loop; next add opt-in bounded phase timing or targeted unit regression then only one independent Actions sample if necessary; prioritize no-HOL and exact wire/first-arrival. No Game4 protection has passed; E1 code unimplemented, need core/race + Normal lossless/5205 and Game4 lossless/5205 each separate run before optimization PASS. E7 80s S2C OPEN. E6/P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-game4-tcp-retransmit-tick-blocking-path.md",
+  "next_task": "E0: verify exact new source next-foundation Go unit/race Windows and privileged TUN/TPROXY and lifecycle; after all success pin same product SHA to one single Game4 profileON 4lane mixed 3Mbps/dir 0%loss 300s+3s drain seed1821 via own helper commit. Read tick_tcp_scan vs tick_tcp_emit wall time, due frames, aborts, source full lossless real UDP/probe/HTTP and ready overflow plus PSI/socket drops, keep previous 37782210096 original FAIL. No E1–E6 or CPU gain until real product optimization with independent four protection Actions; old E7 80s S2C OPEN, P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-tcp-tick-scan-vs-emit-opt-in.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

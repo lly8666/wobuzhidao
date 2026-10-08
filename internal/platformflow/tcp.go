@@ -867,6 +867,65 @@ func (s *TCPServer) Tick(now time.Time) {
 	}
 }
 
+
+// TCPServerTickProfile is a diagnostic-only time budget for one Tick pass.
+// Durations are wall time and may include scheduling. No cost or packet timing
+// is added to the ordinary Tick path.
+type TCPServerTickProfile struct {
+	Snapshot time.Duration
+	Scan     time.Duration
+	Emit     time.Duration
+	Abort    time.Duration
+	Flows    uint64
+	DueFrames uint64
+	Aborts   uint64
+}
+
+// TickTimed mirrors Tick's per-flow ordering and abort/error semantics, but
+// records time in pending-retransmission scans versus actual tunnel sends.
+// It is called only when the server's ObserveTiming diagnostic is enabled.
+func (s *TCPServer) TickTimed(now time.Time) TCPServerTickProfile {
+	var p TCPServerTickProfile
+	started := time.Now()
+	flows := s.snapshot()
+	p.Snapshot = time.Since(started)
+	for _, flow := range flows {
+		p.Flows++
+		started = time.Now()
+		flow.mu.Lock()
+		if flow.closed {
+			flow.mu.Unlock()
+			p.Scan += time.Since(started)
+			continue
+		}
+		idle := !now.Before(flow.lastSeen) && now.Sub(flow.lastSeen) >= s.cfg.IdleTimeout
+		due, err := flow.tx.RetransmitDue(now)
+		flow.mu.Unlock()
+		p.Scan += time.Since(started)
+		if err != nil || idle {
+			started = time.Now()
+			s.abort(flow, now)
+			p.Abort += time.Since(started)
+			p.Aborts++
+			continue
+		}
+		p.DueFrames += uint64(len(due))
+		for _, frame := range due {
+			started = time.Now()
+			err := flow.tunnel.Send(frame, now)
+			p.Emit += time.Since(started)
+			if err != nil {
+				started = time.Now()
+				s.abort(flow, now)
+				p.Abort += time.Since(started)
+				p.Aborts++
+				break
+			}
+		}
+	}
+	return p
+}
+
 func (s *TCPServer) Close() {
 	now := time.Now()
 	for _, flow := range s.snapshot() {

@@ -1,0 +1,10 @@
+# E0：Game4 TCP维护逐flow扫描与同步发送的诊断候选（2026-10-08）
+
+仅在 `next/performance-efficiency-20261008`、父HEAD `d55a5bfde3ba30d97ea496b5c9da90ae8a4c774b` 工作。上一单样本 [37782210096](https://github.com/lly8666/wobuzhidao/actions/runs/37782210096) 原始FAIL：4条真实Game lane、每向3Mbps mixed、0%外层loss、正式TPROXY/加密raw/real TUN、300s+3s、FEC20:20、auto MTU，服务端 `TCPServer.Tick`累计16.5756 wall-s、单次最大225.237ms；`UDPServer.Tick`仅0.002915 wall-s。C2S UDP1555缺失、probe双向22/24未回、用户态4096-slot ready queue溢出268478个外层segment、socket drop37。旧 `37766819445`、`37768172504`、`37780170850` Game4 FAIL均保留。不能把不同runner上的数据当CPU改善或capacity-only。
+
+## 本次实际提交变更
+`internal/platformflow/tcp.go`**保留原有**`TCPServer.Tick`不变，新增仅opt-in使用的`TCPServer.TickTimed`：完全保持per-flow 顺序、lastSeen/idle、`RetransmitDue`及同一同步`flow.tunnel.Send`/error abort 行为，独立采每轮flow snapshot、锁和到期帧scan、真实emit、abort wall时间，以及flow/due frame/abort总数。没有改变可靠性策略、业务优先级、序号、加密、4096 shadow或ready、有线协议、FEC和自适应MTU；也没有增加并行worker、缓冲、无限队列或忙轮询。现有`platformflow.Server.TickTimed`返回细项，仅`runtimeentry.LifecycleServer.tick`的`ObserveTiming=true`取数，profile OFF仍原样调用`group.service.Tick(now)`。新JSON字段：`tick_tcp_flow_snapshot`, `tick_tcp_scan`, `tick_tcp_emit`, `tick_tcp_abort`, `tick_tcp_flows`, `tick_tcp_due_frames`, `tick_tcp_aborts`。只把错误定位得更窄，**不是正式E1 CPU优化**，诊断自身会增加time.Now采样开销。
+
+单元回归新增`internal/platformflow/tcp_tick_timed_test.go`对空/closed flows不允许额外发送、abort，并扩`internal/runtimeentry/server_tick_phase_diag_test.go`核验7字段和值。**提交时还未通过新源码的Actions**；后续先看`next-foundation`Linux/Windows编译/Go单位/race/特权TUN+TPROXY，未PASS不发实流。通过才另起唯一Game4 profile ON样本（seed1821、每方向逻辑3Mbps mixed、300s/3s drain、lossless/300ms、4真实lanes、20:20、record自动0），1 run只含1性能case、精确产品源码SHA及独立helper SHA。辨别scan/emit/abort开销并用UDP/probe/ready队列/CPU/PSI双侧佐证，不借profile ON对OFF冒充性能收益。
+
+下一真正产品优化需证明不伤first-arrival、无跨业务HOL、4lane竞速去重，先core/race，再独立Normal1 lossless/5205和Game4 lossless/5205四道保护；如果原Game4无损FAIL仍在，就不能记E1完成。80s S2C旧FAIL留E7 OPEN，E6 P6同源包与物理复测均NOT_RUN、无PHYSICAL_PASS。机器证据[本轮JSON](../evidence/performance-efficiency-e0-tcp-tick-scan-emit-probe-20261008.json)。

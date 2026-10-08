@@ -1,0 +1,57 @@
+{
+  "schema": "wbd-e0-tcp-tick-scan-vs-emit-candidate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "d55a5bfde3ba30d97ea496b5c9da90ae8a4c774b",
+  "product_source": "NEW_GITHUB_SHA_ON_THIS_COMMIT",
+  "classification": "SOURCE_CANDIDATE_UNTESTED",
+  "prior_real_run": {
+    "run": 37782210096,
+    "original_decision": "FAIL",
+    "missing_udp_c2s": 1555,
+    "missing_probes": [
+      22,
+      24
+    ],
+    "socket_drops": 37,
+    "ready_overflow_drops": 268478,
+    "tcp_tick_max_ms": 225.236958,
+    "tcp_tick_total_wall_s": 16.57556729,
+    "udp_tick_total_wall_s": 0.002915105
+  },
+  "modified_files": [
+    "internal/platformflow/tcp.go",
+    "internal/platformflow/service.go",
+    "internal/runtimeentry/lifecycle.go",
+    "internal/runtimeentry/perf_diag.go",
+    "internal/platformflow/tcp_tick_timed_test.go",
+    "internal/runtimeentry/server_tick_phase_diag_test.go"
+  ],
+  "diagnostic_fields": [
+    "tick_tcp_flow_snapshot",
+    "tick_tcp_scan",
+    "tick_tcp_emit",
+    "tick_tcp_abort",
+    "tick_tcp_flows",
+    "tick_tcp_due_frames",
+    "tick_tcp_aborts"
+  ],
+  "semantics": [
+    "Original TCPServer.Tick and Server.Tick remain unchanged for profile OFF",
+    "New diagnostic-only TCPServer.TickTimed mirrors per-flow lock/scan/due/emit/abort order with opt-in wall-time accumulation",
+    "Counts flows/due retransmits/aborts; no new worker/queue/timer or wire change",
+    "Timed wall-clock numbers are not CPU and can be inflated by scheduling or instrumentation",
+    "Basic empty and closed flow tests plus JSON snapshot counters added; source not yet tested"
+  ],
+  "next": "Wait Actions new-source foundation core/race/Windows and privileged Linux TUN/TPROXY; if success pin exact source SHA in one-sample Game4 4lane mixed 3Mbps/dir 300s lossless seed1821 diagnostic ON. No inherited PASS.",
+  "state": {
+    "E1_E6": "NOT_QUALIFIED",
+    "E7_80s": "OPEN",
+    "P6_physical": "NOT_RUN"
+  },
+  "old_failures": [
+    37766819445,
+    37768172504,
+    37780170850,
+    37782210096
+  ]
+}
