@@ -214,7 +214,7 @@ def main():
         issues.append("ANALYZER_EXCEPTION:"+repr(ex));result={"error":repr(ex)}
     finally:
         # Capture artifact policy applies to both success and failures.
-        for path in root.glob("*.pcap"):
+        for path in root.glob("*.pcap*"):
             digest=hashlib.sha256()
             with path.open("rb") as f:
                 while True:
