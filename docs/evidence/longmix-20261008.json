@@ -1616,5 +1616,38 @@
       "resource/FEC/repair time lines require per-action artifact review",
       "A/20 s2c 1020ms zero-first-delivery window needs origin/runner/source qualification before classifying HOL"
     ]
+  },
+  "targeted_diagnostics": {
+    "a20_1020ms_nonidle_zero_delivery_window": {
+      "scenario": "A/20%",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "helper_sha": "5712582abb6246baed9071fa8e6185f12a7db26c",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734152474",
+      "same_host_monotonic_relative_to_active_start_s": {
+        "zero_delivery_begin": 294.95,
+        "zero_delivery_end_approx": 295.97,
+        "duration_ms": 1020
+      },
+      "direction": "s2c",
+      "sender_sent_bytes_by_active_second": {
+        "294": 1287398,
+        "295": 1191263,
+        "296": 1239921
+      },
+      "sender_skipped_slots_by_active_second": {
+        "294": 0,
+        "295": 0,
+        "296": 0
+      },
+      "receiver_wall_valid_bytes_by_second": {
+        "294": 420420,
+        "295": 29340,
+        "296": 427676
+      },
+      "netem_nominal_percent": 20,
+      "netem_actual_drop_percent_s2c_approx": 20.029,
+      "interpretation": "Active source with no skipped slots; extended first-delivery void not an intentional traffic idle, but insufficient evidence to locate stall among product sender/qdisc/network receiver/decode/app; cannot mark global cross-business HOL or runner capacity",
+      "next_proof": "bounded numeric trace of LINK record send, egress capture, ingress, decode+FEC complete, local app arrival around active 294.9-296.1; independent repeat if deeper diagnosis justified"
+    }
   }
 }

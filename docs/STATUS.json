@@ -94,8 +94,8 @@
     "B/0 lossless real TCP 56% source injection, 250/300 shorts, backpressure and retrans; no CAPACITY proof",
     "Linux platformflow UDP no-silent-truncation isolated product candidate2f7bb59 functional Actions PASS, large UDP support still OPEN"
   ],
-  "next_task": "All 12 distinct b4 Actions complete, raw FAIL (not 12 diagnosed code defects). A/C legal >8936 UDP all fail over OpenWrt TPROXY even lossless; independent 96B probes mostly return. B streams byte-perfect but 10Mbps input ~52-57%, NOT runner CAPACITY attributed; B0 repeat short probe 300/300. Distinct minimal UDP truncation guard 2f7bb59 functional Actions PASS but no source promotion. Next: prioritize native TUN path correctness vs rare UDP adaptation, debug TCP first injection/backpressure and A20 1.02s zero window with bounded timeline; no blanket packet-size/FEC increase, no physical. If considering MTU policy change, preserve legitimate UDP and source hard gates; optional candidate separately qualified.",
-  "latest_log": "docs/devlog/20261008-longmix-12-sample-raw-aggregate-and-mtu-architecture.md",
+  "next_task": "12 fixed-b4 real Actions complete and summarized, 12 raw FAIL with different cause types. New A20 s2c 1020ms empty first-delivery window at 294.95s occurred while sender sent ~1.19MB in second295/skipped0, so NOT source idle; boundary of stall beyond application sender still OPEN; do not attribute to FEC/runners/Windows physical absent fragment->record->NIC->decode timeline. Prioritize user decision on marginal priority of rare legal 9k-65k UDP versus small/medium p99, avoid changing frozen FEC/MTU/repair unqualified. Product 2f7 guard is functional PASS only, physical and matched Windows/Linux ARM pack NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-longmix-a20-zero-delivery-nonidle-boundary.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -11190,6 +11190,37 @@
     "aggregate_evidence": "docs/evidence/longmix-20261008.json#first_round_complete",
     "matrix_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "matrix_scope": "Linux OpenWrt client TPROXY -> official AF_PACKET FakeTCP transport -> server shared TUN -> real socket; not native Windows TUN/ARM physical",
-    "product_patch": "2f7bb59e91e27d7c84622d91f7e169f3b7241d5d isolated functional only, legal jumbo UDP still OPEN"
+    "product_patch": "2f7bb59e91e27d7c84622d91f7e169f3b7241d5d isolated functional only, legal jumbo UDP still OPEN",
+    "a20_nonidle_window": {
+      "scenario": "A/20%",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "helper_sha": "5712582abb6246baed9071fa8e6185f12a7db26c",
+      "action_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37734152474",
+      "same_host_monotonic_relative_to_active_start_s": {
+        "zero_delivery_begin": 294.95,
+        "zero_delivery_end_approx": 295.97,
+        "duration_ms": 1020
+      },
+      "direction": "s2c",
+      "sender_sent_bytes_by_active_second": {
+        "294": 1287398,
+        "295": 1191263,
+        "296": 1239921
+      },
+      "sender_skipped_slots_by_active_second": {
+        "294": 0,
+        "295": 0,
+        "296": 0
+      },
+      "receiver_wall_valid_bytes_by_second": {
+        "294": 420420,
+        "295": 29340,
+        "296": 427676
+      },
+      "netem_nominal_percent": 20,
+      "netem_actual_drop_percent_s2c_approx": 20.029,
+      "interpretation": "Active source with no skipped slots; extended first-delivery void not an intentional traffic idle, but insufficient evidence to locate stall among product sender/qdisc/network receiver/decode/app; cannot mark global cross-business HOL or runner capacity",
+      "next_proof": "bounded numeric trace of LINK record send, egress capture, ingress, decode+FEC complete, local app arrival around active 294.9-296.1; independent repeat if deeper diagnosis justified"
+    }
   }
 }
