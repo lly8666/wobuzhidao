@@ -16,7 +16,7 @@ class MixedContract(unittest.TestCase):
             self.assertIn("C",tcp)
             self.assertIn("C",udp)
             self.assertIn("5",udp)
-            self.assertEqual(len(set((tcp[1],udp[1]))),2)
+            self.assertEqual(len(set((tcp[2],udp[2]))),2)  # program path, not shared -u option
         self.assertEqual(sum(q for _,q in C_UDP_SHARE),100)
         self.assertEqual((WORKLOADS["C"].tcp_mbps,WORKLOADS["C"].udp_mbps),(5,5))
 

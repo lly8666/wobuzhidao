@@ -519,6 +519,11 @@
       "Linux TPROXY cannot currently carry UDP>8936; expect C0 failure independent of real TCP results",
       "TCP source backpressure may limit target injection",
       "No C real run started"
-    ]
+    ],
+    "preflight_failure": {
+      "run": "https://github.com/lly8666/wobuzhidao/actions/runs/37733595406",
+      "classification": "FAIL_UNIT",
+      "reason": "Test wrongly compares second argv slot '-u' of both distinct Python subprocesses, not third argv script program path; generator correct program paths; no performance tested"
+    }
   }
 }
