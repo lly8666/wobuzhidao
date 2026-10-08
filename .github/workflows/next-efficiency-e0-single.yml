@@ -72,6 +72,11 @@ jobs:
           PY
           python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py
           python3 tools/perf_sample_guard.py claim --identity "efficiency-e0:${GITHUB_SHA}:product${PRODUCT_SOURCE}" --receipt "$ART/sample-claim.json"
+      - name: Generate one strict fullstack scenario
+        run: |
+          python3 tools/prepare_large_mtu_harness.py --output "$ART/generated.sh" \
+            --workload "$WBD_LARGE_WORKLOAD" --loss "$WBD_LARGE_LOSS"
+          bash -n "$ART/generated.sh"
       - name: Install isolated network tools
         run: |
           set -euo pipefail
@@ -95,11 +100,6 @@ jobs:
           sha256sum "$ART/wbd-client" "$ART/wbd-server" > "$ART/product-binary-sha256.txt"
           "$ART/wbd-client" --version > "$ART/client-version.txt"
           "$ART/wbd-server" --version > "$ART/server-version.txt"
-      - name: Generate one strict fullstack scenario
-        run: |
-          python3 tools/prepare_large_mtu_harness.py --output "$ART/generated.sh" \
-            --workload "$WBD_LARGE_WORKLOAD" --loss "$WBD_LARGE_LOSS"
-          bash -n "$ART/generated.sh"
       - name: Run real 300s client/server TCP and UDP sample
         id: sample
         continue-on-error: true

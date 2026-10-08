@@ -1,0 +1,38 @@
+{
+  "schema": "wbd-efficiency-e0-preflight-fail/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "prior_head": "ec01cf5636790dfbef7c3dddaca36d0dea92e767",
+  "run_id": 37760789251,
+  "job_id": 113256400786,
+  "run_attempt": 1,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37760789251",
+  "artifact_id": 11541978012,
+  "artifacts_bytes": 1480,
+  "run_status": "completed",
+  "run_conclusion": "failure",
+  "sample_step": "skipped",
+  "measurement_performed": false,
+  "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "helper_sha": "ec01cf5636790dfbef7c3dddaca36d0dea92e767",
+  "config_file": ".github/efficiency-e0-sample.json",
+  "error_location": "tools/prepare_large_mtu_harness.py line 65",
+  "error": "NameError: name 'os' is not defined",
+  "origin": "helper generated-scenario stage before executing any traffic; no product failure or CPU inference",
+  "changes": [
+    {
+      "path": "tools/prepare_large_mtu_harness.py",
+      "add_import": "os",
+      "blob_sha": "729c269f56e42c66d43f7f67744e75c926662a3b"
+    },
+    {
+      "path": ".github/workflows/next-efficiency-e0-single.yml",
+      "change": "move single scene generation and bash -n before apt/install/source compilation",
+      "blob_sha": "a91a3e692ec3777dbc436d0b288cef3934312fff"
+    }
+  ],
+  "next": "One exact helper SHA single Actions Normal UDP 10Mbps each direction seed1801; require manifest drain3, diag absence, full 300s and read original outcome; preserve prior scoped PASS, not reuse invalid CPU",
+  "status": "HELPER_REPAIR_PENDING_ACTIONS",
+  "old_80s_issue": "OPEN_DEFERRED_E7",
+  "physical": "NOT_RUN"
+}

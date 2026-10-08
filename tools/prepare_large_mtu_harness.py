@@ -7,6 +7,7 @@ performance matrix, no product source modifications.
 import argparse
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 
