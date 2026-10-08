@@ -1,6 +1,6 @@
 {
   "workload": "mixed",
-  "loss": 5205,
+  "loss": 0,
   "seed": 1840,
   "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "mode": "game",

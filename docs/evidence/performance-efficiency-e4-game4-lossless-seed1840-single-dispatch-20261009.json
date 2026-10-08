@@ -1,0 +1,36 @@
+{
+  "schema": "wbd-efficiency-one-sample-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "5e2d3d2295b96e3d64b578eab0c315f2ea18b73e",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_source_sha": "GITHUB_SHA_OF_THIS_COMMIT",
+  "reference_staged5205_run": 37853468730,
+  "sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1840,
+    "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "expected_runtime": {
+    "active_s": 300,
+    "drain_s": 3,
+    "one_way_ms": 300,
+    "fec": "20:20",
+    "padding": "OFF",
+    "cpu_profile": "OFF",
+    "record_limit": "AUTO_0",
+    "actual_tun_mtu": "READ_FROM_ARTIFACT"
+  },
+  "single_sample_per_run": true,
+  "run_id": null,
+  "artifact_id": null,
+  "analyzer": "NOT_RUN",
+  "result": "PENDING_ACTION",
+  "no_inherited_pass": true,
+  "no_cpu_claim": true
+}
