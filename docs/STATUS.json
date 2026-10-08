@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_ONE_BUFFER_MARSHAL_SOURCE_CANDIDATE_E0_GAME4_FAIL_OPEN",
+    "phase": "E2_ONE_BUFFER_MARSHAL_FOUNDATION_PASS_NORMAL_LOSSLESS_SAMPLE_QUEUED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -437,18 +437,37 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-tcp-emit-fail-37788802499.json"
     },
     "e2_marshal_candidate": {
-      "state": "CODE_COMMITTED_TESTS_PENDING",
+      "state": "FOUNDATION_AND_LIFECYCLE_PASS_E2_PROTECTIONS_PENDING",
       "parent_head": "eec0cb8077daa8f011285066d136d574c93abc0b",
-      "new_product_source_sha": "THIS_COMMIT_SHA",
+      "new_product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
       "candidate_evidence": "docs/evidence/performance-efficiency-e2-one-buffer-marshal-candidate-20261008.json",
       "expected_saved_allocations_per_frame": 1,
       "actual_cpu_gain": "NOT_MEASURED",
       "protection_status": "NOT_RUN",
-      "game4_existing_fails_open": true
+      "game4_existing_fails_open": true,
+      "foundation_run": 37792796931,
+      "lifecycle_run": 37792797183,
+      "unit_alloc_guard": "FOUNDATION_PASS",
+      "normal_sample": {
+        "state": "PENDING_ACTION",
+        "helper_sha": "THIS_HELPER_COMMIT",
+        "config": {
+          "workload": "mixed",
+          "loss": 0,
+          "seed": 1822,
+          "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+          "mode": "normal",
+          "lanes": 1,
+          "rate_mbps": 10,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "off"
+        }
+      },
+      "cpu_gain": "NOT_MEASURED"
     }
   },
-  "next_task": "E2 candidate: run Linux/Windows core/unit/race/fuzz/privileged real TPROXY+TUN and lifecycle for exact one-buffer MarshalPacket source commit; do not claim gain. If success, pin exact new product SOURCE in one-helper config and issue single Normal1 mixed 10Mbps/dir 0%loss 300s+3s profile-off Actions run, check CPU/GiB, Go allocs per effective GiB, raw sendmmsg/recvmmsg, real UDP/TCP/HTTPS hash/duplex/probe p99. Game4 still historical lossless FAIL run37788802499, ready drop317739 and 500ms RTO ~600ms RTT hypothesis not fixed. Need Normal1 5205/Game4 lossless+5205 independent actions to advance E2. E1/E3-E6 unfinished, E7 80s OPEN, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e2-single-owned-packet-buffer-candidate.md",
+  "next_task": "E2: read new exact source 673a8ab Normal1 mixed 10Mbps/dir lossless 300s+3s drain profile OFF seed1822 single-action sample and ledger; check 1 vs 2 marshal allocations unit passes plus realistic CPU/GiB, effective sent/received business, UDP/TCP/HTTPS/probe and qdisc/socket/CPU quota. Need own-helper SHA, no same-run AB; old Normal run37764510941 qualified off but differing runner do not claim gain without 3 matched. Then Normal1 5205, Game4 lossless, Game4 5205 each one action and own product source, preserving all FAIL and normal readiness. E1/E3–E6 P6 physical not done, E7 80s OPEN.",
+  "latest_log": "docs/devlog/20261008-e2-marshal-normal-one-sample-qualifier.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

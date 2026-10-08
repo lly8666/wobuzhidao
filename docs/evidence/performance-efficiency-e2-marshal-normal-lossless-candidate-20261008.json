@@ -1,0 +1,81 @@
+{
+  "schema": "wbd-e2-marshal-normal-one-sample-qualification/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+  "helper_sha": "THIS_NEW_HELPER_COMMIT_SHA",
+  "status": "QUEUED_BY_GITHUB_PUSH",
+  "verified_actions": {
+    "foundation": {
+      "run_id": 37792796931,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37792796931",
+      "conclusion": "success",
+      "jobs": [
+        "repository-contract",
+        "p2-kernel-fallback",
+        "p4-openwrt-tproxy-privileged",
+        "p4-linux-shared-tun-privileged iptables/nft",
+        "active-go-tests linux Go test/race/fuzz/arm64",
+        "active-go-tests windows/Npcap"
+      ]
+    },
+    "lifecycle": {
+      "run_id": 37792797183,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37792797183",
+      "conclusion": "success"
+    }
+  },
+  "sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1822,
+    "product_source_sha": "673a8ab0b2295d495e67cd7d4a42e23a70d38a7a",
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "single_case_per_run": true,
+  "profile_comparison": "OFF ONLY; this is first performance measure of optimized source, no baseline matched runner yet",
+  "contract": {
+    "two_directions": true,
+    "logical_rate_mbps_each": 10,
+    "workload": "mixed",
+    "tcp_4_long_plus_300_short": true,
+    "http_https_real_certs": true,
+    "udp_lengths": [
+      96,
+      256,
+      512,
+      1000,
+      1372,
+      4068
+    ],
+    "duration_s": 300,
+    "drain_s": 3,
+    "loss_percent": 0,
+    "delay_one_way_ms": 300,
+    "outer_mtu": 1400,
+    "automatic_record_limit": 0,
+    "fec": "20:20",
+    "padding": "off",
+    "formal_linux_client_tproxy_server_tun": true,
+    "encrypted_outer_transport": true
+  },
+  "must_evaluate": [
+    "exact GITHUB_SHA helper+product SHA/binary hash and actual negotiated TUN MTU",
+    "off-profile true; business injected & delivered each way, missing/corrupt all UDP sizes",
+    "TCP 304 flows hash length, actual HTTP/HTTPS cert and bodies, probe send/return/missing/p99",
+    "CPU client/server and effective GiB, mallocs and alloc bytes where diag-off reports available, raw messages/calls mean batch and normalized ledger",
+    "host steal, busy, PSI, CPU quota and netem/drop reason; preserve original FAIL if any"
+  ],
+  "constraints": [
+    "One sample only no same-run A/B, no matrix",
+    "Do not compare ON vs OFF for CPU",
+    "Do not treat old Game4 FAIL as resolved by Normal pass",
+    "Do not mark E2 completed without independent Normal1 5205 + Game4 0loss/5205, and 3 comparable profile-off independent performance samples",
+    "E7 80s downlink OPEN; E6/P6/physical NOT_RUN"
+  ]
+}
