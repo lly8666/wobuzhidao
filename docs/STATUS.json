@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_NORMAL_LOSSLESS_PASS_GAME4_OFF_FAIL_HELPER_CONTRACT_FAIL_PREFLIGHT_FIXED",
+    "phase": "E3_GAME_AUTHENTICATED_POOL_BOUNDED_ASYNC_TCP_TICK_SOURCE_CANDIDATE",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -525,10 +525,26 @@
       "fixed_rto_changed": false,
       "new_go_tests": "NOT_RUN",
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
+    },
+    "game_architecture": {
+      "state": "PRODUCT_CANDIDATE_NOT_TESTED",
+      "parent_head": "8e6a26567511e19901f01f24ee31e82136c1736e",
+      "source_sha": "THIS_COMMIT_SHA",
+      "stage": "A_BOUNDED_ONE_WORKER_NO_BACKLOG_FOR_GAME_TCP_TICK",
+      "architecture": "docs/GAME_MODE_INGRESS_ARCHITECTURE_20261008.md",
+      "evidence": "docs/evidence/performance-efficiency-game-tick-isolation-candidate-20261008.json",
+      "foundation": "NOT_RUN",
+      "lifecycle": "NOT_RUN",
+      "new_game4_lossless": "NOT_RUN",
+      "new_game2_lossless": "NOT_RUN",
+      "normal_5205": "NOT_RUN",
+      "game4_5205": "NOT_RUN",
+      "cpu_benefit": "UNPROVEN",
+      "previous_game4_fail_run": 37797087655
     }
   },
-  "next_task": "E2 Game4 source673a8ab profile-off run37797087655 original FAIL: c2s UDP 1906 missing; probes23/31 missing; TCP/HTTPS complete; productCPU339.19s, socket/if0, profile OFF no active-ready telemetry. Do not claim Game4 fixed. Helper 29eed foundation run37797087519 separate FAIL due missing STATUS and new devlog in same commit; new workflow now fails closed on check_repository.py before sampling, and no longer self-triggers on pure workflow edits. Verify next foundation workflow for exact new HEAD and new E0 RTO tradeoff unit/race; if no run, mark NOT_RUN until it appears (GitHub event delivery delayed). Next product correction should target high RTT 500ms spurious retransmit + synchronous emit but protect real 5205/5305 and noHOL. Four independent Normal lossless (pass), Normal5205 (not run), Game4 lossless (fail), Game4 5205 (not run); E2 CPU no proven gain, E7 80s OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e2-game4-off-fail-and-performance-preflight-contract.md",
+  "next_task": "E3 Game shared authenticated ingress architecture: exact new candidate source only one async TCP maintenance worker per Game logical server (desired2..4), 0 pending queue and close join; Normal sync unchanged; preserves Owner GameInboundPayload authenticated PacketID first-arrival dedup. First require new HEAD next-foundation Linux/Windows Go unit/race, TUN/TPROXY/contract, lifecycle; if not PASS fix before performance. If PASS pin exact product SHA to one Game4 lossless profile OFF real mixed 3Mbps/dir 300s+3s seed1825; one performance sample/Action, check UDP/probe missing, TCP/HTTPS, host/drops and source. Then independent Game2, Normal lossless, true stage5205 5/20/5 per case, profileON separate for ready overflow/async counts; no formal E3 qualification without 4 protectors. Historical Game4 off run37797087655 still FAIL missing1906 probes23/31, profile ON Game4 run37788802499 ready overflow317739 + TCP synchronous emit18.363s. E2 no proven CPU gain; RTO500 unchanged; E7 80s S2C OPEN, E6/P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-game-architecture-shared-authenticated-pool-and-bounded-async-tick.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

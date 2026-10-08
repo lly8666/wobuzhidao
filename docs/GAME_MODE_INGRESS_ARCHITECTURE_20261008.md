@@ -1,0 +1,39 @@
+# GameMode 2–4 lane “shared pot” architecture: evidence-based decision (2026-10-08)
+
+## Decision: reuse the shared authenticated PacketID pool, isolate blocking maintenance first
+Status **E3 CANDIDATE / NOT QUALIFIED**. Branch `next/performance-efficiency-20261008`; frozen prerequisite E2 product SOURCE `673a8ab0b2295d495e67cd7d4a42e23a70d38a7a`; first async-maintenance candidate source is **this commit SHA**. No `main`, physical machine, or auto-MTU changes.
+
+The user's "throw all 2–4 lanes in one pot" is right at the **logical-packet** boundary. It is already partially realized by `datapath.TunnelOwner.GameInboundPayload`: each lane independently validates/decodes its encrypted TLS record and FEC, then verifies the lane reference / generation / Game session / LaneID / leased IPv4 source before shared `gamelane.Decoder.Add(PacketID)`. Fastest **valid** first arrival wins; duplicates do not re-deliver. The existing regression tests exercise 3 lanes, malicious mismatch, replacement; this candidate adds concurrent **2 and 4** lane evidence.
+
+What is *not* parallel today: server `LifecycleServer.Run` has one 4096-depth raw `readCh`, one handler and a 100ms timer in the same select. `LifecycleServer.tick` calls `group.rt.Tick` and `group.service.Tick`; the latter calls `TCPServer.Tick`, which performs each `flow.tunnel.Send` **synchronously**. The source-level issue is not absent common dedupe. The instrumented [run37788802499](https://github.com/lly8666/wobuzhidao/actions/runs/37788802499) (profile ON) measured **7231 TCP due frames**, `tick_tcp_emit` **18.363s** cumulative wall, max per-tick emit **218.68ms**, `tick_tcp_scan` only **0.0319s**. Server raw ready overflows **317739**, C2S UDP missing **2510**, independent probe missing **29/28**. These numbers establish a plausible head-of-line *shared-loop stall*; they do **not** prove each lost business datagram was caused by one TCP retry.
+
+Actual profile-OFF E2 candidate [run37797087655](https://github.com/lly8666/wobuzhidao/actions/runs/37797087655) still **FAIL** (C2S UDP missing 1906, probes 23/31), even though TCP 304/304 and HTTPS 20/20 passed. That run did not collect Game internal queue counters, so do not invent an overflow count for it. Normal1 profile-OFF [run37793297374](https://github.com/lly8666/wobuzhidao/actions/runs/37793297374) has scoped PASS (each way 9.972Mbps); one same CPU model reference shows candidate CPU +2.64%, **no supported CPU saving**.
+
+## Staged architecture (do not build an extra large queue)
+
+**Already implemented, retained exactly:**
+```
+raw network -> bounded shared outer segment ingress -> association and per-lane transport
+ -> authenticated per-lane TLS/FEC/LINK decode -> owner/session/lane/lease/generation fence
+ -> shared PacketID first-valid-arrival dedupe -> once-only TUN/platform service delivery
+```
+
+**Stage A (this candidate):** in Game desired lane count 2..4, maintain TCP retransmissions outside the raw receiver's `select` loop:
+- Each logical server tunnel has one `boundedTickWork` executor attached to its TCP service. At most **one active worker**, **zero pending tick queue**; a busy periodic tick is coalesced, never enqueued.
+- Normal desired lane 1 executes **exactly the original synchronous** server `TCPServer.Tick`. Server game `UDPServer.Tick` and `runtimeowner.Runtime.Tick` remain synchronous for now; Game TCP retries retain the original flow locks, `RetransmitDue`, `TunnelFlow.Send`, abort/error and 500ms RTO.
+- Configure the worker **before** the shared TUN router publishes the service; worker is shut down and joined in `TCPServer.Close` **before** flow and owner/tunnel teardown. Existing generation fences, bounded windows and close semantics remain authoritative.
+- The old profile-ON synchronous TCP tick timing fields would no longer represent worker wall time; add explicit `tick_tcp_async_scheduled` and `tick_tcp_async_coalesced` counters and call old child timing `UNMEASURED_ASYNC`, not "saved CPU". All actual CPU claims require profile-OFF equal-work receipts.
+- One worker is intentionally a bounded *maintenance* action, **not** a data packet queue. Do not treat coalescing as a harmless substitution for valid weak-network repair without measured 5205/5305 delivery/latency protection.
+
+**Stage B only if A passes but cannot end loss:** demultiplex the single raw reader by exact authenticated association / currently published LaneRef into **2–4 bounded per-lane decode workers** under **one global memory/record budget**, then serialize the shared Game PacketID dedupe and TUN delivery at the authenticated owner boundary. Ordering is per-lane for FakeTCP ACK/SACK/reassembly and per-logical-flow for TCP bytes; fresh authenticated data may race across lanes. Never allow unauthenticated raw PacketID to reserve a dedupe slot. Never make a slow lane wait behind a fast lane's decode; do not allocate a new 4096-capacity queue *per lane* and call it a fix. Control SYN/admission, generation handoff, FIN and errors need an explicit lifecycle-owner lane.
+
+**Stage C only if A/B pass:** merge already-ready outbound records into existing `sendmmsg` infrastructure without waiting for a "full batch"; normalize CPU-s/GiB, allocations/GiB, raw PPS/calls, and first-arrival latency. No unconditional 500→700ms inner TCP RTO change, because the true-loss repair delay tradeoff remains real.
+
+## Protected acceptance and rollback
+1. Exact commit `next-foundation`: Linux/Windows `go test ./...`, Linux `-race`, build, fuzz, OpenWrt TPROXY + Linux real TUN privilege; `next-lifecycle`, new worker-close/coalesce test and concurrent 2/4-lane first-arrival test. Fail means **no performance claim**.
+2. Fresh **independent** perf Actions run per case, one sample/run: Normal1 lossless 10Mbps each way mixed; Normal1 **true staged 5205** (5%→20%→5%, *not* fixed 5%); Game2/Game4 lossless 3Mbps logical per direction with 0% outer qdisc loss, 300ms one-way, 300s+3s real drain; Game4 true 5205; TCP-only/HTTPS and minimum/maximum packet boundaries tracked separately. Product SOURCE and helper HEAD recorded separately; default record caps auto0 and actual MTU measured, never set product MTU9000.
+3. Game acceptance requires **zero missing UDP and independent probes** under 0% qdisc loss, complete TCP hash/HTTP(S), no added unbounded queue/drop, no generation/first-arrival regression; profile ON diagnostics separate from OFF CPU measurements. Track server ready overflow by a separate diagnostics-ON sample, but do not promote it to business PASS.
+4. For CPU gain, three independent comparable profile-OFF samples per source/runner stratum and equal delivered goodput; uncollected allocation totals explicitly `NOT_COLLECTED`. A regression in delivery or weaknet p99 blocks exit even if CPU improves.
+5. Preserve historical FAIL (Game4 runs 37766819445, 37768172504, 37780170850, 37782210096, 37788802499, 37797087655), E7 80-second S2C OPEN, E6/P6 and physical NOT_RUN. If race or weaknet regresses, revert Stage A **on this next branch only** and keep evidence.
+
+This is a phased, falsifiable architecture hypothesis, not a completed fix or proof of better CPU.

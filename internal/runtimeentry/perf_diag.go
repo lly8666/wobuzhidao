@@ -37,6 +37,8 @@ type ServerPipelineDiagnostic struct {
 	TickTCPFlows     uint64 `json:"tick_tcp_flows"`
 	TickTCPDueFrames uint64 `json:"tick_tcp_due_frames"`
 	TickTCPAborts    uint64 `json:"tick_tcp_aborts"`
+	TickTCPAsyncScheduled uint64 `json:"tick_tcp_async_scheduled"`
+	TickTCPAsyncCoalesced uint64 `json:"tick_tcp_async_coalesced"`
 	TickBookkeeping   DurationDiagnostic `json:"tick_bookkeeping"`
 	ReplacementChecks uint64             `json:"replacement_checks"`
 	Downstream        DurationDiagnostic `json:"downstream"`
@@ -94,6 +96,8 @@ type serverPipelineTiming struct {
 	tickTCPFlows atomic.Uint64
 	tickTCPDueFrames atomic.Uint64
 	tickTCPAborts atomic.Uint64
+	tickTCPAsyncScheduled atomic.Uint64
+	tickTCPAsyncCoalesced atomic.Uint64
 	tickBookkeeping durationAccumulator
 	replacementChecks atomic.Uint64
 	downstream durationAccumulator
@@ -117,7 +121,7 @@ func (p *serverPipelineTiming) readyCancel(bytes int){p.readyCurrent.Add(-1);p.r
 func (p *serverPipelineTiming) overflowDrop(bytes int, age time.Duration){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes));p.overflowDrops.Add(1);if bytes>0{p.overflowBytes.Add(uint64(bytes))};p.overflowAge.observe(age)}
 func (p *serverPipelineTiming) overflowReject(bytes int){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes));p.overflowDrops.Add(1);if bytes>0{p.overflowBytes.Add(uint64(bytes))}}
 func (p *serverPipelineTiming) snapshot(enabled bool) ServerPipelineDiagnostic {
-	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Tick:p.tick.snapshot(),TickRetransmit:p.tickRetransmit.snapshot(),TickSweep:p.tickSweep.snapshot(),TickRuntime:p.tickRuntime.snapshot(),TickService:p.tickService.snapshot(),TickServiceUDP:p.tickServiceUDP.snapshot(),TickServiceTCP:p.tickServiceTCP.snapshot(),TickTCPFlowSnapshot:p.tickTCPFlowSnapshot.snapshot(),TickTCPScan:p.tickTCPScan.snapshot(),TickTCPEmit:p.tickTCPEmit.snapshot(),TickTCPAbort:p.tickTCPAbort.snapshot(),TickTCPFlows:p.tickTCPFlows.Load(),TickTCPDueFrames:p.tickTCPDueFrames.Load(),TickTCPAborts:p.tickTCPAborts.Load(),TickBookkeeping:p.tickBookkeeping.snapshot(),ReplacementChecks:p.replacementChecks.Load(),Downstream:p.downstream.snapshot(),ReadyCapacity:serverReadQueueDepth,ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),OverflowDrops:p.overflowDrops.Load(),OverflowBytes:p.overflowBytes.Load(),OverflowAge:p.overflowAge.snapshot(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
+	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Tick:p.tick.snapshot(),TickRetransmit:p.tickRetransmit.snapshot(),TickSweep:p.tickSweep.snapshot(),TickRuntime:p.tickRuntime.snapshot(),TickService:p.tickService.snapshot(),TickServiceUDP:p.tickServiceUDP.snapshot(),TickServiceTCP:p.tickServiceTCP.snapshot(),TickTCPFlowSnapshot:p.tickTCPFlowSnapshot.snapshot(),TickTCPScan:p.tickTCPScan.snapshot(),TickTCPEmit:p.tickTCPEmit.snapshot(),TickTCPAbort:p.tickTCPAbort.snapshot(),TickTCPFlows:p.tickTCPFlows.Load(),TickTCPDueFrames:p.tickTCPDueFrames.Load(),TickTCPAborts:p.tickTCPAborts.Load(),TickTCPAsyncScheduled:p.tickTCPAsyncScheduled.Load(),TickTCPAsyncCoalesced:p.tickTCPAsyncCoalesced.Load(),TickBookkeeping:p.tickBookkeeping.snapshot(),ReplacementChecks:p.replacementChecks.Load(),Downstream:p.downstream.snapshot(),ReadyCapacity:serverReadQueueDepth,ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),OverflowDrops:p.overflowDrops.Load(),OverflowBytes:p.overflowBytes.Load(),OverflowAge:p.overflowAge.snapshot(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
 }
 
 

@@ -24,6 +24,8 @@ func TestServerPipelineTickPhaseDiagnosticSnapshot(t *testing.T) {
 	p.tickTCPFlows.Add(304)
 	p.tickTCPDueFrames.Add(12)
 	p.tickTCPAborts.Add(3)
+	p.tickTCPAsyncScheduled.Add(11)
+	p.tickTCPAsyncCoalesced.Add(2)
 	p.tickBookkeeping.observe(time.Millisecond)
 
 	got := p.snapshot(true)
@@ -39,6 +41,7 @@ func TestServerPipelineTickPhaseDiagnosticSnapshot(t *testing.T) {
 		got.TickTCPEmit.TotalNS != uint64(2*time.Millisecond) ||
 		got.TickTCPAbort.TotalNS != uint64(100*time.Microsecond) ||
 		got.TickTCPFlows != 304 || got.TickTCPDueFrames != 12 || got.TickTCPAborts != 3 ||
+		got.TickTCPAsyncScheduled != 11 || got.TickTCPAsyncCoalesced != 2 ||
 		got.TickBookkeeping.TotalNS != uint64(time.Millisecond) {
 		t.Fatalf("missing server tick phase counters: %+v", got)
 	}
@@ -50,7 +53,7 @@ func TestServerPipelineTickPhaseDiagnosticSnapshot(t *testing.T) {
 	if err := json.Unmarshal(raw, &fields); err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range []string{"tick_retransmit", "tick_sweep", "tick_runtime", "tick_service", "tick_service_udp", "tick_service_tcp", "tick_tcp_flow_snapshot", "tick_tcp_scan", "tick_tcp_emit", "tick_tcp_abort", "tick_tcp_flows", "tick_tcp_due_frames", "tick_tcp_aborts", "tick_bookkeeping"} {
+	for _, key := range []string{"tick_retransmit", "tick_sweep", "tick_runtime", "tick_service", "tick_service_udp", "tick_service_tcp", "tick_tcp_flow_snapshot", "tick_tcp_scan", "tick_tcp_emit", "tick_tcp_abort", "tick_tcp_flows", "tick_tcp_due_frames", "tick_tcp_aborts", "tick_tcp_async_scheduled", "tick_tcp_async_coalesced", "tick_bookkeeping"} {
 		if len(fields[key]) == 0 {
 			t.Fatalf("missing diagnostic JSON field %q", key)
 		}

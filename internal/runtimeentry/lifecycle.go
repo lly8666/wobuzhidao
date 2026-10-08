@@ -1827,6 +1827,12 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 		rt.Close()
 		return nil, err
 	}
+	// Game shares authenticated PacketID dedupe across 2–4 lanes. Its
+	// periodic TCP repair emits must not monopolize the sole raw receive
+	// event loop. Configure one bounded no-backlog worker before publish.
+	if desired > 1 {
+		service.EnableGameTCPMaintenance()
+	}
 	group.service = service
 	if err := s.cfg.Router.SetServiceHandler(token, service); err != nil {
 		service.Close()
@@ -2100,6 +2106,12 @@ func (s *LifecycleServer) tick(now time.Time) error {
 			s.pipeline.tickTCPFlows.Add(tcpPhase.Flows)
 			s.pipeline.tickTCPDueFrames.Add(tcpPhase.DueFrames)
 			s.pipeline.tickTCPAborts.Add(tcpPhase.Aborts)
+			if tcpPhase.AsyncScheduled {
+				s.pipeline.tickTCPAsyncScheduled.Add(1)
+			}
+			if tcpPhase.AsyncCoalesced {
+				s.pipeline.tickTCPAsyncCoalesced.Add(1)
+			}
 			s.pipeline.tickService.observe(time.Since(tickPhase))
 			tickPhase = time.Now()
 		} else {

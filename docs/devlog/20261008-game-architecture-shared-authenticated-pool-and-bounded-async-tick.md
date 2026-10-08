@@ -1,0 +1,14 @@
+# GameMode“一个锅”架构决议 + 第一处有界去HOL产品候选（2026-10-08）
+
+## 真实现状与责任拆分
+目标只改 `next/performance-efficiency-20261008`，父HEAD `8e6a26567511e19901f01f24ee31e82136c1736e`。现有 `TunnelOwner.GameInboundPayload`已在各lane TLS/FEC解包、LaneID/session/租约IP/generation校验后把合法 PacketID汇入唯一共享去重窗口；不是完全没有“锅”。但是 `LifecycleServer.Run` 在同一个 select 里串行`handleSegment`和100ms的`tick`，Game4同时发射TCP重传的`TCPServer.Tick`阻塞后续新数据。依据 profile ON [37788802499](https://github.com/lly8666/wobuzhidao/actions/runs/37788802499) 原始FAIL：同步TCP emit累计18.363秒，7231帧重传、单tick emit尾218.68ms，4096 ready溢出317739条outer segment，C2S UDP缺2510/probes29/28 missing；这是同步HOL的可量化强证据，不直接等同CPU或每条业务丢失因果。最新E2 profile OFF [37797087655](https://github.com/lly8666/wobuzhidao/actions/runs/37797087655) 也仍FAIL：C2S UDP缺1906，独立probes缺23/31，TCP/HTTPS完整、netem/socket/interface零丢；profile OFF不能知道实际ready drop，不编数字。E2 Normal [37793297374](https://github.com/lly8666/wobuzhidao/actions/runs/37793297374) 9.972Mbps/向 scoped PASS，但同CPU单次对比总CPU高2.64%，无证实CPU收益。需要把共享入口同步堵点解决，不能简单再扩4096 raw队列，盲套per-lane“大锅”只会掩盖延迟。
+
+## 本轮产品代码（E3小步候选，不是宣布修复）
+新增`internal/platformflow/bounded_tick_work.go`的零待办队列、每逻辑TCP Server最多一任务的worker：`tryRun`在worker busy时立即合并tick不等待，不累积goroutine；`close`先拒绝新tick并join本worker，TCP flow/owner/加密隧道只有join后才能关闭。原本`TCPServer.Tick`的扫描、`RetransmitDue`、`flow.tunnel.Send`、close/errors完全不改；仅多提供`ScheduleTick`。Server在Game状态使用ScheduleTick，把最主要同步emit阶段与raw读取event loop隔开；Normal1保持旧原始同步调用。仅`LifecycleServer.ensureTunnel`的`desired>1`、在共享TUN Router发布前启用，绝不运行时全局调开关。ObserveTiming=true的Game `Server.TickTimed`也只调度后台维护，`tick_tcp_async_scheduled`/`tick_tcp_async_coalesced`另行累计，原子`tick_tcp_emit`等旧字段**不再表示后台工作耗时**，不能拿下降的tick wall当CPU下降。
+
+单元测试`TestBoundedTickWorkNeverQueuesAndCloseWaits`检查无待办/close等待/close后拒绝；`TestBoundedTickWorkAtMostOneConcurrentWorker`以64并发竞争确保只有1worker；`TestGameServiceTickDoesNotWaitForTCPMaintenance`锁住慢TCP流验证Game主tick能先返回、close等待。另加`TestGameSharedAuthenticatedFirstArrivalTwoAndFourLanes`对2、4个真实lane TLS/FEC解密之后同PacketID并发调用验证恰好一份交付，没有前置未经认证去重；扩诊断JSON测试两个async计数。这些测试**尚未通过新SHA Actions**，必须先Linux/Windows单测/Go race+特权TUN/TPROXY/lifecycle严格绿门；源码提交本身不代表正确性。
+
+## 风险与可停止条件
+这是调度/并发改变，**真实弱网修复延迟有风险**：上一轮维修很慢而此轮不排队，下一个100ms tick才能重新发起。因此本补丁不是E3正式完成，必须独立正式Normal1 lossless/真正5205和Game4 lossless/真正5205所有保护，再加Game2与实际竞速/会话generation防越界；任意race、TCP/HTTPS哈希、first-arrival、100ms级回补或探针/UDP业务失败都阻止放行。不能拿(\mathrm{profileON})假省18秒当OFF收益。不要把固定loss5冒充阶段5%→20%→5% 5205，性能每run一个样本，MTU自动record0、300s+3s drain保持。至少3份可比profileOFF CPU/GiB样本才能声称CPU受益，不能仅凭C2S业务丢少了就说CPU优化。
+
+完整工程决议另存 [GAME_MODE_INGRESS_ARCHITECTURE_20261008.md](../GAME_MODE_INGRESS_ARCHITECTURE_20261008.md)，含后续若A候选失败时才建立总预算恒定的per-lane解码worker/真实认证后的单一PacketID锅，避免先增加内存和无界排队。旧FAIL仍原样保留，E1/E2/E3到E6都未获正式性能完成资格，80秒S2C旧故障E7 OPEN，P6/物理NOT_RUN。源码/状态 machine receipt: [本轮证据](../evidence/performance-efficiency-game-tick-isolation-candidate-20261008.json)。

@@ -594,6 +594,7 @@ type TCPServer struct {
 	mu      sync.Mutex
 	flows   map[uint64]*tcpServerFlow
 	retired tcpRetiredSet
+	tickWork boundedTickWork // one in-flight Game maintenance pass, no pending queue
 	dial    func(context.Context, string, string) (net.Conn, error)
 }
 
@@ -879,6 +880,8 @@ type TCPServerTickProfile struct {
 	Flows    uint64
 	DueFrames uint64
 	Aborts   uint64
+	AsyncScheduled bool
+	AsyncCoalesced bool
 }
 
 // TickTimed mirrors Tick's per-flow ordering and abort/error semantics, but
@@ -926,7 +929,15 @@ func (s *TCPServer) TickTimed(now time.Time) TCPServerTickProfile {
 	return p
 }
 
+// ScheduleTick never holds the server receiver loop while retransmitted
+// frames travel through Game's multi-lane owner, FEC and raw emitter.
+// A busy pass coalesces subsequent ticks rather than accumulating work.
+func (s *TCPServer) ScheduleTick(now time.Time) bool {
+	return s.tickWork.tryRun(now, s.Tick)
+}
+
 func (s *TCPServer) Close() {
+	s.tickWork.close() // owner and tunnel remain alive until the worker exits
 	now := time.Now()
 	for _, flow := range s.snapshot() {
 		s.removeAt(flow, now)

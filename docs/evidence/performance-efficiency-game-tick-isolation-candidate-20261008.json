@@ -1,0 +1,62 @@
+{
+  "schema": "wbd-game-shared-authenticated-ingress-architecture-candidate/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "head_parent": "8e6a26567511e19901f01f24ee31e82136c1736e",
+  "workstream": "E3 game receive no-HOL staging plus E0 architecture",
+  "decision": "Existing per-lane verified decode and one owner-wide PacketID first-arrival dedupe constitute the right logical shared pot. Do not add a larger duplicate raw buffer. First isolate Game TCP maintenance off receive loop via exactly one coalescing worker per logical tunnel.",
+  "candidate_changes": {
+    "internal/platformflow/bounded_tick_work.go": "single 1-worker 0-queue scheduling; close WaitGroup fencing",
+    "internal/platformflow/tcp.go": "ScheduleTick via same TCPServer.Tick and worker close before flows freed; new async count flags for diagnostics",
+    "internal/platformflow/service.go": "asyncGameTCP flag; Normal synchronously unchanged, Game async tick only, diagnostic-on counts scheduled/coalesced",
+    "internal/runtimeentry/lifecycle.go": "EnableGameTCPMaintenance when desired>1 prior to router publication; count async events",
+    "internal/runtimeentry/perf_diag.go": "JSON tick_tcp_async_scheduled/coalesced counters; old per-frame synchronous child counters no longer represent background work",
+    "internal/platformflow/bounded_tick_work_test.go": "deterministic close/no backlog/max concurrency/slow-flow noHOL",
+    "internal/datapath/game_shared_authenticated_first_arrival_test.go": "2/4 lane actual concurrent encrypted/FEC owner/PacketID uniqueness",
+    "internal/runtimeentry/server_tick_phase_diag_test.go": "new diagnostic JSON counters"
+  },
+  "no_changes": [
+    "TCP default RTO500ms",
+    "FEC20:20 payload or wire",
+    "record limits auto0 and MTU",
+    "owner session/identity/generation/lease fences",
+    "ready capacity4096",
+    "TCP ack/sequence/window and per-flow locks",
+    "Normal1 TCP tick sync",
+    "OS socket buffers or physical hardware"
+  ],
+  "read_baselines": {
+    "normal_off_run": 37793297374,
+    "normal_original": "PASS_SCOPED",
+    "game_off_run": 37797087655,
+    "game_original": "FAIL",
+    "game_udp_c2s_missing": 1906,
+    "probes_missing": [
+      23,
+      31
+    ],
+    "game_on_emit_run": 37788802499,
+    "game_sync_emit_wall_s": 18.363001025,
+    "game_ready_overflows": 317739,
+    "due_frames": 7231
+  },
+  "qualification": {
+    "new_source": "NOT_TESTED",
+    "new_normal_lossless": "NOT_RUN",
+    "new_normal_5205": "NOT_RUN",
+    "new_game_lossless": "NOT_RUN",
+    "new_game_5205": "NOT_RUN",
+    "game2": "NOT_RUN",
+    "E3_final": "BLOCKED",
+    "cpu_gain": "UNPROVEN",
+    "e7_80s": "OPEN",
+    "physical": "NOT_RUN"
+  },
+  "risk_ledger": [
+    "A Game TCP tick skipped while busy can delay genuine retransmit: 5205 and p99 hard gates, not assumed safe",
+    "Additional goroutine can compete on owner, per-flow locks and raw send, test under race and lifecycle",
+    "Game trace timing of TCP tick becomes scheduling-only; never use to claim CPU saved",
+    "User-space received-segment accounting in profile OFF remains unavailable; separate profile ON test required"
+  ],
+  "future": "After exact-source foundation/race and lifecycle success, issue one independent exact-source Game4 0loss profile OFF Actions measurement, seed set once, and collect original analyzer business receipt; then true 5205 one-per-run and diagnostics-on separated. Failures not hidden."
+}

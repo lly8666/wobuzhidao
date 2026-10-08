@@ -113,6 +113,7 @@ type Server struct {
 	channel *TunnelChannel
 	udp     *UDPServer
 	tcp     *TCPServer
+	asyncGameTCP bool // set only before publishing a Game service
 }
 
 func NewServer(channel *TunnelChannel, cfg ServerConfig) (*Server, error) {
@@ -146,11 +147,24 @@ func (s *Server) HandleServicePacket(packet []byte, now time.Time) (bool, error)
 	}
 }
 
+// EnableGameTCPMaintenance moves only TCP retry emission away from the
+// receive event loop. Configure before Router.SetServiceHandler publishes
+// this service; per-flow TCP locking and existing owner fencing still apply.
+func (s *Server) EnableGameTCPMaintenance() {
+	if s != nil {
+		s.asyncGameTCP = true
+	}
+}
+
 func (s *Server) Tick(now time.Time) {
 	if s == nil {
 		return
 	}
 	s.udp.Tick(now)
+	if s.asyncGameTCP {
+		s.tcp.ScheduleTick(now)
+		return
+	}
 	s.tcp.Tick(now)
 }
 
@@ -165,7 +179,18 @@ func (s *Server) TickTimed(now time.Time) (udpDuration, tcpDuration time.Duratio
 	s.udp.Tick(now)
 	udpDuration = time.Since(started)
 	started = time.Now()
-	tcpProfile = s.tcp.TickTimed(now)
+if s.asyncGameTCP {
+		// In Game the main loop measures scheduling time, not worker
+		// retransmit cost. AsyncScheduled/AsyncCoalesced are explicit so
+		// existing sync tick totals cannot be misread as saved CPU.
+		if s.tcp.ScheduleTick(now) {
+			tcpProfile.AsyncScheduled = true
+		} else {
+			tcpProfile.AsyncCoalesced = true
+		}
+	} else {
+		tcpProfile = s.tcp.TickTimed(now)
+	}
 	tcpDuration = time.Since(started)
 	return udpDuration, tcpDuration, tcpProfile
 }
