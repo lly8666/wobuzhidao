@@ -63,7 +63,7 @@ jobs:
           print("one performance sample",ref,"product",d["product_source_sha"],"helper",helper)
           PY
           python3 tools/perf_sample_guard.py claim \
-            --identity "large-mtu:${GITHUB_REF_NAME}:product${PRODUCT_SOURCE}:helper${WBD_HELPER_SOURCE}" \
+            --identity "large-mtu:${GITHUB_REF_NAME}:product${PRODUCT_SOURCE}:helper$(git rev-parse HEAD^)" \
             --receipt "$ART/sample-claim.json"
       - name: Install isolated network tools
         run: |
