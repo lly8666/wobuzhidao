@@ -15,7 +15,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--output",required=True)
     p.add_argument("--workload",choices=["udp","tcp","mixed"],required=True)
-    p.add_argument("--loss",type=int,choices=[0,5,20,30],required=True)
+    p.add_argument("--loss",type=int,choices=[0,5,20,30,5205],required=True)
     x=p.parse_args()
     original=Path("scripts/strict_weaknet_sample.sh").read_text()
     s=original
@@ -128,7 +128,7 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
     swap('"mode": mode, "scenario": scenario, "seed": seed,',
          '"mode": mode, "scenario": os.environ["WBD_LARGE_WORKLOAD"] + "-p" + os.environ["WBD_LARGE_LOSS"], "seed": seed,')
     swap('"one_way_delay_ms": 300, "duration_s": 120, "stages_s": [30, 60, 30],',
-         '"one_way_delay_ms": 300, "duration_s": 300, "stages_s": [[0,300,int(os.environ["WBD_LARGE_LOSS"])]],')
+         '"one_way_delay_ms": 300, "duration_s": 300, "stages_s": ([[0,75,5],[75,225,20],[225,300,5]] if os.environ["WBD_LARGE_LOSS"]=="5205" else [[0,300,int(os.environ["WBD_LARGE_LOSS"])] ]),')
     swap('"drain_s": 10,','"drain_s": 3,')
     swap('"packet_sizes_equal_count_cycle": [64, 256, 1200],',
          '''"packet_sizes_count_cycle": (
@@ -146,7 +146,7 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
         "tcp_reserved_https_mbps": 0 if os.environ["WBD_LARGE_WORKLOAD"]=="udp" else 0.02,
         "client_ingress": "TPROXY; no client TUN in this Linux strict topology",
         "outer_connection_mtu": 1400, "route_mode": "all",
-        "netem_loss_both_directions_percent": int(os.environ["WBD_LARGE_LOSS"]),''')
+        "netem_loss_both_directions_percent": ("waveform:5-20-5" if os.environ["WBD_LARGE_LOSS"]=="5205" else int(os.environ["WBD_LARGE_LOSS"])),''')
     Path(x.output).write_text(s)
     Path(x.output+".receipt.json").write_text(json.dumps({
         "schema":"wbd-large-mtu-harness-template/v1",

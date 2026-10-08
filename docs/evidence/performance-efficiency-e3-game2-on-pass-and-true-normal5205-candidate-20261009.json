@@ -1,0 +1,167 @@
+{
+  "schema": "wbd-e3-game2-qualified-and-true5205-first-one-sample/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "4ffa0427c94f0e9c24c8a9064d444d8cb8c790e4",
+  "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+  "helper_sha": "NEW_ACTION_HELPER_SHA",
+  "game2_on": {
+    "run_id": 37811388963,
+    "job_id": 113428829753,
+    "artifact_id": 11565756148,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37811388963",
+    "conclusion": "success",
+    "analyzer": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "mode": "game",
+    "requested_lanes": 2,
+    "actual_physical_lanes_client_server": [
+      2,
+      2
+    ],
+    "actual_logical_lanes_client_server": [
+      2,
+      2
+    ],
+    "lane_refs": "ID1 Generation1, ID2 Generation2",
+    "profile": "on",
+    "seed": 1829,
+    "loss": 0,
+    "logical_mbps_each": 3,
+    "one_way_delay_ms": 300,
+    "business_duration_s": 300,
+    "drain_s": 3,
+    "auto_server_tun_mtu": 1273,
+    "goodput_mbps_each": 2.97231648,
+    "udp_missing_by_size_both": {
+      "96": 0,
+      "256": 0,
+      "512": 0,
+      "1000": 0,
+      "1372": 0,
+      "4068": 0
+    },
+    "probe_c2s_sent_returned": [
+      1500,
+      1500
+    ],
+    "probe_s2c_sent_returned": [
+      1495,
+      1495
+    ],
+    "probe_p99_ms_c2s_s2c": [
+      613.250462,
+      613.395485
+    ],
+    "tcp_flows_each": 304,
+    "tcp_hash_errors": 0,
+    "http_https": "20/20 10 cert verified",
+    "server_raw_reads": 1446139,
+    "server_ready_overflow_drops": 0,
+    "server_ready_peak": 1008,
+    "server_ready_capacity": 4096,
+    "server_queue_max_age_ms": 30.205085,
+    "game_client_delivered": 132419,
+    "game_client_duplicates": 132419,
+    "game_server_delivered": 131092,
+    "game_server_duplicates": 131092,
+    "cpu_s": 205.42,
+    "runner": "AMD EPYC 7763 64-Core Processor;4vCPU;cpu quota unknown",
+    "cpu_comparability": "diagnostics ON, different lane count/seed/runner; no optimization speedup claim"
+  },
+  "previous_game4": {
+    "off_run": 37807156289,
+    "original": "PASS_SCOPED_ACTIONS",
+    "on_run": 37808417385,
+    "original_on": "PASS_SCOPED_ACTIONS",
+    "both_four_physical_on": true,
+    "server_ready_overflow_on": 32
+  },
+  "new_normal5205": {
+    "config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1830,
+      "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+      "mode": "normal",
+      "lanes": 1,
+      "rate_mbps": 10,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+    "one_action_one_sample": true,
+    "state": "CANDIDATE_ACTION_NOT_YET_COMPLETED",
+    "stages_s": [
+      [
+        0,
+        75,
+        5
+      ],
+      [
+        75,
+        225,
+        20
+      ],
+      [
+        225,
+        300,
+        5
+      ]
+    ],
+    "loss_percent_per_direction_each_stage": true,
+    "delay_one_way_ms": 300,
+    "duration_s": 300,
+    "drain_s": 3,
+    "mode": "normal",
+    "lanes": 1,
+    "profile": "off",
+    "fec": "20:20",
+    "padding": "off",
+    "record_limit_auto": 0,
+    "outer_mtu": 1400,
+    "real_linux_client_tproxy_server_tun": true
+  },
+  "new_helper_files": [
+    ".github/workflows/next-efficiency-e0-single.yml",
+    "tools/large_mtu_loss_stage.py",
+    "tools/prepare_large_mtu_harness.py",
+    "tools/check_large_mtu_mixed.py",
+    "tools/test_efficiency_5205_waveform.py"
+  ],
+  "expected_hard_gates": [
+    "preflight Python standalone waveform unit verifies per-phase qdisc counter resets, expected 75/150/75 offsets and labels before running 300s",
+    "actual stage records must show 5%→20%→5% each direction at 75s and225s ±2s and netem loss within 2pp each stage, >100 attempted packets",
+    "business goodput 99%+ injected, exact source/helper identities, full TCP hash and HTTP/HTTPS cert+body 20/20",
+    "aggregate each-direction UDP eventual missing ≤0.1%, probe missing ≤1%, no socket/interface drops",
+    "phase-specific application loss is NOT measured with current generator; any PASS must be scoped to staged network and total business and not replace full phase-specific strict 5205 guard",
+    "do not use ON/OFF or different CPU/seed cases as CPU-saving evidence"
+  ],
+  "qualifications": {
+    "game4_off": "PASS_SCOPED",
+    "game4_on": "PASS_SCOPED",
+    "game2_on": "PASS_SCOPED",
+    "game2_off": "NOT_RUN",
+    "normal_new_source_lossless": "NOT_RUN",
+    "normal_true5205": "PENDING_ACTION",
+    "game4_true5205": "NOT_RUN",
+    "game3": "NOT_RUN",
+    "e3_final": "BLOCKED",
+    "cpu_gain": "UNPROVEN",
+    "e7_80s": "OPEN",
+    "physical": "NOT_RUN"
+  },
+  "historical_fail_preservation": [
+    37802779025,
+    37801415227,
+    37797087655,
+    37806291845,
+    37806292258
+  ],
+  "limits": [
+    "No same-run A/B, no multi-case matrix",
+    "Only modify target next branch, never main",
+    "No fake product MTU9000; inner fixtures remain 9000; actual shared server TUN auto1273",
+    "This first waveform qualifier includes a FAIL-closed exercise of new helper and may expose unmet protection thresholds"
+  ]
+}

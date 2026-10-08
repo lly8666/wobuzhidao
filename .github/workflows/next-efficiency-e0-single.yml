@@ -50,7 +50,7 @@ jobs:
           d=json.loads(Path(".github/efficiency-e0-sample.json").read_text())
           assert set(d)=={"workload","loss","seed","product_source_sha","mode","lanes","rate_mbps","size_profile","diagnostic_mode"}
           assert d["workload"] in ("udp","tcp","mixed")
-          assert type(d["loss"]) is int and d["loss"] in (0,5,20,30)
+          assert type(d["loss"]) is int and d["loss"] in (0,5,20,30,5205)
           assert type(d["seed"]) is int and 1<=d["seed"]<=999999
           assert d["mode"] in ("normal","game")
           assert (d["mode"],d["lanes"],d["rate_mbps"]) in (("normal",1,10),("game",2,3),("game",3,3),("game",4,3))
@@ -76,7 +76,8 @@ jobs:
                   f.write("%s=%s\n"%(name,value))
           print("ONE_E0_SAMPLE",d,"helper",helper)
           PY
-          python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py tools/efficiency_http_https.py tools/efficiency_cost_ledger.py
+          python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py tools/efficiency_http_https.py tools/efficiency_cost_ledger.py tools/test_efficiency_5205_waveform.py
+          python3 tools/test_efficiency_5205_waveform.py
           # Fail before the 300s sample if any helper CLI forgets the configured profile.
           python3 tools/large_mtu_mixed_business.py --help | grep -Fq '{ordinary,jumbo,boundary}'
           python3 tools/check_large_mtu_mixed.py --help | grep -Fq '{ordinary,jumbo,boundary}'

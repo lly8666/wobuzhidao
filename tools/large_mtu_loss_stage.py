@@ -1,52 +1,90 @@
 #!/usr/bin/env python3
-"""One fixed 300-second dual-direction loss stage; one sample, no loop of scenarios."""
-import argparse,json,subprocess,time
+"""One 300s fullstack impairment sample, fixed loss OR one 5205 waveform.
+
+5205 is a SINGLE business scenario with pre/stress/post stages of
+75/150/75 seconds and an exactly 3s impaired drain; it is not an
+in-run A/B or a set of independent throughput samples.
+"""
+import argparse
+import json
+import subprocess
+import time
 from pathlib import Path
 
-def tc(ns,bin,dev,loss,seed):
-    cmd=["ip","netns","exec",ns,bin,"qdisc","change","dev",dev,
-         "root","netem","limit","200000","delay","300ms"]
-    if loss:cmd+=["loss","random",str(loss)+"%","seed",str(seed)]
-    p=subprocess.run(cmd,capture_output=True,text=True)
-    if p.returncode:raise RuntimeError(repr((cmd,p.returncode,p.stdout,p.stderr)))
+def tc(ns, tc_bin, dev, loss, seed):
+    cmd = ["ip", "netns", "exec", ns, tc_bin, "qdisc", "change",
+           "dev", dev, "root", "netem", "limit", "200000", "delay", "300ms"]
+    if loss:
+        cmd += ["loss", "random", str(loss)+"%", "seed", str(seed)]
+    p = subprocess.run(cmd, capture_output=True, text=True)
+    if p.returncode:
+        raise RuntimeError(repr((cmd, p.returncode, p.stdout, p.stderr)))
 
-def snap(ns,bin,dev):
-    p=subprocess.run(["ip","netns","exec",ns,bin,"-s","-j","qdisc","show","dev",dev],
-                     capture_output=True,text=True,check=True)
+def snap(ns, tc_bin, dev):
+    p = subprocess.run(["ip", "netns", "exec", ns, tc_bin, "-s", "-j",
+                        "qdisc", "show", "dev", dev],
+                       capture_output=True, text=True, check=True)
     return json.loads(p.stdout)
 
+def sleep_until(ns):
+    while True:
+        remaining = ns - time.monotonic_ns()
+        if remaining <= 0:
+            return
+        time.sleep(min(0.05, remaining / 1e9))
+
 def main():
-    a=argparse.ArgumentParser()
-    for x in ["namespace","c2s-dev","s2c-dev","tc-bin","output"]:a.add_argument("--"+x,required=True)
-    a.add_argument("--fixed-loss",type=int,choices=[0,5,20,30],required=True)
-    a.add_argument("--start-ns",type=int,required=True)
-    a.add_argument("--seed",type=int,required=True)
-    # Existing strict harness arguments accepted, but fixed-loss is authoritative.
-    for x in ["pre-loss","stress-loss","post-loss"]:a.add_argument("--"+x,type=float)
-    x=a.parse_args()
-    Path(x.output).parent.mkdir(parents=True,exist_ok=True)
-    with open(x.output,"w",buffering=1) as f:
+    a = argparse.ArgumentParser()
+    for key in ["namespace","c2s-dev","s2c-dev","tc-bin","output"]:
+        a.add_argument("--"+key, required=True)
+    a.add_argument("--fixed-loss", type=int, choices=[0,5,20,30,5205], required=True)
+    a.add_argument("--start-ns", type=int, required=True)
+    a.add_argument("--seed", type=int, required=True)
+    for key in ["pre-loss","stress-loss","post-loss"]:
+        a.add_argument("--"+key, type=float)
+    x = a.parse_args()
+    waveform = x.fixed_loss == 5205
+    # 5205 is 5%->20%->5% across exactly one 300-second business run.
+    phases = [("pre",0,5),("stress",75,20),("post",225,5)] if waveform else [
+        ("fixed",0,x.fixed_loss)]
+    Path(x.output).parent.mkdir(parents=True, exist_ok=True)
+    with open(x.output, "w", buffering=1) as f:
+        active = phases[0][2]
+        def event(name, loss):
+            row = {
+                "event":name,
+                "monotonic_ns":time.monotonic_ns(),
+                "loss_percent":{"c2s":loss,"s2c":loss},
+                "qdisc":{
+                    "c2s":snap(x.namespace,x.tc_bin,x.c2s_dev),
+                    "s2c":snap(x.namespace,x.tc_bin,x.s2c_dev),
+                },
+            }
+            f.write(json.dumps(row,sort_keys=True)+"\n")
         try:
-            def event(name):
-                row={"event":name,"monotonic_ns":time.monotonic_ns(),
-                     "loss_percent":{"c2s":x.fixed_loss,"s2c":x.fixed_loss},
-                     "qdisc":{"c2s":snap(x.namespace,x.tc_bin,x.c2s_dev),
-                              "s2c":snap(x.namespace,x.tc_bin,x.s2c_dev)}}
-                f.write(json.dumps(row)+"\n")
-            while time.monotonic_ns()<x.start_ns:
-                time.sleep(min(.1,(x.start_ns-time.monotonic_ns())/1e9))
-            tc(x.namespace,x.tc_bin,x.c2s_dev,x.fixed_loss,x.seed*100+1)
-            tc(x.namespace,x.tc_bin,x.s2c_dev,x.fixed_loss,x.seed*100+2)
-            event("business_start")
-            while time.monotonic_ns()<x.start_ns+300_000_000_000:time.sleep(.05)
-            event("business_end")
-            # Preserve the same impairment for the exact three-second drain, not fifteen.
-            while time.monotonic_ns()<x.start_ns+303_000_000_000:time.sleep(.05)
-            event("drain_end")
+            for idx,(name,offset,loss) in enumerate(phases):
+                sleep_until(x.start_ns + offset*1_000_000_000)
+                if idx:
+                    event(phases[idx-1][0]+"_end",active)
+                tc(x.namespace,x.tc_bin,x.c2s_dev,loss,x.seed*100+idx*10+1)
+                tc(x.namespace,x.tc_bin,x.s2c_dev,loss,x.seed*100+idx*10+2)
+                active=loss
+                if waveform:
+                    event(name+"_start",loss)
+                if idx==0:
+                    event("business_start",loss)
+            sleep_until(x.start_ns+300_000_000_000)
+            if waveform:
+                event("post_end",active)
+            event("business_end",active)
+            # Real drain remains under the final-stage impairment.
+            sleep_until(x.start_ns+303_000_000_000)
+            event("drain_end",active)
             tc(x.namespace,x.tc_bin,x.c2s_dev,0,x.seed*100+91)
             tc(x.namespace,x.tc_bin,x.s2c_dev,0,x.seed*100+92)
-        except Exception as ex:
-            f.write(json.dumps({"event":"harness_error","message":str(ex)})+"\n")
+        except Exception as exc:
+            f.write(json.dumps({"event":"harness_error","message":str(exc)})+"\n")
             raise
 
-if __name__=="__main__":main()
+if __name__=="__main__":
+    main()

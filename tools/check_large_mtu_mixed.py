@@ -70,18 +70,51 @@ def qdisc(row):
         drop+=int(q.get("drops",st.get("queue",{}).get("drops",b.get("drops",0))))
     return {"passed_packets":sent,"drops":drop}
 
+def _qdisc_interval(start, end, side):
+    a=qdisc(start["qdisc"][side]);b=qdisc(end["qdisc"][side])
+    passed=b["passed_packets"]-a["passed_packets"]
+    drops=b["drops"]-a["drops"]
+    if passed < 0 or drops < 0:
+        raise ValueError("netem qdisc reset inside phase "+side)
+    attempted=passed+drops
+    return {"passed":passed,"dropped":drops,"attempted":attempted,
+            "realized_percent":100*drops/attempted if attempted else None}
+
 def packet_loss(stage):
+    # A staged 5205 waveform is ONE 300-second sample. Never compute
+    # cumulative qdisc counters across a qdisc change, since tc may reset
+    # them; use each phase's own before/after snap instead.
+    if any(x.get("event")=="pre_start" for x in stage):
+        periods=[("pre",0,75,5),("stress",75,225,20),("post",225,300,5)]
+        starts={x["event"]:x for x in stage}
+        base=starts["business_start"]["monotonic_ns"]
+        phases={}
+        for name,begin,end,want in periods:
+            begin_row=starts[name+"_start"]
+            end_row=starts[name+"_end"]
+            begin_ns=begin_row["monotonic_ns"]
+            end_ns=end_row["monotonic_ns"]
+            if (abs((begin_ns-base)/1e9-begin)>2.0 or
+                abs((end_ns-base)/1e9-end)>2.0 or end_ns <= begin_ns):
+                raise ValueError("5205 stage timing mismatch: "+name)
+            if any(begin_row["loss_percent"].get(side)!=want or
+                   end_row["loss_percent"].get(side)!=want for side in ("c2s","s2c")):
+                raise ValueError("5205 loss stage label mismatch: "+name)
+            phases[name]={"expected_percent":want,"start_offset_s":(begin_ns-base)/1e9,
+                          "end_offset_s":(end_ns-base)/1e9,
+                          "c2s":_qdisc_interval(begin_row,end_row,"c2s"),
+                          "s2c":_qdisc_interval(begin_row,end_row,"s2c")}
+        out={}
+        for side in ("c2s","s2c"):
+            passed=sum(phase[side]["passed"] for phase in phases.values())
+            drops=sum(phase[side]["dropped"] for phase in phases.values())
+            denom=passed+drops
+            out[side]={"passed":passed,"dropped":drops,"attempted":denom,
+                       "realized_percent":100*drops/denom if denom else None}
+        return out,phases
     start=next(x for x in stage if x["event"]=="business_start")
     end=next(x for x in stage if x["event"]=="business_end")
-    out={}
-    for d in ("c2s","s2c"):
-        a=qdisc(start["qdisc"][d]);b=qdisc(end["qdisc"][d])
-        passed=b["passed_packets"]-a["passed_packets"]
-        drops=b["drops"]-a["drops"]
-        denom=passed+drops
-        out[d]={"passed":passed,"dropped":drops,"attempted":denom,
-                "realized_percent":100*drops/denom if denom else None}
-    return out
+    return {side:_qdisc_interval(start,end,side) for side in ("c2s","s2c")},{}
 
 def size_direction(src,dst):
     tx=src.get("udp_tx",{})
@@ -153,7 +186,7 @@ def main():
     a=argparse.ArgumentParser()
     a.add_argument("--artifact-dir",required=True);a.add_argument("--source",required=True)
     a.add_argument("--helper",required=True);a.add_argument("--workload",choices=["udp","tcp","mixed"],required=True)
-    a.add_argument("--loss",type=int,choices=[0,5,20,30],required=True)
+    a.add_argument("--loss",type=int,choices=[0,5,20,30,5205],required=True)
     a.add_argument("--seed",type=int,required=True);a.add_argument("--output",required=True)
     a.add_argument("--target-mbps",type=float,choices=[3.0,10.0],required=True)
     a.add_argument("--size-profile",choices=["ordinary","jumbo","boundary"],required=True)
@@ -174,7 +207,7 @@ def main():
         if any(d["source_sha"]!=x.source or d["helper_sha"]!=x.helper or d["seed"]!=x.seed or d.get("size_profile")!=x.size_profile or d.get("configured_per_direction_mbps")!=x.target_mbps for d in (biz,target)):issues.append("PROCESS_IDENTITY")
         b=biz["counters"];t=target["counters"]
         stages=[json.loads(l) for l in (root/"stage-events.jsonl").read_text().splitlines()]
-        netem=packet_loss(stages)
+        netem,loss_stages=packet_loss(stages)
         # Enforce actual on-wire impairment stage timing. A manifest claiming
         # drain_s=3 cannot silently keep real endpoints/tc running for 15s.
         stage_start=next(row["monotonic_ns"] for row in stages if row["event"]=="business_start")
@@ -185,10 +218,22 @@ def main():
         if not (2_500_000_000<=drain_end-stage_end<=3_500_000_000):
             issues.append("DRAIN_STAGE_DURATION_MISMATCH")
         if any(z["attempted"]<100 for z in netem.values()):issues.append("NETEM_NO_EFFECTIVE_TRAFFIC")
-        for side in ("c2s","s2c"):
-            z=netem[side]
-            if z["realized_percent"] is None or abs(z["realized_percent"]-x.loss)>max(2,0.20*x.loss):
-                issues.append("NETEM_LOSS_MISMATCH_"+side)
+        if x.loss==5205:
+            expected=[("pre",5),("stress",20),("post",5)]
+            if manifest["config"].get("stages_s")!=[[0,75,5],[75,225,20],[225,300,5]]:
+                issues.append("5205_MANIFEST_WAVEFORM_MISMATCH")
+            if [tuple((name,loss_stages.get(name,{}).get("expected_percent"))) for name,_ in expected]!=expected:
+                issues.append("5205_STAGE_MISSING_OR_WRONG")
+            for name,want in expected:
+                for side in ("c2s","s2c"):
+                    q=loss_stages[name][side]
+                    if q["attempted"]<100 or q["realized_percent"] is None or abs(q["realized_percent"]-want)>2.0:
+                        issues.append("5205_REALIZED_LOSS_MISMATCH_"+side+"_"+name)
+        else:
+            for side in ("c2s","s2c"):
+                z=netem[side]
+                if z["realized_percent"] is None or abs(z["realized_percent"]-x.loss)>max(2,0.20*x.loss):
+                    issues.append("NETEM_LOSS_MISMATCH_"+side)
         links={}
         for file,key in (("inner-biz-link.json","biz"),("inner-client-link.json","client_input"),
                          ("inner-server-tun.json","server_tun"),("inner-target-link.json","target")):
@@ -223,6 +268,11 @@ def main():
             if x.workload in ("tcp","mixed") and any(str(i) not in src.get("tcp_tx",{}) for i in range(4)):
                 issues.append("TCP_FOUR_SUSTAINED_FLOWS_MISSING_"+key)
             if x.loss==0 and any(v["missing"] for v in sz.values()):issues.append("LOSSLESS_UDP_MISSING_"+key)
+            if x.loss==5205:
+                sent_udp=sum(v["sent_datagrams"] for v in sz.values())
+                missed_udp=sum(v["missing"] for v in sz.values())
+                if sent_udp<1000 or missed_udp>sent_udp*0.001:
+                    issues.append("5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_"+key)
         probe_summary={}
         for name,side in (("c2s",b),("s2c",t)):
             probe=side.get("probe_rtt_ns",[])
@@ -235,6 +285,8 @@ def main():
                                  "max_ms":max(probe)/1e6 if probe else None}
             if side["probe_sent"]<1450:issues.append("PROBE_COVERAGE_"+name)
             if x.loss==0 and probe_summary[name]["missing"]:issues.append("LOSSLESS_PROBE_MISSING_"+name)
+            if x.loss==5205 and probe_summary[name]["missing"]>max(1,int(side["probe_sent"]*0.01)):
+                issues.append("5205_PROBE_TIMEOUT_OVER_1PCT_"+name)
         web={}
         if x.workload in ("tcp","mixed"):
             web_b=json.loads((root/"biz-http.json").read_text())
@@ -329,7 +381,7 @@ def main():
             issues.append("LOCAL_INTERFACE_DROP")
         result={"schema":"wbd-large-mtu-analysis/v1","product_source_sha":x.source,
                 "helper_sha":x.helper,"workload":x.workload,"loss_percent":x.loss,"seed":x.seed,"size_profile":x.size_profile,"target_mbps":x.target_mbps,
-                "netem_realized":netem,"mtu":links,"route_mode":"all",
+                "netem_realized":netem,"netem_stages":loss_stages,"mtu":links,"route_mode":"all",
                 "path":"biz -> client TPROXY -> raw TCP-shaped -> router netem -> shared server TUN -> target",
                 "direction":direction,"probe":probe_summary,"web":web,"resources":resources,
                 "diagnostic_mode":"on" if diag_on else "off",
