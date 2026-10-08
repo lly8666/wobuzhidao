@@ -1,0 +1,135 @@
+{
+  "schema": "wbd-e3-5205-echo-phase-attribution-false-positive-fix/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "d6ba32ed7596b907822a06f782f2dd2303d35a1f",
+  "original_run": {
+    "id": 37816217223,
+    "job_id": 113445415351,
+    "artifact_id": 11567915996,
+    "source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "helper_sha": "d6ba32ed7596b907822a06f782f2dd2303d35a1f",
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37816217223",
+    "actions_conclusion": "failure",
+    "original_analysis": "FAIL",
+    "original_issues": [
+      "5205_STAGE_PROBE_LOSS_OVER_1PCT_c2s_pre",
+      "5205_PHASE_DELIVERY_INVALID_s2c"
+    ],
+    "steps": {
+      "one_exact_sample": "success",
+      "real_300s_business": "success",
+      "profile_off_check": "success",
+      "analysis_step": "success",
+      "normalized_ledger": "success",
+      "final_gate": "failure"
+    },
+    "business_original_aggregate": {
+      "c2s": {
+        "udp_missing": 0,
+        "probes_sent": 1500,
+        "probes_returned": 1500,
+        "probe_missing": 0,
+        "p99_ms": 619.854985,
+        "tcp_flows": 304
+      },
+      "s2c": {
+        "udp_missing": 0,
+        "probes_sent": 1495,
+        "probes_returned": 1495,
+        "probe_missing": 0,
+        "p99_ms": 617.40161,
+        "tcp_flows": 304
+      },
+      "http_https_returned": 20
+    },
+    "phase_waveform_actual": {
+      "pre": {
+        "c2s_loss_percent": 4.9945290294315665,
+        "s2c_loss_percent": 4.985261032747891
+      },
+      "stress": {
+        "c2s_loss_percent": 20.04693493320798,
+        "s2c_loss_percent": 19.98286519018486
+      },
+      "post": {
+        "c2s_loss_percent": 4.988321541601818,
+        "s2c_loss_percent": 4.980112638389974
+      }
+    },
+    "phase_udp_c2s": {
+      "pre": {
+        "sent": 25792,
+        "delivered": 25792,
+        "missing": 0,
+        "over_3s": 0
+      },
+      "stress": {
+        "sent": 51503,
+        "delivered": 51503,
+        "missing": 0,
+        "over_3s": 0
+      },
+      "post": {
+        "sent": 25767,
+        "delivered": 25767,
+        "missing": 0,
+        "over_3s": 0
+      }
+    },
+    "bad_probe_attribution": {
+      "previous_c2s_pre_sent": 375,
+      "previous_wrong_receiver_returned": 370,
+      "previous_false_pre_missing": 5,
+      "reason": "Analyzer compared the biz sender's probe_stage_tx to the target endpoint's probe_stage_rx. Both endpoint probe sockets originate independent probe streams. Each receives a kind=4 echo for its OWN sent kind=3; compare source's phase_tx and source's phase_rx instead.",
+      "previous_s2c_invalid_reason": "invalid probe phase counts pre"
+    },
+    "sample_resource": {
+      "cpu_s_total": 290.07,
+      "cpu_model": "Intel Xeon Platinum 8370C",
+      "different_runner_from_previous": true,
+      "cpu_benefit": "NOT_CLAIMED"
+    },
+    "sha256": {
+      "summary.json": "f36d14c101641a0034c090c0e2e341c9dd32d4086827d136a7397e2085e5f4ab",
+      "efficiency-ledger.json": "8077c74f5960517b62e121904ae6af439bddd0795be257f2084bc5dddb4bd681",
+      "manifest.json": "16a32745504446eb4a378559601b25b165508e7ab2a130ff19c5654ab1fe0496",
+      "stage-events.jsonl": "65df19b360ae4359fc48d24c0de69097d39414aad894efd6d2aa1b23217e155b"
+    },
+    "interpretation": "Original workflow FAIL remains immutable. The phase probe false positive was a tool bug; original zero-missing business aggregate remains factual. A complete per-phase classification for s2c was not available from compact old artifact, so the run is NOT reclassified as a qualified full 5205 PASS."
+  },
+  "patch": {
+    "path": "tools/check_large_mtu_mixed.py",
+    "change": "probe_phases=phase_delivery(src,src,'probe'); total received must match src['probe_received'] rather than destination endpoint; UDP phase remains src->dst",
+    "test": "tools/test_efficiency_5205_phase_delivery.py tests echo loopback source pairing and proves wrong opposite-endpoint pairing fails closed",
+    "product_code": "UNCHANGED",
+    "data_generator": "UNCHANGED",
+    "FEC_RTO_MTU": "UNCHANGED"
+  },
+  "next_single_sample": {
+    "config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1833,
+      "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+      "mode": "game",
+      "lanes": 4,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "helper_sha": "NEW_COMMIT_GITHUB_SHA",
+    "status": "PENDING_REAL_ACTIONS",
+    "single_case": true
+  },
+  "qualification": {
+    "old_game4_5205_1831": "PASS_SCOPED_ACTIONS_NO_PHASE_DELIVERY",
+    "old_game4_5205_1832": "ORIGINAL_FAIL_ANALYZER_BUG",
+    "new_game4_5205_1833": "NOT_RUN",
+    "normal5205_phase": "NOT_RUN",
+    "e3_final": "BLOCKED",
+    "e2_cpu_gain": "UNPROVEN",
+    "e7_80s": "OPEN",
+    "physical": "NOT_RUN"
+  }
+}

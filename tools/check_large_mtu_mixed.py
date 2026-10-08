@@ -306,13 +306,16 @@ def main():
                 # measurements, not just the pre/stress/post netem qdisc trace.
                 try:
                     udp_phases=phase_delivery(src,dst,"udp")
-                    probe_phases=phase_delivery(src,dst,"probe")
+                    # A probe is an echo: the SOURCE counts its own reply.
+                    # dst receives kind=3 and sends kind=4 but does not
+                    # record this probe as dst.probe_received.
+                    probe_phases=phase_delivery(src,src,"probe")
                     tx_udp=sum(v["sent_datagrams"] for v in sz.values())
                     rx_udp=sum(v["delivered"] for v in sz.values())
                     if (sum(row["sent"] for row in udp_phases.values())!=tx_udp
                         or sum(row["delivered"] for row in udp_phases.values())!=rx_udp
                         or sum(row["sent"] for row in probe_phases.values())!=src["probe_sent"]
-                        or sum(row["delivered"] for row in probe_phases.values())!=dst["probe_received"]):
+                        or sum(row["delivered"] for row in probe_phases.values())!=src["probe_received"]):
                         raise ValueError("stage counters disagree with business size/probe totals")
                     direction[key]["phase_delivery_5205"]={
                         "udp":udp_phases,"probe":probe_phases,

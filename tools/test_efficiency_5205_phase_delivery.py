@@ -52,9 +52,13 @@ class PhaseDeliveryContract(unittest.TestCase):
         start=10*N;a=Totals(start);b=Totals(start)
         for sec in (1,76,226):
             a.stage_record("probe_stage_tx",start+sec*N,size=96)
-            b.stage_record("probe_stage_rx",start+sec*N,
+            # The destination echoes kind=3 -> kind=4; its own probe
+            # counters are independent. The originating socket counts RTT.
+            a.stage_record("probe_stage_rx",start+sec*N,
                            received_ns=start+sec*N+700_000_000,size=96)
-        out=phase_delivery(a.d,b.d,"probe")
+        with self.assertRaises(ValueError):
+            phase_delivery(a.d,b.d,"probe")
+        out=phase_delivery(a.d,a.d,"probe")
         for name in ("pre","stress","post"):
             self.assertEqual(out[name]["sent"],1)
             self.assertEqual(out[name]["missing"],0)
