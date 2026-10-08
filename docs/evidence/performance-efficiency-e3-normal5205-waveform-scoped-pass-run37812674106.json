@@ -1,0 +1,172 @@
+{
+  "schema": "wbd-e3-stage5205-real-normal-receipt-game4-next/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "09f5abf5bb1781d4a346be0f2e859bc14e6c3588",
+  "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+  "normal_5205": {
+    "run_id": 37812674106,
+    "job_id": 113433243998,
+    "artifact_id": 11565633299,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37812674106",
+    "helper_sha": "09f5abf5bb1781d4a346be0f2e859bc14e6c3588",
+    "conclusion": "success",
+    "original_analyzer": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "helper_waveform_unit_tests": "3 tests OK",
+    "mode": "normal",
+    "lanes": 1,
+    "workload": "mixed",
+    "loss_profile": 5205,
+    "seed": 1830,
+    "diagnostic": "off",
+    "duration_s": 300,
+    "drain_s": 3,
+    "one_way_ms": 300,
+    "logical_rate_mbps_each": 10,
+    "outer_mtu": 1400,
+    "record_limit_auto": 0,
+    "fec": "20:20",
+    "stages": [
+      {
+        "name": "pre",
+        "from_s": 0,
+        "to_s": 75,
+        "want_pct": 5,
+        "actual_c2s_pct": 5.015,
+        "actual_s2c_pct": 5.022,
+        "attempted_c2s": 803934,
+        "attempted_s2c": 803776
+      },
+      {
+        "name": "stress",
+        "from_s": 75,
+        "to_s": 225,
+        "want_pct": 20,
+        "actual_c2s_pct": 19.98,
+        "actual_s2c_pct": 19.99,
+        "attempted_c2s": 1478907,
+        "attempted_s2c": 1478861
+      },
+      {
+        "name": "post",
+        "from_s": 225,
+        "to_s": 300,
+        "want_pct": 5,
+        "actual_c2s_pct": 4.981,
+        "actual_s2c_pct": 5.024,
+        "attempted_c2s": 805339,
+        "attempted_s2c": 805271
+      }
+    ],
+    "netem_aggregate_drops_c2s": 375919,
+    "netem_aggregate_drops_s2c": 376452,
+    "directions": {
+      "c2s": {
+        "sent_mbps": 9.97614784,
+        "goodput_mbps": 9.971269973333333,
+        "udp_missing": 23,
+        "udp_missing_by_size": {
+          "96": 0,
+          "256": 8,
+          "512": 3,
+          "1000": 0,
+          "1372": 5,
+          "4068": 7
+        },
+        "probe_sent": 1500,
+        "probe_returned": 1500,
+        "probe_missing": 0,
+        "probe_p99_ms": 652.089926,
+        "tcp_flows_received": 304,
+        "tcp_hash_errors": 0
+      },
+      "s2c": {
+        "sent_mbps": 9.97613504,
+        "goodput_mbps": 9.971251733333332,
+        "udp_missing": 34,
+        "udp_missing_by_size": {
+          "96": 1,
+          "256": 10,
+          "512": 0,
+          "1000": 0,
+          "1372": 21,
+          "4068": 2
+        },
+        "probe_sent": 1495,
+        "probe_returned": 1493,
+        "probe_missing": 2,
+        "probe_p99_ms": 662.691766,
+        "tcp_flows_received": 304,
+        "tcp_hash_errors": 0
+      }
+    },
+    "web": {
+      "returned": 20,
+      "https_verified": 10,
+      "all_cert_body_pass": true
+    },
+    "runner": {
+      "cpu_model": "AMD EPYC 7763 64-Core Processor",
+      "vcpus": 4,
+      "quota_cores": null,
+      "product_cpu_s": 376.87,
+      "client_cpu_s": 189.13,
+      "server_cpu_s": 187.74,
+      "host_busy_max_percent": 48.96755162241888,
+      "cpu_psi_max": 34.82
+    },
+    "tun_auto_mtu": 1273,
+    "classification": "STAGED_NETWORK_AND_AGGREGATE_BUSINESS_SCOPED_PASS_NOT_ZERO_LOSS",
+    "limitations": [
+      "C2S UDP23 and S2C UDP34 missing, S2C probe2 missing; never call zero loss or full phase-specific repair qualification",
+      "Current generator lacks phase-specific attribution of each ultimately missing datagram, so this does not satisfy E3 full 5205 phase-by-phase delivery and repair guard",
+      "No CPU benefit claim: different loss profile and runner strata from previous Normal off samples",
+      "Go aggregate malloc uncollected in true profile-off"
+    ]
+  },
+  "game4_5205_next": {
+    "config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1831,
+      "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+      "mode": "game",
+      "lanes": 4,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "one_case_per_action": true,
+    "source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "helper_sha": "THIS_NEW_HELPER_COMMIT",
+    "qualification": "NOT_RUN_UNTIL_GITHUB_ACTIONS",
+    "checks": [
+      "pre/stress/post realized dual-netem 5/20/5 and exact 300s+3s real drain",
+      "UDP eventual <=0.1% and probes <=1%, TCP 304 each and HTTP/HTTPS full",
+      "Game4 true lane source previously profileON run37808417385, this profileOFF lacks runtime active counters",
+      "Original analyzer PASS/FAIL and host pressure preserved; no in-run AB"
+    ]
+  },
+  "prior_successes": {
+    "game4_off": 37807156289,
+    "game4_on": 37808417385,
+    "game2_on": 37811388963
+  },
+  "qualification": {
+    "normal_5205": "WAVEFORM_SCOPED_PASS_ONLY",
+    "game4_5205": "PENDING_ACTION",
+    "game2_off": "NOT_RUN",
+    "normal1_stageb_0loss": "NOT_RUN",
+    "game3": "NOT_RUN",
+    "e3_final": "BLOCKED",
+    "cpu_improvement": "UNPROVEN",
+    "e7_80s": "OPEN",
+    "e6_p6_physical": "NOT_RUN"
+  },
+  "previous_game_fails": [
+    37802779025,
+    37801415227,
+    37797087655
+  ]
+}
