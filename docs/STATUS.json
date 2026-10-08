@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-08T10:45:29.310136+08:00",
+  "updated_at": "2026-10-08",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -89,10 +89,10 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN",
     "Linux raw AF_PACKET per-socket receive buffer qualification",
-    "Cross-inner-MTU late datagram deterministic diagnosis"
+    "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
   ],
-  "next_task": "Fixedb4 five targeted native300s completed/clean; no active owned load. Priority OPEN M03/1554 initial~80s S2C interruption: all1557 target requests echoed, client78missing/no new authenticated records; raw send increases but selectedNIC matchingS2C/40000 stalls, gen2/40001 restores. Diagnose emitter tuple/header and kernel OUTPUT/routing/conntrack/qdisc boundary with bounded defaultoff evidence before code fixes. Later1225ms large-packet tail separate. Actualdefault1MiB verified without system/cap/config change; Normal10 residual10 retainsFAIL, Game4rotation3M zero loss/PASS. NoHOL is PASS_ACTIONS per user; no mandatory duplicate physical block. Do not redeploy old3a/c853, enlargeFEC/4096/horizon, duplicate loads or dispatch multiple performance samples in oneAction. Normal10 continuous96..1372 mixed alreadytested; maxUDP mixed10M needs helperqualification if pursued. BroaderP7/old failures remainOPEN.",
-  "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md",
+  "next_task": "Longmix Actions专项: first qualify tools/longmix_profile.py preflight, then add real A/B/C bidirectional UDP+TCP generators and strict netns/TUN 300s harness with actual MTU9000/outer1400, sample guard and bounded metrics; only after helper preflight dispatch 12 independent 0/5/20/30 samples at exact b4 SOURCE, keep M03/1554 downlink outage and 1225.578ms late separately OPEN. No physical work or product changes without trace.",
+  "latest_log": "docs/devlog/20261008-longmix-harness-entry.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10884,5 +10884,25 @@
     "scope": "Missing earlier record/ACK-write concurrency and missing large tiny-tail do not block later independent datagram; separate from outage/missing/late/timely physical gates.",
     "evidence": "docs/evidence/raw-scoped-buffer-b4ea061-physical-20261008.json",
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
+  },
+  "large_datagram_actions": {
+    "state": "HELPER_PLAN_UNVALIDATED",
+    "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "helper_sha": "PENDING_PRECHECK",
+    "precheck_action": "NOT_RUN",
+    "fullstack_samples": {
+      "PASS": 0,
+      "FAIL": 0,
+      "CAPACITY_LIMITED": 0,
+      "INVALID": 0,
+      "UNSUPPORTED": 0,
+      "NOT_RUN": 12
+    },
+    "evidence": "docs/evidence/longmix-20261008.json",
+    "physical": "NOT_RUN",
+    "separate_open": [
+      "M03/1554 80s S2C interruption",
+      "M03/1554 UDP65507 late 1225.578ms"
+    ]
   }
 }

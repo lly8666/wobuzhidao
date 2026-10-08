@@ -1,0 +1,37 @@
+name: next-longmix-preflight
+on:
+  push:
+    branches: [investigation/longmix-20261008]
+    paths:
+      - "tools/longmix_profile.py"
+      - "tools/test_longmix_profile.py"
+      - ".github/workflows/next-longmix-preflight.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  helper-static-and-kernel-boundaries:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Repository and existing one-sample workflow policy
+        run: |
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+      - name: Validate 12-sample immutable plan and fair-by-byte pacing
+        run: python3 tools/test_longmix_profile.py
+      - name: Kernel IPv4 fragment / EMSGSIZE functional boundary
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2
+          sudo modprobe tun || true
+          sudo python3 tools/test_inner_mtu9000_fragment_kernel.py
+      - name: Important qualification limit
+        run: |
+          echo "PRECHECK_ONLY: No formal client/server business processes exercised"
+          echo "A/B/C 300s fullstack samples remain NOT_RUN"
