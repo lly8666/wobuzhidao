@@ -21,7 +21,10 @@ import time
 A, B = "198.18.44.1", "198.18.44.2"
 PORT = 28641
 PMTUDISC_DONT, PMTUDISC_DO = 0, 2
-OUTER_TO_INNER = {1300: 1229, 1400: 1329}  # auto record=outer-40, FEC off: inner=record-31
+INNER_BY_FEC = {
+    0: {1300: 1229, 1400: 1329},
+    20: {1300: 1173, 1400: 1273},
+}  # auto record=outer-40; LINK frame = record-31-(56 if FEC else 0)
 
 
 def checked(cmd, timeout=55):
@@ -174,6 +177,7 @@ def main():
     parser.add_argument("--kind", choices=("tcp", "udp", "udp-jumbo"), required=True)
     parser.add_argument("--outer", type=int, choices=(1300, 1400), required=True)
     parser.add_argument("--loss", type=int, choices=(0, 5, 10), required=True)
+    parser.add_argument("--fec-parity", type=int, choices=(0, 20), default=0)
     parser.add_argument("--role", choices=("host", "server", "client"), default="host")
     parser.add_argument("--inner", type=int)
     parser.add_argument("--ready")
@@ -186,7 +190,7 @@ def main():
         inside(args)
         return
 
-    inner = OUTER_TO_INNER[args.outer]
+    inner = INNER_BY_FEC[args.fec_parity][args.outer]
     prefix = "wbdm" + str(os.getpid())
     ns_a, ns_b = prefix + "a", prefix + "b"
     # unique namespace names; interface names inside namespace stay short
@@ -212,7 +216,8 @@ def main():
                              "dev", dev, "root", "netem", "loss", str(args.loss) + "%"])
             command = [sys.executable, str(Path(__file__).resolve()),
                        "--kind", args.kind, "--outer", str(args.outer),
-                       "--loss", str(args.loss), "--inner", str(inner),
+                       "--loss", str(args.loss), "--fec-parity", str(args.fec_parity),
+                       "--inner", str(inner),
                        "--ready", ready, "--result", result, "--stop", stop]
             server = subprocess.Popen(["ip", "netns", "exec", ns_b] + command +
                                       ["--role", "server"], stdout=subprocess.PIPE,
@@ -241,6 +246,8 @@ def main():
                 raise AssertionError("unexpected near-total small UDP loss: received=%d sent=%d; sender=%s receiver=%s" % (received["received"], sent_metrics["udp_sent"], stat_a.strip(), stat_b.strip()))
             report = {"result": "PASS", "scope": "LINUX_KERNEL_VETH_SOCKETS_ONLY",
                       "outer_config": args.outer, "inner_mtu": inner,
+                      "fec_parity_budget": args.fec_parity,
+                      "fec_coding_in_kernel_scope": False,
                       "loss_percent": args.loss, "kind": args.kind,
                       "sent": sent_metrics, "received": received["received"],
                       "dropped_application_datagrams": (sent_metrics.get("udp_sent", 0) -
