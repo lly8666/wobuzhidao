@@ -6,6 +6,8 @@ on:
       - "tools/longmix_profile.py"
       - "tools/test_longmix_profile.py"
       - "tools/longmix_udp_business.py"
+      - "tools/longmix_tcp_business.py"
+      - "tools/test_longmix_tcp_business.py"
       - "tools/test_longmix_udp_business.py"
       - "tools/longmix_constant_stage.py"
       - "tools/prepare_longmix_udp.py"
@@ -39,6 +41,7 @@ jobs:
         run: |
           python3 tools/test_longmix_profile.py
           python3 tools/test_longmix_udp_business.py
+          python3 tools/test_longmix_tcp_business.py
           python3 tools/test_prepare_longmix_udp.py
           python3 tools/test_check_longmix_udp.py
           python3 tools/test_longmix_strict_workflow.py
