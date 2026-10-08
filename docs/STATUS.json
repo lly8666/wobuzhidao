@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_UDP_SCOPED_PASS_PROFILEOFF_BASELINE_NOT_QUALIFIED",
+    "phase": "E0_PROFILE_OFF_CORRECTED_SAMPLE_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -22,7 +22,7 @@
     },
     "optimization_implemented": false,
     "integration_core": "PASS_SOURCE_BF11FBF",
-    "ordinary_performance": "NOT_QUALIFIED_PROFILE_OFF",
+    "ordinary_performance": "PENDING_NEW_EXACT_HELPER_RUN",
     "physical": "NOT_RUN_NEW_SOURCE",
     "e0_audit": {
       "state": "AUDIT_ONLY",
@@ -35,7 +35,7 @@
     "e0_helper": {
       "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
       "helper_sha": "workflow GITHUB_SHA of helper candidate commit",
-      "status": "ACTIONS_SCOPED_PASS_NOT_PROFILE_OFF",
+      "status": "REVISED_PENDING_ACTIONS",
       "sample": {
         "workload": "udp",
         "loss": 0,
@@ -47,7 +47,9 @@
         "size_profile": "ordinary"
       },
       "workflow": ".github/workflows/next-efficiency-e0-single.yml",
-      "evidence": "docs/evidence/performance-efficiency-e0-helper-candidate-20261008.json"
+      "evidence": "docs/evidence/performance-efficiency-e0-helper-candidate-20261008.json",
+      "corrected_helper": "current commit exact GITHUB_SHA; no inherited PASS",
+      "corrected_evidence": "docs/evidence/performance-efficiency-e0-profileoff-correction-20261008.json"
     },
     "e0_first_sample": {
       "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
@@ -65,8 +67,8 @@
       "evidence": "docs/evidence/performance-efficiency-e0-run37755799764.json"
     }
   },
-  "next_task": "E0 correct two measured harness defects: DRAIN_S=15 must be 3; diagnostic-jsonl enabled server per-record timing despite WBD_STRICT_CPU_PROFILE=0. Fix exact helper, manifest and nested-diag parsing; rerun own-SHA independent single-sample Normal UDP 10Mbps/dir lossless seed1801 with true diagnostics-off. Then separate TCP (4 long+HTTP/HTTPS)/mixed/Game4/jumbo boundary, one performance case per Action; separate diagnostics-on allocation/batch/repair ledger and runner strata. E1-E7 not begun; 80s S2C remains OPEN E7; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-182800-e0-udp-ordinary-scoped-pass.md",
+  "next_task": "E0 inspect new exact-helper one-sample Normal10 UDP ordinary lossless seed1801 Actions; insist 3s drain and client/server JSONL disabled. If verified, independently qualify Normal TCP/mixed and Game4 and separate jumbo 8936/8937/65507 integrity; collect CPU/PPS/alloc/batch/repair using separate diagnostics Action and runner-quality strata. No E1 until E0 ordinary profile-off real business baseline/ledger credible. 80s S2C remains OPEN deferred E7; no physical/P6 PASS.",
+  "latest_log": "docs/devlog/20261008-e0-profileoff-helper-correction.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

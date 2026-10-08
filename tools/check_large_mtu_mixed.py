@@ -162,7 +162,7 @@ def main():
     try:
         manifest=json.loads((root/"manifest.json").read_text())
         if manifest["source_sha"]!=x.source or manifest["harness_sha"]!=x.helper:issues.append("SOURCE_HELPER_MISMATCH")
-        if manifest["config"]["duration_s"]!=300 or manifest["config"]["outer_connection_mtu"]!=1400:issues.append("WRONG_MANIFEST")
+        if (manifest["config"]["duration_s"]!=300 or manifest["config"]["outer_connection_mtu"]!=1400 or manifest["config"].get("drain_s")!=3 or manifest["config"].get("formal_default_tick_ms")!=100 or manifest["config"].get("record_limit_configured")!=0):issues.append("WRONG_MANIFEST")
         if manifest["scenario"]!=x.workload+"-p"+str(x.loss):issues.append("WRONG_WORKLOAD_LOSS")
         biz=json.loads((root/"biz.json").read_text());target=json.loads((root/"target.json").read_text())
         if any(d["source_sha"]!=x.source or d["helper_sha"]!=x.helper or d["seed"]!=x.seed or d.get("size_profile")!=x.size_profile or d.get("configured_per_direction_mbps")!=x.target_mbps for d in (biz,target)):issues.append("PROCESS_IDENTITY")
@@ -214,6 +214,7 @@ def main():
             if side["probe_sent"]<1450:issues.append("PROBE_COVERAGE_"+name)
             if x.loss==0 and probe_summary[name]["missing"]:issues.append("LOSSLESS_PROBE_MISSING_"+name)
         resources=resource_report(root,int(biz["start_monotonic_ns"]),int(biz["start_monotonic_ns"])+300_000_000_000)
+        if any(resources["diagnostics"][side]["present"] for side in ("client","server")):issues.append("PROFILE_OFF_DIAGNOSTIC_ENABLED")
         if resources["strict_resource"].get("errors"):
             issues.append("RESOURCE_AUDIT_WARNINGS")
         if resources["strict_resource"].get("socket_drop_max",0):

@@ -46,8 +46,12 @@ def _diag(root,label):
     if not count:return {"present":False,"parse_errors":errors}
     def pick(row):
         out={}
-        for key in ("owner","raw_io","lanes","process","resources"):
-            if key in row:out[key]=row[key]
+        product=row.get("product") or {}
+        tunnel=product.get("tunnel") or product
+        out["runtime"]=row.get("runtime",{})
+        for key in ("owner","lanes","server_pipeline","server_udp","client_udp"):
+            if key in tunnel:out[key]=tunnel[key]
+        if "raw_io" in product:out["raw_io"]=product["raw_io"]
         return out
     return {"present":True,"samples":count,"parse_errors":errors,
             "first_state":pick(first),"last_state":pick(last)}

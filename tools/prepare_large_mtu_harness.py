@@ -60,6 +60,11 @@ CAP_PIDS+=("$!")''')
     swap('--post-loss "$POST_LOSS"     --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log"',
          '--post-loss "$POST_LOSS"     --seed "$SEED" --fixed-loss "$WBD_LARGE_LOSS" --output "$ART/stage-events.jsonl" > "$ART/stage.log"')
     swap("--server-record-limit 1250 --mtu 1400", "--server-record-limit 0 --mtu 1400")
+    # A normal profile-off performance run must not enable per-record timings.
+    # Server ObserveTiming is coupled to diagnostic-jsonl, not CPU pprof.
+    if os.environ.get("WBD_EFF_DIAGNOSTIC", "0") == "0":
+        swap('--diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s', '')
+        swap('--diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s', '')
     def replace_role(role,bind,peer,out):
         nonlocal s
         patt=r'^ip netns exec "\$'+('TGT' if role=='target' else 'BIZ')+r'" python3 "\$GEN".*$'
@@ -97,7 +102,7 @@ CAP_PIDS+=("$!")''')
          '"mode": mode, "scenario": os.environ["WBD_LARGE_WORKLOAD"] + "-p" + os.environ["WBD_LARGE_LOSS"], "seed": seed,')
     swap('"one_way_delay_ms": 300, "duration_s": 120, "stages_s": [30, 60, 30],',
          '"one_way_delay_ms": 300, "duration_s": 300, "stages_s": [[0,300,int(os.environ["WBD_LARGE_LOSS"])]],')
-    swap('"drain_s": 10,','"drain_s": 15,')
+    swap('"drain_s": 10,','"drain_s": 3,')
     swap('"packet_sizes_equal_count_cycle": [64, 256, 1200],',
          '''"packet_sizes_count_cycle": ({"udp":{"96":30,"256":20,"512":14,"1000":10,"1372":9,"4068":6,"8972":5,"8973":4,"65507":2},"mixed":{"96":50,"256":20,"512":10,"1372":8,"8972":5,"8973":5,"65507":2}} if os.environ["WBD_EFF_SIZE_PROFILE"]=="jumbo" else {"udp":{"96":30,"256":20,"512":15,"1000":15,"1372":10,"4068":10},"mixed":{"96":50,"256":20,"512":10,"1000":5,"1372":10,"4068":5}}),
         "inner_edge_mtu": 9000, "server_shared_tun_mtu": "actual ip-link receipt",
