@@ -1,8 +1,8 @@
 {
   "workload": "mixed",
   "loss": 0,
-  "seed": 1820,
-  "product_source_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
+  "seed": 1821,
+  "product_source_sha": "408a5cfb44883d959073c4d41c07c23a767a72db",
   "mode": "game",
   "lanes": 4,
   "rate_mbps": 3,

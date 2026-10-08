@@ -1,0 +1,70 @@
+{
+  "schema": "wbd-e0-one-game4-tcp-tick-scan-emit-profile/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "product_source_sha": "408a5cfb44883d959073c4d41c07c23a767a72db",
+  "helper_sha": "THE_CONFIG_COMMIT_SHA",
+  "state": "NOT_RUN_TRIGGERING",
+  "foundation": {
+    "run_id": 37788321913,
+    "conclusion": "success",
+    "details": [
+      "Linux unit Go race/fuzz and arm64 adapter",
+      "Windows unit/Npcap contract",
+      "OpenWrt TPROXY and Linux real TUN privileged",
+      "repository-contract"
+    ]
+  },
+  "lifecycle": {
+    "run_id": 37788321939,
+    "conclusion": "success"
+  },
+  "config": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1821,
+    "product_source_sha": "408a5cfb44883d959073c4d41c07c23a767a72db",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "strict_single_sample": true,
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "critical_diagnostics": [
+    "tick_tcp_flow_snapshot",
+    "tick_tcp_scan",
+    "tick_tcp_emit",
+    "tick_tcp_abort",
+    "tick_tcp_flows",
+    "tick_tcp_due_frames",
+    "tick_tcp_aborts",
+    "tick_service_tcp",
+    "tick_runtime",
+    "server ready overflow",
+    "Game lane counts and FEC pressure",
+    "C2S/S2C genuine UDP/probe missing with TCP HTTP(S) hash",
+    "runner CPU/PSI/steal/quota and local socket/interface drops"
+  ],
+  "parameters": {
+    "logical_mbps_each_direction": 3,
+    "seconds": 300,
+    "drain_seconds": 3,
+    "outer_mtu": 1400,
+    "auto_record_limit": 0,
+    "loss_percent": 0,
+    "one_way_delay_ms": 300,
+    "fec": "20:20",
+    "padding": "off",
+    "four_game_lanes": true,
+    "profile": "on"
+  },
+  "warnings": [
+    "Prior Game4 profile-on run37782210096 original FAIL remains; no optimization yet",
+    "Profile-on instrumentation costs are not comparable to profile-off CPU or to other CPUs",
+    "If this run fails preserve business errors, queue overflow, socket drops and capacity findings",
+    "Do not claim E1 until unit/race, Normal lossless/5205, Game4 lossless/5205 each independently run",
+    "E7 original ~80s S2C downlink remains OPEN and E6/P6/physical NOT_RUN"
+  ]
+}

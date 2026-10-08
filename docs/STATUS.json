@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_TCP_SCAN_EMIT_OPTIN_SOURCE_UNTESTED",
+    "phase": "E0_GAME4_TCP_SCAN_EMIT_ONE_SAMPLE_QUEUED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -395,8 +395,8 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-tcp-tick-fail-37782210096.json"
     },
     "e0_tcp_scan_emit": {
-      "state": "SOURCE_NOT_TESTED",
-      "source_sha": "THIS_COMMIT",
+      "state": "FOUNDATION_AND_LIFECYCLE_PASS",
+      "source_sha": "408a5cfb44883d959073c4d41c07c23a767a72db",
       "original_failure_run": 37782210096,
       "fields": [
         "tick_tcp_flow_snapshot",
@@ -408,11 +408,32 @@
         "tick_tcp_aborts"
       ],
       "evidence": "docs/evidence/performance-efficiency-e0-tcp-tick-scan-emit-probe-20261008.json",
-      "helper_sha": null
+      "helper_sha": null,
+      "foundation_run": 37788321913,
+      "lifecycle_run": 37788321939,
+      "run_id": null
+    },
+    "e0_scan_emit_sample": {
+      "state": "QUEUED_ACTION",
+      "product_source_sha": "408a5cfb44883d959073c4d41c07c23a767a72db",
+      "helper_sha": "TRIGGERING_GITHUB_SHA",
+      "config": {
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1821,
+        "product_source_sha": "408a5cfb44883d959073c4d41c07c23a767a72db",
+        "mode": "game",
+        "lanes": 4,
+        "rate_mbps": 3,
+        "size_profile": "ordinary",
+        "diagnostic_mode": "on"
+      },
+      "evidence": "docs/evidence/performance-efficiency-e0-game4-scan-emit-sample-candidate-20261008.json",
+      "run_id": null
     }
   },
-  "next_task": "E0: verify exact new source next-foundation Go unit/race Windows and privileged TUN/TPROXY and lifecycle; after all success pin same product SHA to one single Game4 profileON 4lane mixed 3Mbps/dir 0%loss 300s+3s drain seed1821 via own helper commit. Read tick_tcp_scan vs tick_tcp_emit wall time, due frames, aborts, source full lossless real UDP/probe/HTTP and ready overflow plus PSI/socket drops, keep previous 37782210096 original FAIL. No E1–E6 or CPU gain until real product optimization with independent four protection Actions; old E7 80s S2C OPEN, P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-tcp-tick-scan-vs-emit-opt-in.md",
+  "next_task": "E0: inspect exact product 408a5cf one 300s Game4 4lane real mixed 3Mbps/dir lossless 300ms +3s drain profileON seed1821 sample, own helper SHA of this commit. Report original analyzer PASS/FAIL, server tick_tcp_scan/emit/snapshot/abort and due frames, ready overflow, UDP/probe missing by size, local socket drops, host PSI/CPU. Old run37782210096 original FAIL + client-side socket drops37 remains. Only after hard evidence choose minimal E1 optimization and core/race + four independent Normal lossless/5205 Game4 lossless/5205 Actions. No improvement claim while diagnostic. E6/P6/physical NOT_RUN, E7 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261008-e0-game4-scan-vs-emit-one-sample.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
