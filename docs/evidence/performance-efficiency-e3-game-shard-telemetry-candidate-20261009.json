@@ -1,0 +1,91 @@
+{
+  "schema": "wbd-e3-game-shards-diagnostic-readonly-candidate/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "ae493d92740b219d9aa47bad08f6161b42215f25",
+  "business_product_source_frozen": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+  "new_instrumented_product_source": "THIS_NEW_COMMIT_SHA",
+  "baseline_diagnostic": {
+    "run_id": 37818615929,
+    "helper_sha": "398548ef0b38a49d0ad4e4234ce3701d0a007bab",
+    "conclusion": "success",
+    "analyzer": "PASS_SCOPED_ACTIONS",
+    "outer_ingress_reads": 3143009,
+    "outer_ingress_handled": 3110046,
+    "outer_ingress_dropped": 32963,
+    "ready_capacity": 4096,
+    "queue_peak": 3841,
+    "queue_max_age_ms": 185.263648,
+    "server_downstream_udp_overflow": 0,
+    "client_raw_send_lock_wait_wall_s": 248.081842935,
+    "host_cpu_busy_max_pct": 90.21739130434783,
+    "cpu_psi_some_avg10_max": 41.55,
+    "raw_os_socket_drops": 0,
+    "phase_stress_outer_drop_pct": {
+      "c2s": 20.01899556007391,
+      "s2c": 20.024180497818865
+    },
+    "phase_stress_app_udp_missing": [
+      0,
+      0
+    ],
+    "full_udp_missing": [
+      2,
+      0
+    ],
+    "all_probe_missing": [
+      0,
+      0
+    ]
+  },
+  "older_off_failure": {
+    "run_id": 37817466498,
+    "original": "FAIL",
+    "stress_s2c_udp_missing": 446,
+    "stage_stress_sent": 51503
+  },
+  "new_code_files": [
+    "internal/runtimeentry/game_ingress_diag.go",
+    "internal/runtimeentry/game_ingress_shards.go",
+    "internal/runtimeentry/lifecycle.go",
+    "internal/runtimeentry/perf_diag.go",
+    "internal/runtimeentry/game_ingress_diag_test.go"
+  ],
+  "behavior": "No packet routing, owner, FEC, retransmit, selected shard, buffer capacity, timeout or wire changes. Diagnostics run only when s.cfg.ObserveTiming; one snapshot array of desired(2..4) with 3840/desired queue budget.",
+  "new_fields": {
+    "parent": "product.tunnel.server_pipeline.game_ingress_shards",
+    "per_shard": [
+      "index",
+      "capacity",
+      "enqueued",
+      "handled",
+      "oldest_dropped",
+      "rejected",
+      "queue_peak",
+      "queue_age",
+      "handler"
+    ]
+  },
+  "source_flow": "Raw reader observes selected shard enqueue/drop/reject and depth; shard worker records handled+queue age+handler duration; underlying aggregate ready/overflow unchanged.",
+  "risk_notes": [
+    "Opt-in 4-shard per-record atomic counters and timing increase profileON overhead; comparing ON CPU to OFF forbidden",
+    "A full shard can still drop while another has spare capacity; counts are necessary before changing fairness",
+    "Not a repair or GameMode optimization; no false fix claim",
+    "Normal1 and Game mode profile OFF skip calls; no new goroutine/timer/queue/MTU",
+    "Go vet/race/lifecycle must pass before trusting new diagnostic sample"
+  ],
+  "future_actions": [
+    "New exact-source foundation/lifecycle Linux/Windows race and TUN/TPROXY privilege",
+    "If Green, dispatch one separate Game4 true5205 diagnosticON on new SOURCE and read per-shard concentration; do not mix same-run AB",
+    "Meanwhile one existing product source2acf OFF true5205 run37820693938 is in progress, original result not yet known at commit",
+    "If OFF original FAIL, diagnose per-shard; if PASS, still need independent repeats and CPU guard"
+  ],
+  "qualification": {
+    "source": "UNTESTED",
+    "e3_game4_true5205_off_repeat": "IN_PROGRESS_RUN37820693938",
+    "e3_final": "BLOCKED",
+    "cpu_optimization": "NOT_PROVEN",
+    "E7_80s": "OPEN",
+    "E6_P6_physical": "NOT_RUN"
+  }
+}

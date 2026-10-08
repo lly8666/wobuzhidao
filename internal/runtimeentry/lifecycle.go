@@ -1276,6 +1276,9 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 		s.Close()
 	}()
 	shards, controlDepth := newGameIngressShards(s.cfg.DesiredLanes)
+	if shards != nil && s.cfg.ObserveTiming {
+		s.pipeline.gameIngressDesired.Store(uint32(len(shards.in)))
+	}
 	readCh := make(chan segmentRead, controlDepth)
 	workerErrors := make(chan error, 1)
 	s.runGameIngressWorkers(runCtx, shards, workerErrors, &workerWG)
@@ -1313,19 +1316,23 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 			// stays on the same ordered worker from SYN through FIN, and
 			// the worker still performs the full FakeTCP and TLS checks.
 			dest := readCh
-			if index := s.gameIngressIndex(seg, shards); index >= 0 {
+			index := s.gameIngressIndex(seg, shards)
+			if index >= 0 {
 				dest = shards.in[index]
 			}
 			dropped, droppedOld, accepted := offerLatestBounded(dest, read)
-			if droppedOld && s.cfg.ObserveTiming {
-				s.pipeline.overflowDrop(len(dropped.seg.Payload), time.Since(dropped.readyAt))
-			}
-			if accepted {
-				if s.cfg.ObserveTiming {
-					s.pipeline.handoffBlock.observe(time.Since(handoffStarted))
+			if s.cfg.ObserveTiming {
+				if droppedOld {
+					s.pipeline.overflowDrop(len(dropped.seg.Payload), time.Since(dropped.readyAt))
+					s.pipeline.gameIngressDrop(index)
 				}
-			} else if s.cfg.ObserveTiming {
-				s.pipeline.overflowReject(len(seg.Payload))
+				if accepted {
+					s.pipeline.handoffBlock.observe(time.Since(handoffStarted))
+					s.pipeline.gameIngressEnqueue(index, len(dest))
+				} else {
+					s.pipeline.overflowReject(len(seg.Payload))
+					s.pipeline.gameIngressReject(index)
+				}
 			}
 		}
 	}()

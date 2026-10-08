@@ -50,8 +50,8 @@ func (s *LifecycleServer) runGameIngressWorkers(
 	if shards == nil {
 		return
 	}
-	for _, queue := range shards.in {
-		queue := queue
+	for index, queue := range shards.in {
+		index, queue := index, queue
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -66,7 +66,9 @@ func (s *LifecycleServer) runGameIngressWorkers(
 					}
 					err := s.handleSegment(ctx, read.seg, started)
 					if s.cfg.ObserveTiming {
-						s.pipeline.handler.observe(time.Since(started))
+						handledFor := time.Since(started)
+						s.pipeline.handler.observe(handledFor)
+						s.pipeline.gameIngressHandled(index, started.Sub(read.readyAt), handledFor)
 					}
 					if err != nil {
 						select { case fatal <- err: default: }
