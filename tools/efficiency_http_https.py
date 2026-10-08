@@ -106,6 +106,7 @@ def business(args):
                 raise ValueError("HTTP status/body/length mismatch")
             completed.append({"sequence":seq,"tls_verified":secure,
                               "response_bytes":len(body),
+                              "wire_response_bytes":len(data),
                               "request_bytes":len(req),
                               "duration_ns":now()-started,
                               "sha256":hashlib.sha256(body).hexdigest()})

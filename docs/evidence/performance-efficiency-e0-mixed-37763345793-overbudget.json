@@ -1,0 +1,147 @@
+{
+  "schema": "wbd-efficiency-e0-mixed-rate-budget-audit/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "ab9fa01253581063817d6b4d443cf86a3c8017fc",
+  "integrated_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "prior_helper_sha": "ab9fa01253581063817d6b4d443cf86a3c8017fc",
+  "run_id": 37763345793,
+  "job_id": 113264879151,
+  "run_attempt": 1,
+  "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37763345793",
+  "artifact_id": 11543666374,
+  "artifact_bytes": 384145,
+  "original_action_result": "success",
+  "original_analysis": "PASS_SCOPED_ACTIONS",
+  "original_issues": [],
+  "independent_profile_off": true,
+  "actual_server_tun_mtu": 1273,
+  "actual_drain_s": 3,
+  "configured_auto_record_limit": 0,
+  "nominal_target_mbps_per_direction": 10,
+  "original_directions": {
+    "c2s": {
+      "sent_mbps_bulk_and_probe_only": 10.078025386666667,
+      "goodput_mbps_bulk": 10.074185386666667,
+      "udp_sent_datagrams": 345673,
+      "udp_missing": 0,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_hash_mismatch": 0,
+      "probe_sent": 1500,
+      "probe_returned": 1500,
+      "probe_missing": 0,
+      "probe_returned_p99_ms": 631.889358,
+      "active_gap_max_ms": 170,
+      "qdisc_attempted_pps": 8635.58
+    },
+    "s2c": {
+      "sent_mbps_bulk_and_probe_only": 10.078012586666667,
+      "goodput_mbps_bulk": 10.074185386666667,
+      "udp_sent_datagrams": 345673,
+      "udp_missing": 0,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_hash_mismatch": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1495,
+      "probe_missing": 0,
+      "probe_returned_p99_ms": 627.008161,
+      "active_gap_max_ms": 50,
+      "qdisc_attempted_pps": 8671.21
+    }
+  },
+  "http_https": {
+    "requests": 20,
+    "returned": 20,
+    "missing": 0,
+    "verified_https": 10,
+    "body_mismatch": 0,
+    "returned_p99_ms": 1837.954883
+  },
+  "host": {
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "logical_cpus": 4,
+    "client_cpu_s": 173.75,
+    "server_cpu_s": 172.79,
+    "client_hwm_mib": 42.59375,
+    "server_hwm_mib": 43.12109375,
+    "cpu_psi_some_avg10_max": 34.69,
+    "host_busy_max_percent": 57.01754385964912,
+    "steal_max_percent": 0,
+    "cgroup_cpu_quota_cores": null,
+    "socket_drop": 0,
+    "link_drop": 0
+  },
+  "acceptance_override_reason": "Observed bulk+probe 10.078 Mbps each direction exceeds strict nominal total logical 10 Mbps even before separate HTTP bytes. Former analyzer enforced only minimum injection; thus raw PASS must stay, but E0 strict total-byte cap is NOT_QUALIFIED.",
+  "raw_success_not_rewritten": true,
+  "requalification_changes": [
+    {
+      "subject": "UDP packet pacing",
+      "rule": "do not emit final full datagram past absolute byte cap; never truncate a UDP message"
+    },
+    {
+      "subject": "TCP stream pacing",
+      "rule": "last application frame may be shortened to remaining byte budget and CRC/hash matches actual frame"
+    },
+    {
+      "subject": "HTTP overhead",
+      "rule": "include validated request and entire response on-wire HTTP application bytes in per-direction budget receipt"
+    },
+    {
+      "subject": "analyzer",
+      "rule": "fail closed on total logical business bytes > requested 10Mbps times300s +8192B bounded packet tolerance"
+    },
+    {
+      "subject": "cost ledger",
+      "rule": "read-only CPU per delivered GiB, qdisc outer PPS, runner CPU/PSI/steal/drops/RSS; Go alloc/batch/repair only if separately enabled, never spoof from off"
+    }
+  ],
+  "candidate_code_blobs": [
+    {
+      "path": "tools/large_mtu_mixed_business.py",
+      "sha": "bc4bc43390385aff581b02a63fd58296a6c139ba"
+    },
+    {
+      "path": "tools/efficiency_http_https.py",
+      "sha": "753721b4471eabe369e09015c0f06d79847b7dab"
+    },
+    {
+      "path": "tools/check_large_mtu_mixed.py",
+      "sha": "b32bad4084eb2b0cda54f31d31da76dc504b685c"
+    },
+    {
+      "path": "tools/efficiency_cost_ledger.py",
+      "sha": "617e614ed7075562ab909b158e50682bfdfee1e2"
+    },
+    {
+      "path": "tools/prepare_large_mtu_harness.py",
+      "sha": "04663b5dd4c09c5c09f38fc313c505f37d24dfa8"
+    },
+    {
+      "path": ".github/workflows/next-efficiency-e0-single.yml",
+      "sha": "758dc6ce5bcabe133573de6d1c35a4e3c995211e"
+    }
+  ],
+  "next_sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1803,
+    "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "size_profile": "ordinary"
+  },
+  "new_helper_source_sha": "exact next commit GITHUB_SHA determined by Actions",
+  "performance_run_count_next": 1,
+  "not_claimed": [
+    "CPU improvement",
+    "E0 complete",
+    "E1-5 optimization",
+    "E6/P6 package and hash",
+    "physical PASS",
+    "80s issue fixed"
+  ],
+  "original_80s_issue": "OPEN_DEFERRED_E7"
+}

@@ -153,6 +153,9 @@ def udp_send(s,role,peer,start,stop,rate,seed,scenario,size_profile,t):
     total=0; seq=0; end=start+300_000_000_000
     while not stop.is_set():
         length=values[seq%100]
+        # Never emit an entire last UDP datagram beyond the logical byte cap.
+        # Skipping the unscheduled final datagram is not packet truncation.
+        if total+length>int(budget*300):break
         target=start+int(total*1e9/budget)
         if target>=end:break
         now=ns()
@@ -229,6 +232,12 @@ def tcp_writer(s,flow,seed,start,stop,mbps,short,t):
         wait(start)
         while not stop.is_set():
             length=sizes[seq%len(sizes)]
+            if not short:
+                remaining=int(rate*300)-total
+                if remaining<=0:break
+                # TCP is a stream: the last application write may be smaller
+                # than 1MiB; its CRC/hash covers exactly these bytes.
+                length=min(length,remaining)
             goal=start+int(total*1e9/rate)
             if not short and goal>=end:break
             if short and seq>=3:break

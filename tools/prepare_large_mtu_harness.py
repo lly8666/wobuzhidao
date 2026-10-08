@@ -113,6 +113,7 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
     "tools/large_mtu_loss_stage.py",
     "tools/prepare_large_mtu_harness.py",
     "tools/check_large_mtu_mixed.py",
+    "tools/efficiency_cost_ledger.py",
     "tools/large_mtu_resource_report.py",
     "tools/check_strict_weaknet.py",
 ]

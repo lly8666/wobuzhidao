@@ -244,6 +244,24 @@ def main():
                 web["http_server_served"]!=10 or web["https_server_served"]!=10 or
                 web["server_errors"] or web["return_failures"]):
                 issues.append("HTTP_HTTPS_SHORT_E2E_NOT_QUALIFIED")
+        # Formal budget counts all business bytes, including separately
+        # validated HTTP request/response streams. Never treat overshoot as
+        # better throughput. A single-packet 8KiB measurement allowance is
+        # not permission to pace above the configured per-direction budget.
+        web_sent={"c2s":0,"s2c":0}
+        if x.workload in ("tcp","mixed"):
+            completed=web_b.get("completed",[])
+            web_sent["c2s"]=sum(int(row["request_bytes"]) for row in completed)
+            web_sent["s2c"]=sum(int(row["wire_response_bytes"]) for row in completed)
+        requested_bytes=int(x.target_mbps*125000*300)
+        for side in ("c2s","s2c"):
+            item=direction[side]
+            item["http_https_sent_bytes_separately"]=web_sent[side]
+            item["total_logical_sent_bytes_including_http"]=item["sent_bytes"]+web_sent[side]
+            item["total_logical_delivered_bytes_including_verified_http"]=item["receiver_bytes"]+web_sent[side]
+            item["total_logical_sent_mbps_including_http"]=item["total_logical_sent_bytes_including_http"]*8/300/1e6
+            if item["total_logical_sent_bytes_including_http"]>requested_bytes+8192:
+                issues.append("LOGICAL_BUSINESS_RATE_OVER_BUDGET_"+side)
         resources=resource_report(root,int(biz["start_monotonic_ns"]),int(biz["start_monotonic_ns"])+300_000_000_000)
         if any(resources["diagnostics"][side]["present"] for side in ("client","server")):issues.append("PROFILE_OFF_DIAGNOSTIC_ENABLED")
         if resources["strict_resource"].get("errors"):
