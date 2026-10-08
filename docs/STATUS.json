@@ -94,7 +94,7 @@
     "B/0 lossless real TCP 56% source injection, 250/300 shorts, backpressure and retrans; no CAPACITY proof",
     "Linux platformflow UDP no-silent-truncation isolated product candidate2f7bb59 functional Actions PASS, large UDP support still OPEN"
   ],
-  "next_task": "A5/A20/A30 independently running on exact b4; request B5 TCP long+1Hz independent short real sockets, rate10Mbps per direction, 300ms one-way and two-way netem5% for 300s plus drain. Prior original B0 FAIL 56.37% injection but stream integrity yes, repeat B0 with corrected short in_progress. Do not classify runner without proof. No physical.",
+  "next_task": "B/5 real TCP sample child37734359638 IN_PROGRESS; request B20 independent run exact b4/seed2608102. A 5/20/30 and C0/B0 repeat each independent Actions continue; preserve raw statuses and failure boundaries. No runner capacity assumption or physical machine.",
   "latest_log": "docs/devlog/20261008-longmix-matrix-losses-dispatch.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
@@ -10889,7 +10889,7 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A_LOSS_5_20_30_RUNNING_B5_DISPATCH_REQUESTED",
+    "state": "B5_RUNNING_B20_DISPATCH_REQUESTED",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37733698703",
@@ -11074,10 +11074,10 @@
     "mixed_c_source": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "current_request": {
       "workload": "B",
-      "loss_percent": 5,
+      "loss_percent": 20,
       "seed": 2608102,
-      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "helper_sha": "31ac81d2a7904da177a888b61389c16c149c5aa3",
+      "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
       "classification": "NOT_RUN_REQUESTED"
     }
   }
