@@ -207,10 +207,20 @@ def main():
             checked(["ip", "link", "add", "wda", "type", "veth", "peer", "name", "wdb"])
             checked(["ip", "link", "set", "wda", "netns", ns_a])
             checked(["ip", "link", "set", "wdb", "netns", ns_b])
+            # ARP is not the traffic under test. Pre-install deterministic
+            # L2 identities/neighbors before netem, otherwise one lost ARP
+            # request can blackhole all UDP sends without any UDP frame loss.
+            mac_a, mac_b = "02:bd:44:00:00:01", "02:bd:44:00:00:02"
+            checked(["ip", "-n", ns_a, "link", "set", "dev", "wda", "address", mac_a])
+            checked(["ip", "-n", ns_b, "link", "set", "dev", "wdb", "address", mac_b])
             for ns, dev, address in [(ns_a, "wda", A), (ns_b, "wdb", B)]:
                 checked(["ip", "-n", ns, "addr", "add", address + "/30", "dev", dev])
                 checked(["ip", "-n", ns, "link", "set", "lo", "up"])
                 checked(["ip", "-n", ns, "link", "set", dev, "mtu", str(inner), "up"])
+                checked(["ip", "-n", ns, "neigh", "replace",
+                         B if ns == ns_a else A,
+                         "lladdr", mac_b if ns == ns_a else mac_a,
+                         "nud", "permanent", "dev", dev])
                 if args.loss:
                     checked(["ip", "netns", "exec", ns, "tc", "qdisc", "add",
                              "dev", dev, "root", "netem", "loss", str(args.loss) + "%"])

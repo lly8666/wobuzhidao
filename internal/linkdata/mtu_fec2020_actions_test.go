@@ -119,7 +119,7 @@ func TestActionsMTUFEC2020Wire(t *testing.T) {
    }
    wantSource:=1
    if len(pkt)>tun {
-    fragPayload:=tun-LinkFragmentHeaderLen
+    fragPayload:=tun-FragmentHeaderLen
     wantSource=(len(pkt)+fragPayload-1)/fragPayload
    }
    if sourceForPacket!=wantSource {t.Fatalf("wrong LINK fragments inner=%d sources=%d want=%d",len(pkt),sourceForPacket,wantSource)}
