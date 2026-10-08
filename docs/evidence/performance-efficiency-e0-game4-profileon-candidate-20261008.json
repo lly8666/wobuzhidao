@@ -1,0 +1,62 @@
+{
+  "schema": "wbd-e0-game4-profile-on-diagnostic-candidate/v1",
+  "date": "2026-10-08",
+  "prior_head": "54a99f8c05a70ccb2148c789ea9ac053f053d0e8",
+  "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "previous_failed_run": {
+    "run_id": 37766819445,
+    "helper_sha": "aa2200c833dd557d2c926e5ea4fd5316897b610a",
+    "classification": "FAIL",
+    "original_issues": [
+      "LOSSLESS_UDP_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_s2c"
+    ],
+    "evidence": "docs/evidence/performance-efficiency-e0-game4-fail-37766819445.json"
+  },
+  "sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1814,
+    "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "helper_files": [
+    {
+      "path": ".github/workflows/next-efficiency-e0-single.yml",
+      "sha": "93629ef61b65886494ee5d12cb424151033111f9"
+    },
+    {
+      "path": "tools/check_large_mtu_mixed.py",
+      "sha": "0a8210ede66abf81f8c02492cd9b19ee2a2a646f"
+    },
+    {
+      "path": "tools/efficiency_cost_ledger.py",
+      "sha": "5c16db5c718a60762f4358952eb70a4d30def1d4"
+    }
+  ],
+  "scope": "ONE independent 300s actual formal client/server + TPROXY + encrypted transport + real shared TUN diagnostic sample with CPU/block/mutex profiles and per-lane JSONL snapshots",
+  "profile_on": true,
+  "ordinary_performance_claim": "NONE",
+  "expected_checks": [
+    "one source/helper/config/seed inside one Actions run",
+    "client/server actual lane count=4 and game logical outbound/copies >0",
+    "precise source/hash/MTU/netem/HTTP TCP UDP probes",
+    "diagnostic-jsonl present both endpoints with parse_errors=0",
+    "time-series CPU/GC/alloc/raw message send/receive/multi/batch/repair and lane stats",
+    "pprof-top text only; raw large captures cleaned + hashed"
+  ],
+  "safety": [
+    "No packet wait/queuing, no changes to product, MTU, wire, repair, 4096 or FEC",
+    "The diagnostic-on CPU and latency MUST NOT be compared causally to ordinary profile-off baselines",
+    "Original Game4 lossless FAIL remains in STATUS even if diagnostic sample looks healthier",
+    "No mandatory success claim before Actions conclusion",
+    "80s S2C deferred E7 still OPEN; no physical/P6"
+  ],
+  "current": "NOT_RUN_PENDING_PUSH_TRIGGER",
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml"
+}

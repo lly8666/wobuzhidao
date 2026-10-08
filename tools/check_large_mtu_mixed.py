@@ -159,6 +159,7 @@ def main():
     a.add_argument("--size-profile",choices=["ordinary","jumbo"],required=True)
     a.add_argument("--mode",choices=["normal","game"],required=True)
     a.add_argument("--lanes",type=int,choices=[1,4],required=True)
+    a.add_argument("--diagnostic-mode",choices=["0","1"],required=True)
     x=a.parse_args();root=Path(x.artifact_dir)
     issues=[];capture_receipts=[]
     try:
@@ -263,7 +264,37 @@ def main():
             if item["total_logical_sent_bytes_including_http"]>requested_bytes+8192:
                 issues.append("LOGICAL_BUSINESS_RATE_OVER_BUDGET_"+side)
         resources=resource_report(root,int(biz["start_monotonic_ns"]),int(biz["start_monotonic_ns"])+300_000_000_000)
-        if any(resources["diagnostics"][side]["present"] for side in ("client","server")):issues.append("PROFILE_OFF_DIAGNOSTIC_ENABLED")
+        runtime_game_evidence={}
+        diag_on=x.diagnostic_mode=="1"
+        if bool(manifest["config"].get("cpu_contention_profile"))!=diag_on:
+            issues.append("WRONG_DIAGNOSTIC_PROFILE_MANIFEST")
+        for diag_side in ("client","server"):
+            d=resources["diagnostics"][diag_side]
+            if not diag_on:
+                if d["present"]:issues.append("PROFILE_OFF_DIAGNOSTIC_ENABLED_"+diag_side)
+                continue
+            if not d["present"] or d.get("parse_errors",0):
+                issues.append("PROFILE_ON_DIAGNOSTIC_MISSING_OR_INVALID_"+diag_side)
+                continue
+            state=d.get("last_state") or {}
+            owner=state.get("owner") or {}
+            lanes=state.get("lanes") or []
+            runtime_game_evidence[diag_side]={
+                "snapshot_count":d.get("samples"),
+                "desired_lanes":owner.get("DesiredLanes"),
+                "active_logical_lanes":owner.get("ActiveLogicalLanes"),
+                "physical_lanes":owner.get("PhysicalLanes"),
+                "game_logical_outbound":owner.get("GameLogicalOutbound"),
+                "game_lane_copies":owner.get("GameLaneCopies"),
+                "game_delivered":owner.get("GameDelivered"),
+                "game_duplicates":owner.get("GameDuplicates"),
+                "lane_refs":[lane.get("ref") for lane in lanes]
+            }
+            if x.mode=="game" and (
+                owner.get("DesiredLanes")!=4 or owner.get("ActiveLogicalLanes")!=4
+                or len(lanes)!=4 or (owner.get("GameLogicalOutbound") or 0)<=0
+                or (owner.get("GameLaneCopies") or 0)<=0):
+                issues.append("GAME4_ACTUAL_RACE_NOT_QUALIFIED_"+diag_side)
         if resources["strict_resource"].get("errors"):
             issues.append("RESOURCE_AUDIT_WARNINGS")
         if resources["strict_resource"].get("socket_drop_max",0):
@@ -274,7 +305,9 @@ def main():
                 "helper_sha":x.helper,"workload":x.workload,"loss_percent":x.loss,"seed":x.seed,"size_profile":x.size_profile,"target_mbps":x.target_mbps,
                 "netem_realized":netem,"mtu":links,"route_mode":"all",
                 "path":"biz -> client TPROXY -> raw TCP-shaped -> router netem -> shared server TUN -> target",
-                "direction":direction,"probe":probe_summary,"web":web,"resources":resources}
+                "direction":direction,"probe":probe_summary,"web":web,"resources":resources,
+                "diagnostic_mode":"on" if diag_on else "off",
+                "runtime_game_evidence":runtime_game_evidence}
     except Exception as ex:
         issues.append("ANALYZER_EXCEPTION:"+repr(ex));result={"error":repr(ex)}
     finally:

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_MIXED_LOSSLESS_FAIL_DIAGNOSTIC_REQUIRED",
+    "phase": "E0_GAME4_PROFILE_ON_DIAGNOSTIC_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -179,10 +179,29 @@
       "probe_missing_s2c": 33,
       "capacity_limited_evidenced": false,
       "evidence": "docs/evidence/performance-efficiency-e0-game4-fail-37766819445.json"
+    },
+    "e0_game4_diagnostic": {
+      "state": "NOT_RUN_EXPECT_TRIGGER",
+      "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "helper_sha": "GITHUB_SHA of new commit",
+      "config": {
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1814,
+        "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+        "mode": "game",
+        "lanes": 4,
+        "rate_mbps": 3,
+        "size_profile": "ordinary",
+        "diagnostic_mode": "on"
+      },
+      "prior_lossless_fail_run": 37766819445,
+      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+      "evidence": "docs/evidence/performance-efficiency-e0-game4-profileon-candidate-20261008.json"
     }
   },
-  "next_task": "E0: Game4/300s mixed lossless single run37766819445 original FAIL (C2S 2154/103062 UDP missing, probes 26/1500 +33/1495 missing; 0 socket/interface drops, host busy79.83 PSI35.66 no proven quota saturation). Do not rerun same case blind or label CAPACITY_LIMITED. Add/qualify separate exact-helper profile-on ONE diagnostic Game4 sample to audit 4 actual lanes/Game PacketIDs/repair/FEC/raw batch + queue and incoming vs delivered, with proper analyzer mode identity; do not compare profile-on CPU to off. Preserve TCP-only fail37762364098, original mixed overbudget, current Normal mixed PASS37764510941. Still E0; E1 four gates not satisfied. 80s S2C deferred E7 OPEN. E6/P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-game4-real-lossless-fail-and-diagnostic-next.md",
+  "next_task": "E0: inspect one Game4 mixed 3Mbps per direction profile-ON (seed1814, 300s, 3s drain) exact helper-source diagnostic Action; keep old Game4 profile-OFF run37766819445 FAIL, no CPU on/off equivalence. Read two endpoint diag GameLogicalOutbound/ActiveLogicalLanes=4/lane ref, FEC source/parity/repair and raw batch, CPU/block/mutex top + PSI/quota/queue/drop, trace missing C2S UDP2154/probes26+33 with no local drops. Diagnose first boundary before changing product. Also original TCP-only10Mbps run37762364098 FAIL, jumbo 8936/8972/65507 NOT_RUN on bf11f; do not start E1 before valid E0/guard. 80s S2C remains E7 OPEN, E6/P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-game4-profile-on-lane-cost-diagnostic.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

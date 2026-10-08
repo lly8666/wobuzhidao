@@ -45,13 +45,14 @@ jobs:
           import json, os, subprocess
           from pathlib import Path
           d=json.loads(Path(".github/efficiency-e0-sample.json").read_text())
-          assert set(d)=={"workload","loss","seed","product_source_sha","mode","lanes","rate_mbps","size_profile"}
+          assert set(d)=={"workload","loss","seed","product_source_sha","mode","lanes","rate_mbps","size_profile","diagnostic_mode"}
           assert d["workload"] in ("udp","tcp","mixed")
           assert type(d["loss"]) is int and d["loss"] in (0,5,20,30)
           assert type(d["seed"]) is int and 1<=d["seed"]<=999999
           assert d["mode"] in ("normal","game")
           assert (d["mode"],d["lanes"],d["rate_mbps"]) in (("normal",1,10),("game",4,3))
           assert d["size_profile"] in ("ordinary","jumbo")
+          assert d["diagnostic_mode"] in ("off","on")
           assert d["product_source_sha"]==os.environ["PRODUCT_SOURCE"]
           helper=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
           assert helper==os.environ["GITHUB_SHA"]
@@ -65,6 +66,8 @@ jobs:
                   "WBD_STRICT_RATE_MBPS":d["rate_mbps"],
                   "WBD_STRICT_LANES":d["lanes"],
                   "WBD_EFF_SIZE_PROFILE":d["size_profile"],
+                  "WBD_EFF_DIAGNOSTIC":"1" if d["diagnostic_mode"]=="on" else "0",
+                  "WBD_STRICT_CPU_PROFILE":"1" if d["diagnostic_mode"]=="on" else "0",
                   "WBD_HELPER_SOURCE":helper,
               }.items():
                   f.write("%s=%s\n"%(name,value))
@@ -115,7 +118,7 @@ jobs:
           python3 tools/check_large_mtu_mixed.py --artifact-dir "$ART" \
             --source "$PRODUCT_SOURCE" --helper "$WBD_HELPER_SOURCE" \
             --workload "$WBD_LARGE_WORKLOAD" --loss "$WBD_LARGE_LOSS" \
-            --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" --size-profile "$WBD_EFF_SIZE_PROFILE" --mode "$WBD_STRICT_MODE" --lanes "$WBD_STRICT_LANES" --output "$ART/summary.json"
+            --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" --size-profile "$WBD_EFF_SIZE_PROFILE" --mode "$WBD_STRICT_MODE" --lanes "$WBD_STRICT_LANES" --diagnostic-mode "$WBD_EFF_DIAGNOSTIC" --output "$ART/summary.json"
       - name: Read-only normalized CPU PPS allocation and repair ledger
         id: ledger
         if: always()
@@ -164,6 +167,12 @@ jobs:
             ${{ env.ART }}/target-http.log
             ${{ env.ART }}/client-diag.jsonl
             ${{ env.ART }}/server-diag.jsonl
+            ${{ env.ART }}/client-cpu-top.txt
+            ${{ env.ART }}/server-cpu-top.txt
+            ${{ env.ART }}/client-block-top.txt
+            ${{ env.ART }}/server-block-top.txt
+            ${{ env.ART }}/client-mutex-top.txt
+            ${{ env.ART }}/server-mutex-top.txt
             ${{ env.ART }}/product-binary-sha256.txt
             ${{ env.ART }}/client-version.txt
             ${{ env.ART }}/server-version.txt

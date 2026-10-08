@@ -44,9 +44,29 @@ def diag(side):
     for key in ("total_alloc","mallocs","frees","num_gc","pause_total_ns"):
         if isinstance(f.get(key),(int,float)) and isinstance(e.get(key),(int,float)):
             go[key+"_delta"]=max(0,e[key]-f[key])
-    counters=sampled_numeric(last,("repair","batch","shard","parity","ack","source","packet","message","write_call","send_call"))
+    counters=sampled_numeric(last,("repair","batch","shard","parity","ack","source","packet","message","write_call","send_call","queue","decode"))
+    owner=last.get("owner") or {}
+    lanes=last.get("lanes") or []
+    game={key:owner.get(key) for key in (
+        "DesiredLanes","ActiveLogicalLanes","PhysicalLanes",
+        "GameLogicalOutbound","GameLogicalOutboundBytes",
+        "GameLaneCopies","GameLaneCopyBytes","GameDelivered",
+        "GameDuplicates","GameStale","GameLaneMismatches")}
+    lane_summary=[]
+    for row in lanes[:10]:
+        stats=row.get("lane") or {}
+        tx=(stats.get("TxPath") or {}).get("Encoder") or {}
+        rx=(stats.get("RxPath") or {}).get("Decoder") or {}
+        lane_summary.append({"ref":row.get("ref"),"inbound_records":stats.get("InboundRecords"),
+                             "delivered_datagrams":stats.get("DeliveredDatagrams"),
+                             "record_errors":stats.get("RecordErrors"),
+                             "path_errors":stats.get("PathErrors"),
+                             "source_shards":tx.get("source_shards"),
+                             "parity_shards":tx.get("parity_shards"),
+                             "decoder_recovered_sources":rx.get("recovered_sources")})
     return {"present":True,"status":"DIAGNOSTIC_ON_NOT_COMPARABLE_TO_OFF",
             "snapshots":side.get("samples"),"go":go,
+            "game_owner":game,"lane_summary":lane_summary,
             "bounded_last_counters_not_exact_window":counters}
 
 def analyze(s,m,host):
