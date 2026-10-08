@@ -2051,10 +2051,21 @@ func (s *LifecycleServer) tick(now time.Time) error {
 		started := time.Now()
 		defer func() { s.pipeline.tick.observe(time.Since(started)) }()
 	}
+	var tickPhase time.Time
+	if s.cfg.ObserveTiming {
+		tickPhase = time.Now()
+	}
 	if err := s.table.EmitRetransmitDue(now); err != nil {
 		return err
 	}
+	if s.cfg.ObserveTiming {
+		s.pipeline.tickRetransmit.observe(time.Since(tickPhase))
+		tickPhase = time.Now()
+	}
 	s.table.Sweep(now)
+	if s.cfg.ObserveTiming {
+		s.pipeline.tickSweep.observe(time.Since(tickPhase))
+	}
 	s.mu.Lock()
 	groups := make([]*serverLifecycleTunnel, 0, len(s.byTunnel))
 	for _, group := range s.byTunnel {
@@ -2063,6 +2074,9 @@ func (s *LifecycleServer) tick(now time.Time) error {
 	s.mu.Unlock()
 	var errs []error
 	for _, group := range groups {
+		if s.cfg.ObserveTiming {
+			tickPhase = time.Now()
+		}
 		if err := group.rt.Tick(now); err != nil {
 			s.mu.Lock()
 			current := s.byTunnel[group.id] == group
@@ -2071,7 +2085,15 @@ func (s *LifecycleServer) tick(now time.Time) error {
 				errs = append(errs, err)
 			}
 		}
+		if s.cfg.ObserveTiming {
+			s.pipeline.tickRuntime.observe(time.Since(tickPhase))
+			tickPhase = time.Now()
+		}
 		group.service.Tick(now)
+		if s.cfg.ObserveTiming {
+			s.pipeline.tickService.observe(time.Since(tickPhase))
+			tickPhase = time.Now()
+		}
 		s.mu.Lock()
 		replacements := make([]*serverLifecycleLane, 0, len(group.retiring))
 		for _, lane := range group.lanes {
@@ -2104,6 +2126,9 @@ func (s *LifecycleServer) tick(now time.Time) error {
 					errs = append(errs, err)
 				}
 			}
+		}
+		if s.cfg.ObserveTiming {
+			s.pipeline.tickBookkeeping.observe(time.Since(tickPhase))
 		}
 	}
 	return errors.Join(errs...)

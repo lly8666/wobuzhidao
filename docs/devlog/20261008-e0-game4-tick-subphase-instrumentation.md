@@ -1,0 +1,10 @@
+# E0 Game4：拆分服务端tick的低侵入诊断候选（2026-10-08）
+
+## 当前工作源与为什么先量化
+目标独立branch `next/performance-efficiency-20261008`、父HEAD `c0b5431e6938c081093d3f87cfa548b45788475d`，既有正式生产基线 `bf11fbfbe64d518e7ba189d51bfb4512df4df733`，上一单lane profile-ON [run37777409229](https://github.com/lly8666/wobuzhidao/actions/runs/37777409229) **PASS_SCOPED_ACTIONS** 但尚非off CPU比较。Game4无损 [run37766819445](https://github.com/lly8666/wobuzhidao/actions/runs/37766819445) profile OFF **FAIL**，其独立诊断 [run37768172504](https://github.com/lly8666/wobuzhidao/actions/runs/37768172504) profile ON同样**FAIL**。后一条run实际四条Game lane，server ready reader/handler之间4096槽队列溢出319041 outer segments；raw reads3063073、handler2744032、队列最大停留273.081ms。按原产物server-diag.jsonl末尾，handler`total_ns=71173492059`（71.17秒、2744032次），server tick`total_ns=29939026432`（29.94秒、3337次，339次>10ms，最长226.85ms）；这些是**串行event loop的wall合计，不是另外一份纯CPU时间**。周期tick包含faketcp retransmit/sweep、各group runtime/FEC/repair、service tick、replacement/idle cleanup；现有诊断不知道哪个子阶段消耗最多，不能盲目缩小正式100ms tick、把4086扩到无限或者启用每包定时器凑PASS。
+
+## 本轮精确补丁（E0测量工具，不是性能改动）
+仅`internal/runtimeentry/perf_diag.go`为既有`ServerPipelineDiagnostic`新增5个有界原子累计Duration计数器`tick_retransmit`、`tick_sweep`、`tick_runtime`、`tick_service`、`tick_bookkeeping`；仅`internal/runtimeentry/lifecycle.go:LifecycleServer.tick`在原`cfg.ObserveTiming=true`条件内对相应已有代码段分项计时，完全保留现有select、buffer容量4096、同期事件先后、TLS/FEC/wire/MTU、lane generation/同Seq密文、timer间隔和前后各方法调用。Profile OFF路径没有新`time.Now`调用，Profile ON的额外观测开销单独承认，不与off作为收益对照。本轮新增`TestServerPipelineTickPhaseDiagnosticSnapshot`验证五个字段累计和JSON可读。当前**没有声明测试PASS**，新代码只在GitHub Actions构建/核心与race测试后才给出资格。
+
+## 下一独立真实样本与中止条件
+本提交不修改`.github/efficiency-e0-sample.json`，不会在尚未运行unit/race前误触发性能样本。下一提交在基础Actions通过后，将唯一sample配置明确置Game4、每向逻辑3Mbps、mixed TCP/UDP/HTTP(S)、0%loss/300ms单向、300s、3s drain、profile ON、seed1819，并冻结**本提交精确产品SOURCE SHA**。助手在它自身提交sha之上独立触发一条性能Action/1样本；保留FAIL和原始总账本，读取增量五阶段数据。若`TickRuntime`或faketcp sweep等成为主因才挑最小的E1/E3优化；如Game4仍丢包则先恢复有界noHOL保护，不以替代网络、固定MTU或扩大队列取巧。旧TCP-only和大UDP失败、原80秒S2C OPEN到E7，E1–E6和物理均未声称PASS。机器可读证据：[本轮JSON](../evidence/performance-efficiency-e0-server-tick-phase-instrumentation-20261008.json)。

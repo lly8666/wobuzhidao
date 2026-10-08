@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_NORMAL_PROFILEON_COST_PASS_GAME4_LOSSLESS_BLOCKED",
+    "phase": "E0_GAME4_TICK_SUBPHASE_INSTRUMENTATION_CANDIDATE",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -301,10 +301,26 @@
       "normal_server_ready_overflow_drops": 0,
       "game4_profileon_ready_overflow_drops": 319041,
       "evidence": "docs/evidence/performance-efficiency-e0-normal-profileon-run37777409229.json"
+    },
+    "e0_game4_tick_subphase": {
+      "state": "SOURCE_CANDIDATE_NOT_TESTED",
+      "candidate_product_source_sha": "GITHUB_SHA_OF_THIS_COMMIT",
+      "parent_product_source_sha": "c0b5431e6938c081093d3f87cfa548b45788475d",
+      "previous_diagnostic_run": 37768172504,
+      "previous_overflow": 319041,
+      "new_diagnostic_fields": [
+        "tick_retransmit",
+        "tick_sweep",
+        "tick_runtime",
+        "tick_service",
+        "tick_bookkeeping"
+      ],
+      "evidence": "docs/evidence/performance-efficiency-e0-server-tick-phase-instrumentation-20261008.json",
+      "qualification": "NOT_RUN"
     }
   },
-  "next_task": "E0: Normal mixed profile-ON run37777409229 original PASS_SCOPED and CPU hotspot stats captured, do NOT compare its 258.64s to OFF. Next read exact-source server ready/handler/tick and Game4 per-lane profile to isolate 319041 drops and decide bounded no-HOL optimization; select ONE evidence-backed common hotspot (existing sendmmsg/recvmmsg batch, FEC xorMul, alloc) only after Game4 guard strategy. E1-E5 not implemented; candidate requires Actions unit/race then four independent Normal lossless/5205 Game4 lossless/5205. Existing Game4 0loss off run37766819445 FAIL, on run37768172504 FAIL; TCP-only run37762364098 FAIL; jumbo run37774168539 FAIL. 80s downlink OPEN E7. E6/P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-normal-profileon-hotspots-and-game4-blocker.md",
+  "next_task": "E0: inspect next-foundation for tick-phase opt-in instrument source commit; do not call PASS from code commit. If unit/race/compile pass, pin this exact candidate product SHA in .github/efficiency-e0-sample.json, dispatch ONE profile-ON Game4 4lane mixed 3Mbps/dir 300s+3s drain no-loss 300ms seed1819 Action; analyze server tick_retransmit/sweep/runtime/service/bookkeeping inclusive wall time, ready overflow/age, real four lane & FEC repair raw syscall and probe UDP. This is diagnostic not CPU optimization, never compare on to off. Previously Game4 profile-off run37766819445 FAIL and on run37768172504 FAIL; Normal singlelane diagnostic run37777409229 scoped PASS, 8936 boundary run37774168539 FAIL. E1–E6 no product optimizations/guards, E7 downlink 80s OPEN; physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-game4-tick-subphase-instrumentation.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

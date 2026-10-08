@@ -1,0 +1,63 @@
+{
+  "schema": "wbd-e0-server-tick-subphase-opt-in-instrumentation/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "c0b5431e6938c081093d3f87cfa548b45788475d",
+  "baseline_product_source": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "diagnostic_product_candidate_sha": "THIS_COMMIT_SHA_FROM_GITHUB",
+  "change_type": "E0 opt-in diagnostic instrumentation; no CPU efficiency patch",
+  "evidence_from_previous_real_profile": {
+    "run_id": 37768172504,
+    "original_analyzer": "FAIL",
+    "lossless_missing_udp_c2s": 2040,
+    "probe_missing_c2s_s2c": [
+      35,
+      24
+    ],
+    "real_game_lanes": 4,
+    "ready_reads": 3063073,
+    "ready_handler_samples": 2744032,
+    "ready_overflow_drops": 319041,
+    "ready_queue_capacity": 4096,
+    "queue_age_max_ms": 273.081465,
+    "handler_samples": 2744032,
+    "handler_total_wall_seconds": 71.173492059,
+    "tick_samples": 3337,
+    "tick_total_wall_seconds": 29.939026432,
+    "tick_max_ms": 226.854411,
+    "tick_over_10ms_samples": 339,
+    "downstream_total_wall_seconds": 10.581590823,
+    "unknown_causality": "Wall durations not additive CPU; raw lost outer segment not one-to-one with missing inner UDP; profiling on changes timing."
+  },
+  "new_diagnostic_fields": [
+    "tick_retransmit",
+    "tick_sweep",
+    "tick_runtime",
+    "tick_service",
+    "tick_bookkeeping"
+  ],
+  "code_changes": [
+    {
+      "path": "internal/runtimeentry/perf_diag.go",
+      "diagnostic_snapshot_fields": 5,
+      "product_wire_changed": false
+    },
+    {
+      "path": "internal/runtimeentry/lifecycle.go",
+      "instrument_only_when": "cfg.ObserveTiming == true",
+      "behaviour": "Read and tick remain on existing select loop; no added work queue, goroutine, timer, or concurrency; no changes when diagnostics disabled"
+    },
+    {
+      "path": "internal/runtimeentry/server_tick_phase_diag_test.go",
+      "test": "TestServerPipelineTickPhaseDiagnosticSnapshot"
+    }
+  ],
+  "risk": "Five additional time.Now/durationAccumulator observations are enabled only under existing diagnostic JSONL/ObserveTiming; profile-on CPU not comparable to off",
+  "next_test": "Actions next-foundation unit/race/compile for newly committed exact product SHA; no PASS assumed at commit creation",
+  "next_one_sample": "After foundation, explicitly pin product_source_sha to exact candidate commit and run a single 300s Game4 mixed lossless profile-on diagnostic with helper own SHA; observe per-phase tick totals and real ready overflows; no A/B in same workflow",
+  "previous_scope": "Game4 profile OFF run37766819445 original FAIL and ON run37768172504 FAIL, Normal profileON run37777409229 scoped PASS, 80s S2C remains OPEN E7",
+  "optimization_claim": "NONE",
+  "e1_e5": "NOT_IMPLEMENTED",
+  "e6_p6": "NOT_RUN",
+  "physical": "NOT_RUN"
+}
