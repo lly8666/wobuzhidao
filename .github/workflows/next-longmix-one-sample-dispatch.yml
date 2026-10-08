@@ -1,0 +1,58 @@
+name: next-longmix-one-sample-dispatch
+on:
+  push:
+    branches: [investigation/longmix-20261008]
+    paths:
+      - ".github/longmix-dispatch-request.json"
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch-one-not-measuring:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require current head and validated source/helper
+        run: |
+          set -euo pipefail
+          remote_sha="$(git ls-remote origin refs/heads/investigation/longmix-20261008 | awk '{print $1}')"
+          test "$remote_sha" = "$GITHUB_SHA"
+          python3 - <<'PY'
+          import json,os,sys
+          sys.path.insert(0,"tools")
+          from longmix_profile import validate_sample
+          d=json.load(open(".github/longmix-dispatch-request.json"))
+          if set(d) != {"sample","validated_helper_sha"}:
+              raise SystemExit("invalid dispatch record keys")
+          x=d["sample"]
+          validate_sample(x)
+          if x["workload"]!="A":
+              raise SystemExit("A-only workflow cannot disguise TCP B/C")
+          helper=d["validated_helper_sha"]
+          if len(helper)!=40 or any(c not in "0123456789abcdef" for c in helper):
+              raise SystemExit("invalid helper sha")
+          with open(os.environ["GITHUB_ENV"],"a") as f:
+              f.write("WBD_LOSS="+str(x["loss_percent"])+"\n")
+              f.write("WBD_SEED="+str(x["seed"])+"\n")
+              f.write("WBD_SOURCE="+x["source_sha"]+"\n")
+              f.write("WBD_HELPER_VALIDATED="+helper+"\n")
+          PY
+
+      - name: Require prior Actions helper preflight success and dispatch ONE run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          preflight="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/next-longmix-preflight.yml/runs?branch=investigation%2Flongmix-20261008&per_page=30"             --jq '.workflow_runs[] | [.head_sha,.conclusion] | @tsv' |
+            awk -v sha="$WBD_HELPER_VALIDATED" '$1==sha && $2=="success"{print $1; exit}')"
+          test "$preflight" = "$WBD_HELPER_VALIDATED"
+          if [ "$GITHUB_RUN_ATTEMPT" != 1 ]; then
+            echo "RERUN_REFUSED: dispatch must not duplicate a performance run"
+            exit 1
+          fi
+          gh workflow run next-longmix-udp-sample.yml             --ref investigation/longmix-20261008             -f workload=A -f loss_percent="$WBD_LOSS"             -f seed="$WBD_SEED" -f product_source_sha="$WBD_SOURCE"
+          echo "ONE_RUN_DISPATCH_REQUESTED sample=A loss=$WBD_LOSS seed=$WBD_SEED source=$WBD_SOURCE head=$GITHUB_SHA"

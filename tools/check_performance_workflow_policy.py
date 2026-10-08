@@ -5,6 +5,7 @@ import re
 
 MEASUREMENT_MARKERS = (
     "tools/prepare_soak_harness.py",
+    "tools/prepare_longmix_udp.py",
     "scripts/strict_weaknet_sample.sh",
     "scripts/strict_capacity_bypass.sh",
     "scripts/realpath_calibration.sh",
@@ -20,6 +21,7 @@ ACTIVE = (
     ".github/workflows/next-shared-blackhole.yml",
     ".github/workflows/next-performance-capacity-diagnostic.yml",
     ".github/workflows/next-realpath-calibration.yml",
+    ".github/workflows/next-longmix-udp-sample.yml",
     ".github/workflows/next-strict-capacity-diagnostics.yml",
     ".github/workflows/next-strict-packet-socket-diagnostic.yml",
 )

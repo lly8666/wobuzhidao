@@ -10,6 +10,10 @@ on:
       - "tools/longmix_constant_stage.py"
       - "tools/prepare_longmix_udp.py"
       - "tools/test_prepare_longmix_udp.py"
+      - "tools/check_longmix_udp_compact.py"
+      - "tools/test_check_longmix_udp.py"
+      - ".github/workflows/next-longmix-udp-sample.yml"
+      - "tools/check_performance_workflow_policy.py"
       - ".github/workflows/next-longmix-preflight.yml"
   workflow_dispatch:
 
@@ -33,6 +37,7 @@ jobs:
           python3 tools/test_longmix_profile.py
           python3 tools/test_longmix_udp_business.py
           python3 tools/test_prepare_longmix_udp.py
+          python3 tools/test_check_longmix_udp.py
           python3 - <<'PY'
           import json, sys
           from pathlib import Path

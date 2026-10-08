@@ -158,5 +158,32 @@
     "impairment": "tools/longmix_constant_stage.py",
     "client_linux_capture": "TPROXY (client TUN absent, server real shared TUN must read back 9000)",
     "validation": "GENERATED_SCRIPT_PREFLIGHT_PENDING"
+  },
+  "fullstack_workflow": {
+    "path": ".github/workflows/next-longmix-udp-sample.yml",
+    "classification": "NOT_RUN",
+    "scenario": "One fixed 300s A sample per workflow_dispatch run",
+    "actual_sample_started": false,
+    "known_limit": "GitHub workflow_dispatch may require workflow entry in main; do not mark dispatched before actual workflow run appears"
+  },
+  "dispatch_approach": {
+    "path": ".github/workflows/next-longmix-one-sample-dispatch.yml",
+    "state": "NOT_RUN",
+    "protected": "Only request-file push to orchestrator; no measurement in dispatch controller; all real measurement must be workflow_dispatch separate run"
+  },
+  "analyzer": {
+    "path": "tools/check_longmix_udp_compact.py",
+    "status": "NOT_YET_VALIDATED",
+    "guards": [
+      "SOURCE",
+      "helper_sha",
+      "actual_netem_both_directions",
+      "MTU_and_TPROXY",
+      "size_distribution",
+      "large_ACK_RTT_missing",
+      "10ms_delivery",
+      "lossless_integrity",
+      "input_coverage"
+    ]
   }
 }

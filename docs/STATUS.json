@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)"
   ],
-  "next_task": "Longmix A probe/unit helper preflight run37727958387 PASS; generated strict netns shell candidate under preflight (no product sample run). Inspect real netns/TUN/TPROXY route and 300s fixed-loss stage; add single-sample workflow, validate packet/actual qdisc and resource evidence before dispatch; 12 formal samples NOT_RUN. B/C TCP driver NOT_RUN. Two native M03 failure boundaries separate OPEN.",
-  "latest_log": "docs/devlog/20261008-longmix-a-path-generation.md",
+  "next_task": "Longmix A path generator preflight run37728195228 PASS, no fullstack measurement yet. New single-A workflow + numeric verifier pending helper preflight and repository default-branch dispatch compatibility. Do NOT claim throughput/per-size/p99/runner CAPACITY until one genuine fixed b4 real socket run completes. B/C unsupported by helper and 12 formal samples NOT_RUN. M03 80s outage and 1.225s tail independent OPEN.",
+  "latest_log": "docs/devlog/20261008-longmix-a-single-workflow-gate.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10886,10 +10886,10 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A_NETNS_SCRIPT_GENERATION_PREFLIGHT_PENDING",
+    "state": "A_SINGLE_WORKFLOW_HELPER_PREFLIGHT_PENDING",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "PENDING_PRECHECK",
-    "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37727958387",
+    "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37728195228",
     "fullstack_samples": {
       "PASS": 0,
       "FAIL": 0,
