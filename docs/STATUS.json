@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_MIXED_RAW_PASS_BUDGET_NOT_QUALIFIED_NEXT_RETEST",
+    "phase": "E0_NORMAL_MIXED_STRICT_CAP_PASS_GAME4_SAMPLE_SUBMITTED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -22,7 +22,7 @@
     },
     "optimization_implemented": false,
     "integration_core": "PASS_SOURCE_BF11FBF",
-    "ordinary_performance": "NORMAL_UDP_OFF_PASS_SCOPED_TCP_OFF_FAIL_MIXED_OVERBUDGET",
+    "ordinary_performance": "NORMAL_UDP_AND_MIXED_OFF_PASS_SCOPED_TCP_ONLY_FAIL_GAME4_PENDING",
     "physical": "NOT_RUN_NEW_SOURCE",
     "e0_audit": {
       "state": "AUDIT_ONLY",
@@ -139,10 +139,39 @@
       "evidence": "docs/evidence/performance-efficiency-e0-mixed-37763345793-overbudget.json",
       "corrected_helper_sha": "next GitHub commit exact GITHUB_SHA",
       "corrected_action": "PENDING"
+    },
+    "e0_mixed_strict_cap": {
+      "state": "PASS_SCOPED_ACTIONS",
+      "run_id": 37764510941,
+      "helper_sha": "46beb0e78e039093dcff8f9914b5e1664bb2bf74",
+      "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "seed": 1803,
+      "total_logical_rate_each_direction_mbps": [
+        9.976178506666667,
+        9.977319573333334
+      ],
+      "lossless_missing": 0,
+      "evidence": "docs/evidence/performance-efficiency-e0-mixed-cap-pass-37764510941.json"
+    },
+    "e0_game4": {
+      "state": "SUBMITTED_EXPECT_ACTIONS",
+      "config": {
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1804,
+        "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+        "mode": "game",
+        "lanes": 4,
+        "rate_mbps": 3,
+        "size_profile": "ordinary"
+      },
+      "helper_sha": "exact GITHUB_SHA at run",
+      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+      "run_id": null
     }
   },
-  "next_task": "E0: inspect corrected exact-helper independent Normal mixed 5+5Mbps/dir seed1803 300s Actions and read efficiency-ledger.json, strict whole-business cap (including HTTP) ≤10Mbps, all hash/missing/probes and runner cost. Historical run37763345793 raw PASS retained but strict budget NOT_QUALIFIED (10.078Mbps). TCP-only run37762364098 FAIL input+missing final S2C receipt retained. After mixed, separate Game4 logical3Mbps/dir lossless and jumbo/diagnostic analyses. E1-E6 not started; 80s S2C OPEN E7, P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e0-mixed-overbudget-and-byte-cap-requalification.md",
+  "next_task": "E0 next: inspect one Game4 4-lane mixed lossless 300s rate3Mbps/dir seed1804 exact product bf11fbf and helper SHA, artifact/ledger from workflow next-efficiency-e0-single.yml triggered by this commit; verify real 4-lane game race (not just CLI lanes), all logical bytes incl HTTP <=3Mbps/dir, TCP+UDP/HTTPS hashes, probes missing/returned/late p99, host cpu/quota/PSI/drop. Retain existing mixed strict cap run37764510941 PASS_SCOPED, prior mixed run37763345793 over-budget raw PASS NOT_QUALIFIED and TCP-only run37762364098 FAIL. Then jumbo/8936/8937/65507 and separate diag profile-on, complete E0 before E1. 80s downlink OPEN E7. Physical/P6 NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-mixed-strict-cap-pass-next-game4.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

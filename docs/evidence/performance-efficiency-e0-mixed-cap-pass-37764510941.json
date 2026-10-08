@@ -1,0 +1,132 @@
+{
+  "schema": "wbd-efficiency-e0-mixed-strict-cap-pass/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "audit_previous_head": "46beb0e78e039093dcff8f9914b5e1664bb2bf74",
+  "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "qualified_helper_source_sha": "46beb0e78e039093dcff8f9914b5e1664bb2bf74",
+  "run_id": 37764510941,
+  "job_id": 113268734110,
+  "artifact_id": 11544411426,
+  "attempt": 1,
+  "actions_status": "completed",
+  "actions_conclusion": "success",
+  "original_analyzer_classification": "PASS_SCOPED_ACTIONS",
+  "original_analyzer_issues": [],
+  "scope": "E0 Normal 1-lane TCP+UDP ordinary lossless profile-off 300s",
+  "test_config": {
+    "mode": "normal",
+    "lanes": 1,
+    "workload": "mixed",
+    "seed": 1803,
+    "loss_percent": 0,
+    "one_way_delay_ms": 300,
+    "duration_seconds": 300,
+    "drain_seconds": 3,
+    "logical_rate_mbps_per_direction": 10,
+    "logical_split": "TCP+UDP 5+5Mbps target including HTTP reservation",
+    "fec": "20:20",
+    "padding": false,
+    "outer_mtu": 1400,
+    "record_cap_config": "auto=0",
+    "diagnostic_jsonl": "disabled"
+  },
+  "measured_mtu": {
+    "inner_veth": 9000,
+    "formal_server_tun": 1273
+  },
+  "direction": {
+    "c2s": {
+      "app_bulk_submitted_bytes": 374105544,
+      "total_logical_sent_bytes_including_http": 374106694,
+      "total_logical_sent_mbps_including_http": 9.976178506666667,
+      "bulk_delivered_bytes": 373961544,
+      "bulk_goodput_mbps": 9.97230784,
+      "udp_datagrams_received": 345672,
+      "udp_missing": 0,
+      "probe_sent": 1500,
+      "probe_returned": 1500,
+      "probe_missing": 0,
+      "probe_returned_p99_ms": 604.628339,
+      "web_requests": 20,
+      "web_returned": 20,
+      "https_verified": 10,
+      "web_returned_p99_ms": 1812.953863,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_hash_or_length_mismatch": 0
+    },
+    "s2c": {
+      "app_bulk_submitted_bytes": 374105064,
+      "total_logical_sent_bytes_including_http": 374149484,
+      "total_logical_sent_mbps_including_http": 9.977319573333334,
+      "bulk_delivered_bytes": 373961544,
+      "bulk_goodput_mbps": 9.97230784,
+      "udp_datagrams_received": 345672,
+      "udp_missing": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1495,
+      "probe_missing": 0,
+      "probe_returned_p99_ms": 604.209152,
+      "tcp_flows_sent": 304,
+      "tcp_flows_received": 304,
+      "tcp_hash_or_length_mismatch": 0
+    }
+  },
+  "rate_cap_bytes_per_direction": 375000000,
+  "strict_budget_check": "PASS_BOTH_DIRECTIONS_INCLUDING_HTTP",
+  "local_drops": {
+    "packet_socket": 0,
+    "interface": 0
+  },
+  "capacity": {
+    "cpu_psi_some_avg10_max": 31.02,
+    "host_steal_max_percent": 0,
+    "host_busy_max_percent": 34.81675392670157,
+    "measured_capacity_limited_evidenced": false,
+    "cgroup_quota_cores": null
+  },
+  "runner": {
+    "architecture": "x86_64",
+    "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "visible_vcpu": 4
+  },
+  "cpu": {
+    "client_seconds": 119.71,
+    "server_seconds": 118.08,
+    "total_product_seconds": 237.79,
+    "seconds_per_delivered_gib": 341.35797750092354,
+    "mean_product_cores": 0.7926333333333333
+  },
+  "memory_peak_rss_mib": {
+    "client": 40.9296875,
+    "server": 41.54296875
+  },
+  "diagnostics": {
+    "profile_off": true,
+    "client": "NOT_COLLECTED_PROFILE_OFF",
+    "server": "NOT_COLLECTED_PROFILE_OFF"
+  },
+  "qualification": "E0_NORMAL_MIXED_STRICT_CAP_PASS_SCOPED",
+  "restrictions": [
+    "This is ONE Actions runner and ONE E0 scope, not repeated comparable CPU benefit",
+    "No Game4/jumbo/profiling or E6 completion inherited",
+    "TCP-only lossless run37762364098 remains FAIL; previous mixed run37763345793 raw PASS but overbudget NOT_QUALIFIED",
+    "No causal claim cross-host AMD vs Intel",
+    "probe returned-only p99 reported alongside missing=0; high-loss timeout-inclusive p99 NOT_RUN",
+    "Outer layer actual PPS is qdisc attempts, not physical NIC PPS"
+  ],
+  "next_single_sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1804,
+    "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary"
+  },
+  "next_workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "next_run_id": "PENDING_PUSH",
+  "native": "NOT_RUN_NEW_SOURCE",
+  "downlink_80s": "OPEN_DEFERRED_E7"
+}
