@@ -1,0 +1,198 @@
+{
+  "schema": "wbd-e3-game4-5205-shard-diagnostic-pass-followed-by-off-independent-replication/v1",
+  "date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "prior_head": "2eaae1ae3ba0656ba6e9bfcc44360d58ca81fe4c",
+  "exact_product_source_sha": "1146448d6340cf2e09b525189d233222d7ec9501",
+  "diagnostic_helper_sha": "2eaae1ae3ba0656ba6e9bfcc44360d58ca81fe4c",
+  "diagnostic_run": {
+    "id": 37821931789,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37821931789",
+    "job_id": 113464880736,
+    "artifact_id": 11569413849,
+    "attempt": 1,
+    "original_conclusion": "success",
+    "original_analyzer": "PASS_SCOPED_ACTIONS",
+    "original_issues": [],
+    "one_sample": true,
+    "profile": "on",
+    "seed": 1836,
+    "workload": "mixed",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps_each": 3,
+    "loss_waveform": "5% @0-75s,20% @75-225s,5% @225-300s",
+    "duration_s": 300,
+    "drain_s": 3,
+    "oneway_ms": 300,
+    "auto_record_cap": 0,
+    "actual_server_tun_mtu": 1273,
+    "source_sha": "1146448d6340cf2e09b525189d233222d7ec9501",
+    "helper_sha": "2eaae1ae3ba0656ba6e9bfcc44360d58ca81fe4c"
+  },
+  "business": {
+    "c2s_udp_pre_stress_post": [
+      25792,
+      51503,
+      25767
+    ],
+    "s2c_udp_pre_stress_post": [
+      25792,
+      51503,
+      25767
+    ],
+    "missing_udp_c2s_s2c": [
+      0,
+      0
+    ],
+    "missing_probe_c2s_s2c": [
+      0,
+      0
+    ],
+    "probe_p99_ms_c2s_s2c": [
+      621.048821,
+      623.758063
+    ],
+    "tcp_flows_each": 304,
+    "tcp_mismatch": 0,
+    "http_https_returned": 20,
+    "https_cert_verified": 10,
+    "goodput_mbps_each": 2.97231648,
+    "qdisc_drops_c2s_s2c": [
+      437404,
+      436220
+    ],
+    "qdisc_realized_loss_percent_c2s_s2c": [
+      12.199583812243038,
+      12.175481903128693
+    ],
+    "socket_drops": 0,
+    "interface_drops": 0
+  },
+  "server_ready": {
+    "reads": 3152943,
+    "handled": 3152943,
+    "capacity": 4096,
+    "ready_peak": 2953,
+    "overflow_drops": 0,
+    "ready_queue_age_max_ms": 65.468207,
+    "queue_age_over10ms": 178231,
+    "tcp_async_scheduled": 3156,
+    "tcp_async_coalesced": 21,
+    "physical_lanes": 4,
+    "active_logical_lanes": 4,
+    "game_ingress_shards": [
+      {
+        "index": 0,
+        "capacity": 960,
+        "enqueued": 788497,
+        "handled": 788497,
+        "oldest_dropped": 0,
+        "rejected": 0,
+        "queue_peak": 743,
+        "max_age_ms": 65.468207
+      },
+      {
+        "index": 1,
+        "capacity": 960,
+        "enqueued": 788054,
+        "handled": 788054,
+        "oldest_dropped": 0,
+        "rejected": 0,
+        "queue_peak": 750,
+        "max_age_ms": 59.008274
+      },
+      {
+        "index": 2,
+        "capacity": 960,
+        "enqueued": 787680,
+        "handled": 787680,
+        "oldest_dropped": 0,
+        "rejected": 0,
+        "queue_peak": 726,
+        "max_age_ms": 58.180366
+      },
+      {
+        "index": 3,
+        "capacity": 960,
+        "enqueued": 788712,
+        "handled": 788712,
+        "oldest_dropped": 0,
+        "rejected": 0,
+        "queue_peak": 769,
+        "max_age_ms": 64.001408
+      }
+    ]
+  },
+  "resource": {
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "vcpus": 4,
+    "cgroup_quota": null,
+    "host_busy_max_percent": 60.47120418848168,
+    "cpu_psi_some_avg10_max": 35.93,
+    "cpu_client_s": 111.95,
+    "cpu_server_s": 110.49,
+    "cpu_total_s": 222.44,
+    "cpu_gain_claim": "NONE_PROFILE_ON_NOT_COMPARABLE_TO_OFF"
+  },
+  "artifact_sha256": {
+    "summary.json": "b68c760fe95c236e5c4294be90218ea9e2c396d7d478b1a0ec39ad82f04e0dbd",
+    "efficiency-ledger.json": "cf371f1a9d5e3674253a55852861ba4f64ab61559722d7d4fca9477ed9f20339",
+    "manifest.json": "032aca1c70ac6b61415fb356f1654bb0efd0b2a3e0472ec7874e573ae4baf4a8",
+    "server-diag.jsonl": "c5b7e5f8ab68f67a28a2d8b0d581966ce8bf479ebe9e222a7c7fe2de61c0ed6e",
+    "client-diag.jsonl": "728205b394948537d3207ff66ca2802259861d978ed4974e3a029a03b7ce8997",
+    "stage-events.jsonl": "dec55110ee3bf757433d3a4ef8149adb25eb068e253a7dc00bef7b0484b83607"
+  },
+  "historical_strata": [
+    {
+      "run_id": 37817466498,
+      "profile": "off",
+      "host": "AMD EPYC 7763",
+      "original": "FAIL",
+      "stress_s2c_missing": 446,
+      "probe_missing": true
+    },
+    {
+      "run_id": 37820693938,
+      "profile": "off",
+      "host": "AMD EPYC 9V45",
+      "original": "PASS_SCOPED_ACTIONS",
+      "stress_udp_missing": 0
+    },
+    {
+      "run_id": 37821931789,
+      "profile": "on",
+      "host": "AMD EPYC 9V45",
+      "original": "PASS_SCOPED_ACTIONS",
+      "stress_udp_missing": 0
+    }
+  ],
+  "candidate_next": {
+    "config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1837,
+      "product_source_sha": "1146448d6340cf2e09b525189d233222d7ec9501",
+      "mode": "game",
+      "lanes": 4,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "helper_identity": "NEXT_GITHUB_SHA",
+    "profile": "off",
+    "one_sample_per_run": true,
+    "expected": "independent repeat of same Stage B Game4 5205 at different seed; collect raw business and CPU with runner stratum",
+    "status": "NOT_RUN_AT_COMMIT"
+  },
+  "scope": {
+    "no_traffic_code_change": true,
+    "per_shard_960_shares_total_4096": true,
+    "auto_mtu": true,
+    "main_modified": false,
+    "physical_not_run": true,
+    "e7_80s": "OPEN",
+    "e3_qualification": "NOT_STABLE_ACROSS_HOSTS",
+    "allocation": "NOT_COLLECTED_WHEN_OFF"
+  }
+}
