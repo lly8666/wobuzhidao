@@ -9,3 +9,5 @@
 - 本次另行请求A/20%，仍同一UDP九档/业务10Mbps每向/seed2608101/Normal1 FEC20:20/300ms单向/netem双向20%/300s+drain。一个新Action一份性能样本，真实netem必须实测；b4 Linux平台流8936硬边界保持已知OPEN，不能将此条件直接替A/0合格。
 
 - A/20% Action [37734152474](https://github.com/lly8666/wobuzhidao/actions/runs/37734152474) 已独立启动，未报告数值前保持IN_PROGRESS；本次单独申请 A/30% exact b4 / Normal1 FEC20:20 / seed2608101 / 两向10Mbps，300ms one-way、两向30% netem、300秒业务+固定drain。不删除未回大包，需独立小包/容量证据与0/5/20配对。
+
+- A/30% [37734257494](https://github.com/lly8666/wobuzhidao/actions/runs/37734257494) 独立正式Action已出现。现在另行请求B/5%、seed2608102、TCP真实双向3长/1Hz短、每方向固定10Mbps不重分配，300ms单程/双向netem5%/Normal1 FEC20:20/300秒+drain；实际kernel TCP MSS/retrans、注入不足、短请求缺失独立评估，原B0原始FAIL保留。
