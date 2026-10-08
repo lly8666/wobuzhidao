@@ -1,0 +1,185 @@
+{
+  "schema": "wbd-e0-game4-tcp-tick-subphase-receipt/v1",
+  "date": "2026-10-08",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "c65e0a498af8c506d5d7efbc6820b8dc6712cedb",
+  "source_product_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
+  "source_helper_sha": "c65e0a498af8c506d5d7efbc6820b8dc6712cedb",
+  "actions": {
+    "run_id": 37782210096,
+    "job_id": 113327867852,
+    "artifact_id": 11552403668,
+    "attempt": 1,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37782210096",
+    "conclusion": "failure",
+    "steps": {
+      "sample": "success",
+      "analyzer": "failure",
+      "cost_ledger": "success"
+    },
+    "original_classification": "FAIL",
+    "issues": [
+      "LOSSLESS_UDP_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_c2s",
+      "LOSSLESS_PROBE_MISSING_s2c",
+      "RESOURCE_AUDIT_WARNINGS",
+      "LOCAL_SOCKET_DROP"
+    ]
+  },
+  "source_artifact_sha256": {
+    "summary.json": "fd2767d46c01192b3cb5bdf9f21cee850b7dd285cc3982d2da32ab0d4953aa8b",
+    "efficiency-ledger.json": "4860406699af0eda30ad369fa814f979c21d16f20b9368832e23e46e88623458",
+    "manifest.json": "882d6f78d03c7dd24edb7647f538ccb6877507fc5df33b02ca69f43e5934317b",
+    "server-diag.jsonl": "cba88f2f8029c01cda113bf7b28ea6e795e213eed0770e0b23680be3a0daa099",
+    "client-diag.jsonl": "1154e2ff95b79e691f826c5ae1f1fda5f1609f80da737f1319303fe5c23a91d3",
+    "stage-events.jsonl": "dad8a6874587b8bea15033c5b23af9b3b7e9391087c842b25fea154e52717943",
+    "server-cpu-top.txt": "adf3ae74d7ffa7952576b77ccaeb02d76b10c334c4bb4a223df6e12092f3fabe"
+  },
+  "config": {
+    "mode": "game",
+    "lanes": 4,
+    "workload": "mixed",
+    "profile": "on",
+    "source_exact": true,
+    "seed": 1820,
+    "loss_percent": 0,
+    "one_way_delay_ms": 300,
+    "duration_s": 300,
+    "actual_stage_duration_s": 300.007604626,
+    "drain_s": 3.012687931,
+    "rate_mbps_each_direction": 3,
+    "outer_mtu": 1400,
+    "auto_record_limit_configured": 0,
+    "formal_default_tick_ms": 100,
+    "fec": "20:20",
+    "padding": "off"
+  },
+  "business": {
+    "c2s": {
+      "logical_sent_mbps": 2.97615648,
+      "bulk_delivered_mbps": 2.9498992,
+      "udp_missing_total": 1555,
+      "udp_missing_by_size": {
+        "96": 850,
+        "256": 275,
+        "512": 133,
+        "1000": 65,
+        "1372": 144,
+        "4068": 88
+      },
+      "probe_sent": 1500,
+      "probe_returned": 1478,
+      "probe_missing": 22,
+      "probe_returned_only_p99_ms": 778.61826,
+      "tcp_flows_received": 304,
+      "tcp_hash_or_length_errors": 0
+    },
+    "s2c": {
+      "logical_sent_mbps": 2.97614368,
+      "bulk_delivered_mbps": 2.97231648,
+      "udp_missing_total": 0,
+      "probe_sent": 1495,
+      "probe_returned": 1471,
+      "probe_missing": 24,
+      "probe_returned_only_p99_ms": 777.575239,
+      "tcp_flows_received": 304,
+      "tcp_hash_or_length_errors": 0
+    },
+    "web": {
+      "requests": 20,
+      "returned": 20,
+      "https_verified": 10,
+      "missing": 0
+    }
+  },
+  "game_observed": {
+    "actual_active_lanes": 4,
+    "server_game_lane_copies": 535144
+  },
+  "server_ready": {
+    "reads": 3021038,
+    "handler_processed": 2752560,
+    "drop_difference": 268478,
+    "ready_overflow_drops": 268478,
+    "overflow_bytes": 148637289,
+    "ready_capacity": 4096,
+    "ready_peak": 4098,
+    "queue_age_max_ms": 273.320774
+  },
+  "server_tick": {
+    "samples": 3216,
+    "total_seconds": 27.415019246,
+    "max_ms": 235.887028,
+    "runtime": {
+      "samples": 3173,
+      "total_seconds": 10.802884289,
+      "max_ms": 20.245278,
+      "over10ms": 30
+    },
+    "service": {
+      "samples": 3173,
+      "total_seconds": 16.580173413,
+      "max_ms": 225.238891,
+      "over10ms": 236
+    },
+    "service_udp": {
+      "samples": 3173,
+      "total_seconds": 0.002915105,
+      "max_ms": 0.143916,
+      "over10ms": 0
+    },
+    "service_tcp": {
+      "samples": 3173,
+      "total_seconds": 16.57556729,
+      "max_ms": 225.236958,
+      "over10ms": 236
+    },
+    "retransmit_association": {
+      "total_seconds": 0.014646409
+    },
+    "sweep": {
+      "total_seconds": 0.002517156
+    },
+    "bookkeeping": {
+      "total_seconds": 0.004563619
+    },
+    "measured_tcp_fraction_of_service": 0.9997221909032392
+  },
+  "resource": {
+    "runner_cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "visible_cpus": 4,
+    "quota_cores": null,
+    "cpu_psi_some_avg10_max": 37.58,
+    "host_busy_max_percent": 81.10236220472441,
+    "softirq_max_percent": 18.276762402088774,
+    "steal_max_percent": 0,
+    "client_cpu_s": 170.93,
+    "server_cpu_s": 147.56,
+    "combined_cpu_s": 318.49,
+    "local_socket_drops": 37,
+    "local_interface_drops": 0,
+    "capacity_limited_evidenced": false,
+    "capacity_evidence": [
+      {
+        "kind": "local_socket_drop_not_independently_capacity",
+        "drops": 37
+      }
+    ]
+  },
+  "classification": "FAIL_REAL_GAME4_AND_LOCAL_SOCKET_DROP",
+  "conclusion": "Platformflow TCPServer.Tick dominates service.Tick 99.97% wall in this profile-on sample; UDPServer.Tick not the 225ms stall. TCPServer.Tick can call tx.RetransmitDue and synchronous flow.tunnel.Send for due frames in the server receiver event loop, but scan vs actual Send time still unresolved. The wall measurements are not CPU, and user-space queue drop cannot be mapped 1:1 to application UDP.",
+  "next_preoptimization": [
+    "Add bounded opt-in inner TCPServer.Tick scan-vs-emit diagnostic (one new Actions sample only if necessary); or a source-level independent latency/ordering regression test with controlled flow Send to prove receiver blocking",
+    "Then select minimum causal no-HOL fix without changing retransmission wire, rate, shadow 4096, FEC, record MTU or busy waiting",
+    "Require actual unit/race and independently scheduled Normal lossless/5205, Game4 lossless/5205 guards, at least 3 comparable off runs for CPU gain"
+  ],
+  "old_original_failures": [
+    37766819445,
+    37768172504,
+    37780170850,
+    37782210096
+  ],
+  "e1_e6": "NOT_QUALIFIED",
+  "e7": "80_SECOND_S2C_OPEN",
+  "p6_physical": "NOT_RUN"
+}

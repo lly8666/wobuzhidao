@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E0_GAME4_TICK_SERVICE_UDP_TCP_PROFILEON_SAMPLE_PENDING",
+    "phase": "E0_GAME4_TCP_TICK_SYNC_MAINTENANCE_HOTSPOT_FAIL",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -369,27 +369,34 @@
       "foundation_result": "success"
     },
     "e0_game4_service_substage": {
-      "state": "QUEUED_ACTION",
+      "state": "FAIL",
       "source_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
-      "helper_sha": "NEW_GITHUB_SHA",
-      "config": {
-        "workload": "mixed",
-        "loss": 0,
-        "seed": 1820,
-        "product_source_sha": "a5ee53eacddd61eaee47007f0c1dca40e1d4face",
-        "mode": "game",
-        "lanes": 4,
-        "rate_mbps": 3,
-        "size_profile": "ordinary",
-        "diagnostic_mode": "on"
-      },
-      "workflow": ".github/workflows/next-efficiency-e0-single.yml",
-      "evidence": "docs/evidence/performance-efficiency-e0-game4-udp-tcp-substage-single-candidate.json",
-      "run_id": null
+      "helper_sha": "c65e0a498af8c506d5d7efbc6820b8dc6712cedb",
+      "run_id": 37782210096,
+      "artifact_id": 11552403668,
+      "original_issues": [
+        "LOSSLESS_UDP_MISSING_c2s",
+        "LOSSLESS_PROBE_MISSING_c2s",
+        "LOSSLESS_PROBE_MISSING_s2c",
+        "RESOURCE_AUDIT_WARNINGS",
+        "LOCAL_SOCKET_DROP"
+      ],
+      "tcp_tick_total_s": 16.57556729,
+      "udp_tick_total_s": 0.002915105,
+      "tcp_max_ms": 225.236958,
+      "server_ready_overflow": 268478,
+      "local_socket_drop": 37,
+      "c2s_udp_missing": 1555,
+      "probe_missing": [
+        22,
+        24
+      ],
+      "capacity_limited_evidenced": false,
+      "evidence": "docs/evidence/performance-efficiency-e0-game4-tcp-tick-fail-37782210096.json"
     }
   },
-  "next_task": "E0 inspect independently dispatched game4 4lane mixed profile ON lossless 300s seed1820 one-sample Action, exact PRODUCT_SOURCE a5ee53e and next helper own SHA; first preserve analyzer PASS/FAIL, then server tick_service_udp vs tick_service_tcp total/max/over10ms, ready overflow/age, UDP/probe TCP/HTTPS, CPU/PSI/quota/fec/raw batch. Keep Game4 older runs37766819445,37768172504,37780170850 FAIL and boundary 8937/65507 unsupported; no profile ON/OFF CPU benefit claim. If service TCP has blocking Send, investigate safe bounded scheduling without new queue/HOL; core/race then four independent Normal lossless/5205 Game4 lossless/5205 guards. E7 80s OPEN; E6/P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-game4-tick-service-udp-tcp-candidate.md",
+  "next_task": "E0: profile-ON Game4 run37782210096 original FAIL; server service.Tick16.58s, TCPServer.Tick16.5756s / max225.24ms / 236 executions>10ms, UDPServer.Tick0.0029s; server ready overflow268478; C2S UDP1555 missing + probes22/24 missing; NEW socket drop37/PSI37.58, cannot reclassify as pure capacity. Inspect TCPServer.Tick snapshot/RetransmitDue vs synchronous flow.tunnel.Send in receiver-loop; next add opt-in bounded phase timing or targeted unit regression then only one independent Actions sample if necessary; prioritize no-HOL and exact wire/first-arrival. No Game4 protection has passed; E1 code unimplemented, need core/race + Normal lossless/5205 and Game4 lossless/5205 each separate run before optimization PASS. E7 80s S2C OPEN. E6/P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-e0-game4-tcp-retransmit-tick-blocking-path.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",
