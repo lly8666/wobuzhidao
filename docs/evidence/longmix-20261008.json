@@ -173,11 +173,18 @@
       "helper_sha": "6f51248b95281298d96c38cc859cac6b1bd2be23",
       "elapsed_measured_seconds": 0,
       "reason": "sudo missing artifact dir env"
+    },
+    "second_attempt": {
+      "classification": "NOT_RUN",
+      "run": null,
+      "helper_preflight": "https://github.com/lly8666/wobuzhidao/actions/runs/37729610843",
+      "expected_source": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+      "expected_helper_at_dispatch": null
     }
   },
   "dispatch_approach": {
     "path": ".github/workflows/next-longmix-one-sample-dispatch.yml",
-    "state": "FIRST_DISPATCH_FAILED_NO_PERFORMANCE_RUN",
+    "state": "A_P0_SECOND_ATTEMPT_REQUESTED",
     "protected": "Only request-file push to orchestrator; no measurement in dispatch controller; all real measurement must be workflow_dispatch separate run",
     "helper_preflight": {
       "sha": "77a5251bb8abfea84b7b0ba2a69707fc7e21b037",
