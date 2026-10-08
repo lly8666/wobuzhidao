@@ -1,0 +1,50 @@
+name: next-large-mtu-artifact-reducer
+on:
+  push:
+    branches: ["agent/large-mtu-mixed-20261008"]
+    paths: [".github/large-mtu-aggregate-request.json"]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  summaries-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download only preexisting run summary artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/large-mtu-reducer/runs
+          python3 - <<'PY' > "$RUNNER_TEMP/large-mtu-run-ids.txt"
+          import json
+          from pathlib import Path
+          p=json.loads(Path(".github/large-mtu-aggregate-request.json").read_text())
+          assert set(p)=={"product_source_sha","helper_source_sha","runs"}
+          assert len(p["runs"])<=50
+          ids=[x["run_id"] for x in p["runs"]]
+          assert len(ids)==len(set(ids)) and all(type(i) is int and i>0 for i in ids)
+          for i in ids:print(i)
+          PY
+          while read -r id; do
+            mkdir -p "artifacts/large-mtu-reducer/runs/$id"
+            if ! gh run download "$id" --repo "${{ github.repository }}" \
+              --name "large-mtu-sample-$id" --dir "artifacts/large-mtu-reducer/runs/$id"; then
+              echo "SUMMARY_ARTIFACT_MISSING run_id=$id"
+            fi
+          done < "$RUNNER_TEMP/large-mtu-run-ids.txt"
+      - name: Audit manifest identities and print complete pass/fail/not-run table
+        run: |
+          python3 tools/aggregate_large_mtu_mixed.py \
+            --root artifacts/large-mtu-reducer/runs \
+            --manifest .github/large-mtu-aggregate-request.json \
+            --output artifacts/large-mtu-reducer/aggregate.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: large-mtu-aggregate-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: artifacts/large-mtu-reducer/aggregate.json
