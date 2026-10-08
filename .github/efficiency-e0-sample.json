@@ -1,7 +1,7 @@
 {
-  "workload": "tcp",
+  "workload": "mixed",
   "loss": 0,
-  "seed": 1802,
+  "seed": 1803,
   "product_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "mode": "normal",
   "lanes": 1,
