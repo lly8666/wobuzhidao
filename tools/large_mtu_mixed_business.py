@@ -345,10 +345,10 @@ def run(args):
             ls=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             ls.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
             ls.bind((own[0],own[1]+1));ls.listen(32)
-            # Three long connections split 98% of the TCP quota.
+            # Three long connections take the TCP budget after fixed short/probe quotas.
             jobs.append(threading.Thread(target=target_tcp,args=(ls,t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000-PROBE_BYTES_PER_SECOND/125000)/3),daemon=True))
         else:
-            jobs.append(threading.Thread(target=business_tcp,args=((remote[0],remote[1]+1),t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000)*.98/3),daemon=True))
+            jobs.append(threading.Thread(target=business_tcp,args=((remote[0],remote[1]+1),t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000-PROBE_BYTES_PER_SECOND/125000)/3),daemon=True))
     for th in jobs:th.start()
     wait(end+DRAIN_S*1_000_000_000)
     stop.set()
