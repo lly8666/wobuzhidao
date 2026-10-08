@@ -47,7 +47,7 @@ func runLinuxClient() error {
 		updateChinaIP      = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
 		rawIface           = flag.String("raw-interface", "", "Linux/OpenWrt underlay interface")
-		rawRecvBuffer      = flag.Int("raw-recv-buffer", faketcp.DefaultRawReceiveBufferRequestBytes, "Linux AF_PACKET SO_RCVBUF request bytes; 0 inherits system default; kernel readback may be doubled or capped")
+		rawRecvBuffer      = flag.Int("raw-recv-buffer", faketcp.DefaultRawReceiveBufferRequestBytes, "Linux AF_PACKET SO_RCVBUF request bytes; 0 inherits; capped requests attempt per-socket privileged fallback; actual readback authoritative")
 		localIPText        = flag.String("local-ip", "", "underlay source IPv4")
 		sourcePort         = flag.Uint("source-port", 40000, "FakeTCP source port")
 		serverIPText       = flag.String("server-ip", "", "server public IPv4")
@@ -222,8 +222,8 @@ func runLinuxClient() error {
 		return err
 	}
 	rawBuffer := raw.ReceiveBufferStatus()
-	log.Printf("WBD_RAW_RCVBUF requested_bytes=%d expected_effective_bytes=%d effective_bytes=%d inherited=%t limited=%t",
-		rawBuffer.RequestedBytes, rawBuffer.ExpectedEffectiveBytes, rawBuffer.EffectiveBytes, rawBuffer.Inherited, rawBuffer.Limited)
+	log.Printf("WBD_RAW_RCVBUF requested_bytes=%d expected_effective_bytes=%d effective_bytes=%d inherited=%t limited=%t force_attempted=%t forced=%t force_error=%q",
+		rawBuffer.RequestedBytes, rawBuffer.ExpectedEffectiveBytes, rawBuffer.EffectiveBytes, rawBuffer.Inherited, rawBuffer.Limited, rawBuffer.ForceAttempted, rawBuffer.Forced, rawBuffer.ForceError)
 	baseIO := runtimeentry.SegmentIO{
 		Read: func() (faketcp.Segment, error) {
 			seg, _, err := raw.ReadSegment()

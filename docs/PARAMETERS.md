@@ -107,8 +107,8 @@ Windows短stage墙钟测量可能合法返回0（本轮Actions已实际观察sam
 
 ### Linux raw 接收缓冲
 
-Linux 客户端和服务端统一参数 `raw-recv-buffer` 表示传给 `SO_RCVBUF` 的**请求字节数**，不是承诺的实际缓冲大小。默认请求 `524288`（512 KiB），目标是在允许该请求的系统上得到 Linux `getsockopt(SO_RCVBUF)` 约 `1048576`（1 MiB）的实效读回；`0` 明确表示不调用 setsockopt、继承系统默认。Linux 会为内部记账通常把请求值翻倍，但普通 `SO_RCVBUF` 仍受宿主 `net.core.rmem_max` 限制，因此低上限机器会得到较小实效值。WBD 不修改 sysctl，也不使用 `SO_RCVBUFFORCE`。
+Linux 客户端和服务端统一参数 `raw-recv-buffer` 表示传给 `SO_RCVBUF` 的**请求字节数**，不是承诺的实际缓冲大小。默认请求 `524288`（512 KiB），目标是在允许该请求的系统上得到 Linux `getsockopt(SO_RCVBUF)` 约 `1048576`（1 MiB）的实效读回；`0` 明确表示不调用 setsockopt、继承系统默认。Linux 会为内部记账通常把请求值翻倍，但普通 `SO_RCVBUF` 仍受宿主 `net.core.rmem_max` 限制，因此低上限机器会得到较小实效值。WBD 不修改 sysctl。普通设置读回不足时，只对该接收fd尝试 `SO_RCVBUFFORCE`，使用进程已有CAP_NET_ADMIN权限；不申请新权限。成功后再次读回，权限不足或内核不支持则保留普通实效并明确报告。
 
-启动仅一次设置并立即 getsockopt 验证，日志 `WBD_RAW_RCVBUF` 和 `raw_io.receive_buffer` 固定状态同时记录 `requested_bytes / expected_effective_bytes / effective_bytes / inherited / limited`；稳态收发不再查询socket、不增加日志、分配或锁。负数或超过64 MiB的请求拒绝启动；setsockopt/getsockopt失败直接报错。受系统上限限制时允许启动但 `limited=true`，不能把请求值冒充已生效值。变更需重启进程才生效；设置 `0` 即可回滚到系统默认。
+启动仅一次设置并立即 getsockopt 验证，日志 `WBD_RAW_RCVBUF` 和 `raw_io.receive_buffer` 固定状态同时记录 `requested_bytes / expected_effective_bytes / effective_bytes / inherited / limited / force_attempted / forced / force_error`；稳态收发不再查询socket、不增加日志、分配或锁。负数或超过64 MiB的请求拒绝启动；setsockopt/getsockopt失败直接报错。受系统上限限制时允许启动但 `limited=true`，不能把请求值冒充已生效值。变更需重启进程才生效；设置 `0` 即可回滚到系统默认。
 
 该参数只存在于 Linux client/server。Windows客户端没有AF_PACKET raw接收socket，CLI没有此参数，Windows JSON出现该键会按未知平台参数拒绝，而不是静默忽略。

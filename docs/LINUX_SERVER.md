@@ -70,7 +70,7 @@ sudo wbdctl status
 sudo wbdctl logs
 ```
 
-首次install只安装，必须先编辑/etc/wbd/server.json再check/start。配置模板里的server-name、raw-interface、listen-ip、decoy、route-key-hex、username/password、tls-cert/tls-key均需替换。Linux正式入口的 `raw-recv-buffer` 默认524288，含义是AF_PACKET `SO_RCVBUF` 的请求字节数；0继承系统默认。启动日志必须以 `WBD_RAW_RCVBUF` 的effective/limited字段为准，Linux通常读回约请求值两倍，但受 `net.core.rmem_max` 限制。程序不改sysctl、不使用SO_RCVBUFFORCE；受限不是“1MiB已生效”，回滚设0并重启即可。证书路径相对于配置文件目录；证书/私钥由部署者提供，不在线生成冒用证书。监听地址须属于指定物理接口，监听端口须由WBD独占；内核现有HTTPS服务不得占用同一地址端口。租约池不能与宿主LAN、其他VPN或路由重叠。不要写lease4/account/tunnel-id来启用默认随机分配；max-clients默认256。check只校验配置和证书读取，不证明实际外网连通、上游防火墙、NIC或decoy可达。
+首次install只安装，必须先编辑/etc/wbd/server.json再check/start。配置模板里的server-name、raw-interface、listen-ip、decoy、route-key-hex、username/password、tls-cert/tls-key均需替换。Linux正式入口的 `raw-recv-buffer` 默认524288，含义是AF_PACKET `SO_RCVBUF` 的请求字节数；0继承系统默认。启动日志必须以 `WBD_RAW_RCVBUF` 的effective/limited字段为准，Linux通常读回约请求值两倍，但受 `net.core.rmem_max` 限制。程序不改sysctl；普通设置受限时仅对当前raw接收fd尝试SO_RCVBUFFORCE，依赖已有CAP_NET_ADMIN，不新增权限。无权限/内核不支持则保留较小实效并记录force_error；forced/effective/limited为准。回滚设0并重启，不再调用任何设置。证书路径相对于配置文件目录；证书/私钥由部署者提供，不在线生成冒用证书。监听地址须属于指定物理接口，监听端口须由WBD独占；内核现有HTTPS服务不得占用同一地址端口。租约池不能与宿主LAN、其他VPN或路由重叠。不要写lease4/account/tunnel-id来启用默认随机分配；max-clients默认256。check只校验配置和证书读取，不证明实际外网连通、上游防火墙、NIC或decoy可达。
 
 start先只读校验，再启用开机启动及启动服务。Type=notify在网络与正式服务循环就绪后才报告active；fatal运行错误非零退出，systemd有限速地重启。停止用wbdctl stop/restart；recover只读网络恢复记录清理WBD所有权，不访问客户端IP租约。当前机制不提供跨进程无损热升级，升级会短暂重连，应用层自行恢复。自动客户端IP重新分配后Windows GUI清理旧网络状态并重启客户端；直接CLI会报告WBD_CLIENT_LEASE_CHANGED并非零退出，由调用者/服务管理器重启，不静默更改运行中owner。
 

@@ -1,0 +1,1026 @@
+{
+  "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+  "state": "IN_PROGRESS",
+  "actions_verified_runs": [
+    {
+      "run": 37647915603,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 112883402362,
+          "name": "repository-contract",
+          "conclusion": "success"
+        },
+        {
+          "id": 112883471156,
+          "name": "p2-kernel-fallback",
+          "conclusion": "success"
+        },
+        {
+          "id": 112883471315,
+          "name": "active-go-tests (ubuntu-24.04)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112883471423,
+          "name": "p4-openwrt-tproxy-privileged",
+          "conclusion": "success"
+        },
+        {
+          "id": 112883471444,
+          "name": "p4-linux-shared-tun-privileged (nft)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112883471449,
+          "name": "active-go-tests (windows-2022)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112883471695,
+          "name": "p4-linux-shared-tun-privileged (iptables)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112883473345,
+          "name": "p6-release-candidate",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 112883473451,
+          "name": "p5-soak",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 112883473668,
+          "name": "p5-load",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 112883473676,
+          "name": "p5-fec2020-weaknet-5-20-5",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 112883473913,
+          "name": "p5-fec2020-weaknet-5-30-5",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 112883474131,
+          "name": "p5-load-40",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 112883474171,
+          "name": "p5-weaknet-5-20-5",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 112883474200,
+          "name": "p5-https-measurement-base",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 112883474345,
+          "name": "p5-weaknet-5-30-5",
+          "conclusion": "skipped"
+        }
+      ]
+    },
+    {
+      "run": 37692576217,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113036175855,
+          "name": "harness-unit",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036176253,
+          "name": "egress-blackhole-semantics",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036176261,
+          "name": "physical-helper-compile",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036176304,
+          "name": "transient-overlap-regression",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37692578878,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113036184091,
+          "name": "deployment",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37692581702,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113036194137,
+          "name": "lifecycle-l0_config-fec0-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194282,
+          "name": "lifecycle-l0_config-fec0-pad1-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194320,
+          "name": "lifecycle-l2_c2s-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194321,
+          "name": "lifecycle-l1_idle_downlink-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194384,
+          "name": "lifecycle-l2_s2c-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194389,
+          "name": "lifecycle-l2_c2s-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194415,
+          "name": "lifecycle-l0_config-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194420,
+          "name": "lifecycle-l0_config-fec0-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194433,
+          "name": "lifecycle-l0_config-fec20-pad1-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194452,
+          "name": "lifecycle-l4_old_tuple-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194464,
+          "name": "lifecycle-l0_config-fec0-pad1-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194486,
+          "name": "lifecycle-l0_config-fec20-pad1-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194487,
+          "name": "lifecycle-l0_config-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194494,
+          "name": "lifecycle-l2_s2c-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194529,
+          "name": "lifecycle-l6_race1-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194535,
+          "name": "lifecycle-l1_idle_downlink-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194562,
+          "name": "lifecycle-l4_old_tuple-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194572,
+          "name": "lifecycle-l5_admission-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194592,
+          "name": "lifecycle-l5_tls-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194644,
+          "name": "lifecycle-l4_all_tuple-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194645,
+          "name": "lifecycle-l5_syn-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194671,
+          "name": "lifecycle-l5_detach-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194714,
+          "name": "lifecycle-l4_all_tuple-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194735,
+          "name": "lifecycle-l3_health-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194746,
+          "name": "lifecycle-l5_admission-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194790,
+          "name": "lifecycle-l5_tls-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194816,
+          "name": "lifecycle-l6_race1-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036194975,
+          "name": "lifecycle-l5_detach-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036195019,
+          "name": "lifecycle-l3_health-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036195099,
+          "name": "lifecycle-l5_syn-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036196950,
+          "name": "lifecycle-l6_race4-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036197070,
+          "name": "lifecycle-l6_partial-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036197099,
+          "name": "lifecycle-l6_race4-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036197298,
+          "name": "lifecycle-l7_defaults-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036197340,
+          "name": "lifecycle-l6_partial-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036197618,
+          "name": "lifecycle-l7_defaults-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113039912676,
+          "name": "lifecycle-aggregate-36",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37692584662,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113036203267,
+          "name": "default-network (custom)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036203493,
+          "name": "default-network (off)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036203605,
+          "name": "default-network (default)",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37692587833,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113036216202,
+          "name": "splitroute-lan-FUNCTIONAL",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036216382,
+          "name": "splitroute-all-FUNCTIONAL",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036216436,
+          "name": "splitroute-manual-FUNCTIONAL",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036216497,
+          "name": "splitroute-embedded-FUNCTIONAL",
+          "conclusion": "success"
+        },
+        {
+          "id": 113037789788,
+          "name": "aggregate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37692590054,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113036221488,
+          "name": "single-configuration",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37648447701,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 112885230372,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37649256342,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 112887973893,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37650050540,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 112890717362,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37650792915,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 112893283888,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37692071383,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113034483226,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37692499392,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113035922474,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37692691482,
+      "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "attempt": 1,
+      "jobs": [
+        {
+          "id": 113036555619,
+          "name": "package (windows-2022, windows, amd64, true)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036556001,
+          "name": "package (ubuntu-24.04, linux, arm64, false)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113036556100,
+          "name": "package (ubuntu-24.04, linux, amd64, true)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113037276883,
+          "name": "aggregate",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "packages_verified": [
+    {
+      "target": "windows/amd64",
+      "artifact_id": 11514550924,
+      "artifact_digest": "sha256:9a458ce7662cdd7a71e9d60826b8e52375b51268d89a2653408ac662e171bb86",
+      "manifest_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "file_count": 13,
+      "size_sha256_mismatches": 0
+    },
+    {
+      "target": "linux/amd64",
+      "artifact_id": 11513738493,
+      "artifact_digest": "sha256:5c9bcb4f94ca44b67fe41487fb09083f3951dd2f9db786339e04832f6b4c3bf4",
+      "manifest_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "file_count": 10,
+      "size_sha256_mismatches": 0
+    },
+    {
+      "target": "linux/arm64",
+      "artifact_id": 11513604052,
+      "artifact_digest": "sha256:a4465df9432973e8c27cf76e24932577c3f228a5380827eb7c664132aaa9c9b7",
+      "manifest_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+      "file_count": 10,
+      "size_sha256_mismatches": 0
+    }
+  ],
+  "original_metrics_verified": true,
+  "deployment": {
+    "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "previous_source": "3a594a34191159bd7224f35ba9117cdf6f239c69",
+    "qualification": [
+      {
+        "run": 37647915603,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 112883402362,
+            "name": "repository-contract",
+            "conclusion": "success"
+          },
+          {
+            "id": 112883471156,
+            "name": "p2-kernel-fallback",
+            "conclusion": "success"
+          },
+          {
+            "id": 112883471315,
+            "name": "active-go-tests (ubuntu-24.04)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112883471423,
+            "name": "p4-openwrt-tproxy-privileged",
+            "conclusion": "success"
+          },
+          {
+            "id": 112883471444,
+            "name": "p4-linux-shared-tun-privileged (nft)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112883471449,
+            "name": "active-go-tests (windows-2022)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112883471695,
+            "name": "p4-linux-shared-tun-privileged (iptables)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112883473345,
+            "name": "p6-release-candidate",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112883473451,
+            "name": "p5-soak",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112883473668,
+            "name": "p5-load",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112883473676,
+            "name": "p5-fec2020-weaknet-5-20-5",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112883473913,
+            "name": "p5-fec2020-weaknet-5-30-5",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112883474131,
+            "name": "p5-load-40",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112883474171,
+            "name": "p5-weaknet-5-20-5",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112883474200,
+            "name": "p5-https-measurement-base",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 112883474345,
+            "name": "p5-weaknet-5-30-5",
+            "conclusion": "skipped"
+          }
+        ]
+      },
+      {
+        "run": 37692576217,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113036175855,
+            "name": "harness-unit",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036176253,
+            "name": "egress-blackhole-semantics",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036176261,
+            "name": "physical-helper-compile",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036176304,
+            "name": "transient-overlap-regression",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37692578878,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113036184091,
+            "name": "deployment",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37692581702,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113036194137,
+            "name": "lifecycle-l0_config-fec0-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194282,
+            "name": "lifecycle-l0_config-fec0-pad1-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194320,
+            "name": "lifecycle-l2_c2s-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194321,
+            "name": "lifecycle-l1_idle_downlink-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194384,
+            "name": "lifecycle-l2_s2c-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194389,
+            "name": "lifecycle-l2_c2s-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194415,
+            "name": "lifecycle-l0_config-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194420,
+            "name": "lifecycle-l0_config-fec0-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194433,
+            "name": "lifecycle-l0_config-fec20-pad1-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194452,
+            "name": "lifecycle-l4_old_tuple-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194464,
+            "name": "lifecycle-l0_config-fec0-pad1-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194486,
+            "name": "lifecycle-l0_config-fec20-pad1-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194487,
+            "name": "lifecycle-l0_config-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194494,
+            "name": "lifecycle-l2_s2c-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194529,
+            "name": "lifecycle-l6_race1-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194535,
+            "name": "lifecycle-l1_idle_downlink-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194562,
+            "name": "lifecycle-l4_old_tuple-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194572,
+            "name": "lifecycle-l5_admission-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194592,
+            "name": "lifecycle-l5_tls-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194644,
+            "name": "lifecycle-l4_all_tuple-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194645,
+            "name": "lifecycle-l5_syn-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194671,
+            "name": "lifecycle-l5_detach-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194714,
+            "name": "lifecycle-l4_all_tuple-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194735,
+            "name": "lifecycle-l3_health-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194746,
+            "name": "lifecycle-l5_admission-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194790,
+            "name": "lifecycle-l5_tls-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194816,
+            "name": "lifecycle-l6_race1-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036194975,
+            "name": "lifecycle-l5_detach-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036195019,
+            "name": "lifecycle-l3_health-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036195099,
+            "name": "lifecycle-l5_syn-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036196950,
+            "name": "lifecycle-l6_race4-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036197070,
+            "name": "lifecycle-l6_partial-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036197099,
+            "name": "lifecycle-l6_race4-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036197298,
+            "name": "lifecycle-l7_defaults-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036197340,
+            "name": "lifecycle-l6_partial-fec20-pad0-seed202",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036197618,
+            "name": "lifecycle-l7_defaults-fec20-pad0-seed101",
+            "conclusion": "success"
+          },
+          {
+            "id": 113039912676,
+            "name": "lifecycle-aggregate-36",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37692584662,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113036203267,
+            "name": "default-network (custom)",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036203493,
+            "name": "default-network (off)",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036203605,
+            "name": "default-network (default)",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37692587833,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113036216202,
+            "name": "splitroute-lan-FUNCTIONAL",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036216382,
+            "name": "splitroute-all-FUNCTIONAL",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036216436,
+            "name": "splitroute-manual-FUNCTIONAL",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036216497,
+            "name": "splitroute-embedded-FUNCTIONAL",
+            "conclusion": "success"
+          },
+          {
+            "id": 113037789788,
+            "name": "aggregate",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37692590054,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113036221488,
+            "name": "single-configuration",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37648447701,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 112885230372,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37649256342,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 112887973893,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37650050540,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 112890717362,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37650792915,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 112893283888,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37692071383,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113034483226,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37692499392,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113035922474,
+            "name": "strict-sample",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run": 37692691482,
+        "source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+        "attempt": 1,
+        "jobs": [
+          {
+            "id": 113036555619,
+            "name": "package (windows-2022, windows, amd64, true)",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036556001,
+            "name": "package (ubuntu-24.04, linux, arm64, false)",
+            "conclusion": "success"
+          },
+          {
+            "id": 113036556100,
+            "name": "package (ubuntu-24.04, linux, amd64, true)",
+            "conclusion": "success"
+          },
+          {
+            "id": 113037276883,
+            "name": "aggregate",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ],
+    "windows_zip_sha256": "55b847bbbba4f7f2e6879eb95cc4a6181948d546a36f5e4b25e83717f450a4c4",
+    "windows_bundle": "WBD-P7-c853935/windows-portable",
+    "server_stage": "/opt/wbd/p7-candidates/c853935",
+    "config_preserved": true,
+    "npcap_not_reinstalled": true,
+    "rollback": "/opt/wbd/wbd-server.rollback-3a594a3"
+  },
+  "kernel_option_probe": {
+    "requested_bytes": 524288,
+    "normal_effective_bytes": 425984,
+    "forced_effective_bytes": 1048576,
+    "force_errno": 0,
+    "global_sysctl_unchanged": true,
+    "scope": "short-lived AF_UNIX kernel option probe only,not product socket or performance sample",
+    "sysctl": {
+      "rmem_max": "212992",
+      "rmem_default": "212992"
+    }
+  },
+  "physical_samples": [],
+  "scope": "No current-source physical PASS yet; no system settings changed; all historical failures retained",
+  "updated_at": "2026-10-08T01:28:40.329872+00:00"
+}

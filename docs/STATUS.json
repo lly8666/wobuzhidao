@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-07T22:06:21.942Z",
+  "updated_at": "2026-10-08T01:28:40.329872+00:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Original chat: physical Windows→Linux ARM acceptance for fixed SOURCE c853935e5356a9bc99d380befb5a8ac8e0c08d97 from qualification/raw-rto-physical-20261008 using three exact P6 artifacts in docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json. Run controlled raw-recv-buffer=0 vs 524288 with real ARM effective/limited/drops and queue+CPU/PSI time-aligned; normal/game throughput+p99+rotation; sustained native inner MTU9000 UDP8972/8973/65507, illegal65508/DF with interleaved 96B and per-datagram first/complete time; DNS split/IPv6/idle/keepalive. Keep r12 5305 ~2179ms p99, native drop root cause, old 11 RTT FAIL/S01/S16/M03/full70/final18/1800s and all other NOT_RUN OPEN. No physical PASS or release qualified claim.",
-  "latest_log": "docs/devlog/20261008-060500-raw-rcvbuf-rto-actions-handoff.md",
+  "next_task": "Original chat root: qualified c853935 deployed, sequential physical1541 Normal raw0 then1542 raw524288, M03 1543/1544, Game4 rotation1545 active; no duplicate physical load. Independently qualify new raw per-socket capped-request fallback candidate through Actions before any deployment; no global sysctl, FEC/4096/MTU/RTO changes. Keep r12 tail and all old failures OPEN.",
+  "latest_log": "docs/devlog/20261008-raw-buffer-scoped-portability-candidate.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10815,5 +10815,25 @@
     "root_cause": "PARTIAL: sparse clean-RTT repair 1s floor proven & reduced to 200ms; full native late source may involve other boundaries, NOT_RUN post-fix",
     "historical_r12_tail": "OPEN; 20:12 5305 seed1508 run37692499392 56/60 probes p99 2178.685ms vs pre-run37633598715 56/60 p99 2167.779ms",
     "physical": "NOT_RUN_NEW_SOURCE"
+  },
+  "raw_buffer_scoped_portability": {
+    "state": "CANDIDATE_ACTIONS_NOT_RUN",
+    "based_on_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "reason": "User20261008 authorizes program handling when kernel defaults prevent request; ARM probe ordinary425984 vs requested target1048576, scoped privileged override works without sysctl",
+    "implementation": "ordinary SO_RCVBUF/readback then only if limited attempt SO_RCVBUFFORCE on same receive fd; existing CAP_NET_ADMIN only; permission/unsupported degradation reported;0 preserves inherit",
+    "steady_overhead_added": false,
+    "new_privileges_requested": false,
+    "global_sysctl_changed": false,
+    "physical": "NOT_RUN_CANDIDATE",
+    "latest_log": "docs/devlog/20261008-raw-buffer-scoped-portability-candidate.md"
+  },
+  "physical_raw_rto": {
+    "state": "IN_PROGRESS",
+    "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "bundle": "WBD-P7-c853935",
+    "independent_actions_audit": "PASS_EXACT_SOURCE_JOBS_PACKAGE_HASHES_ORIGINAL_METRICS",
+    "physical_samples": 0,
+    "active_test": "1541 Normal raw0; sequential controller owns 1542/1543/1544/1545",
+    "evidence": "docs/evidence/raw-rto-c853935-physical-20261008.json"
   }
 }

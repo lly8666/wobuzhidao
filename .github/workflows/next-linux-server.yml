@@ -43,7 +43,7 @@ jobs:
           trap 'sudo ip netns del "$ns" || true' EXIT
           sudo ip netns add "$ns"
           sudo ip netns exec "$ns" ip link set lo up
-          sudo ip netns exec "$ns" env GITHUB_ACTIONS=true WBD_RAW_PORT_FILTER_KERNEL=1 /tmp/wbd-raw-port.test -test.run '^TestRawPortFilterKernelIngress$' -test.v | tee artifacts/raw-port-kernel.log
+          sudo ip netns exec "$ns" env GITHUB_ACTIONS=true WBD_RAW_PORT_FILTER_KERNEL=1 /tmp/wbd-raw-port.test -test.run '^TestRawPortFilterKernel(Ingress|ReceiveBufferScopedLimitFallback)$' -test.v | tee artifacts/raw-port-kernel.log
       - name: Real isolated crash recovery and narrow RST ownership
         shell: bash
         run: |

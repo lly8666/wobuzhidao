@@ -7,12 +7,47 @@ import (
 	"encoding/binary"
 	"errors"
 	"os"
+	"strconv"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
 
 	"golang.org/x/net/bpf"
 )
+
+func TestRawPortFilterKernelReceiveBufferScopedLimitFallback(t *testing.T) {
+	if os.Getenv("WBD_RAW_PORT_FILTER_KERNEL") != "1" {
+		t.Skip("requires explicit isolated Actions kernel fixture")
+	}
+	if os.Getenv("GITHUB_ACTIONS") != "true" {
+		t.Fatal("kernel qualification belongs in Actions")
+	}
+	maxBefore, err := os.ReadFile("/proc/sys/net/core/rmem_max")
+	if err != nil { t.Fatal(err) }
+	defaultBefore, err := os.ReadFile("/proc/sys/net/core/rmem_default")
+	if err != nil { t.Fatal(err) }
+	maximum, err := strconv.Atoi(strings.TrimSpace(string(maxBefore)))
+	if err != nil { t.Fatal(err) }
+	if maximum >= MaxRawReceiveBufferRequestBytes {
+		t.Skip("host limit exceeds bounded request range; forced path not exercised")
+	}
+	request := maximum+1
+	endpoint, err := OpenRawIPv4EndpointWithOptions("lo", [4]byte{127,0,0,1}, PacketPersonaLegacy, RawIPv4EndpointOptions{ReceivePort:24344, ReceiveBufferRequestBytes:request})
+	if err != nil { t.Fatal(err) }
+	defer endpoint.Close()
+	status := endpoint.ReceiveBufferStatus()
+	if !status.ForceAttempted || !status.Forced || status.Limited || status.EffectiveBytes < request*2 || status.ForceError != "" {
+		t.Fatalf("isolated privileged AF_PACKET fallback not effective: %+v",status)
+	}
+	if !endpoint.kernelPortFilter { t.Fatal("kernel ingress filter lost") }
+	maxAfter, err := os.ReadFile("/proc/sys/net/core/rmem_max")
+	if err != nil { t.Fatal(err) }
+	defaultAfter, err := os.ReadFile("/proc/sys/net/core/rmem_default")
+	if err != nil { t.Fatal(err) }
+	if !bytes.Equal(maxBefore,maxAfter) || !bytes.Equal(defaultBefore,defaultAfter) { t.Fatal("global receive settings changed") }
+	t.Logf("scoped request=%d effective=%d forced=%t host settings unchanged",request,status.EffectiveBytes,status.Forced)
+}
 
 func rawFilterFrame(port uint16, flags uint8) []byte {
 	ip := MarshalSegment(Segment{SrcIP: [4]byte{127, 0, 0, 2}, DstIP: [4]byte{127, 0, 0, 1}, SrcPort: 44444, DstPort: port, Seq: 4242, Flags: flags, Window: 1234}, 1, PacketPersonaLegacy)
