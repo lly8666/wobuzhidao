@@ -1,0 +1,155 @@
+{
+  "schema": "wbd-e3-stageb-game4-profileon-and-game2-qualification/v1",
+  "recorded_date": "2026-10-09",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "e5b99d5ab2f9e67c43a80db5ad38dfd9c974d779",
+  "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+  "helper_sha": "THIS_NEW_COMMIT",
+  "game4_off": {
+    "run_id": 37807156289,
+    "helper_sha": "263480774d75003776715458dd80a273fad038fb",
+    "conclusion": "success",
+    "analyzer": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "config": {
+      "mode": "game",
+      "lanes": 4,
+      "loss": 0,
+      "seed": 1827,
+      "diagnostic": "off",
+      "logical_mbps_each": 3,
+      "one_way_ms": 300,
+      "duration_s": 300,
+      "drain_s": 3
+    },
+    "business": {
+      "c2s_goodput_mbps": 2.97231648,
+      "s2c_goodput_mbps": 2.97231648,
+      "udp_missing_all_sizes_both": 0,
+      "probe_missing_c2s_s2c": [
+        0,
+        0
+      ],
+      "probe_p99_ms_c2s_s2c": [
+        633.131373,
+        628.434791
+      ],
+      "tcp_integrity": "304_each_direction",
+      "http_https": "20/20,10 cert+body verified"
+    },
+    "runner": {
+      "cpu_model": "AMD EPYC 7763 64-Core Processor",
+      "logical_cpu": 4,
+      "product_cpu_s": 332.37
+    },
+    "diagnostics": "OFF; cannot assert physical lane count/queue drops from this sample"
+  },
+  "game4_on": {
+    "run_id": 37808417385,
+    "job_id": 113418665479,
+    "artifact_id": 11564401421,
+    "helper_sha": "e5b99d5ab2f9e67c43a80db5ad38dfd9c974d779",
+    "conclusion": "success",
+    "analyzer": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "config": {
+      "mode": "game",
+      "lanes": 4,
+      "loss": 0,
+      "seed": 1828,
+      "diagnostic": "on",
+      "logical_mbps_each": 3,
+      "one_way_ms": 300,
+      "duration_s": 300,
+      "drain_s": 3
+    },
+    "business": {
+      "c2s_goodput_mbps": 2.97231648,
+      "s2c_goodput_mbps": 2.97231648,
+      "udp_missing_all_sizes_both": 0,
+      "probe_sent_returned_c2s": [
+        1500,
+        1500
+      ],
+      "probe_sent_returned_s2c": [
+        1495,
+        1495
+      ],
+      "probe_p99_ms_c2s_s2c": [
+        616.059885,
+        615.137415
+      ],
+      "tcp_integrity": "304_each_direction",
+      "http_https": "20/20,10 cert+body verified"
+    },
+    "actual_game": {
+      "client_active_logical_lanes": 4,
+      "client_physical_lanes": 4,
+      "server_active_logical_lanes": 4,
+      "server_physical_lanes": 4,
+      "server_game_delivered": 130948,
+      "server_game_duplicates": 392844,
+      "client_game_delivered": 132156,
+      "client_game_duplicates": 396468
+    },
+    "server_pipeline": {
+      "reads": 2853970,
+      "handler": 2853938,
+      "ready_capacity": 4096,
+      "ready_peak": 3252,
+      "overflow_drops": 32,
+      "max_queue_age_ms": 66.073533,
+      "queue_wait_over10ms": 116964,
+      "async_tcp_tick_scheduled": 3163,
+      "async_tcp_tick_coalesced": 14,
+      "main_runtime_tick_wall_s": 6.967857414,
+      "downstream_queue_overflow": "not asserted from this summary"
+    },
+    "netem_loss_both": 0,
+    "actual_server_tun_mtu": 1273,
+    "runner": {
+      "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+      "logical_cpu": 4,
+      "product_cpu_s": 192.15,
+      "host_psi_some_avg10_max": 33.3
+    },
+    "limits": [
+      "Diagnostic ON enables per-record timing; not a valid CPU win comparison with OFF",
+      "32 outer drops under 4-lane FEC/race with zero logical datagram missing is not zero raw loss",
+      "Compared prior Stage A ON run37802779025 73586 overflow and 319 C2S UDP missing; seeds/runner differ; no controlled causality proof"
+    ]
+  },
+  "new_game2_sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1829,
+    "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+    "mode": "game",
+    "lanes": 2,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on",
+    "status": "QUEUED_SINGLE_ACTION_NOT_A_PASS",
+    "workflow": ".github/workflows/next-efficiency-e0-single.yml"
+  },
+  "helper_changes": [
+    "workflow whitelist game2/game3 3Mbps without touching product/source or source strict weaknet files",
+    "generated dedicated efficiency harness accepts game2/game3/game4 exact tuples, no changed main strict script",
+    "analyzer accepts lanes1..4 but for any Game ON fails closed unless requested active, desired, physical and unique lane refs+generations match 2/3/4; require real race/outbound activity",
+    "Normal1 mode unchanged"
+  ],
+  "hard_requirements": [
+    "one performance Action one 300s sample, no matrix or in-run A/B",
+    "Game2 diag ON result not comparable to OFF CPU; follow-up OFF independent Game2 sample",
+    "each direction lossless UDP 96..4068B and probes missing0, TCP and HTTP(S) intact",
+    "support real 5205 5%-20%-5% stages in separate future actions; constant 5 not 5205",
+    "E3 still BLOCKED pending Normal1/Game2 and real 5205, repeats and E7",
+    "E7 ~80s S2C OPEN, E6/P6 physical NOT_RUN"
+  ],
+  "source_gate": {
+    "foundation": 37806656658,
+    "lifecycle": 37806656647,
+    "conclusion": "success"
+  },
+  "status": "READY_TO_TRIGGER_ONE_GAME2_PROFILE_ON_REAL_SAMPLE"
+}

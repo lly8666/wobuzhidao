@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E3_STAGEB_GAME4_LOSSLESS_OFF_SCOPED_PASS_ON_DIAGNOSTIC_NEXT",
+    "phase": "E3_STAGEB_GAME4_ON_AND_OFF_SCOPED_PASS_GAME2_ON_QUALIFIER_TRIGGERING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -527,12 +527,12 @@
       "evidence": "docs/evidence/performance-efficiency-e0-game4-rto-600ms-tradeoff-and-run-trigger-20261008.json"
     },
     "game_architecture": {
-      "state": "STAGE_B_GAME4_LOSSLESS_PASS_SCOPED_ON_DIAGNOSTIC_TRIGGERING",
+      "state": "GAME4_OFF_AND_ON_SCOPED_PASS_GAME2_ON_QUALIFICATION_QUEUED",
       "parent_head": "8e6a26567511e19901f01f24ee31e82136c1736e",
       "source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
       "stage": "B_PRE_AUTH_FOURTUPLE_STABLE_SHARD_NO_QUEUE_CAPACITY_INCREASE",
       "architecture": "docs/GAME_MODE_INGRESS_ARCHITECTURE_20261008.md",
-      "evidence": "docs/evidence/performance-efficiency-e3-game4-ordered-shards-pass-run37807156289.json",
+      "evidence": "docs/evidence/performance-efficiency-e3-shards-game4-profileon-pass-and-game2-candidate-20261008.json",
       "foundation": "PASS",
       "lifecycle": "PASS",
       "new_game4_lossless": "NOT_RUN",
@@ -612,7 +612,7 @@
       "worker_join_before_owner_close": true,
       "normal5205": "NOT_RUN",
       "game5205": "NOT_RUN",
-      "cpu_gain": "UNPROVEN",
+      "cpu_gain": "UNPROVEN_DIFFERENT_CPU_STRATA",
       "previous_failed_source": "df02ad1b1e0158b6482ca60b156d32d0e454732a",
       "failed_foundation_run": 37806291845,
       "failed_lifecycle_run": 37806292258,
@@ -656,11 +656,35 @@
         "diagnostic_mode": "on"
       },
       "game2": "NOT_RUN",
-      "e3_completion": "BLOCKED"
+      "e3_completion": "BLOCKED",
+      "game4_off_original": "PASS_SCOPED_ACTIONS",
+      "game4_on_run": 37808417385,
+      "game4_on_original": "PASS_SCOPED_ACTIONS",
+      "game4_on_real_physical_lanes": 4,
+      "game4_on_real_logical_lanes": 4,
+      "game4_on_outer_ingress_overflow": 32,
+      "previous_stageA_ingress_overflow": 73586,
+      "game4_udp_missing": [
+        0,
+        0
+      ],
+      "game2_on_next_config": {
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1829,
+        "product_source_sha": "2acfede308802e8dfaddfdf7e15c17741a656e15",
+        "mode": "game",
+        "lanes": 2,
+        "rate_mbps": 3,
+        "size_profile": "ordinary",
+        "diagnostic_mode": "on"
+      },
+      "game2_on_run": null,
+      "game2_state": "PENDING_ACTION"
     }
   },
-  "next_task": "E3 StageB source2acfede run37807156289 actual Game4 profile OFF 0%loss/300ms/300s+3s mixed3Mbps/dir original PASS_SCOPED_ACTIONS issues[], all 96..4068B UDP missing0 both, probes 1500/1500 and1495/1495 zero missing p99 633.13/628.43ms, TCP 304/dir complete HTTPS20/20, TUN autoMTU1273, CPU332.37s not proven saved. Check next independent profileON Game4 seed1828 exact product2acfede new helper to confirm physical4 lanes and server outer ready overflow, worker fairness and first-arrival duplicates; DO NOT compare ON CPU with OFF. Current analyzer lanes choices [1,4], cannot run Game2 until helper supports 2/3 with real-ON assert. Then Normal1 lossless and true phased 5205 5/20/5, each independent Action, plus 3 matched resource OFF CPU repetitions, E3 blocked until all. All historical FAIL retained, E2 no proven CPU gain, E7 80s S2C OPEN, E6/P6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261008-e3-game4-bounded-shards-first-lossless-pass-next-physical-lanes.md",
+  "next_task": "E3 StageB exact product source2acfede Game4 OFF run37807156289 + ON run37808417385 both true PASS_SCOPED, UDP/probe0 missing and physical4 ON. Server read queue overflow32 ON (not zero) versus old stageA ON73586, last diag host AMD EPYC9V45 vs OFF AMD EPYC7763 no CPU claim. Next inspect independently triggered Game2 mode2/lanes2/mixed3Mbps/dir/0loss 300ms 300s+3s profileON seed1829, frozen source2acfede helper new commit SHA; analyzer must fail closed unless ACTUAL client/server physical2/logical2 and unique lane refs. After actual ON verdict, independent Game2 profileOFF and Game3 as useful, Normal1 regression, then real staged5205 5/20/5 each separate Action. E3 remains BLOCKED, CPU benefits unproven, E7 80s S2C OPEN, E6/P6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-e3-stageb-game4-on-pass-two-lane-qualification.md",
   "qualification_scope": "Integration bf11fbf core/race, lifecycle core and GUI portable all PASS; staged optimization plan published, no new CPU optimization implemented; ordinary/true-process stress/physical on integration NOT_RUN.",
   "last_tested_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
   "last_tested_scope": "integration core/race, lifecycle core and GUI/portable only; no ordinary CPU/performance claims",

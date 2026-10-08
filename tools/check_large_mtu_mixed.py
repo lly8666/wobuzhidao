@@ -158,7 +158,7 @@ def main():
     a.add_argument("--target-mbps",type=float,choices=[3.0,10.0],required=True)
     a.add_argument("--size-profile",choices=["ordinary","jumbo","boundary"],required=True)
     a.add_argument("--mode",choices=["normal","game"],required=True)
-    a.add_argument("--lanes",type=int,choices=[1,4],required=True)
+    a.add_argument("--lanes",type=int,choices=[1,2,3,4],required=True)
     a.add_argument("--diagnostic-mode",choices=["0","1"],required=True)
     x=a.parse_args();root=Path(x.artifact_dir)
     issues=[];capture_receipts=[]
@@ -304,11 +304,23 @@ def main():
                 "game_duplicates":owner.get("GameDuplicates"),
                 "lane_refs":[lane.get("ref") for lane in lanes]
             }
-            if x.mode=="game" and (
-                owner.get("DesiredLanes")!=4 or owner.get("ActiveLogicalLanes")!=4
-                or len(lanes)!=4 or (owner.get("GameLogicalOutbound") or 0)<=0
-                or (owner.get("GameLaneCopies") or 0)<=0):
-                issues.append("GAME4_ACTUAL_RACE_NOT_QUALIFIED_"+diag_side)
+            # Game2, Game3 and Game4 must be measured as REAL lanes, not
+            # inferred merely from the selected command-line mode. Game
+            # profile-OFF deliberately lacks these counters and therefore
+            # needs an independent profile-ON qualification per lane count.
+            if x.mode=="game":
+                refs=[lane.get("ref") or {} for lane in lanes]
+                identities=[(r.get("ID"),r.get("Generation")) for r in refs]
+                valid_ids={r.get("ID") for r in refs}
+                if (x.lanes not in (2,3,4) or owner.get("DesiredLanes")!=x.lanes
+                    or owner.get("ActiveLogicalLanes")!=x.lanes
+                    or owner.get("PhysicalLanes")!=x.lanes
+                    or len(lanes)!=x.lanes or len(set(identities))!=x.lanes
+                    or len(valid_ids)!=x.lanes or None in valid_ids
+                    or any(not isinstance(r.get("Generation"),int) or r["Generation"]<1 for r in refs)
+                    or (owner.get("GameLogicalOutbound") or 0)<=0
+                    or (owner.get("GameLaneCopies") or 0)<=0):
+                    issues.append("GAME_ACTUAL_LANES_NOT_QUALIFIED_"+diag_side)
         if resources["strict_resource"].get("errors"):
             issues.append("RESOURCE_AUDIT_WARNINGS")
         if resources["strict_resource"].get("socket_drop_max",0):

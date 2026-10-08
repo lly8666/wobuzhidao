@@ -28,6 +28,11 @@ def main():
          'GEN="$GITHUB_WORKSPACE/tools/large_mtu_mixed_business.py"')
     swap('STAGER="$GITHUB_WORKSPACE/tools/strict_weaknet_stage.py"',
          'STAGER="$GITHUB_WORKSPACE/tools/large_mtu_loss_stage.py"')
+    # Formal client and server already support Game 2/3/4 lanes. Only the
+    # generated efficiency harness widens its exact sample tuple; the
+    # upstream strict_weaknet_sample.sh default acceptance stays untouched.
+    swap('    game:4:3) ;;',
+         '    game:2:3|game:3:3|game:4:3) ;;')
     swap('done\n\nip -n "$BIZ" route add default via 10.40.0.1',
          '''done
 # Keep only the two underlay WAN veth pairs at 1400. Inner packet-bearing
