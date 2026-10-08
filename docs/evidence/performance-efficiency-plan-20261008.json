@@ -1,5 +1,5 @@
 {
-  "state": "PLAN_AND_CONTINUITY_PUBLISHED_INTEGRATION_PENDING",
+  "state": "PLAN_PUBLISHED_INTEGRATION_CORE_PASS_PERFORMANCE_NOT_RUN",
   "working_branch": "next/performance-efficiency-20261008",
   "main_document_base": "82c3c614a824b9b033901077aff26127bb6044cc",
   "mtu_parent": "c480ccef30962358b33da936d9ba19def6061f70",
@@ -14,7 +14,7 @@
   },
   "new_cpu_optimization_implemented": false,
   "new_performance_tests": "NOT_RUN",
-  "integrated_source_core": "PENDING_ACTIONS",
+  "integrated_source_core": "PASS",
   "physical_new_source": "NOT_RUN",
   "history_snapshots": {
     "AGENTS.md": {
@@ -62,7 +62,7 @@
     "mtu_parent_status": {
       "snapshot": "docs/history/20261008-mtu-parent-status.json",
       "source_commit": "c480ccef30962358b33da936d9ba19def6061f70",
-      "snapshot_sha256": "335ee6e8443fb0f49105f67356b5b17c0e0f005456e593db8a2093a226aa9d86"
+      "snapshot_sha256": "64ef7333441424f58b4acd9e5d0ac43ffad7d4fc9d153fe56038757c32f17e2a"
     }
   },
   "preserved_failures": [
@@ -76,5 +76,36 @@
     "user_decision": "2026-10-08; not resolved/waived"
   },
   "test_policy": "one performance Action run one sample",
-  "memory_policy": "bounded preallocation/pools allowed; queuebloat forbidden"
+  "memory_policy": "bounded preallocation/pools allowed; queuebloat forbidden",
+  "integrated_source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+  "actions": [
+    {
+      "id": 37752919413,
+      "name": "next-foundation",
+      "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "status": "completed",
+      "conclusion": "success",
+      "scope": "repository continuity, Windows/Linux full unit/build, Linux race, arm64 cross-build and privileged OpenWrt/TUN/fallback",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37752919413"
+    },
+    {
+      "id": 37752919401,
+      "name": "next-lifecycle",
+      "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "status": "completed",
+      "conclusion": "success",
+      "scope": "parameter catalogue, entry builds, lifecycle/fault tests and focused repeated race",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37752919401"
+    },
+    {
+      "id": 37753038498,
+      "name": "next-windows-gui",
+      "source_sha": "bf11fbfbe64d518e7ba189d51bfb4512df4df733",
+      "status": "completed",
+      "conclusion": "success",
+      "scope": "portable build/manifest, owned network restoration, native GUI parameter/widgets/switching/portable writes",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37753038498"
+    }
+  ],
+  "snapshot_hash_format": "SHA256 canonical Git blob bytes; checkout CRLF may differ; normalize by git show SOURCE:path"
 }
