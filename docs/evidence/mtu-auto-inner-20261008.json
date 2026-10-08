@@ -3,9 +3,9 @@
   "branch": "work/mtu-auto-inner-20261008",
   "parent_product_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
   "candidate_sha": "954a15130b6f8d9125c5e3ffa0b0dffbf114f99b",
-  "sha_status": "954a151 initial candidate failed Windows; subsequent fixed candidate SHA must be resolved from GitHub branch HEAD/Actions github.sha.",
+  "sha_status": "After third candidate SHA, capture actual GitHub branch/Actions source SHA; previous runs permanently FAIL.",
   "functional": {
-    "status": "FAIL_FIRST_CANDIDATE_NEXT_NOT_RUN",
+    "status": "FAIL_954a_AND_C912_NEW_PRODUCT_NOT_RUN",
     "runs": [
       {
         "id": 37739744820,
@@ -19,6 +19,20 @@
         },
         "root_cause": "Windows PowerShell TunnelMTU ValidateRange(9000,9000) rejected 1249",
         "windows_job_id": 113187457568,
+        "artifact_ids": []
+      },
+      {
+        "id": 37740215961,
+        "source_sha": "c912d801a5653053ead7e1dfc25744842d525e08",
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37740215961",
+        "result": "FAIL",
+        "jobs": {
+          "linux_unit_race": "PENDING_AT_RECORD",
+          "linux_real_tun": "PASS",
+          "windows_unit": "FAIL"
+        },
+        "root_cause": "Windows splitroute Apply/Cleanup mock requires legacy applied 9000, not derived 1249",
+        "windows_job_id": 113188950388,
         "artifact_ids": []
       }
     ],

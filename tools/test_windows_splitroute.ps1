@@ -53,9 +53,9 @@ try {
         if($InterfaceIndex -ne 77 -or $AddressFamily -ne 'IPv4'){throw 'MTU mutation touched foreign interface'}
         if($NlMtuBytes){
             if($PolicyStore -ne 'ActiveStore'){throw 'MTU mutation persisted outside ActiveStore'}
-            if($NlMtuBytes -eq 9000){
+            if($NlMtuBytes -eq 1249){
                 $intent=Get-Content -LiteralPath $script:mtuJournal -Raw|ConvertFrom-Json
-                if($intent.TunnelMTUState.Previous -ne $script:tunnelMtu -or $intent.TunnelMTUState.Applied -ne 9000){throw 'MTU changed before correct journal was saved'}
+                if($intent.TunnelMTUState.Previous -ne $script:tunnelMtu -or $intent.TunnelMTUState.Applied -ne 1249){throw 'MTU changed before correct journal was saved'}
             }
             $script:tunnelMtu=$NlMtuBytes
         }
@@ -100,7 +100,7 @@ try {
         )
         $state=Join-Path $taskDir "state-$scenario.json"
         $script:tunnelMtu=65535;$script:mtuJournal=$state
-        $taskArgs=@{AdapterAlias='WBD';TunnelAddress4='10.66.0.2/32';Underlay4='203.0.113.10';PhysicalInterfaceIndex=12;PhysicalNextHop4='192.0.2.1';DNSServer='1.1.1.1,8.8.8.8';CapturePrefixFile4=$captureFile;StatePath=$state}
+        $taskArgs=@{TunnelMTU=1249;AdapterAlias='WBD';TunnelAddress4='10.66.0.2/32';Underlay4='203.0.113.10';PhysicalInterfaceIndex=12;PhysicalNextHop4='192.0.2.1';DNSServer='1.1.1.1,8.8.8.8';CapturePrefixFile4=$captureFile;StatePath=$state}
         if(-not $script:guardRequired){$taskArgs.DNSServer=''}
         $failed=$false
         try { & $block @taskArgs -Action Apply | Out-Null } catch { $failed=$true; if (-not $fail) { throw } }
@@ -112,7 +112,7 @@ try {
             $expectedRule=if($script:guardRequired){'owned-rule'}else{''}
             $expectedFirewall=if($script:guardRequired){6}else{4}
             if ($saved.NRPTRuleName -ne $expectedRule -or @($script:firewall).Count -ne $expectedFirewall) { throw 'DNS/IPv6 policies not applied' }
-            if($script:tunnelMtu -ne 9000 -or $saved.TunnelMTUState.Previous -ne 65535){throw 'Supported inner MTU not applied or original value lost'}
+            if($script:tunnelMtu -ne 1249 -or $saved.TunnelMTUState.Previous -ne 65535 -or $saved.TunnelMTUState.Applied -ne 1249){throw 'Supported inner MTU not applied or original value lost'}
             if (@($script:routes).Count -ne 1504) { throw 'large Apply count wrong' }
             # GUI crash recovery has only the owned state path, not old profile args.
             & $block -Action Cleanup -StatePath $state | Out-Null
