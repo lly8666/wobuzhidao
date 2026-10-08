@@ -2,10 +2,10 @@
   "schema_version": 1,
   "branch": "work/mtu-auto-inner-20261008",
   "parent_product_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-  "candidate_sha": "954a15130b6f8d9125c5e3ffa0b0dffbf114f99b",
-  "sha_status": "After third candidate SHA, capture actual GitHub branch/Actions source SHA; previous runs permanently FAIL.",
+  "candidate_sha": "f7f6e55bc9167fbd31d9b2e328a8ea70ec362ae0",
+  "sha_status": "Evidence-only documentation branch HEAD differs; all product results belong strictly to source f7f6e55bc9167fbd31d9b2e328a8ea70ec362ae0.",
   "functional": {
-    "status": "FAIL_954a_AND_C912_NEW_PRODUCT_NOT_RUN",
+    "status": "BASIC_3_OF_3_PASS_EXACT_SHA_REAL_SOCKET_QUALIFICATION_NOT_RUN",
     "runs": [
       {
         "id": 37739744820,
@@ -27,13 +27,53 @@
         "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37740215961",
         "result": "FAIL",
         "jobs": {
-          "linux_unit_race": "PENDING_AT_RECORD",
+          "linux_unit_race": "PASS",
           "linux_real_tun": "PASS",
           "windows_unit": "FAIL"
         },
         "root_cause": "Windows splitroute Apply/Cleanup mock requires legacy applied 9000, not derived 1249",
         "windows_job_id": 113188950388,
         "artifact_ids": []
+      },
+      {
+        "id": 37740452679,
+        "source_sha": "f7f6e55bc9167fbd31d9b2e328a8ea70ec362ae0",
+        "url": "https://github.com/lly866/wobuzhidao/actions/runs/37740452679",
+        "result": "BASIC_FUNCTIONAL_PASS",
+        "workflow_conclusion": "success",
+        "run_attempt": 1,
+        "jobs": {
+          "linux_unit_race": {
+            "job_id": 113189704063,
+            "result": "PASS",
+            "included": [
+              "unit",
+              "build",
+              "race",
+              "ARM64 cross build",
+              "parameter catalog"
+            ]
+          },
+          "windows_unit": {
+            "job_id": 113189704224,
+            "result": "PASS",
+            "included": [
+              "unit",
+              "build",
+              "owned restoration mock"
+            ]
+          },
+          "linux_real_tun": {
+            "job_id": 113189704228,
+            "result": "PASS",
+            "included": [
+              "kernel netns TUN mtu 576/1143/1199/1249"
+            ]
+          }
+        },
+        "artifact_ids": [],
+        "artifact_sha256": null,
+        "notes": "Workflow has no Actions artifacts. No real end-to-end TCP MSS/UDP DF/ICMP or physical Windows Wintun test."
       }
     ],
     "artifacts": []
@@ -56,5 +96,6 @@
     "B TCP source injection deficit",
     "A20 1020ms non-idle zero-delivery window",
     "physical Windows and Linux/ARM new source"
-  ]
+  ],
+  "next_task": "Actions exact source real TCP MSS/UDP/DF/ICMP functional qualification; then independent 300s one sample/run normal traffic comparison at four loss rates"
 }

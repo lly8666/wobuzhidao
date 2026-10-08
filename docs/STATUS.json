@@ -84,6 +84,7 @@
     "SOURCE c853935e5356a9bc99d380befb5a8ac8e0c08d97 Linux raw SO_RCVBUF configuration + established clean-RTT 200ms RTO candidate: scoped Actions Normal/Game/r12(core/race/lifecycle/network), raw A/B, 10ms HOL scan and P6 3 targets PASS; ACTIONS_READY_FOR_PHYSICAL only"
   ],
   "in_progress": [
+    "2026-10-08 exact-source auto MTU product f7f6e55: GitHub Actions run37740452679 3/3 baseline functional jobs PASS (Linux unit/build/race+ARM64, Windows unit/build/owned fixture, Linux netns kernel TUN); real TCP MSS/UDP/DF/ICMP, true Wintun native, performance, physical still NOT_RUN; first two runs preserve FAIL.",
     "2026-10-08 c912d801 functional run37740215961 Windows FAIL: test_windows_splitroute.ps1 hardcoded 9000 applied MTU against derived 1249; Linux real TUN PASS. Fix legacy simulation expected MTU and requalify new exact SHA. Both original runs retain FAIL.",
     "2026-10-08 MTU candidate 954a151 exact-source Actions run37739744820: Linux unit/race/arm64 build PASS, Linux real netns TUN PASS, Windows unit FAIL (script still restricted to TunnelMTU=9000). Corrected script range in next product commit; candidate requalification NOT_RUN.",
     "2026-10-08 最新用户决定：独立产品候选从b4ea061导出Windows/Linux内层TUN MTU；新源码Actions功能/性能NOT_RUN；长混测12条FAIL保留。",
@@ -94,8 +95,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Qualify fixed Windows splitroute simulator at exact new product SHA via Actions. Preserve run37739744820 Windows FAIL for script range and run37740215961 Windows FAIL for mock hardcoded 9000, and read actual job conclusions. Then verify Windows owned restoration plus real socket MSS/UDP/DF before performance.",
-  "latest_log": "docs/devlog/20261008-145900-windows-owned-mtu-simulation-qualification.md",
+  "next_task": "For frozen-parent-derived product f7f6e55bc9167fbd31d9b2e328a8ea70ec362ae0, extend independent GitHub Actions functionality to real TCP SYN/MSS, ordinary UDP integrity, DF/non-DF and ICMP PMTU against kernel TUN and Windows owned restoration; audit negotiated opposite-direction limits and smaller actual underlay MTU. Only after function qualification run independent one-sample-per-Actions-run 300s normal TCP/UDP old b4ea061 vs exact new source on 0/5/20/30% loss, without erasing historic failures. Windows/ARM physical new SHA remains NOT_RUN.",
+  "latest_log": "docs/devlog/20261008-150000-mtu-auto-functional-actions-result.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10840,17 +10841,17 @@
     "evidence": "docs/evidence/raw-rto-c853935-physical-20261008.json"
   },
   "mtu_auto_inner_20261008": {
-    "state": "CANDIDATE_SIMULATION_FIX_ACTIONS_NOT_RUN",
+    "state": "BASIC_FUNCTIONAL_ACTIONS_PASS_PERFORMANCE_NOT_RUN",
     "parent_product_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
-    "product_sha": null,
-    "functional": "NOT_RUN",
+    "product_sha": "f7f6e55bc9167fbd31d9b2e328a8ea70ec362ae0",
+    "functional": "BASIC_FUNCTIONAL_PASS_3_JOBS_EXACT_SHA",
     "performance": "NOT_RUN",
     "windows_arm_physical": "NOT_RUN",
     "longmix_12_raw": "FAIL_UNCHANGED",
     "logical_ipv4_limit": 9000,
     "udp_frame_payload_limit": 8936,
     "evidence": "docs/evidence/mtu-auto-inner-20261008.json",
-    "latest_log": "docs/devlog/20261008-145900-windows-owned-mtu-simulation-qualification.md",
+    "latest_log": "docs/devlog/20261008-150000-mtu-auto-functional-actions-result.md",
     "initial_candidate_sha": "954a15130b6f8d9125c5e3ffa0b0dffbf114f99b",
     "first_action_run": {
       "id": 37739744820,
@@ -10868,8 +10869,21 @@
       "source_sha": "c912d801a5653053ead7e1dfc25744842d525e08",
       "windows_unit": "FAIL",
       "linux_real_tun": "PASS",
-      "linux_unit_race": "PENDING_AT_RECORD",
+      "linux_unit_race": "PASS",
       "root_cause": "test_windows_splitroute.ps1 expected applied MTU=9000 rather than new derived 1249"
+    },
+    "third_action_run": {
+      "id": 37740452679,
+      "sha": "f7f6e55bc9167fbd31d9b2e328a8ea70ec362ae0",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37740452679",
+      "conclusion": "success",
+      "jobs": {
+        "linux_unit_race": "PASS",
+        "windows_unit": "PASS",
+        "linux_real_tun": "PASS"
+      },
+      "artifact_ids": [],
+      "notes": "Tests validate configured kernel TUN MTU and hosted Windows plan/mock; NOT physical Wintun nor real TCP/UDP end-to-end performance."
     }
   }
 }
