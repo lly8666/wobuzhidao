@@ -1,0 +1,1534 @@
+{
+  "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+  "state": "ACTIONS_READY_FOR_PHYSICAL",
+  "physical": "NOT_RUN_SOURCE_B4",
+  "release_qualified": "NOT_RUN",
+  "global_sysctl_changed": false,
+  "core_and_platform_runs": [
+    {
+      "run": 37713152863,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493448,
+          "name": "repository-contract",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103544609,
+          "name": "active-go-tests (windows-2022)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103544627,
+          "name": "p4-linux-shared-tun-privileged (nft)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103544634,
+          "name": "p2-kernel-fallback",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103544641,
+          "name": "active-go-tests (ubuntu-24.04)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103544662,
+          "name": "p4-linux-shared-tun-privileged (iptables)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103544684,
+          "name": "p4-openwrt-tproxy-privileged",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103545720,
+          "name": "p5-load",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 113103545806,
+          "name": "p5-fec2020-weaknet-5-30-5",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 113103546000,
+          "name": "p5-weaknet-5-20-5",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 113103546149,
+          "name": "p6-release-candidate",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 113103546224,
+          "name": "p5-soak",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 113103546381,
+          "name": "p5-fec2020-weaknet-5-20-5",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 113103546458,
+          "name": "p5-weaknet-5-30-5",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 113103547523,
+          "name": "p5-load-40",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 113103547571,
+          "name": "p5-https-measurement-base",
+          "conclusion": "skipped"
+        }
+      ]
+    },
+    {
+      "run": 37713153050,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493750,
+          "name": "deployment",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713152851,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493822,
+          "name": "lifecycle-l0_config-fec0-pad1-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493933,
+          "name": "lifecycle-l0_config-fec0-pad1-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493940,
+          "name": "lifecycle-l2_s2c-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493953,
+          "name": "lifecycle-l0_config-fec20-pad1-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493999,
+          "name": "lifecycle-l0_config-fec0-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494001,
+          "name": "lifecycle-l0_config-fec0-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494016,
+          "name": "lifecycle-l2_s2c-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494021,
+          "name": "lifecycle-l4_all_tuple-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494033,
+          "name": "lifecycle-l3_health-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494040,
+          "name": "lifecycle-l0_config-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494050,
+          "name": "lifecycle-l3_health-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494061,
+          "name": "lifecycle-l5_detach-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494080,
+          "name": "lifecycle-l4_old_tuple-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494098,
+          "name": "lifecycle-l5_syn-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494099,
+          "name": "lifecycle-l2_c2s-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494101,
+          "name": "lifecycle-l1_idle_downlink-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494103,
+          "name": "lifecycle-l5_admission-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494118,
+          "name": "lifecycle-l6_race1-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494120,
+          "name": "lifecycle-l4_old_tuple-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494122,
+          "name": "lifecycle-l5_detach-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494127,
+          "name": "lifecycle-l0_config-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494131,
+          "name": "lifecycle-l4_all_tuple-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494132,
+          "name": "lifecycle-l0_config-fec20-pad1-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494146,
+          "name": "lifecycle-l5_tls-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494149,
+          "name": "lifecycle-l5_syn-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494154,
+          "name": "lifecycle-l5_tls-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494168,
+          "name": "lifecycle-l1_idle_downlink-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494189,
+          "name": "lifecycle-l6_race1-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494190,
+          "name": "lifecycle-l5_admission-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103494199,
+          "name": "lifecycle-l2_c2s-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103495473,
+          "name": "lifecycle-l6_partial-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103495501,
+          "name": "lifecycle-l6_partial-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103495531,
+          "name": "lifecycle-l6_race4-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103495680,
+          "name": "lifecycle-l7_defaults-fec20-pad0-seed101",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103495697,
+          "name": "lifecycle-l7_defaults-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103495764,
+          "name": "lifecycle-l6_race4-fec20-pad0-seed202",
+          "conclusion": "success"
+        },
+        {
+          "id": 113106535422,
+          "name": "lifecycle-aggregate-36",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713152885,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493299,
+          "name": "default-network (off)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493346,
+          "name": "default-network (custom)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493421,
+          "name": "default-network (default)",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713152878,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493234,
+          "name": "splitroute-all-FUNCTIONAL",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493427,
+          "name": "splitroute-embedded-FUNCTIONAL",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493429,
+          "name": "splitroute-manual-FUNCTIONAL",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493496,
+          "name": "splitroute-lan-FUNCTIONAL",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103911048,
+          "name": "aggregate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713152877,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493653,
+          "name": "gui-portable",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713152952,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493773,
+          "name": "contract",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103535443,
+          "name": "steady-core (ubuntu-24.04)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103535455,
+          "name": "linux-privileged (iptables)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103535456,
+          "name": "steady-core (windows-2022)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103535486,
+          "name": "lifecycle-focus",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103535509,
+          "name": "linux-privileged (nft)",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713152852,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493109,
+          "name": "core",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713152868,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103493176,
+          "name": "startup-core (ubuntu-24.04)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103493467,
+          "name": "startup-core (windows-2022)",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713253343,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103815886,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713256054,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103824139,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713258489,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103831263,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713261278,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103842478,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713263786,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103847819,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713266372,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103854958,
+          "name": "strict-sample",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run": 37713269147,
+      "state": "PASS",
+      "jobs": [
+        {
+          "id": 113103862663,
+          "name": "package (ubuntu-24.04, linux, amd64, true)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103862858,
+          "name": "package (ubuntu-24.04, linux, arm64, false)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113103862922,
+          "name": "package (windows-2022, windows, amd64, true)",
+          "conclusion": "success"
+        },
+        {
+          "id": 113104522095,
+          "name": "aggregate",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "kernel_test": {
+    "run": 37713153050,
+    "job": 113103493750,
+    "source": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "filtered_evidence": [
+      "2026-10-08T01:30:13.6074326Z === RUN   TestRawPortFilterKernelReceiveBufferScopedLimitFallback",
+      "2026-10-08T01:30:13.6098410Z     raw_port_filter_linux_test.go:49: scoped request=1048577 effective=2097154 forced=true host settings unchanged",
+      "2026-10-08T01:30:13.6187843Z --- PASS: TestRawPortFilterKernelReceiveBufferScopedLimitFallback (0.01s)"
+    ]
+  },
+  "performance_samples": [
+    {
+      "run": 37713253343,
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 1631,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "probes": {
+        "post": {
+          "p95_ns": 602667481,
+          "p99_ns": 602689878,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 602343122,
+          "p99_ns": 602797751,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 602859395,
+          "p99_ns": 603496175,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000602659,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 6464,
+            "max_rmem_ratio": 0.00616455078125
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 47232,
+            "max_rmem_ratio": 0.0450439453125
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 85.45,
+          "server": 86.6
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5900": 12.14,
+            "5902": 3.92,
+            "5903": 10.59,
+            "5904": 11.86,
+            "5905": 0.0,
+            "5906": 0.0,
+            "5913": 11.64,
+            "5925": 0.0,
+            "5926": 11.43,
+            "5927": 13.64,
+            "6775": 0.0
+          },
+          "server": {
+            "5880": 0.0,
+            "5882": 3.86,
+            "5883": 11.79,
+            "5884": 12.16,
+            "5885": 0.0,
+            "5886": 0.0,
+            "5887": 11.86,
+            "5898": 11.54,
+            "5899": 12.37,
+            "5928": 12.15,
+            "6518": 0.0
+          }
+        }
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999978666666665,
+        "s2c": 9.999818666666666
+      },
+      "stress_packet_loss_percent": {
+        "c2s": 0.0,
+        "s2c": 0.0
+      }
+    },
+    {
+      "run": 37713256054,
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 1631,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "probes": {
+        "post": {
+          "p95_ns": 601519068,
+          "p99_ns": 610319722,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 601069830,
+          "p99_ns": 602017295,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 610731701,
+          "p99_ns": 613131301,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.00031536,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 13760,
+            "max_rmem_ratio": 0.01312255859375
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 5120,
+            "max_rmem_ratio": 0.0048828125
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 55.94,
+          "server": 56.19
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "10166": 0.0,
+            "5575": 5.31,
+            "5577": 1.88,
+            "5578": 7.91,
+            "5579": 0.0,
+            "5580": 6.5,
+            "5581": 0.0,
+            "5582": 0.0,
+            "5600": 7.75,
+            "5601": 8.69,
+            "5602": 9.08,
+            "6123": 0.0
+          },
+          "server": {
+            "5555": 0.0,
+            "5557": 1.88,
+            "5558": 0.0,
+            "5559": 8.74,
+            "5560": 9.03,
+            "5561": 0.0,
+            "5562": 9.29,
+            "5573": 9.12,
+            "5574": 2.18,
+            "5603": 8.89,
+            "6372": 0.0
+          }
+        }
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999818666666666,
+        "s2c": 9.999473066666667
+      },
+      "stress_packet_loss_percent": {
+        "c2s": 0.0,
+        "s2c": 0.0
+      }
+    },
+    {
+      "run": 37713258489,
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 1632,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "probes": {
+        "post": {
+          "p95_ns": 604281988,
+          "p99_ns": 604330510,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 603696629,
+          "p99_ns": 605046508,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 605019754,
+          "p99_ns": 605138240,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000372184,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 102080,
+            "max_rmem_ratio": 0.09735107421875
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 15936,
+            "max_rmem_ratio": 0.01519775390625
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 86.18,
+          "server": 82.13
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5760": 10.73,
+            "5762": 4.49,
+            "5763": 11.11,
+            "5764": 0.0,
+            "5765": 12.09,
+            "5766": 0.0,
+            "5773": 2.07,
+            "5785": 0.0,
+            "6020": 11.86,
+            "6021": 11.57,
+            "6022": 12.46,
+            "6803": 0.0
+          },
+          "server": {
+            "5740": 0.0,
+            "5742": 3.78,
+            "5743": 6.57,
+            "5744": 11.96,
+            "5745": 0.0,
+            "5746": 0.0,
+            "5747": 11.01,
+            "5758": 11.18,
+            "5759": 12.57,
+            "5786": 11.5,
+            "6380": 0.0,
+            "8567": 0.0
+          }
+        }
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.000032,
+        "s2c": 3.000032
+      },
+      "stress_packet_loss_percent": {
+        "c2s": 0.0,
+        "s2c": 0.0
+      }
+    },
+    {
+      "run": 37713261278,
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 1632,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "probes": {
+        "post": {
+          "p95_ns": 608063705,
+          "p99_ns": 609256180,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 608152423,
+          "p99_ns": 608498028,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 606630111,
+          "p99_ns": 607928288,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000146118,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 162624,
+            "max_rmem_ratio": 0.15509033203125
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 27584,
+            "max_rmem_ratio": 0.02630615234375
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 70.47,
+          "server": 65.74
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5724": 0.0,
+            "5726": 2.53,
+            "5727": 0.0,
+            "5728": 9.51,
+            "5729": 7.89,
+            "5730": 0.0,
+            "5737": 9.01,
+            "5749": 10.89,
+            "5984": 11.43,
+            "5985": 10.1,
+            "6341": 0.0
+          },
+          "server": {
+            "5704": 0.0,
+            "5706": 2.19,
+            "5707": 8.28,
+            "5708": 9.97,
+            "5709": 0.0,
+            "5710": 0.0,
+            "5711": 9.09,
+            "5722": 8.49,
+            "5723": 7.74,
+            "5750": 10.72,
+            "6305": 0.0
+          }
+        }
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.000032,
+        "s2c": 3.0000746666666664
+      },
+      "stress_packet_loss_percent": {
+        "c2s": 0.0,
+        "s2c": 0.0
+      }
+    },
+    {
+      "run": 37713263786,
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 1633,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "probes": {
+        "post": {
+          "p95_ns": 601475043,
+          "p99_ns": 601531730,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 601672555,
+          "p99_ns": 601863580,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 601608136,
+          "p99_ns": 601902863,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000853476,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 26304,
+            "max_rmem_ratio": 0.02508544921875
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 17088,
+            "max_rmem_ratio": 0.01629638671875
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 75.64,
+          "server": 75.67
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5912": 10.43,
+            "5914": 2.88,
+            "5915": 0.0,
+            "5916": 11.91,
+            "5917": 10.25,
+            "5918": 0.0,
+            "5925": 0.0,
+            "5939": 10.04,
+            "5940": 10.97,
+            "5941": 11.01,
+            "6564": 0.0
+          },
+          "server": {
+            "5893": 0.0,
+            "5895": 2.88,
+            "5896": 6.87,
+            "5897": 9.96,
+            "5898": 0.0,
+            "5899": 0.0,
+            "5900": 12.75,
+            "5901": 11.89,
+            "5938": 10.02,
+            "5942": 10.93,
+            "6317": 10.38
+          }
+        }
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999818666666666,
+        "s2c": 9.999818666666666
+      },
+      "stress_packet_loss_percent": {
+        "c2s": 0.0,
+        "s2c": 0.0
+      }
+    },
+    {
+      "run": 37713266372,
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 1633,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "probes": {
+        "post": {
+          "p95_ns": 606061425,
+          "p99_ns": 610653931,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 603117986,
+          "p99_ns": 605753145,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 606922792,
+          "p99_ns": 607361373,
+          "received": 55,
+          "sent": 60
+        }
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000615179,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 6144,
+            "max_rmem_ratio": 0.005859375
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 12800,
+            "max_rmem_ratio": 0.01220703125
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 67.17,
+          "server": 67.64
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5568": 0.0,
+            "5570": 2.2,
+            "5571": 0.0,
+            "5572": 8.79,
+            "5573": 7.61,
+            "5574": 0.0,
+            "5581": 7.7,
+            "5593": 10.88,
+            "5594": 10.58,
+            "5595": 9.65,
+            "6574": 0.0
+          },
+          "server": {
+            "5548": 0.0,
+            "5550": 2.23,
+            "5551": 6.36,
+            "5552": 10.71,
+            "5553": 0.0,
+            "5554": 0.0,
+            "5555": 10.41,
+            "5556": 10.76,
+            "5567": 10.34,
+            "5596": 7.44,
+            "6078": 0.0
+          }
+        }
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.180970666666665,
+        "s2c": 9.214636800000001
+      },
+      "stress_packet_loss_percent": {
+        "c2s": 6.196125057421569,
+        "s2c": 6.000891723187505
+      }
+    }
+  ],
+  "p6": {
+    "run": 37713269147,
+    "scope": "HOSTED_PACKAGE_ONLY",
+    "bundles": [
+      {
+        "target": "windows/amd64",
+        "artifact_id": 11523056427,
+        "artifact_digest": "sha256:86da24a7f795e85283eb7b9eb026c0909d601e07779e1f1659aa660eb1528056",
+        "manifest_sha256": "ad714196f6c4fd3891e0adce4c53714b415fe9f57b58d73be69e1a67d12940a9",
+        "files_checked": 13,
+        "mismatches": 0
+      },
+      {
+        "target": "linux/arm64",
+        "artifact_id": 11523046646,
+        "artifact_digest": "sha256:1301794677ea72ea10a2391b8bd6e7fb5248f945424463ae674f7aeb8318dcee",
+        "manifest_sha256": "a39a580bf4f1165949338a417c528ac244af533ee2f0a3d101be130737f7f97c",
+        "files_checked": 10,
+        "mismatches": 0
+      },
+      {
+        "target": "linux/amd64",
+        "artifact_id": 11522262174,
+        "artifact_digest": "sha256:994c28741d3e2399dd59417e55f4238bf95ae9ccfc980439142e18966fbf3d70",
+        "manifest_sha256": "3c4d476ee85ccbff27e96bfadd32c29ab99d3f225c46a72d7c72d17ed3304419",
+        "files_checked": 10,
+        "mismatches": 0
+      }
+    ]
+  },
+  "historical_failures_retained": true,
+  "r12_tail": "OPEN; current new seed has55/60, returned p99~607ms not all-request latency; old1508~2.18s remainsOPEN"
+}

@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "d6cb6ce14scoped/24RTT/P6/lifecycle36+aggregate PASS; native S17 Game4 rotate300s business PASS/raw686,2980allprobes/p99135.42ms,worker9refs/rotation observedPASS.53ordinarysamples/24unique/19NOT_RUN plus2diagnostics; S01/S16 FAIL andM03/full70/18/1800s retained.",
-  "updated_at": "2026-10-08T01:28:40.329872+00:00",
+  "updated_at": "2026-10-08T01:47:59.669645+00:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -91,8 +91,8 @@
     "Linux raw AF_PACKET per-socket receive buffer qualification",
     "Cross-inner-MTU late datagram deterministic diagnosis"
   ],
-  "next_task": "Original chat root: qualified c853935 deployed, sequential physical1541 Normal raw0 then1542 raw524288, M03 1543/1544, Game4 rotation1545 active; no duplicate physical load. Independently qualify new raw per-socket capped-request fallback candidate through Actions before any deployment; no global sysctl, FEC/4096/MTU/RTO changes. Keep r12 tail and all old failures OPEN.",
-  "latest_log": "docs/devlog/20261008-raw-buffer-scoped-portability-candidate.md",
+  "next_task": "Root original chat owns b4ea061 exact-package physical tests: raw0 vs524288 Normal10, M03 two independent300s, Game4 rotation. Actions16 exact-source runs and ZIP/file hashes verified. c853 three samples retained separately: Normal9/27 residual uplink packets with191/46 rawdrops, one M03scopedPASS. No global sysctl changes, no duplicate load or product development by anotheragent; old FEC/r12/native failures stayOPEN.",
+  "latest_log": "docs/devlog/20261008-raw-scoped-buffer-actions-native-handoff.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10703,14 +10703,14 @@
     "raw_socket_buffer_changed": false
   },
   "linux_raw_receive_buffer": {
-    "state": "ACTIONS_READY_FOR_PHYSICAL_NATIVE_DROP_OPEN",
+    "state": "PER_SOCKET_FALLBACK_ACTIONS_READY_NATIVE_PENDING",
     "source_ref": "qualification/raw-rcvbuf-20261007",
     "base_source": "92f18755791108d9bc2d54b00bc97da50b17c9eb",
     "product_parent": "3a594a34191159bd7224f35ba9117cdf6f239c69",
     "parameter": "raw-recv-buffer",
-    "semantics": "Linux AF_PACKET receive SO_RCVBUF request bytes; 0 inherit; getsockopt effective is authoritative; limited=true if actual below Linux doubled request; no sysctl/SO_RCVBUFFORCE; restart for change",
+    "semantics": "Bounded request bytes;0inherit; ordinary SO_RCVBUF readback then only iflimited scoped SO_RCVBUFFORCE with existingCAP_NET_ADMIN; report actual/forced/error; no globals/new privilege",
     "global_sysctl_changed": false,
-    "so_rcvbufforce": false,
+    "so_rcvbufforce": true,
     "arm_rmem_observation": "Physical 3a host had rmem_default/rmem_max=212992 and rb212992. With product default request524288, an unchanged low system cap is expected to report limited=true rather than guarantee 1MiB.",
     "kernel_filter": "EXISTING_BPF_PRESERVED",
     "actions": {
@@ -10725,9 +10725,9 @@
       "ab_result": "5xPASS both but NO EFFECTIVE BUFFER CONTRAST: requested 0 vs524288, both actual 1048576, socket drops0; cannot claim raw drop fix",
       "evidence": "docs/evidence/raw-buffer-rto-c853935e-actions-20261008.json"
     },
-    "physical": "NOT_RUN_NEW_SOURCE",
+    "physical": "NOT_RUN_SOURCE_B4",
     "latest_log": "docs/devlog/20261008-060500-raw-rcvbuf-rto-actions-handoff.md",
-    "product_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
+    "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "default_request_bytes": 524288,
     "raw_drop_root_cause": "OPEN"
   },
@@ -10817,23 +10817,26 @@
     "physical": "NOT_RUN_NEW_SOURCE"
   },
   "raw_buffer_scoped_portability": {
-    "state": "CANDIDATE_ACTIONS_NOT_RUN",
+    "state": "ACTIONS_READY_FOR_PHYSICAL",
     "based_on_source": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
     "reason": "User20261008 authorizes program handling when kernel defaults prevent request; ARM probe ordinary425984 vs requested target1048576, scoped privileged override works without sysctl",
     "implementation": "ordinary SO_RCVBUF/readback then only if limited attempt SO_RCVBUFFORCE on same receive fd; existing CAP_NET_ADMIN only; permission/unsupported degradation reported;0 preserves inherit",
     "steady_overhead_added": false,
     "new_privileges_requested": false,
     "global_sysctl_changed": false,
-    "physical": "NOT_RUN_CANDIDATE",
-    "latest_log": "docs/devlog/20261008-raw-buffer-scoped-portability-candidate.md"
+    "physical": "NOT_RUN_SOURCE_B4",
+    "latest_log": "docs/devlog/20261008-raw-scoped-buffer-actions-native-handoff.md",
+    "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "source_ref": "qualification/raw-scoped-buffer-20261008",
+    "actions_evidence": "docs/evidence/raw-scoped-buffer-b4ea061-actions-20261008.json"
   },
   "physical_raw_rto": {
-    "state": "IN_PROGRESS",
+    "state": "PARTIAL_THREE_COMPLETED_SOURCE_C853",
     "source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
     "bundle": "WBD-P7-c853935",
     "independent_actions_audit": "PASS_EXACT_SOURCE_JOBS_PACKAGE_HASHES_ORIGINAL_METRICS",
-    "physical_samples": 0,
-    "active_test": "1541 Normal raw0; sequential controller owns 1542/1543/1544/1545",
+    "physical_samples": 3,
+    "active_test": "C853 controller endedclean; b4 deploy/audit then owned native1551..1555",
     "evidence": "docs/evidence/raw-rto-c853935-physical-20261008.json"
   }
 }
