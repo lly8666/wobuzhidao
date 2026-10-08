@@ -30,12 +30,13 @@ jobs:
               raise SystemExit("invalid dispatch record keys")
           x=d["sample"]
           validate_sample(x)
-          if x["workload"]!="A":
-              raise SystemExit("A-only workflow cannot disguise TCP B/C")
+          if x["workload"] not in ("A","B"):
+              raise SystemExit("Only qualified A and B may dispatch; C not ready")
           helper=d["validated_helper_sha"]
           if len(helper)!=40 or any(c not in "0123456789abcdef" for c in helper):
               raise SystemExit("invalid helper sha")
           with open(os.environ["GITHUB_ENV"],"a") as f:
+              f.write("WBD_KIND=longmix-"+x["workload"].lower()+"\n")
               f.write("WBD_LOSS="+str(x["loss_percent"])+"\n")
               f.write("WBD_SEED="+str(x["seed"])+"\n")
               f.write("WBD_SOURCE="+x["source_sha"]+"\n")
@@ -56,8 +57,8 @@ jobs:
           fi
           gh workflow run next-strict-weaknet.yml \
             --ref investigation/longmix-20261008 \
-            -f qualification_kind=longmix-a -f loss_percent="$WBD_LOSS" \
+            -f qualification_kind="$WBD_KIND" -f loss_percent="$WBD_LOSS" \
             -f mode=normal -f scenario=lossless -f seed="$WBD_SEED" \
             -f rate_mbps=10 -f lanes=1 -f fec_parity=20 \
             -f product_source_sha="$WBD_SOURCE"
-          echo "ONE_RUN_DISPATCH_REQUESTED sample=A loss=$WBD_LOSS seed=$WBD_SEED source=$WBD_SOURCE head=$GITHUB_SHA"
+          echo "ONE_RUN_DISPATCH_REQUESTED sample=$WBD_KIND loss=$WBD_LOSS seed=$WBD_SEED source=$WBD_SOURCE head=$GITHUB_SHA"

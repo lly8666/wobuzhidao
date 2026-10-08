@@ -92,8 +92,8 @@
     "Cross-inner-MTU large UDP/TCP/UDP mixed 300s Actions plan and helper precheck (12 samples NOT_RUN)",
     "Linux TPROXY platformflow oversize 8936B boundary, truncated S2C replies; fullstack 2026-10-08 A/0 FAIL; source b4 unchanged"
   ],
-  "next_task": "A/0 exact b4 FULLSTACK run 37731062203 raw FAIL: six <=4068B sizes all delivered both directions, three legal UDP sizes 8972/8973/65507 zero first-delivery both directions; 0 netem drops and independent96 probes3000/3000. Code boundary platformflow MaxPayload=9000-20-44=8936: Linux OpenWrt UDP ingress rejects larger before tunnel; server platformflow UDP readUpstream(buf MaxPayload) truncates target->biz replies, corrupt16224. This path uses Linux TPROXY (client TUN UNSUPPORTED), cannot claim Windows TUN failure or equivalence. Need first isolate/reject-no-truncation targeted functional fix or product-supported large UDP path; do not expand FEC/4096 or blame runner. B TCP helper preflight 37731561854 PASS but B performance NOT_RUN; C NOT_RUN. Original M03/1554 80s downlink and 1.225s large tail remain separate.",
-  "latest_log": "docs/devlog/20261008-longmix-a-p0-real-fullstack-fail-maxpayload.md",
+  "next_task": "A/p0 fullstack source b4 run37731062203 FAIL for actual 8972/8973/65507 over Linux TPROXY MaxPayload8936; keep raw FAIL (six smaller sizes and 3000 probes pass). B TCP 3-long full-duplex + short 1Hz candidate helper 37731561854 preflight PASS; now one-sample strict workflow/controller adds B without running A and B in same run, pending new preflight. Dispatch one independent B/0 300s only after helper PASS; do not treat B as product PASS before evidence. C NOT_RUN. Need explicit oversize truncated S2C guard minimal fix separately, no FEC change. M03 native two failures separate.",
+  "latest_log": "docs/devlog/20261008-longmix-b-dispatch-preflight-only.md",
   "last_tested_source_sha": "c853935e5356a9bc99d380befb5a8ac8e0c08d97",
   "actions": [
     {
@@ -10887,7 +10887,7 @@
     "latest_log": "docs/devlog/20261008-raw-scoped-buffer-native-five-and-nohol.md"
   },
   "large_datagram_actions": {
-    "state": "A_P0_FULLSTACK_FAIL_LINUX_TPROXY_8936_BOUNDARY",
+    "state": "A0_FAIL_TCP_B_WORKFLOW_PREFLIGHT_PENDING",
     "product_source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "helper_sha": "1171220c9c679b7ddcf9ed65973299636de90c2e",
     "precheck_action": "https://github.com/lly8666/wobuzhidao/actions/runs/37730618843",
@@ -10990,6 +10990,7 @@
       "capacity": "NO_CAPACITY_ATTRIBUTION; deterministic max payload path independent of observed netem drops",
       "physical": "NOT_RUN"
     },
-    "scope_warning": "client Linux real OpenWrt TPROXY, not Windows or Linux TUN; original Windows-ARM M03 remains separate"
+    "scope_warning": "client Linux real OpenWrt TPROXY, not Windows or Linux TUN; original Windows-ARM M03 remains separate",
+    "tcp_b_state": "HELPER_PRECHECKED_B_DISPATCH_WORKFLOW_PREFLIGHT_PENDING"
   }
 }

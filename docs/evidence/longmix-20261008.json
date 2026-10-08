@@ -373,7 +373,7 @@
     ]
   },
   "tcp_b_candidate": {
-    "status": "NETNS_SCRIPT_AND_ANALYZER_PREFLIGHT_PENDING",
+    "status": "B_WORKFLOW_PRECHECK_PENDING",
     "path": "tools/longmix_tcp_business.py",
     "source_sha": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
     "semantics": "three bidirectional TCP long streams, one 96B short connection per second, per flow SHA256, TCP_INFO/MSS and partial send/backpressure counts; not a product performance proof",
@@ -382,6 +382,10 @@
     "script_generator": "tools/prepare_longmix_tcp.py",
     "summary_validator": "tools/check_longmix_tcp_compact.py",
     "fullstack_run": null,
-    "warning": "Only helper; every B and C product sample remains NOT_RUN"
+    "warning": "Only helper; every B and C product sample remains NOT_RUN",
+    "preflight_helper_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37731561854",
+    "performance_samples": "NOT_RUN",
+    "workflow_switch": "longmix-b one sample only",
+    "one_run_one_sample": true
   }
 }
