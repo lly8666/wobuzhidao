@@ -11,6 +11,7 @@ import (
 	"net/netip"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -47,6 +48,7 @@ type UDPIngressDiagnostic struct {
 	CloseDrops           uint64        `json:"close_drops"`
 	Workers              int           `json:"workers"`
 	EvictionMaxScan      int           `json:"eviction_max_scan"`
+	IngressOversizeDrops uint64      `json:"ingress_oversize_drops"`
 }
 
 type udpIngressItem struct {
@@ -319,6 +321,7 @@ type SocketAdapter struct {
 
 	udpIngress   *udpIngressQueue
 	udpIngressWG sync.WaitGroup
+	udpOversizeDrops atomic.Uint64
 
 	runMu     sync.Mutex
 	running   bool
@@ -493,9 +496,13 @@ func (a *SocketAdapter) udpLoop() error {
 		if err != nil {
 			return err
 		}
-		if flags&syscall.MSG_CTRUNC != 0 || n > platformflow.MaxPayload || from == nil {
-			continue
-		}
+        if flags&syscall.MSG_TRUNC != 0 || n > platformflow.MaxPayload {
+            a.udpOversizeDrops.Add(1)
+            continue
+        }
+        if flags&syscall.MSG_CTRUNC != 0 || from == nil {
+            continue
+        }
 		target, err := udpOriginalDst4(oob[:oobn])
 		if err != nil {
 			continue
@@ -549,7 +556,9 @@ func (a *SocketAdapter) UDPIngressDiagnostic() UDPIngressDiagnostic {
 	if a == nil || a.udpIngress == nil {
 		return UDPIngressDiagnostic{}
 	}
-	return a.udpIngress.snapshot()
+    diagnostic := a.udpIngress.snapshot()
+    diagnostic.IngressOversizeDrops = a.udpOversizeDrops.Load()
+    return diagnostic
 }
 
 func (a *SocketAdapter) tcpLoop() error {

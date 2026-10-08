@@ -1,0 +1,49 @@
+name: longmix-udp-reject-functional
+on:
+  push:
+    branches: [investigation/longmix-no-udp-truncation-20261008]
+    paths:
+      - "internal/platformflow/udp.go"
+      - "internal/platformflow/udp_no_truncate_test.go"
+      - "internal/openwrtclient/socket_linux.go"
+      - ".github/workflows/longmix-udp-reject-functional.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  socket-reject-and-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+      - name: Provenance and no mutation of frozen b4 reference
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD
+          git merge-base --is-ancestor b4ea061178a6e09b7e7c8587d72b4b8535492567 HEAD
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+      - name: Reject oversize whole datagram and preserve next
+        run: go test -count=1 -v ./internal/platformflow -run 'TestUDPMapping(ReadRejectsOversizeWithoutTruncatingNext|OversizeCounterIsInSnapshot)$'
+      - name: Product UDP socket and lifecycle Go suite
+        run: go test -count=1 ./internal/platformflow ./internal/openwrtclient
+      - name: Race detector on UDP socket and lifecycle
+        run: go test -race -count=1 ./internal/platformflow ./internal/openwrtclient
+      - name: Build both formal Linux endpoints only in Actions
+        run: |
+          go build -trimpath -o "${RUNNER_TEMP}/longmix-udp-reject-client" ./cmd/wbd-client
+          go build -trimpath -o "${RUNNER_TEMP}/longmix-udp-reject-server" ./cmd/wbd-server
+          rm -f "${RUNNER_TEMP}/longmix-udp-reject-client" "${RUNNER_TEMP}/longmix-udp-reject-server"
+      - name: Qualification scope
+        run: |
+          echo "FUNCTIONAL_ONLY no 300s fullstack metric"
+          echo "PRODUCT still rejects >8936B at Linux TPROXY; no legal big-UDP repair claimed"
+          echo "Freeze qualification/raw-scoped-buffer-20261008 unchanged"

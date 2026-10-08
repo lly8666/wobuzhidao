@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/netip"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -43,6 +44,7 @@ type UDPServerDiagnostic struct {
 	CloseDrops           uint64        `json:"close_drops"`
 	Workers              int           `json:"workers"`
 	EvictionMaxScan      int           `json:"eviction_max_scan"`
+	UpstreamOversizeDrops uint64      `json:"upstream_oversize_drops"`
 }
 
 type udpServerQueuedDatagram struct {
@@ -496,6 +498,7 @@ type UDPServer struct {
 	sendQueue *udpServerSendQueue
 	sendWG    sync.WaitGroup
 	closeOnce sync.Once
+	upstreamOversizeDrops atomic.Uint64
 }
 
 func NewUDPServer(channel *TunnelChannel, idle time.Duration, maxFlows int) (*UDPServer, error) {
@@ -564,15 +567,28 @@ func (s *UDPServer) Handle(frame Frame, now time.Time) error {
 	return nil
 }
 
+// readBoundedUDPMapping keeps the one-byte oversize sentinel out of the
+// platform frame. A UDP read into MaxPayload bytes would otherwise silently
+// truncate a valid larger datagram and forward corrupted application data.
+// Caller supplies at least MaxPayload+1 bytes; no payload is retained on drop.
+func readBoundedUDPMapping(conn *net.UDPConn, buf []byte) (int, netip.AddrPort, bool, error) {
+    n, peer, err := conn.ReadFromUDPAddrPort(buf)
+    return n, peer, err == nil && n > MaxPayload, err
+}
+
 func (s *UDPServer) readUpstream(state *udpServerState) {
-	buf := make([]byte, MaxPayload)
-	for {
-		n, peer, err := state.upstream.ReadFromUDPAddrPort(buf)
-		if err != nil {
-			s.remove(state)
-			return
-		}
-		now := time.Now()
+    buf := make([]byte, MaxPayload+1)
+    for {
+        n, peer, tooLarge, err := readBoundedUDPMapping(state.upstream, buf)
+        if err != nil {
+            s.remove(state)
+            return
+        }
+        if tooLarge {
+            s.upstreamOversizeDrops.Add(1)
+            continue
+        }
+        now := time.Now()
 		s.mu.Lock()
 		if s.flows[state.id] != state {
 			s.mu.Unlock()
@@ -622,10 +638,12 @@ func (s *UDPServer) sendWorker(shard int) {
 }
 
 func (s *UDPServer) Diagnostic() UDPServerDiagnostic {
-	if s == nil {
-		return UDPServerDiagnostic{}
-	}
-	return s.sendQueue.snapshot()
+    if s == nil {
+        return UDPServerDiagnostic{}
+    }
+    d := s.sendQueue.snapshot()
+    d.UpstreamOversizeDrops = s.upstreamOversizeDrops.Load()
+    return d
 }
 
 func (s *UDPServer) Tick(now time.Time) {
