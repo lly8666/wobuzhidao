@@ -209,7 +209,8 @@ def main():
                 checked(["ip", "-n", ns, "link", "set", dev, "mtu", str(inner), "up"])
                 if args.loss:
                     checked(["ip", "netns", "exec", ns, "tc", "qdisc", "add",
-                             "dev", dev, "root", "netem", "loss", str(args.loss) + "%"])
+                             "dev", dev, "root", "netem", "loss", str(args.loss) + "%",
+                             "seed", str(20261008 + args.outer * 10 + args.loss + (0 if ns == ns_a else 100000))])
             command = [sys.executable, str(Path(__file__).resolve()),
                        "--kind", args.kind, "--outer", str(args.outer),
                        "--loss", str(args.loss), "--inner", str(inner),
@@ -229,13 +230,16 @@ def main():
                 raise AssertionError("receiver failed: " + stderr[-2000:])
             received = json.loads(Path(result).read_text())
             sent_metrics = json.loads(sent.stdout)
+            print(json.dumps({"observation":"PRE_ASSERT", "scope":"LINUX_KERNEL_VETH_SOCKETS_ONLY", "outer":args.outer, "loss":args.loss, "kind":args.kind, "sent":sent_metrics, "received":received["received"]}), flush=True)
             if args.kind == "tcp":
                 if received["received"] != sent_metrics["tcp_messages"]:
                     raise AssertionError("TCP missing bytes/messages")
             elif args.loss == 0 and received["received"] != sent_metrics["udp_sent"]:
                 raise AssertionError("0% UDP loss: incomplete application delivery")
             elif args.kind == "udp" and received["received"] < 10:
-                raise AssertionError("unexpected near-total small UDP loss")
+                stat_a = checked(["ip", "netns", "exec", ns_a, "tc", "-s", "qdisc", "show", "dev", "wda"]).stdout
+                stat_b = checked(["ip", "netns", "exec", ns_b, "tc", "-s", "qdisc", "show", "dev", "wdb"]).stdout
+                raise AssertionError("unexpected near-total small UDP loss: received=%d sent=%d; sender=%s receiver=%s" % (received["received"], sent_metrics["udp_sent"], stat_a.strip(), stat_b.strip()))
             report = {"result": "PASS", "scope": "LINUX_KERNEL_VETH_SOCKETS_ONLY",
                       "outer_config": args.outer, "inner_mtu": inner,
                       "loss_percent": args.loss, "kind": args.kind,
