@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_ONEPARSE_NORMAL1_STAGED5205_OFF_ONE_BUSINESS_ACTION_PENDING",
+    "phase": "E4_ONEPARSE_NORMAL1_STAGED5205_OFF_SCOPED_PASS_GAME2_STAGED5205_NEXT",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1109,7 +1109,7 @@
         "game4_true5205": "PASS_SCOPED_ONE_OFF_SAMPLE",
         "game4_lossless": "FAIL_OFF_37857040784_EPYC9V45_SERVER86_CLIENT33_AND_DIAG_ON_37871243581_EPYC9V45_CLIENT42_SOCKET_DROP_ROOT_OPEN",
         "normal1_lossless": "NOT_RUN_CURRENT_SOURCE",
-        "normal1_true5205": "NOT_RUN_CURRENT_SOURCE",
+        "normal1_true5205": "PASS_SCOPED_ONE_OFF_SAMPLE_37893778135_CANDIDATE_AA931D_UDP_STRESS_MISSING_22_35",
         "game2_lossless": "NOT_RUN_CURRENT_SOURCE",
         "game2_true5205": "NOT_RUN_CURRENT_SOURCE",
         "diagnostic_on": "PASS_SCOPED_DIAGNOSTIC_ONE_LOSSLESS_RUN_37863612374_ONLY",
@@ -1683,6 +1683,37 @@
             "GAME2_PROTECTORS",
             "E7_80S_DOWNSTREAM"
           ]
+        },
+        "source_scoped_normal1_true5205": {
+          "state": "PASS_SCOPED_ACTIONS_SINGLE_OFF_5205",
+          "run_id": 37893778135,
+          "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+          "artifact_id": 11600562394,
+          "evidence": "docs/evidence/e4-oneparse-normal1-real-5205-off-run37893778135.json",
+          "attempt1": "CANCELLED_DURING_TOOL_INSTALL_BEFORE_BUSINESS",
+          "attempt2": "SUCCESS_ONE_300S_BUSINESS",
+          "issues": [],
+          "netem_realized": "5%_20%_5%_BIDIRECTIONAL",
+          "udp_stress_missing": {
+            "c2s": 22,
+            "s2c": 35
+          },
+          "probe_missing": {
+            "c2s": 0,
+            "s2c": 0
+          },
+          "tcp_mismatch": 0,
+          "http_https": "20_OF_20",
+          "verified_https_certs": 10,
+          "socket_drop": {
+            "client": 0,
+            "server": 0
+          },
+          "interface_extra_drops": 0,
+          "host": "EPYC 7763 4vCPU",
+          "product_cpu_s": 366.59,
+          "host_psi_max_pct": 34.42,
+          "cpu_gain": "UNPROVEN"
         }
       }
     },
@@ -1925,8 +1956,8 @@
       }
     }
   },
-  "next_task": "Verify single efficiency-e0 Action automatically triggered from current HEAD with source aa931d, Normal1 mixed actual staged 5/20/5% loss (seed1844), profile OFF, 1 lane 10Mbps logical each direction, 300s and 3s drain; check original summary/ledger PASS_SCOPED_ACTIONS vs FAIL, actual qdisc phases, UDP phase/delivered/corrupt and probes, TCP hashes and HTTP/HTTPS certification, native skmem.d drops client/server, netdev extra drop, resource strict_errors and host CPU/PSI/quota. Archive zip plus files SHA256, preserve any FAIL; don't rerun same case opportunistically on different host. Only if PASS, grant source-specific one-sample Normal1 staged5205 protector; Game2 staged5205 NOT_RUN; E7 ~80s downlink deferred, P6/E6/physical unqualified. Do not compare CPU across new versus old EPYC VMs, no source/queue/buffer/wire edits or new BPF.",
-  "latest_log": "docs/devlog/20261009-233000-e4-oneparse-normal1-5205-off-single-sample-intent.md",
+  "next_task": "Candidate aa931d next ONE Game2 2-lane 3Mbps/direction mixed true staged5205 profileOFF seed1842 single 300s+3s drain same source pinned; FIRST preserve this Normal1 original artifact SHA evidence and scoped PASS. Before dispatch require no currently running performance Action and pass Foundation on this docs commit, then change only .github/efficiency-e0-sample.json + STATUS + new devlog plus strict worklow mode/lane/rate environment if needed, only ONE performance run/job; never rerun opportunistically after FAIL. Require actual qdisc 5/20/5 phases, application UDP/independent probes and TCP hashes, HTTP/HTTPS certs, packet skmem.d0/netdev extras0/strict resource errors0, official analyzer+ledger PASS. Historical ba8ed1 zero-loss Game4 socket d33/86 OFF and d42 ON FAIL still open; candidate zero-loss is separate sampled PASS not proof root closed; CPU gain UNPROVEN due different runners, E7 ~80s S2C OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261009-233500-e4-oneparse-normal1-5205-off-artifact-audit.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1939,7 +1970,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 one-parse candidate aa931d real Game4 zero-loss4lane OFF one sample run37892395498 business+cost analyzer PASS_SCOPED_ACTIONS with client/server AF_PACKET d0, archived prior commit0a7f088. Next ONE Normal1 mixed true5205 300s profileOFF seed1844 at10Mbps both directions and lane1 using aa931d, no new product source changes, awaiting Action. Older EPYC9V45 old source socket d33/86 OFF and d42 ON formal FAIL remain; CPU gains UNPROVEN, E7 deferred.",
+    "E4 oneparse candidate aa931d Normal1 staged 5%-20%-5% loss 1lane 10Mbps profileOFF Action37893778135 attempt2 300s PASS_SCOPED_ACTIONS (attempt1 canceled during tools before business). Original analyzer/ledger PASS with client/server AF_PACKET skmem.d0, link extra drop0; 20/20 web 10 HTTPS certs, TCP 304/304 each direction no corruption, probes none missing, stress UDP app missing 22 C2S/35 S2C (NOT zero). EPYC7763 4vCPU PSI34.42% quota unknown, CPU gain UNPROVEN; prior ba8ed1 9V45 Game4 lossless socket drops remain FAIL. Next Game2 staged5205 one OFF source-pinned protector; no host shopping.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

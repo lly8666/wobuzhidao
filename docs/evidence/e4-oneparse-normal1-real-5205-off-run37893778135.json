@@ -1,0 +1,158 @@
+{
+  "schema": "wbd-e4-oneparse-normal1-staged5205-one-off-action-audit/v1",
+  "working_branch": "next/performance-efficiency-20261008",
+  "checked_parent_head": "a92f7121b7a3760dd0d704c45a1b322d87472de1",
+  "candidate_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "older_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "run_id": 37893778135,
+  "job_id": 113706976739,
+  "artifact_id": 11600562394,
+  "run_link": "https://github.com/lly8666/wobuzhidao/actions/runs/37893778135",
+  "workflow_status": "success",
+  "formal_summary_classification": "PASS_SCOPED_ACTIONS",
+  "formal_issues": [],
+  "ledger_classification": "PASS_SCOPED_ACTIONS",
+  "ledger_issues": [],
+  "attempts": [
+    {
+      "attempt": 1,
+      "conclusion": "cancelled",
+      "stage": "Install isolated network tools",
+      "fullstack_300s_started": false,
+      "job_id": 113700367985,
+      "qualification": "NOT_A_BUSINESS_SAMPLE"
+    },
+    {
+      "attempt": 2,
+      "conclusion": "success",
+      "fullstack_300s_started": true,
+      "qualification": "ONE_COMPLETED_SCOPED_BUSINESS_SAMPLE"
+    }
+  ],
+  "inputs": {
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps_each_direction": 10,
+    "workload": "mixed",
+    "loss_wave": "5%-20%-5%",
+    "duration_s": 300,
+    "drain_s": 3,
+    "seed": 1844,
+    "profile": "OFF",
+    "size_profile": "ordinary",
+    "product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683"
+  },
+  "netem_stage_actual": {
+    "pre": {
+      "elapsed_s": [
+        -0.006012,
+        74.985481
+      ],
+      "expected_loss_percent": 5,
+      "c2s_percent": 5.000429,
+      "s2c_percent": 5.027823
+    },
+    "stress": {
+      "elapsed_s": [
+        74.999137,
+        224.985708
+      ],
+      "expected_loss_percent": 20,
+      "c2s_percent": 20.015731,
+      "s2c_percent": 20.048349
+    },
+    "post": {
+      "elapsed_s": [
+        224.997758,
+        299.985457
+      ],
+      "expected_loss_percent": 5,
+      "c2s_percent": 5.022224,
+      "s2c_percent": 5.045934
+    }
+  },
+  "business": {
+    "goodput_mbps": {
+      "c2s": 9.971424,
+      "s2c": 9.970979
+    },
+    "c2s_udp_missing_by_stage": {
+      "pre": 0,
+      "stress": 22,
+      "post": 0
+    },
+    "s2c_udp_missing_by_stage": {
+      "pre": 0,
+      "stress": 35,
+      "post": 0
+    },
+    "c2s_udp_stress_sent": 172836,
+    "s2c_udp_stress_sent": 172835,
+    "corrupt_or_malformed": {
+      "c2s": 0,
+      "s2c": 0
+    },
+    "probe": {
+      "c2s": {
+        "sent": 1500,
+        "missing": 0,
+        "p99_ms": 662.540545
+      },
+      "s2c": {
+        "sent": 1495,
+        "missing": 0,
+        "p99_ms": 669.67381
+      }
+    },
+    "tcp": {
+      "c2s_flows": 304,
+      "s2c_flows": 304,
+      "mismatch_total": 0,
+      "connect_failures": 0
+    },
+    "http_https": {
+      "returned": 20,
+      "expected": 20,
+      "certificates_verified": 10,
+      "server_errors": 0
+    }
+  },
+  "resources": {
+    "skmem_d_client": 0,
+    "skmem_d_server": 0,
+    "link_extra_drops": 0,
+    "strict_errors": [],
+    "missing_process_samples": 0,
+    "peak_afpacket_rmem_ratio": {
+      "client": 0.079895,
+      "server": 0.072693
+    },
+    "product_cpu_s": {
+      "client": 183.49,
+      "server": 183.1,
+      "total": 366.59
+    },
+    "host": "AMD EPYC 7763 64-Core Processor",
+    "vcpus": 4,
+    "cpu_psi_some_avg10_max_percent": 34.42,
+    "cgroup_quota_cores": null,
+    "cpu_gain": "UNPROVEN_CROSS_VM_PSI_HIGH_AND_QUOTA_UNKNOWN"
+  },
+  "scoped_conclusion": "NORMAL1_STAGED5205_PROFILE_OFF_SINGLE_PROTECTOR_PASS",
+  "caveats": [
+    "Stress-phase UDP was NOT zero missing: c2s=22, s2c=35; original analyzer scoped pass does not imply lossless delivered UDP.",
+    "One sample not statistical CPU proof; host EPYC7763 differs from earlier 9V74/9V45.",
+    "Canceled first attempt never entered business step, do not treat it as another business sample.",
+    "Prior 9V45 game4 lossless socket d33/d86 OFF and d42 ON are original FAIL on different source ba8ed1.",
+    "Physical/E7/E6/P6 and remaining protectors still unqualified."
+  ],
+  "raw_hashes_sha256": {
+    "zip": "c0390e718030875f327240d6c35a622043f18ac196e0b1fe53c948912fe45d30",
+    "summary.json": "924f861924401f42ca285f3991c873b54291d4b0759a7575b70e91442f750531",
+    "efficiency-ledger.json": "50378f837687f94bb8239d39dc2925512f6dd57ccbcb98c4a28c5028f2802a48",
+    "sample-claim.json": "aa22ce6d9d13a0990c9a53bf1e2e5311b92bec3b59c5725f01c97ce0a58102d6",
+    "biz-http.json": "33a936a172559794f06c8399220f86237025bdc65f8b0896e0d4a77b804827f2",
+    "stage-events.jsonl": "9b867e6ff6cd0f2efc57dd97cb56b367c573f8c9dd1b8c4c9f03bb6a63748bb3",
+    "manifest.json": "457a4078ecd0b7baf88a0b0f44accd03e3bc8eaaccddb00091efad77998d6bb9"
+  }
+}
