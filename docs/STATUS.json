@@ -3242,7 +3242,7 @@
       "product_source_modified": false
     },
     "fec_policy_comparison": {
-      "state": "BATCH_A_12_OF_12_REAL_VALID_OBSERVATIONS",
+      "state": "BATCH_A_12_OF_12_VALID_AUDITED_B_300MS_TRIGGERED_AWAITING_EVIDENCE",
       "plan": "docs/FEC_POLICY_EXPERIMENT.md",
       "fixture_guide": "docs/REALPATH_TEST_FIXTURE_GUIDE.md",
       "agent_prompt": "docs/templates/FEC_POLICY_AGENT_PROMPT.md",
@@ -3254,13 +3254,13 @@
       "batch_a_duration_per_case_s": 120,
       "product_defaults_changed": false,
       "test_adapter_implemented": true,
-      "actions": "PILOT_PASS_37949699339;_BATCH_A_SCOPED_SUCCESS_37952897144",
+      "actions": "PILOT_PASS_37949699339;_BATCH_A_SCOPED_SUCCESS_37952897144;B_300MS_TRIGGER_PENDING_ACTIONS",
       "cpu_gain": "SIX_SCOPED_SAME_JOB_OFF_LOWER_CPU_S_PER_DELIVERED_GIB_BUT_1PCT_LOSS_AND_TAIL_REGRESSION_NOT_PHYSICAL_PASS",
       "previous_latest_log": "docs/devlog/20261009-e1-uniform32-sparse15ms-formal-fullstack-5334-5334-pass.md",
       "mainline_next_task_preserved": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes.",
       "workflow_entry_contract": "EXACT_EXPERIMENT_BRANCH_CONFIG_PUSH_WITH_DEDICATED_STATIC_SERIAL_POLICY_CHECK_REQUIRED",
       "adapter_stage": "ONE_JOB_SERIAL_RUNNER_READY",
-      "config_phase": "batch_a",
+      "config_phase": "batch_b",
       "preflight_failures": [
         {
           "run_id": 37947612694,
@@ -3296,12 +3296,21 @@
       "batch_a_nic_pps": "NOT_COLLECTED",
       "batch_a_cpu_quota": "UNKNOWN",
       "batch_a_cleanup": "12/12_CLEAN",
-      "batch_a_next": "300MS_SEPARATELY_AUTHORIZED_SERIAL_BATCH_NOT_STARTED",
-      "batch_a_evidence_log": "docs/devlog/20261010-001500-fec-policy-batch-a-12-real-observations-audit.md"
+      "batch_a_next": "BATCH_B_AUTHORIZED_BY_USER_CONTINUE_2026-10-10; NOW_ACTIONS_PENDING; NO_RESULT_YET",
+      "batch_a_evidence_log": "docs/devlog/20261010-001500-fec-policy-batch-a-12-real-observations-audit.md",
+      "batch_b_state": "DISPATCH_TRIGGER_CONFIG_PUSH_NOT_YET_MEASURED",
+      "batch_b_planned_cases": 12,
+      "batch_b_duration_per_case_s": 120,
+      "batch_b_one_way_delay_ms": 300,
+      "batch_b_seed_scheme": "same_pairs_as_A_1909_TO_1914_ORDER_ALTERNATED",
+      "batch_b_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+      "batch_b_helper_sha": "this_push_exact_GITHUB_SHA",
+      "batch_b_actions_run_id": null,
+      "batch_b_valid_cases": 0
     }
   },
-  "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes. 独立FEC A批run37952897144同job已完成12/12真实VALID_OBSERVATION；六对off CPU较低但1% UDP丢失和probe p99变差；outer wire NOT_COLLECTED，物理NOT_RUN。后续300ms B批需独立授权，NOT_STARTED；不改默认/repair/缓存，不覆盖原E1进度。",
-  "latest_log": "docs/devlog/20261010-001500-fec-policy-batch-a-12-real-observations-audit.md",
+  "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes. 独立FEC A批run37952897144同job已完成12/12真实VALID_OBSERVATION；六对off CPU较低但1% UDP丢失和probe p99变差；outer wire NOT_COLLECTED，物理NOT_RUN。FEC比较300ms B批已获用户继续授权并由独立config-only push触发，当前PENDING_ACTIONS_NOT_YET_QUALIFIED；不改默认/repair/缓存，不覆盖原E1进度。",
+  "latest_log": "docs/devlog/20261010-003000-fec-policy-batch-b-300ms-serial-trigger.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

@@ -11,7 +11,8 @@ def filehash(p):
     with open(p,"rb") as f:
         for part in iter(lambda:f.read(1048576),b""):h.update(part)
     return h.hexdigest()
-def cases():
+def cases(batch="A"):
+    if batch not in ("A","B"): raise ValueError("unauthorized cohort")
     result=[]
     for w in ("udp","tcp","mixed"):
         for loss in (0,1):
@@ -20,12 +21,14 @@ def cases():
                 result.append(dict(id="s%02d"%(len(result)+1),pair=pair,order=order,
                    workload=w,loss=loss,fec=fec,parity=0 if fec=="off" else 20,
                    seed=1909+pair,rate_mbps=10,lanes=1,mode="normal",
-                   duration_s=120,drain_s=3,delay_ms=15))
+                   duration_s=120,drain_s=3,delay_ms=(15 if batch=="A" else 300)))
     return result
 def validate(d):
     if set(d)!={"schema","phase","batch","source_sha","nonce"}:raise ValueError("batch schema keys")
-    if d["schema"]!="wbd-fec-policy-batch/v1" or d["batch"]!="A" or d["phase"] not in ("preflight","pilot","batch_a") or d["source_sha"]!=SOURCE or type(d["nonce"]) is not int or d["nonce"]<1:raise ValueError("batch plan not authorized")
-    out=cases()
+    if d["schema"]!="wbd-fec-policy-batch/v1" or d["batch"]!="A" or d["phase"] not in ("preflight","pilot","batch_a","batch_b") or d["source_sha"]!=SOURCE or type(d["nonce"]) is not int or d["nonce"]<1:raise ValueError("batch plan not authorized")
+    if (d["batch"]=="B") != (d["phase"]=="batch_b"):
+        raise ValueError("batch B requires the exact batch_b phase")
+    out=cases(d["batch"])
     assert len(out)==12 and len({v["id"] for v in out})==12
     for i in range(0,12,2):
         a,b=out[i:i+2]
@@ -215,7 +218,8 @@ def aggregate(out,receipts,root,helper):
          "comparable":comparable,"off_cpu_gain_vs_on":(1-x/y) if comparable else None})
     (root/"batch-manifest.json").write_text(json.dumps({
       "schema":"wbd-fec-policy-batch-result/v1","source_sha":SOURCE,
-      "helper_sha":helper,"one_job_sequential":True,"not_product_qualification":True,
+      "helper_sha":helper,"batch":("B" if out[0]["delay_ms"]==300 else "A"),
+      "one_way_delay_ms":out[0]["delay_ms"],"one_job_sequential":True,"not_product_qualification":True,
       "rows":rows,"pairs":pairs},indent=2))
     return rows
 def main():
@@ -235,7 +239,7 @@ def main():
     if a.mode=="preflight":
         if d["phase"]!="preflight":raise ValueError("wrong phase")
         preflight(out,root);return
-    if (a.mode=="pilot" and d["phase"]!="pilot") or (a.mode=="run" and d["phase"]!="batch_a"):raise ValueError("wrong execution phase")
+    if (a.mode=="pilot" and d["phase"]!="pilot") or (a.mode=="run" and d["phase"] not in ("batch_a","batch_b")):raise ValueError("wrong execution phase")
     if not all((root/"binaries"/("wbd-"+k)).is_file() for k in ("client","server")):
         raise ValueError("missing frozen binary")
     if a.mode=="pilot":

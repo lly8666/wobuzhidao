@@ -44,14 +44,14 @@ jobs:
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           d=json.load(open(".github/fec-policy-batch.json"))
-          assert d["phase"] in ("preflight","pilot","batch_a")
+          assert d["phase"] in ("preflight","pilot","batch_a","batch_b")
           print("value="+d["phase"])
           PY
       - name: Actions functional adapter preflight, no traffic
         if: steps.phase.outputs.value == 'preflight'
         run: python3 tools/fec_policy_batch.py --mode preflight --root "$ART"
       - name: Install five netns harness dependencies
-        if: steps.phase.outputs.value == 'pilot' || steps.phase.outputs.value == 'batch_a'
+        if: steps.phase.outputs.value == 'pilot' || steps.phase.outputs.value == 'batch_a' || steps.phase.outputs.value == 'batch_b'
         run: |
           set -euo pipefail
           sudo apt-get update
@@ -61,7 +61,7 @@ jobs:
           sudo modprobe nf_tproxy_ipv4 || true
           sudo modprobe nft_tproxy || true
       - name: Build frozen source once and seeded tc
-        if: steps.phase.outputs.value == 'pilot' || steps.phase.outputs.value == 'batch_a'
+        if: steps.phase.outputs.value == 'pilot' || steps.phase.outputs.value == 'batch_a' || steps.phase.outputs.value == 'batch_b'
         run: |
           set -euo pipefail
           mkdir -p "$ART/binaries"
@@ -82,7 +82,7 @@ jobs:
         run: python3 tools/fec_policy_batch.py --mode pilot --root "$ART"
       - name: Run 12 strictly serial fresh fullstack cases
         id: batch
-        if: steps.phase.outputs.value == 'batch_a'
+        if: steps.phase.outputs.value == 'batch_a' || steps.phase.outputs.value == 'batch_b'
         continue-on-error: true
         run: python3 tools/fec_policy_batch.py --mode run --root "$ART"
       - name: Emergency bounded pcap removal
@@ -121,7 +121,7 @@ jobs:
           BATCH: ${{ steps.batch.outcome }}
           PILOT: ${{ steps.pilot.outcome }}
         run: |
-          if test "$PHASE" = batch_a; then
+          if test "$PHASE" = batch_a || test "$PHASE" = batch_b; then
             test "$BATCH" = success
             test -s "$ART/batch-manifest.json"
           elif test "$PHASE" = pilot; then
