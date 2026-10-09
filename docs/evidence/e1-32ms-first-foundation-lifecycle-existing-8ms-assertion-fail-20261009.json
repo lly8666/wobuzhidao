@@ -1,0 +1,37 @@
+{
+  "schema": "wbd-e1-uniform-32ms-first-ci-failed-obsolete-default-test/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "source_commit": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "runs": [
+    {
+      "id": 37921000330,
+      "name": "next-foundation",
+      "conclusion": "FAIL",
+      "linux": "FAIL",
+      "windows": "FAIL",
+      "other_jobs": "PASS"
+    },
+    {
+      "id": 37921000365,
+      "name": "next-lifecycle",
+      "conclusion": "FAIL",
+      "job": "core"
+    }
+  ],
+  "exact_failure": "TestFixedFECRuntimeDefaultsKeepOffAndAdmitOnlyLiveProfiles at internal/datapath/handoff_client_test.go:63 expected flush 8ms for 20:4..20:20, actual program default 32ms",
+  "classification": "STALE_UNIT_TEST_EXPECTATION_NO_PRODUCT_RUNTIME_DEFECT_OBSERVED",
+  "fixed_test": "internal/datapath/handoff_client_test.go",
+  "product_source_unchanged": true,
+  "new_tests_core": "PENDING",
+  "new_fullstack_runs": 0,
+  "old_weak_failures": [
+    37907829434,
+    37915859759
+  ],
+  "original_game4_drop_failures": [
+    37857040784,
+    37871243581
+  ],
+  "qualification": "NOT_PASSED",
+  "cpu_gain": "UNPROVEN"
+}

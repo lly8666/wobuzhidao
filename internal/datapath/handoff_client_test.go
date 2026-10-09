@@ -59,7 +59,7 @@ func TestFixedFECRuntimeDefaultsKeepOffAndAdmitOnlyLiveProfiles(t *testing.T) {
 	}
 	for _, parity := range []int{4, 8, 10, 12, 16, 20} {
 		flush, blocks, err := FixedFECRuntimeDefaults(parity)
-		if err != nil || flush != 8*time.Millisecond || blocks != 8 {
+		if err != nil || flush != 32*time.Millisecond || blocks != 8 {
 			t.Fatalf("20:%d defaults flush=%s blocks=%d err=%v", parity, flush, blocks, err)
 		}
 	}
