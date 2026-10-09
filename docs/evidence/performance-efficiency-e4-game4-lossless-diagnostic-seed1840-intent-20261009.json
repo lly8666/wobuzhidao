@@ -34,8 +34,10 @@
   },
   "question": "Did 4 lanes become active; per-shard queue/handler/TCP maintenance/runtime periods and packet socket receive drops; partial parity deadline/actual issue; stable drop attribution?",
   "profile_on_not_cpu_comparable": true,
-  "original_analysis": "NOT_RUN",
-  "run_id": null,
-  "artifact_id": null,
-  "privacy": "no packet payloads or secrets"
+  "original_analysis": "PASS_SCOPED_ACTIONS",
+  "run_id": 37863612374,
+  "artifact_id": 11587047619,
+  "privacy": "no packet payloads or secrets",
+  "result": "COMPLETED_DIAGNOSTIC_PASS_SCOPED",
+  "resolved_evidence": "docs/evidence/performance-efficiency-e4-game4-lossless-diagnostic-on-run37863612374.json"
 }

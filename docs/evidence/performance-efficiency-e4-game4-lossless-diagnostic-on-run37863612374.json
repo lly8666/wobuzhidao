@@ -1,0 +1,295 @@
+{
+  "schema": "wbd-e4-single-diagnostic-evidence/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "a5909490107e0ac2eb14f0d6323245633019d7df",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_sha": "a5909490107e0ac2eb14f0d6323245633019d7df",
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "run_id": 37863612374,
+  "job_id": 113604968040,
+  "artifact_id": 11587047619,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37863612374",
+  "original_workflow": "success",
+  "sample_job_count": 1,
+  "original_analyzer": "PASS_SCOPED_ACTIONS",
+  "issues": [],
+  "profile": "ON_DIAGNOSTIC_NOT_OFF_PERFORMANCE",
+  "profile_enabled_observed": {
+    "manifest_cpu_contention_profile": true,
+    "server_pipeline": true,
+    "client_pipeline": true,
+    "client_raw_io": true,
+    "server_raw_io": true
+  },
+  "sha256": {
+    "manifest.json": "d6783429ba769ecbdcdedea5135c32234c7321e18ab6cca0026bb2b91256b300",
+    "summary.json": "f46b220c802fd7233fbdcc2441c72ad9604d7f2b2f348e7d0381d09f10655537",
+    "efficiency-ledger.json": "a9a47e6d64768080333fa0f800b1590b620ab20caf984a20361fdcfaf68dfd5d"
+  },
+  "sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1840,
+    "mode": "game",
+    "configured_lanes": 4,
+    "actual_client_lanes": {
+      "active": 4,
+      "physical": 4
+    },
+    "actual_server_lanes": {
+      "active": 4,
+      "physical": 4
+    },
+    "logical_rate_mbps_each_direction": 3,
+    "one_way_delay_ms": 300,
+    "duration_s": 300,
+    "drain_s": 3,
+    "outer_mtu": 1400,
+    "actual_server_tun_mtu": 1273,
+    "fec": "20:20",
+    "padding": "off",
+    "record_cap": "auto0",
+    "formal_default_tick_ms": 100
+  },
+  "network": {
+    "netem_drop_percent_c2s": 0,
+    "netem_drop_percent_s2c": 0,
+    "extra_socket_drops": {
+      "client": 0,
+      "server": 0
+    },
+    "extra_interface_drop_all_zero": true,
+    "receive_buffer_effective_bytes_both": 1048576,
+    "raw_io_receive_calls": {
+      "client": 1088399,
+      "server": 1103041
+    },
+    "raw_io_receive_messages": {
+      "client": 2790494,
+      "server": 2810358
+    },
+    "receive_fallbacks": {
+      "client": 0,
+      "server": 0
+    }
+  },
+  "business": {
+    "udp_each_direction": {
+      "sent": 103062,
+      "delivered": 103062,
+      "missing": 0,
+      "corrupt": 0,
+      "by_size_counts": {
+        "96": 51550,
+        "256": 20612,
+        "512": 10300,
+        "1000": 5150,
+        "1372": 10300,
+        "4068": 5150
+      }
+    },
+    "independent_probes": {
+      "c2s": [
+        1500,
+        1500
+      ],
+      "s2c": [
+        1495,
+        1495
+      ],
+      "missing": [
+        0,
+        0
+      ],
+      "over_1s": [
+        0,
+        0
+      ],
+      "over_3s": [
+        0,
+        0
+      ],
+      "p99_ms": [
+        616.735546,
+        614.201342
+      ]
+    },
+    "tcp_streams_complete_hash_each_direction": [
+      304,
+      304
+    ],
+    "http_https": [
+      20,
+      20
+    ],
+    "https_cert_verified": [
+      10,
+      10
+    ],
+    "largest_active_zero_delivery_window_ms": {
+      "c2s": 40,
+      "s2c": 40
+    },
+    "max_packet_sizes_8937_65507": "NOT_EXERCISED_ORDINARY_PROFILE"
+  },
+  "diagnostics": {
+    "server_pipeline": {
+      "read_segments": 2810358,
+      "total_capacity": 4096,
+      "ready_peak": 2179,
+      "overflow_drops": 0,
+      "queue_max_age_ms": 55.009567,
+      "handler_max_ms": 28.755516,
+      "game_shard_capacities": [
+        960,
+        960,
+        960,
+        960
+      ],
+      "game_shard_queue_peak": [
+        534,
+        586,
+        573,
+        562
+      ],
+      "game_shard_enqueued": [
+        722208,
+        697557,
+        695546,
+        695047
+      ],
+      "game_shard_handled": [
+        722208,
+        697557,
+        695546,
+        695047
+      ],
+      "game_shard_oldest_dropped": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "game_shard_rejected": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "game_shard_queue_max_age_ms": [
+        42.017402,
+        49.10564,
+        55.009567,
+        37.481553
+      ],
+      "game_shard_handler_max_ms": [
+        20.540873,
+        28.755516,
+        25.633193,
+        28.508893
+      ],
+      "game_tcp_async_scheduled": 3151,
+      "game_tcp_async_coalesced": 26,
+      "game_tick_runtime_max_ms": 22.684412
+    },
+    "client_segment_mux": {
+      "route_capacities": [
+        4096,
+        4096,
+        4096,
+        4096
+      ],
+      "route_peak": [
+        668,
+        558,
+        591,
+        563
+      ],
+      "overflow_drops_each": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "route_age_max_ms": [
+        53.350384,
+        42.549967,
+        44.187181,
+        42.399903
+      ]
+    },
+    "game_dedupe": {
+      "client_game_delivered": 131030,
+      "client_duplicates": 393090,
+      "server_game_delivered": 129867,
+      "server_duplicates": 389601,
+      "client_generation_discards": 0,
+      "server_generation_discards": 0
+    },
+    "fec_partial": {
+      "client_lane0_full_blocks": 7998,
+      "client_lane0_partial_blocks": 7495,
+      "server_lane0_full_blocks": 7798,
+      "server_lane0_partial_blocks": 7435,
+      "client_lane0_source_shards": 230903,
+      "client_lane0_parity_shards": 230903,
+      "server_lane0_source_shards": 229716,
+      "server_lane0_parity_shards": 229716,
+      "actual_parity_deadline_latency": "NOT_MEASURED",
+      "note": "partial blocks were emitted; the actual 8ms flush deadline vs 100ms owner scheduler latency remains not established"
+    },
+    "client_alloc_diagnostic_only": {
+      "mallocs_total_since_process_start": 43062515,
+      "total_alloc_bytes_since_start": 19157989336
+    },
+    "server_alloc_diagnostic_only": {
+      "mallocs_total_since_process_start": 40537768,
+      "total_alloc_bytes_since_start": 17721688584
+    }
+  },
+  "resources": {
+    "runner_cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "logical_cpus": 4,
+    "cgroup_cpu_quota": "UNKNOWN",
+    "host_busy_max_pct": 61.03896103896104,
+    "cpu_psi_some_avg10_max": 16.33,
+    "steal_max_pct": 0,
+    "softirq_max_pct": 13.350785340314136,
+    "product_client_cpu_s_diagnostic": 113.54,
+    "product_server_cpu_s_diagnostic": 112.99,
+    "product_total_cpu_s_diagnostic": 226.53,
+    "product_cpu_s_per_delivered_gib_diagnostic": 1090.8888750396882,
+    "rss_peak_mib": {
+      "client": 90.74609375,
+      "server": 87.09375
+    },
+    "profile_off_malloc_total": "NOT_COLLECTED"
+  },
+  "decision": "PASS_SCOPED_DIAGNOSTIC_ON_ONLY; PRIOR_LOSSLESS_PROFILE_OFF_FAILURE_NOT_CLOSED",
+  "previous_fail": {
+    "run_id": 37857040784,
+    "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "host": "AMD EPYC 9V45 4vCPU",
+    "profile": "OFF",
+    "original": "FAIL",
+    "issues": [
+      "RESOURCE_AUDIT_WARNINGS",
+      "LOCAL_SOCKET_DROP"
+    ],
+    "packet_socket_drops": {
+      "client": 33,
+      "server": 86
+    },
+    "business_all_delivered": true
+  },
+  "limitations": [
+    "This ON sample used 9V74 not 9V45 and profile ON not OFF; absence of socket drop here cannot disprove original 9V45 burst",
+    "Queue age maxima and handler maxima do not establish simultaneous correlation with prior host kernel socket drops",
+    "All 4 lanes active, no server FIFO overflows, and bounded client ingress are supported only for this exact sample",
+    "Profile ON diagnostic 226.53 CPU-s and Go allocation totals cannot be compared to OFF run166.97 CPU-s for CPU benefit",
+    "NO CPU speedup claim or narrowed root cause; preserve original RESOURCE_AUDIT_WARNINGS/LOCAL_SOCKET_DROP FAIL",
+    "Formal partial parity send-deadline not measured; 8937/65507B and TCP-only old case remain NOT_CLOSED",
+    "Existing approx 80-second S2C outage remains OPEN_DEFERRED, E6/P6/PHYSICAL NOT_RUN"
+  ],
+  "next": "Hold new source optimization and ordinary Game/Normal protectors; design targeted no-buffer-increase packet-socket burst attribution that can distinguish host schedule vs program reader, without collecting private raw or selecting only good hosted runs"
+}

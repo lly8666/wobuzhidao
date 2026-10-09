@@ -142,3 +142,8 @@ E6组合SOURCE冻结后：core/race、相关privileged Linux网络与Windows契�
 - 第一层官方比较量：`Q = Σ(product client+server CPU-s) / Σ(有效按期限到达且校验正确的逻辑GiB)`；必须并列报告全部请求的交付/期限率、最坏持续空桶、p99（缺失时给下界/不可确定）、外层TX/RX bytes/PPS、丢包、有效TUN MTU、FEC/padding以及RSS/PSI/steal/cgroup quota。LOSS、GOODPUT、错误与drop不同则**不作优化因果比较**。不能用总注入或重复Game包作为GiB分母。每源码/同配置/同seed至少3条独立OFF，CPU型号、核数/配额、host busy/PSI/steal/softirq分层并报告分布/异常，不选最佳样本；跨层无重叠 -> `INCONCLUSIVE_CROSS_HOST`。
 - 第二层**探索**指标，不是PASS门：若未来独立Action为资源层收集相同版本、可复现的来宾workload-specific速度`S_i`，包含有界加密seal/open、FEC20:20、marshal/解析、收发系统调用吞吐与稀疏单包延迟（分别单线程和固定4 vCPU），并证明每资源层可重复/稳定且无宿主限额干扰，可以给`reference_equivalent_CPU_s_per_GiB = Q × (S_i / S_reference)`。这个比率只对**能代表本产品瓶颈**的速度维度有意义；多维异构无共同单值时应输出向量/区间，而不以任意权重压成高精度总分。速度锚/校准必须为**独立Actions run，一次一场景一测量job**；不得在产品300s样本内夹带基准、改变定时/profile OFF、或假定不同host同一时段可校准。验证不足则该探索指标`NOT_CALIBRATED`，不得把外部PassMark乘在产品CPU-s上宣布收益。
 - 任何一个跨CPU归一化分数都**不能抵消**应用丢失、p99变坏、AF_PACKET本地drop、慢首达或跨业务HOL；失真时先修数据质量/可比性。9V45 lossless/166.97 CPU-s与9V74 staged5205/265.02 CPU-s不仅CPU不同，损伤场景也不同，按规则结论始终`INCOMPARABLE`。
+
+
+### 首选：资源层内版本相对指数（有配对时才跨CPU汇总）
+
+比较软件版本而非机器型号时，不应先根据PassMark把CPU-s乘以整颗CPU分数。固定同一场景／seed／FEC／MTU／profile OFF／业务质量硬门，在每一个重叠资源层`j`（同CPU型号、vCPU/配额、runner与Go版本、host busy/PSI/steal等）分别取得父版与候选**各至少3条独立Action样本**。计算该层每有效GiB CPU-s的中位数`Q_parent,j`、`Q_candidate,j`，其单位无关效率比`R_j = Q_parent,j / Q_candidate,j`。固定预先声明的资源层等权汇总`EfficiencyIndex = 100 × exp(mean_j(log R_j))`；100持平，110表示每单位CPU可做的合格业务约提高10%（相当于同GiB的CPU-s约减少9.09%），90表示变差。正式结果必须附每层样本数、原始值、中位数、离散度与固定层分层bootstrap可信区间，并列全体业务p99/超时、socket drop/吞吐/内存；*只对所有硬门相同且通过的配对层计算*，不得删掉不合格样本求出漂亮指数。不存在共享有效资源层或质量门不齐时指数`INCONCLUSIVE`。外部实体CPU网站只是辅助解释、不是这套比率的分母。不要混合Game与Normal、0loss与5205、profile ON与OFF，或不同运行时间/业务组合。

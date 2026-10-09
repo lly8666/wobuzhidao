@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_LOSSLESS_SOCKET_DROP_DIAGNOSTIC_ON_SINGLE_SAMPLE_DISPATCH",
+    "phase": "E4_GAME4_ON_DIAGNOSTIC_ONE_PASS_OFF_LOSSLESS_SOCKET_DROP_FAIL_OPEN",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -22,7 +22,7 @@
     },
     "optimization_implemented": true,
     "integration_core": "PASS_SOURCE_BF11FBF",
-    "ordinary_performance": "E4_CURRENT_SOURCE_GAME4_TRUE5205_SCOPED_PASS_LOSSLESS_SOCKET_DROP_FAIL_OTHER_PROTECTORS_HOLD_CPU_GAIN_UNPROVEN",
+    "ordinary_performance": "PROFILE_OFF_GAME4_5205_ONE_SCOPED_PASS_PROFILE_OFF_GAME4_LOSSLESS_SOCKET_DROP_FAIL_PROFILE_ON_0LOSS_SCOPED_PASS_NO_CPU_GAIN",
     "physical": "NOT_RUN_NEW_SOURCE",
     "e0_audit": {
       "state": "AUDIT_ONLY",
@@ -1107,12 +1107,12 @@
       },
       "protectors": {
         "game4_true5205": "PASS_SCOPED_ONE_OFF_SAMPLE",
-        "game4_lossless": "FAIL_37857040784_SOCKET_DROPS_CLIENT33_SERVER86_BUSINESS_DELIVERED",
+        "game4_lossless": "FAIL_37857040784_OFF_SERVER86_CLIENT33_SOCKET_DROPS_NOT_CLOSED_BY_PROFILE_ON",
         "normal1_lossless": "NOT_RUN_CURRENT_SOURCE",
         "normal1_true5205": "NOT_RUN_CURRENT_SOURCE",
         "game2_lossless": "NOT_RUN_CURRENT_SOURCE",
         "game2_true5205": "NOT_RUN_CURRENT_SOURCE",
-        "diagnostic_on": "NOT_RUN_CURRENT_SOURCE",
+        "diagnostic_on": "PASS_SCOPED_DIAGNOSTIC_ONE_LOSSLESS_RUN_37863612374_ONLY",
         "low_rtt_sparse": "NOT_RUN_CURRENT_SOURCE",
         "cpu_gain": "UNPROVEN"
       },
@@ -1155,7 +1155,7 @@
         "next_decision": "HOLD_GATE_TARGETED_PACKET_SOCKET_BURST_DIAGNOSIS_NO_CPU_COMPARISON"
       },
       "next_diagnostic_lossless": {
-        "state": "PENDING_ACTION",
+        "state": "COMPLETED_DIAGNOSTIC_ON_PASS_SCOPED",
         "sample": {
           "workload": "mixed",
           "loss": 0,
@@ -1167,19 +1167,25 @@
           "size_profile": "ordinary",
           "diagnostic_mode": "on"
         },
-        "helper_sha": "GITHUB_SHA_OF_THIS_COMMIT",
-        "evidence": "docs/evidence/performance-efficiency-e4-game4-lossless-diagnostic-seed1840-intent-20261009.json",
+        "helper_sha": "a5909490107e0ac2eb14f0d6323245633019d7df",
+        "evidence": "docs/evidence/performance-efficiency-e4-game4-lossless-diagnostic-on-run37863612374.json",
         "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
         "purpose": "Diagnose lossless socket drops, queue shard/handler and real lanes",
-        "compare_with_profile_off_cpu": false
+        "compare_with_profile_off_cpu": false,
+        "original_analyzer": "PASS_SCOPED_ACTIONS",
+        "run_id": 37863612374,
+        "job_id": 113604968040,
+        "artifact_id": 11587047619,
+        "legacy_off_fail_remains": "FAIL_RUN37857040784_SOCKET_DROPS_CLIENT33_SERVER86",
+        "cpu_gain": "UNPROVEN"
       }
     }
   },
-  "next_task": "Read exactly one independent Game4 lossless 0% seed1840 diagnostic ON Action triggered by this helper commit, inspect profile/diagnostic actual enabled, 4 lanes, shard overflow/age, handler and TCP maintenance, AF_PACKET drop timestamps and network resource strata. Record original analyzer PASS/FAIL; do not compare profile ON CPU with OFF or force lossless qualification. Then decide narrow correction/targeted tests; hold Normal/Game independent formal samples and other optimizations until socket-drop cause is supported. Normalize CPUs only by matching stratum ordinary OFF samples; public full-socket PassMark not VM calibration.",
-  "latest_log": "docs/devlog/20261009-e4-lossless-socket-burst-profileon-diagnostic-and-cpu-normalization.md",
-  "qualification_scope": "Current ba8ed1 source: exact Game4 true5205 off run37853468730 PASS_SCOPED_ACTIONS one sample; exact Game4 0loss off run37857040784 FAIL RESOURCE_AUDIT_WARNINGS/LOCAL_SOCKET_DROP client33/server86; all other protectors held, CPU UNPROVEN, E7 and old failure OPEN, physical NOT_RUN",
+  "next_task": "E4 drop root remains OPEN: original ba8ed1 Game4 0loss profileOFF run37857040784 9V45 had client33/server86 AF_PACKET drops 1s-sampled bursts, while independent same-source profileON on 9V74 run37863612374 was 4+4 active lane with no drops, server shards peak<=586/960, queue age<=55ms. Do not convert OFF FAIL to PASS or compare CPU-s. Next narrow instrumented attribution for AF_PACKET socket drops + bounded receiver stall timestamps without raising buffers/queues; one-source/one-case Actions and failure preserved. Hold other formal protection dispatch/new perf product candidate. For cross-CPU gain use within-stratum Qparent/Qcandidate >=3 OFF each and geometric mean only if paired strata; no overlap=INCONCLUSIVE.",
+  "latest_log": "docs/devlog/20261009-e4-game4-lossless-profileon-success-not-rollback-drop-fail.md",
+  "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
-  "last_tested_scope": "Game4 lossless seed1840 run37857040784 FAIL due AF_PACKET socket drops despite complete business; Game4 true5205 seed1840 run37853468730 PASS_SCOPED_ACTIONS; no CPU benefit proven",
+  "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
   "physical_status": "PARTIAL",
   "completed": [
     "Optimization implementation/testing sequence and runner-capacity policy documented",
@@ -1189,7 +1195,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 lossless 0% profileOFF original FAIL client33 server86 packet-socket drops retained. Diagnostic ON independent single fullstack run pending, no product code or queue change.",
+    "Profile ON Game4 lossless run37863612374 PASS_SCOPED_DIAGNOSTIC with 4 active lanes and zero socket/shard drops but 9V74 host; profile OFF 9V45 run37857040784 FAIL socket33/86 remains OPEN; no CPU claim, no new product candidate",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
@@ -1285,6 +1291,14 @@
       "scope": "E4_Game4_lossless_profile_off_seed1840_fullstack_one_sample",
       "status": "FAIL",
       "note": "Original WBD_LARGE_MTU_ANALYSIS FAIL issues=RESOURCE_AUDIT_WARNINGS,LOCAL_SOCKET_DROP. All 103062 ordinary UDP datagrams/direction delivered, probes1500/1495 all returned, TCP304 each hash, HTTPS20/20, netem actual0; AF_PACKET socket client d33 server d86; EPYC9V45 CPU166.97s not comparable with staged5205 EPYC9V74. Evidence docs/evidence/performance-efficiency-e4-game4-lossless-off-run37857040784.json"
+    },
+    {
+      "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "helper_sha": "a5909490107e0ac2eb14f0d6323245633019d7df",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37863612374",
+      "scope": "E4_Game4_lossless_profile_on_diagnostic_one_case",
+      "status": "PASS_SCOPED_ACTIONS",
+      "note": "Original PASS_SCOPED_ACTIONS, actual 4 client + 4 server active physical lanes, zero server shard FIFO and AF_PACKET drops; on EPYC9V74 profileON, DOES NOT CLOSE OFF EPYC9V45 socket-drop FAIL or prove CPU gains; evidence docs/evidence/performance-efficiency-e4-game4-lossless-diagnostic-on-run37863612374.json"
     }
   ],
   "required_read_set": [
