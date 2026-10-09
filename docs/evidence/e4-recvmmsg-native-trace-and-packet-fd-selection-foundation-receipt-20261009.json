@@ -1,0 +1,80 @@
+{
+  "schema": "wbd-e4-native-syscall-packet-fd-probe-foundation-receipt/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "6a4b215844a1bf361af76857750509d582c0c7ac",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "runs": [
+    {
+      "run_id": 37873072683,
+      "conclusion": "SUCCESS",
+      "qualified": "two-second PID-filtered recvmmsg enter/exit bpftrace attached",
+      "actual": "TRACEPOINT_ATTACH_ONLY",
+      "artifact_id": 11590954134,
+      "product_traffic": false
+    },
+    {
+      "run_id": 37873408635,
+      "conclusion": "SUCCESS",
+      "qualified": "local AF_UNIX SOCK_DGRAM functional 2 recvmmsg exits + 1 deliberate 60ms intercall gap in 5s",
+      "actual": "TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY",
+      "artifact_id": 11591250797,
+      "product_traffic": false
+    },
+    {
+      "run_id": 37873762122,
+      "conclusion": "FAILURE",
+      "qualified": "NOT_QUALIFIED",
+      "actual": "Python FD enumeration closed own /proc fd before readlink, false fd churn",
+      "product_traffic": false
+    },
+    {
+      "run_id": 37873954093,
+      "conclusion": "SUCCESS",
+      "qualified": "Linux one AF_PACKET/SOCK_RAW inode -> exact FD by proc packet table and fd symlinks; preexisting ss socket reader test and all Linux/Windows/race/TPROXY/TUN/fallback",
+      "actual": "WBD_LIVE_AFPACKET_FD_INODE_PASS unique_socket=1",
+      "product_traffic": false
+    }
+  ],
+  "unit_test_suites_last_foundation": [
+    7,
+    4,
+    6,
+    8,
+    7,
+    7,
+    5,
+    7
+  ],
+  "mechanism_guards": {
+    "no_product_source_change": true,
+    "zero_new_business_sample_runs": true,
+    "recv_fd_chosen_by_inode_not_guess": true,
+    "exe_and_pid_starttime_guard": true,
+    "FD_link_stable_recheck": true,
+    "one_AF_PACKET_socket_required": true,
+    "max_scanned_fd": 4096,
+    "fd_inode_and_pid_never_serialized": true
+  },
+  "unknowns": [
+    "bpftrace syscall enter args.fd filtering NOT implemented",
+    "trace event-lost detection not certified",
+    "runtime CPU/latency overhead not measured",
+    "bpftrace syscall gap is not a Go goroutine state or kernel-drop cause"
+  ],
+  "original_formal_fail_preserved": [
+    {
+      "run_id": 37857040784,
+      "profile": "OFF",
+      "client_afpacket_drop": 33,
+      "server_afpacket_drop": 86
+    },
+    {
+      "run_id": 37871243581,
+      "profile": "ON",
+      "client_afpacket_drop": 42,
+      "server_afpacket_drop": 0
+    }
+  ],
+  "product_CPU_speedup_claim": "UNPROVEN",
+  "e7": "OPEN_DEFERRED"
+}

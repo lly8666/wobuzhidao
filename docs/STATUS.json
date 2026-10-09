@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_FD_IDENTITY_REAL_SMOKE_ENUMERATOR_BUG_FIXED_FOUNDATION_PENDING",
+    "phase": "E4_RECV_TRACEPOINT_ATTACH_EVENT_AND_PACKET_FD_IDENTITY_GREEN_OVERHEAD_AND_CAUSALITY_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1327,7 +1327,7 @@
       },
       "historical_foundation_race_fix": "Original timing assertion failure addressed; after repair Foundation 37856615069 and latest 37868567381 SUCCESS; see earlier devlogs. This is historical, not current blocker.",
       "recv_syscall_tracepoint": {
-        "status": "ATTACHMENT_PASSED_FUNCTIONAL_TWO_SYSCALL_TEST_PENDING",
+        "status": "NONPERF_ATTACH_FUNCTIONAL_AND_FD_UNIQUENESS_TESTS_GREEN_ROOT_OPEN",
         "test_source": "tools/afpacket_recvmmsg_tracepoint.py",
         "synthetic_tests": "tools/test_afpacket_recvmmsg_tracepoint.py",
         "ci_job": "e4-recvmmsg-tracepoint-capability",
@@ -1364,21 +1364,27 @@
           "bpftrace_exit": 0
         },
         "fd_identity": {
-          "state": "ACTUAL_LIVE_LINUX_SMOKE_37873762122_FAIL_SCANNER_SELF_FD_LIFETIME",
-          "failed_foundation": 37873762122,
-          "failed_step": "Live Linux AF_PACKET ss parser smoke in isolated netns (no traffic)",
-          "root": "Python Path.iterdir() completes and closes temporary /proc/pid/fd directory handle before readlink; its own fd directory entry then disappears",
-          "fix": "Use with os.scandir(root/fd) and readlink each entry while iterator remains open",
-          "fix_verified": "PENDING_NEXT_FOUNDATION",
-          "no_product_traffic": true,
-          "formal_game_result": "UNCHANGED_FAIL",
-          "next_evidence": "docs/evidence/e4-afpacket-recvfd-live-smoke-fd-enumerator-failure-20261009.json"
-        }
+          "state": "REAL_LINUX_PACKET_FD_INODE_PASS",
+          "failed_run": 37873762122,
+          "failed_reason": "helper proc fd directory enumerator self-FD closure, not kernel socket churn",
+          "fix_commit": "6a4b215844a1bf361af76857750509d582c0c7ac",
+          "green_run": 37873954093,
+          "synthetic_count": 7,
+          "native_marker": "WBD_LIVE_AFPACKET_FD_INODE_PASS unique_socket=1",
+          "previous_packet_socket_parser_marker": "WBD_LIVE_AF_PACKET_NUMERIC_PARSE_PASS clean_netns=1 sockets=1 no_business=1",
+          "product_source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+          "product_fd_filter": "NOT_YET_IN_BPF",
+          "runtime_overhead": "NOT_EVALUATED",
+          "extra_perf_samples": 0,
+          "evidence": "docs/evidence/e4-recvmmsg-native-trace-and-packet-fd-selection-foundation-receipt-20261009.json"
+        },
+        "latest_foundation": 37873954093,
+        "latest_foundation_result": "SUCCESS"
       }
     }
   },
-  "next_task": "Inspect next Foundation native isolated AF_PACKET FD identity check after os.scandir fix and complete Linux/Windows/race/TPROXY/TUN/fallback. Preserve Foundation37873762122 live-smoke FAIL caused by helper temporary enumeration FD, not product. If exact single recvFD still cannot be validated, classify FD_UNKNOWN and stop, do not guess or run 300s. If pass, then design PID+recvFD syscall tracepoint filter and an overhead/lost-event control gate before any new product performance run. Old 9V45 OFF d33/86 and ON d42 original analyzers FAIL, CPU gain UNPROVEN, E7 deferred.",
-  "latest_log": "docs/devlog/20261009-e4-fd-iterator-lifetime-live-smoke-failure-fix.md",
+  "next_task": "Do NOT dispatch another Game4 300s sample. Next atomic E4 diagnostic step: add exact product AF_PACKET receiver FD to PID-filtered recvmmsg syscall entry expression (Linux tracepoint args.fd) only after independently verifying syscall tracepoint field and a two-FD *nonbusiness* adversarial smoke; require parser no lost events and bound to <=4096 map keys / short runtime. Then devise independent one-case overhead/perturbation gate (not A/B inside existing 300s product sample) before deciding whether external syscall tracing can be used in one formal diagnostic. No unmeasured bpftrace in product yet. A slow blocking recvmmsg might be waiting for first packet; gap could be processing/scheduler, no causal overclaim. Retain old 9V45 OFF local socket d33/d86 and ON client42 official analyzer FAIL; STOP host shopping, do not enlarge rcvbuf/shard/ready queues. E7 ~80s downstream stall OPEN_DEFERRED, E6/P6/physical NOT_RUN, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e4-5s-real-recvmmsg-native-unique-packetfd-foundation-green.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1391,7 +1397,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 same-host-model packet-socket FAIL stays; functional bpftrace 5s local synthetic 2 syscalls + 1 gap passed Foundation37873408635. New AF_PACKET receiver FD identity live smoke from bbf6379 Foundation37873762122 failed due helper enumeration FD lifetime, NOT product. Fixed same-iterator readlink pending next Foundation; no 300s sample.",
+    "E4 diagnostic tool only: two-second native syscall bpftrace attach Foundation37873072683 SUCCESS; 5s AF_UNIX socketpair two real recvmmsg exits/one 60ms gap Foundation37873408635 SUCCESS; exact AF_PACKET raw receiver FD inode real netns Foundation37873954093 SUCCESS after prior self-iterator helper FAIL37873762122. NO new 300s sample, frozen ba8ed1 official Game4 9V45 OFF d33/86 and ON d42 FAIL remain ROOT OPEN; CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

@@ -1,0 +1,9 @@
+# E4 tracepoint真实事件与AF_PACKET唯一接收FD：非业务预检门通过（2026-10-09）
+
+仅在 next/performance-efficiency-20261008，父HEAD 6a4b215844a1bf361af76857750509d582c0c7ac，正式产品SOURCE ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072固定，本提交只追加证据/devlog/唯一STATUS。新[Foundation37873954093](https://github.com/lly8666/wobuzhidao/actions/runs/37873954093) **完整SUCCESS**；此前[Foundation37873762122](https://github.com/lly8666/wobuzhidao/actions/runs/37873762122)真实内核FD smoke曾因Python Path.iterdir枚举器自己的短命FD而FAIL，已用同一次`with os.scandir`范围内readlink修正，FAIL不可抹除。
+
+实核资格目前是三层：1) [37873072683](https://github.com/lly8666/wobuzhidao/actions/runs/37873072683) native bpftrace在不存在的TGID2147483647上两秒attach recvmmsg enter/exit返回`TRACEPOINT_ATTACH_ONLY`。2) [37873408635](https://github.com/lly8666/wobuzhidao/actions/runs/37873408635) 真正两次recvmmsg syscall只通过局部AF_UNIX SOCK_DGRAM测试，两次退出且插入60ms用户态间隔被BPF抓到一个20ms以上gap，返回`TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY`，全Foundation SUCCESS。3) [37873954093](https://github.com/lly8666/wobuzhidao/actions/runs/37873954093) 在新的私有Linux netns里创建真正AF_PACKET/SOCK_RAW，将`/proc/PID/net/packet`中的socket inode与这个进程的`/proc/PID/fd`链接匹配唯一recvFD，真实marker`WBD_LIVE_AFPACKET_FD_INODE_PASS unique_socket=1`，原AF_PACKET ss数值解析也PASS，完整仓库契约/Windows/Linux/race/TPROXY/TUN/fallback均SUCCESS。Foundation repository-contract八套synthetic计数7/4/6/8/7/7/5/7。
+
+这三层结果**都不是**产品性能收益或正式socket丢包闭环。BPF脚本目前只过滤进程TGID，尚未验证按Linux recvmmsg tracepoint的`args.fd`过滤真实packet receiver；不得在真实300s业务中把别的FD的recv合并。长`recvmmsg`系统调用可能只是等首包，不证明接收停顿；两个recvmmsg间隔可能是解析/FEC/Go调度/同步锁；必须同时限定packet FD、监测事件丢失并证明额外观测开销有界，然后才允许考虑一次完整诊断。原先9V45 OFF [37857040784](https://github.com/lly8666/wobuzhidao/actions/runs/37857040784) skmem client33/server86与ON [37871243581](https://github.com/lly8666/wobuzhidao/actions/runs/37871243581) client42(140.769–140.871秒)正式`LOCAL_SOCKET_DROP` FAIL始终开放。
+
+下一个原子步骤只能先做非业务两个FD隔离与kernel `args.fd`字段自查，再考虑BPF高PPS扰动/丢事件预检；不能借功能test虚构产品CPU收益，不能扩大SO_RCVBUF/队列，也不选择健康宿主重跑300秒。E7约80秒下行中断继续OPEN_DEFERRED，CPU收益UNPROVEN、E6/P6/物理NOT_RUN。
