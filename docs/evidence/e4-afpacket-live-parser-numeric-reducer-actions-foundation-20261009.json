@@ -1,0 +1,103 @@
+{
+  "schema": "wbd-e4-afpacket-readonly-diagnostics-gate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "latest_tested_helper_sha": "cde2a148f80ef331cc564489046254d2e98c3a18",
+  "qualification": "READONLY_DIAGNOSTIC_HELPERS_AND_FOUNDATION_ONLY",
+  "runs": [
+    {
+      "run_id": 37866805754,
+      "sha": "74134df9db41d3ac78dc739559567fd333d318d3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37866805754",
+      "result": "SUCCESS",
+      "scope": "two-parser synthetic suites, linux/windows, -race, TUN/TPROXY/fallback",
+      "business_sample": "NOT_RUN"
+    },
+    {
+      "run_id": 37868281112,
+      "sha": "2c38144102adb6ae07ab579b9a9b3dcf93c1e109",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37868281112",
+      "result": "SUCCESS",
+      "scope": "native Linux AF_PACKET/SOCK_RAW `ss -0 -a -m -n` one socket in fresh netns; success marker WBD_LIVE_AF_PACKET_NUMERIC_PARSE_PASS; entire Foundation green",
+      "business_sample": "NOT_RUN"
+    },
+    {
+      "run_id": 37868567381,
+      "sha": "cde2a148f80ef331cc564489046254d2e98c3a18",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37868567381",
+      "result": "SUCCESS",
+      "scope": "7 clock tests + 4 probe parsing + 6 trace reducer synthetic; Linux/Windows/race, TPROXY/TUN/fallback",
+      "business_sample": "NOT_RUN"
+    }
+  ],
+  "diagnostic_hardening": {
+    "native_afpacket_smoke": "PASS_WITH_SINGLE_LINUX_SOCKET_AND_NATIVE_SS",
+    "time_axis_clock": "BUSINESS_START_MONOTONIC_NOT_RESOURCE_FIRST_ROW",
+    "supported_sk_mem_formats": [
+      "inline native p_raw ... skmem:(...)",
+      "indented two-line synthetic"
+    ],
+    "synthetic_test_counts": {
+      "business_clock_and_sk_mem": 7,
+      "numeric_live_probe_parser": 4,
+      "bounded_numeric_trace_reducer": 6
+    },
+    "reducer_good_quality": "CONTINUOUS_NUMERIC_ONLY_NOT_PRODUCT_PASS",
+    "reducer_bad_quality": [
+      "UNUSABLE when no valid socket observations",
+      "PARTIAL_NUMERIC_ONLY with missing data or gaps",
+      "FAIL_CLOSED on drop counter reset",
+      "FAIL_CLOSED on clock reset or >4096 rows"
+    ],
+    "drop_increase_time_bound": "prior_ss_start to current_ss_end; no exact kernel event time",
+    "cpu_psi": "10-second rolling, not capacity attribution",
+    "new_sample_count": 0
+  },
+  "prior_failures_preserved": [
+    {
+      "run_id": 37857040784,
+      "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "profile": "OFF",
+      "host": "EPYC 9V45",
+      "original": "FAIL",
+      "issues": [
+        "RESOURCE_AUDIT_WARNINGS",
+        "LOCAL_SOCKET_DROP"
+      ],
+      "drops": {
+        "client": 33,
+        "server": 86
+      },
+      "business_relative_brackets_s": {
+        "server": [
+          86.052515,
+          87.052582
+        ],
+        "client": [
+          142.052521,
+          143.052518
+        ]
+      }
+    },
+    {
+      "run_id": 37865738583,
+      "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "profile": "ON",
+      "host": "EPYC 9V74",
+      "workflow": "FAIL",
+      "analyzer": "PASS_SCOPED_ACTIONS",
+      "cause": "old 100ms probe parser matched newline-only ss; 3150 probe rows per side all invalid",
+      "reconstruction": "IMPOSSIBLE_FROM_STRIPPED_NUMERIC_TRACE"
+    }
+  ],
+  "other_scopes": {
+    "game4_5205_off_one": "PASS_SCOPED_ACTIONS_SINGLE_SAMPLE",
+    "normal1_and_game2": "NOT_RUN_CURRENT_SOURCE",
+    "low_rtt_sparse": "NOT_RUN_CURRENT_SOURCE",
+    "cpu_gain": "UNPROVEN",
+    "e7_downlink_pause": "OPEN_DEFERRED",
+    "physical": "NOT_RUN"
+  },
+  "next_decision": "HOLD_NEW_PERFORMANCE_DISPATCH_PENDING_CAUSAL_WITNESS_NOT_HOST_SHOPPING; never expand queues or buffers to bury socket drops; a distinct packet-socket observation is not business delivery",
+  "evidence_document_only": true
+}
