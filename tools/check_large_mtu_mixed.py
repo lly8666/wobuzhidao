@@ -221,7 +221,7 @@ def bucket_gap(src,dst,delay_ms=300,duration_s=300):
         runs.append([start,duration_s*100,(duration_s*100-start)*10]);longest=max(longest,duration_s*100-start)
     return {"active_sender_zero_recv_buckets":active,"longest_active_gap_ms":longest*10,
             "largest_gap_windows":sorted(runs,key=lambda x:-x[2])[:10],
-            "method":f"10ms empty receiver with prior sender activity, delay={delay_ms}ms; diagnostic, NOT definitive HOL""}
+            "method":f"10ms empty receiver with prior sender activity, delay={delay_ms}ms; diagnostic, NOT definitive HOL"}
 
 def main():
     a=argparse.ArgumentParser()
