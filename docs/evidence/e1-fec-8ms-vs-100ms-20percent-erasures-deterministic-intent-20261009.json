@@ -1,0 +1,48 @@
+{
+  "schema": "wbd-e1-partial-fec-closure-sensitivity-controlled-test/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "base_head": "23518befd02f4471c8e68e318e1fb0641f2cdcf0",
+  "product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+  "prior_validations": {
+    "foundation_latest": 37908913778,
+    "normal1_zero_loss_run": 37905658013,
+    "normal1_zero_loss_state": "PASS_SCOPED_ACTIONS",
+    "normal1_5205_run": 37907829434,
+    "normal1_5205_state": "FAIL",
+    "business_missing_c2s": 425,
+    "business_missing_s2c": 463,
+    "client_socket_drop": 0,
+    "server_socket_drop": 0
+  },
+  "test": "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go",
+  "scope": "LINK/FEC real fragmenter / FastBlockEncoder 20:20 / BlockDecoder / LINK reassembler, no TLS/TUN/netem/product benchmark",
+  "inputs": {
+    "link_datagram_bytes": [
+      96,
+      1372,
+      4068
+    ],
+    "link_source_mtu": 1200,
+    "datagrams_per_size": 5,
+    "interarrival_ms": 12,
+    "parity_modes_ms": [
+      8,
+      100
+    ],
+    "drop_budget_percent": 20,
+    "drop_pattern": "Drop every systematic fragment of first logical datagram and an equal number of parity shards of each FEC block containing its fragments. Different wire orders but equal count/size-class erasure budget, no random sample.",
+    "check_later_datagrams_immediately_deliver_no_dup_corruption": true
+  },
+  "hypothesis": "Faster 8ms partial parity closure can reduce per-size-class FEC block size for 12ms sparse large LINK datagrams. Equal 20% erasures can be unrecoverable for early one-message blocks while longer 100ms grouping has independent redundancy equations; this is POSSIBLE MECHANISM, not established cause of real netem 5205.",
+  "expected_test_result": "PENDING_GITHUB_FOUNDATION",
+  "product_changes": 0,
+  "new_business_300s_runs": 0,
+  "preserve": {
+    "normal1_5205_original": "FAIL",
+    "game2": "HOLD",
+    "low_rtt_sparse": "NOT_RUN",
+    "cpu_gain": "UNPROVEN",
+    "e7": "OPEN_DEFERRED"
+  },
+  "next": "If short/long test passes, decide minimum policy preserving lowRTT sparse and Normal1 5205; do not silently change FEC coding policy. Need core/race and all protectors before claiming gain."
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_DEADLINE_TIMER_NORMAL1_ZEROLOSS_PASS_NORMAL1_5205_FAIL_STRESS_UDP_GAME_HELD",
+    "phase": "E1_8MS_PARTIAL_PARITY_WEAKNET_RECOVERY_CAUSAL_COUNTEREXAMPLE_TEST_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2285,11 +2285,26 @@
           "state": "NOT_RUN_REQUIRES_8MS_DEADLINE_PROTECTION"
         }
       },
-      "next_source_cpu_comparison": "NO_COMPARABLE_HOST_STRATUM_YET"
+      "next_source_cpu_comparison": "NO_COMPARABLE_HOST_STRATUM_YET",
+      "causal_test": {
+        "status": "PENDING_FOUNDATION",
+        "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+        "path": "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go",
+        "hypothesis": "8ms parity closure with ~12ms sparse fragments creates tiny partial 20:20 groups; earlier parity can reduce 20% erasure recovery vs 100ms aggregation",
+        "tests": [
+          "96B",
+          "1372B",
+          "4068B",
+          "exactly 20% targeted source+parity erasures"
+        ],
+        "proof_limit": "deterministic LINK/FEC sensitivity only; not statistical netem or actual 5205 source attribution",
+        "no_product_source_edits": true,
+        "evidence": "docs/evidence/e1-fec-8ms-vs-100ms-20percent-erasures-deterministic-intent-20261009.json"
+      }
     }
   },
-  "next_task": "E1 NORMAL1 5205 failure preserves original FAIL and blocks automatic Game2 protectors. First inspect existing FEC repair/reassembly and 1372/4068 size-dependent delivery under true 20% netem with read-only source evidence plus current artifact; distinguish preexisting workload/protection limits from E1 8ms parity wake regression before product changes. No new 300s run without one targeted causal hypothesis and a bounded deterministic regression test; no host shopping. If proven fix, core/race then re-run each NORMAL1 lossless/5205 and Game2 lossless/5205 one sample per Action on pinned new SOURCE. LowRTT sparse 8ms protector still NOT_RUN, E4 maintenance/FEC CPU hotspots deferred until E1 reliability scope explained. Old E4 socket failures, Game2 prior 4068B UDP missing and E7~80s outage retained. Never compare EPYC9V74 242.37s zero-loss to Xeon8573C 250.1s 5205 for gains; CPU UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e1-normal1-5205-real-protector-fail-weaknet-udp-size.md",
+  "next_task": "Read new Foundation for TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff using 96/1372/4068B LINK packets, one 12ms spacing, 8ms vs100ms FEC closure, exactly20% targeted erased sources+parity. PASS would show a real FEC policy tradeoff but NOT attribution to random 5205 Action or license to revert 8ms sparse lowRTT; FAIL fix test/assumptions only after reading logs. Decide narrow E1 product candidate preserving sparse 8ms protection and high-loss 5205 without global 1ms polling or unbounded retransmission. Then core/race + Normal1 lossless and 5205 individually before Game2, each workload own Action. Original 5205 FAIL and E4 socket drops remain; E7 80s open deferred, CPU gain UNPROVEN. No new fullstack until causal proposal justified.",
+  "latest_log": "docs/devlog/20261009-e1-fec-short-deadline-20percent-erasure-counterexample.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2302,7 +2317,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 SOURCE622e5a first Normal1 lossless mixed 300s run37905658013 PASS_SCOPED_ACTIONS, but next same-source Normal1 staged5/20/5 mixed profileOFF run37907829434 original analyzer+workflow FAIL: 20% stress app UDP missing c2s424/172835 and s2c460/172835, size1372/4068 disproportionately affected, probe stress missing 14/750 c2s 18/750 s2c; TCP hash, web, AF_PACKET skmem.d0, netdev and strict resource clean. Foundation37907829715 SUCCESS. Do not infer E1 scheduler caused weakness vs pre-existing FEC; no rerun or Game without targeted source hypothesis. CPU gain UNPROVEN, E7 OPEN_DEFERRED.",
+    "E1 new 622e5 source Normal1 zero-loss run37905658013 scoped PASS, staged5205 run37907829434 original FAIL UDP 425/463+probe; no packet socket drops. Source review found 8ms due partial parity can close sparse size-class groups before next 12ms datagram whereas prior effective 100ms tick groups more shards; bounded exact20% erasure counterexample Go test pending CI, no product change/new 300s sample. Game2 blocked, CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
