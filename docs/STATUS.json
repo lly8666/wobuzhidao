@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RECV_TRACEPOINT_ATTACH_EVENT_AND_PACKET_FD_IDENTITY_GREEN_OVERHEAD_AND_CAUSALITY_PENDING",
+    "phase": "E4_RECVMMSG_PID_FD_FILTER_NONPERF_ADVERSARIAL_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1379,12 +1379,36 @@
           "evidence": "docs/evidence/e4-recvmmsg-native-trace-and-packet-fd-selection-foundation-receipt-20261009.json"
         },
         "latest_foundation": 37873954093,
-        "latest_foundation_result": "SUCCESS"
+        "latest_foundation_result": "SUCCESS",
+        "latest_fd_filter": {
+          "state": "PENDING_FOUNDATION_REAL_TWO_FD_SMOKE",
+          "helper": "tools/afpacket_recvmmsg_tracepoint.py",
+          "target_fd": "enter tracepoint args.fd==30",
+          "exit_pairing": "target-enter armed matched OS thread; all other fd excluded; per-thread previous_exit not process-wide",
+          "target_proc": "independent synthetic AF_UNIX socketpair child TGID",
+          "fixture": "tools/testdata/e4_recvmmsg_two_fd_smoke.c",
+          "functional_driver": "tools/afpacket_recvmmsg_functional.py",
+          "test_scripts": [
+            "tools/test_afpacket_recvmmsg_tracepoint.py",
+            "tools/test_afpacket_recvmmsg_functional.py"
+          ],
+          "test_output": "artifacts/e4-recvmmsg-two-fd.json",
+          "expected_status": "TWO_FD_TARGET_ONLY_FUNCTIONAL",
+          "target_calls": 2,
+          "distractor_calls": 2,
+          "expected_target_long_intercall_gap": 1,
+          "profile_off_or_product_run": false,
+          "performance_overhead": "NOT_MEASURED",
+          "lost_event_rate": "NOT_MEASURED",
+          "hard_gate": "per-script exact enters/exits/gap, bpftrace exit0, fixture exit0",
+          "intent": "docs/evidence/e4-recvmmsg-two-fd-same-tgid-adversarial-tracepoint-intent-20261009.json"
+        },
+        "state": "ATTACH_EVENT_FD_INODE_PRECHECK_GREEN_PID_FD_EVENT_ISOLATION_PENDING"
       }
     }
   },
-  "next_task": "Do NOT dispatch another Game4 300s sample. Next atomic E4 diagnostic step: add exact product AF_PACKET receiver FD to PID-filtered recvmmsg syscall entry expression (Linux tracepoint args.fd) only after independently verifying syscall tracepoint field and a two-FD *nonbusiness* adversarial smoke; require parser no lost events and bound to <=4096 map keys / short runtime. Then devise independent one-case overhead/perturbation gate (not A/B inside existing 300s product sample) before deciding whether external syscall tracing can be used in one formal diagnostic. No unmeasured bpftrace in product yet. A slow blocking recvmmsg might be waiting for first packet; gap could be processing/scheduler, no causal overclaim. Retain old 9V45 OFF local socket d33/d86 and ON client42 official analyzer FAIL; STOP host shopping, do not enlarge rcvbuf/shard/ready queues. E7 ~80s downstream stall OPEN_DEFERRED, E6/P6/physical NOT_RUN, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e4-5s-real-recvmmsg-native-unique-packetfd-foundation-green.md",
+  "next_task": "Verify one new Foundation run for target-FD adversarial tracepoint: within one PID C AF_UNIX fixture two recvmmsg calls on fd30 and two on fd31; bpftrace filter pid+args.fd==30 at enter, matched OS-thread exits MUST yield @enters=2, @exits=2, exactly one >20ms target inter-call gap; no unpaired events. Inspect uploaded e4-recvmmsg-two-fd.json actual status TWO_FD_TARGET_ONLY_FUNCTIONAL, and confirm original single-socket fixture and full Linux/Windows/race/TPROXY/TUN/fallback. If failed, preserve raw workflow FAIL and fix only a proven helper defect. If pass, still no fullstack Game4 until independent bounded overhead/false-negative/lost-event control is designed and qualified (do not in-run A/B inside one business sample); filter matches OS thread and numeric FD, not Go goroutine identity, and FD reuse remains a caveat. Do not expand socket buffers/queues, CPU gain UNPROVEN, E7 OPEN_DEFERRED; prior OFF skmem d33/86 and ON d42 formal FAIL stay OPEN.",
+  "latest_log": "docs/devlog/20261009-e4-syscall-bpftrace-target-fd-only-two-socketpair-smoke.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1397,7 +1421,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 diagnostic tool only: two-second native syscall bpftrace attach Foundation37873072683 SUCCESS; 5s AF_UNIX socketpair two real recvmmsg exits/one 60ms gap Foundation37873408635 SUCCESS; exact AF_PACKET raw receiver FD inode real netns Foundation37873954093 SUCCESS after prior self-iterator helper FAIL37873762122. NO new 300s sample, frozen ba8ed1 official Game4 9V45 OFF d33/86 and ON d42 FAIL remain ROOT OPEN; CPU gain UNPROVEN.",
+    "E4 native non-business precheck: Foundation37874273922 complete SUCCESS; 2s recvmmsg attach, 5s 2 real syscalls/60ms gap, exact AF_PACKET raw recvFD /proc inode already green. New 5s adversarial 2 FD same-TGID smoke with args.fd 30 filter and thread-paired enters/exits awaiting Foundation; source ba8ed1 and original OFF9V45 d33/86, ON9V45 d42 formal FAIL retained. No 300s performance sample.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

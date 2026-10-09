@@ -18,19 +18,32 @@ MAX_BPF_MAP_KEYS = 4096
 MIN_GAP_NS = 20_000_000
 BUCKET_NS = 100_000_000
 
-def program(pid, seconds=2, ready=False):
+def program(pid, seconds=2, ready=False, recv_fd=None):
     if type(pid) is not int or not 1 <= pid <= 2147483647:
         raise ValueError("positive numeric target tgid required")
-    if type(seconds) is not int or seconds not in (2,5):
+    if type(seconds) is not int or seconds not in (2, 5):
         raise ValueError("only bounded 2s capability or 5s functional smoke may execute")
-    return ('BEGIN { printf("WBD_E4_RECVMMSG_FIXTURE_TRACER_READY\\n"); }\n' if ready else '') + f"""tracepoint:syscalls:sys_enter_recvmmsg /pid == {pid}/ {{
-  if (@previous_exit[pid] != 0) {{
-    $gap_ns = nsecs - @previous_exit[pid];
+    if recv_fd is not None and (type(recv_fd) is not int or recv_fd < 0 or recv_fd >= 4096):
+        raise ValueError("target receive FD must be an exact bounded integer")
+    # The exit tracepoint has only its return value. Remember a matching
+    # enter on this OS thread; a non-target fd never arms the exit handler.
+    # Track last exit per OS thread, NOT the entire process: simultaneous
+    # recvmmsg calls on different threads cannot define one intercall gap.
+    predicate = f"pid == {pid}"
+    if recv_fd is not None:
+        predicate += f" && args.fd == {recv_fd}"
+    return ('BEGIN { printf("WBD_E4_RECVMMSG_FIXTURE_TRACER_READY\\n"); }\n' if ready else '') + f"""tracepoint:syscalls:sys_enter_recvmmsg /{predicate}/ {{
+  if (@previous_exit[tid] != 0) {{
+    $gap_ns = nsecs - @previous_exit[tid];
     if ($gap_ns >= {MIN_GAP_NS}) {{
       @long_inter_call_gap_bucket[nsecs / {BUCKET_NS}] = count();
     }}
   }}
+  if (@entered_ns[tid] != 0) {{
+    @unpaired_enter = count();
+  }}
   @entered_ns[tid] = nsecs;
+  @enters = count();
 }}
 tracepoint:syscalls:sys_exit_recvmmsg /pid == {pid} && @entered_ns[tid] != 0/ {{
   $duration_ns = nsecs - @entered_ns[tid];
@@ -38,7 +51,7 @@ tracepoint:syscalls:sys_exit_recvmmsg /pid == {pid} && @entered_ns[tid] != 0/ {{
     @long_in_kernel_wait_bucket[nsecs / {BUCKET_NS}] = count();
   }}
   @exits = count();
-  @previous_exit[pid] = nsecs;
+  @previous_exit[tid] = nsecs;
   delete(@entered_ns[tid]);
 }}
 interval:s:{seconds} {{

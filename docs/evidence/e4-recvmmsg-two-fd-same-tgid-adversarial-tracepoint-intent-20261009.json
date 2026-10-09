@@ -1,0 +1,66 @@
+{
+  "schema": "wbd-e4-same-tgid-two-recvfd-trace-filter-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "5c291c7f039daebd0b306c0b70cd8bdd75c6fcee",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "previous_green": [
+    {
+      "run_id": 37873072683,
+      "scope": "2s native bpftrace recvmmsg attach only"
+    },
+    {
+      "run_id": 37873408635,
+      "scope": "5s two exact recvmmsg enter/exit and one deliberate 60ms gap in AF_UNIX fixture"
+    },
+    {
+      "run_id": 37873954093,
+      "scope": "isolated netns AF_PACKET SOCK_RAW uniquely resolved via /proc packet inode"
+    },
+    {
+      "run_id": 37874273922,
+      "scope": "latest docs-only complete Foundation success"
+    }
+  ],
+  "motivation": "PID-only recvmmsg tracepoint could conflate multiple FDs and per-process last exit mixes different OS threads; true packet ingress receiver requires exact numeric FD from /proc inode after process identity check.",
+  "test": {
+    "fixture": "local two AF_UNIX SOCK_DGRAM socketpairs, same process and thread",
+    "pid": "child fixture TGID dynamically from Popen",
+    "target_recv_fd": 30,
+    "non_target_recv_fd": 31,
+    "recvmmsg_target_calls": 2,
+    "recvmmsg_other_calls": 2,
+    "deliberate_user_gap_between_target_calls_ms": 60,
+    "probe_duration_seconds": 5,
+    "expected_bpf_exits": 2,
+    "expected_bpf_enters": 2,
+    "expected_bpf_intercall_gaps_above_20ms": 1,
+    "other_fd_should_not_arm_exits": true,
+    "trace_data_policy": "count-only, no syscall args emitted or packet data",
+    "result": "PENDING_REAL_FOUNDATION"
+  },
+  "guardrails": {
+    "bpf_filter": "pid == child TGID && args.fd == 30 on enter; exit gate only matched thread @entered_ns; per-thread previous_exit",
+    "limit_bpf_map_keys": 4096,
+    "observation_buckets_ms": 100,
+    "print_per_event": false,
+    "wait_threshold_ms": 20,
+    "not_prod_fd_validator_in_this_fixture": true,
+    "high_pps_overhead_evaluated": false,
+    "lost_events_evaluated": false,
+    "root_causation": "NOT_ESTABLISHED"
+  },
+  "new_business_sample_runs": 0,
+  "historical_off_fail": {
+    "run_id": 37857040784,
+    "client_sk_mem_d": 33,
+    "server_sk_mem_d": 86,
+    "original": "FAIL"
+  },
+  "historical_on_fail": {
+    "run_id": 37871243581,
+    "client_sk_mem_d": 42,
+    "server_sk_mem_d": 0,
+    "original": "FAIL"
+  },
+  "future_gate": "After real double FD pass, design standalone low-perturbation overhead and event-loss check under one Action/job, separate from any fullstack performance action. E4/root stays OPEN."
+}

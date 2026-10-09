@@ -19,20 +19,29 @@ from afpacket_recvmmsg_tracepoint import MARKER,MAX_BPF_MAP_KEYS,program
 
 READY="WBD_E4_RECVMMSG_FIXTURE_TRACER_READY"
 COUNT=re.compile(r"(?m)^@exits:\s*(\d+)\s*$")
+ENTER=re.compile(r"(?m)^@enters:\s*(\d+)\s*$")
 GAP=re.compile(r"(?m)^@long_inter_call_gap_bucket\[\d+\]:\s*(\d+)\s*$")
+UNPAIRED=re.compile(r"(?m)^@unpaired_enter:\s*(\d+)\s*$")
 
-def result(text,fixture_exit):
-    counts=COUNT.findall(text)
+def result(text,fixture_exit,two_fd=False):
+    enters=ENTER.findall(text)
+    exits=COUNT.findall(text)
     gaps=[int(x) for x in GAP.findall(text)]
-    if len(counts)!=1 or fixture_exit!=0:
-        return "INCONCLUSIVE_MISSING_EXITS"
-    if int(counts[0])!=2 or sum(gaps)!=1:
+    unpaired=[int(x) for x in UNPAIRED.findall(text)]
+    if len(enters)!=1 or len(exits)!=1 or fixture_exit!=0:
+        return "INCONCLUSIVE_MISSING_COUNTS"
+    if (int(enters[0])!=2 or int(exits[0])!=2 or
+            sum(gaps)!=1 or sum(unpaired)!=0):
         return "INCONCLUSIVE_EVENTS_NOT_MATCHING_FIXTURE"
+    if two_fd:
+        return "TWO_FD_TARGET_ONLY_FUNCTIONAL"
     return "TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY"
+
 
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--fixture",required=True,type=Path)
+    ap.add_argument("--target-fd",type=int,default=None,help="for dual socketpair, exact numeric target descriptor")
     ap.add_argument("--output",required=True,type=Path)
     a=ap.parse_args()
     out={"schema":"wbd-e4-recvmmsg-functional-attach/v1",
@@ -40,6 +49,8 @@ def main():
          "product_source_used":False,"no_product_network_traffic":True,
          "duration_seconds":5,"intentionally_one_intercall_gap_ms":60,
          "kernel_tracepoint_min_gap_ms":20,
+         "scope":"DUAL_FD_ADVERSARIAL" if a.target_fd is not None else "ONE_FD_BASELINE",
+         "non_target_recvmmsg_calls":2 if a.target_fd is not None else 0,
          "performance_overhead_validated":False}
     if not a.fixture.is_file():
         out["status"]="UNSUPPORTED_FIXTURE_MISSING"
@@ -51,7 +62,7 @@ def main():
                                    stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             env=os.environ.copy()
             env["BPFTRACE_MAX_MAP_KEYS"]=str(MAX_BPF_MAP_KEYS)
-            tracer=subprocess.Popen(["bpftrace","-q","-e",program(child.pid,seconds=5,ready=True)],
+            tracer=subprocess.Popen(["bpftrace","-q","-e",program(child.pid,seconds=5,ready=True,recv_fd=a.target_fd)],
                                     stdout=subprocess.PIPE,stderr=subprocess.PIPE,
                                     text=True,bufsize=1,env=env)
             ready=False
@@ -79,7 +90,7 @@ def main():
                 exit_code=child.wait(timeout=5)
                 stdout,stderr=tracer.communicate(timeout=12)
                 all_text="".join(lines)+stdout
-                out["status"]=result(all_text,exit_code)
+                out["status"]=result(all_text,exit_code,two_fd=a.target_fd is not None)
                 out["fixture_exit"]=exit_code
                 out["bpftrace_exit"]=tracer.returncode
                 out["captured_output_sha256"]=hashlib.sha256(all_text.encode()).hexdigest()
