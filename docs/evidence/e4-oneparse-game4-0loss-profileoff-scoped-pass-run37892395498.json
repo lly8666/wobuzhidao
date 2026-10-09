@@ -1,0 +1,138 @@
+{
+  "schema": "wbd-e4-oneparse-true-game4-lossless-profileoff-receipt/v1",
+  "working_branch": "next/performance-efficiency-20261008",
+  "parent_head": "d9b43e409b2f65fab537cecb9256e08f30df2224",
+  "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "legacy_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "run_id": 37892395498,
+  "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37892395498",
+  "artifact_id": 11599226962,
+  "foundation_run_id": 37892395461,
+  "github_workflow_conclusion": "success",
+  "original_analyzer": "PASS_SCOPED_ACTIONS",
+  "original_issues": [],
+  "ledger_raw_analysis": "PASS_SCOPED_ACTIONS",
+  "ledger_raw_issues": [],
+  "integrity": {
+    "scenario": "game,mixed,4 lanes,3Mbps logical each direction, 300s +3s drain, 300ms one-way delay, 20:20 FEC, ordinary size profile, seed1843",
+    "artificial_loss_percent": 0,
+    "realized_netem": {
+      "c2s": {
+        "attempted": 2798360,
+        "dropped": 0,
+        "realized_percent": 0
+      },
+      "s2c": {
+        "attempted": 2787564,
+        "dropped": 0,
+        "realized_percent": 0
+      }
+    },
+    "udp": {
+      "c2s": {
+        "sent_datagrams": 103062,
+        "missing": 0
+      },
+      "s2c": {
+        "sent_datagrams": 103062,
+        "missing": 0
+      },
+      "receiver_corrupt_or_malformed_each": 0
+    },
+    "tcp": {
+      "c2s": {
+        "sent_flows": 304,
+        "received_flows": 304,
+        "hash_or_length_mismatch": 0,
+        "sent_bytes": 55730996,
+        "received_bytes": 55730996
+      },
+      "s2c": {
+        "sent_flows": 304,
+        "received_flows": 304,
+        "hash_or_length_mismatch": 0,
+        "sent_bytes": 55730996,
+        "received_bytes": 55730996
+      }
+    },
+    "http_https": {
+      "requests": 20,
+      "returned": 20,
+      "missing": 0,
+      "http_server_served": 10,
+      "https_server_served": 10,
+      "https_cert_verified": 10
+    },
+    "probes": {
+      "c2s": {
+        "sent": 1500,
+        "returned": 1500,
+        "missing": 0,
+        "p99_ms": 626.13685
+      },
+      "s2c": {
+        "sent": 1495,
+        "returned": 1495,
+        "missing": 0,
+        "p99_ms": 623.983653
+      }
+    },
+    "continuity_max_active_gap_ms": {
+      "c2s": 60,
+      "s2c": 40
+    },
+    "realized_inner_server_tun_mtu": 1273
+  },
+  "resources": {
+    "profile": "OFF",
+    "runner_cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "logical_vcpus": 4,
+    "cgroup_quota_cores": null,
+    "cpu_psi_some_avg10_max_percent": 38.94,
+    "strict_resource_errors": [],
+    "missing_process_samples": {
+      "client": 0,
+      "server": 0
+    },
+    "link_drop_delta_all_zero": true,
+    "packet_socket_sk_mem_d_max": {
+      "client": 0,
+      "server": 0
+    },
+    "other_socket_drops": 0,
+    "packet_socket_recvbuf_bytes": {
+      "client": 1048576,
+      "server": 1048576
+    },
+    "packet_socket_rmem_alloc_peak_bytes": {
+      "client": 256000,
+      "server": 153216
+    },
+    "product_cpu_s": {
+      "client": 161.82,
+      "server": 162.85,
+      "total": 324.67
+    },
+    "business_delivered_both_directions_bytes": 222969306,
+    "memory_max_hwm_mib": {
+      "client": 85.96484375,
+      "server": 80.0546875
+    }
+  },
+  "artifact_sha256": {
+    "zip": "831a3475a9e983af5794f42ee0052de2a27accef35bdfa80f59637ce0b191ce0",
+    "summary.json": "7ada57e156cbea9b488ee89e0be8bd39de5971c34b8697cb73468c5d61d4bd0c",
+    "efficiency-ledger.json": "3f3271a5baa9f539000c4d07d08395d2458d7272d40171dc3f390b1724fd7a4f",
+    "manifest.json": "981d902f9d3e5e5659bad6932f354671759a8c5a0556d08ade3e4ae5531b3890",
+    "sample-claim.json": "7eac71f68197d82c2208d9c46b82276e7c439b63fe70a881598b70f94414f0ba"
+  },
+  "limitations": [
+    "ONE new-source Game4 0% loss profileOFF scenario PASS_SCOPED_ACTIONS, not repeatability or whole-product qualification",
+    "Prior original old-source profileOFF EPYC9V45 Game4 zero-loss socket client33/server86 and profileON same-model client42 remain FAIL and not retroactively fixed",
+    "EPYC7763 and legacy EPYC9V45 not comparable; CPU gain UNPROVEN",
+    "CPU PSI some avg10 peak38.94%, quota unknown; not a controlled cross-host CPU performance stratum",
+    "No physical traffic qualification and E7 ~80s downstream stall remains OPEN_DEFERRED"
+  ],
+  "no_product_edit_in_this_receipt": true,
+  "next_priority": "NORMAL1_MIXED_5205_PROFILEOFF_ONE_300S_10MBPS_OR_GAME2_5205_SINGLE_PROTECTOR"
+}
