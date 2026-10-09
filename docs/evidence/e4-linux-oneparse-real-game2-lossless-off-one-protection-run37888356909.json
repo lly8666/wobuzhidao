@@ -1,0 +1,153 @@
+{
+  "schema": "wbd-e4-oneparse-source-game2-zero-loss-profileoff-business-protection/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "helper_commit": "3f27d7d616105336849b66d0e9766454cefed71b",
+  "action": {
+    "run_id": 37888356909,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37888356909",
+    "artifact_id": 11597427853,
+    "conclusion": "SUCCESS",
+    "job": "one-fullstack-sample",
+    "result": "SUCCESS",
+    "analysis": "PASS_SCOPED_ACTIONS",
+    "analysis_issues": [],
+    "ledger": "PASS_SCOPED_ACTIONS",
+    "foundation_run": 37888356965,
+    "foundation_conclusion": "SUCCESS"
+  },
+  "one_action_one_case": true,
+  "sample": {
+    "workload": "mixed",
+    "mode": "game",
+    "lanes": 2,
+    "artificial_loss": 0,
+    "seed": 1841,
+    "rate_mbps_each_direction": 3,
+    "duration_s": 300,
+    "drain_s": 3,
+    "delay_one_way_ms": 300,
+    "outer_mtu": 1400,
+    "actual_server_tun_mtu": 1273,
+    "fec": "20:20",
+    "diagnostic_mode": "off",
+    "client_ingress": "TPROXY",
+    "real_tcp_udp_http_https": true
+  },
+  "business": {
+    "udp_per_direction": {
+      "sent": 103062,
+      "delivered": 103062,
+      "missing": 0,
+      "corrupt_or_malformed": 0
+    },
+    "tcp_per_direction": {
+      "flows_sent": 304,
+      "flows_received": 304,
+      "hash_or_length_mismatches": 0
+    },
+    "probes": {
+      "c2s": {
+        "sent": 1500,
+        "returned": 1500,
+        "missing": 0,
+        "p99_ms": 612.140325,
+        "max_ms": 626.392459
+      },
+      "s2c": {
+        "sent": 1495,
+        "returned": 1495,
+        "missing": 0,
+        "p99_ms": 611.234504,
+        "max_ms": 628.850148
+      }
+    },
+    "http_https": {
+      "requests": 20,
+      "returned": 20,
+      "https_certs_validated": 10,
+      "server_errors": 0,
+      "missing": 0
+    },
+    "recv_10ms_active_longest_gap_ms": {
+      "c2s": 30,
+      "s2c": 30
+    },
+    "gap_metric_caution": "Only 10ms receiver observation; not complete HOL causal proof",
+    "goodput_mbps_each_direction": 2.97231648,
+    "netem_actual_loss_percent": {
+      "c2s": 0,
+      "s2c": 0
+    },
+    "mtu_large_udp_8972_8973_65507": "NOT_RUN_IN_ORDINARY_SIZE_PROFILE"
+  },
+  "resources": {
+    "host_cpu": "AMD EPYC 7763 64-Core Processor",
+    "vcpus": 4,
+    "cgroup_cpu_quota_cores": null,
+    "cpu_psi_some_avg10_max": 31.79,
+    "host_busy_max_percent": 45.609065155807365,
+    "host_steal_max_percent": 0,
+    "product_cpu_seconds": {
+      "client": 96.72,
+      "server": 97.26,
+      "total": 193.98
+    },
+    "avg_product_cpu_cores": 0.6466,
+    "product_peak_rss_mib": {
+      "client": 53.75,
+      "server": 52.98828125
+    },
+    "strict_resource_errors": [],
+    "socket_extra_drop_max": 0,
+    "interface_drop_deltas_all_zero": true,
+    "packet_socket_skmem_max_d": {
+      "client": 0,
+      "server": 0
+    },
+    "packet_socket_rmem_peak": {
+      "client": 79232,
+      "server": 32384
+    },
+    "receive_buffer_bytes": 1048576,
+    "resource_claim": "ONLY_THIS_SINGLE_EPYC7763_RUN_NO_CROSS_HOST_CPU_COMPARISON"
+  },
+  "original_artifact_sha256": {
+    "summary.json": "20c7dc007cc609842c41307cbb28b536b1ae88230da4a44cf6e61a97e8edfb21",
+    "efficiency-ledger.json": "238185635b00e0133b720f673b5ac1699e53e5170a8eb2ee4ee6339cb48fe4af",
+    "manifest.json": "a2d5a6f7b23ebc69bc9a2603ff2f6587096d64a62732e8d03bb0fc82d6ccb3b9",
+    "sample-claim.json": "fa2f69efcb142dec831708884e4a4ebc1d8fb18eca5ed2c29427b9b2a3871941"
+  },
+  "previous_same_source_game4_staged5205_run": {
+    "run_id": 37886694720,
+    "result": "PASS_SCOPED_ACTIONS",
+    "different_mode_lanes_loss": true
+  },
+  "earlier_game4_lossless_fails_unmodified": [
+    {
+      "run_id": 37857040784,
+      "older_source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "profile": "OFF",
+      "client_skmem_d": 33,
+      "server_skmem_d": 86
+    },
+    {
+      "run_id": 37871243581,
+      "older_source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "profile": "ON",
+      "client_skmem_d": 42,
+      "server_skmem_d": 0
+    }
+  ],
+  "qualification": {
+    "game2_0loss": "PASS_SCOPED_ONE_RUN",
+    "game4_5205": "PASS_SCOPED_ONE_RUN",
+    "normal1_0loss": "NOT_RUN_CURRENT_SOURCE",
+    "game4_0loss_new_candidate": "NOT_RUN_CURRENT_SOURCE",
+    "cpu_gain": "UNPROVEN",
+    "e4_socket_drop_root": "OPEN_OLDER_SOURCE_FAIL",
+    "e7_80s_s2c": "OPEN_DEFERRED",
+    "e6_p6_physical": "NOT_RUN"
+  },
+  "decision": "Do not pick runner, no additional 300s on this step; choose exactly one Normal1 lossless protector next, predeclare fail-closed business/resource gates."
+}
