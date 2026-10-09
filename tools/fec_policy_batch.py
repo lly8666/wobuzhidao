@@ -89,8 +89,43 @@ def owned(d,suffix):
     ns=subprocess.run(["sudo","ip","netns","list"],check=True,text=True,capture_output=True).stdout
     leaked_ns=[n+"-"+suffix for n in ("wbiz","wcli","wrtr","wsrv","wtgt") if re.search(r"(?m)^"+re.escape(n+"-"+suffix)+r"(?:\s|$)",ns)]
     return {"original_leaked_pids":pids,"leftover_namespaces":leaked_ns,"clean":not pids and not leaked_ns}
-def one(case,root,helper):
+def add_wire_audit(d):
+    """Exactly one opt-in pre-netem numeric packet counter; no product changes."""
+    script=d/"generated.sh"
+    s=script.read_text()
+    def replace(old,new):
+        nonlocal s
+        if s.count(old)!=1:raise ValueError("audit shell anchor count: "+old[:45])
+        s=s.replace(old,new,1)
+    replace('SAMPLER_PID=""\nKEY=""','SAMPLER_PID=""\nWIRE_AUDIT_PID=""\nKEY=""')
+    replace('"$STAGE_PID" "$SAMPLER_PID" "$CLIENT_PID"',
+            '"$STAGE_PID" "$SAMPLER_PID" "$WIRE_AUDIT_PID" "$CLIENT_PID"')
+    start='printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"'
+    replace(start,start+'''
+# Experimental router ingress packet header counter; zero raw packet retention.
+ip netns exec "$RTR" python3 "$GITHUB_WORKSPACE/tools/fec_wire_retrans_observer.py" --start-ns "$START_NS" --duration-s 120 --output "$ART/retrans-wire.json" > "$ART/retrans-wire-private.log" 2>&1 &
+WIRE_AUDIT_PID="$!"
+sleep 0.25
+kill -0 "$WIRE_AUDIT_PID"
+''')
+    replace('wait "$STAGE_PID"; STAGE_PID=""',
+            'wait "$STAGE_PID"; STAGE_PID=""\nwait "$WIRE_AUDIT_PID"; WIRE_AUDIT_PID=""')
+    replace('"tools/fec_policy_batch.py",',
+            '"tools/fec_policy_batch.py",\n    "tools/fec_wire_retrans_observer.py",')
+    script.write_text(s)
+    subprocess.run(["bash","-n",str(script)],check=True)
+    receipt=d/"generated.sh.receipt.json"
+    data=json.loads(receipt.read_text())
+    data["generated_sha256"]=filehash(script)
+    data["forensic_wire_counter_opt_in"]=True
+    receipt.write_text(json.dumps(data,indent=2)+"\n")
+
+def one(case,root,helper,wire_audit=False):
     d=make(case,root)
+    if wire_audit:
+        if (case["workload"],case["loss"],case["fec"],case["delay_ms"],case["duration_s"])!=("udp",1,"off",300,120):
+            raise ValueError("wire counter authorized only for exact UDP1 FEC-off 300ms")
+        add_wire_audit(d)
     env=os.environ.copy()
     env.update({"GITHUB_WORKSPACE":str(Path.cwd()),"WBD_STRICT_MODE":"normal",
       "WBD_STRICT_SCENARIO":"lossless","WBD_STRICT_SEED":str(case["seed"]),
@@ -150,15 +185,30 @@ def one(case,root,helper):
     try:l=json.loads((d/"efficiency-ledger.json").read_text())
     except (OSError,ValueError):l={}
     classification=s.get("classification","INFRA_INVALID")
+    wire_info=None
+    if wire_audit:
+        try:
+            wire=json.loads((d/"retrans-wire.json").read_text())
+            wire_info={"capture_complete":wire.get("capture_complete"),
+                "direction":{k:{name:v.get(name) for name in
+                    ("tcp_outer_packets","fresh_data_packets","repeat_data_packets",
+                     "repeat_data_payload_bytes","repeat_over_fresh_payload_percent",
+                     "kernel_packet_socket_drops")} for k,v in wire["direction"].items()}}
+            if not wire.get("capture_complete"):classification="INFRA_INVALID"
+        except (OSError,ValueError,KeyError,TypeError):
+            classification="INFRA_INVALID"
+            wire_info={"capture_complete":False,"reason":"MISSING_OR_INVALID_WIRE_OBSERVER"}
+
     if rc != 0 or exc or not guard["clean"] or not s or s.get("error"):classification="INFRA_INVALID"
     if any("CORRUPT" in x or "HASH_MISMATCH" in x for x in s.get("issues",[])):
         classification="INTEGRITY_STOP"
     binary={k:filehash(root/"binaries"/("wbd-"+k)) for k in ("client","server")}
-    hashes={f:filehash(d/f) for f in ("generated.sh","summary.json","manifest.json",
+    hashes={f:filehash(d/f) for f in ("generated.sh","retrans-wire.json","summary.json","manifest.json",
         "runtime-flags.json","efficiency-ledger.json") if (d/f).exists()}
     row={"case":case,"source_sha":SOURCE,"helper_sha":helper,"binary_sha256":binary,
       "before":before,"after":snapshot(),"sample_exit":rc,"sample_exception":exc,
       "analyzer_exit":arc,"ledger_exit":lrc,"classification":classification,
+      "wire_audit":wire_info if wire_audit else "NOT_ENABLED",
       "issues":s.get("issues",[]),"owned_cleanup":guard,"sanitized_startup":startup,"sha256":hashes}
     (d/"case-receipt.json").write_text(json.dumps(row,indent=2))
     return row

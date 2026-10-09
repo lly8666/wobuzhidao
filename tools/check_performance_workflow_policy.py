@@ -162,6 +162,18 @@ if "tools/perf_sample_guard.py claim" in fec:
 if "test \"$BATCH\" = success" not in fec or "cancel-in-progress: false" not in fec:
     errors.append("FEC serial: must gate failures and prevent parallel Actions")
 
+# Opt-in single-forensic retransmission measurement; no second workload, dispatch or matrix.
+retrans = Path(".github/workflows/next-fec-retrans-300ms.yml").read_text()
+if 'branches: ["experiment/fec-policy-sequential-20261009"]' not in retrans:
+    errors.append("FEC retrans: only exact experiment branch")
+if retrans.count('      - ".github/fec-retrans-probe.json"') != 1 or "workflow_dispatch:" in retrans:
+    errors.append("FEC retrans: config-only push, no workflow dispatch")
+if re.search(r"(?m)^\s+matrix:|^\s+pull_request:",retrans):
+    errors.append("FEC retrans: no parallel matrix or pull requests")
+if retrans.count("  one-fec-off-wire-retrans-forensic:\n")!=1 or retrans.count("tools/fec_retrans_probe.py --mode run")!=1:
+    errors.append("FEC retrans: exactly one real sample in one job")
+if "cancel-in-progress: false" not in retrans or 'test "$SAMPLE" = success' not in retrans:
+    errors.append("FEC retrans: conservative no-parallel fail-closed gate")
 if errors:
     raise SystemExit("\n".join(errors))
 print("WBD_PERF_WORKFLOW_POLICY_PASS")
