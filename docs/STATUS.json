@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_ONE_SYNTHETIC_OFF_ACTION_EXECUTION_SUCCESS_HOST_QUALITY_RED_NO_ON_STOP",
+    "phase": "E4_HOSTED_VM_CGROUP_ROOT_VISIBILITY_AND_12S_FAIR_WINDOW_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1516,13 +1516,35 @@
             "state": "PENDING_FOUNDATION",
             "behavior": "reject CPU PSI before/after >10% or missing quota, throttle/steal unknown and host stratum changes; upload still always, job propagates FAIL",
             "original_off_workflow_execution_success_unchanged": true
+          },
+          "comparison_correctness": {
+            "runner_identity": "SAME_RUNS_ON_LABEL_NOT_SAME_VM_OR_SAME_CPU_HOST",
+            "github_hosted_job_fresh_vm": true,
+            "runner_label": "ubuntu-24.04 public repo 4vCPU/16GiB",
+            "first_off_runner_model": "AMD EPYC 9V74 4 vCPU",
+            "cgroup_scope": "READ_ONLY_PROBE_PENDING_FOUNDATION",
+            "cgroup_root_cpu_max_absent": "MAY_INDICATE_CGROUP_V2_ROOT; NOT PROOF OF UNLIMITED_CPU",
+            "origin_artifact_run": 37879351995,
+            "origin_cgroup_cpu_stat_visible": true,
+            "origin_cpu_max_null": true,
+            "host_quality": "OLD_OFF_01_STILL_INELIGIBLE_PSI17_06_PERCENT",
+            "fair_window": "ON host_after at fixture completion 12s, not tracer 30s exit",
+            "valid_case_requirements": [
+              "known cgroup v2 explicit cpu.max",
+              "stable kernel release and CPU affinity",
+              "host_after from end of fixture",
+              "previous CPU model/vcpu/PSI/throttle/steal gating"
+            ],
+            "new_tests": "tools/test_e4_runner_cpu_scope.py and strengthened tools/test_e4_recvmmsg_calibration.py",
+            "trace_only_synthetic_status": "NOT_CALIBRATED",
+            "evidence": "docs/evidence/e4-hosted-runner-per-job-vm-cgroup-root-scope-and-fair-window-20261009.json"
           }
         }
       }
     }
   },
-  "next_task": "Confirm new Foundation after per-run host quality fail-closed driver/test additions. Preserve OFF execution success run37879351995 but eligibility INELIGIBLE due CPU PSI before17.06% and missing cgroup cpu.max. Do not dispatch ON as this OFF cannot be matched; do not rerun until distinct evidence yields stable comparable host resource qualification or a supported cgroup quota discovery method without weakening thresholds. Future case must mark red host PSI/unknown quota in JSON and FAIL workflow, artifacts still uploaded; comparator already rejects. No Game4 300s, no main/canonical/physical, no buffer/queue change; original 9V45 OFF socket d33/86 and ON client42 official FAIL root OPEN, CPU gain UNPROVEN, E7 deferred.",
-  "latest_log": "docs/devlog/20261009-e4-synthetic-off-baseline-9v74-psi-high-quota-missing-not-calibrated.md",
+  "next_task": "Check Foundation after commit of read-only tools/e4_runner_cpu_scope.py with 9 parser tests and native artifacts/e4-runner-cpu-scope.json, plus updated calibration host fair-window and >=4 new synthetic comparator guards. Need see runner's actual /proc cgroup2 mount scope; if cgroup-v2 namespace root has no visible cpu.max, classify as NO_VISIBLE_ROOT_QUOTA, NEVER infer unlimited host CPU or same VM. Inspect Linux/Windows/race/TPROXY/TUN/fallback full success and no auto calibration trigger. Previous synthetic OFF Actions37879351995 p99 2694ns CPU 0.573952s is INELIGIBLE (PSI 17.06%, quota unknown), do not dispatch ON or host-shop. Current calibrated workload remains NOT_CALIBRATED and no Game4 300s authorized; 9V45 formal OFF d33/d86 and ON d42 socket drops remain FAIL, CPU gain UNPROVEN, E7 ~80s downlink OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261009-e4-hosted-vm-identity-and-cgroup-scope-readonly-preflight.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1535,7 +1557,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 one real 12s local AF_UNIX synthetic OFF sample e4-off-01 run37879351995 execution SUCCESS 48000 target+48000 decoy EPYC9V74 4vCPU p99 2.694us CPU0.573952s. Per predefined quality gate host PSI before17.06%>10% and cgroup cpu.max missing -> RED/INELIGIBLE, NOT_CALIBRATED, STOP ON host-shopping. Future per-case workflow fail-closed host eligibility pending Foundation. Frozen Game4 9V45 OFF client33/server86 and ON client42 kernel socket-drop official FAIL unchanged, CPU gain UNPROVEN.",
+    "E4 synthetic OFF run37879351995 executed but host-quality RED: CPU PSI before17.06% and /sys/fs/cgroup/cpu.max unavailable, never ON paired. GitHub ubuntu-24.04 guarantees runner image and public 4vCPU tier, NOT same physical VM across job/runs. New native read-only cgroup mountinfo/proc/self/cgroup scope probe distinguishes v2 root missing cpu.max from failure without inferring unlimited host quota. Fix ON vs OFF host pressure window to actual 12s fixture end instead of 30s BPF cleanup, strengthen exact kernel/affinity quota strata. Pending Foundation. Original product OFF9V45 client33/server86 and ON client42 AF_PACKET drop FAIL remain root open; CPU UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

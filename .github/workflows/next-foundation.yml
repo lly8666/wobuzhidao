@@ -66,6 +66,8 @@ jobs:
           cc -fsyntax-only tools/testdata/e4_recvmmsg_two_fd_256_events.c
           python3 -m py_compile tools/e4_recvmmsg_calibration.py tools/e4_recvmmsg_calibration_compare.py
           python3 -m unittest discover -s tools -p 'test_e4_recvmmsg_calibration.py' -v
+          python3 -m py_compile tools/e4_runner_cpu_scope.py
+          python3 -m unittest discover -s tools -p 'test_e4_runner_cpu_scope.py' -v
           cc -O2 -Wall -Wextra -Werror -fsyntax-only tools/testdata/e4_recvmmsg_calibration.c
       - id: layout
         name: Detect active module
@@ -323,6 +325,13 @@ jobs:
             sudo apt-get update -qq || true
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -y bpftrace || true
           fi
+      - name: Inspect cgroup CPU quota visibility without traffic
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 tools/e4_runner_cpu_scope.py --output artifacts/e4-runner-cpu-scope.json
+          cat artifacts/e4-runner-cpu-scope.json
       - name: Check bounded recvmmsg tracepoints without product
         run: |
           mkdir -p artifacts
@@ -400,6 +409,7 @@ jobs:
           name: e4-recvmmsg-tracepoint-capability-${{ github.sha }}
           path: |
             artifacts/e4-recvmmsg-tracepoint-capability.json
+            artifacts/e4-runner-cpu-scope.json
             artifacts/e4-recvmmsg-functional.json
             artifacts/e4-recvmmsg-two-fd.json
             artifacts/e4-recvmmsg-two-fd-256.json

@@ -6,15 +6,17 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 from e4_recvmmsg_calibration_compare import compare,valid_case,host_psi_avg10
 from afpacket_recvmmsg_tracepoint import program
 from e4_recvmmsg_calibration import assess_host_quality
+from e4_runner_cpu_scope import classify
 
 def item(mode, cpu=1.0, p99=1000, model="AMD EPYC 9V45", sha="f"*64):
     d={"mode":mode,"status":"ONE_SYNTHETIC_CASE_COMPLETE_NOT_CALIBRATED",
        "measurement_sec":12,"target_rate_hz":4000,"product_used":False,
        "tracer_overhead_qualified":False,
        "fixture_sha256":sha,"cgroup_throttled_delta":0,
+       "host_after_scope":"FIXTURE_COMPLETION_BEFORE_TRACER_CLEANUP",
        "host_steal_ticks_delta":0,
-       "host_before":{"model":model,"vcpus":4,"cgroup_cpu_max":"max 100000","cpu_pressure_first_line":"some avg10=2.00 avg60=2.00 total=1000"},
-       "host_after":{"model":model,"vcpus":4,"cgroup_cpu_max":"max 100000","cpu_pressure_first_line":"some avg10=3.00 avg60=2.00 total=2000"},
+       "host_before":{"model":model,"vcpus":4,"cgroup_cpu_max":"max 100000","cpu_quota_visibility":"CGROUP_V2_CPU_MAX_EXPLICITLY_VISIBLE","kernel_release":"6.8.0-test","affinity_cpu_count":4,"cpu_pressure_first_line":"some avg10=2.00 avg60=2.00 total=1000"},
+       "host_after":{"model":model,"vcpus":4,"cgroup_cpu_max":"max 100000","cpu_quota_visibility":"CGROUP_V2_CPU_MAX_EXPLICITLY_VISIBLE","kernel_release":"6.8.0-test","affinity_cpu_count":4,"cpu_pressure_first_line":"some avg10=3.00 avg60=2.00 total=2000"},
        "fixture":{"target_calls":48000,"decoy_calls":48000,
                   "cpu_total_s":cpu,"recv_p99_ns":p99,"recv_p999_ns":p99+1000},
        "kernel_counters":"NOT_MEASURED_OBSERVER_OFF"}
@@ -90,6 +92,28 @@ class CalibrationContract(unittest.TestCase):
         quality=assess_host_quality(x)
         self.assertTrue(quality["eligible"])
         self.assertEqual(quality["reasons"],[])
+    def test_cgroup_root_missing_visible_quota_is_not_a_matching_stratum(self):
+        x=item("off")
+        for k in ("host_before","host_after"):
+            x[k]["cpu_quota_visibility"]="CGROUP_V2_NAMESPACE_ROOT_NO_CPU_MAX"
+            x[k]["cgroup_cpu_max"]=None
+        self.assertFalse(valid_case(x,"off"))
+        self.assertEqual(compare([x]*3,[item("on")]*3)["status"],"NOT_CALIBRATED")
+    def test_measurement_end_must_not_be_tracer_cleanup_end(self):
+        x=item("on")
+        x["host_after_scope"]="TRACER_CLEANUP_30S_NOT_FIXTURE_12S"
+        self.assertFalse(valid_case(x,"on"))
+    def test_kernel_and_affinity_strata_must_match(self):
+        x=item("off")
+        x["host_after"]["kernel_release"]="6.12.0-other"
+        self.assertFalse(valid_case(x,"off"))
+        y=item("off")
+        y["host_after"]["affinity_cpu_count"]=3
+        self.assertFalse(valid_case(y,"off"))
+    def test_matching_resource_label_does_not_prove_same_virtual_machine(self):
+        res=compare([item("off")]*3,[item("on")]*3)
+        self.assertEqual(res["runner_identity_conclusion"],"SAME_RUNNER_LABEL_IS_NOT_SAME_VM")
+        self.assertFalse(res["vm_identical"])
     def test_no_implicit_total_cpu_gain(self):
         x=compare([item("off")]*3,[item("on")]*3)
         self.assertEqual(x["product_cpu_gain"],"UNPROVEN")

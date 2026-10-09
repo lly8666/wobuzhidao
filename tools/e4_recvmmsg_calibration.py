@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One nonproduct, one-mode, single-job 12s receiver syscall calibration.
 
-Each GitHub Actions workflow_dispatch runs exactly one mode OFF or ON.
+Each config-only branch Action runs exactly one mode OFF or ON.
 Never compare modes within this driver or claim a qualified CPU gain.
 No packet network interfaces, Go binaries, secrets, syscall arguments or
 per-event BPF print are involved. A child C binary uses AF_UNIX socketpairs.
@@ -19,6 +19,7 @@ import time
 
 from afpacket_recvmmsg_tracepoint import MAX_BPF_MAP_KEYS, program
 from e4_recvmmsg_calibration_compare import host_psi_avg10
+from e4_runner_cpu_scope import snapshot as cpu_scope_snapshot
 
 CALLS=48000
 MARKER="WBD_E4_RECVMMSG_FIXTURE_TRACER_READY"
@@ -75,7 +76,13 @@ def host_snapshot():
         steal=int(vals[8]) if len(vals)>8 else None
     except (OSError,ValueError,IndexError):
         pass
+    scope=cpu_scope_snapshot()
     return {"model":model,"vcpus":os.cpu_count(),"cgroup_cpu_max":quota,
+            "cpu_quota_visibility":scope["quota_visibility"],
+            "cgroup_namespace_root":scope["cgroup_namespace_root"],
+            "effective_host_cpu_quota":"UNKNOWN",
+            "kernel_release":os.uname().release,
+            "affinity_cpu_count":len(os.sched_getaffinity(0)),
             "cpu_pressure_first_line":cpu_pressure.splitlines()[0] if cpu_pressure else None,
             "cgroup_cpu_stat":cpu_stat,
             "cgroup_memory_current_bytes":int(memory) if memory and memory.isdigit() else None,
@@ -188,6 +195,10 @@ def run_one(fixture_binary,mode):
             elapsed=fixture_data.get("elapsed_ns")
             if type(elapsed) is not int or not 11_000_000_000<=elapsed<=18_000_000_000:
                 raise ValueError("pacing not representative or fixture clock invalid")
+            # The OFF and ON quality windows must end at fixture completion,
+            # NOT after the ON tracer drains to its 30-second program TTL.
+            receipt["host_after"]=host_snapshot()
+            receipt["host_after_scope"]="FIXTURE_COMPLETION_BEFORE_TRACER_CLEANUP"
             receipt["fixture"]={
                 "elapsed_ns":elapsed,"target_calls":CALLS,"decoy_calls":CALLS,
                 "recv_p99_ns":fixture_data["recv_p99_ns"],
@@ -228,7 +239,11 @@ def run_one(fixture_binary,mode):
                     try:p.wait(timeout=3)
                     except subprocess.TimeoutExpired:pass
             receipt["host_before"]=baseline
-            receipt["host_after"]=host_snapshot()
+            if "host_after" not in receipt:
+                receipt["host_after"]=host_snapshot()
+                receipt["host_after_scope"]="EARLY_ABORT_NOT_COMPLETE_FIXTURE"
+            if tracer is not None:
+                receipt["host_post_tracer_cleanup"]=host_snapshot()
             c1=parse_nr_throttled(receipt["host_before"]["cgroup_cpu_stat"])
             c2=parse_nr_throttled(receipt["host_after"]["cgroup_cpu_stat"])
             receipt["cgroup_throttled_delta"]=c2-c1 if c1 is not None and c2 is not None and c2>=c1 else None

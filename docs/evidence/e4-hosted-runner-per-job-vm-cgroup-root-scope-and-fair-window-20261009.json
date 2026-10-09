@@ -1,0 +1,71 @@
+{
+  "schema": "wbd-e4-hosted-runner-vm-identity-and-quota-visibility-preflight/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "126dbb674a4ca797f06a348b78d3f82e6b2f8e6d",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "official_runner_docs": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job",
+  "corrected_interpretation": {
+    "same_job_same_runner_environment": true,
+    "same_workflow_different_jobs_same_vm": false,
+    "same_workflow_different_runs_same_vm": false,
+    "runs_on_label": "ubuntu-24.04 standard public 4vCPU 16GiB",
+    "cpu_model_physical_hypervisor_same_guarantee": false,
+    "same_vcpu_count_does_not_imply_same_cpu_quota_or_contention": true
+  },
+  "old_sample": {
+    "run_id": 37879351995,
+    "artifact_id": 11594190797,
+    "mode": "off",
+    "task_success": true,
+    "quality": "INELIGIBLE",
+    "psi_some_avg10_before_percent": 17.06,
+    "psi_some_avg10_after_percent": 5.14,
+    "quota_max_read": null,
+    "cgroup_cpu_stat_visible": true,
+    "host_cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "vcpus": 4,
+    "old_v1_or_v2_namespace_root": "UNDETERMINED_FROM_OLD_ARTIFACT",
+    "prior_decision": "STOP_ON_NO_MATCH"
+  },
+  "new_read_only_probe": {
+    "script": "tools/e4_runner_cpu_scope.py",
+    "unit_tests": "tools/test_e4_runner_cpu_scope.py",
+    "foundation_artifact": "artifacts/e4-runner-cpu-scope.json",
+    "state": "PENDING_FOUNDATION",
+    "possible_classifications": [
+      "CGROUP_V2_CPU_MAX_EXPLICITLY_VISIBLE",
+      "CGROUP_V2_NAMESPACE_ROOT_NO_CPU_MAX",
+      "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+      "INVALID_CGROUP_V2_CPU_MAX",
+      "UNKNOWN"
+    ],
+    "never_rewrites_missing_quota_to_unlimited": true,
+    "never_outputs_raw_cgroup_paths": true,
+    "only_native_context": true
+  },
+  "fair_measurement_window_fix": {
+    "problem": "Previous observer ON host_after was sampled after bpftrace timer 30s, while OFF sampled after fixture 12s, artificially comparing different PSI windows",
+    "change": "Capture host_after as soon as 12s fixture succeeds, ahead of waiting for ON tracer's 30s cleanup. Retain separate post_tracer_cleanup telemetry.",
+    "new_comparator_scope_gate": "host_after_scope == FIXTURE_COMPLETION_BEFORE_TRACER_CLEANUP",
+    "further_strata": [
+      "kernel release",
+      "CPU affinity count",
+      "explicit cgroup v2 cpu.max visibility",
+      "CPU model/vCPU",
+      "fixture SHA"
+    ],
+    "host_identical": "NOT_PROVEN"
+  },
+  "synthetic_calibration_cases": {
+    "off_executed": 1,
+    "off_valid": 0,
+    "on_executed": 0
+  },
+  "new_business_samples": 0,
+  "product_fail_preserved": [
+    37857040784,
+    37871243581
+  ],
+  "cpu_gain": "UNPROVEN",
+  "e7": "OPEN_DEFERRED"
+}

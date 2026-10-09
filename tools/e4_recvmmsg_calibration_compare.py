@@ -33,18 +33,26 @@ def host_psi_avg10(host):
 def stratum(row):
     host=row.get("host_before") or {}
     model,vcpus,quota=host.get("model"),host.get("vcpus"),host.get("cgroup_cpu_max")
+    visibility=host.get("cpu_quota_visibility")
+    kernel=host.get("kernel_release")
+    affinity=host.get("affinity_cpu_count")
     fixture_sha=row.get("fixture_sha256")
     if (not isinstance(model,str) or model=="UNKNOWN" or
             type(vcpus) is not int or vcpus<1 or
             not isinstance(quota,str) or not quota or
+            visibility!="CGROUP_V2_CPU_MAX_EXPLICITLY_VISIBLE" or
+            not isinstance(kernel,str) or not kernel or
+            type(affinity) is not int or not 1<=affinity<=vcpus or
             not isinstance(fixture_sha,str) or len(fixture_sha)!=64):
         return None
-    return (model,vcpus,quota,fixture_sha)
+    return (model,vcpus,quota,visibility,kernel,affinity,fixture_sha)
 
 def valid_case(row,mode):
     if not isinstance(row,dict) or row.get("mode")!=mode:
         return False
     if row.get("status")!="ONE_SYNTHETIC_CASE_COMPLETE_NOT_CALIBRATED":
+        return False
+    if row.get("host_after_scope")!="FIXTURE_COMPLETION_BEFORE_TRACER_CLEANUP":
         return False
     if row.get("measurement_sec")!=12 or row.get("target_rate_hz")!=4000:
         return False
@@ -65,7 +73,10 @@ def valid_case(row,mode):
         return False
     if (base.get("model")!=after.get("model") or
             base.get("vcpus")!=after.get("vcpus") or
-            base.get("cgroup_cpu_max")!=after.get("cgroup_cpu_max")):
+            base.get("cgroup_cpu_max")!=after.get("cgroup_cpu_max") or
+            base.get("cpu_quota_visibility")!=after.get("cpu_quota_visibility") or
+            base.get("kernel_release")!=after.get("kernel_release") or
+            base.get("affinity_cpu_count")!=after.get("affinity_cpu_count")):
         return False
     for host in (base,after):
         pressure=host_psi_avg10(host)
@@ -100,6 +111,8 @@ def compare(off,on):
     result["quality_eligible"]={"off":len(good_off),"on":len(good_on)}
     overlap=set(stratum(x) for x in good_off)&set(stratum(x) for x in good_on)
     result["matching_strata"]=len(overlap)
+    result["vm_identical"] = False
+    result["runner_identity_conclusion"] = "SAME_RUNNER_LABEL_IS_NOT_SAME_VM"
     if len(off)!=len(good_off) or len(on)!=len(good_on):
         result["reason"]="RED_OR_UNKNOWN_SAMPLES_CANNOT_BE_DISCARDED"
         return result
