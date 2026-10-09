@@ -49,6 +49,8 @@ jobs:
           python3 -m py_compile tools/packet_socket_drop_forensics.py tools/afpacket_socket_probe.py
           python3 -m unittest discover -s tools -p 'test_packet_socket_drop_forensics.py' -v
           python3 -m unittest discover -s tools -p 'test_afpacket_socket_probe.py' -v
+          python3 -m py_compile tools/afpacket_probe_report.py
+          python3 -m unittest discover -s tools -p 'test_afpacket_probe_report.py' -v
       - id: layout
         name: Detect active module
         shell: bash
