@@ -1,0 +1,62 @@
+{
+  "schema": "wbd-e1-sparse-15ms-netem-pass-and-fec20-parity-invariance-original-failure/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent": "7c9f0b10b4293bb97a4ab55148833d82601e95f9",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "runs": [
+    {
+      "id": 37932313178,
+      "name": "next-e1-sparse-real-15ms-netem",
+      "result": "SUCCESS",
+      "scope": "real UDP loopback netns with Linux tc netem delay15ms, LINK/FEC20:20, not full product"
+    },
+    {
+      "id": 37932313153,
+      "name": "next-lifecycle",
+      "result": "SUCCESS"
+    },
+    {
+      "id": 37932313522,
+      "name": "next-foundation",
+      "result": "FAIL",
+      "failed_step": "active-go-tests ubuntu-24.04 TestE1Uniform32msSparseParityWireCost",
+      "reason": "test required decreasing parity shard count and bytes, but 8ms and 32ms generate exactly equal 30 parity shards/4560 bytes"
+    }
+  ],
+  "socket_measurement": {
+    "netem_qdisc": "delay 15ms",
+    "first_fragment_missing": 1,
+    "first_1372B_recovered_once": true,
+    "later_fresh_96B_received_once": true,
+    "first_repair_parity_one_way_ms": 15.088,
+    "fresh_source_one_way_ms": 15.06,
+    "packet_duplications": 0,
+    "scope": "NATIVE_SOCKET_LINK_FEC_ONLY"
+  },
+  "resource_proxy_first_observation": {
+    "initial_source_packets": 30,
+    "source_bytes_per_packet": 96,
+    "interarrival_ms": 12,
+    "parity": "20:20",
+    "window_8ms": {
+      "source_shards": 30,
+      "source_bytes": 4560,
+      "parity_shards": 30,
+      "parity_bytes": 4560
+    },
+    "window_32ms": {
+      "source_shards": 30,
+      "source_bytes": 4560,
+      "parity_shards": 30,
+      "parity_bytes": 4560
+    },
+    "original_assertion": "FAIL",
+    "wire_saving_claim": "REJECTED",
+    "cpu_gain": "UNPROVEN"
+  },
+  "code_correction": "Inspect existing FEC encoder Stats().PartialBlocks for 8ms vs32ms; assert equal parity wire bytes and fewer closures only, separately from CPU or product resource claim.",
+  "new_product_samples": 0,
+  "source_go_changed": false,
+  "history_old_game4_off_fail": 37857040784,
+  "history_game4_on_fail": 37871243581
+}

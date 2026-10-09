@@ -11,12 +11,13 @@ import (
     "time"
 )
 
-// TestE1Uniform32msSparseParityWireCost is a deterministic byte-accounting
-// proxy, NOT a CPU benchmark. Same 30 sparse 96-byte payloads, same FEC20:20,
-// same source MTU, only partial parity deadline 8ms vs 32ms differs.
+// TestE1Uniform32msSparseParityWireCost measures the observed fixed
+// 20:20 cost model, NOT CPU time. This encoder emits one parity per source
+// across partial blocks, so longer 32ms windows need not save parity bytes.
+// Compare exact wire equality and partial block closure counts instead.
 // The production default is 32ms; explicit 8ms exists only in this test.
 func TestE1Uniform32msSparseParityWireCost(t *testing.T) {
-    type totals struct { sources, parity, sourceBytes, parityBytes int }
+    type totals struct { sources, parity, sourceBytes, parityBytes int; partialBlocks uint64 }
     measure:=func(window time.Duration)totals{
         t.Helper()
         cfg:=FECPathConfig{SourceMTU:1200,ParityShards:20,FlushAfter:window,MaxBlocks:32}
@@ -37,6 +38,7 @@ func TestE1Uniform32msSparseParityWireCost(t *testing.T) {
         if err!=nil {t.Fatal(err)}
         for _,pkt:=range due {out.parity++;out.parityBytes+=len(pkt)}
         if !path.NextFlushDeadline().IsZero(){t.Fatalf("window=%s timer did not retire",window)}
+        out.partialBlocks=path.State().Encoder.PartialBlocks
         return out
     }
     old:=measure(8*time.Millisecond)
@@ -44,10 +46,13 @@ func TestE1Uniform32msSparseParityWireCost(t *testing.T) {
     if old.sources!=30 || current.sources!=30 || old.sourceBytes!=current.sourceBytes{
         t.Fatalf("changed immediate systematic traffic 8ms=%+v 32ms=%+v",old,current)
     }
-    if current.parity>=old.parity || current.parityBytes>=old.parityBytes{
-        t.Fatalf("no sparse parity wire reduction 8ms=%+v 32ms=%+v",old,current)
+    if current.parity!=old.parity || current.parityBytes!=old.parityBytes{
+        t.Fatalf("incorrect FEC20:20 parity invariance 8ms=%+v 32ms=%+v",old,current)
     }
-    t.Logf("E1_UNIFORM32_RESOURCE_PROXY_PASS sparse_sources=30 8ms_parity=%d 32ms_parity=%d 8ms_parity_bytes=%d 32ms_parity_bytes=%d CPU_GAIN=NOT_MEASURED",old.parity,current.parity,old.parityBytes,current.parityBytes)
+    if old.partialBlocks==0 || current.partialBlocks>=old.partialBlocks{
+        t.Fatalf("32ms did not reduce sparse partial block closures 8ms=%+v 32ms=%+v",old,current)
+    }
+    t.Logf("E1_UNIFORM32_BLOCK_CLOSURE_PROXY_PASS sparse_sources=30 8ms_partial_blocks=%d 32ms_partial_blocks=%d 8ms_parity=%d 32ms_parity=%d 8ms_parity_bytes=%d 32ms_parity_bytes=%d BANDWIDTH_GAIN=NONE CPU_GAIN=UNPROVEN",old.partialBlocks,current.partialBlocks,old.parity,current.parity,old.parityBytes,current.parityBytes)
 }
 
 // TestE1Uniform32msReal15msNetemUDP is an isolated Linux loopback socket
