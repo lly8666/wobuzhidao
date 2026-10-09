@@ -15,11 +15,11 @@ jobs:
     timeout-minutes: 45
     env:
       ART: "${{ github.workspace }}/artifacts/large-mtu-single"
-      PRODUCT_SOURCE: 622e5a3130ca96a3ca39b42ecae673dfefd5cf26
-      WBD_STRICT_MODE: game
-      WBD_STRICT_SCENARIO: 5205
-      WBD_STRICT_RATE_MBPS: "3"
-      WBD_STRICT_LANES: "2"
+      PRODUCT_SOURCE: fc92076b3cab548c8e180cc19e8d69e8bde742d2
+      WBD_STRICT_MODE: normal
+      WBD_STRICT_SCENARIO: 0
+      WBD_STRICT_RATE_MBPS: "10"
+      WBD_STRICT_LANES: "1"
       WBD_STRICT_FEC_PARITY: "20"
       WBD_STRICT_FEC_SCREEN: "0"
       WBD_STRICT_CPU_PROFILE: "0"

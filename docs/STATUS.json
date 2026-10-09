@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_FAST_FEC_INACTIVE_SOURCE_CLEAR_ELISION_CORE_RACE_PENDING",
+    "phase": "E2_FAST_FEC_PADDING_CLEAR_FOUNDATION_SUCCESS_NORMAL1_0LOSS_PROFILEOFF_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2364,11 +2364,11 @@
       }
     },
     "e2_fec_padding_clear_candidate": {
-      "state": "PENDING_FOUNDATION_CORE_RACE",
+      "state": "FOUNDATION_AND_LIFECYCLE_SUCCESS_NORMAL1_0LOSS_PROFILEOFF_PENDING",
       "working_branch": "next/performance-efficiency-20261008",
       "parent_head": "6448aeaf8dc1a87c53ce6836fce1b11f372cc071",
       "parent_product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
-      "new_source_sha": "PENDING_PRODUCT_COMMIT",
+      "new_source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
       "purpose": "Avoid zeroing unused 20-N source shard buffers for concrete FastReedSolomon20x20.EncodeActive because it accesses only d<dataCount",
       "changed_files": [
         "internal/fec/fastblock_encoder.go",
@@ -2393,19 +2393,46 @@
       "flush_after": "UNCHANGED_8MS",
       "timers": "UNCHANGED",
       "retirement": "UNCHANGED",
-      "foundation": "PENDING",
-      "lifecycle": "PENDING",
-      "normal1_0loss": "NOT_RUN_NEW_SOURCE",
+      "foundation": {
+        "run_id": 37913987141,
+        "conclusion": "SUCCESS",
+        "linux_and_windows": "SUCCESS",
+        "race": "SUCCESS",
+        "tproxy_tun_fallback": "SUCCESS"
+      },
+      "lifecycle": {
+        "run_id": 37913987174,
+        "conclusion": "SUCCESS"
+      },
+      "normal1_0loss": {
+        "state": "PENDING_ACTION",
+        "sample": {
+          "workload": "mixed",
+          "loss": 0,
+          "seed": 1845,
+          "product_source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
+          "mode": "normal",
+          "lanes": 1,
+          "rate_mbps": 10,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "off",
+          "duration_s": 300,
+          "one_job_one_sample": true
+        },
+        "baseline": "E1_old_source_622e_0loss_PASS_run37905658013_NOT_INHERITED",
+        "helper_sha": "PENDING_COMMIT_SHA"
+      },
       "normal1_5205": "NOT_RUN_NEW_SOURCE",
       "game2_0loss": "NOT_RUN_NEW_SOURCE",
       "game2_5205": "NOT_RUN_NEW_SOURCE",
       "low_rtt_sparse": "NOT_RUN_NEW_SOURCE",
       "cpu_gain": "UNPROVEN",
-      "evidence": "docs/evidence/e2-fast-fec-inactive-source-clear-elision-candidate-20261009.json"
+      "evidence": "docs/evidence/e2-fast-fec-inactive-source-clear-elision-candidate-20261009.json",
+      "unit_guard": "PASS_ALL_SUPPORTED_PROFILES_PARTIAL_SIZES_AND_EXACT_GENERIC_RS_WIRE"
     }
   },
-  "next_task": "Check new Foundation and Lifecycle for E2 fast FEC padding clear elision. Specifically run all supported FEC profiles and partial sizes n=1/2/5/19, shard lengths1/256/1200, wire identity against generic RS and inactive slots untouched only on verified concrete fast codec while generic always zeroes padding. If core/race fail, preserve FAIL and fix only proven source/test bug. If SUCCESS, one independent 300s Normal1 zero-loss profileOFF sample on exact new product SHA first, then separate Normal1 true5205, Game2 lossless/5205 and lowRTT sparse; STOP on regression, never borrow E1 old source PASS. No unqualified cross-host CPU benefit; 8ms default remains, 5205 original FAIL still OPEN, E7 80s downlink deferred.",
-  "latest_log": "docs/devlog/20261009-e2-fast-fec-inactive-shard-memclear-hotpath-candidate.md",
+  "next_task": "Check single exact-source E2 Normal1 0loss Actions triggered by this helper-config commit: mode normal lanes1 10Mbps 300s mixed source fc92076b3cab548c8e180cc19e8d69e8bde742d2 seed1845 diagnostic OFF. Require original analyzer PASS_SCOPED_ACTIONS, delivered UDP/TCP/web/HTTPS, zero socket skmem.d, legitimate offered traffic, no skip/queue masking; record cpu host/PSI/real business p99 but do NOT infer gain vs prior E1 622e on different CPU strata. If it fails preserve original FAIL and stop, no 5205 or Game. If success, then separate Normal1 5205 seed1846 and Game2 0loss/5205, lowRTT sparse one-case-per-run, with actual SOURCE pinned. E1 global 8ms extension blocked sparse parity latency tradeoff. E7 80s outage deferred.",
+  "latest_log": "docs/devlog/20261009-e2-fast-fec-padding-clear-normal1-lossless-profileoff-300s-dispatch.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2418,7 +2445,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 scheduler runs one owner wake timer; 8ms remains FEC parity flush. Deterministic LINK/FEC test 8/16/24/100ms and full Foundation37913240243/Lifecycle37913240106 SUCCESS: 8ms weak 20% target erasure, >=16ms better but increases sparse parity delay. Do not globally change8ms or claim CPU gain; original Normal1 lossless PASS37905658013, Normal1 5205 FAIL37907829434 retained. E2 new source candidate skips unused padding clears for known FastReedSolomon20x20 only, pending Go/race; original product source 622e5a frozen in parent.",
+    "E2 product SOURCE fc92076b3cab548c8e180cc19e8d69e8bde742d2 skips unused fast FEC padding clear only, FEC wire fully identical in poisoned-buffer unit matrix; Foundation37913987141 and Lifecycle37913987174 FULL SUCCESS. Dispatching ONE new-source 300s Normal1 true lossless mixed profileOFF strict business sample seed1845, no Game/5205 until result; CPU gain UNPROVEN. E1 default FEC 8ms retained; original E1 5205 FAIL37907829434 remains.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
