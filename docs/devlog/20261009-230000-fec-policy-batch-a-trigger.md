@@ -1,0 +1,9 @@
+# FEC policy 12-case batch A trigger after Actions preflight
+
+2026-10-09. Parent 7f8d9b9723884dfe17bd5f2a2abceb4f4427d588. Experiment branch experiment/fec-policy-sequential-20261009.
+
+- Actions static functional gate [37947894729](https://github.com/lly8666/wobuzhidao/actions/runs/37947894729) SUCCESS: repository contract, performance static policy, Python py_compile, exact deterministic 12-case guard unit checks, two actual script derivations with `bash -n`. This is **ADAPTER STATIC ONLY**, no business path, TCP/FEC, netns or product performance observed.
+- Previous Actions [37947612694](https://github.com/lly8666/wobuzhidao/actions/runs/37947612694) failed Python syntax and remains in STATUS with its failure reason.
+- This atomic config update switches `.github/fec-policy-batch.json` `preflight` to `batch_a`, nonce3; 12 sequential segments, same physical Actions job, 0/1% two-way loss, 15ms one-way, Normal1 per-direction total 10Mbps, udp/tcp/mixed, paired same SOURCE/seed, alternating off/on. 120s business+3s drain each, no simultaneous load, frozen product SOURCE a2db258b436a41fdee98c6c53abec9bab6ce600f, all initial builds once.
+- Production defaults, repair budgets, socket buffers, protocol unchanged. Prior E1/80s and Game4 failures preserved. At commit creation RESULTS **NOT_COLLECTED** and qualification **NOT_RUN**; record exact new run and per-segment results after Actions finishes, never assume success from trigger.
+- Next: inspect Action startup/first case logs; if adapter fails, preserve exact failure and only fix fixture on new helper with new devlog+STATUS; if all 12 valid, produce per-direction and pair cost/late/deadline/drop report and follow-up repeat plan. 
