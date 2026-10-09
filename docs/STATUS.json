@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_REAL_15MS_UDP_GREEN_RESOURCE_COUNTER_WORKFLOW_YAML_FIXED_FOUNDATION_PENDING",
+    "phase": "E1_UNIFORM32_15MS_NATIVE_UDP_PASS_FEC_PARTIAL_BLOCKS_30_TO_10_NO_WIRE_CPU_CLAIM",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3018,7 +3018,7 @@
       }
     },
     "e1_low_rtt_udp_netns": {
-      "state": "REAL_KERNEL_UDP_SCOPE_PASS_ALL_THREE_FOUNDATION_LIFECYCLE_NETEM_GREEN",
+      "state": "REAL_LINUX_KERNEL_15MS_UDP_FEC20_20_AND_VERIFIED_WIRE_COST_SCOPED_PASS",
       "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
       "tested_head": "EXACT_GITHUB_PUSH_COMMIT",
       "fixture": "internal/linkdata/e1_sparse_real_netem_linux_test.go",
@@ -3033,41 +3033,30 @@
       "fresh_delay_from_first_source_ms": 45,
       "partial_parity_deadline_ms": 32,
       "resource_proxy": {
-        "status": "PASS_DETERMINISTIC_PARITY_WIRE_INVARIANT_AND_FEC_PARTIAL_CLOSURE_REDUCTION_NUMBER_PENDING_ARTIFACT",
-        "original_hypothesis": "32ms reduces parity shards and bytes for sparse FEC20:20",
-        "actual_from_failed_test": {
-          "sources_both": 30,
-          "parity_shards_both": 30,
-          "source_wire_bytes_both": 4560,
-          "parity_wire_bytes_both": 4560
+        "state": "ACTUAL_UNIT_LOG_PASS_SCOPED_RESOURCE_BLOCK_COUNT",
+        "source_packets": 30,
+        "source_bytes_per_packet": 96,
+        "sparse_gap_ms": 12,
+        "parity_profile": "20:20",
+        "case8ms": {
+          "source_shards": 30,
+          "source_wire_bytes": 4560,
+          "parity_shards": 30,
+          "parity_wire_bytes": 4560,
+          "partial_blocks": 30
         },
-        "corrected_hypothesis": "For fixed 20:20 partial blocks parityShards==sourceShards, 32ms may reduce partial-block closures, not parity data bytes.",
-        "test_code": "internal/linkdata/e1_sparse_real_netem_linux_test.go",
-        "resource_cost": "parity bytes unchanged; block closure count proxy pending CI; CPU time not measured",
-        "historical_fail_evidence": "docs/evidence/e1-uniform32-resource-wire-parity-invariant-netem-real-pass-20261009.json",
-        "source_packets_per_case": 30,
-        "packet_size": 96,
-        "spacing_ms": 12,
-        "parity": "20:20",
-        "observed_wire": {
-          "window8": {
-            "source_shards": 30,
-            "source_bytes": 4560,
-            "parity_shards": 30,
-            "parity_bytes": 4560
-          },
-          "window32": {
-            "source_shards": 30,
-            "source_bytes": 4560,
-            "parity_shards": 30,
-            "parity_bytes": 4560
-          }
+        "case32ms": {
+          "source_shards": 30,
+          "source_wire_bytes": 4560,
+          "parity_shards": 30,
+          "parity_wire_bytes": 4560,
+          "partial_blocks": 10
         },
-        "block_closure_comparison": "TestE1Uniform32msSparseParityWireCost PASS_37933015548 (32ms fewer partial blocks, exact counts need -v job)",
-        "new_workflow_log_step": "Read exact 8ms-vs-32ms parity and partial-block cost counters",
-        "cpu_claim": "UNPROVEN",
-        "bandwidth_saving": "NONE_FOR_THIS_FEC20_20_SPARSE_CASE",
-        "state": "PASS_SCOPED_SMALL_FEC_BLOCK_CLOSURE_REDUCTION_EXACT_COUNTS_PENDING_VALID_YAML_ACTION"
+        "reduced_partial_block_closures": 20,
+        "partial_block_reduction_percent": 66.6667,
+        "bandwidth_savings_bytes": 0,
+        "product_cpu_saving": "UNPROVEN",
+        "source": "actual verbose Go test log in run37933861380"
       },
       "expected": [
         "kernel netem 15ms actual socket arrival delta >=5ms",
@@ -3084,7 +3073,7 @@
       ],
       "stage": "NOT_RUN",
       "planned_cpu_gain": "NOT_CLAIMED",
-      "evidence": "docs/evidence/e1-uniform32-netem15ms-three-actions-green-parity-block-cost-20261009.json",
+      "evidence": "docs/evidence/e1-32ms-sparse-fec-block-30to10-netem15ms-actual-run37933861380.json",
       "first_actions": {
         "netem": {
           "run_id": 37932313178,
@@ -3142,11 +3131,35 @@
         "original_resource_test": "PASS_IN_FOUNDATION_37933015548",
         "cpu_claim": "UNPROVEN",
         "product_run": false
-      }
+      },
+      "receipt": {
+        "run_id": 37933861380,
+        "conclusion": "SUCCESS",
+        "workflow": ".github/workflows/next-e1-sparse-real-15ms-netem.yml",
+        "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+        "netem_one_way_ms": 15,
+        "first_fragment_erased": 1,
+        "large_udp_first_recovered_once": true,
+        "fresh_96b_delivered_once": true,
+        "recovery_one_way_ms": 15.118,
+        "fresh_one_way_ms": 15.07
+      },
+      "former_invalid_workflow": {
+        "run_id": 37933510916,
+        "conclusion": "FAIL_BEFORE_ANY_JOBS",
+        "cause": "JS String.replace $' special suffix duplicated workflow YAML",
+        "repaired_commit": "85463ae435c559d7956db0648239f2dee1eea694"
+      },
+      "extra_foundation": {
+        "run_id": 37933861390,
+        "result": "RUNNING_OR_PENDING_VERIFICATION",
+        "core_and_privileged_partial_pass": true
+      },
+      "qualifier": "REAL_UDP_SOCKET_LINK_FEC_ONLY; FORMAL_FAKETCP_TUN_CLIENT_TARGET_15MS_NOT_RUN"
     }
   },
-  "next_task": "Check new Actions for rebuilt YAML after invalid run37933510916 (zero jobs); Foundation original source/corrected repo-contract and a new native15ms kernel netem fixture must pass. Dedicated job must print exact 8 vs32 partial block closure counts with parity shards/bytes equal, then real parity-to-repair and fresh arrival ~15ms. The original invalid workflow FAIL remains evidence and is NOT a product failure. No new300s source sample, no size classifier or perpacket goroutine. Next formal E1 lowRTT still requires genuine source-pinned client/server/TUN 15ms+45ms sparse business fullstack; existing 300ms run cannot substitute. Original Game4 9V45 socket drop FAIL and E7 outage OPEN_DEFERRED, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-235000-e1-resource-receipt-yaml-suffix-substitution-fixed.md",
+  "next_task": "Confirm final result of Foundation37933861390 (repository/Go Linux+Windows/race and TPROXY/TUN/fallback) then documentation-only Foundation triggered by final receipt. Do not repeat successful real LINK/FEC 15ms socket test for confidence shopping. Next justified product gate is ONE source-pinned true 15ms one-way fullstack strict netns business workload with sender-created sparse 45ms 96/1372/4068 UDP, FEC20:20 32ms due, source/FEC parity protection and independent business first arrival with p99; adapt current strict harness minimally because it hardcodes 300ms and ordinary mixed rate. Maintain one workload/seed/job/Action and rate/latency/AF_PACKET drop audit. Any missing big UDP or Game4 socket drop retain FAIL; never conflate netns LINK-only result with client/server/TUN product. No extra classifier/timer or buffer/queue expansion. CPU benefit UNPROVEN (20 fewer partial-block closures is not CPU-s), Game2 real active lane count profileOFF unknown, E7 ~80s downlink outage deferred. Physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261009-235510-e1-32ms-sparse-fec-block-closure-30to10-15ms-native-green.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -3159,7 +3172,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 uniform32 SOURCE a2db product unchanged; previous 3 Actions Foundation37933015548, Lifecycle37933015529, 15ms netem UDP37933015518 FULL SUCCESS. Resource proxy real FEC20:20 8ms and32ms both 30 parity fragments4560B (no bandwidth gain), fewer partial closures in32ms but exact values not yet logged. First workflow-only receipt run37933510916 FAIL BEFORE JOB due YAML generator JS `$'` suffix injection. Rebuilt from green prior workflow and asserted one job, one resource step, one netem, one artifact; pending new Foundation and netem. E4 old socket-loss FAIL, CPU benefit UNPROVEN.",
+    "E1 32ms product source a2db unchanged. Corrected Foundation37933015548, Lifecycle37933015529 and native Linux15ms UDP37933015518 full SUCCESS. Latest isolated true UDP15ms and verbose resource Action37933861380 SUCCESS: 30 sparse96B FEC20:20 8ms partial-blocks30 vs32ms10 (-66.7% closures), but BOTH parity30 and4560 bytes NO bandwidth savings, CPU gain UNPROVEN. Initial invalid Actions37933510916 due malformed YAML retained; exact workflow repair green. Fresh Foundation37933861390 running/pending final. Existing Normal1/Game2 0loss+5205 profileOFF scoped PASS, true15ms fullstack NOT_RUN, Game2 runtime active lanes not proven.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

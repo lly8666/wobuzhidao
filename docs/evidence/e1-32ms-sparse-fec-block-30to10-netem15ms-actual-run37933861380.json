@@ -1,0 +1,97 @@
+{
+  "schema": "wbd-e1-32ms-fec-partial-block-actual-count-and-kernel-15ms-netem/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "helper_head": "85463ae435c559d7956db0648239f2dee1eea694",
+  "actions": [
+    {
+      "run_id": 37932313522,
+      "status": "FAIL",
+      "cause": "wrong assumption 32ms reduces 20:20 parity wire bytes"
+    },
+    {
+      "run_id": 37933015548,
+      "status": "SUCCESS",
+      "scope": "Go Linux+Windows/race TPROXY TUN fallback"
+    },
+    {
+      "run_id": 37933015529,
+      "status": "SUCCESS",
+      "scope": "lifecycle"
+    },
+    {
+      "run_id": 37933015518,
+      "status": "SUCCESS",
+      "scope": "real netns UDP 15ms"
+    },
+    {
+      "run_id": 37933510916,
+      "status": "FAIL_BEFORE_ANY_JOBS",
+      "cause": "CI workflow generation inserted duplicate YAML via JS String.replace $'"
+    },
+    {
+      "run_id": 37933861380,
+      "status": "SUCCESS",
+      "scope": "corrected verbose 8vs32 FEC cost and real netns 15ms UDP"
+    },
+    {
+      "run_id": 37933861390,
+      "status": "IN_PROGRESS_AT_RECEIPT",
+      "scope": "Foundation after workflow-only helper correction"
+    }
+  ],
+  "cost": {
+    "source_len_bytes": 96,
+    "source_count": 30,
+    "interarrival_ms": 12,
+    "fec": "20:20",
+    "metrics": {
+      "window8ms": {
+        "systematic_count": 30,
+        "systematic_bytes": 4560,
+        "parity_count": 30,
+        "parity_bytes": 4560,
+        "partial_blocks": 30
+      },
+      "window32ms": {
+        "systematic_count": 30,
+        "systematic_bytes": 4560,
+        "parity_count": 30,
+        "parity_bytes": 4560,
+        "partial_blocks": 10
+      }
+    },
+    "actual_partial_block_closures_reduction_percent": 66.6667,
+    "parity_wire_byte_saving": 0,
+    "bandwidth_gain": "NONE_IN_THIS_SCOPED_CASE",
+    "cpu_gain": "UNPROVEN",
+    "cpu_sample_dispatched": false
+  },
+  "udp": {
+    "native_socket": true,
+    "private_netns": true,
+    "qdisc": "tc netem delay15ms",
+    "source_mtu": 1200,
+    "first_datagram_bytes": 1372,
+    "first_systematic_erased": 1,
+    "first_datagram_repaired_once": true,
+    "new_independent_datagram_bytes": 96,
+    "new_datagram_delivered_once": true,
+    "one_way_delay_parity_ms": 15.118,
+    "one_way_delay_fresh_ms": 15.07,
+    "fullstack_tun": "NOT_RUN"
+  },
+  "prior_32ms_scoped_300s_product_pass": [
+    37922038550,
+    37924613499,
+    37925722025,
+    37926864614
+  ],
+  "source32ms_unchanged": true,
+  "new_300s_runs": 0,
+  "old_game4_fail": [
+    37857040784,
+    37871243581
+  ],
+  "E7": "OPEN_DEFERRED"
+}
