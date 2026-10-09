@@ -55,7 +55,7 @@ def capture(path):
             if off or mf:
                 fragments[str(length)]+=1
                 if df:malformed+=1
-    return {"ip_packets":ip_packets,"ip_lengths":dict(counts),
+    return {"ip_packets":ip_packets,"ip_bytes":sum(int(k)*v for k,v in counts.items()),"ip_lengths":dict(counts),
             "fragment_lengths":dict(fragments),"malformed":malformed,
             "ip_fragments_total":sum(fragments.values())}
 
@@ -204,13 +204,13 @@ def tcp_direction(src,dst):
             "connect_attempts":src.get("tcp_connect_attempts",0),
             "connect_failed":src.get("tcp_connections_failed",0)}
 
-def bucket_gap(src,dst):
+def bucket_gap(src,dst,delay_ms=300,duration_s=300):
     sent={int(k):v for k,v in src.get("send_bucket_10ms",{}).items()}
     recv={int(k):v for k,v in dst.get("receive_bucket_10ms",{}).items()}
     # Active-gap only when sender was injecting near the matching 600ms+ delay.
     runs=[];active=0;longest=0;start=None
-    for i in range(0,30000):
-        if recv.get(i,0)==0 and any(sent.get(j,0)>0 for j in range(max(0,i-100),max(0,i-30))):
+    for i in range(0,duration_s*100):
+        if recv.get(i,0)==0 and any(sent.get(j,0)>0 for j in range(max(0,i-max(10,int((2*delay_ms+100)/10))),max(0,i-max(1,int(delay_ms/10))))):
             if start is None:start=i
             active+=1
         else:
@@ -218,16 +218,20 @@ def bucket_gap(src,dst):
                 runs.append([start,i,(i-start)*10])
                 longest=max(longest,i-start);start=None
     if start is not None:
-        runs.append([start,30000,(30000-start)*10]);longest=max(longest,30000-start)
+        runs.append([start,duration_s*100,(duration_s*100-start)*10]);longest=max(longest,duration_s*100-start)
     return {"active_sender_zero_recv_buckets":active,"longest_active_gap_ms":longest*10,
             "largest_gap_windows":sorted(runs,key=lambda x:-x[2])[:10],
-            "method":"10ms receive empty while same-direction sender active in prior 300..1000ms; diagnostic, not definitive HOL"}
+            "method":f"10ms empty receiver with prior sender activity, delay={delay_ms}ms; diagnostic, NOT definitive HOL""}
 
 def main():
     a=argparse.ArgumentParser()
     a.add_argument("--artifact-dir",required=True);a.add_argument("--source",required=True)
     a.add_argument("--helper",required=True);a.add_argument("--workload",choices=["udp","tcp","mixed"],required=True)
-    a.add_argument("--loss",type=int,choices=[0,5,20,30,5205],required=True)
+    a.add_argument("--loss",type=int,choices=[0,1,5,20,30,5205],required=True)
+    a.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
+    a.add_argument("--delay-ms",type=int,default=300,choices=[15,300])
+    a.add_argument("--fec-parity",type=int,default=20,choices=[0,20])
+    a.add_argument("--fec-experiment",action="store_true")
     a.add_argument("--seed",type=int,required=True);a.add_argument("--output",required=True)
     a.add_argument("--target-mbps",type=float,choices=[3.0,10.0],required=True)
     a.add_argument("--size-profile",choices=["ordinary","jumbo","boundary"],required=True)
@@ -239,14 +243,25 @@ def main():
     try:
         manifest=json.loads((root/"manifest.json").read_text())
         if manifest["source_sha"]!=x.source or manifest["harness_sha"]!=x.helper:issues.append("SOURCE_HELPER_MISMATCH")
-        if (manifest["config"]["duration_s"]!=300 or manifest["config"]["outer_connection_mtu"]!=1400 or manifest["config"].get("drain_s")!=3 or manifest["config"].get("formal_default_tick_ms")!=100 or manifest["config"].get("record_limit_configured")!=0):issues.append("WRONG_MANIFEST")
+        if (manifest["config"]["duration_s"]!=x.duration_s or manifest["config"]["outer_connection_mtu"]!=1400 or manifest["config"].get("drain_s")!=3 or manifest["config"].get("formal_default_tick_ms")!=100 or manifest["config"].get("record_limit_configured")!=0):issues.append("WRONG_MANIFEST")
+        if (manifest["config"].get("one_way_delay_ms")!=x.delay_ms or manifest["config"].get("fec_parity")!=x.fec_parity):issues.append("WRONG_DELAY_OR_FEC_MANIFEST")
         if manifest["scenario"]!=x.workload+"-p"+str(x.loss):issues.append("WRONG_WORKLOAD_LOSS")
         if (manifest.get("mode")!=x.mode or manifest["config"].get("lanes")!=x.lanes or
             manifest["config"].get("application_mbps_each_direction")!=x.target_mbps):
             issues.append("WRONG_MODE_LANES_RATE")
         biz=json.loads((root/"biz.json").read_text());target=json.loads((root/"target.json").read_text())
-        if any(d["source_sha"]!=x.source or d["helper_sha"]!=x.helper or d["seed"]!=x.seed or d.get("size_profile")!=x.size_profile or d.get("configured_per_direction_mbps")!=x.target_mbps for d in (biz,target)):issues.append("PROCESS_IDENTITY")
+        if any(d["source_sha"]!=x.source or d["helper_sha"]!=x.helper or d["seed"]!=x.seed or d.get("size_profile")!=x.size_profile or d.get("configured_per_direction_mbps")!=x.target_mbps or d.get("duration_seconds")!=x.duration_s for d in (biz,target)):issues.append("PROCESS_IDENTITY")
         b=biz["counters"];t=target["counters"]
+        if x.fec_experiment:
+            if (x.duration_s not in (15,120) or x.loss not in (0,1,5)
+                or x.delay_ms not in (15,300) or x.mode!="normal" or x.lanes!=1):
+                issues.append("INVALID_EXPERIMENT_TUPLE")
+            flags=json.loads((root/"runtime-flags.json").read_text())
+            for role in ("client","server"):
+                if flags.get(role,{}).get("--fec-parity")!=str(x.fec_parity) or flags.get(role,{}).get("--mtu")!="1400":
+                    issues.append("ACTUAL_PRODUCT_CLI_FEC_OR_MTU_MISMATCH_"+role)
+            if any(row.get("configured_delay_ms")!=x.delay_ms or row.get("configured_duration_s")!=x.duration_s for row in [json.loads(l) for l in (root/"stage-events.jsonl").read_text().splitlines() if l.strip()]):
+                issues.append("ACTUAL_STAGE_DELAY_DURATION_MISMATCH")
         stages=[json.loads(l) for l in (root/"stage-events.jsonl").read_text().splitlines()]
         netem,loss_stages=packet_loss(stages)
         # Enforce actual on-wire impairment stage timing. A manifest claiming
@@ -254,7 +269,7 @@ def main():
         stage_start=next(row["monotonic_ns"] for row in stages if row["event"]=="business_start")
         stage_end=next(row["monotonic_ns"] for row in stages if row["event"]=="business_end")
         drain_end=next(row["monotonic_ns"] for row in stages if row["event"]=="drain_end")
-        if not (299_500_000_000<=stage_end-stage_start<=300_500_000_000):
+        if not ((x.duration_s-0.5)*1e9<=stage_end-stage_start<=(x.duration_s+0.5)*1e9):
             issues.append("BUSINESS_STAGE_DURATION_MISMATCH")
         if not (2_500_000_000<=drain_end-stage_end<=3_500_000_000):
             issues.append("DRAIN_STAGE_DURATION_MISMATCH")
@@ -289,18 +304,18 @@ def main():
         for key,src,dst,sz,rtt,tcp in (("c2s",b,t,sizes_c2s,rtt_c2s,tcp_c2s),
                                         ("s2c",t,b,sizes_s2c,rtt_s2c,tcp_s2c)):
             offered=src["offered_bytes"];sent=src["sent_bytes"]
-            received=dst["received_bytes"];requested=x.target_mbps*1e6/8*300
+            received=dst["received_bytes"];requested=x.target_mbps*1e6/8*x.duration_s
             achieved=sent/requested
             direction[key]={"offered_bytes":offered,"sent_bytes":sent,"receiver_bytes":received,
-                            "sent_mbps":sent*8/300/1e6,"goodput_mbps":received*8/300/1e6,
-                            "target_mbps":x.target_mbps,"target_achievement":achieved,
+                            "sent_mbps":sent*8/x.duration_s/1e6,"goodput_mbps":received*8/x.duration_s/1e6,
+                            "target_mbps":x.target_mbps,"duration_s":x.duration_s,"delay_ms":x.delay_ms,"fec_parity":x.fec_parity,"target_achievement":achieved,
                             "injection_skipped_bytes":src.get("skipped_bytes",0),
                             "generator_send_errors":src["send_errors"],
                             "source_corrupt_or_malformed_count":src.get("corrupt",0),
                             "receiver_corrupt_or_malformed_count":dst.get("corrupt",0),
                             "source_probe_send_errors":src.get("probe_send_errors",0),
                             "udp_by_size":sz,"large_udp_roundtrip_ms":rtt,
-                            "tcp":tcp,"continuity":bucket_gap(src,dst)}
+                            "tcp":tcp,"continuity":bucket_gap(src,dst,x.delay_ms,x.duration_s)}
             if x.loss==5205 and x.workload in ("udp","mixed"):
                 # Require actual per-send-phase business delivery and deadline
                 # measurements, not just the pre/stress/post netem qdisc trace.
@@ -335,6 +350,17 @@ def main():
                     direction[key]["phase_delivery_5205"]={"status":"INVALID",
                        "reason":str(err)}
                     issues.append("5205_PHASE_DELIVERY_INVALID_"+key)
+            tx_stage=src.get("udp_stage_tx",{})
+            rx_stage=dst.get("udp_stage_rx",{})
+            utx=sum(v.get("count",0) for k,v in tx_stage.items() if k!="outside")
+            urx=sum(v.get("count",0) for k,v in rx_stage.items() if k!="outside")
+            o1=sum(v.get("over_1s",0) for k,v in rx_stage.items() if k!="outside")
+            o3=sum(v.get("over_3s",0) for k,v in rx_stage.items() if k!="outside")
+            direction[key]["udp_deadline"]={"sent":utx,"delivered":urx,"missing":max(0,utx-urx),
+                "within_1s":max(0,urx-o1),"within_3s":max(0,urx-o3),
+                "rate_all_sent_1s":(urx-o1)/utx if utx else None,
+                "rate_all_sent_3s":(urx-o3)/utx if utx else None,
+                "late_over_1s":o1,"late_over_3s":o3}
             if achieved<.99:issues.append("INSUFFICIENT_INJECTION_"+key)
             if src["send_errors"]:issues.append("GENERATOR_SEND_ERROR_"+key)
             if src.get("corrupt",0) or dst.get("corrupt",0):issues.append("PAYLOAD_CORRUPT_OR_MALFORMED_"+key)
@@ -358,7 +384,18 @@ def main():
                                  "p95_ms":percentile([v/1e6 for v in probe],.95),
                                  "p99_ms":percentile([v/1e6 for v in probe],.99),
                                  "max_ms":max(probe)/1e6 if probe else None}
-            if side["probe_sent"]<1450:issues.append("PROBE_COVERAGE_"+name)
+            events=side.get("probe_events",[])
+            p1=sum(0<=rec-sent<=1_000_000_000 for _,sent,rec in events)
+            p3=sum(0<=rec-sent<=3_000_000_000 for _,sent,rec in events)
+            probe_summary[name]["deadline"]={
+                "all_sent":side["probe_sent"],"returned_within_1s":p1,
+                "returned_within_3s":p3,
+                "on_time_1s_rate_all_sent":p1/side["probe_sent"] if side["probe_sent"] else None,
+                "on_time_3s_rate_all_sent":p3/side["probe_sent"] if side["probe_sent"] else None,
+                "returned_after_3s":max(0,side["probe_received"]-p3),
+                "never_returned_or_timeout":max(0,side["probe_sent"]-side["probe_received"])}
+            if len(events)!=side["probe_received"]:issues.append("INCOMPLETE_PROBE_TIMING_"+name)
+            if side["probe_sent"]<max(50,int(x.duration_s*5*.90)):issues.append("PROBE_COVERAGE_"+name)
             if x.loss==0 and probe_summary[name]["missing"]:issues.append("LOSSLESS_PROBE_MISSING_"+name)
             if x.loss==5205 and probe_summary[name]["missing"]>max(1,int(side["probe_sent"]*0.01)):
                 issues.append("5205_PROBE_TIMEOUT_OVER_1PCT_"+name)
@@ -395,16 +432,16 @@ def main():
             completed=web_b.get("completed",[])
             web_sent["c2s"]=sum(int(row["request_bytes"]) for row in completed)
             web_sent["s2c"]=sum(int(row["wire_response_bytes"]) for row in completed)
-        requested_bytes=int(x.target_mbps*125000*300)
+        requested_bytes=int(x.target_mbps*125000*x.duration_s)
         for side in ("c2s","s2c"):
             item=direction[side]
             item["http_https_sent_bytes_separately"]=web_sent[side]
             item["total_logical_sent_bytes_including_http"]=item["sent_bytes"]+web_sent[side]
             item["total_logical_delivered_bytes_including_verified_http"]=item["receiver_bytes"]+web_sent[side]
-            item["total_logical_sent_mbps_including_http"]=item["total_logical_sent_bytes_including_http"]*8/300/1e6
+            item["total_logical_sent_mbps_including_http"]=item["total_logical_sent_bytes_including_http"]*8/x.duration_s/1e6
             if item["total_logical_sent_bytes_including_http"]>requested_bytes+8192:
                 issues.append("LOGICAL_BUSINESS_RATE_OVER_BUDGET_"+side)
-        resources=resource_report(root,int(biz["start_monotonic_ns"]),int(biz["start_monotonic_ns"])+300_000_000_000)
+        resources=resource_report(root,int(biz["start_monotonic_ns"]),int(biz["start_monotonic_ns"])+x.duration_s*1_000_000_000)
         runtime_game_evidence={}
         diag_on=x.diagnostic_mode=="1"
         if bool(manifest["config"].get("cpu_contention_profile"))!=diag_on:
@@ -455,7 +492,7 @@ def main():
         if any(v.get("rx",0)>0 or v.get("tx",0)>0 for v in resources["strict_resource"].get("link_drop_delta",{}).values()):
             issues.append("LOCAL_INTERFACE_DROP")
         result={"schema":"wbd-large-mtu-analysis/v1","product_source_sha":x.source,
-                "helper_sha":x.helper,"workload":x.workload,"loss_percent":x.loss,"seed":x.seed,"size_profile":x.size_profile,"target_mbps":x.target_mbps,
+                "helper_sha":x.helper,"workload":x.workload,"loss_percent":x.loss,"seed":x.seed,"size_profile":x.size_profile,"target_mbps":x.target_mbps,"duration_s":x.duration_s,"delay_ms":x.delay_ms,"fec_parity":x.fec_parity,
                 "netem_realized":netem,"netem_stages":loss_stages,"mtu":links,"route_mode":"all",
                 "path":"biz -> client TPROXY -> raw TCP-shaped -> router netem -> shared server TUN -> target",
                 "direction":direction,"probe":probe_summary,"web":web,"resources":resources,
@@ -479,14 +516,29 @@ def main():
                 row["parse_error"]=str(ex);issues.append("CAPTURE_PARSE_"+path.name)
             capture_receipts.append(row)
             path.unlink()
+    outer={}
+    for side,tap in (("c2s","c2s-pre"),("s2c","s2c-pre")):
+        receipts=[v for v in capture_receipts if v["filename"].startswith(tap+".pcap")]
+        observed=sum((v.get("packet_distribution") or {}).get("ip_packets",0) for v in receipts)
+        ipbytes=sum((v.get("packet_distribution") or {}).get("ip_bytes",0) for v in receipts)
+        q=(result.get("netem_realized") or {}).get(side) or {}
+        attempted=q.get("attempted")
+        # Circular pcap loss/overflow can make a source trace incomplete.
+        complete=bool(attempted and observed>=.95*attempted)
+        outer[side]={"capture_ip_packets":observed,"capture_ip_bytes":ipbytes,
+            "qdisc_attempted_packets":attempted,"qdisc_passed_packets":q.get("passed"),
+            "netem_dropped_packets":q.get("dropped"),
+            "wire_byte_accounting":"ESTIMATED_FULL_CAPTURE" if complete else "NOT_COLLECTED_FULL_WINDOW",
+            "full_window_outer_ip_bytes":ipbytes if complete else None}
+    result["outer_wire_observation"]=outer
     result.update({"capture_cleanup":{"deleted_raw_pcap":True,"capture_receipts":capture_receipts},
                    "issues":issues,
                    "classification":"INVALID" if any(y.startswith(("ANALYZER_EXCEPTION","PROCESS_IDENTITY","SOURCE_HELPER","WRONG_MANIFEST","WRONG_WORKLOAD","CAPTURE_PARSE")) for y in issues) else
                    "CAPACITY_LIMITED" if any(z.startswith("INSUFFICIENT_INJECTION") for z in issues) and result.get("resources",{}).get("capacity_limited_evidenced") else
-                   "FAIL" if issues else "PASS_SCOPED_ACTIONS",
+                   "FAIL" if issues else ("VALID_OBSERVATION" if x.fec_experiment else "PASS_SCOPED_ACTIONS"),
                    "never_physical_pass":True})
     Path(x.output).write_text(json.dumps(result,indent=2,sort_keys=True))
     print("WBD_LARGE_MTU_ANALYSIS",result["classification"],"issues",issues,flush=True)
-    if result["classification"]!="PASS_SCOPED_ACTIONS":raise SystemExit(1)
+    if result["classification"] not in ("PASS_SCOPED_ACTIONS","VALID_OBSERVATION"):raise SystemExit(1)
 
 if __name__=="__main__":main()
