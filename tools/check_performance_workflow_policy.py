@@ -146,6 +146,22 @@ if "tools/prepare_e1_lowrtt_fullstack.py --output" not in e1:
 if 'WBD_STRICT_RATE_MBPS: "0.328"' not in e1:
     errors.append("E1 lowrtt: exact sparse payload rate model required")
 
+# Exactly one named FEC policy sequential exception. Original ACTIVE
+# single-sample checks above remain mandatory and unmodified.
+fec = Path(".github/workflows/next-fec-policy-sequential.yml").read_text()
+if 'branches: ["experiment/fec-policy-sequential-20261009"]' not in fec:
+    errors.append("FEC serial: incorrect branch")
+if fec.count('      - ".github/fec-policy-batch.json"') != 1 or "workflow_dispatch:" in fec:
+    errors.append("FEC serial: config-only push required; no dispatch")
+if re.search(r"(?m)^\s+matrix:|^\s+pull_request:",fec):
+    errors.append("FEC serial: matrix/PR forbidden")
+if fec.count("  one-serial-fullstack-fec-policy-batch:\n") != 1 or fec.count("tools/fec_policy_batch.py --mode run") != 1:
+    errors.append("FEC serial: one job, one sequential runner only")
+if "tools/perf_sample_guard.py claim" in fec:
+    errors.append("FEC serial: cannot rewrite old formal sample guard")
+if "test \"$BATCH\" = success" not in fec or "cancel-in-progress: false" not in fec:
+    errors.append("FEC serial: must gate failures and prevent parallel Actions")
+
 if errors:
     raise SystemExit("\n".join(errors))
 print("WBD_PERF_WORKFLOW_POLICY_PASS")

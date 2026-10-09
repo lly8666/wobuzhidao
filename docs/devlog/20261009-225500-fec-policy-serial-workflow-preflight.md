@@ -1,0 +1,7 @@
+# FEC-policy first Actions contract
+
+2026-10-09; parent `1bdea1f038840c6914b0c316690468b4278400c5`; working branch `experiment/fec-policy-sequential-20261009`; frozen product SOURCE `a2db258b436a41fdee98c6c53abec9bab6ce600f`.
+
+Implemented explicit experimental Actions workflow with only `.github/fec-policy-batch.json` push on exact experiment branch, one job and no matrix; dedicated test guard and independent 12-case deterministic off/on alternating plan. Serial runner invokes the audited existing five-netns fullstack generator per case, FEC 0 or 20 passed to both actual binaries, explicit 0/1% seeded netem and 15ms in both directions, duration120+3, fresh per-case namespace/process/symlink/manifest, enforced cleanup gate, 280s per-segment timeout, post-run analyzer/ledger even when business fails, raw owned captures deleted, and one read-only batch summary. Frozen product built once; no credential/binary/raw capture uploaded. Per-case CPU/PSI/quota snapshots and hashes included. First phase runs Actions Python compile/unit/real-generator syntax preflight only, not product measurement.
+
+Historical failures and E1/E7 progress retained in STATUS. CI status NOT_RUN until actual workflow run appears; do not call this product/physical PASS. Next: read Actions preflight logs, correct adapter defects with another devlog/STATUS, then config push A and collect all per-case numerical receipts. 300ms batch B and 5%/20:4 contingent, not yet tested.
