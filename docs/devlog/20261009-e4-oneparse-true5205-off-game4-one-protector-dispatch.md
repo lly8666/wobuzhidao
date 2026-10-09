@@ -1,0 +1,9 @@
+# E4 Single-parse hot-path product: one true Game4 5205 profile-OFF real protection sample
+
+Work branch next/performance-efficiency-20261008, parent 944547f449862b3ea2b01d8ecc521216bde79247 staged workflow pin commit; candidate source aa931d5822a5378c48bf0763216f0446a5af8683, NOT historic ba8ed1 source. Prior Foundation37882854877 and Lifecycle37882854858 SUCCESS, and previous source Game4 5205 Actions37853468730 PASS_SCOPED_ACTIONS (not transferable).
+
+Exactly one .github/efficiency-e0-sample.json update (with STATUS and new devlog per repo contract) triggers ONE 300s client/TUN/server game4 real mixed business run; chosen config: workload=mixed, loss=5205 realized pre75s 5%, stress150s20%, post75s5%, seed1840, mode=game, lanes4, 3Mbps each direction, ordinary size, diagnostic_mode=off, default100ms tick, drain3s. Source pin in workflow detached Git worktree is EXACT aa931d, not a source HEAD assumption. No additional profiler ON/BPF runs, no A/B inside run.
+
+Success requires original fail-closed summary+ledger and real UDP/probe packet integrity, TCP stream hashes, HTTP/HTTPS certificate checks, no critical HOL, zero packet-socket or interface drops, no structural resource issues. Failures are not waived by restored FEC delivery. This candidate removes redundant second ParseIPv4TCP on accepted packets, but test only checks no regression; it does not by itself demonstrate cross-run CPU gains or fix the historical ZERO-loss socket drops.
+
+Previous same-source EPYC9V45 lossless OFF [37857040784](https://github.com/lly8666/wobuzhidao/actions/runs/37857040784) client drop33/server86 and ON [37871243581](https://github.com/lly8666/wobuzhidao/actions/runs/37871243581) client42 formally FAIL; these are preserved. No buffer/queue size increase, no protocol change, no canonical/main branch changes, no physical run. E7 ~80s downstream stall remains OPEN_DEFERRED.
