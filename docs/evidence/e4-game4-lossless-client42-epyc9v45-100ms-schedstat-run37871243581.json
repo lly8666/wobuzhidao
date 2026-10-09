@@ -1,0 +1,194 @@
+{
+  "schema": "wbd-e4-game4-lossless-same-host-model-100ms-socket-drop-witness/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "2c500ad58a126ee47dd0a29b737dc4253a3a52fc",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_sha": "2c500ad58a126ee47dd0a29b737dc4253a3a52fc",
+  "run_id": 37871243581,
+  "job_id": 113629611881,
+  "artifact_id": 11590847194,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37871243581",
+  "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37871243581/artifacts/11590847194",
+  "foundation_run_id": 37871243592,
+  "foundation_status": "SUCCESS",
+  "workload": {
+    "mode": "game",
+    "lanes_configured": 4,
+    "lanes_active_client": 4,
+    "lanes_physical_client": 4,
+    "lanes_active_server": 4,
+    "lanes_physical_server": 4,
+    "loss_percent": 0,
+    "workload": "mixed",
+    "seed": 1840,
+    "duration_s": 300,
+    "drain_s": 3,
+    "rate_mbps_each_direction": 3,
+    "one_way_delay_ms": 300,
+    "size_profile": "ordinary",
+    "fec_data_parity": "20:20",
+    "padding": "off",
+    "profile": "ON",
+    "formal_default_tick_ms": 100,
+    "product_source_changed": false
+  },
+  "runner": {
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "vcpus": 4,
+    "cgroup_cpu_quota_cores": null,
+    "cgroup_throttled_delta_in_drop_overlap": 0,
+    "host_cpu_psi_some_avg10_max_pct": 36.03,
+    "host_busy_max_percent": 51.174934725848566,
+    "steal_max_percent": 0,
+    "capacity_limited_evidenced": false
+  },
+  "formal": {
+    "workflow": "FAIL",
+    "sample_step": "success",
+    "probe_audit_step_outcome": "success",
+    "same_run_witness_step_outcome": "success",
+    "original_analyzer_step_outcome": "failure",
+    "original_analyzer": "FAIL",
+    "issues": [
+      "RESOURCE_AUDIT_WARNINGS",
+      "LOCAL_SOCKET_DROP"
+    ],
+    "efficiency_cost_ledger_step": "success",
+    "artifact_upload": "success",
+    "never_physical_pass": true
+  },
+  "business": {
+    "app_udp_datagrams_each_direction": 103062,
+    "missing_app_udp_datagrams_each_direction": 0,
+    "logical_sent_mbps_c2s": 2.97615648,
+    "logical_sent_mbps_s2c": 2.97614368,
+    "probe_c2s": {
+      "sent": 1500,
+      "received": 1500,
+      "missing": 0,
+      "p99_ms": 611.515398
+    },
+    "probe_s2c": {
+      "sent": 1495,
+      "received": 1495,
+      "missing": 0,
+      "p99_ms": 612.479603
+    },
+    "http_https_requests": 20,
+    "http_https_returned": 20,
+    "https_certificates_verified": 10,
+    "interface_drop_delta_all_zero": true
+  },
+  "socket": {
+    "client_sk_mem_d_before": 0,
+    "client_sk_mem_d_after": 42,
+    "server_sk_mem_d_after": 0,
+    "client_100ms_drop_earliest_possible_business_s": 140.768933066,
+    "client_100ms_drop_latest_possible_business_s": 140.870761087,
+    "actual_kernel_drop_instant": "NOT_RECORDED",
+    "client_effective_rcv_buffer_bytes": 1048576,
+    "server_effective_rcv_buffer_bytes": 1048576,
+    "client_ss_rmem_before_after_at_bracket_bytes": [
+      0,
+      0
+    ],
+    "client_peak_sampled_rmem_bytes": 354304,
+    "server_peak_sampled_rmem_bytes": 380352,
+    "client_1s_sampler_peak_rmem_bytes": 244736,
+    "server_1s_sampler_peak_rmem_bytes": 63424
+  },
+  "trace_quality": {
+    "client_rows": 3150,
+    "server_rows": 3150,
+    "client_ss_ok": 3150,
+    "server_ss_ok": 3150,
+    "client_quality": "CONTINUOUS_NUMERIC_ONLY",
+    "server_quality": "CONTINUOUS_NUMERIC_ONLY",
+    "invalid_rows_both": 0,
+    "os_sched_client": {
+      "BASELINE_ONLY": 1,
+      "MATCHED_COMPLETE": 3147,
+      "MATCHED_PARTIAL": 2
+    },
+    "os_sched_server": {
+      "BASELINE_ONLY": 1,
+      "MATCHED_COMPLETE": 3148,
+      "MATCHED_PARTIAL": 1
+    }
+  },
+  "same_run_witness": {
+    "classification_client": "DROP_OBSERVED_CAUSAL_ROOT_NOT_ESTABLISHED",
+    "classification_server": "NO_REPRODUCED_SOCKET_DROP_NOT_ROOT_CLOSED",
+    "client_drop_increment": 42,
+    "client_drop_overlap_matched_os_thread_runqueue_wait_ns_lower_bound": 109104819,
+    "number_sched_overlap_samples": 2,
+    "thread_population_complete_for_matched_intervals": true,
+    "client_drop_overlap_1s_product_raw_receive_calls_delta": 4340,
+    "client_drop_overlap_1s_product_raw_receive_messages_delta": 12658,
+    "client_drop_overlap_1s_cgroup_nr_throttled_delta": 0,
+    "raw_reader_goroutine_blocking": "NOT_EVIDENCED",
+    "exact_recvmmsg_syscall_timestamps": "NOT_AVAILABLE",
+    "clock_resource_wall_mono_offset_drift_ns": 143295,
+    "causal_root": "NOT_ESTABLISHED"
+  },
+  "runtime_queues": {
+    "client_mux_peak_by_lane": [
+      699,
+      668,
+      706,
+      627
+    ],
+    "client_mux_capacity_each": 4096,
+    "client_mux_overflow_all": 0,
+    "server_shard_peaks": [
+      772,
+      752,
+      703,
+      646
+    ],
+    "server_shard_capacity_each": 960,
+    "server_shard_oldest_dropped_all": 0,
+    "server_shard_rejected_all": 0,
+    "server_ready_peak": 2800,
+    "server_ready_capacity": 4096,
+    "server_ready_overflow": 0
+  },
+  "comparison_historical_original": {
+    "run_id": 37857040784,
+    "profile": "OFF",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "original": "FAIL",
+    "client_sk_mem_d": 33,
+    "server_sk_mem_d": 86,
+    "client_business_time_window_s": [
+      142.052521,
+      143.052518
+    ],
+    "server_business_time_window_s": [
+      86.052515,
+      87.052582
+    ],
+    "cgroup_throttled_delta_in_each_drop_overlap": 0,
+    "not_cpu_comparable_with_new_ON": true
+  },
+  "sha256": {
+    "manifest.json": "17e2656f8460011fd6e0e843881c71f7d31197007e0c3005592fcd04f52063e1",
+    "summary.json": "f305992e8b5a279936db1350df1c390d4e7f04d9c07a800ca1c7627dc771d1a3",
+    "efficiency-ledger.json": "9036a65412c1a677a0193f6c36a98793680d8966899330954d34184faea7b96a",
+    "e4-packet-drop-witness.json": "40eabffc55d87771f32ed8370b158ad484b7215b5cb271cb1f2dcd5488374821",
+    "client-packet-probe.jsonl": "79d0fc8bfbdb68c51033427437e0fc34e353172640da702375c9216f3e872dc4",
+    "server-packet-probe.jsonl": "cb5a9f4ba8c8e47d4f7856a31bf85a97b4aa91f69ac215c9ef607fc7938b146f",
+    "resources.jsonl": "e4b3df7f1727ff4c3e5f90b9120f9c3ebddcd3cddea9bd81994b94d513056cf9",
+    "stage-events.jsonl": "494bf2d717032be6bd4e9c079214460df02031d2b92aee8fdebed7fb9a074c3a"
+  },
+  "decisions": [
+    "Reproduced AF_PACKET kernel socket resource loss on same 9V45 CPU model as old OFF fail, NOT a spurious parser defect",
+    "Original analyzer FAIL and workflow FAIL must be retained even though business UDP/TCP/HTTPS reached target",
+    "100ms client packet socket drop coincides with matched OS-thread queue waiting but not proven Go receiver starvation",
+    "Cgroup throttle delta 0 does not exclude transient runnable queue contention; socket sampled rmem0 does not exclude brief full socket between observations",
+    "Different profile modes, instrumentation and full-system runner workload invalidate cross-run CPU gain comparisons",
+    "One targeted sample used; stop host-shopping and all further performance dispatch without new causal measurement, keep E7 and other protectors on hold"
+  ],
+  "next_proposed_root_probe": "If pursued, precisely bracket per-product raw recvmmsg entry/exit or wait-to-read under diagnostic-only guard and same-run skmem d, with bounded aggregation and anti-perturbation plan; no buffer or queue increase before causal/protection hypothesis."
+}

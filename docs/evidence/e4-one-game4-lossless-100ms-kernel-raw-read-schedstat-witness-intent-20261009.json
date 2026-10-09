@@ -2,7 +2,7 @@
   "schema": "wbd-e4-exactly-one-on-drop-scheduler-receiver-witness-intent/v1",
   "branch": "next/performance-efficiency-20261008",
   "parent": "65bc4d8b08a43479d9f65c73e7f6205ccff02b2d",
-  "helper_sha": "THIS_COMMIT",
+  "helper_sha": "2c500ad58a126ee47dd0a29b737dc4253a3a52fc",
   "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "sample": {
     "workload": "mixed",
@@ -56,7 +56,10 @@
   ],
   "kernel_event_exact_timestamp": false,
   "can_identify_go_recv_goroutine": false,
-  "future_run_id": null,
-  "future_original_analyzer": "NOT_YET_RUN",
-  "no_second_action_without_new_causal_evidence": true
+  "future_run_id": 37871243581,
+  "future_original_analyzer": "FAIL_RESOURCE_AUDIT_WARNINGS_LOCAL_SOCKET_DROP",
+  "no_second_action_without_new_causal_evidence": true,
+  "future_artifact_id": 11590847194,
+  "result_evidence": "docs/evidence/e4-game4-lossless-client42-epyc9v45-100ms-schedstat-run37871243581.json",
+  "final_state": "COMPLETED_FAIL_CAUSAL_ROOT_NOT_ESTABLISHED"
 }
