@@ -147,3 +147,12 @@ E6组合SOURCE冻结后：core/race、相关privileged Linux网络与Windows契�
 ### 首选：资源层内版本相对指数（有配对时才跨CPU汇总）
 
 比较软件版本而非机器型号时，不应先根据PassMark把CPU-s乘以整颗CPU分数。固定同一场景／seed／FEC／MTU／profile OFF／业务质量硬门，在每一个重叠资源层`j`（同CPU型号、vCPU/配额、runner与Go版本、host busy/PSI/steal等）分别取得父版与候选**各至少3条独立Action样本**。计算该层每有效GiB CPU-s的中位数`Q_parent,j`、`Q_candidate,j`，其单位无关效率比`R_j = Q_parent,j / Q_candidate,j`。固定预先声明的资源层等权汇总`EfficiencyIndex = 100 × exp(mean_j(log R_j))`；100持平，110表示每单位CPU可做的合格业务约提高10%（相当于同GiB的CPU-s约减少9.09%），90表示变差。正式结果必须附每层样本数、原始值、中位数、离散度与固定层分层bootstrap可信区间，并列全体业务p99/超时、socket drop/吞吐/内存；*只对所有硬门相同且通过的配对层计算*，不得删掉不合格样本求出漂亮指数。不存在共享有效资源层或质量门不齐时指数`INCONCLUSIVE`。外部实体CPU网站只是辅助解释、不是这套比率的分母。不要混合Game与Normal、0loss与5205、profile ON与OFF，或不同运行时间/业务组合。
+
+
+### E4 外部 recv 系统调用观测的接入门槛（2026-10-09，尚未获正式性能资格）
+
+- Linux `recvmmsg` 入口事件可按目标TGID和 `args.fd` 过滤；退出tracepoint本身不含原始fd，要只对同一OS线程里已捕获目标FD入口的调用配对。不同OS线程之间的`exit→enter`不能当作同一个goroutine停顿；Go goroutine可以迁移OS线程，慢系统调用也可能是正常等待首包。外部 `/proc/PID/net/packet` inode与 `/proc/PID/fd`必须匹配**唯一** AF_PACKET SOCK_RAW接收FD，并二次核验PID出生时间/FD绑定；重用、歧义、权限缺失均禁止继续。
+- 非性能资格已包含：真实云runner2s的tracepoint附加、5s局部socketpair两次`recvmmsg`记录，以及在独立netns里正确解析唯一AF_PACKET接收FD；各证据单列，不能合并成产品QUALIFIED。双FD（目标和干扰同PID）功能门固定目标2次/干扰2次，进入/退出计数各2、合法>20ms间隔恰好1。附加和解析失败不能写零事件。
+- 下一无业务功能门是目标FD256次、同PID非目标FD256次，在一个5秒小fixture里只核对BPF内部聚合 `enters=exits=256` 且无错配。通过仅证明该固定短时本地输入下无漏记，**不**证明高PPS长时或丢包波形下的漏记率/接收调度影响，也不能通过它计算CPU收益。
+- **性能扰动独立门（未执行）**：必须使用独立Actions、一条run一个CPU负载场景/测量job，分开观测器OFF、ON样本，不在同一run顺序A/B；固定fixture、编译器、CPU/vCPU/配额、seed、syscall速率、线程数及网络基础质量，按匹配宿主资源层比较并记录host busy、PSI、steal。预先定义预算和可判定统计置信度，提供syscall速率、合格事件比例、观测器及fixture各自CPU-s、RSS、p99/tails、BPF丢事件指标、BPF map峰值以及stderr/退出码；未匹配资源层或量不足标 `INCONCLUSIVE`，不可拿公网PassMark当同host校准。大于预定扰动预算或存在未知漏事件必须保持`NOT_VALIDATED`，不要进入正式300s产品诊断。
+- 若未来获得非扰动支持，再在冻结产品SOURCE外部开启严格有界的`PID+唯一AF_PACKET接收FD`观测，与同源100ms socket skmem.d、逐秒raw_io/read-gap、cgroup及OS schedstat联证；`causal_root`默认仍`NOT_ESTABLISHED`，只有能直接区分阻塞recv/进程停读与到达包突发的证据才考虑最小产品候选。不因偶然干净runner解除原9V45 profileOFF socket drop FAIL，不通过扩大 SO_RCVBUF、mux、shard、ready队列掩盖问题。

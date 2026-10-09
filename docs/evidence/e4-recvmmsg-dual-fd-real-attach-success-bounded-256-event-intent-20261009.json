@@ -1,0 +1,72 @@
+{
+  "schema": "wbd-e4-recvmmsg-fd-filter-and-256-event-integrity/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "5f9544ba5afd4bcbea845319a02ed5911c182120",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "previous_fail": {
+    "run_id": 37875503896,
+    "workflow": "FAIL",
+    "reason": "static synthetic test erroneously counted textual previous_exit[tid] occurrences as 2; valid BPF had 3"
+  },
+  "qualified": {
+    "run_id": 37875639024,
+    "foundation": "SUCCESS",
+    "artifact_id": 11592670187,
+    "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37875639024",
+    "profile": "NO_PRODUCT_NO_BUSINESS",
+    "tests": {
+      "two_second_attach": "TRACEPOINT_ATTACH_ONLY",
+      "single_fd_two_calls": "TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY",
+      "two_fd_target_only": "TWO_FD_TARGET_ONLY_FUNCTIONAL"
+    },
+    "real_bpftrace_exit": 0,
+    "real_fixture_exit": 0,
+    "source_data_sha256": {
+      "e4-recvmmsg-tracepoint-capability.json": "bca407dc6521ee5916da71b8809689f4307700cf2728754a6dccc5cfea8e1358",
+      "e4-recvmmsg-functional.json": "fd49959b2161e95756546423303c40f37eb1c8bd4d63b8c1d7ed733bde36b63c",
+      "e4-recvmmsg-two-fd.json": "2c3cc102d41094add562b3e035d8687115107b5daccbadbe429a6c85de000dbd"
+    }
+  },
+  "new_integrity_fixture": {
+    "state": "PENDING_FOUNDATION",
+    "source": "tools/testdata/e4_recvmmsg_two_fd_256_events.c",
+    "driver": "tools/afpacket_recvmmsg_functional.py",
+    "out": "artifacts/e4-recvmmsg-two-fd-256.json",
+    "duration_seconds": 5,
+    "target_fd": 30,
+    "distractor_fd": 31,
+    "known_target_calls": 256,
+    "known_other_calls": 256,
+    "requires_bpf_target_enters": 256,
+    "requires_bpf_target_exits": 256,
+    "unpaired_enters": 0,
+    "gap_threshold_not_asserted": "scheduling during a 256-call burst is nondeterministic; integrity counts only",
+    "product": false,
+    "network_traffic": false,
+    "throughput_or_cpu_claim": false
+  },
+  "limits": [
+    "A single 5s exact-count run does NOT prove no missed event under ~1.1 million real recvmmsg calls in a 300s product run.",
+    "A 5s test does NOT measure kernel tracepoint CPU/latency/memory overhead.",
+    "PID and fd are numeric; production fd reuse and namespace identity must be guarded before deployment.",
+    "PID+FD+TID scoped OS syscall pair is not Go receiver goroutine lifecycle.",
+    "No fullstack diagnostic retest authorized."
+  ],
+  "formal_failed_product_qualifications": [
+    {
+      "run": 37857040784,
+      "host": "EPYC9V45",
+      "profile": "OFF",
+      "client_sk_mem_d": 33,
+      "server_sk_mem_d": 86
+    },
+    {
+      "run": 37871243581,
+      "host": "EPYC9V45",
+      "profile": "ON",
+      "client_sk_mem_d": 42,
+      "server_sk_mem_d": 0
+    }
+  ],
+  "cpu_gain": "UNPROVEN"
+}

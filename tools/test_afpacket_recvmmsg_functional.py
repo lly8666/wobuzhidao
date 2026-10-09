@@ -24,6 +24,20 @@ class FunctionalResultTest(unittest.TestCase):
     def test_unpaired_enter_marks_bad_sample(self):
         self.assertEqual(result(GOOD+"@unpaired_enter: 1\n",0,two_fd=True),
                          "INCONCLUSIVE_EVENTS_NOT_MATCHING_FIXTURE")
+    def test_exact_256_target_events_with_256_other_fd_calls(self):
+        expected="@enters: 256\n@exits: 256\n"
+        self.assertEqual(
+            result(expected,0,two_fd=True,expected_target_calls=256),
+            "TARGET_256_EVENTS_MATCHED_FUNCTIONAL_ONLY")
+    def test_missing_just_one_of_256_fails_not_pass(self):
+        self.assertEqual(
+            result("@enters: 256\n@exits: 255\n",0,two_fd=True,expected_target_calls=256),
+            "INCONCLUSIVE_EVENTS_NOT_MATCHING_FIXTURE")
+    def test_512_calls_on_same_tgid_would_fail_fd_filter(self):
+        self.assertEqual(
+            result("@enters: 512\n@exits: 512\n",0,two_fd=True,expected_target_calls=256),
+            "INCONCLUSIVE_EVENTS_NOT_MATCHING_FIXTURE")
+
     def test_failed_fixture_never_passes(self):
         self.assertEqual(result(GOOD,14,two_fd=True),"INCONCLUSIVE_MISSING_COUNTS")
     def test_malformed_multiple_counters_not_pass(self):

@@ -63,6 +63,7 @@ jobs:
           python3 -m unittest discover -s tools -p 'test_afpacket_recv_fd_identity.py' -v
           cc -fsyntax-only tools/testdata/e4_recvmmsg_socketpair_smoke.c
           cc -fsyntax-only tools/testdata/e4_recvmmsg_two_fd_smoke.c
+          cc -fsyntax-only tools/testdata/e4_recvmmsg_two_fd_256_events.c
       - id: layout
         name: Detect active module
         shell: bash
@@ -367,6 +368,29 @@ jobs:
           PY
           fi
           cat artifacts/e4-recvmmsg-two-fd.json
+      - name: Bounded 256-target plus 256-distractor syscall event integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Fq '"status": "TRACEPOINT_ATTACH_ONLY"' artifacts/e4-recvmmsg-tracepoint-capability.json; then
+            cc -O0 tools/testdata/e4_recvmmsg_two_fd_256_events.c -o "$RUNNER_TEMP/e4-recvmmsg-two-fd-256"
+            sudo python3 tools/afpacket_recvmmsg_functional.py \
+              --fixture "$RUNNER_TEMP/e4-recvmmsg-two-fd-256" \
+              --target-fd 30 \
+              --expected-target-calls 256 \
+              --output artifacts/e4-recvmmsg-two-fd-256.json
+            grep -Fq '"status": "TARGET_256_EVENTS_MATCHED_FUNCTIONAL_ONLY"' artifacts/e4-recvmmsg-two-fd-256.json
+          else
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+          Path("artifacts/e4-recvmmsg-two-fd-256.json").write_text(json.dumps({
+              "status":"NOT_RUN_ATTACH_UNSUPPORTED",
+              "product_qualification":"NOT_RUN",
+              "performance_overhead_validated":False},indent=2)+"\n")
+          PY
+          fi
+          cat artifacts/e4-recvmmsg-two-fd-256.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -375,6 +399,7 @@ jobs:
             artifacts/e4-recvmmsg-tracepoint-capability.json
             artifacts/e4-recvmmsg-functional.json
             artifacts/e4-recvmmsg-two-fd.json
+            artifacts/e4-recvmmsg-two-fd-256.json
           if-no-files-found: warn
 
   p4-openwrt-tproxy-privileged:

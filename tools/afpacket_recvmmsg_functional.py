@@ -23,16 +23,20 @@ ENTER=re.compile(r"(?m)^@enters:\s*(\d+)\s*$")
 GAP=re.compile(r"(?m)^@long_inter_call_gap_bucket\[\d+\]:\s*(\d+)\s*$")
 UNPAIRED=re.compile(r"(?m)^@unpaired_enter:\s*(\d+)\s*$")
 
-def result(text,fixture_exit,two_fd=False):
+def result(text,fixture_exit,two_fd=False,expected_target_calls=2):
     enters=ENTER.findall(text)
     exits=COUNT.findall(text)
     gaps=[int(x) for x in GAP.findall(text)]
     unpaired=[int(x) for x in UNPAIRED.findall(text)]
     if len(enters)!=1 or len(exits)!=1 or fixture_exit!=0:
         return "INCONCLUSIVE_MISSING_COUNTS"
-    if (int(enters[0])!=2 or int(exits[0])!=2 or
-            sum(gaps)!=1 or sum(unpaired)!=0):
+    if (int(enters[0])!=expected_target_calls or
+            int(exits[0])!=expected_target_calls or
+            (expected_target_calls==2 and sum(gaps)!=1) or
+            sum(unpaired)!=0):
         return "INCONCLUSIVE_EVENTS_NOT_MATCHING_FIXTURE"
+    if two_fd and expected_target_calls==256:
+        return "TARGET_256_EVENTS_MATCHED_FUNCTIONAL_ONLY"
     if two_fd:
         return "TWO_FD_TARGET_ONLY_FUNCTIONAL"
     return "TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY"
@@ -42,15 +46,19 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--fixture",required=True,type=Path)
     ap.add_argument("--target-fd",type=int,default=None,help="for dual socketpair, exact numeric target descriptor")
+    ap.add_argument("--expected-target-calls",type=int,default=2,choices=(2,256))
     ap.add_argument("--output",required=True,type=Path)
     a=ap.parse_args()
+    if a.expected_target_calls==256 and a.target_fd is None:
+        ap.error("256-event integrity check requires an exact target FD")
     out={"schema":"wbd-e4-recvmmsg-functional-attach/v1",
          "status":"NOT_RUN","fixture":"local AF_UNIX SOCK_DGRAM socketpair",
          "product_source_used":False,"no_product_network_traffic":True,
          "duration_seconds":5,"intentionally_one_intercall_gap_ms":60,
          "kernel_tracepoint_min_gap_ms":20,
          "scope":"DUAL_FD_ADVERSARIAL" if a.target_fd is not None else "ONE_FD_BASELINE",
-         "non_target_recvmmsg_calls":2 if a.target_fd is not None else 0,
+         "non_target_recvmmsg_calls":(a.expected_target_calls if a.target_fd is not None else 0),
+         "expected_target_recvmmsg_calls":a.expected_target_calls,
          "performance_overhead_validated":False}
     if not a.fixture.is_file():
         out["status"]="UNSUPPORTED_FIXTURE_MISSING"
@@ -90,7 +98,7 @@ def main():
                 exit_code=child.wait(timeout=5)
                 stdout,stderr=tracer.communicate(timeout=12)
                 all_text="".join(lines)+stdout
-                out["status"]=result(all_text,exit_code,two_fd=a.target_fd is not None)
+                out["status"]=result(all_text,exit_code,two_fd=a.target_fd is not None,expected_target_calls=a.expected_target_calls)
                 out["fixture_exit"]=exit_code
                 out["bpftrace_exit"]=tracer.returncode
                 out["captured_output_sha256"]=hashlib.sha256(all_text.encode()).hexdigest()
