@@ -13,7 +13,7 @@ import (
 func fecPathTestConfig(parity, mtu int) FECPathConfig {
 	cfg := FECPathConfig{SourceMTU: mtu, ParityShards: parity}
 	if parity != 0 {
-		cfg.FlushAfter = 8 * time.Millisecond
+		cfg.FlushAfter = 32 * time.Millisecond
 		cfg.MaxBlocks = 8
 	}
 	return cfg

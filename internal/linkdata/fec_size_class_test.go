@@ -31,18 +31,16 @@ func TestFECSizeClassesFragmentRecoveryOwnershipAndNoHOL(t *testing.T) {
 	if got, err := rx.Decode(wire[0], now); err != nil || len(got) != 1 || !bytes.Equal(got[0], small) {
 		t.Fatalf("cross-datagram HOL err=%v", err)
 	}
-	// The truly independent 128B datagram keeps its 8ms parity.
-	// The 1250B datagram's two LINK fragments (including its short tail)
-	// stay together until the bounded 16ms largest-group deadline.
-	smallRepair, err := tx.FlushDue(now.Add(cfg.FlushAfter))
-	if err != nil || len(smallRepair) != 1 {
-		t.Fatalf("small 8ms parity len=%d err=%v", len(smallRepair), err)
+	// All groups share the same configured deadline; the independent
+	// 128B packet and two fragments of the 1250B datagram produce 1+2
+	// parity shards at 32ms, while their systematic data arrived already.
+	if early,err:=tx.FlushDue(now.Add(cfg.FlushAfter-time.Nanosecond));err!=nil||len(early)!=0 {
+		t.Fatalf("premature uniform parity len=%d err=%v",len(early),err)
 	}
-	largeRepair, err := tx.FlushDue(now.Add(2 * cfg.FlushAfter))
-	if err != nil || len(largeRepair) != 2 {
-		t.Fatalf("fragmented large 16ms parity len=%d err=%v", len(largeRepair), err)
+	repairs, err := tx.FlushDue(now.Add(cfg.FlushAfter))
+	if err != nil || len(repairs) != 3 {
+		t.Fatalf("all size groups 32ms parity len=%d err=%v", len(repairs), err)
 	}
-	repairs := append(smallRepair, largeRepair...)
 	var completed [][]byte
 	for i := len(repairs) - 1; i >= 0; i-- {
 		got, err := rx.Decode(repairs[i], now.Add(cfg.FlushAfter))

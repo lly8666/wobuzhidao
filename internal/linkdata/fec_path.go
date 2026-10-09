@@ -75,16 +75,11 @@ func NewFECPath(config FECPathConfig) (*FECPath, error) {
 		return nil, fmt.Errorf("linkdata: invalid FEC runtime flush=%s max_blocks=%d", config.FlushAfter, config.MaxBlocks)
 	}
 	codec := fec.NewFastReedSolomon20x20()
-	// E1/E2 weak-network protection candidate: preserve low-RTT small groups
-	// at 8ms. The largest >512B size class may gather twice as long in 20:20,
-	// improving equations for sparse large datagrams at the cost of up to 8ms
-	// later parity. This is intentionally NOT a congestion-driven adaptive
-	// algorithm: no trusted per-lane loss feedback exists at this boundary.
-	largestWindow := config.FlushAfter
-	if config.ParityShards == fec.ParityShards && config.FlushAfter == 8*time.Millisecond {
-		largestWindow = 16 * time.Millisecond
-	}
-	encoder, err := fec.NewSizeClassEncoderWithLargestWindow(codec, config.SourceMTU, config.FlushAfter, largestWindow, 1, config.ParityShards)
+	// All existing fixed FEC size groups use the same configured deadline.
+	// The production default is 32ms; explicitly configured test windows
+	// remain exact. Systematic data still sends immediately, with no
+	// packet-size-specific timer or adaptive classifier.
+	encoder, err := fec.NewSizeClassEncoder(codec, config.SourceMTU, config.FlushAfter, 1, config.ParityShards)
 	if err != nil {
 		return nil, err
 	}
@@ -140,14 +135,13 @@ func (p *FECPath) Encode(packet []byte, now time.Time) ([][]byte, error) {
 			continue
 		}
 		// A large application UDP may have a sub-256B final LINK shard.
-		// Classifying just that fragment's length would close its parity
-		// block at 8ms, even though the other fragments group for 16ms.
-		// Keep only multi-fragment 20:20 default-8ms datagrams together
-		// in the largest FEC class; independent 96B game traffic still
-		// uses the usual low-latency group. No other FEC profile changes.
+		// Classifying just that fragment's length would put its parity
+		// in a different block than the original datagram's large shards.
+		// For 20:20, keep each fragmented datagram together in the
+		// already existing largest size class without changing the
+		// shared 32ms deadline or the immediate systematic send.
 		var wire [][]byte
-		if len(fragments) > 1 && p.config.ParityShards == fec.ParityShards &&
-			p.config.FlushAfter == 8*time.Millisecond {
+		if len(fragments) > 1 && p.config.ParityShards == fec.ParityShards {
 			wire, err = p.encoder.AddFragmentOfLargeDatagram(fragment, now)
 		} else {
 			wire, err = p.encoder.Add(fragment, now)

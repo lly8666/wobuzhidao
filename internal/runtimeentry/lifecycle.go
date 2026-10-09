@@ -457,7 +457,7 @@ func DialTunnelClient(ctx context.Context, cfg TunnelClientConfig) (*TunnelClien
 	}
 	c.scheduleNextRotationLocked(time.Now())
 	c.opMu.Unlock()
-	// A single owner timer handles only pending 8ms partial FEC deadlines.
+	// A single owner timer handles only pending partial FEC deadlines.
 	// It cannot block client receive, or replace the 100ms health/repair tick.
 	go c.rt.RunFECDeadlineSchedule(c.runCtx)
 	go c.lifecycleLoop()

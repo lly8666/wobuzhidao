@@ -66,9 +66,9 @@ func (e *SizeClassEncoder) Add(packet []byte, now time.Time) ([][]byte, error) {
 
 // AddFragmentOfLargeDatagram keeps a small final LINK fragment in the same
 // largest >512B FEC size class as its sibling fragments. Without this hint a
-// 1372B datagram's ~200B tail gets an independent 8ms single-parity group,
-// defeating the intended 16ms large-datagram recovery window. Independent
-// small datagrams still use Add and retain the fast 8ms parity deadline.
+// 1372B datagram's ~200B tail gets an independent partial-parity group,
+// defeating recovery of the complete large datagram under loss. The existing
+// small groups retain the SAME configured deadline (32ms by default).
 func (e *SizeClassEncoder) AddFragmentOfLargeDatagram(packet []byte, now time.Time) ([][]byte, error) {
 	return e.addWithClassHint(packet, now, true)
 }

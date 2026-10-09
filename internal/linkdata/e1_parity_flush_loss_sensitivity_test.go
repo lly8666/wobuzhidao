@@ -11,14 +11,13 @@ import (
 
 // This is a deterministic counterexample, NOT a simulated netem probability
 // or a product performance claim. Compare the same five LINK datagrams and
-// exactly 20% targeted erasures under 8ms, 16ms, 24ms and 100ms partial-parity closure.
+// exactly 20% targeted erasures at 8ms, 16ms, 24ms, 32ms and 100ms.
 //
-// At 12ms inter-arrival, original 8ms closed each class before the
-// next datagram, allowing a targeted 20% erasure to defeat the first frame.
-// The candidate keeps the <=512B classes at 8ms, but gives the >512B
-// 20:20 group 16ms even when FECPathConfig.FlushAfter is the default 8ms.
-// This construction detects regression of that selective grouping effect;
-// it does NOT infer that a real 5205 netem loss pattern has the same cause.
+// At 12ms inter-arrival, explicit legacy 8ms closes the current group
+// before the next datagram. The E1 candidate uses a uniform 32ms window
+// for all packet sizes and retains same-datagram LINK fragment grouping.
+// This is a deterministic LINK/FEC counterexample, not a probabilistic
+// netem or end-to-end reliability claim.
 func TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff(t *testing.T) {
 	const sourceMTU = 1200
 	const packetCount = 5
@@ -133,18 +132,19 @@ func TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff(t *testing
 			short := run(8*time.Millisecond)
 			medium := run(16*time.Millisecond)
 			extended := run(24*time.Millisecond)
+			uniform := run(32*time.Millisecond)
 			long := run(100*time.Millisecond)
-			for _, candidate := range []verdict{medium, extended, long} {
+			for _, candidate := range []verdict{medium, extended, uniform, long} {
 				if short.totalWire != candidate.totalWire || short.lostWire != candidate.lostWire {
 					t.Fatalf("different impairment budget: short=%+v candidate=%+v", short, candidate)
 				}
 			}
-			// With selective parity, an 8ms *configured* FECPath already
-			// waits 16ms for >512B groups, while 96B retains its 8ms
-			// sparse partial block and its original low-latency tradeoff.
-			wantShortRecovered := size > 512
-			if short.deliveredFirst != wantShortRecovered || !medium.deliveredFirst || !extended.deliveredFirst || !long.deliveredFirst {
-				t.Fatalf("selective 8ms small/16ms largest tradeoff: size=%d 8=%+v 16=%+v 24=%+v 100=%+v", size, short, medium, extended, long)
+			// Without a selective extra large-group window, even a
+			// fragmented big datagram obeys an explicitly configured 8ms
+			// deadline; the uniform 32ms candidate recovers under this
+			// particular 20% targeted erasure pattern.
+			if short.deliveredFirst || !medium.deliveredFirst || !extended.deliveredFirst || !uniform.deliveredFirst || !long.deliveredFirst {
+				t.Fatalf("uniform 32ms vs legacy 8ms tradeoff: size=%d 8=%+v 16=%+v 24=%+v 32=%+v 100=%+v", size, short, medium, extended, uniform, long)
 			}
 		})
 	}

@@ -72,7 +72,7 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
 
 内部固定边界不是 CLI 参数：4096 shadow metadata有效记录、outer repair启动RTO 1s；取得未重传的可信RTT样本后使用SRTT+4*RTTVAR且最小200ms，3s绝对repair horizon不变；重传新流量补充比例1/5、128KiB启动credit、FEC最多8个heavy恢复槽与8192个compact late-delivery历史、FEC 3s绝对恢复期限及满额时旧block早退役、padding预算、最多10物理lane。fresh发送不受4096 ACK退休门阻塞；200ms不是用户调参旋钮，不改变同Seq同密文字节重传、FEC档位或恢复期限。
 
-FEC首源8ms是encoder到期条件，不是已承诺的实际parity发包上限：正式入口约100ms tick检查部分组，满组立即产生parity，systematic始终立即发。MTU是完整外层IPv4包预算，还受peer MSS及双向record limit约束；现有配置/抓包通过不等于自动PMTU探测已实现。路径更小时需下调两端MTU并重新建lane，物理验证见PREDELIVERY_ACCEPTANCE。
+FEC首源32ms（本分支E1统一窗口候选）是encoder的默认partial parity到期条件，不是已承诺的实际parity发包上限：正式入口另有按最近期限唤醒的FEC定时器，原100ms维护tick仍执行其它维护；满20源立即产生parity，systematic/新鲜完整业务仍立即发送。旧8ms或16ms是本分支过去的实验窗口，不再是此候选产品默认。32ms可能增强稀疏丢包FEC组方程，但可能增加丢源后的修复等待/p99，必须分别验收Normal/Game lossless、5205和低RTT稀疏门。MTU是完整外层IPv4包预算，还受peer MSS及双向record limit约束；现有配置/抓包通过不等于自动PMTU探测已实现。路径更小时需下调两端MTU并重新建lane，物理验证见PREDELIVERY_ACCEPTANCE。
 
 2026-10-05原生6181配套包两端配置MTU1400，但Windows Wintun实读NlMtu65535、物理NIC1500、Linux wbdg0 MTU1400。配置预算与虚拟网卡MTU不是同一指标；1400不表示最大内层IPv4数据报只能1400。LINK允许合法大数据报按外层预算拆分、逐数据报重组。DF禁止IP分片，不能禁止LINK封装拆分，因此9000B/DF=true经大MTU虚拟网卡成功不是DF违规。不要未经证据把Wintun强设1400制造OS+LINK双重分片。M01/300s实际覆盖1399..9000B，含1次迟到，无坏payload；额外20秒抓包外层最大C2S1290/S2C1340。受控server loopback结果不替代互联网PMTU/ICMP验证，UDP最大65507/65508边界仍NOT_RUN，见PHYSICAL_5MIN_ACCEPTANCE。未新增配置字段，不改变PARAMETERS.json。
 

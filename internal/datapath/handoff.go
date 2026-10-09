@@ -14,7 +14,7 @@ import (
 var ErrAdmissionHandoff = errors.New("datapath: invalid admission handoff")
 
 const (
-	DefaultFECFlushAfter = 8 * time.Millisecond
+	DefaultFECFlushAfter = 32 * time.Millisecond
 	DefaultFECMaxBlocks  = 8
 )
 

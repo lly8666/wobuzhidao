@@ -153,7 +153,7 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	shardSize := e.shardSize
 	// FastReedSolomon20x20.EncodeActive uses only source slots [0,dataCount).
 	// Clearing the remaining (20-dataCount) full shard buffers for every
-	// sparse 8ms partial block costs memory bandwidth but cannot affect parity.
+	// sparse partial block costs memory bandwidth but cannot affect parity.
 	// Keep the authoritative known-zero padded inputs for every other codec:
 	// generic Encode (and any future active implementation) may read them.
 	if _, ignoresPadding := e.codec.(*FastReedSolomon20x20); !ignoresPadding {

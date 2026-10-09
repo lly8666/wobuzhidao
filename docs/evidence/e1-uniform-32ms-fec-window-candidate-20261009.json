@@ -1,0 +1,48 @@
+{
+  "schema": "wbd-e1-unified-32ms-fec-partial-parity-candidate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "e50d62aab5ef74dac686f51ad1acb961cc73806a",
+  "user_request": "8ms uniformly to32ms; avoid new size classification overhead",
+  "old": {
+    "default_ms": 8,
+    "largest_20_20_ms": 16
+  },
+  "proposed": {
+    "default_ms": 32,
+    "profiles": [
+      4,
+      8,
+      10,
+      12,
+      16,
+      20
+    ],
+    "all_existing_size_classes_same_deadline": true,
+    "new_size_classifier": false,
+    "preexisting_max_classes": 3,
+    "large_fragment_short_tail_same_block": true,
+    "full_20_source_flush": "IMMEDIATE",
+    "fresh_source": "IMMEDIATE",
+    "FEC_off": "UNCHANGED"
+  },
+  "extra_repair_wait_up_to_ms": {
+    "small": 24,
+    "large": 16
+  },
+  "cpu_gain": "UNPROVEN",
+  "tests": [
+    "uniform32 all profiles",
+    "uniform32 small/large fragment-tail and independent first delivery",
+    "8/16/24/32/100 deterministic erasure",
+    "FEC ownership and no HOL"
+  ],
+  "validation": "PENDING_FOUNDATION_LIFECYCLE",
+  "new_300s_samples": 0,
+  "historical_failures": [
+    37907829434,
+    37915859759,
+    37857040784,
+    37871243581
+  ],
+  "e7": "OPEN_DEFERRED"
+}
