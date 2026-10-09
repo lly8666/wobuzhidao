@@ -151,8 +151,15 @@ func (e *FastBlockEncoder) Stats() FastBlockEncoderStats {
 func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	dataCount := e.dataCount
 	shardSize := e.shardSize
-	for i := dataCount; i < DataShards; i++ {
-		clear(e.shardBuf[i][:shardSize])
+	// FastReedSolomon20x20.EncodeActive uses only source slots [0,dataCount).
+	// Clearing the remaining (20-dataCount) full shard buffers for every
+	// sparse 8ms partial block costs memory bandwidth but cannot affect parity.
+	// Keep the authoritative known-zero padded inputs for every other codec:
+	// generic Encode (and any future active implementation) may read them.
+	if _, ignoresPadding := e.codec.(*FastReedSolomon20x20); !ignoresPadding {
+		for i := dataCount; i < DataShards; i++ {
+			clear(e.shardBuf[i][:shardSize])
+		}
 	}
 	for i := 0; i < TotalShards; i++ {
 		e.shardView[i] = e.shardBuf[i][:shardSize]

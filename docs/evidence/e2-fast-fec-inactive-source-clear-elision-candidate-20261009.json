@@ -1,0 +1,71 @@
+{
+  "schema": "wbd-e2-fast-rs-20x20-inactive-source-clearing-elision/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "6448aeaf8dc1a87c53ce6836fce1b11f372cc071",
+  "parent_product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+  "e1_previous_gate": {
+    "foundation": 37913240243,
+    "conclusion": "SUCCESS",
+    "lifecycle": 37913240106,
+    "tested_partial_deadline_ms": [
+      8,
+      16,
+      24,
+      100
+    ],
+    "product_default_ms": 8,
+    "8ms_grouping_tradeoff": "weak under constructed targeted20pct 12ms interarrival; >=16ms repairs but sparse parity delayed",
+    "legacy_5205_failure": 37907829434,
+    "not_a_CPU_benchmark": true
+  },
+  "optimization": {
+    "path": "internal/fec/fastblock_encoder.go",
+    "method": "Only if codec exact *FastReedSolomon20x20 skip clear(shardBuf[dataCount..20][:shardSize]); its EncodeActive explicitly iterates only d<dataCount. All other concrete/generic/future implementations continue canonical known-zero padded slots.",
+    "before_work_bytes": "(20-dataCount)*shardSize cleared on each partial flush",
+    "after": "0 cleared in inactive source slots for fast codec",
+    "data_count_range": [
+      1,
+      19
+    ],
+    "max_source_slots": 20,
+    "padding_source_identity": "not observed by fast encoder",
+    "wire_compatibility": "Exact byte-for-byte parity against generic RS required; no new FEC wire fields",
+    "safety": "Returned owned wire, borrow lifetime, first-delivery, retired block IDs, queue bounds and FlushAfter unchanged",
+    "unit": "internal/fec/e2_inactive_shard_clear_test.go",
+    "unit_matrix": {
+      "parity_profiles": "SupportedParityShards()",
+      "partial_source_counts": [
+        1,
+        2,
+        5,
+        19
+      ],
+      "shard_lengths": [
+        1,
+        256,
+        1200
+      ]
+    },
+    "qualification": "PENDING_FOUNDATION_GO_AND_RACE"
+  },
+  "performance": {
+    "saved_memory_clear_bytes_not_equivalent_to_saved_CPU_s": true,
+    "profile_prior_context": "FEC xorMul approx13-14% flat in diagnostic ON on older source; zero-clear was not separately profiled",
+    "cpu_gain": "UNPROVEN",
+    "need_one_case_per_Action": true
+  },
+  "protectors_new_source": {
+    "normal1_0loss": "NOT_RUN",
+    "normal1_5205": "NOT_RUN",
+    "game2_0loss": "NOT_RUN",
+    "game2_5205": "NOT_RUN",
+    "low_rtt_sparse": "NOT_RUN"
+  },
+  "past_failures": [
+    37907829434,
+    37857040784,
+    37871243581
+  ],
+  "no_buffer_or_queue_increase": true,
+  "no_device_or_canonical_branch_change": true
+}

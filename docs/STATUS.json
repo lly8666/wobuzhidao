@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_FEC_PARTIAL_PARITY_8_16_24_100MS_DETERMINISTIC_BOUND_TEST_PENDING",
+    "phase": "E2_FAST_FEC_INACTIVE_SOURCE_CLEAR_ELISION_CORE_RACE_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2076,7 +2076,7 @@
       }
     },
     "e1_deadline_scheduler": {
-      "state": "FOUNDATION_GREEN_NORMAL1_ZEROLOSS_PASS_NORMAL1_5205_APPLICATION_UDP_PROBE_FAIL",
+      "state": "E1_DEADLINE_SCHEDULER_IMPLEMENTED_E1_GLOBAL_WINDOW_EXTENSION_BLOCKED_BY_SPARSE_PARITY_LATENCY_TRADEOFF_5205_FAIL_RETAINED",
       "working_branch": "next/performance-efficiency-20261008",
       "parent_head": "166115aba85927eae0b866fdbdfd99492252aaa3",
       "parent_product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
@@ -2350,13 +2350,62 @@
           "expected": "8ms first unrecoverable; 16ms,24ms,100ms first recoverable under this construction; 4 later datagrams delivered once",
           "no_prod_change": true,
           "not_a_business_reliability_or_cpu_result": true,
-          "evidence": "docs/evidence/e1-fec-partial-parity-8-16-24-100ms-protection-intent-20261009.json"
+          "evidence": "docs/evidence/e1-fec-partial-parity-8-16-24-100ms-protection-intent-20261009.json",
+          "state": "PASS_DETERMINISTIC_LINK_SCOPE_37913240243_LIFECYCLE_37913240106",
+          "foundation_run": 37913240243,
+          "foundation_conclusion": "SUCCESS",
+          "lifecycle_run": 37913240106,
+          "lifecycle_conclusion": "SUCCESS",
+          "measured_deliveries": "8ms first missing, 16/24/100ms first recovered (constructed targeted 20% erasure); 4 later independently delivered once",
+          "runtime_fec_flush_default": "8ms_UNCHANGED",
+          "low_rtt_sparse_protection": "8ms preserved, actual new SOURCE protector NOT_RUN",
+          "root_for_original_netem_5205": "UNPROVEN"
         }
       }
+    },
+    "e2_fec_padding_clear_candidate": {
+      "state": "PENDING_FOUNDATION_CORE_RACE",
+      "working_branch": "next/performance-efficiency-20261008",
+      "parent_head": "6448aeaf8dc1a87c53ce6836fce1b11f372cc071",
+      "parent_product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+      "new_source_sha": "PENDING_PRODUCT_COMMIT",
+      "purpose": "Avoid zeroing unused 20-N source shard buffers for concrete FastReedSolomon20x20.EncodeActive because it accesses only d<dataCount",
+      "changed_files": [
+        "internal/fec/fastblock_encoder.go",
+        "internal/fec/e2_inactive_shard_clear_test.go"
+      ],
+      "guard": "generic and future active codecs always zero inactive slots, only concrete fast codec skips",
+      "profiles": "all SupportedParityShards()",
+      "partial_counts": [
+        1,
+        2,
+        5,
+        19
+      ],
+      "bytes_per_shard": [
+        1,
+        256,
+        1200
+      ],
+      "expected_saved_bytes_per_partial_flush": "(20-dataCount)*shardSize when concrete fast codec active",
+      "wire": "UNCHANGED_EXPECTED_SAME_FEC_HEADER_PARITY_SHARDS",
+      "first_delivery": "UNCHANGED_SYSTEMATIC_IMMEDIATE",
+      "flush_after": "UNCHANGED_8MS",
+      "timers": "UNCHANGED",
+      "retirement": "UNCHANGED",
+      "foundation": "PENDING",
+      "lifecycle": "PENDING",
+      "normal1_0loss": "NOT_RUN_NEW_SOURCE",
+      "normal1_5205": "NOT_RUN_NEW_SOURCE",
+      "game2_0loss": "NOT_RUN_NEW_SOURCE",
+      "game2_5205": "NOT_RUN_NEW_SOURCE",
+      "low_rtt_sparse": "NOT_RUN_NEW_SOURCE",
+      "cpu_gain": "UNPROVEN",
+      "evidence": "docs/evidence/e2-fast-fec-inactive-source-clear-elision-candidate-20261009.json"
     }
   },
-  "next_task": "Verify Go/race Foundation for scoped E1 deterministic LINK/FEC 8/16/24/100ms counterexample on payloads 96/1372/4068 and exactly 20% targeted erasure. The E1 8ms is parity flush deadline, NOT a busy scan; one owner timer is already in code. Global 16/24ms setting may restore grouped parity in this small constructed loss pattern but MUST NOT be changed without lowRTT sparse protector and Normal1/Game2 real 0loss/5205 (one 300s Action each), and is not CPU-gain evidence. Since 8ms promptness and >=16ms first erasure resilience are incompatible for the same first 12ms-spaced FEC group under existing min(N,R) wire, next either select an explicitly bounded policy with supported traffic-specific classification and accept documented cost, OR record E1 POLICY_BLOCKED_NO_SAFE_GLOBAL_8MS_CHANGE and move to E2 proven hot path; no host shopping or new diagnosers. Existing normal1 5205 FAIL is not known to be only E1 timing, E7 80s downstream deferred.",
-  "latest_log": "docs/devlog/20261009-e1-8ms-versus-16-24ms-deterministic-window-gate.md",
+  "next_task": "Check new Foundation and Lifecycle for E2 fast FEC padding clear elision. Specifically run all supported FEC profiles and partial sizes n=1/2/5/19, shard lengths1/256/1200, wire identity against generic RS and inactive slots untouched only on verified concrete fast codec while generic always zeroes padding. If core/race fail, preserve FAIL and fix only proven source/test bug. If SUCCESS, one independent 300s Normal1 zero-loss profileOFF sample on exact new product SHA first, then separate Normal1 true5205, Game2 lossless/5205 and lowRTT sparse; STOP on regression, never borrow E1 old source PASS. No unqualified cross-host CPU benefit; 8ms default remains, 5205 original FAIL still OPEN, E7 80s downlink deferred.",
+  "latest_log": "docs/devlog/20261009-e2-fast-fec-inactive-shard-memclear-hotpath-candidate.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2369,7 +2418,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 product SOURCE 622e5a3130ca96a3ca39b42ecae673dfefd5cf26 already has one wake timer per owner; 8ms is FEC partial parity closure, not old 100ms lifecycle tick. 8ms earlier can reduce grouping and compromise 20% erasure recovery in deterministic LINK test at 12ms arrival. Added 16/24ms scoped comparisons pending Go/race Foundation; NO runtime flush default changed, no product CPU improvement claim. Real normal1 0loss PASS37905658013, 5205 FAIL37907829434 retained; Game2 and sparse not yet qualified.",
+    "E1 scheduler runs one owner wake timer; 8ms remains FEC parity flush. Deterministic LINK/FEC test 8/16/24/100ms and full Foundation37913240243/Lifecycle37913240106 SUCCESS: 8ms weak 20% target erasure, >=16ms better but increases sparse parity delay. Do not globally change8ms or claim CPU gain; original Normal1 lossless PASS37905658013, Normal1 5205 FAIL37907829434 retained. E2 new source candidate skips unused padding clears for known FastReedSolomon20x20 only, pending Go/race; original product source 622e5a frozen in parent.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
