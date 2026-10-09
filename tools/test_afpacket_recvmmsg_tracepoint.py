@@ -28,8 +28,12 @@ class TraceDesign(unittest.TestCase):
     def test_invalid_pid_and_duration_rejected(self):
         for pid in (0,-1,2147483648,1.4,"123"):
             with self.assertRaises(ValueError): program(pid)
-        for seconds in (0,1,3,300):
+        for seconds in (0,1,3,6,300):
             with self.assertRaises(ValueError): program(123,seconds)
+    def test_five_second_functional_script_has_attach_ready_handshake(self):
+        source=program(927,seconds=5,ready=True)
+        self.assertIn("WBD_E4_RECVMMSG_FIXTURE_TRACER_READY",source)
+        self.assertIn("interval:s:5",source)
     def test_cap_is_bounded(self):
         self.assertLessEqual(MAX_BPF_MAP_KEYS,4096)
 

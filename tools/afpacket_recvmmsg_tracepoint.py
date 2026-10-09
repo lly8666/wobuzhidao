@@ -18,12 +18,12 @@ MAX_BPF_MAP_KEYS = 4096
 MIN_GAP_NS = 20_000_000
 BUCKET_NS = 100_000_000
 
-def program(pid, seconds=2):
+def program(pid, seconds=2, ready=False):
     if type(pid) is not int or not 1 <= pid <= 2147483647:
         raise ValueError("positive numeric target tgid required")
-    if type(seconds) is not int or seconds != 2:
-        raise ValueError("only bounded 2s smoke is executable")
-    return f"""tracepoint:syscalls:sys_enter_recvmmsg /pid == {pid}/ {{
+    if type(seconds) is not int or seconds not in (2,5):
+        raise ValueError("only bounded 2s capability or 5s functional smoke may execute")
+    return ('BEGIN { printf("WBD_E4_RECVMMSG_FIXTURE_TRACER_READY\\n"); }\n' if ready else '') + f"""tracepoint:syscalls:sys_enter_recvmmsg /pid == {pid}/ {{
   if (@previous_exit[pid] != 0) {{
     $gap_ns = nsecs - @previous_exit[pid];
     if ($gap_ns >= {MIN_GAP_NS}) {{
