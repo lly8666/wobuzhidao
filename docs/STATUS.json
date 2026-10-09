@@ -3424,7 +3424,19 @@
         "full_nic_wire_bytes": "NOT_COLLECTED",
         "outer_router_pre_netem_tcp_ip_bytes": "COLLECTED_INDEPENDENT_AF_PACKET_COUNTER",
         "audit_log": "docs/devlog/20261010-070000-fec-off-300ms-1pct-outer-retrans-audit.md",
-        "audit_json": "docs/evidence/fec-off-300ms-retrans-37999822837.json"
+        "audit_json": "docs/evidence/fec-off-300ms-retrans-37999822837.json",
+        "retrans_fraction_all_data_ip_percent": {
+          "c2s": 0.519897278996658,
+          "s2c": 0.5870744758605064
+        },
+        "retrans_fraction_all_data_payload_percent": {
+          "c2s": 0.5205187360552669,
+          "s2c": 0.587750852509541
+        },
+        "ack_control_excluded_from_data_denominators": true,
+        "business_integrity": "NO_CORRUPT_OR_MALFORMED_REPORTED_BUT_3237_OF_352560_UDP_MISSING",
+        "peak_outstanding": "NOT_COLLECTED_PROFILE_OFF",
+        "fresh_window_bypass": "NOT_COLLECTED_PROFILE_OFF"
       }
     }
   },

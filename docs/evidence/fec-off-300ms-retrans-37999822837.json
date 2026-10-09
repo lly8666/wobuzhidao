@@ -73,7 +73,12 @@
       "deficit_vs_ideal_theory_bytes": 833578.5454545454,
       "actual_percent_of_ideal": 51.800988721227284,
       "shortfall_vs_ideal_percent": 48.199011278772716,
-      "shortfall_vs_ideal_percentage_points": 0.48685869978558305
+      "shortfall_vs_ideal_percentage_points": 0.48685869978558305,
+      "fresh_data_ip_bytes": 181134143,
+      "repeated_data_ip_bytes": 946633,
+      "retrans_fraction_all_data_ip_percent": 0.519897278996658,
+      "control_only_packets_excluded": 244694,
+      "control_only_ip_bytes_excluded": 18339920
     },
     {
       "direction": "s2c",
@@ -104,7 +109,12 @@
       "deficit_vs_ideal_theory_bytes": 717177.7575757576,
       "actual_percent_of_ideal": 58.53135292424215,
       "shortfall_vs_ideal_percent": 41.46864707575785,
-      "shortfall_vs_ideal_percentage_points": 0.41887522298745306
+      "shortfall_vs_ideal_percentage_points": 0.41887522298745306,
+      "fresh_data_ip_bytes": 181133450,
+      "repeated_data_ip_bytes": 1069668,
+      "retrans_fraction_all_data_ip_percent": 0.5870744758605064,
+      "control_only_packets_excluded": 244253,
+      "control_only_ip_bytes_excluded": 18257008
     }
   ],
   "combined": {
@@ -126,6 +136,7 @@
       "TCP test root cause",
       "physical PASS",
       "default FEC-off fitness"
-    ]
+    ],
+    "business_integrity": "NO_CORRUPT_OR_MALFORMED_REPORTED_BUT_3237_OF_352560_UDP_MISSING_NOT_FULL_DELIVERY_PASS"
   }
 }
