@@ -188,8 +188,24 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 		if seg.DstIP != e.localIP || (e.receivePort != 0 && seg.DstPort != e.receivePort) {
 			continue
 		}
-		return rawOwnedIPv4TCP(ip)
+		// Filtering already validated the borrowed IP/TCP headers. Preserve
+		// that exact parsed metadata and remap only the payload slice into
+		// owned storage: reparsing after copy doubled hot-path TCP work.
+		return rawOwnedParsedIPv4TCP(ip, seg)
 	}
+}
+
+// rawOwnedParsedIPv4TCP copies only packets that passed the address/port
+// filter. ParseIPv4TCP already validated both header lengths; rebase its
+// payload view against the owned copy. TCP/IP trailing link padding is not
+// part of the parsed payload, so len(ip)-len(seg.Payload) is NOT an offset.
+func rawOwnedParsedIPv4TCP(ip []byte, seg Segment) (Segment, []byte, error) {
+	ihl := int(ip[0]&0x0f) * 4
+	tcpHeaderLen := int(ip[ihl+12]>>4) * 4
+	start := ihl + tcpHeaderLen
+	owned := append([]byte(nil), ip...)
+	seg.Payload = owned[start : start+len(seg.Payload)]
+	return seg, owned, nil
 }
 
 // rawOwnedIPv4TCP transfers a borrowed packet view into exact-sized owned

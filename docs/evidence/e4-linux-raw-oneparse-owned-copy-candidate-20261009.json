@@ -1,0 +1,59 @@
+{
+  "schema": "wbd-e4-raw-linux-oneparse-ownership-candidate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "bff5aef4d8e737388f12575ffbcdedc4148a0cae",
+  "official_formal_product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "selection_reason": "Stop over-investigating measurement tooling. A real application receive hot path performs ParseIPv4TCP(ip) for destination filtering, then rawOwnedIPv4TCP(ip), which clones and ParseIPv4TCP(owned) again. Every admitted valid packet is parsed twice.",
+  "candidate_change": {
+    "source": "internal/faketcp/raw_linux.go",
+    "control_flow": "early parse/port/IP filter still on borrowed frame; copy ONLY accepted complete segment; keep borrowed parsed metadata then rebase Payload into copied wire by validated IHL and TCP data offset",
+    "second_parse_removed": true,
+    "extra_full_frame_copy_added": false,
+    "ownership": "return Segment.Payload aliases owned not kernel receive scratch",
+    "IP_trailing_padding": "explicitly excluded by parsed payload length, no len(ip)-len(payload) shortcut",
+    "no_network_or_protocol_semantics_intended": true,
+    "user_benefit_hypothesis": "lower per-packet CPU time and shorten receive goroutine work between recvmmsg drains; socket overflow hypothesis NOT PROVEN"
+  },
+  "protection_tests": {
+    "added_case_count": 4,
+    "tests_file": "internal/faketcp/raw_linux_test.go",
+    "reference": "original rawOwnedIPv4TCP copy-and-reparse still available and used as test oracle",
+    "cases": [
+      "payload",
+      "extra Ethernet/IP tail padding",
+      "SYN options with empty payload",
+      "ACK with two SACK blocks and payload"
+    ],
+    "after_mutation": "original borrowed AF_PACKET scratch byte buffer is overwritten and both returned Segment and owned packet remain equal to reference",
+    "retained_existing_tests": [
+      "16 packet recvmmsg 1 call, ownership/order",
+      "sparse single packet no wait to fill"
+    ]
+  },
+  "resources": {
+    "no_socket_buffer_change": true,
+    "no_downstream_queue_change": true,
+    "no_profile_timing_enable": true,
+    "no_wire_change": true,
+    "no_NIC_change": true,
+    "no_new_300s_action": true
+  },
+  "historical_9V45_formal_failures": [
+    {
+      "run": 37857040784,
+      "client_d": 33,
+      "server_d": 86,
+      "profile": "OFF"
+    },
+    {
+      "run": 37871243581,
+      "client_d": 42,
+      "profile": "ON"
+    }
+  ],
+  "diagnostic_tool_priority": "PARKED",
+  "cpu_gain": "UNPROVEN",
+  "protection": "PENDING_FOUNDATION",
+  "new_product_source_qualified": false,
+  "e7": "OPEN_DEFERRED"
+}

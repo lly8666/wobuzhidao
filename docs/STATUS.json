@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_HOSTED_RUNNER_CGROUP_V2_QUOTA_NOT_VISIBLE_FOUNDATION_SUCCESS_CALIBRATION_STOP",
+    "phase": "E4_DIRECT_LINUX_RAW_READ_SINGLE_PARSE_CANDIDATE_FOUNDATION_PENDING_NOT_QUALIFIED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1427,7 +1427,7 @@
         },
         "state": "KERNEL_TARGET_FD_INTEGRITY_SCOPED_PASS_OVERHEAD_NOT_VALIDATED",
         "overhead_calibration": {
-          "status": "CONFIG_ONLY_PUSH_TRIGGER_PENDING_FOUNDATION",
+          "status": "PARKED_RESOURCE_STRATA_UNDETERMINED",
           "workflow": ".github/workflows/next-e4-recvmmsg-calibration.yml",
           "trigger": "PUSH only on .github/e4-recvmmsg-calibration-case.json and exact branch",
           "job_count": 1,
@@ -1561,13 +1561,43 @@
               9
             ],
             "note": "NO cross-run physical VM identity exists on standard GitHub-hosted ubuntu-24.04. Do not match missing cgroup CPU quota or treat as unlimited."
-          }
+          },
+          "new_synthetic_off_or_on_cases": 0,
+          "blocked_cause": "No matching cgroup v2 quota or consistent VM identity; OFF sample PSI 17.06%>10%; do not run until independent business-level decision",
+          "priority": "DEFER_ALL_FURTHER_BPF_CALIBRATION_FOR_DIRECT_PRODUCT_SOURCE_CANDIDATE"
         }
+      },
+      "raw_receive_single_parse_candidate": {
+        "status": "PENDING_FOUNDATION_NOT_PERFORMANCE_QUALIFIED",
+        "historical_qualified_product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+        "product_files": [
+          "internal/faketcp/raw_linux.go",
+          "internal/faketcp/raw_linux_test.go"
+        ],
+        "candidate_source": "new working-branch commit containing raw_linux.go one-parse change",
+        "reason": "ReadSegment previously ParseIPv4TCP on borrowed ip then copy+ParseIPv4TCP again after packet accepted; duplicate full options/TCP parsing on each valid source packet",
+        "change": "keep early borrowed parse/filter and exact byte-for-byte owned copy, map payload into owned range using validated IHL+TCP header lengths; preserve trailing IP/link padding and parsed fixed-field metadata",
+        "candidate_claim": "eliminate redundant second TCP parse per delivered AF_PACKET packet, not independently measured CPU improvement",
+        "tests": [
+          "TestRawOwnedParsedIPv4TCPOneParseMatchesOwnedReparse/plain-payload",
+          "TestRawOwnedParsedIPv4TCPOneParseMatchesOwnedReparse/ethernet-padding-excluded",
+          "TestRawOwnedParsedIPv4TCPOneParseMatchesOwnedReparse/syn-options-zero-payload",
+          "TestRawOwnedParsedIPv4TCPOneParseMatchesOwnedReparse/sack-options-payload",
+          "TestRawReceiveSixteenPrequeuedPacketsOwnedAndOrdered",
+          "TestRawReceiveSixteenSparseOneDoesNotWaitToFill"
+        ],
+        "no_new_300s_sample": true,
+        "test_workflow": "next-foundation",
+        "byte_integrity": "PENDING_FOUNDATION",
+        "cpu_gain": "UNPROVEN",
+        "game4_lossless_resource_gate": "FAIL_FROM_PREVIOUS_SOURCE_NOT_REQUALIFIED",
+        "e7": "OPEN_DEFERRED",
+        "evidence": "docs/evidence/e4-linux-raw-oneparse-owned-copy-candidate-20261009.json"
       }
     }
   },
-  "next_task": "No new 300s Game4 or synthetic ON/OFF cases while resource comparability blocked. Native Foundation37881133562 scope UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE, no verified root and no cpu.max; do not substitute max or host vCPU for quota. To enable defensible CPU perturbation, choose separately authorized dedicated/pinned runner infrastructure with observable CPU quota and stable pressure, OR design a statistically prequalified matched-host alternative without violating one-case-per-Action and without host shopping; do not auto switch normal GitHub host or weaken PSI<=10%. Re-evaluate a single source-pinned off baseline only with independently justified sampling budget. Product/source ba8ed1 remains frozen; original same CPU 9V45 profileOFF client33/server86 and profileON client42 LOSSLESS official FAIL, CPU gain UNPROVEN; E7 downstream80s OPEN_DEFERRED and other protectors blocked. No product code / queues / RCVBUF / protocols / mainline edits.",
-  "latest_log": "docs/devlog/20261009-e4-native-cgroup2-quota-unknown-after-full-foundation-green.md",
+  "next_task": "FIRST confirm new Foundation on candidate commit: Linux Go/race, Windows unaffected, OpenWrt TPROXY, two TUN backends, kernel fallback, new 4-case raw packet options/tail-padding and already existing 16-prequeued + sparse-first-receive/alias tests. If any failure, fix or REVERT ONLY this candidate preserving run failure; do not update formal source sha ba8ed1 or inherit prior Game4 pass. On Foundation green, candidate remains NON_PERF_QUALIFIED until independent one-case scope-correct business protector and CPU evidence; no immediate 300s dispatch while 9V45 socket-drop causal root unknown. Next decide if static elimination of second parse merits a single bounded independent technical CPU bench without expanding matrix, or reject candidate as no material bottleneck. STOP further hosted VM/cgroup calibration and BPF event fixtures as diminishing returns. E4 old 9V45 OFF d33/86 and ON d42 formal FAIL, CPU gain UNPROVEN; E7 OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261009-e4-cut-instrumentation-rabbit-hole-single-parse-hotpath-candidate.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1580,7 +1610,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "Latest code Foundation37881133562 FULL SUCCESS: 19 calibration comparator and 9 cgroup visibility unit tests, all Linux/Windows/race/TPROXY/TUN/fallback and native BPF. Actual fresh VM cgroup2 cpu.stat/controllers visible BUT cpu.max absent; namespace root NOT confirmed, effective quota UNKNOWN, not equivalent to unlimited CPU or same VM. Synthetic OFF run37879351995 EPYC9V74 4vCPU PSI17.06% baseline red; ON not dispatched; NO comparable CPU result. Original Game4 9V45 OFF d33/86 ON d42 kernel socket drop resource FAIL still root OPEN, CPU UNPROVEN.",
+    "E4 moved back to product work from excessive BPF/hosted runner calibration: one narrowly scoped Linux raw ReadSegment candidate avoids duplicate TCP ParseIPv4TCP on accepted frames while retaining early address/port filter, exact owned wire copy and tail-padding-safe payload rebase; NEW SOURCE UNQUALIFIED pending Foundation, old frozen ba8ed1 Game4 OFF9V45 socket client33/server86 and ON client42 formal FAIL remain. 12s synthetic observer OFF sample ineligible, no more BPF calibration runs or new 300s Game4. CPU gain UNPROVEN E7 deferred.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
