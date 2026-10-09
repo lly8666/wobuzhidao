@@ -1,0 +1,183 @@
+{
+  "schema": "wbd-e4-oneparse-normal1-true-lossless-profileoff-protection/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "helper_source_sha": "4156347b02e3d1a86b7243157b63ccbd2e8f3bd1",
+  "action": {
+    "run_id": 37890396316,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37890396316",
+    "artifact_id": 11597543885,
+    "conclusion": "SUCCESS",
+    "job": "one-fullstack-sample",
+    "original_analyzer": "PASS_SCOPED_ACTIONS",
+    "original_issues": [],
+    "original_ledger": "PASS_SCOPED_ACTIONS",
+    "ledger_raw_issues": [],
+    "foundation_run": 37890396323,
+    "foundation_conclusion": "SUCCESS",
+    "run_attempt": 1
+  },
+  "one_Action_one_job_one_case": true,
+  "sample": {
+    "workload": "mixed",
+    "mode": "normal",
+    "lanes": 1,
+    "artificial_loss_percent": 0,
+    "seed": 1842,
+    "rate_mbps_each_direction": 10,
+    "duration_s": 300,
+    "drain_s": 3,
+    "one_way_delay_ms": 300,
+    "outer_mtu": 1400,
+    "server_tun_mtu": "actual ip-link receipt / derived",
+    "fec": "20:20",
+    "diagnostic_mode": "off",
+    "linux_client_ingress": "TPROXY",
+    "real_tcp_udp_http_https": true,
+    "size_profile": "ordinary"
+  },
+  "business": {
+    "udp_each_direction": {
+      "sent": 345672,
+      "delivered": 345672,
+      "missing": 0,
+      "corrupt_or_malformed": 0,
+      "sizes_bytes": [
+        96,
+        256,
+        512,
+        1000,
+        1372,
+        4068
+      ]
+    },
+    "tcp_each_direction": {
+      "flows_sent": 304,
+      "flows_received": 304,
+      "hash_or_length_mismatches": 0,
+      "connect_failures": 0
+    },
+    "probes": {
+      "c2s": {
+        "sent": 1500,
+        "returned": 1500,
+        "missing": 0,
+        "p99_rtt_ms": 621.435974,
+        "max_rtt_ms": 625.033763
+      },
+      "s2c": {
+        "sent": 1495,
+        "returned": 1495,
+        "missing": 0,
+        "p99_rtt_ms": 620.812202,
+        "max_rtt_ms": 629.915495
+      }
+    },
+    "http_https": {
+      "requested": 20,
+      "returned": 20,
+      "http_server_served": 10,
+      "https_server_served": 10,
+      "https_certs_verified": 10,
+      "missing": 0,
+      "server_errors": 0,
+      "returned_p99_ms": 1829.442894
+    },
+    "goodput_mbps_each_direction": {
+      "c2s": 9.97230784,
+      "s2c": 9.97230784
+    },
+    "offered_mbps_each_direction": {
+      "c2s": 9.97614784,
+      "s2c": 9.97613504
+    },
+    "receiver_observed_10ms_longest_active_gap_ms": {
+      "c2s": 20,
+      "s2c": 20
+    },
+    "gap_caution": "10ms sampled receiver empty gap is only scoped; not definitive cross-flow HOL proof",
+    "netem_realized_loss_pct": {
+      "c2s": 0,
+      "s2c": 0
+    }
+  },
+  "resources": {
+    "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "vcpus": 4,
+    "cgroup_cpu_quota_cores": null,
+    "psi_cpu_some_avg10_max_percent": 35.58,
+    "host_steal_max_percent": 0,
+    "host_busy_max_percent": 44.3864229765,
+    "product_cpu_seconds": {
+      "client": 154.63,
+      "server": 153.18,
+      "total": 307.81
+    },
+    "avg_product_cpu_cores": 1.0260333,
+    "peak_rss_mib": {
+      "client": 41.01171875,
+      "server": 43.30078125
+    },
+    "strict_resource_errors": [],
+    "packet_socket_sk_mem_d_max": {
+      "client": 0,
+      "server": 0
+    },
+    "raw_and_udp_socket_drop_max": 0,
+    "interface_drop_deltas_all_zero": true,
+    "netem_realized_zero": true,
+    "rmem_peak_bytes": {
+      "client": 77888,
+      "server": 63488
+    },
+    "raw_recv_buffer_bytes": 1048576,
+    "resource_scope": "ONE_HOST_ONLY_NO_COMPARABLE_CPU_SAVINGS_CLAIM"
+  },
+  "profile_off_diagnostics": {
+    "client_record_timing_collected": false,
+    "server_record_timing_collected": false
+  },
+  "original_artifact_sha256": {
+    "summary.json": "5704bc383b909eb69dabb148b808e14b41b11c3cbfe9b544b4b44c73eec7f316",
+    "efficiency-ledger.json": "d8d00f5f48756e9c84fb1ad9390b7011398e033f32f0b2b983481335362c6a19",
+    "manifest.json": "59e48a10f2f94fba40aaa2912190d1ec6740e4f2585f838958c26ded8e2604b1",
+    "sample-claim.json": "1c5195d496448736f0ec69e11af86ee017911ad86ba34748c53598689b8ac928"
+  },
+  "previous_same_source_scoped_pass": [
+    {
+      "scenario": "GAME4_STAGED5205",
+      "run_id": 37886694720
+    },
+    {
+      "scenario": "GAME2_TRUE_ZEROLOSS",
+      "run_id": 37888356909
+    }
+  ],
+  "old_game4_zero_loss_fails_preserved": [
+    {
+      "run_id": 37857040784,
+      "older_source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "profile": "OFF",
+      "client_socket_d": 33,
+      "server_socket_d": 86
+    },
+    {
+      "run_id": 37871243581,
+      "older_source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+      "profile": "ON",
+      "client_socket_d": 42
+    }
+  ],
+  "qualification": {
+    "normal1_0loss": "PASS_SCOPED_ONE_SOURCE_ONE_RUN",
+    "game2_0loss": "PASS_SCOPED_ONE_RUN",
+    "game4_staged5205": "PASS_SCOPED_ONE_RUN",
+    "game4_true0loss_new_source": "NOT_RUN",
+    "normal1_staged5205": "NOT_RUN",
+    "cpu_gain": "UNPROVEN",
+    "e4_root": "OPEN_OLDER_SOURCE_FAIL",
+    "e7": "OPEN_DEFERRED",
+    "e6_p6_physical": "NOT_RUN"
+  },
+  "decision": "Qualified only Normal1 mixed zero artificial loss ordinary profileOFF source aa931d seed1842 on one EPYC9V74 runner. Don't claim normal all cases, CPU improvement, or resolved Game4 old failure. NEXT candidate Game4 true0loss one distinct source-pinned sample, do not launch matrix."
+}
