@@ -1,0 +1,50 @@
+{
+  "schema": "wbd-e4-branch-scoped-synthetic-calibration-trigger-contract/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "c0032b561dca9866ea3eef58e9eb427486a21473",
+  "default_branch": "main",
+  "discovery": "GitHub docs workflow_dispatch requires workflow file on default branch",
+  "default_branch_file_present": false,
+  "canonical_main_modified": false,
+  "new_trigger": {
+    "event": "push",
+    "exact_branch": "next/performance-efficiency-20261008",
+    "only_path": ".github/e4-recvmmsg-calibration-case.json",
+    "config_only_commit": true,
+    "disallowed_pushes": [
+      "Go product",
+      "Python helper",
+      "Foundation workflow",
+      "docs-only",
+      "any other path"
+    ],
+    "config_keys": [
+      "schema",
+      "case_id",
+      "mode",
+      "product_source_sha",
+      "fixture_git_blob",
+      "driver_git_blob",
+      "tracer_git_blob"
+    ],
+    "one_case_per_Action": true,
+    "case_id_regex": "e4-(off|on)-NN",
+    "mode": "off OR on"
+  },
+  "immutability": {
+    "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "fixture_git_blob": "619370aec8ec9c98f09b5fe34aea60205f126870",
+    "driver_git_blob": "2bb9f8a7ef628ac3dc2b00159db20b62601e01e1",
+    "tracer_git_blob": "9628f85aa683d98682a9492bc0ebfd3a35a0a857"
+  },
+  "measurement": "12s AF_UNIX synthetic only, 48000 target and 48000 decoy; no product network; exactly one mode per run",
+  "previous_foundation": 37878413760,
+  "previous_result": "SUCCESS",
+  "baseline_runs_dispatched": 0,
+  "traced_runs_dispatched": 0,
+  "qualification": "NOT_CALIBRATED",
+  "prior_game4_9v45_fail_runs": [
+    37857040784,
+    37871243581
+  ]
+}

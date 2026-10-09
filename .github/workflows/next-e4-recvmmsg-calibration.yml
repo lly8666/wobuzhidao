@@ -1,15 +1,10 @@
 name: next-e4-recvmmsg-synthetic-calibration
-run-name: e4-recvmmsg-${{ inputs.mode }}-${{ github.sha }}
+run-name: e4-recvmmsg-config-${{ github.sha }}
 on:
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: "ONE isolated 12s AF_UNIX recvmmsg synthetic case. Distinct Actions for off/on."
-        required: true
-        type: choice
-        options:
-          - off
-          - on
+  push:
+    branches: ["next/performance-efficiency-20261008"]
+    paths:
+      - ".github/e4-recvmmsg-calibration-case.json"
 permissions:
   contents: read
 jobs:
@@ -17,10 +12,33 @@ jobs:
     if: github.ref_name == 'next/performance-efficiency-20261008'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    env:
-      MODE: ${{ inputs.mode }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Verify explicit single-case commit and immutable helper blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git diff --name-only HEAD^ HEAD)" = ".github/e4-recvmmsg-calibration-case.json"
+          python3 - <<'PY'
+          import json,os,re,subprocess
+          from pathlib import Path
+          d=json.loads(Path(".github/e4-recvmmsg-calibration-case.json").read_text())
+          assert set(d)=={"schema","case_id","mode","product_source_sha","fixture_git_blob","driver_git_blob","tracer_git_blob"}
+          assert d["schema"]=="wbd-e4-synthetic-calibration-case/v1"
+          assert d["mode"] in ("off","on")
+          assert re.fullmatch(r"e4-"+d["mode"]+r"-[0-9]{2}",d["case_id"])
+          assert d["product_source_sha"]=="ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072"
+          for key,path in (("fixture_git_blob","tools/testdata/e4_recvmmsg_calibration.c"),
+                           ("driver_git_blob","tools/e4_recvmmsg_calibration.py"),
+                           ("tracer_git_blob","tools/afpacket_recvmmsg_tracepoint.py")):
+              actual=subprocess.check_output(["git","hash-object",path],text=True).strip()
+              assert actual==d[key],(key,"unapproved_helper_change")
+          with open(os.environ["GITHUB_ENV"],"a") as f:
+              f.write("MODE="+d["mode"]+"\n")
+          print("WBD_E4_ONE_CASE_CONFIG_VALIDATED")
+          PY
       - name: Enforce one case and pin synthetic source and mode
         shell: bash
         run: |
@@ -31,7 +49,7 @@ jobs:
           cc -O2 -Wall -Wextra -Werror tools/testdata/e4_recvmmsg_calibration.c -o "$RUNNER_TEMP/e4-recvmmsg-calibration"
           test -x "$RUNNER_TEMP/e4-recvmmsg-calibration"
       - name: Install BPF observer only in the ON case
-        if: inputs.mode == 'on'
+        if: env.MODE == 'on'
         shell: bash
         run: |
           set -euo pipefail
@@ -72,7 +90,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e4-recvmmsg-calibration-${{ inputs.mode }}-${{ github.run_id }}
+          name: e4-recvmmsg-calibration-case-${{ github.run_id }}
           path: artifacts/e4-recvmmsg-calibration.json
           if-no-files-found: warn
       - name: Propagate invalid case even if upload succeeded

@@ -94,10 +94,21 @@ for job in FOUNDATION_DISABLED:
 # Each dispatch is one standalone 12s AF_UNIX case, not normal product traffic,
 # and OFF/ON comparisons cannot be performed in one Action.
 cal = Path(".github/workflows/next-e4-recvmmsg-calibration.yml").read_text(encoding="utf-8")
-if "workflow_dispatch:" not in cal:
-    errors.append("E4 calibration: manual dispatch required")
-if re.search(r"(?m)^\s+push:", cal) or re.search(r"(?m)^\s+pull_request:",cal):
-    errors.append("E4 calibration: automatic measurement trigger forbidden")
+# GitHub only exposes a newly created workflow_dispatch workflow after
+# its file exists on the repository default branch; main is prohibited here.
+# Exactly one explicit CASE FILE push on this branch is the only trigger.
+if "workflow_dispatch:" in cal:
+    errors.append("E4 calibration: feature-branch-only dispatch is not initially usable")
+if 'branches: ["next/performance-efficiency-20261008"]' not in cal:
+    errors.append("E4 calibration: only dedicated working branch allowed")
+if 'paths:\n      - ".github/e4-recvmmsg-calibration-case.json"' not in cal:
+    errors.append("E4 calibration: only explicit single case config may trigger")
+if cal.count("      - \".github/e4-recvmmsg-calibration-case.json\"")!=1:
+    errors.append("E4 calibration: config-trigger must be unique")
+if re.search(r"(?m)^\s+pull_request:",cal):
+    errors.append("E4 calibration: PR measurement forbidden")
+if "git diff --name-only HEAD^ HEAD" not in cal or "unapproved_helper_change" not in cal:
+    errors.append("E4 calibration: config-only commit and frozen-helper guards required")
 if re.search(r"(?m)^\s+matrix:",cal):
     errors.append("E4 calibration: matrix/fanout forbidden")
 if cal.count("  one-nonproduct-calibration-case:\n")!=1:
