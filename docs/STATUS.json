@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_ONEPARSE_GAME4_5205_OFF_REAL_BUSINESS_SCOPED_PASS_LOSSLESS_SOCKET_ROOT_OPEN",
+    "phase": "E4_ONEPARSE_GAME2_LOSSLESS_REAL_BUSINESS_ONE_SAMPLE_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1685,10 +1685,70 @@
           ]
         }
       }
+    },
+    "e4_oneparse_candidate": {
+      "state": "GAME4_5205_PASS_GAME2_ZEROLOSS_SINGLE_PROFILEOFF_PENDING",
+      "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+      "source_lineage": "One-parse Linux AF_PACKET read hotpath, no buffer/queue increase, no wire change",
+      "previous_qualified_run": {
+        "scenario": "GAME4_MIXED_5205_PROFILE_OFF",
+        "run_id": 37886694720,
+        "analyzer": "PASS_SCOPED_ACTIONS",
+        "product_cpu_s": 263.58,
+        "runner_model": "AMD EPYC 9V74",
+        "cpu_gain": "UNPROVEN"
+      },
+      "next_single_protector": {
+        "scenario": "GAME2_MIXED_TRUE_ZEROLOSS",
+        "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+        "config": {
+          "workload": "mixed",
+          "loss": 0,
+          "seed": 1841,
+          "product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+          "mode": "game",
+          "lanes": 2,
+          "rate_mbps": 3,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "off"
+        },
+        "user_reason": "Game2 isolates number of authoritative ingress lanes compared with Game4 and tests real user-visible mixed workload with zero artificial loss",
+        "hard_gates": [
+          "Original 300s summary and efficiency ledger PASS_SCOPED_ACTIONS issues empty",
+          "Lossless UDP delivered both directions with missing/corrupt zero and no >1 second delay",
+          "Games probe complete, no unreturned probes, inspect p99 and active gaps",
+          "TCP stream hashes and HTTP/HTTPS requests 20/20 and certificate validations",
+          "No netdev or AF_PACKET socket skmem.d extra drops, strict_resource errors empty",
+          "No claim of CPU efficiency improvement from incomparable GitHub-hosted VMs"
+        ],
+        "profile": "OFF",
+        "fullstack_seconds": 300,
+        "netem_artificial_loss_percent": 0,
+        "max_runs_this_step": 1,
+        "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+        "state": "PENDING_ONE_GITHUB_ACTION",
+        "next_artifact": "summary.json + efficiency-ledger.json + manifest.json"
+      },
+      "lossless_game4_legacy_fail_preserved": [
+        {
+          "run": 37857040784,
+          "profile": "OFF",
+          "client_socket_drop": 33,
+          "server_socket_drop": 86
+        },
+        {
+          "run": 37871243581,
+          "profile": "ON",
+          "client_socket_drop": 42
+        }
+      ],
+      "e7": "OPEN_DEFERRED",
+      "cpu_gain": "UNPROVEN",
+      "reusable_protection_scope": "NONE_BEFORE_ACTUAL_TEST"
     }
   },
-  "next_task": "Stop BPF/cgroup calibration rabbit-hole and avoid blind host shopping. One actual candidate Game4 staged5205 scoped real protection PASS is now recorded and only qualifies that SOURCE aa931d + one workload. Review whether the small one-parse CPU optimization merits retention as a bounded candidate versus STOP_CPU_UNPROVEN; do not claim 0.54% causal improvement from separate hosted VMs. Before any further 300s samples, identify ONE missing user-visible high-priority protector (Normal1 or Game2) or direct causal test justified by this new source and set hard success criteria. In particular, original 9V45 Game4 lossless OFF d33/86 and ON client42 resource FAIL remain OPEN; do not relabel repaired without targeted proof. E6/P6/physical and E7 ~80s downstream outage remain deferred; no buffer/queue/protocol changes, no main/canonical merge.",
-  "latest_log": "docs/devlog/20261009-e4-oneparse-game4-5205-off-real-business-scoped-pass.md",
+  "next_task": "Read exact next-efficiency-e0-single GitHub Action triggered by `.github/efficiency-e0-sample.json` Game2 0loss on one-parse SOURCE aa931d, seed1841, 300s, 2 game lanes, mixed UDP/TCP/HTTP/HTTPS, 3Mbps/direction profileOFF, one job. Verify original summary and ledger issues empty, bidirectional UDP/probe complete, TCP hashes/HTTPS, no >1s UDP, skmem.d/interface/socket drops ZERO. Distinguish hardware/CPU PSI/expected stress conditions, don't compare CPU across distinct runners. Preserve Game4 staged5205 PASS of this source as previous scoped single pass; old ba8ed1 Game4 0loss OFF d33/86 and ON client42 FAIL remain OPEN. If Game2 fails, stop instead of host shopping; if passes, record Game2 zero-loss scoped PASS only and pick next untested Normal1 protector, no blind suite. Do not expand buffers/shard queues, change protocol, main or physical hosts; CPU gain UNPROVEN, E7 ~80s OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261009-e4-oneparse-game2-lossless-single-user-protection-intent.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1701,7 +1761,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 user-priority real hotpath progress: Linux one-parse source aa931d Foundation37882854877/Lifecycle37882854858 and pin Foundation37886445830 all GREEN; one real 300s Game4 mixed 5205 profileOFF run37886694720 original PASS_SCOPED_ACTIONS, bidir UDP 103062/103062 each, probes all returned, web20/20 cert10, 0 socket/interface extra drops. CPU263.58s on EPYC9V74 vs previous source265.02s other hosted VM; CPU gain UNPROVEN. Old 9V45 ZEROLOSS socket-drops OFF client33/server86 and ON client42 retain FAIL, E7 deferred. No further runs automatically.",
+    "E4 product-first candidate aa931d: one Game4 5205 300s real business profileOFF pass run37886694720, CPU improvement UNPROVEN. Next single Game2 zero-loss 2-lane 300s fullstack on same source queued via config seed1841, no probe ON or BPF. Historical 9V45 Game4 no artificial loss socket drops OFF client33/server86 and ON client42 remain resource FAIL root OPEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
