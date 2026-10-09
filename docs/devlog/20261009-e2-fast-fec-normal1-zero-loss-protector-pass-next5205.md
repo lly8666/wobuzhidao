@@ -1,0 +1,9 @@
+# E2 FEC padding-elision new SOURCE: Normal1 zero-loss protector passed; true 5205 next
+
+Work branch next/performance-efficiency-20261008 parent c46b9a2ead47c72485b2a99006011c0723d7037c exact Go SOURCE fc92076b3cab548c8e180cc19e8d69e8bde742d2, 8ms parity deadline unchanged. [Foundation37913987141](https://github.com/lly8666/wobuzhidao/actions/runs/37913987141) and [Lifecycle37913987174](https://github.com/lly8666/wobuzhidao/actions/runs/37913987174) passed core/race/Windows/Linux/TUN/TPROXY/fallback, including poisoned inactive FEC shard wire identity.
+
+First helper [37914383139](https://github.com/lly8666/wobuzhidao/actions/runs/37914383139) failed BEFORE business for invalid scenario=0, recorded separately as FAIL. Corrected one normal1 zero-loss profileOFF Action [37914773277](https://github.com/lly8666/wobuzhidao/actions/runs/37914773277) ran full300s with original analyzer **PASS_SCOPED_ACTIONS**, no issues. UDP 345672 per direction all delivered; probe missing0 each direction, TCP hash intact, HTTP/HTTPS20/20 (cert verified10/10), socket skmem.d client/server0 and no netdevice drops. Returned-only probe p99 c2s619.942ms/s2c621.082ms; delivered9.972Mbps each direction. Raw artifact11609187674 and zip/summary/ledger hashes recorded in evidence.
+
+CPU total347.51s (client173.65/server173.86) on AMD EPYC7763 4vCPU with CPU PSI some avg10 max37.38% and quota UNKNOWN; comparison with previous 622e source on EPYC9V74 is INVALID. No measured CPU gain claim, only new-source zero-loss protection.
+
+Next exact-source one Action: Normal1 true5205 5%75s→20%150s→5%75s mixed, 10Mbps, 300s, seed1847, profileOFF and one job. Do NOT run Game2 until this original analyzer verdict known. Previous E1 staged5205 FAIL37907829434 remains, no claim that E1 8ms is its sole cause. No changed queues/buffers, wire/MTU, canonical/main or physical; E7 ~80s S2C outage deferred.

@@ -1,0 +1,60 @@
+{
+  "schema": "wbd-e2-fast-fec-normal1-lossless-qualification/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
+  "run_id": 37914773277,
+  "artifact_id": 11609187674,
+  "original_workflow": "SUCCESS",
+  "original_analyzer": "PASS_SCOPED_ACTIONS",
+  "original_issues": [],
+  "config": {
+    "loss": 0,
+    "seed": 1846,
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "duration_s": 300,
+    "workload": "mixed",
+    "profile": "OFF"
+  },
+  "deliveries": {
+    "udp_c2s_sent_and_received": 345672,
+    "udp_s2c_sent_and_received": 345672,
+    "missing_all": 0,
+    "probe_missing_all": 0,
+    "web_20_of_20": true,
+    "https_cert_10_of_10": true,
+    "packet_socket_client_drop": 0,
+    "packet_socket_server_drop": 0
+  },
+  "cpu": {
+    "total_seconds": 347.51,
+    "client_seconds": 173.65,
+    "server_seconds": 173.86,
+    "host": "AMD EPYC 7763 4vCPU",
+    "psi_avg10_max_pct": 37.38,
+    "quota": "UNKNOWN",
+    "improvement": "UNPROVEN"
+  },
+  "artifact_sha256": {
+    "zip": "ced3d71d36618f63d071b1dd2078243b96996c1443487e520734ad587c481857",
+    "summary": "30a39e76a6a572d205a33234297b2a78ee97a3fcde8e6d3bc284382f46eda183",
+    "ledger": "8f987ee4021c5bf8be0c60d0f37e8493fb24aa39c8a297b0cbec6c5ac2d0c87e"
+  },
+  "failure_retained": {
+    "run": 37914383139,
+    "cause": "helper invalid scenario 0 PRE-BUSINESS"
+  },
+  "next_one_case": {
+    "loss": 5205,
+    "seed": 1847,
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "duration_s": 300,
+    "profile": "OFF",
+    "state": "PENDING"
+  },
+  "previous_5205_fail": 37907829434,
+  "game2_and_sparse": "NOT_RUN_NEW_SOURCE"
+}
