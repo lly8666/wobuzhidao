@@ -58,16 +58,21 @@ def resolve(pid, expected_executable):
             raise ValueError("target executable mismatch")
         first=parse_starttime((root/"stat").read_text())
         packet=packet_raw_inodes((root/"net/packet").read_text())
-        descriptors=[p for p in (root/"fd").iterdir() if p.name.isdigit()]
-        if len(descriptors)>MAX_FDS:
-            raise ValueError("FD scan cap exceeded")
         links={}
-        for f in descriptors:
-            try:
-                links[int(f.name)]=os.readlink(f)
-            except FileNotFoundError:
-                # Churning process FD table cannot be mistaken for a unique socket.
-                raise ValueError("FD churn during packet socket selection")
+        # The enumerator itself owns a transient directory FD. Keeping
+        # os.scandir open WHILE resolving symlinks avoids mistaking its normal
+        # closure for a product socket disappearing (real CI failure).
+        with os.scandir(root/"fd") as descriptors:
+            for f in descriptors:
+                if not f.name.isdigit():
+                    continue
+                if len(links)>=MAX_FDS:
+                    raise ValueError("FD scan cap exceeded")
+                try:
+                    links[int(f.name)]=os.readlink(f.path)
+                except FileNotFoundError:
+                    # External FD churn remains fail-closed.
+                    raise ValueError("FD churn during packet socket selection")
         candidate=select_receiver_fd(packet,links)
         second=parse_starttime((root/"stat").read_text())
         if first!=second:

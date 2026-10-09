@@ -1,0 +1,15 @@
+{
+  "schema": "wbd-e4-afpacket-fd-inode-live-smoke-helper-failure/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "failed_run": 37873762122,
+  "failed_step": "Live Linux AF_PACKET ss parser smoke in isolated netns (no traffic)",
+  "failure": "ValueError FD churn during packet socket selection",
+  "observed_first_error": "FileNotFoundError /proc/<pid>/fd/4 while os.readlink Path returned by completed iterdir; scanner itself opened then closed temporary fd",
+  "attribution": "PYTHON_ENUMERATOR_LIFETIME_BUG_NOT_PRODUCT",
+  "correction": "Keep with os.scandir open until each target readlink has completed, retaining fail-closed response to externally disappearing fd",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "original_off_fail": 37857040784,
+  "original_on_fail": 37871243581,
+  "new_business_samples": 0,
+  "verification": "PENDING"
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RECVMMSG_EVENT_FUNCTIONAL_PASS_AF_PACKET_FD_IDENTITY_PENDING",
+    "phase": "E4_FD_IDENTITY_REAL_SMOKE_ENUMERATOR_BUG_FIXED_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1364,20 +1364,21 @@
           "bpftrace_exit": 0
         },
         "fd_identity": {
-          "state": "PENDING_FOUNDATION",
-          "source": "tools/afpacket_recv_fd_identity.py",
-          "test": "tools/test_afpacket_recv_fd_identity.py",
-          "real_test": "tools/test_afpacket_socket_probe_live.py",
-          "scope": "Match single AF_PACKET SOCK_RAW inode in target /proc/PID/net/packet to /proc/PID/fd, verify process identity and FD stable; no fd/inode serialized",
-          "one_packet_socket_required": true,
-          "run_performance": false,
-          "evidence": "docs/evidence/e4-afpacket-recvfd-inode-unique-identity-intent-20261009.json"
+          "state": "ACTUAL_LIVE_LINUX_SMOKE_37873762122_FAIL_SCANNER_SELF_FD_LIFETIME",
+          "failed_foundation": 37873762122,
+          "failed_step": "Live Linux AF_PACKET ss parser smoke in isolated netns (no traffic)",
+          "root": "Python Path.iterdir() completes and closes temporary /proc/pid/fd directory handle before readlink; its own fd directory entry then disappears",
+          "fix": "Use with os.scandir(root/fd) and readlink each entry while iterator remains open",
+          "fix_verified": "PENDING_NEXT_FOUNDATION",
+          "no_product_traffic": true,
+          "formal_game_result": "UNCHANGED_FAIL",
+          "next_evidence": "docs/evidence/e4-afpacket-recvfd-live-smoke-fd-enumerator-failure-20261009.json"
         }
       }
     }
   },
-  "next_task": "Check latest Foundation for 7 FD inode identity tests plus real privileged AF_PACKET one-socket /proc PID net packet and FD inode live marker WBD_LIVE_AFPACKET_FD_INODE_PASS, alongside full Windows/Linux/race/network. If /proc packet layout is unsupported or multiple packet sockets, report UNSUPPORTED/AMBIGUOUS, do not guess FD. `recvmmsg` 5s synthetic test only proves two exits and one gap, not real product recvFD tracing nor run-time overhead. Before another 300s Game4 run, create bounded FD+PID filtering and explicit overhead/lost-event/timeout hard gate, with no profileOFF CPU comparison and frozen product ba8ed1; otherwise stay E4 blocked and stop host shopping. Existing socket drop FAIL, E7 deferred, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e4-afpacket-recvfd-inode-exact-one-no-traffic-preflight.md",
+  "next_task": "Inspect next Foundation native isolated AF_PACKET FD identity check after os.scandir fix and complete Linux/Windows/race/TPROXY/TUN/fallback. Preserve Foundation37873762122 live-smoke FAIL caused by helper temporary enumeration FD, not product. If exact single recvFD still cannot be validated, classify FD_UNKNOWN and stop, do not guess or run 300s. If pass, then design PID+recvFD syscall tracepoint filter and an overhead/lost-event control gate before any new product performance run. Old 9V45 OFF d33/86 and ON d42 original analyzers FAIL, CPU gain UNPROVEN, E7 deferred.",
+  "latest_log": "docs/devlog/20261009-e4-fd-iterator-lifetime-live-smoke-failure-fix.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1390,7 +1391,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "Kernel tracepoints on hosted VM attachment-only Foundation37873072683 and actual two-recvmmsg-one-60ms intercall gap synthetic functional smoke Foundation37873408635 both complete SUCCESS; no product tested, no overhead estimate. AF_PACKET receiver FD identification via /proc inode with live netns smoke pending next Foundation; original EPYC9V45 OFF d33/86 FAIL and ON d42 FAIL remain.",
+    "E4 same-host-model packet-socket FAIL stays; functional bpftrace 5s local synthetic 2 syscalls + 1 gap passed Foundation37873408635. New AF_PACKET receiver FD identity live smoke from bbf6379 Foundation37873762122 failed due helper enumeration FD lifetime, NOT product. Fixed same-iterator readlink pending next Foundation; no 300s sample.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
