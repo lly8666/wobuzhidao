@@ -44,8 +44,11 @@ jobs:
         run: python tools/check_repository.py
       - name: Enforce performance workflow one-sample policy
         run: python3 tools/check_performance_workflow_policy.py
-      - name: Test AF_PACKET business-clock forensic helper (synthetic, no performance sample)
-        run: python3 -m unittest discover -s tools -p 'test_packet_socket_drop_forensics.py' -v
+      - name: Test both historical forensic and live numerical probe parsers (synthetic, no sample)
+        run: |
+          python3 -m py_compile tools/packet_socket_drop_forensics.py tools/afpacket_socket_probe.py
+          python3 -m unittest discover -s tools -p 'test_packet_socket_drop_forensics.py' -v
+          python3 -m unittest discover -s tools -p 'test_afpacket_socket_probe.py' -v
       - id: layout
         name: Detect active module
         shell: bash
