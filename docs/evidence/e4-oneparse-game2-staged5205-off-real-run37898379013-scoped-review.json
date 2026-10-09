@@ -1,0 +1,165 @@
+{
+  "schema": "wbd-e4-oneparse-game2-staged5205-original-action-verified/v1",
+  "working_branch": "next/performance-efficiency-20261008",
+  "reviewed_head": "d87d6f9bfdbd533e268615374dfd4096a844f841",
+  "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "original_source_failure_history": {
+    "source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "game4_lossless_off": {
+      "run": 37857040784,
+      "client_sk_mem_d": 33,
+      "server_sk_mem_d": 86
+    },
+    "game4_lossless_diag_on": {
+      "run": 37871243581,
+      "client_sk_mem_d": 42
+    },
+    "status": "HISTORICAL_FAIL_NOT_ERASED_BY_NEW_SOURCE"
+  },
+  "action": {
+    "run_id": 37898379013,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37898379013",
+    "job_id": 113714920820,
+    "conclusion": "SUCCESS",
+    "foundation_run": 37898378989,
+    "foundation_conclusion": "SUCCESS",
+    "artifact_id": 11600674710,
+    "artifact_sha256": "b32a1f4c3f09481298a0007b3fecadee4445a09900a1d3eb8d763b3379e5a3cc",
+    "file_sha256": {
+      "summary.json": "bfa1a0b6ea4270f7ce061c7113fba9c4b4a7a0c988fd033679959e27671cba2d",
+      "efficiency-ledger.json": "6a7706dc68518a11365cf92c9354ed5899688490dabe141494565f3526fea05f",
+      "manifest.json": "0b4044fd27088bee5db993b69eeef815b1c303bdd58b5d8379051f8188fcbf61",
+      "stage-events.jsonl": "949b16a41aad21a0cda05fa1fcdfdaba660baaed37df2a5b11c3d8a211887cd9"
+    },
+    "original_analyzer": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "ledger_raw_analyzer": "PASS_SCOPED_ACTIONS",
+    "ledger_raw_issues": []
+  },
+  "scope": {
+    "mode": "game",
+    "configured_lanes": 2,
+    "active_physical_lanes": "NOT_IN_PROFILE_OFF_RECEIPT",
+    "workload": "mixed",
+    "seed": 1842,
+    "rate_mbps_each_direction": 3,
+    "loss": {
+      "pre_pct": 5,
+      "pre_duration_s": 75,
+      "stress_pct": 20,
+      "stress_duration_s": 150,
+      "post_pct": 5,
+      "post_duration_s": 75
+    },
+    "actual_qdisc_percent": {
+      "pre_c2s": 4.9930905335,
+      "pre_s2c": 4.9710291925,
+      "stress_c2s": 20.0033597868,
+      "stress_s2c": 20.0809271308,
+      "post_c2s": 4.9538199562,
+      "post_s2c": 4.989799094
+    },
+    "duration_s": 300,
+    "drain_s": 3,
+    "profile": "OFF",
+    "fec": "20:20",
+    "server_tun_mtu": 1273
+  },
+  "business": {
+    "udp_by_direction_and_stage": {
+      "c2s": {
+        "pre": {
+          "sent": 25792,
+          "delivered": 25792,
+          "missing": 0
+        },
+        "stress": {
+          "sent": 51503,
+          "delivered": 51503,
+          "missing": 0
+        },
+        "post": {
+          "sent": 25767,
+          "delivered": 25767,
+          "missing": 0
+        }
+      },
+      "s2c": {
+        "pre": {
+          "sent": 25792,
+          "delivered": 25792,
+          "missing": 0
+        },
+        "stress": {
+          "sent": 51503,
+          "delivered": 51502,
+          "missing": 1,
+          "missing_size_bytes": 4068
+        },
+        "post": {
+          "sent": 25767,
+          "delivered": 25767,
+          "missing": 0
+        }
+      }
+    },
+    "probes": {
+      "c2s": {
+        "sent": 1500,
+        "returned": 1500,
+        "missing": 0,
+        "p99_ms": 692.319171
+      },
+      "s2c": {
+        "sent": 1495,
+        "returned": 1495,
+        "missing": 0,
+        "p99_ms": 688.297459
+      }
+    },
+    "tcp_flow_counts_each_direction": {
+      "sent": 304,
+      "received": 304
+    },
+    "tcp_hash_and_length_mismatches": 0,
+    "http_https": {
+      "requests": 20,
+      "returned": 20,
+      "http_served": 10,
+      "https_served": 10,
+      "https_cert_verified": 10
+    },
+    "strict_resources": {
+      "errors": [],
+      "afpacket_sk_mem_d_client": 0,
+      "afpacket_sk_mem_d_server": 0,
+      "link_extra_drop_all_interfaces": 0
+    },
+    "longest_active_receiver_gap_ms": {
+      "c2s": 100,
+      "s2c": 100
+    },
+    "above_3s_application_delivery": 0
+  },
+  "cost": {
+    "total_product_cpu_seconds": 225.12,
+    "client_cpu_seconds": 112.35,
+    "server_cpu_seconds": 112.77,
+    "host_cpu": "AMD EPYC 7763 64-Core Processor",
+    "vcpus": 4,
+    "cgroup_cpu_quota_cores": null,
+    "host_cpu_psi_some_avg10_max_pct": 37.94,
+    "cpu_gain": "UNPROVEN",
+    "cross_host_A_B": false
+  },
+  "conclusion": {
+    "scoped_pass": true,
+    "not_zero_loss_application_under_20pct_stress": true,
+    "single_4068B_s2c_missing_not_attributed_to_kernel_socket": true,
+    "old_game4_lossless_9v45_history_not_closed": true,
+    "physical_product_qualification": "NOT_RUN",
+    "extra_perf_samples_dispatched_after_review": 0,
+    "low_rtt_sparse": "NOT_RUN",
+    "e7": "OPEN_DEFERRED"
+  }
+}

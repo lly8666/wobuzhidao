@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_ONEPARSE_GAME2_STAGED5205_OFF_ONE_ACTION_PENDING",
+    "phase": "E4_ONEPARSE_GAME2_STAGED5205_ACTION_VERIFIED_SCOPED_PASS_ONE_S2C_4068B_UDP_STRESS_MISSING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1744,7 +1744,7 @@
       }
     },
     "e4_oneparse_candidate": {
-      "state": "GAME4_LOSSLESS_OFF_0D_SCOPED_PASS_NEXT_NORMAL1_TRUE5205_ONE_SAMPLE_PENDING",
+      "state": "GAME2_STAGED5205_ONE_OFF_SCOPED_PASS_WITH_ONE_APP_S2C_STRESS_MISSING_OLD_9V45_FAIL_STILL_RETAINED",
       "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
       "source_lineage": "One-parse Linux AF_PACKET read hotpath, no buffer/queue increase, no wire change",
       "previous_qualified_run": {
@@ -1855,7 +1855,93 @@
           "other_lanes_unqualified": true
         },
         "game2_staged5205": {
-          "state": "NOT_RUN_CANDIDATE"
+          "state": "PASS_SCOPED_ACTIONS_ONE_OFF_SAMPLE_WITH_ONE_S2C_UDP_STRESS_MISSING",
+          "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+          "run_id": 37898379013,
+          "foundation_run_id": 37898378989,
+          "artifact_id": 11600674710,
+          "job_id": 113714920820,
+          "original_analyzer": "PASS_SCOPED_ACTIONS",
+          "original_issues": [],
+          "sample": {
+            "mode": "game",
+            "lanes_configured": 2,
+            "rate_mbps_each_direction": 3,
+            "loss_stages": "5% for75s then20% for150s then5% for75s",
+            "seed": 1842,
+            "workload": "mixed",
+            "duration_seconds": 300,
+            "drain_seconds": 3,
+            "diagnostic_mode": "off"
+          },
+          "actual_netem_stage_loss_percent": {
+            "pre": {
+              "c2s": 4.993091,
+              "s2c": 4.971029
+            },
+            "stress": {
+              "c2s": 20.00336,
+              "s2c": 20.080927
+            },
+            "post": {
+              "c2s": 4.95382,
+              "s2c": 4.989799
+            }
+          },
+          "stage_udp": {
+            "c2s": {
+              "sent": 103062,
+              "delivered": 103062,
+              "missing": 0
+            },
+            "s2c": {
+              "sent": 103062,
+              "delivered": 103061,
+              "missing": 1,
+              "missing_stage": "stress",
+              "missing_udp_size_bytes": 4068
+            }
+          },
+          "probes": {
+            "c2s": {
+              "sent": 1500,
+              "returned": 1500,
+              "missing": 0,
+              "p99_ms": 692.319171
+            },
+            "s2c": {
+              "sent": 1495,
+              "returned": 1495,
+              "missing": 0,
+              "p99_ms": 688.297459
+            }
+          },
+          "tcp_flows_each_direction": 304,
+          "tcp_hash_or_length_mismatch": 0,
+          "http_https": {
+            "returned": 20,
+            "expected": 20,
+            "https_verified": 10
+          },
+          "socket_sk_mem_d": {
+            "client": 0,
+            "server": 0
+          },
+          "netdev_extra_drop": 0,
+          "strict_resource_errors": [],
+          "business_stage_latency_over_3s": 0,
+          "runner": {
+            "model": "AMD EPYC 7763 64-Core Processor",
+            "vcpus": 4,
+            "cgroup_quota_cores": null,
+            "cpu_psi_max_avg10_percent": 37.94
+          },
+          "product_cpu_seconds_total": 225.12,
+          "physical_lanes_actually_used": "NOT_SEPARATELY_PROVEN_FROM_PROFILE_OFF_SUMMARY; CONFIGURED_TWO",
+          "qualification": "ONLY_SOURCE_AA931D_THIS_GAME2_5205_MIXED_PROFILE_OFF_300S_ACTION_NOT_ALL_GAME_TRAFFIC_NOT_CPU_GAIN",
+          "cpu_gain": "UNPROVEN",
+          "artifact_zip_sha256": "b32a1f4c3f09481298a0007b3fecadee4445a09900a1d3eb8d763b3379e5a3cc",
+          "evidence": "docs/evidence/e4-oneparse-game2-staged5205-off-real-run37898379013-scoped-review.json"
         },
         "game4_lossless": {
           "state": "PASS_SCOPED_ACTIONS",
@@ -1979,14 +2065,22 @@
           "No cross-host CPU benefit claim and no hidden performance retest"
         ],
         "evidence": "docs/evidence/e4-oneparse-normal1-5205-profileoff-one-real-business-sample-intent-20261009.json"
+      },
+      "next_completed_action": {
+        "run_id": 37898379013,
+        "source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+        "scenario": "GAME2_MIXED_5205_SEED1842_PROFILE_OFF",
+        "original_analyzer": "PASS_SCOPED_ACTIONS",
+        "scope": "ONE_300S_RUN_ONLY",
+        "evidence": "docs/evidence/e4-oneparse-game2-staged5205-off-real-run37898379013-scoped-review.json"
       }
     }
   },
-  "next_task": "Verify exactly one new efficiency-e0 workflow Action after Game2 seed1842 config and strict workflow mode=game lanes2 rate3 change: source aa931d, 2 physically active lanes, 300s+3s, 5%-20%-5% qdisc, workload mixed, OFF. Inspect original summary/efficiency-ledger classification/issue arrays, stage UDP/probes, TCP flow hashes HTTP/HTTPS certs, native AF_PACKET skmem.d and netdev extra drops, CPU/PSI/cgroup quota/host, artifact ZIP and SHA256. If any FAIL, preserve and STOP; no rerun host shopping. Passing Game2 staged only grants one scoped protector, not product CPU gain nor historic ba8ed1 Game4 lossless root-cause closure. Next protectors source-specific Game2 lossless/low RTT and E7 separately require adjudication, don't saturate CI blindly.",
-  "latest_log": "docs/devlog/20261009-234000-e4-oneparse-game2-staged5205-off-single-sample-intent.md",
-  "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
-  "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
-  "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
+  "next_task": "STOP automatic reruns or VM shopping: Game2 oneparse aa931d staged5205 run37898379013 is originally PASS_SCOPED_ACTIONS, but 1 S2C 4068-byte UDP app datagram was missing specifically under 20% artificial-loss stress, not kernel AF_PACKET skmem.d (0). If prioritizing experience, next inspect code-only/old-artifact causal plausibility of this one app-level missing without concluding AF_PACKET root or altering queues, and review remaining low-RTT sparse protector and E7 ~80s S2C outage as distinct prioritized coverage. Before next 300s run, justify exactly one source/workload/seed/profileOFF Action and explicit failure hypothesis; do not compare CPU-s on EPYC7763 to 9V45/9V74 nor upgrade to 2 physical receive lanes from manifest alone. If no causal evidence, mark this scoped pass and move to E7 rather than another BPF/runner calibration loop. No main/canonical/physical change, no buffers or queue growth; product CPU gain UNPROVEN, original ba8ed1 Game4 socket-drops historical FAIL retained.",
+  "latest_log": "docs/devlog/20261009-235300-e4-oneparse-game2-staged5205-profileoff-real-action-verdict.md",
+  "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
+  "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
   "physical_status": "PARTIAL",
   "completed": [
     "Optimization implementation/testing sequence and runner-capacity policy documented",
@@ -1996,7 +2090,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 oneparse candidate aa931d passed Normal1 staged5205 profileOFF business Action37893778135 run-attempt2, strong resource and business scoped PASS, stress UDP missing22/35. One new Game2 2-lane 3Mbps mixed true5205 seed1842 OFF is awaiting Action; previous docs Foundation37898083128 must be green, source aa931d frozen. Prior ba8ed1 9V45 Game4 lossless drops33/86 OFF &42 ON still FAIL; CPU gain UNPROVEN.",
+    "Reviewed oneparse source aa931d Game2 true5/20/5% mixed 300s profileOFF run37898379013: original PASS_SCOPED_ACTIONS issues=[], qdisc actual stages correct, application UDP c2s 0 missing and s2c stress one 4068B datagram missing, 0 probes missing, 304 TCP flows each direction no mismatch, HTTP+HTTPS20/20 HTTPS cert10, AF_PACKET skmem.d0 client/server and link extra drops0. EPYC7763 CPU-s225.12 not a cross-host speed claim. No repeat test. Historic ba8ed1 9V45 Game4 lossless drops d33/d86 OFF/d42 ON retained; E7 deferred.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
