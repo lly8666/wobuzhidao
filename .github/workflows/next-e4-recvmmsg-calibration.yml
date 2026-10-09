@@ -20,10 +20,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git diff --name-only HEAD^ HEAD)" = ".github/e4-recvmmsg-calibration-case.json"
           python3 - <<'PY'
           import json,os,re,subprocess
           from pathlib import Path
+          # Match the repository's one STATUS + one new devlog contract without
+          # allowing executable changes in the calibration case commit.
+          changed=[row.split("\t",1) for row in subprocess.check_output(
+              ["git","diff","--name-status","HEAD^","HEAD"],text=True).splitlines()]
+          cases=[(status,path) for status,path in changed
+                 if path==".github/e4-recvmmsg-calibration-case.json"]
+          stat=[(status,path) for status,path in changed if path=="docs/STATUS.json"]
+          log=[(status,path) for status,path in changed
+               if path.startswith("docs/devlog/") and path.endswith(".md")]
+          assert len(changed)==3 and len(cases)==1 and len(stat)==1 and len(log)==1
+          assert cases[0][0] in ("A","M") and stat[0][0]=="M" and log[0][0]=="A"
           d=json.loads(Path(".github/e4-recvmmsg-calibration-case.json").read_text())
           assert set(d)=={"schema","case_id","mode","product_source_sha","fixture_git_blob","driver_git_blob","tracer_git_blob"}
           assert d["schema"]=="wbd-e4-synthetic-calibration-case/v1"

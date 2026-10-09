@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_EXPLICIT_CASE_POLICY_SYNTAX_FIX_TWO_FAILURES_RETAINED_FOUNDATION_PENDING",
+    "phase": "E4_CALIBRATION_CASE_STATUS_LOG_EXACT_DIFF_GUARD_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1491,13 +1491,16 @@
             "last_reason": "policy counted 3 occurrences of calibration script pathname (compile + execution + SHA allowlist), expected 2, instead of checking actual command patterns",
             "fix": "each of actual py_compile and sudo python script invocation exactly once",
             "state": "PENDING_FOUNDATION"
-          }
+          },
+          "case_commit_guard": "EXACT THREE PATHS: .github/e4-recvmmsg-calibration-case.json + docs/STATUS.json modified + one new docs/devlog/*.md",
+          "state": "PENDING_FOUNDATION",
+          "reason": "repository check_repository requires STATUS and one NEW devlog per commit; strict helper hash guard still active"
         }
       }
     }
   },
-  "next_task": "Verify next Foundation static policy validates exact one config-only branch push, one executable calibration command and compile, source Git SHA guarded mode/fixture, all Linux/Windows/race/TUN/TPROXY; preserve both preceding policy FAIL records. If complete green, push ONE independent config-only OFF case with exact fixture/driver/tracer hashes; read actual 12s output before ON. Do NOT trigger 300s Game4, increase buffers/queues, alter main/canonical; E4 root open CPU UNPROVEN E7 deferred.",
-  "latest_log": "docs/devlog/20261009-e4-calibration-policy-helper-hash-path-count-fix.md",
+  "next_task": "Verify Foundation for case commit guard exact 3 paths: A/M .github/e4-recvmmsg-calibration-case.json, M docs/STATUS.json, A exactly one docs/devlog/*.md, and all 3 helper SHA unchanged; no code changes in case commit. After full Foundation green, push one e4-off-01 case+STATUS+new devlog, inspect exactly one 12s synthetic workflow and full separate Foundation; if OFF valid, later one independent e4-on-01 commit, no in-run A/B. Product source ba8ed1 frozen and 300s Game4 no reruns. Matching calibration groups minimum 3 each CPU model/vCPU/quota/ELF SHA and stable PSI<=10%, no throttle/steal; absent remains NOT_CALIBRATED. E4 original socket-drop FAIL OPEN, CPU UNPROVEN E7 deferred.",
+  "latest_log": "docs/devlog/20261009-e4-calibration-case-status-new-log-whitelist.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1510,7 +1513,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 nonproduct case-only trigger policy Foundation37878736543 FAIL stale dispatch options, Foundation37878851060 FAIL script path count 3 vs 2 after SHA guard. Both are static policy bugs with no actual calibration Actions, no product runs. Third correction tests distinct py_compile vs sudo execution commands. Original 9V45 Game4 OFF client33/server86 and ON client42 resource FAIL remain ROOT OPEN.",
+    "E4 12s synthetic branch-only calibration requires explicit case file push, but repository contract also requires modified STATUS and new devlog. Guard now restricts each case commit to EXACT three paths with A/M states and unchanged fixture/tracer/driver source hashes; pending Foundation, not launched. Prior static policy failed Actions retained. Frozen ba8ed1 Game4 lossless 9V45 OFF socket33/86 and ON socket42 remain official FAIL, CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

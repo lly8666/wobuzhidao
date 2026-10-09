@@ -1,0 +1,29 @@
+{
+  "schema": "wbd-e4-explicit-case-metadata-audit-guard/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "c824089abf38c8107c614b11ae8ef8892ead73a7",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "trigger": ".github/e4-recvmmsg-calibration-case.json only",
+  "per_sample_commit_allowed": [
+    {
+      "path": ".github/e4-recvmmsg-calibration-case.json",
+      "status": "A or M"
+    },
+    {
+      "path": "docs/STATUS.json",
+      "status": "M"
+    },
+    {
+      "path": "docs/devlog/<newfilename>.md",
+      "status": "A"
+    }
+  ],
+  "max_changed_paths": 3,
+  "reason": "existing required check_repository.py demands STATUS + one newly added devlog every commit",
+  "security": "all helper SHA checked and NO tool/workflow/Go/file alteration in measurement commit",
+  "calibration_runs": 0,
+  "formal_old_failures": [
+    37857040784,
+    37871243581
+  ]
+}

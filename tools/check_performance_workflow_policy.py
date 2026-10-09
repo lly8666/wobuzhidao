@@ -107,8 +107,11 @@ if cal.count("      - \".github/e4-recvmmsg-calibration-case.json\"")!=1:
     errors.append("E4 calibration: config-trigger must be unique")
 if re.search(r"(?m)^\s+pull_request:",cal):
     errors.append("E4 calibration: PR measurement forbidden")
-if "git diff --name-only HEAD^ HEAD" not in cal or "unapproved_helper_change" not in cal:
-    errors.append("E4 calibration: config-only commit and frozen-helper guards required")
+if ('"git","diff","--name-status","HEAD^","HEAD"' not in cal or
+        'assert len(changed)==3 and len(cases)==1 and len(stat)==1 and len(log)==1' not in cal or
+        'stat[0][0]=="M" and log[0][0]=="A"' not in cal or
+        "unapproved_helper_change" not in cal):
+    errors.append("E4 calibration: exactly one case config, STATUS change, new devlog and frozen helpers required")
 if re.search(r"(?m)^\s+matrix:",cal):
     errors.append("E4 calibration: matrix/fanout forbidden")
 if cal.count("  one-nonproduct-calibration-case:\n")!=1:
