@@ -1,0 +1,83 @@
+{
+  "schema": "wbd-e4-recvmmsg-target-fd-256-event-kernel-integrity-receipt/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "helper_head": "f76b1bb786b9e88fce19d2cb88cff8c62cd1156d",
+  "product_source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "run_id": 37876138265,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37876138265",
+  "artifact_id": 11592840561,
+  "workflow": "next-foundation",
+  "conclusion": "SUCCESS",
+  "all_jobs_success": true,
+  "synthetic_test_suites": [
+    7,
+    4,
+    6,
+    8,
+    7,
+    10,
+    12,
+    7
+  ],
+  "kernel_fixture": {
+    "source": "tools/testdata/e4_recvmmsg_two_fd_256_events.c",
+    "target_fd": 30,
+    "decoy_fd": 31,
+    "target_recvmmsg_calls": 256,
+    "decoy_recvmmsg_calls": 256,
+    "kernel_verdict": "TARGET_256_EVENTS_MATCHED_FUNCTIONAL_ONLY",
+    "bpf_enters_on_selected_fd": 256,
+    "bpf_exits_on_selected_fd": 256,
+    "kernel_exit_tracepoint_fd_field": "not present; only matched OS-thread events from target-filtered enter",
+    "bpftrace_exit": 0,
+    "fixture_exit": 0,
+    "duration_s": 5,
+    "independent_network_or_app_load": false,
+    "high_pps_cpu_overhead_qualified": false,
+    "first_packet_wait_excluded_from_causal_conclusion": true
+  },
+  "reference_fixtures": {
+    "trace_attach": "TRACEPOINT_ATTACH_ONLY",
+    "two_normal_calls": "TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY",
+    "two_target_two_decoy": "TWO_FD_TARGET_ONLY_FUNCTIONAL"
+  },
+  "artifact_sha256": {
+    "e4-recvmmsg-tracepoint-capability.json": "bca407dc6521ee5916da71b8809689f4307700cf2728754a6dccc5cfea8e1358",
+    "e4-recvmmsg-functional.json": "e4cfd9584a177d3610539907b566b684207f9c6d4ef9bafa21123a497ff38de5",
+    "e4-recvmmsg-two-fd.json": "59a74e1d89bbc0f8a949080f77ebfcc7e225857fe5204c4d6e7f7be2408d54f8",
+    "e4-recvmmsg-two-fd-256.json": "2852d8c6d045eba6b49ff7bb2802c900a6ab11fe184979194f24d7f484b4044e"
+  },
+  "prior_failure": {
+    "run_id": 37875503896,
+    "status": "FAIL",
+    "cause": "brittle synthetic assert 2 vs 3 occurrences; not actual kernel bpf error; original history retained",
+    "fix_commit": "5f9544ba5afd4bcbea845319a02ed5911c182120"
+  },
+  "pre_stress_limitations": [
+    "Only one short 256 call sample; cannot infer 100% kernel capture on millions of recvmmsg in a 300s workload",
+    "No tracer-vs-baseline host-matched CPU-s or p99 overhead measurement",
+    "No Go raw recv goroutine lifecycle attribution nor exact kernel AF_PACKET drop timestamp",
+    "No product process trace ever executed: synthetic process and local AF_UNIX socketpairs only",
+    "PID reuse, FD reuse, cgroup/runner differences remain potential causes of wrong interpretation when attaching to a product process"
+  ],
+  "formal_game4_historical_failures": [
+    {
+      "run_id": 37857040784,
+      "profile": "OFF",
+      "cpu": "EPYC9V45",
+      "client_sk_mem_d": 33,
+      "server_sk_mem_d": 86
+    },
+    {
+      "run_id": 37871243581,
+      "profile": "ON",
+      "cpu": "EPYC9V45",
+      "client_sk_mem_d": 42,
+      "server_sk_mem_d": 0
+    }
+  ],
+  "official_product_gate": "FAIL_UNCHANGED",
+  "cpu_gain": "UNPROVEN",
+  "e7": "OPEN_DEFERRED",
+  "next": "ONE_CASE_PER_ACTION_SYNTHETIC_OVERHEAD_CALIBRATION_NEEDS_DESIGN"
+}

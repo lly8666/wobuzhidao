@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_PID_FD_TARGET_REAL_SMOKE_SUCCESS_256_EVENT_INTEGRITY_NONPERF_PENDING",
+    "phase": "E4_RECVMMSG_TARGET_FD_FILTER_AND_256_EVENT_INTEGRITY_GREEN_OVERHEAD_UNMEASURED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1381,7 +1381,7 @@
         "latest_foundation": 37873954093,
         "latest_foundation_result": "SUCCESS",
         "latest_fd_filter": {
-          "state": "REAL_TWO_FD_TARGET_ONLY_PASS_37875639024_NEXT_256_EVENTS_PENDING",
+          "state": "PASS_37876138265_TARGET256_DECOY256_EXACT_ENTERS_EXITS",
           "helper": "tools/afpacket_recvmmsg_tracepoint.py",
           "target_fd": "enter tracepoint args.fd==30",
           "exit_pairing": "target-enter armed matched OS thread; all other fd excluded; per-thread previous_exit not process-wide",
@@ -1412,17 +1412,25 @@
           "real_artifact_id": 11592670187,
           "real_scope": "AF_UNIX target fd30 2 recvmmsg; decoy fd31 2 recvmmsg; eBPF enter2/exit2/gap1",
           "synthetic_burst": "target fd30 256 recvmmsg and decoy fd31 256 in one process; exact-count pending Foundation",
-          "event_integrity_proven_under_load": false,
+          "event_integrity_proven_under_load": "ONLY_SHORT_SYNTHETIC_256_TARGET_PLUS_256_DISTRACTOR",
           "overhead_calibration": "NOT_RUN",
           "new_business_samples": 0,
-          "evidence": "docs/evidence/e4-recvmmsg-dual-fd-real-attach-success-bounded-256-event-intent-20261009.json"
+          "evidence": "docs/evidence/e4-recvmmsg-dual-fd-real-attach-success-bounded-256-event-intent-20261009.json",
+          "artifact_id": 11592840561,
+          "foundation_run": 37876138265,
+          "foundation": "SUCCESS",
+          "event_scope": "Synthetic AF_UNIX target fd30 exactly 256 recvmmsg enters and exits; fd31 256 recvmmsg excluded by pid+fd filter; five-second fixture",
+          "high_pps_losslessness": "NOT_PROVEN",
+          "true_kernel_drop_root": "OPEN",
+          "result_evidence": "docs/evidence/e4-recvmmsg-256-target-256-decoy-in-kernel-foundation-success-20261009.json",
+          "independent_business_runs": 0
         },
-        "state": "ATTACH_EVENT_FD_INODE_PRECHECK_GREEN_PID_FD_EVENT_ISOLATION_PENDING"
+        "state": "KERNEL_TARGET_FD_INTEGRITY_SCOPED_PASS_OVERHEAD_NOT_VALIDATED"
       }
     }
   },
-  "next_task": "Read next Foundation 5s AF_UNIX 256 target fd30 +256 distractor fd31: require exact BPF @enters=256, @exits=256, no unpaired enter, ignored decoy, zero fixture/bpftrace exit, status TARGET_256_EVENTS_MATCHED_FUNCTIONAL_ONLY and full Linux/Windows/race/TUN/TPROXY/fallback; if it fails, preserve failure and correct test/tool only. Any pass is synthetic event-completeness for one 512-syscall local fixture, NOT safe performance overhead. Then independent per-Action one-case traced/untraced high-PPS calibration in same-resource strata or mark overhead NOT_VALIDATED. Do not touch frozen ba8ed1 product/raw kernel socket receive buffers/queues, do not dispatch another Game4 300s until observable root-cause and perturbation budget justified. Prior same-model 9V45 OFF d33/86 and ON d42 official FAIL stay OPEN, CPU gain UNPROVEN, E7 OPEN_DEFERRED.",
-  "latest_log": "docs/devlog/20261009-e4-two-fd-kernel-smoke-pass-and-256-event-integrity-gate.md",
+  "next_task": "E4 next gate: independently validate kernel tracepoint interference and lost-event bounds under a representative synthetic raw receiver syscall rate, using distinct Actions single-case single-job per baseline-vs-PID+recvFD trace mode, never A/B within one run, no unqualified normalization across CPU/host strata. Record known generated recvmmsg counts vs in-kernel enter/exit, map lost/overflow or unknown, separate fixture CPU-s, tracer CPU-s, memory, p99/high tails, host CPU model/vCPU/PSI/steal/cgroup quota; require predefined budget and overlapping baseline/tracer strata or mark NOT_CALIBRATED. Do not run another Game4 300s or change frozen ba8ed1 product until overhead and causal evidence justify. 5s 256+256 synthetic pass is NOT this overhead gate; Go receiver goroutine state still NOT_OBSERVED. Prior 9V45 OFF client33/server86 and ON client42 resource FAIL remain; E7 OPEN_DEFERRED, Normal/Game protectors hold, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e4-recvmmsg-kernel-256-256-event-integrity-scoped-pass.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1435,7 +1443,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 nonproduct PID+FD syscall filtering fixture Foundation37875639024 complete SUCCESS, JSON proof target fd30 exactly 2 exits with decoy fd31 twice excluded, separate single-fd fixture green; sha256 archived. Next bounded 256 target+256 decoy recvmmsg event integrity smoke pending Foundation. 9V45 OFF Game4 socket d33/86 FAIL and ON d42 FAIL unchanged, CPU gain UNPROVEN; no product/300s reruns.",
+    "E4 external Linux kernel recvmmsg diagnostics have scoped Foundation SUCCESS: native two-second attach; synthetic 2 syscall /60ms gap; exact /proc AF_PACKET socket recvFD; 2 target+2 decoy; now bounded 256 target +256 decoy eBPF count exact on 5s fixture in Foundation37876138265, raw artifact verified SHA256. No high-PPS observer CPU/latency overhead qualification; original EPYC9V45 OFF d33/86 and ON d42 Game4 lossless socket-drop resource FAIL remain OPEN; CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
