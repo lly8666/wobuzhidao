@@ -79,6 +79,27 @@ CAP_PIDS+=("$!")''')
     if os.environ.get("WBD_EFF_DIAGNOSTIC", "0") == "0":
         swap('--diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s', '')
         swap('--diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s', '')
+    # Profile ON only, two bounded in-netns 100ms skmem observers.
+    # The frozen product and profile OFF helpers never execute this path.
+    if os.environ.get("WBD_EFF_DIAGNOSTIC", "0") == "1":
+        swap('SAMPLER_PID=""\nKEY=""',
+             'SAMPLER_PID=""\nBURST_CLIENT_PID=""\nBURST_SERVER_PID=""\nKEY=""')
+        swap('for pid in "$BIZ_PID" "$TGT_PID" "$WEB_BIZ_PID" "$WEB_TGT_PID" "$STAGE_PID" "$SAMPLER_PID" "$CLIENT_PID" "$SERVER_PID"; do',
+             'for pid in "$BIZ_PID" "$TGT_PID" "$WEB_BIZ_PID" "$WEB_TGT_PID" "$STAGE_PID" "$SAMPLER_PID" "$BURST_CLIENT_PID" "$BURST_SERVER_PID" "$CLIENT_PID" "$SERVER_PID"; do')
+        swap('SAMPLER_PID="$!"',
+             '''SAMPLER_PID="$!"
+# Only numerical AF_PACKET counters and exact per-ss monotonic timing.
+ip netns exec "$CLI" python3 "$GITHUB_WORKSPACE/tools/afpacket_socket_probe.py" --side client --business-start-ns "$START_NS" --output "$ART/client-packet-probe.jsonl" > "$ART/client-packet-probe.log" 2>&1 &
+BURST_CLIENT_PID="$!"
+ip netns exec "$SRV" python3 "$GITHUB_WORKSPACE/tools/afpacket_socket_probe.py" --side server --business-start-ns "$START_NS" --output "$ART/server-packet-probe.jsonl" > "$ART/server-packet-probe.log" 2>&1 &
+BURST_SERVER_PID="$!"''')
+        swap('kill -TERM "$SAMPLER_PID" 2>/dev/null || true',
+             '''kill -TERM "$BURST_CLIENT_PID" "$BURST_SERVER_PID" 2>/dev/null || true
+wait "$BURST_CLIENT_PID" 2>/dev/null || true
+wait "$BURST_SERVER_PID" 2>/dev/null || true
+BURST_CLIENT_PID=""
+BURST_SERVER_PID=""
+kill -TERM "$SAMPLER_PID" 2>/dev/null || true''')
     def replace_role(role,bind,peer,out):
         nonlocal s
         patt=r'^ip netns exec "\$'+('TGT' if role=='target' else 'BIZ')+r'" python3 "\$GEN".*$'
@@ -113,6 +134,7 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
     "scripts/strict_weaknet_sample.sh",
     "scripts/build_seeded_tc.sh",
     "tools/strict_resource_sampler.py",
+    "tools/afpacket_socket_probe.py",
     "tools/large_mtu_mixed_business.py",
     "tools/efficiency_http_https.py",
     "tools/large_mtu_loss_stage.py",

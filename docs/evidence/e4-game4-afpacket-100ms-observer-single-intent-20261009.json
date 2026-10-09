@@ -1,0 +1,75 @@
+{
+  "schema": "wbd-e4-afpacket-100ms-one-sample-diagnostic-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "debf470e6875705e9a94ac0efe9523a598039246",
+  "helper_sha": "COMMIT_AT_THIS_CHANGE",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "single_sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1840,
+    "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "run_id": null,
+  "artifact_id": null,
+  "original_analyzer": "NOT_RUN",
+  "new_network_samples": 1,
+  "profile_on_only": true,
+  "diagnostic": {
+    "sides": [
+      "client",
+      "server"
+    ],
+    "interval_ms": 100,
+    "max_rows_each": 4096,
+    "max_ss_timeout_ms": 400,
+    "per_ss_clock_bracket": "Linux CLOCK_MONOTONIC before/after invocation",
+    "native_ss": "ss -0 -a -m -n inside corresponding netns",
+    "numerical_data_only": [
+      "skmem.r",
+      "skmem.rb",
+      "skmem.d",
+      "cpu_psisome_avg10",
+      "bracket_s"
+    ],
+    "packet_or_address_capture": false,
+    "original_1s_sampler_preserved": true,
+    "original_business_workload_unchanged": true
+  },
+  "old_off_fail": {
+    "run_id": 37857040784,
+    "original": "FAIL",
+    "drops": {
+      "client": 33,
+      "server": 86
+    },
+    "real_business_time_windows_s": {
+      "server": [
+        86.052515,
+        87.052582
+      ],
+      "client": [
+        142.052521,
+        143.052518
+      ]
+    }
+  },
+  "prior_on_pass": {
+    "run_id": 37863612374,
+    "host": "EPYC9V74",
+    "original": "PASS_SCOPED_ACTIONS",
+    "kernel_socket_drop": 0
+  },
+  "guardrails": [
+    "same frozen product ba8ed1",
+    "no buffer, queue, wire or CPU baseline changes",
+    "sidecars are not separate performance samples",
+    "diagnostic ON CPU overhead prevents OFF cost comparison",
+    "new host cannot prove prior 9V45 root; no repeated host shopping"
+  ]
+}

@@ -79,6 +79,7 @@ jobs:
           python3 -m py_compile tools/large_mtu_mixed_business.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_resource_report.py tools/large_mtu_loss_stage.py tools/efficiency_http_https.py tools/efficiency_cost_ledger.py tools/test_efficiency_5205_waveform.py tools/test_efficiency_5205_phase_delivery.py
           python3 tools/test_efficiency_5205_waveform.py
           python3 tools/test_efficiency_5205_phase_delivery.py
+          python3 -m unittest discover -s tools -p 'test_afpacket_socket_probe.py' -v
           # Fail before the 300s sample if any helper CLI forgets the configured profile.
           python3 tools/large_mtu_mixed_business.py --help | grep -Fq '{ordinary,jumbo,boundary}'
           python3 tools/check_large_mtu_mixed.py --help | grep -Fq '{ordinary,jumbo,boundary}'
@@ -118,6 +119,27 @@ jobs:
           sudo --preserve-env=GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_FEC_PARITY,WBD_STRICT_FEC_SCREEN,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS,WBD_LARGE_WORKLOAD,WBD_LARGE_LOSS,WBD_EFF_SIZE_PROFILE \
             env GITHUB_SHA="$PRODUCT_SOURCE" WBD_HARNESS_SHA="$WBD_HELPER_SOURCE" \
               WBD_STRICT_ARTIFACT_DIR="$ART" bash "$ART/generated.sh"
+      - name: Audit opt-in 100ms AF_PACKET numerical traces
+        id: probe_audit
+        if: always()
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [[ "$WBD_EFF_DIAGNOSTIC" == "1" ]]; then
+            python3 - "$ART" <<'PY'
+          import json,sys
+          from pathlib import Path
+          root=Path(sys.argv[1])
+          for side in ("client","server"):
+              p=root/(side+"-packet-probe.jsonl")
+              rows=[json.loads(x) for x in p.read_text().splitlines() if x.strip()]
+              assert 1000<=len(rows)<=4096,(side,"sample_count",len(rows))
+              assert rows[-1]["business_elapsed_bracket_s"][1]>250,(side,"coverage")
+              assert all(x["schema"]==1 and x["side"]==side and x["ss_end_monotonic_ns"]>=x["ss_start_monotonic_ns"] for x in rows)
+              assert sum(x["ss_ok"] for x in rows)>=.95*len(rows),(side,"ss_unavailable")
+              print("AF_PACKET_PROBE_DIAGNOSTIC_ONLY",side,"samples",len(rows))
+          PY
+          fi
       - name: Enforce true profile-off measurement
         if: always()
         run: |
@@ -184,6 +206,8 @@ jobs:
             ${{ env.ART }}/biz-http.log
             ${{ env.ART }}/target-http.log
             ${{ env.ART }}/client-diag.jsonl
+            ${{ env.ART }}/client-packet-probe.jsonl
+            ${{ env.ART }}/server-packet-probe.jsonl
             ${{ env.ART }}/server-diag.jsonl
             ${{ env.ART }}/client-cpu-top.txt
             ${{ env.ART }}/server-cpu-top.txt
@@ -206,6 +230,7 @@ jobs:
           SAMPLE: ${{ steps.sample.outcome }}
           ANALYZER: ${{ steps.analyze.outcome }}
           LEDGER: ${{ steps.ledger.outcome }}
+          PROBE_AUDIT: ${{ steps.probe_audit.outcome }}
         run: |
           echo "sample=$SAMPLE analyzer=$ANALYZER ledger=$LEDGER"
-          test "$SAMPLE" = success && test "$ANALYZER" = success && test "$LEDGER" = success
+          test "$SAMPLE" = success && test "$ANALYZER" = success && test "$LEDGER" = success && { [[ "$WBD_EFF_DIAGNOSTIC" != 1 ]] || [[ "$PROBE_AUDIT" = success ]]; }
