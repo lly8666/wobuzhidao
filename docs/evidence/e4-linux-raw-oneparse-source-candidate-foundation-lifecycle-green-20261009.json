@@ -1,0 +1,66 @@
+{
+  "schema": "wbd-e4-product-raw-receive-oneparse-foundation-lifecycle-receipt/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "product_candidate_code_commit": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "original_formal_business_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "change": "Single ParseIPv4TCP borrowed-frame validation+filter, single accepted-frame owned copy, rebase only payload slice using verified IP and TCP header offset. Original Parse(owned) removed from accepted frame hot path.",
+  "review": {
+    "duplicate_parse_in_baseline": true,
+    "code_path": "internal/faketcp/raw_linux.go ReadSegment -> rawOwnedParsedIPv4TCP",
+    "no_added_buffers_or_queues": true,
+    "no_extra_app_traffic": true
+  },
+  "foundation": {
+    "run_id": 37882854877,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37882854877",
+    "conclusion": "SUCCESS",
+    "jobs_success": 8,
+    "test_areas": [
+      "Go linux/windows unit",
+      "Linux race",
+      "Linux arm64 cross compile",
+      "privileged OpenWrt TPROXY",
+      "privileged shared TUN nft",
+      "privileged shared TUN iptables",
+      "kernel fallback",
+      "synthetic bounded packet FD tests"
+    ]
+  },
+  "lifecycle": {
+    "run_id": 37882854858,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37882854858",
+    "conclusion": "SUCCESS",
+    "jobs_success": 1
+  },
+  "new_test_cases": [
+    "plain-payload",
+    "ethernet-padding-excluded",
+    "syn-options-zero-payload",
+    "sack-options-payload"
+  ],
+  "test_semantics": "Metadata/wire byte-for-byte compare against original rawOwnedIPv4TCP copy+reparse plus scratch mutation and existing receive batch semantics",
+  "user_impact_claim": "UNPROVEN",
+  "cpu_s_optimized_vs_baseline": "NOT_MEASURED",
+  "socket_drop_root": "NOT_ESTABLISHED",
+  "formal_game4_new_source": "NOT_RUN",
+  "original_game4_formal_failures": [
+    {
+      "run_id": 37857040784,
+      "mode": "PROFILE_OFF",
+      "cpu": "EPYC9V45",
+      "client_packet_socket_drop": 33,
+      "server_packet_socket_drop": 86
+    },
+    {
+      "run_id": 37871243581,
+      "mode": "PROFILE_ON",
+      "cpu": "EPYC9V45",
+      "client_packet_socket_drop": 42,
+      "server_packet_socket_drop": 0
+    }
+  ],
+  "diagnostic_overinvestment_disposition": "PARKED; stop further VM/bpftrace/cgroup sample development until a direct user-impact question merits it",
+  "no_product_300s_dispatched": true,
+  "e7": "OPEN_DEFERRED",
+  "next_action": "One well-defined real-source business protector if justified; otherwise block gains instead of more tooling."
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_DIRECT_LINUX_RAW_READ_SINGLE_PARSE_CANDIDATE_FOUNDATION_PENDING_NOT_QUALIFIED",
+    "phase": "E4_PRODUCT_RECEIVE_SINGLE_PARSE_FUNCTIONAL_GREEN_NEW_SOURCE_BUSINESS_GATE_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1568,7 +1568,7 @@
         }
       },
       "raw_receive_single_parse_candidate": {
-        "status": "PENDING_FOUNDATION_NOT_PERFORMANCE_QUALIFIED",
+        "status": "FOUNDATION_AND_LIFECYCLE_SUCCESS_PERFORMANCE_NOT_QUALIFIED",
         "historical_qualified_product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
         "product_files": [
           "internal/faketcp/raw_linux.go",
@@ -1588,16 +1588,42 @@
         ],
         "no_new_300s_sample": true,
         "test_workflow": "next-foundation",
-        "byte_integrity": "PENDING_FOUNDATION",
+        "byte_integrity": "PASS_IN_FOUNDATION_LINUX_UNIT",
         "cpu_gain": "UNPROVEN",
         "game4_lossless_resource_gate": "FAIL_FROM_PREVIOUS_SOURCE_NOT_REQUALIFIED",
         "e7": "OPEN_DEFERRED",
-        "evidence": "docs/evidence/e4-linux-raw-oneparse-owned-copy-candidate-20261009.json"
+        "evidence": "docs/evidence/e4-linux-raw-oneparse-owned-copy-candidate-20261009.json",
+        "candidate_source_commit": "aa931d5822a5378c48bf0763216f0446a5af8683",
+        "candidate_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+        "frozen_historical_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+        "foundation": {
+          "run_id": 37882854877,
+          "conclusion": "SUCCESS",
+          "non_skipped_job_count": 8,
+          "jobs": [
+            "repository-contract",
+            "active-go-tests ubuntu-24.04",
+            "active-go-tests windows-2022",
+            "p4-openwrt-tproxy-privileged",
+            "p4-linux-shared-tun-privileged nft",
+            "p4-linux-shared-tun-privileged iptables",
+            "p2-kernel-fallback",
+            "e4-recvmmsg-tracepoint-capability"
+          ]
+        },
+        "lifecycle": {
+          "run_id": 37882854858,
+          "conclusion": "SUCCESS",
+          "job": "core"
+        },
+        "tcp_option_and_tail_padding_tests": "PASS_IN_FOUNDATION_LINUX_UNIT",
+        "formal_lossless_game4": "NOT_RUN_THIS_CANDIDATE",
+        "historical_failures_remain_original": true
       }
     }
   },
-  "next_task": "FIRST confirm new Foundation on candidate commit: Linux Go/race, Windows unaffected, OpenWrt TPROXY, two TUN backends, kernel fallback, new 4-case raw packet options/tail-padding and already existing 16-prequeued + sparse-first-receive/alias tests. If any failure, fix or REVERT ONLY this candidate preserving run failure; do not update formal source sha ba8ed1 or inherit prior Game4 pass. On Foundation green, candidate remains NON_PERF_QUALIFIED until independent one-case scope-correct business protector and CPU evidence; no immediate 300s dispatch while 9V45 socket-drop causal root unknown. Next decide if static elimination of second parse merits a single bounded independent technical CPU bench without expanding matrix, or reject candidate as no material bottleneck. STOP further hosted VM/cgroup calibration and BPF event fixtures as diminishing returns. E4 old 9V45 OFF d33/86 and ON d42 formal FAIL, CPU gain UNPROVEN; E7 OPEN_DEFERRED.",
-  "latest_log": "docs/devlog/20261009-e4-cut-instrumentation-rabbit-hole-single-parse-hotpath-candidate.md",
+  "next_task": "Stay focused on actual user's game delivery, do NOT restart BPF/cgroup runner calibration, new telemetry frameworks or host-shopping. This new Linux one-parse candidate code SOURCE aa931d5822a5378c48bf0763216f0446a5af8683 has 8-job Foundation37882854877 SUCCESS and Lifecycle37882854858 SUCCESS, but all ba8ed1 historical business PASS/FAIL are source-scoped and cannot qualify it. Next justify at most ONE bounded, source-pinned, real client/TUN/server business protection sample, preferably pre-existing Game4 true5205 or sparse-first-arrival scenario, with preserved hard gates (no socket/interface drops; no HOL; UDP/TCP/HTTPS correct; default 100ms). Before dispatch, predefine success/failure and host comparability; if cannot justify from current evidence then mark CPU effect UNPROVEN and do not sample. Never claim 9V45 zero-loss socket drops solved; original OFF 33/86 and ON 42 formal FAIL remain. No buffer increase, no protocol changes or canonical/main push. E7 80s S2C outage OPEN_DEFERRED until source protections/E6.",
+  "latest_log": "docs/devlog/20261009-e4-oneparse-source-candidate-foundation-and-lifecycle-green.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1610,7 +1636,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 moved back to product work from excessive BPF/hosted runner calibration: one narrowly scoped Linux raw ReadSegment candidate avoids duplicate TCP ParseIPv4TCP on accepted frames while retaining early address/port filter, exact owned wire copy and tail-padding-safe payload rebase; NEW SOURCE UNQUALIFIED pending Foundation, old frozen ba8ed1 Game4 OFF9V45 socket client33/server86 and ON client42 formal FAIL remain. 12s synthetic observer OFF sample ineligible, no more BPF calibration runs or new 300s Game4. CPU gain UNPROVEN E7 deferred.",
+    "User-value correction: STOP excessive bpftrace/cgroup/VM calibration as rabbit hole; Linux raw ReadSegment removes redundant second ParseIPv4TCP of accepted IPv4/TCP; retains owned packet/TCP options/padding/first arrival. Candidate code SOURCE aa931d58 Foundation37882854877 all 8 jobs SUCCESS and Lifecycle37882854858 SUCCESS. New product SOURCE not yet one real Game4 protector nor CPU-s, no formal CPU gain. Old SOURCE ba8ed1 profileOFF lossless 9V45 client33/server86 and ON same-model client42 kernel socket-drop resource FAIL remain OPEN; E7 ~80s S2C stalled DEFERRED.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
