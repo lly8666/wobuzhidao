@@ -1,0 +1,76 @@
+{
+  "schema": "wbd-e1-uniform32-real-udp-netns-and-sparse-wire-cost-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "6757bc6e07172be464321e97b46b869e869dcdd8",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "user_requested_actions": "multiple independent checks for existing 32ms without changing production hot path; preserve one sample/job/run",
+  "ci_workflows": [
+    "next-foundation",
+    "next-lifecycle",
+    "next-e1-sparse-real-15ms-netem"
+  ],
+  "test_code": "internal/linkdata/e1_sparse_real_netem_linux_test.go",
+  "scope": "Linux kernel UDP loopback netns with tc netem one-way15ms; LINK FEC20:20 only, not full FakeTCP/TUN",
+  "environment": {
+    "private_netns": true,
+    "device": "lo",
+    "loss_rule": "one source shard deliberately not sent by fixture",
+    "delay_ms": 15,
+    "no_traffic_outside_namespace": true,
+    "requires_privileged_ci": true
+  },
+  "assertions": [
+    "first application UDP payload 1372B fragments at source MTU1200; deliberately suppress one systematic FEC shard",
+    "parity emitted at first+32ms; 1372B recovered once through real 15ms socket",
+    "independent fresh 96B emitted at first+45ms; received before own parity and no cross-flow HOL",
+    "no duplicate delivery from later parity; timer retired",
+    "measured parity/fresh source-to-receive >=5ms to detect absent netem"
+  ],
+  "resource_proxy": {
+    "status": "PENDING_ACTION",
+    "same_logical_source_packets": 30,
+    "source_size": 96,
+    "interarrival_ms": 12,
+    "parity": "FEC 20:20",
+    "comparison_deadlines_ms": [
+      8,
+      32
+    ],
+    "metrics": [
+      "source count",
+      "source wire bytes",
+      "parity shard count",
+      "parity wire bytes"
+    ],
+    "claim": "Expected lower parity wire bytes on 32ms, NOT actual CPU gain or matched-host CPU test"
+  },
+  "known_business_scope_32ms": [
+    {
+      "kind": "Normal1 lossless",
+      "run_id": 37922038550,
+      "result": "PASS_SCOPED_ACTIONS"
+    },
+    {
+      "kind": "Normal1 staged5205",
+      "run_id": 37924613499,
+      "result": "PASS_SCOPED_ACTIONS"
+    },
+    {
+      "kind": "Game2 lossless",
+      "run_id": 37925722025,
+      "result": "PASS_SCOPED_BUSINESS_ACTUAL_2_LANES_NOT_OBSERVED"
+    },
+    {
+      "kind": "Game2 staged5205",
+      "run_id": 37926864614,
+      "result": "PASS_SCOPED_BUSINESS_ACTUAL_2_LANES_NOT_OBSERVED"
+    }
+  ],
+  "limits": [
+    "No production code change; no size classifier added",
+    "No fullstack source-to-target 15ms claim until real harness + sparse sender",
+    "No new 300s E1 sample or CPU speedup claim",
+    "E7 80s downstream deferred",
+    "Historical Game4 EPYC9V45 packet socket drops still FAIL"
+  ]
+}
