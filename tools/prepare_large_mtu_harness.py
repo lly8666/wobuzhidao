@@ -15,7 +15,10 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--output",required=True)
     p.add_argument("--workload",choices=["udp","tcp","mixed"],required=True)
-    p.add_argument("--loss",type=int,choices=[0,5,20,30,5205],required=True)
+    p.add_argument("--loss",type=int,choices=[0,1,5,20,30,5205],required=True)
+    p.add_argument("--fec-experiment",action="store_true")
+    p.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
+    p.add_argument("--delay-ms",type=int,default=300,choices=[15,300])
     x=p.parse_args()
     original=Path("scripts/strict_weaknet_sample.sh").read_text()
     s=original
@@ -172,11 +175,54 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
         "client_ingress": "TPROXY; no client TUN in this Linux strict topology",
         "outer_connection_mtu": 1400, "route_mode": "all",
         "netem_loss_both_directions_percent": ("waveform:5-20-5" if os.environ["WBD_LARGE_LOSS"]=="5205" else int(os.environ["WBD_LARGE_LOSS"])),''')
+
+    if x.fec_experiment:
+        # Exact, opt-in copy of the existing FIVE-NETNS fullstack scenario;
+        # default generator output and formal qualification remain unchanged.
+        if x.loss not in (0,1,5) or x.duration_s not in (15,120) or x.delay_ms not in (15,300):
+            raise ValueError("FEC case outside narrow experiment scope")
+        swap('SFX="$"', 'SFX="${WBD_FEC_CASE_SFX:?}"')
+        swap('delay 300ms', 'delay ${WBD_FEC_DELAY_MS}ms', 2)
+        swap('--fixed-loss "$WBD_LARGE_LOSS" --output',
+             '--fixed-loss "$WBD_LARGE_LOSS" --duration-s "$WBD_FEC_DURATION_S" --delay-ms "$WBD_FEC_DELAY_MS" --drain-s 3 --output')
+        swap('--helper "$WBD_HARNESS_SHA" --output',
+             '--helper "$WBD_HARNESS_SHA" --duration-s "$WBD_FEC_DURATION_S" --output', 4)
+        swap('workflow_rel = ".github/workflows/next-efficiency-e0-single.yml"',
+             'workflow_rel = ".github/workflows/next-fec-policy-sequential.yml"')
+        swap('"tools/prepare_large_mtu_harness.py",',
+             '"tools/prepare_large_mtu_harness.py",\n    "tools/fec_policy_batch.py",')
+        swap('"one_way_delay_ms": 300',
+             '"one_way_delay_ms": int(os.environ["WBD_FEC_DELAY_MS"])')
+        swap('"duration_s": 300',
+             '"duration_s": int(os.environ["WBD_FEC_DURATION_S"])')
+        swap('[[0,300,int(os.environ["WBD_LARGE_LOSS"])] ]',
+             '[[0,int(os.environ["WBD_FEC_DURATION_S"]),int(os.environ["WBD_LARGE_LOSS"])] ]')
+        # Only FEC/MTU/record/lane options, not credentials or raw argv.
+        swap('kill -0 "$CLIENT_PID"\n', """kill -0 "$CLIENT_PID"
+python3 - "$CLIENT_PID" "$SERVER_PID" "$ART" <<'PY_FEC_FLAGS'
+import json,sys
+from pathlib import Path
+flags=("--fec-parity","--mtu","--client-record-limit","--server-record-limit","--lanes")
+row={}
+for name,pid in (("client",sys.argv[1]),("server",sys.argv[2])):
+    argv=Path("/proc/"+pid+"/cmdline").read_bytes().decode().split("\\0")
+    row[name]={flag:argv[argv.index(flag)+1] for flag in flags if flag in argv and argv.index(flag)+1<len(argv)}
+Path(sys.argv[3],"runtime-flags.json").write_text(json.dumps(row,indent=2))
+PY_FEC_FLAGS
+""")
+        swap('  echo "cpu.max:"\n', """  echo "cpu.max:"
+  echo "cpuset:"; cat /sys/fs/cgroup/cpuset.cpus.effective 2>/dev/null || true
+  echo "cpu.psi:"; cat /proc/pressure/cpu 2>/dev/null || true
+  echo "memory.psi:"; cat /proc/pressure/memory 2>/dev/null || true
+  echo "steal-softirq:"; grep '^cpu ' /proc/stat || true
+""")
+
     Path(x.output).write_text(s)
     Path(x.output+".receipt.json").write_text(json.dumps({
         "schema":"wbd-large-mtu-harness-template/v1",
         "original_sha256":hashlib.sha256(original.encode()).hexdigest(),
         "generated_sha256":hashlib.sha256(s.encode()).hexdigest(),
-        "workload":x.workload,"loss":x.loss,"one_sample":True},indent=2))
+        "workload":x.workload,"loss":x.loss,"one_sample":not x.fec_experiment,
+        "fec_experiment":x.fec_experiment,"duration_s":x.duration_s,"delay_ms":x.delay_ms},indent=2))
 
 if __name__=="__main__":main()
