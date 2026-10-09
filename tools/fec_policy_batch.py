@@ -25,7 +25,7 @@ def cases(batch="A"):
     return result
 def validate(d):
     if set(d)!={"schema","phase","batch","source_sha","nonce"}:raise ValueError("batch schema keys")
-    if d["schema"]!="wbd-fec-policy-batch/v1" or d["batch"]!="A" or d["phase"] not in ("preflight","pilot","batch_a","batch_b") or d["source_sha"]!=SOURCE or type(d["nonce"]) is not int or d["nonce"]<1:raise ValueError("batch plan not authorized")
+    if d["schema"]!="wbd-fec-policy-batch/v1" or d["batch"] not in ("A","B") or d["phase"] not in ("preflight","pilot","batch_a","batch_b") or d["source_sha"]!=SOURCE or type(d["nonce"]) is not int or d["nonce"]<1:raise ValueError("batch plan not authorized")
     if (d["batch"]=="B") != (d["phase"]=="batch_b"):
         raise ValueError("batch B requires the exact batch_b phase")
     out=cases(d["batch"])

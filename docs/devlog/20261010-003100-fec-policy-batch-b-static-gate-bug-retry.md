@@ -1,0 +1,7 @@
+# FEC B 300 ms first Actions static failure and narrow retry — 2026-10-10
+
+First B attempt: https://github.com/lly8666/wobuzhidao/actions/runs/37958978378, helper 8ff7c6ffdf27e41b003f5449e05e49bb56dc09fd, job 113916652836, outcome FAILURE at "Static repository and scoped serial policy gate"; phase and 12-case workload steps SKIPPED; NO real business measurement, NO performance evidence, NO uploaded numerical data. This is a real historical FAIL and must not be relabelled as a measurement PASS.
+
+Root cause in tools/fec_policy_batch.py validate(): B phase was added and gated, but the earlier A-only d["batch"]!="A" rejection survived. The newly added B unit test correctly catches this. Narrow correction: allow A and B in the same strict list, preserving the conjunctive B iff phase batch_b guard, frozen SOURCE, exact 12 cases, time budgets, seeds, same one-run/one-job sequential workflow and all remaining restrictions. No product/repair/buffer/default or B measurement parameters changed. Re-trigger by config nonce 8 only; still no measured B results at commit time.
+
+Batch A already independently audited (12/12 15ms valid, off CPU better, off 1% UDP loss and p99 trade-off; full-wire bytes uncollected); all historic A failures intact. Next: inspect new Actions static gate before reading any 300ms real measurements; classify failed measurements separately, never infer physical or cross-VM CPU benefit; C 5% and 20:4 remain NOT_STARTED.
