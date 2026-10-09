@@ -127,6 +127,16 @@ func (e *FastBlockEncoder) Flush() ([][]byte, error) {
 	return e.flushParity(0)
 }
 
+// NextFlushDeadline reports the first source's absolute partial-parity due
+// time. A full group already flushed on Add; an empty group has no deadline.
+// The owner calls this under its existing transmit lock.
+func (e *FastBlockEncoder) NextFlushDeadline() time.Time {
+	if e == nil || e.dataCount == 0 {
+		return time.Time{}
+	}
+	return e.firstAt.Add(e.flushAfter)
+}
+
 func (e *FastBlockEncoder) Pending() int { return e.dataCount }
 
 func (e *FastBlockEncoder) Stats() FastBlockEncoderStats {

@@ -139,6 +139,15 @@ func (p *FECPath) Encode(packet []byte, now time.Time) ([][]byte, error) {
 	return out, nil
 }
 
+// NextFlushDeadline returns the oldest nonempty partial FEC group deadline.
+// FEC-off lanes and fully flushed groups have no FEC wake deadline.
+func (p *FECPath) NextFlushDeadline() time.Time {
+	if p == nil || p.encoder == nil {
+		return time.Time{}
+	}
+	return p.encoder.NextFlushDeadline()
+}
+
 func (p *FECPath) FlushDue(now time.Time) ([][]byte, error) {
 	if p == nil {
 		return nil, nil

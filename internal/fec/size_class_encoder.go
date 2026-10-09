@@ -86,6 +86,23 @@ func (e *SizeClassEncoder) flush(now time.Time, all bool) ([][]byte, error) {
 	return e.out[:n], nil
 }
 
+// NextFlushDeadline is the earliest pending group's absolute expiry. There
+// are at most three fixed size classes; an empty group never schedules work.
+// No timers, goroutines, polling or extra per-packet allocations are added.
+func (e *SizeClassEncoder) NextFlushDeadline() time.Time {
+	if e == nil {
+		return time.Time{}
+	}
+	var first time.Time
+	for _, group := range e.groups[:e.count] {
+		due := group.NextFlushDeadline()
+		if !due.IsZero() && (first.IsZero() || due.Before(first)) {
+			first = due
+		}
+	}
+	return first
+}
+
 func (e *SizeClassEncoder) Pending() int {
 	return e.Stats().PendingSources
 }

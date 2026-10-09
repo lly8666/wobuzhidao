@@ -581,6 +581,33 @@ func (o *TunnelOwner) Close() {
 	closeLaneSet(lanes)
 }
 
+// NextActiveFlushDeadline inspects only authoritative outbound generations.
+// A pending replacement candidate and receive-only retiring lanes must not
+// schedule fresh parity. This is a bounded <=4-lane query, not a timer.
+func (o *TunnelOwner) NextActiveFlushDeadline() time.Time {
+	if o == nil {
+		return time.Time{}
+	}
+	o.mu.Lock()
+	if o.closed {
+		o.mu.Unlock()
+		return time.Time{}
+	}
+	lanes := make([]*Lane, 0, len(o.active))
+	for _, binding := range o.active {
+		lanes = append(lanes, binding.lane)
+	}
+	o.mu.Unlock()
+	var earliest time.Time
+	for _, lane := range lanes {
+		due := lane.NextFlushDeadline()
+		if !due.IsZero() && (earliest.IsZero() || due.Before(earliest)) {
+			earliest = due
+		}
+	}
+	return earliest
+}
+
 // TickLane advances timer-owned lane state for one authoritative incarnation.
 // It flushes due partial FEC parity without adding useful-payload padding credit,
 // then expires receive-side FEC/LINK state. Returned records remain generation-

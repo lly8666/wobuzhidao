@@ -1,0 +1,39 @@
+{
+  "schema": "wbd-e1-absolute-partial-parity-deadline-primitive/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "166115aba85927eae0b866fdbdfd99492252aaa3",
+  "source_baseline": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "fault": "Production client and server lifecycle timers default to 100ms, while FEC first-source FlushAfter is 8ms. Merely testing now>=deadline every 100ms cannot meet 8ms sparse parity emission.",
+  "modification": {
+    "FastBlockEncoder.NextFlushDeadline": "firstAt + flushAfter iff dataCount>0",
+    "SizeClassEncoder.NextFlushDeadline": "earliest non-zero group deadline across <=3 size classes",
+    "FECPath.NextFlushDeadline": "nil/disabled returns zero",
+    "Lane.NextFlushDeadline": "TX lock; closed returns zero",
+    "TunnelOwner.NextActiveFlushDeadline": "bounded authoritative generation only; candidate and retiring cannot request fresh parity; snapshot locks not nested"
+  },
+  "tests": [
+    "fast block initial/late source/due/before/after/new block",
+    "mixed classes at 0ms,2ms,3ms earliest schedule 8ms then 10ms 11ms",
+    "lower FEC profiles one group",
+    "FEC off no deadline",
+    "lane closed returns zero",
+    "generation promotion discards old pending deadlines"
+  ],
+  "scope": "STRUCTURAL_PRODUCT_PREREQUISITE_ONLY",
+  "current_effect_on_actual_tick_interval": "NONE_100MS_TICK_STILL_OWNS_FLUSH",
+  "no_per_packet_timer_or_goroutine": true,
+  "no_protocol_or_buffer_change": true,
+  "real_performance_qualification": "NOT_RUN_NEW_PRODUCT_SOURCE",
+  "next": "Owner shared wake signal, one timer per lifecycle with stale generation fencing; default health maintenance remains bounded 100ms.",
+  "old_oneparse_gate_run": 37898379013,
+  "previous_4068B_s2c_udp_missing_under_20pct": {
+    "run": 37898379013,
+    "status": "RETAIN_UNATTRIBUTED"
+  },
+  "prior_old_source_afpacket_drop_failures": [
+    37857040784,
+    37871243581
+  ],
+  "e7": "OPEN_DEFERRED",
+  "cpu_gain": "UNPROVEN"
+}

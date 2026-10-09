@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_ONEPARSE_GAME2_STAGED5205_ACTION_VERIFIED_SCOPED_PASS_ONE_S2C_4068B_UDP_STRESS_MISSING",
+    "phase": "E1_FEC_EARLIEST_ABSOLUTE_DEADLINE_PRIMITIVE_PENDING_FOUNDATION_SCHEDULER_NOT_YET_WIRED",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2074,10 +2074,43 @@
         "scope": "ONE_300S_RUN_ONLY",
         "evidence": "docs/evidence/e4-oneparse-game2-staged5205-off-real-run37898379013-scoped-review.json"
       }
+    },
+    "e1_deadline_scheduler": {
+      "state": "CANDIDATE_FOUNDATION_PENDING_PRIMITIVES_ONLY",
+      "working_branch": "next/performance-efficiency-20261008",
+      "parent_head": "166115aba85927eae0b866fdbdfd99492252aaa3",
+      "parent_product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+      "source_lineage": "one-parse Linux AF_PACKET source aa931d is existing product candidate, not old ba8ed1 baseline",
+      "primary_problem": "8ms earliest-source partial FEC parity flush conditions are only revisited by default 100ms lifecycle ticker at both client and server.",
+      "completed_change": "Expose absolute earliest pending partial-parity deadline from FastBlockEncoder -> SizeClassEncoder (up to 3 groups) -> FECPath -> Lane (TX lock) -> TunnelOwner (active incarnation only).",
+      "code": [
+        "internal/fec/fastblock_encoder.go",
+        "internal/fec/size_class_encoder.go",
+        "internal/linkdata/fec_path.go",
+        "internal/datapath/lane.go",
+        "internal/datapath/tunnel_owner.go"
+      ],
+      "tests": [
+        "internal/fec/deadline_test.go",
+        "internal/linkdata/deadline_test.go",
+        "internal/datapath/deadline_test.go"
+      ],
+      "actual_wakeup_timer": "NOT_IMPLEMENTED_YET",
+      "old_100ms_tick": "UNCHANGED",
+      "timer_or_goroutine_per_packet": false,
+      "no_wire_mtu_queue_buffer_changes": true,
+      "functionality_qualification": "PENDING_CORE_RACE_FOUNDATION",
+      "normal_lossless": "NOT_RUN_NEW_SOURCE",
+      "normal_5205": "NOT_RUN_NEW_SOURCE",
+      "game_lossless": "NOT_RUN_NEW_SOURCE",
+      "game_5205": "NOT_RUN_NEW_SOURCE",
+      "low_rtt_sparse": "NOT_RUN",
+      "cpu_gain": "UNPROVEN",
+      "evidence": "docs/evidence/e1-partial-fec-nearest-deadline-primitive-intent-20261009.json"
     }
   },
-  "next_task": "STOP automatic reruns or VM shopping: Game2 oneparse aa931d staged5205 run37898379013 is originally PASS_SCOPED_ACTIONS, but 1 S2C 4068-byte UDP app datagram was missing specifically under 20% artificial-loss stress, not kernel AF_PACKET skmem.d (0). If prioritizing experience, next inspect code-only/old-artifact causal plausibility of this one app-level missing without concluding AF_PACKET root or altering queues, and review remaining low-RTT sparse protector and E7 ~80s S2C outage as distinct prioritized coverage. Before next 300s run, justify exactly one source/workload/seed/profileOFF Action and explicit failure hypothesis; do not compare CPU-s on EPYC7763 to 9V45/9V74 nor upgrade to 2 physical receive lanes from manifest alone. If no causal evidence, mark this scoped pass and move to E7 rather than another BPF/runner calibration loop. No main/canonical/physical change, no buffers or queue growth; product CPU gain UNPROVEN, original ba8ed1 Game4 socket-drops historical FAIL retained.",
-  "latest_log": "docs/devlog/20261009-235300-e4-oneparse-game2-staged5205-profileoff-real-action-verdict.md",
+  "next_task": "E1 NEXT: verify actual Foundation core+race+Linux/Windows for nearest FEC deadline source candidate; fix proven compilation/race/test defects without masking failure. THEN implement a single owner/lifecycle shared deadline-aware wake-up (NOT per-packet goroutine/timer or 1ms scanning) on BOTH client and server, coexisting with 100ms health/lease/repair tick, no timer wake blocked by receive/send; generation retirement must cancel old deadlines, fresh systematic and full-block parity remain immediate. After that E1 complete source commit passes core/race, run four independent profileOFF business Actions Normal1 lossless, Normal1 staged5205, Game2/Game4 lossless, Game2/Game4 staged5205 (choose explicit Game count and retain other as NOT_RUN), and low RTT sparse protector, one source/workload/seed/job per Action, no matrix or runner shopping; compare CPU only within matched validated host strata. Before scheduler wiring these protectors MUST stay NOT_RUN; previous oneparse PASS does not inherit. Continue E4 maintenance/repair/FEC hotspots only after E1 gates. One 4068-byte s2c UDP missing under 20% stress from old run37898379013 remains known/unattributed, not automatic CPU blocker. E7 ~80s outage OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261009-e1-fec-earliest-absolute-deadline-foundation-candidate.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2090,7 +2123,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "Reviewed oneparse source aa931d Game2 true5/20/5% mixed 300s profileOFF run37898379013: original PASS_SCOPED_ACTIONS issues=[], qdisc actual stages correct, application UDP c2s 0 missing and s2c stress one 4068B datagram missing, 0 probes missing, 304 TCP flows each direction no mismatch, HTTP+HTTPS20/20 HTTPS cert10, AF_PACKET skmem.d0 client/server and link extra drops0. EPYC7763 CPU-s225.12 not a cross-host speed claim. No repeat test. Historic ba8ed1 9V45 Game4 lossless drops d33/d86 OFF/d42 ON retained; E7 deferred.",
+    "Per current user reprioritization pivot from E4 diagnostic platform to E1 maintenance deadline scheduling. Existing oneparse source aa931d had scoped Game2/Normal/Game4 evidence, not transferable to new product commit. Initial atomic E1 prerequisite now adds nearest pending absolute FEC deadline across <=3 size classes and active generations only, with deterministic unit tests. Lifecycle default100ms ticker remains unchanged, no actual early wake-up yet, no CPU benefit claimed. Await core/race Foundation before implementing one shared wake timer and new protection Actions.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

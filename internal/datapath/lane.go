@@ -299,6 +299,21 @@ func (l *Lane) outbound(packet []byte, now time.Time, selector paddingSelector) 
 	return l.sealLocked(wire, selector)
 }
 
+// NextFlushDeadline is read under the TX mutex, and never waits for RX.
+// A retired/closed generation reports no pending outbound work. The caller
+// must still fence the lane generation when actually flushing/issuing wire.
+func (l *Lane) NextFlushDeadline() time.Time {
+	if l == nil {
+		return time.Time{}
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.closed {
+		return time.Time{}
+	}
+	return l.txPath.NextFlushDeadline()
+}
+
 func (l *Lane) FlushDue(now time.Time) ([]WireRecord, error) {
 	return l.flushDue(now, nil)
 }
