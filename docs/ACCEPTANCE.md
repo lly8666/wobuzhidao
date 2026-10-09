@@ -82,3 +82,8 @@ P7只在主流程已稳定后由用户安排，最终核对真实链路外观、
 配置/GUI与平台验收继续取PARAMETERS、WINDOWS_GUI、LINUX_SERVER、SPLIT_ROUTING、LIFECYCLE_ACCEPTANCE、PREDELIVERY_ACCEPTANCE的现有专项，不能因整理入口删功能门。Windows真实驱动、ARM原生与互联网PMTU不由Linuxhosted替代。
 
 E7处理延后的失活与剩余迟到后交原聊天物理复验。若E6样本被失活阻塞，标真实FAIL/不能评价收益并转E7，不强行凑通过。
+
+
+## 2026-10-09 新增FEC开关成本/恢复实验（PLANNED_NOT_RUN）
+
+用户最新授权本项一个Action单job顺序跑不同业务/off与20:20；本项覆盖旧单样本限制，禁止并行负载，原正式资格规则和门槛保持。详见[FEC_POLICY_EXPERIMENT](FEC_POLICY_EXPERIMENT.md)、[夹具功能与使用](REALPATH_TEST_FIXTURE_GUIDE.md)、[接手模板](templates/FEC_POLICY_AGENT_PROMPT.md)。实际夹具当前300s/300ms/不含1%等约束必须先适配并验真，不直接声称已有serial支持。实验分支独立，产品恢复政策/默认不改，首批结果与CPU收益均NOT_RUN，现有STATUS和历史失败保留。

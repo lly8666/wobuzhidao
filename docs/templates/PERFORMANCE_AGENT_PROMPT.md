@@ -15,3 +15,6 @@
 E6再冻结组合版本，完成方案中的真实TCP/UDP大小包混合弱网、分层容量探索、配置/生命周期/独立strict与长测及同源P6。高丢包最大UDP不强求恢复，但不能损坏/截断或拖住其它业务；missing/late与返回p99并列。80秒下行问题按用户要求延后到E6之后E7，原FAIL/证据保留；优化测试遇到它照实记失败与受限范围，不假装根因已解决。之后交原聊天物理复验。
 
 每轮新devlog与STATUS/evidence同一提交更新，精确SOURCE/helper/config/seed/Actions链接及原判定都留GitHub。不要执行history/old中的旧任务，不删历史失败、不继承旧源码PASS。连续推进本方案，最终交回已优化内容、收益证据、未通过/未跑项和同源包manifest/hash，不写PHYSICAL_PASS。
+
+
+2026-10-09用户新增FEC开关串行实验的明确窄例外：若接手该实验，改用FEC_POLICY_AGENT_PROMPT.md及../FEC_POLICY_EXPERIMENT.md，允许一个Action单job段间隔离顺序多case；本模板原单样本规则继续约束其它优化资格。

@@ -178,3 +178,8 @@ Per GitHub Docs, each GitHub-hosted standard job starts on a fresh VM instance o
 The first synthetic OFF-only case [37879351995](https://github.com/lly8666/wobuzhidao/actions/runs/37879351995) reported `cpu.stat` but no `/sys/fs/cgroup/cpu.max`. In cgroup v2 namespace root the latter can be absent by design; this is NOT proof of unlimited CPU. Read-only tools/e4_runner_cpu_scope.py discriminates exposed cgroup v2 `cpu.max` from namespace root with no visible quota and entirely unknown mounting. It must not substitute `max` for missing quota or prove hidden-parent/hypervisor quota. The first OFF remains INELIGIBLE due to PSI avg10 17.06% before the measurement and missing quota.
 
 Trace-on has a 30s exit timer even though the workload lasts 12s; CPU PSI and throttle end samples must be taken at workload completion in BOTH modes, not after ON-only BPF drain. The comparator requires a fixture-end boundary and exact kernel release, affinity count, visible cgroup v2 CPU quota, model/vCPU/fixture hash, PSI and throttling/steal. Even a perfect stratum match is not the same VM and cannot normalize E4 product CPU gains. No new ON case or 300s Game4 until diagnostic eligibility exists.
+
+
+## 2026-10-09 新增FEC开关成本/恢复实验（PLANNED_NOT_RUN）
+
+用户最新授权本项一个Action单job顺序跑不同业务/off与20:20；本项覆盖旧单样本限制，禁止并行负载，原正式资格规则和门槛保持。详见[FEC_POLICY_EXPERIMENT](FEC_POLICY_EXPERIMENT.md)、[夹具功能与使用](REALPATH_TEST_FIXTURE_GUIDE.md)、[接手模板](templates/FEC_POLICY_AGENT_PROMPT.md)。实际夹具当前300s/300ms/不含1%等约束必须先适配并验真，不直接声称已有serial支持。实验分支独立，产品恢复政策/默认不改，首批结果与CPU收益均NOT_RUN，现有STATUS和历史失败保留。

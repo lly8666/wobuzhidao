@@ -45,3 +45,8 @@ Normal1、Game2..4，PacketID首有效竞速去重，FEC不跨lane。最多4权�
 b4原生五条留下Normal残余10包、约80秒下行中断、恢复后65507B 1.23s late；NoHOL为用户接受的b4 Actions专项PASS。MTU分支分层功能不代表集成产品真实压力PASS。80秒按用户指令延至E6优化收口后E7，证据不删除，不把它归因FEC或互联网。
 
 当前源码完整70/strict18/1800s/P6/物理等资格按STATUS记录，未跑就是未跑。整理前详细方案及全部旧任务在history/20261008-before-efficiency-development_plan.md，仅供解释历史，不作为指令。
+
+
+## 2026-10-09 新增FEC开关成本/恢复实验（PLANNED_NOT_RUN）
+
+用户最新授权本项一个Action单job顺序跑不同业务/off与20:20；本项覆盖旧单样本限制，禁止并行负载，原正式资格规则和门槛保持。详见[FEC_POLICY_EXPERIMENT](FEC_POLICY_EXPERIMENT.md)、[夹具功能与使用](REALPATH_TEST_FIXTURE_GUIDE.md)、[接手模板](templates/FEC_POLICY_AGENT_PROMPT.md)。实际夹具当前300s/300ms/不含1%等约束必须先适配并验真，不直接声称已有serial支持。实验分支独立，产品恢复政策/默认不改，首批结果与CPU收益均NOT_RUN，现有STATUS和历史失败保留。

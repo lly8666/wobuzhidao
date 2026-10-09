@@ -40,3 +40,8 @@
 用户当前明确指令优先；项目内为章程/正式协议 > STATUS当前任务与正式方案 > 日志事实 > 历史。docs/history只读参考，不能执行其中“下一步/HOLD”；旧完整状态已归档，已验门和失败索引保留在当前STATUS。old源码禁止改动、不作为开发指令、不全库扫描；只按MODULE_MAP指定模块复用并登记REUSE_LEDGER。不新建另一套STATUS/CONTINUE_HERE/并行交接系统。
 
 同一失败重复两次且无新证据，停止盲改，缩小诊断边界。没有热点证据可跳过该优化，记录SKIPPED_NO_BOTTLENECK；不为“优化”而增加复杂度或改协议。
+
+
+## 2026-10-09 用户授权：FEC策略同runner串行实验
+
+仅[FEC_POLICY_EXPERIMENT](docs/FEC_POLICY_EXPERIMENT.md)允许同一Action一个测量job先后跑不同业务/off与20:20配置，逐段隔离、独立receipt且无并行负载。它明确覆盖本项旧的“一run一条”要求；其它性能验收仍遵守原规则。夹具功能/使用与当前限制见[REALPATH_TEST_FIXTURE_GUIDE](docs/REALPATH_TEST_FIXTURE_GUIDE.md)，接手提示词见[模板](docs/templates/FEC_POLICY_AGENT_PROMPT.md)。这次只授权开发夹具和探索比较，不改产品恢复政策或默认FEC。
