@@ -44,14 +44,14 @@ jobs:
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           d=json.load(open(".github/fec-policy-batch.json"))
-          assert d["phase"] in ("preflight","batch_a")
+          assert d["phase"] in ("preflight","pilot","batch_a")
           print("value="+d["phase"])
           PY
       - name: Actions functional adapter preflight, no traffic
         if: steps.phase.outputs.value == 'preflight'
         run: python3 tools/fec_policy_batch.py --mode preflight --root "$ART"
       - name: Install five netns harness dependencies
-        if: steps.phase.outputs.value == 'batch_a'
+        if: steps.phase.outputs.value == 'pilot' || steps.phase.outputs.value == 'batch_a'
         run: |
           set -euo pipefail
           sudo apt-get update
@@ -61,7 +61,7 @@ jobs:
           sudo modprobe nf_tproxy_ipv4 || true
           sudo modprobe nft_tproxy || true
       - name: Build frozen source once and seeded tc
-        if: steps.phase.outputs.value == 'batch_a'
+        if: steps.phase.outputs.value == 'pilot' || steps.phase.outputs.value == 'batch_a'
         run: |
           set -euo pipefail
           mkdir -p "$ART/binaries"
@@ -75,6 +75,11 @@ jobs:
           sha256sum "$ART/binaries/wbd-client" "$ART/binaries/wbd-server" > "$ART/product-binaries.sha256"
           "$ART/binaries/wbd-client" --version > "$ART/client-version.txt"
           "$ART/binaries/wbd-server" --version > "$ART/server-version.txt"
+      - name: Two 15s real fullstack pilot cases, not a cost measurement
+        id: pilot
+        if: steps.phase.outputs.value == 'pilot'
+        continue-on-error: true
+        run: python3 tools/fec_policy_batch.py --mode pilot --root "$ART"
       - name: Run 12 strictly serial fresh fullstack cases
         id: batch
         if: steps.phase.outputs.value == 'batch_a'
@@ -96,9 +101,13 @@ jobs:
           if-no-files-found: warn
           path: |
             ${{ env.ART }}/batch-manifest.json
+            ${{ env.ART }}/pilot-manifest.json
             ${{ env.ART }}/product-binaries.sha256
             ${{ env.ART }}/s*/preflight.json
             ${{ env.ART }}/s*/case-receipt.json
+            ${{ env.ART }}/s*/sanitized-startup-errors.json
+            ${{ env.ART }}/pilot-*/case-receipt.json
+            ${{ env.ART }}/pilot-*/sanitized-startup-errors.json
             ${{ env.ART }}/s*/summary.json
             ${{ env.ART }}/s*/efficiency-ledger.json
             ${{ env.ART }}/s*/manifest.json
@@ -110,10 +119,14 @@ jobs:
         env:
           PHASE: ${{ steps.phase.outputs.value }}
           BATCH: ${{ steps.batch.outcome }}
+          PILOT: ${{ steps.pilot.outcome }}
         run: |
           if test "$PHASE" = batch_a; then
             test "$BATCH" = success
             test -s "$ART/batch-manifest.json"
+          elif test "$PHASE" = pilot; then
+            test "$PILOT" = success
+            test -s "$ART/pilot-manifest.json"
           else
             test "$PHASE" = preflight
           fi

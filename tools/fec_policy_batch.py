@@ -24,7 +24,7 @@ def cases():
     return result
 def validate(d):
     if set(d)!={"schema","phase","batch","source_sha","nonce"}:raise ValueError("batch schema keys")
-    if d["schema"]!="wbd-fec-policy-batch/v1" or d["batch"]!="A" or d["phase"] not in ("preflight","batch_a") or d["source_sha"]!=SOURCE or type(d["nonce"]) is not int or d["nonce"]<1:raise ValueError("batch plan not authorized")
+    if d["schema"]!="wbd-fec-policy-batch/v1" or d["batch"]!="A" or d["phase"] not in ("preflight","pilot","batch_a") or d["source_sha"]!=SOURCE or type(d["nonce"]) is not int or d["nonce"]<1:raise ValueError("batch plan not authorized")
     out=cases()
     assert len(out)==12 and len({v["id"] for v in out})==12
     for i in range(0,12,2):
@@ -89,7 +89,7 @@ def one(case,root,helper):
       "WBD_STRICT_WAN_NEIGHBORS":"dynamic","WBD_LARGE_WORKLOAD":case["workload"],
       "WBD_LARGE_LOSS":str(case["loss"]),"WBD_EFF_SIZE_PROFILE":"ordinary",
       "WBD_EFF_DIAGNOSTIC":"0","WBD_FEC_CASE_SFX":case["id"],
-      "WBD_FEC_DURATION_S":"120","WBD_FEC_DELAY_MS":"15"})
+      "WBD_FEC_DURATION_S":str(case["duration_s"]),"WBD_FEC_DELAY_MS":str(case["delay_ms"])})
     before=snapshot()
     cmd=["sudo","--preserve-env="+",".join(ENV_NAMES),"env",
        "GITHUB_SHA="+SOURCE,"WBD_HARNESS_SHA="+helper,
@@ -97,14 +97,29 @@ def one(case,root,helper):
     rc=None;exc=None
     try:
         with (d/"run-private.log").open("w") as log:
-            rc=subprocess.run(cmd,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=280).returncode
+            rc=subprocess.run(cmd,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=case["duration_s"]+160).returncode
     except (subprocess.TimeoutExpired,OSError) as err:exc=type(err).__name__
+    log=d/"run-private.log"
+    startup={"sha256":filehash(log),"bytes":log.stat().st_size,"error_classes":[]}
+    for line in log.read_text(errors="replace").splitlines():
+        line=line.strip()
+        found=re.fullmatch(r"FEC_EXPERIMENT_SHELL_FAIL code=(\d+) line=(\d+)",line)
+        if found: startup["error_classes"].append({"kind":"BASH_ERR","code":int(found[1]),"line":int(found[2])})
+        elif "Operation not permitted" in line:startup["error_classes"].append({"kind":"OPERATION_NOT_PERMITTED"})
+        elif "No such file or directory" in line:startup["error_classes"].append({"kind":"FILE_NOT_FOUND"})
+        elif "not allowed to preserve" in line:startup["error_classes"].append({"kind":"SUDO_ENV_DENIED"})
+        elif "mount --make-shared" in line:startup["error_classes"].append({"kind":"NETNS_MOUNT_FAILURE"})
+        elif "invalid strict mode tuple" in line:startup["error_classes"].append({"kind":"STRICT_TUPLE_INVALID"})
+        elif "non20 FEC requires" in line:startup["error_classes"].append({"kind":"FEC_SCREEN_INVALID"})
+        elif "unbound variable" in line or "missing WBD_" in line:startup["error_classes"].append({"kind":"MISSING_REQUIRED_ENV"})
+    startup["error_classes"]=startup["error_classes"][-12:]
+    (d/"sanitized-startup-errors.json").write_text(json.dumps(startup,indent=2))
     cmd=[sys.executable,"tools/check_large_mtu_mixed.py","--fec-experiment",
        "--artifact-dir",str(d),"--source",SOURCE,"--helper",helper,
        "--workload",case["workload"],"--loss",str(case["loss"]),
        "--seed",str(case["seed"]),"--target-mbps","10","--size-profile","ordinary",
        "--mode","normal","--lanes","1","--diagnostic-mode","0",
-       "--duration-s","120","--delay-ms","15","--fec-parity",str(case["parity"]),
+       "--duration-s",str(case["duration_s"]),"--delay-ms",str(case["delay_ms"]),"--fec-parity",str(case["parity"]),
        "--output",str(d/"summary.json")]
     with (d/"analyzer-private.log").open("w") as log:
         arc=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT).returncode
@@ -123,7 +138,7 @@ def one(case,root,helper):
     try:l=json.loads((d/"efficiency-ledger.json").read_text())
     except (OSError,ValueError):l={}
     classification=s.get("classification","INFRA_INVALID")
-    if rc is None or exc or not guard["clean"] or not s:classification="INFRA_INVALID"
+    if rc != 0 or exc or not guard["clean"] or not s or s.get("error"):classification="INFRA_INVALID"
     if any("CORRUPT" in x or "HASH_MISMATCH" in x for x in s.get("issues",[])):
         classification="INTEGRITY_STOP"
     binary={k:filehash(root/"binaries"/("wbd-"+k)) for k in ("client","server")}
@@ -132,9 +147,38 @@ def one(case,root,helper):
     row={"case":case,"source_sha":SOURCE,"helper_sha":helper,"binary_sha256":binary,
       "before":before,"after":snapshot(),"sample_exit":rc,"sample_exception":exc,
       "analyzer_exit":arc,"ledger_exit":lrc,"classification":classification,
-      "issues":s.get("issues",[]),"owned_cleanup":guard,"sha256":hashes}
+      "issues":s.get("issues",[]),"owned_cleanup":guard,"sanitized_startup":startup,"sha256":hashes}
     (d/"case-receipt.json").write_text(json.dumps(row,indent=2))
     return row
+def pilot(out,root,helper):
+    tests=[]
+    for i,original in enumerate(out[:2]):
+        case={**original,"id":f"pilot-{i+1}","duration_s":15}
+        result=one(case,root,helper)
+        path=root/case["id"]
+        def read(n):
+            try:return json.loads((path/n).read_text())
+            except (OSError,ValueError):return {}
+        biz,target,manifest,flags=(read(n) for n in ("biz.json","target.json","manifest.json","runtime-flags.json"))
+        good=bool(result["sample_exit"]==0 and result["owned_cleanup"]["clean"]
+          and biz.get("counters",{}).get("sent_bytes",0)>100_000
+          and target.get("counters",{}).get("sent_bytes",0)>100_000
+          and manifest.get("config",{}).get("duration_s")==15
+          and manifest.get("config",{}).get("one_way_delay_ms")==15
+          and all(flags.get(role,{}).get("--fec-parity")==str(case["parity"])
+                  for role in ("client","server")))
+        tests.append({"case":case,"realpath_and_fec_flags_observed":good,
+             "sample_exit":result["sample_exit"],"sanitized_startup":result["sanitized_startup"]})
+        print("FEC_PILOT_RESULT",case["id"],tests[-1],flush=True)
+        if not good:break
+        time.sleep(3)
+    (root/"pilot-manifest.json").write_text(json.dumps({"source_sha":SOURCE,
+         "helper_sha":helper,"scope":"15s functional realpath only, NOT_PERFORMANCE",
+         "cases":tests},indent=2))
+    if len(tests)!=2 or any(not t["realpath_and_fec_flags_observed"] for t in tests):
+        raise SystemExit("FEC_PILOT_FAIL")
+    print("FEC_PILOT_PASS_NETWORK_AND_FLAGS_NOT_CPU",flush=True)
+
 def aggregate(out,receipts,root,helper):
     rows=[];pairs=[]
     for case in out:
@@ -167,7 +211,7 @@ def aggregate(out,receipts,root,helper):
     return rows
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("--mode",choices=("verify","preflight","run"),required=True)
+    p.add_argument("--mode",choices=("verify","preflight","pilot","run"),required=True)
     p.add_argument("--root",required=True)
     a=p.parse_args()
     d=json.loads(Path(".github/fec-policy-batch.json").read_text())
@@ -182,9 +226,11 @@ def main():
     if a.mode=="preflight":
         if d["phase"]!="preflight":raise ValueError("wrong phase")
         preflight(out,root);return
-    if d["phase"]!="batch_a":raise ValueError("wrong batch phase")
+    if (a.mode=="pilot" and d["phase"]!="pilot") or (a.mode=="run" and d["phase"]!="batch_a"):raise ValueError("wrong execution phase")
     if not all((root/"binaries"/("wbd-"+k)).is_file() for k in ("client","server")):
         raise ValueError("missing frozen binary")
+    if a.mode=="pilot":
+        pilot(out,root,helper);return
     lock=(root/"batch.lock").open("w")
     fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     receipts=[];abort=False

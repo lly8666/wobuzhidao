@@ -217,6 +217,10 @@ PY_FEC_FLAGS
   echo "steal-softirq:"; grep '^cpu ' /proc/stat || true
 """)
 
+    if x.fec_experiment:
+        # Only line and status; never leak shell commands or credentials.
+        s=s.replace("set -euo pipefail\n",
+            "set -eEuo pipefail\ntrap 'printf \"FEC_EXPERIMENT_SHELL_FAIL code=%s line=%s\\n\" \"$?\" \"$LINENO\" >&2' ERR\n",1)
     Path(x.output).write_text(s)
     Path(x.output+".receipt.json").write_text(json.dumps({
         "schema":"wbd-large-mtu-harness-template/v1",
