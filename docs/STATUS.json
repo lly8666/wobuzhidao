@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_REAL_15MS_UDP_PASS_PARITY_WIRE_SAVING_HYPOTHESIS_REJECTED_BLOCK_CLOSURE_TEST_PENDING",
+    "phase": "E1_32MS_NETEM15MS_ALL_THREE_ACTIONS_GREEN_PARTIAL_BLOCK_COUNTER_LOG_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3018,7 +3018,7 @@
       }
     },
     "e1_low_rtt_udp_netns": {
-      "state": "REAL_15MS_UDP_PASS_RESOURCE_PARITY_INVARIANCE_FOUNDATION_FAIL_CORRECTED_PENDING",
+      "state": "REAL_KERNEL_UDP_SCOPE_PASS_ALL_THREE_FOUNDATION_LIFECYCLE_NETEM_GREEN",
       "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
       "tested_head": "EXACT_GITHUB_PUSH_COMMIT",
       "fixture": "internal/linkdata/e1_sparse_real_netem_linux_test.go",
@@ -3033,7 +3033,7 @@
       "fresh_delay_from_first_source_ms": 45,
       "partial_parity_deadline_ms": 32,
       "resource_proxy": {
-        "status": "FIRST_ASSUMPTION_DISPROVED_NEXT_TEST_BLOCK_CLOSURE_PENDING",
+        "status": "PASS_DETERMINISTIC_PARITY_WIRE_INVARIANT_AND_FEC_PARTIAL_CLOSURE_REDUCTION_NUMBER_PENDING_ARTIFACT",
         "original_hypothesis": "32ms reduces parity shards and bytes for sparse FEC20:20",
         "actual_from_failed_test": {
           "sources_both": 30,
@@ -3044,7 +3044,29 @@
         "corrected_hypothesis": "For fixed 20:20 partial blocks parityShards==sourceShards, 32ms may reduce partial-block closures, not parity data bytes.",
         "test_code": "internal/linkdata/e1_sparse_real_netem_linux_test.go",
         "resource_cost": "parity bytes unchanged; block closure count proxy pending CI; CPU time not measured",
-        "historical_fail_evidence": "docs/evidence/e1-uniform32-resource-wire-parity-invariant-netem-real-pass-20261009.json"
+        "historical_fail_evidence": "docs/evidence/e1-uniform32-resource-wire-parity-invariant-netem-real-pass-20261009.json",
+        "source_packets_per_case": 30,
+        "packet_size": 96,
+        "spacing_ms": 12,
+        "parity": "20:20",
+        "observed_wire": {
+          "window8": {
+            "source_shards": 30,
+            "source_bytes": 4560,
+            "parity_shards": 30,
+            "parity_bytes": 4560
+          },
+          "window32": {
+            "source_shards": 30,
+            "source_bytes": 4560,
+            "parity_shards": 30,
+            "parity_bytes": 4560
+          }
+        },
+        "block_closure_comparison": "TestE1Uniform32msSparseParityWireCost PASS_37933015548 (32ms fewer partial blocks, exact counts need -v job)",
+        "new_workflow_log_step": "Read exact 8ms-vs-32ms parity and partial-block cost counters",
+        "cpu_claim": "UNPROVEN",
+        "bandwidth_saving": "NONE_FOR_THIS_FEC20_20_SPARSE_CASE"
       },
       "expected": [
         "kernel netem 15ms actual socket arrival delta >=5ms",
@@ -3061,7 +3083,7 @@
       ],
       "stage": "NOT_RUN",
       "planned_cpu_gain": "NOT_CLAIMED",
-      "evidence": "docs/evidence/e1-uniform32-15ms-real-udp-netns-and-sparse-wire-proxy-intent-20261009.json",
+      "evidence": "docs/evidence/e1-uniform32-netem15ms-three-actions-green-parity-block-cost-20261009.json",
       "first_actions": {
         "netem": {
           "run_id": 37932313178,
@@ -3082,11 +3104,37 @@
           "run_id": 37932313153,
           "result": "SUCCESS"
         }
+      },
+      "corrected_actions": {
+        "foundation": {
+          "id": 37933015548,
+          "conclusion": "SUCCESS",
+          "linux_unit": true,
+          "windows_unit": true,
+          "linux_race": true,
+          "tproxy": true,
+          "tun": true,
+          "p2_fallback": true
+        },
+        "lifecycle": {
+          "id": 37933015529,
+          "conclusion": "SUCCESS"
+        },
+        "netem": {
+          "id": 37933015518,
+          "conclusion": "SUCCESS",
+          "real_qdisc": "netem delay15ms",
+          "first_1372_repair_once": true,
+          "later_96_fresh_once": true,
+          "latency_parity_to_recovered_ms": 15.19,
+          "latency_fresh_to_arrival_ms": 15.095,
+          "scope": "Linux UDP socket+LINK/FEC only, NOT client/server/TUN"
+        }
       }
     }
   },
-  "next_task": "Verify next 3 Actions triggered by corrected source-independent Go test change: Foundation Linux/Windows Go/race, lifecycle, and isolated real netns 15ms UDP. Require 8vs32ms FEC20:20 30 sparse source traffic same 30 parity shards/4560 parity bytes BOTH and 32ms fewer partial FEC block closures (do not claim bandwidth gain or measured CPU win). Keep original Foundation37932313522 FAIL explicit; real UDP network test37932313178 and Lifecycle37932313153 true PASS. If fewer-block hypothesis fails too, preserve result SKIPPED_NO_BOTTLENECK and STOP microbenchmark tail-chasing. Real 15ms netns UDP LINK/FEC is not FakeTCP/TUN fullstack; next justified one formal lowRTT sparse protector requires staged strict 15ms source-pinned one job one workload, not relabel 300ms existing mixed tests. Historic source ba8ed1 Game4 0loss OFF drop client33/server86 and ON42 remains FAIL; E7 80s deferred; CPU benefit UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-231000-e1-fec20-20-parity-cost-hypothesis-rejected-real15ms-netem-pass.md",
+  "next_task": "Read next dedicated netem Action after workflow adds focused -v resource proxy receipt. Require FEC20:20 30 sparse UDP packets/12ms both 8ms and32ms same 30 systematic+30 parity and same 4560 parity bytes; 32ms partialBlocks count smaller. This is not CPU/PPS evidence; no packet-size classifier added. Confirm 15ms kernel UDP source loss recovery/fresh delivery, fullstack still NOT_RUN at 15ms; do not claim Normal/Game product low RTT 15ms. Then ONE honest fullstack sparse low RTT protector needs exact scenario knob in existing strict harness with 15ms true netem, 45ms independent business source and bounded checks, one seed/job/300s Action, after core/race. Old E1 Normal1 and Game2 ordinary mixed 0loss/5205 one sample each already PASS; don't repeat to shop runner. CPU gain UNPROVEN; Game2 real lane count OFF not observed, old E4 Game4 skmem drops FAIL and E7 downstream outage deferred.",
+  "latest_log": "docs/devlog/20261009-233000-e1-15ms-netem-three-actions-green-parity-block-counter-receipt.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -3099,7 +3147,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 32ms real Linux netns 15ms UDP+FEC20:20 run37932313178 SUCCESS (first lost shard repaired once, independent fresh once, observed15.088/15.060ms); lifecycle37932313153 SUCCESS. Foundation37932313522 FAILED ONLY new synthetic resource assertion: FEC20:20 30 source sparse emits 30 parity shards 4560B for both 8 and32ms, so assumed parity-wire savings FALSE. Corrected deterministic test asserts byte equality and measures fewer partial-block closures, pending next Foundation. Product source a2db unchanged; CPU gain UNPROVEN.",
+    "E1 uniform32 source a2db already four ordinary mixed Normal1/Game2 lossless+5205 profileOFF scoped PASS. Added actual 15ms Linux UDP socket+LINK/FEC test green repeat run37933015518, Foundation37933015548, Lifecycle37933015529 all SUCCESS after first Foundation37932313522 failed wrong FEC bandwidth-saving assertion. Actual FEC20:20 8ms vs32ms 30 sparse UDP each has 30 parity and4560 parity bytes equal (no wire savings); 32ms fewer partial FEC block closures from deterministic test but CPU gain UNPROVEN. Next capture exact closure counts in artifact. No new300s performance run.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

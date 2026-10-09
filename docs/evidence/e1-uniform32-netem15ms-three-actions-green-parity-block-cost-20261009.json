@@ -1,0 +1,84 @@
+{
+  "schema": "wbd-e1-32ms-15ms-real-udp-all-three-actions-and-sparse-parity-invariance/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "c455f8ce879d73d10c1ad43b8d13ca2446edc4ce",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "initial_actions": [
+    {
+      "id": 37932313178,
+      "kind": "netns real 15ms UDP",
+      "result": "SUCCESS"
+    },
+    {
+      "id": 37932313522,
+      "kind": "Foundation",
+      "result": "FAIL",
+      "reason": "false bandwidth-saving assertion"
+    },
+    {
+      "id": 37932313153,
+      "kind": "Lifecycle",
+      "result": "SUCCESS"
+    }
+  ],
+  "fixed_actions": [
+    {
+      "id": 37933015548,
+      "kind": "Foundation all go Linux/Windows/race/TPROXY/TUN/fallback",
+      "result": "SUCCESS"
+    },
+    {
+      "id": 37933015529,
+      "kind": "Lifecycle core/race",
+      "result": "SUCCESS"
+    },
+    {
+      "id": 37933015518,
+      "kind": "15ms real kernel UDP netns",
+      "result": "SUCCESS"
+    }
+  ],
+  "native_udp_measurements": {
+    "netem": "qdisc netem delay 15ms",
+    "first_1372B_erasure_recovered_once": true,
+    "fresh_96B_once": true,
+    "real_parity_propagation_ms": 15.19,
+    "real_fresh_propagation_ms": 15.095,
+    "no_hol_before_next_parity": true,
+    "scope": "real UDP sockets and LINK/FEC, NOT official FakeTCP/TUN fullstack"
+  },
+  "resource_bounded_evidence": {
+    "fec_profile": "20:20",
+    "source_count": 30,
+    "source_interval_ms": 12,
+    "source_size_bytes": 96,
+    "window8": {
+      "source_shards": 30,
+      "source_wire_bytes": 4560,
+      "parity_shards": 30,
+      "parity_wire_bytes": 4560
+    },
+    "window32": {
+      "source_shards": 30,
+      "source_wire_bytes": 4560,
+      "parity_shards": 30,
+      "parity_wire_bytes": 4560
+    },
+    "partial_block_closures": "32ms strictly less than8ms by passing source-unit assertion; exact counts not printed because normal go test lacked -v",
+    "bandwidth_saving": "NONE_IN_THIS_FIXED_PARITY_PROFILE",
+    "cpu_claim": "UNPROVEN",
+    "new_artifact_step": "PENDING_CI"
+  },
+  "formal_business32_runs": [
+    37922038550,
+    37924613499,
+    37925722025,
+    37926864614
+  ],
+  "all_scoped_pass": true,
+  "game2_runtime_lane_count": "UNOBSERVED_PROFILE_OFF",
+  "legacy_off_socket_drop": 37857040784,
+  "legacy_on_socket_drop": 37871243581,
+  "e7": "OPEN_DEFERRED",
+  "new_300s_runs": 0
+}
