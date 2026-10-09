@@ -1,6 +1,9 @@
 package fec
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // SizeClassEncoder prevents a large source from inflating every small source's
 // parity in 20:20. There are at most three lane-local groups, with ceilings 256,
@@ -38,6 +41,22 @@ func NewSizeClassEncoder(codec Codec, maxPacketSize int, flushAfter time.Duratio
 	}
 	e.groups[e.count] = last
 	e.count++
+	return e, nil
+}
+
+// NewSizeClassEncoderWithLargestWindow is an explicit, bounded latency tradeoff
+// for the >512B group in 20:20 mode. Small packet groups retain flushAfter;
+// original systematic source sends are untouched. Call only at construction,
+// before any Add. Lower parity profiles retain their historical single group.
+func NewSizeClassEncoderWithLargestWindow(codec Codec, maxPacketSize int, flushAfter, largestFlushAfter time.Duration, firstBlockID uint32, parityShards int) (*SizeClassEncoder, error) {
+	if largestFlushAfter < flushAfter {
+		return nil, fmt.Errorf("fec: largest-group window cannot precede normal deadline")
+	}
+	e, err := NewSizeClassEncoder(codec, maxPacketSize, flushAfter, firstBlockID, parityShards)
+	if err != nil { return nil, err }
+	if e.count == 3 && parityShards == ParityShards {
+		e.groups[2].flushAfter = largestFlushAfter
+	}
 	return e, nil
 }
 

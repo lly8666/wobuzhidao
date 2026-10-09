@@ -13,12 +13,12 @@ import (
 // or a product performance claim. Compare the same five LINK datagrams and
 // exactly 20% targeted erasures under 8ms, 16ms, 24ms and 100ms partial-parity closure.
 //
-// At 12ms inter-arrival, 8ms closes each size class before the next datagram:
-// erasing the first datagram's sources plus as many parity shards for its
-// respective blocks makes the first datagram unrecoverable. A 100ms closure
-// aggregates later sources in each group and may retain enough equations to
-// recover that identical first datagram. This proves a FEC granularity tradeoff,
-// not that the original 5205 Action used this exact erasure pattern.
+// At 12ms inter-arrival, original 8ms closed each class before the
+// next datagram, allowing a targeted 20% erasure to defeat the first frame.
+// The candidate keeps the <=512B classes at 8ms, but gives the >512B
+// 20:20 group 16ms even when FECPathConfig.FlushAfter is the default 8ms.
+// This construction detects regression of that selective grouping effect;
+// it does NOT infer that a real 5205 netem loss pattern has the same cause.
 func TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff(t *testing.T) {
 	const sourceMTU = 1200
 	const packetCount = 5
@@ -139,8 +139,12 @@ func TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff(t *testing
 					t.Fatalf("different impairment budget: short=%+v candidate=%+v", short, candidate)
 				}
 			}
-			if short.deliveredFirst || !medium.deliveredFirst || !extended.deliveredFirst || !long.deliveredFirst {
-				t.Fatalf("8ms fast parity loses first under targeted 20%% erasure; >=16ms grouped parity repairs but delays parity: 8=%+v 16=%+v 24=%+v 100=%+v", short, medium, extended, long)
+			// With selective parity, an 8ms *configured* FECPath already
+			// waits 16ms for >512B groups, while 96B retains its 8ms
+			// sparse partial block and its original low-latency tradeoff.
+			wantShortRecovered := size > 512
+			if short.deliveredFirst != wantShortRecovered || !medium.deliveredFirst || !extended.deliveredFirst || !long.deliveredFirst {
+				t.Fatalf("selective 8ms small/16ms largest tradeoff: size=%d 8=%+v 16=%+v 24=%+v 100=%+v", size, short, medium, extended, long)
 			}
 		})
 	}

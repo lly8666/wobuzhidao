@@ -1,0 +1,85 @@
+{
+  "schema": "wbd-e1-largest-group-only-16ms-weak-fec-candidate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "19239ad45970ec1cca00e9b272d1e6d1d224b2f0",
+  "failed_real_run": {
+    "run_id": 37915859759,
+    "artifact_id": 11609549089,
+    "product_source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
+    "helper_sha": "19239ad45970ec1cca00e9b272d1e6d1d224b2f0",
+    "mode": "normal",
+    "lanes": 1,
+    "profile": "off",
+    "loss_waveform": "5%-20%-5%",
+    "duration_s": 300,
+    "workload": "mixed",
+    "rate_mbps": 10,
+    "realized_stress_loss_percent": {
+      "c2s": 19.9613555491,
+      "s2c": 19.9496797251
+    },
+    "stress_udp_missing": {
+      "c2s": 410,
+      "s2c": 474
+    },
+    "stress_udp_missing_1372_or_4068": {
+      "c2s": 373,
+      "s2c": 442
+    },
+    "probe_stress_missing": {
+      "c2s": 8,
+      "s2c": 6
+    },
+    "socket_af_packet_d": {
+      "client": 0,
+      "server": 0
+    },
+    "netdev_extra_drops": 0,
+    "http_https": "20/20 HTTPS10/10",
+    "tcp_hash_mismatch": 0,
+    "cpu_total_s": 385.21,
+    "host": "AMD EPYC7763 4vCPU",
+    "cpu_psi_some_avg10_max_pct": 35.14,
+    "artifact_zip_sha256": "1662c56c9c41d6d47814988d5c3c9af1f4cfc84e949f69c0a72ad63251b77b85",
+    "original_analyzer": "FAIL",
+    "original_issues": [
+      "5205_STAGE_UDP_LOSS_OVER_0P1PCT_c2s_stress",
+      "5205_STAGE_PROBE_LOSS_OVER_1PCT_c2s_stress",
+      "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_c2s",
+      "5205_STAGE_UDP_LOSS_OVER_0P1PCT_s2c_stress",
+      "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_s2c"
+    ]
+  },
+  "prior_causal_deterministic_test": {
+    "file": "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go",
+    "foundation_run": 37913240243,
+    "result": "constructed 20% erasure, 12ms interarrival: configured 8ms raw partial loses first; >=16ms grouped restores first while 4 later datagrams independently delivered",
+    "scope": "DETERMINISTIC_LINK_ONLY_NOT_STAGED5205_ROOT_PROOF"
+  },
+  "hypothesis": "For 20:20 size class >512B, 8ms partial closure yields smaller recovery groups; 16ms may improve loss resilience of fragmented >=1372B datagrams without any extra first-arrival delay. Counter-hypothesis: netem independent multi-fragment loss remains; parity bursts or underutilized CPU may make 16ms no better.",
+  "experimental_source_change": {
+    "largest_size_class_bytes": ">512",
+    "eligibility": "only 20:20 and default 8ms initial config and sourceMTU>512",
+    "flush_window_from_ms": 8,
+    "flush_window_to_ms": 16,
+    "additional_max_parity_latency_ms": 8,
+    "all_other_groups_ms": 8,
+    "source_send": "IMMEDIATE",
+    "full_group": "IMMEDIATE",
+    "lifecycle_ticker": "UNCHANGED_100MS",
+    "owner_deadline_timer": "UNCHANGED_REUSED_SINGLE",
+    "no_fec_wire_change": true,
+    "no_protocol_buffer_queue_change": true,
+    "not_dynamic_feedback": true
+  },
+  "next_quality_gates": [
+    "Foundation real Go Linux/Windows unit/race",
+    "Lifecycle real owner/timer/fallback",
+    "single Normal1 0loss 300s profileOFF",
+    "single Normal1 5/20/5 staged 300s profileOFF",
+    "only if stable Game2 0loss/5205 and lowRTT sparse"
+  ],
+  "new_300s_samples_this_commit": 0,
+  "product_cpu_gain": "UNPROVEN",
+  "e7": "OPEN_DEFERRED"
+}

@@ -75,7 +75,16 @@ func NewFECPath(config FECPathConfig) (*FECPath, error) {
 		return nil, fmt.Errorf("linkdata: invalid FEC runtime flush=%s max_blocks=%d", config.FlushAfter, config.MaxBlocks)
 	}
 	codec := fec.NewFastReedSolomon20x20()
-	encoder, err := fec.NewSizeClassEncoder(codec, config.SourceMTU, config.FlushAfter, 1, config.ParityShards)
+	// E1/E2 weak-network protection candidate: preserve low-RTT small groups
+	// at 8ms. The largest >512B size class may gather twice as long in 20:20,
+	// improving equations for sparse large datagrams at the cost of up to 8ms
+	// later parity. This is intentionally NOT a congestion-driven adaptive
+	// algorithm: no trusted per-lane loss feedback exists at this boundary.
+	largestWindow := config.FlushAfter
+	if config.ParityShards == fec.ParityShards && config.FlushAfter == 8*time.Millisecond {
+		largestWindow = 16 * time.Millisecond
+	}
+	encoder, err := fec.NewSizeClassEncoderWithLargestWindow(codec, config.SourceMTU, config.FlushAfter, largestWindow, 1, config.ParityShards)
 	if err != nil {
 		return nil, err
 	}

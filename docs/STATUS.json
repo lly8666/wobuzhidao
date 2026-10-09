@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_NEW_SOURCE_NORMAL1_ZEROLOSS_SUCCESS_STAGED5205_ONE_ACTION_PENDING",
+    "phase": "E1_LARGE_FEC_GROUP_16MS_SCOPED_CANDIDATE_FOUNDATION_LIFECYCLE_PENDING_AFTER_E2_5205_FAIL",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2364,7 +2364,7 @@
       }
     },
     "e2_fec_padding_clear_candidate": {
-      "state": "NORMAL1_0LOSS_PASS_SCOPED_ACTIONS_37914773277_NEXT_NORMAL1_5205_PENDING",
+      "state": "NORMAL1_ZEROLOSS_PASS_TRUE5205_FAIL_STOP_GAME_PENDING_BOUNDED_E1_CAUSAL_CANDIDATE",
       "working_branch": "next/performance-efficiency-20261008",
       "parent_head": "6448aeaf8dc1a87c53ce6836fce1b11f372cc071",
       "parent_product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
@@ -2440,30 +2440,139 @@
         "evidence": "docs/evidence/e2-fast-fec-padding-clear-normal1-0loss-pass-run37914773277.json"
       },
       "normal1_5205": {
-        "state": "PENDING_SINGLE_PROFILEOFF_ACTION",
-        "product_source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
+        "state": "FAIL_ORIGINAL_ANALYZER_37915859759",
+        "run_id": 37915859759,
+        "artifact_id": 11609549089,
+        "source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
+        "helper_sha": "19239ad45970ec1cca00e9b272d1e6d1d224b2f0",
         "seed": 1847,
         "loss": 5205,
         "mode": "normal",
         "lanes": 1,
         "rate_mbps": 10,
         "duration_s": 300,
-        "workload": "mixed",
-        "size_profile": "ordinary",
-        "diagnostic_mode": "off",
-        "helper_sha": "NEXT_CONFIG_HELPER_COMMIT",
-        "prior_e1_original_fail": 37907829434
+        "profile": "off",
+        "original_analyzer": "FAIL",
+        "original_issues": [
+          "5205_STAGE_UDP_LOSS_OVER_0P1PCT_c2s_stress",
+          "5205_STAGE_PROBE_LOSS_OVER_1PCT_c2s_stress",
+          "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_c2s",
+          "5205_STAGE_UDP_LOSS_OVER_0P1PCT_s2c_stress",
+          "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_s2c"
+        ],
+        "stress_udp": {
+          "c2s": {
+            "sent": 172835,
+            "missing": 410,
+            "missing_by_size": {
+              "96": 4,
+              "256": 4,
+              "512": 5,
+              "1000": 24,
+              "1372": 152,
+              "4068": 221
+            },
+            "missing_1372_and_4068": 373
+          },
+          "s2c": {
+            "sent": 172836,
+            "missing": 474,
+            "missing_by_size": {
+              "96": 5,
+              "256": 3,
+              "512": 0,
+              "1000": 24,
+              "1372": 177,
+              "4068": 265
+            },
+            "missing_1372_and_4068": 442
+          }
+        },
+        "stress_probes": {
+          "c2s": {
+            "sent": 750,
+            "missing": 8
+          },
+          "s2c": {
+            "sent": 750,
+            "missing": 6
+          }
+        },
+        "actual_netem_stress_percent": {
+          "c2s": 19.9613555491,
+          "s2c": 19.9496797251
+        },
+        "socket_sk_mem_d": {
+          "client": 0,
+          "server": 0
+        },
+        "netdev_extra_drops": 0,
+        "http_https": "20/20 HTTPS10/10",
+        "tcp_hash_mismatch": 0,
+        "product_cpu_total_s": 385.21,
+        "host": "AMD EPYC 7763 4vCPU",
+        "cpu_psi_some_avg10_max_percent": 35.14,
+        "cgroup_quota": "UNKNOWN",
+        "artifact_zip_sha256": "1662c56c9c41d6d47814988d5c3c9af1f4cfc84e949f69c0a72ad63251b77b85",
+        "summary_sha256": "c852d8fba678cb0ef7d8a79f31bb653782ac5567543859b36df8e9e46020b85d",
+        "ledger_sha256": "3bf91e2600126e9152f8e8f5bdf01b572b46feee698747e9543f7dfe86427c9b",
+        "actual_cause": "UNPROVEN_CANDIDATE_PARTIAL_FEC_GROUP_SIZE_HIGHER_RISK_FOR_LARGE_DATAGRAMS",
+        "compare_e1_run37907829434": "NOT_MATCHED_DIFFERENT_CPU_MODEL_SEED_SOURCE"
       },
-      "game2_0loss": "NOT_RUN_NEW_SOURCE",
-      "game2_5205": "NOT_RUN_NEW_SOURCE",
+      "game2_0loss": "HOLD_AFTER_E2_NORMAL1_5205_FAIL",
+      "game2_5205": "HOLD_AFTER_E2_NORMAL1_5205_FAIL",
       "low_rtt_sparse": "NOT_RUN_NEW_SOURCE",
       "cpu_gain": "UNPROVEN",
       "evidence": "docs/evidence/e2-fast-fec-inactive-source-clear-elision-candidate-20261009.json",
       "unit_guard": "PASS_ALL_SUPPORTED_PROFILES_PARTIAL_SIZES_AND_EXACT_GENERIC_RS_WIRE"
+    },
+    "e1_large_class_window_candidate": {
+      "state": "SCOPED_16MS_LARGEST_ONLY_SOURCE_UNBUILT_PENDING_FOUNDATION_LIFECYCLE",
+      "working_branch": "next/performance-efficiency-20261008",
+      "parent_head": "19239ad45970ec1cca00e9b272d1e6d1d224b2f0",
+      "parent_product_source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
+      "motivation": "Current 20% staged5205 real fullstack FAIL absent AF_PACKET socket drops; >512B FEC grouping implicated not proven; existing deterministic 20% LINK erasure shows 8ms->16ms recovery improvement under a constructed loss pattern.",
+      "changed_files": [
+        "internal/fec/size_class_encoder.go",
+        "internal/linkdata/fec_path.go",
+        "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go",
+        "internal/linkdata/e1_large_group_window_16ms_test.go"
+      ],
+      "scope": {
+        "fec_parity_shards_only": 20,
+        "partial_group": "largest group >512B only when sourceMTU >512 and existing flushAfter exactly 8ms",
+        "old_small_groups_window_ms": 8,
+        "new_largest_group_window_ms": 16,
+        "extra_max_parity_wait_ms": 8,
+        "first_systematic_send_immediate": true,
+        "full_20_source_flush_immediate": true,
+        "parity_profiles_4_8_10_12_16_window_ms": 8,
+        "nondefault_config_windows_unchanged": true,
+        "wire_format_header_mtu_unchanged": true,
+        "network_quality_dynamic_feedback": "NOT_IMPLEMENTED_NO_TRUSTED_LOSS_SIGNAL_AT_ENCODER_BOUNDARY",
+        "parity_cpu_gain": "NOT_CLAIMED"
+      },
+      "tests": [
+        "TestE1LargestSizeClass16msSmallClasses8msRealFECPath",
+        "TestE1LargestGroupExtensionLimitedTo20x20Default8ms",
+        "TestE1LargestWindowConstructorFailsClosedForEarlierDeadline",
+        "TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff"
+      ],
+      "acceptance": {
+        "foundation": "PENDING",
+        "lifecycle": "PENDING",
+        "normal1_lossless": "NOT_RUN_NEW_SOURCE",
+        "normal1_5205": "NOT_RUN_NEW_SOURCE",
+        "game2_lossless": "HOLD",
+        "game2_5205": "HOLD",
+        "low_rtt_sparse": "NOT_RUN",
+        "cpu_gain": "UNPROVEN"
+      },
+      "evidence": "docs/evidence/e1-selective-largest-fec-window-16ms-candidate-normal5205-actual-fail-20261009.json"
     }
   },
-  "next_task": "Verify next 300s Normal1 true staged5205 mixed 10Mbps/one lane seed1847 profileOFF Action on SOURCE fc92076b3cab548c8e180cc19e8d69e8bde742d2. Preserve exact original analyzer PASS/FAIL, per-stage missing UDP and probes, HTTP/HTTPS, socket skmem.d and netdev drops. Prior old E1 5205 FAIL37907829434 cannot be overwritten; not enough evidence to say 8ms FEC parity timer is sole cause. If latest staged5205 FAIL, STOP before Game and hold further optimization until bounded causal change; if PASS proceed one separate Game2 zero-loss case, then Game2 staged5205, then lowRTT sparse. CPU gain UNPROVEN until matched host strata, 8ms default unchanged, E7 downstream 80s deferred.",
-  "latest_log": "docs/devlog/20261009-e2-fast-fec-normal1-zero-loss-protector-pass-next5205.md",
+  "next_task": "First verify Foundation and lifecycle Go/race/core for E1 largest >512B 20:20 partial FEC group16ms only (small <=512B still8ms, nondefault windows unchanged). Inspect deterministic LINK test (8ms configured but effective largest16ms), immediate systematic/independent no-HOL, FEC lower profiles and forced flush; fix genuine failures without relaxing protections. After all green, EXACTLY ONE source-pinned profileOFF Normal1 lossless 300s (not old source qualification), then independent Normal1 staged5205 seed-new protected, evaluate raw missing by 1372/4068 and small 96 probe p99/missing. If weak STILL FAIL, preserve and stop before Game; revert candidate if benefits fail, don't tune 24/100ms blindly. Then, only if scoped passes, Game2 lossless/5205 and lowRTT sparse. Original E2 run37915859759 and old E1 run37907829434 both remain fullstack FAIL, no matched CPU gain claim. E7 ~80s deferred; no queue/buffer/wire changes or canonical merge.",
+  "latest_log": "docs/devlog/20261009-182800-e1-selective-largest-fec-window-16ms-candidate.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2476,7 +2585,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E2 SOURCE fc920 FEC-padding clear optimization core/race Foundation37913987141/Lifecycle37913987174 SUCCESS. Helper first run37914383139 FAIL pre-business bad scenario token, corrected full Normal1 lossless 300s run37914773277 ORIGINAL ANALYZER PASS_SCOPED_ACTIONS: UDP345672 each, zero missing, socket drops0, HTTP/HTTPS20/20, probes missing0, client+server CPU347.51s on EPYC7763 with PSI37.38%, CPU gain UNPROVEN vs old CPU. Next ONE Normal1 staged5205 profileOFF seed1847 pending; Game2 held.",
+    "Current E2 source fc92076b Normal1 300s true staged5205 profileOFF run37915859759 FAIL 413 c2s /480 s2c eventual app UDP missing; 20% stress 410/474, mostly1372/4068, zero packet socket drops, TCP+HTTPS intact. Distinct deterministic controlled LINK 20% erasure proves 16ms recovery vs 8ms for spaced groups, but real 5205 causal not established. New strictly scoped large-size 20:20 FEC group16ms candidate keeps <=512B and other profiles 8ms, systematic immediate, no dynamic loss feedback; core/race Foundation & lifecycle PENDING, no new 300s sample, CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
