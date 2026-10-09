@@ -28,36 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/e1-sparse-15ms
-          go test ./internal/linkdata -run='^TestE1Uniform32msSparseParityWireCost        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2
-          sudo modprobe sch_netem || true
-          ns="wbd-e1-$$"
-          mkdir -p artifacts/e1-sparse-15ms
-          sudo ip netns add "$ns"
-          trap 'sudo ip netns del "$ns" >/dev/null 2>&1 || true' EXIT
-          sudo ip -n "$ns" link set lo up
-          sudo ip netns exec "$ns" tc qdisc add dev lo root netem delay 15ms limit 10000
-          sudo ip netns exec "$ns" tc qdisc show dev lo | tee artifacts/e1-sparse-15ms/netem-config.txt
-          grep -Eq 'netem.*delay 15(\.0)?ms' artifacts/e1-sparse-15ms/netem-config.txt
-          sudo ip netns exec "$ns" env WBD_E1_NETEM_LOOPBACK=1 \
-            "$RUNNER_TEMP/e1-low-rtt-link.test" \
-            -test.run='^TestE1Uniform32msReal15msNetemUDP$' \
-            -test.v -test.count=1 -test.timeout=2m | tee artifacts/e1-sparse-15ms/result.log
-          grep -Fq 'E1_REAL_15MS_LOOPBACK_FEC20_20_SCOPED_PASS' artifacts/e1-sparse-15ms/result.log
-          grep -Fq -- '--- PASS: TestE1Uniform32msReal15msNetemUDP' artifacts/e1-sparse-15ms/result.log
-          sudo ip netns exec "$ns" tc -s qdisc show dev lo > artifacts/e1-sparse-15ms/netem-after.txt
-          echo "WBD_E1_15MS_REAL_UDP_NETNS_SCOPE_ONLY_PASS fullstack=NOT_RUN cpu_gain=UNPROVEN"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e1-sparse-real-15ms-netem-${{ github.sha }}
-          path: artifacts/e1-sparse-15ms
-          if-no-files-found: warn
-          retention-days: 30
- -count=1 -v | tee artifacts/e1-sparse-15ms/partial-block-cost.log
+          go test ./internal/linkdata -run='^TestE1Uniform32msSparseParityWireCost$' -count=1 -v | tee artifacts/e1-sparse-15ms/partial-block-cost.log
           grep -Fq 'E1_UNIFORM32_BLOCK_CLOSURE_PROXY_PASS' artifacts/e1-sparse-15ms/partial-block-cost.log
       - name: One real local UDP socket test in private 15ms netem namespace
         shell: bash

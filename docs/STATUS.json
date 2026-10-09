@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_32MS_NETEM15MS_ALL_THREE_ACTIONS_GREEN_PARTIAL_BLOCK_COUNTER_LOG_PENDING",
+    "phase": "E1_REAL_15MS_UDP_GREEN_RESOURCE_COUNTER_WORKFLOW_YAML_FIXED_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3066,7 +3066,8 @@
         "block_closure_comparison": "TestE1Uniform32msSparseParityWireCost PASS_37933015548 (32ms fewer partial blocks, exact counts need -v job)",
         "new_workflow_log_step": "Read exact 8ms-vs-32ms parity and partial-block cost counters",
         "cpu_claim": "UNPROVEN",
-        "bandwidth_saving": "NONE_FOR_THIS_FEC20_20_SPARSE_CASE"
+        "bandwidth_saving": "NONE_FOR_THIS_FEC20_20_SPARSE_CASE",
+        "state": "PASS_SCOPED_SMALL_FEC_BLOCK_CLOSURE_REDUCTION_EXACT_COUNTS_PENDING_VALID_YAML_ACTION"
       },
       "expected": [
         "kernel netem 15ms actual socket arrival delta >=5ms",
@@ -3130,11 +3131,22 @@
           "latency_fresh_to_arrival_ms": 15.095,
           "scope": "Linux UDP socket+LINK/FEC only, NOT client/server/TUN"
         }
+      },
+      "cost_receipt_workflow_fix": {
+        "failed_run": 37933510916,
+        "failed_result": "FAIL_NO_JOB_WORKFLOW_SYNTAX",
+        "reason": "JS String.replace with replacement containing regex $' interpreted as replace suffix, appended duplicate YAML tail",
+        "previous_green_run": 37933015518,
+        "corrected_workflow": "rebuild from prior passing c455f8c workflow, append resource step via callback and check exactly one job/cost/netem/upload",
+        "ci_pending": true,
+        "original_resource_test": "PASS_IN_FOUNDATION_37933015548",
+        "cpu_claim": "UNPROVEN",
+        "product_run": false
       }
     }
   },
-  "next_task": "Read next dedicated netem Action after workflow adds focused -v resource proxy receipt. Require FEC20:20 30 sparse UDP packets/12ms both 8ms and32ms same 30 systematic+30 parity and same 4560 parity bytes; 32ms partialBlocks count smaller. This is not CPU/PPS evidence; no packet-size classifier added. Confirm 15ms kernel UDP source loss recovery/fresh delivery, fullstack still NOT_RUN at 15ms; do not claim Normal/Game product low RTT 15ms. Then ONE honest fullstack sparse low RTT protector needs exact scenario knob in existing strict harness with 15ms true netem, 45ms independent business source and bounded checks, one seed/job/300s Action, after core/race. Old E1 Normal1 and Game2 ordinary mixed 0loss/5205 one sample each already PASS; don't repeat to shop runner. CPU gain UNPROVEN; Game2 real lane count OFF not observed, old E4 Game4 skmem drops FAIL and E7 downstream outage deferred.",
-  "latest_log": "docs/devlog/20261009-233000-e1-15ms-netem-three-actions-green-parity-block-counter-receipt.md",
+  "next_task": "Check new Actions for rebuilt YAML after invalid run37933510916 (zero jobs); Foundation original source/corrected repo-contract and a new native15ms kernel netem fixture must pass. Dedicated job must print exact 8 vs32 partial block closure counts with parity shards/bytes equal, then real parity-to-repair and fresh arrival ~15ms. The original invalid workflow FAIL remains evidence and is NOT a product failure. No new300s source sample, no size classifier or perpacket goroutine. Next formal E1 lowRTT still requires genuine source-pinned client/server/TUN 15ms+45ms sparse business fullstack; existing 300ms run cannot substitute. Original Game4 9V45 socket drop FAIL and E7 outage OPEN_DEFERRED, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-235000-e1-resource-receipt-yaml-suffix-substitution-fixed.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -3147,7 +3159,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 uniform32 source a2db already four ordinary mixed Normal1/Game2 lossless+5205 profileOFF scoped PASS. Added actual 15ms Linux UDP socket+LINK/FEC test green repeat run37933015518, Foundation37933015548, Lifecycle37933015529 all SUCCESS after first Foundation37932313522 failed wrong FEC bandwidth-saving assertion. Actual FEC20:20 8ms vs32ms 30 sparse UDP each has 30 parity and4560 parity bytes equal (no wire savings); 32ms fewer partial FEC block closures from deterministic test but CPU gain UNPROVEN. Next capture exact closure counts in artifact. No new300s performance run.",
+    "E1 uniform32 SOURCE a2db product unchanged; previous 3 Actions Foundation37933015548, Lifecycle37933015529, 15ms netem UDP37933015518 FULL SUCCESS. Resource proxy real FEC20:20 8ms and32ms both 30 parity fragments4560B (no bandwidth gain), fewer partial closures in32ms but exact values not yet logged. First workflow-only receipt run37933510916 FAIL BEFORE JOB due YAML generator JS `$'` suffix injection. Rebuilt from green prior workflow and asserted one job, one resource step, one netem, one artifact; pending new Foundation and netem. E4 old socket-loss FAIL, CPU benefit UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

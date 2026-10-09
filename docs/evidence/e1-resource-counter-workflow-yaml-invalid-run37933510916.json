@@ -1,0 +1,17 @@
+{
+  "schema": "wbd-e1-resource-receipt-workflow-yaml-generation-fail/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "run": 37933510916,
+  "result": "FAILURE_BEFORE_JOBS",
+  "head": "0617f44517e4599cdd093bc74e1122582b89b366",
+  "root": "JS String.replace interprets $' at end of Go test regex in replacement as suffix-of-original string, duplicating rest of workflow and producing invalid YAML.",
+  "impact": "NO_TESTS_RUN_IN_THIS_WORKFLOW",
+  "previous_valid_suites": [
+    37933015548,
+    37933015529,
+    37933015518
+  ],
+  "fix": "rebuild exact prior-successful YAML from parent c455f8c, insert cost-test run using callback replacement; explicit counts of one job/one cost/one netem/one upload",
+  "product_source": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "cpu_gain": "UNPROVEN"
+}

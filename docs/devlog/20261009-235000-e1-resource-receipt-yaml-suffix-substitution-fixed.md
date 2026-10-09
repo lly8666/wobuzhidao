@@ -1,0 +1,9 @@
+# E1 resource counter receipt workflow generated invalid YAML; exact repair (2026-10-09)
+
+Only working branch next/performance-efficiency-20261008 parent 0617f44517e4599cdd093bc74e1122582b89b366, 32ms SOURCE a2db258b436a41fdee98c6c53abec9bab6ce600f unchanged. The first three tests with corrected FEC20:20 resource accounting were ALL green: [Foundation37933015548](https://github.com/lly8666/wobuzhidao/actions/runs/37933015548), [Lifecycle37933015529](https://github.com/lly8666/wobuzhidao/actions/runs/37933015529), [native Linux15ms UDP37933015518](https://github.com/lly8666/wobuzhidao/actions/runs/37933015518). Only a new *log-printing CI helper* step was being added.
+
+Unexpected [Actions37933510916](https://github.com/lly8666/wobuzhidao/actions/runs/37933510916) FAILURE BEFORE ANY JOB: generated YAML had a duplicated block due to JavaScript String.replace replacement token `$'` in Go regex ending `Cost$'`. It substituted the suffix of the original YAML and appended it after upload, with job duplication. This is helper generation failure, not product/Go/FEC/kernel test failure. Never omit the failed Action or relabel as PASS.
+
+Rebuild workflow from last passing c455f8c commit; insert one verbose focus test step with replacement callback to prevent `$'` interpretation and reject duplicates of job, native netem step, block-counter step, artifact-upload step before Git blob creation. New explicit cost log emits true 8/32ms partialBlock totals and invariant FEC20:20 parity bytes; baseline 30 source/30 parity 4560 parity bytes each shows NO bandwidth saving for this sparse fixed-rate case. CPU gain remains UNPROVEN until matched profile-OFF tests. No Go product code, FEC classifier, queue, socket buffer, mainline or physical devices changed.
+
+Next inspect new GitHub Actions; E7 80s S2C outage deferred and Game4 original 9V45 OFF client33/server86, ON client42 socket-drop FAIL untouched.
