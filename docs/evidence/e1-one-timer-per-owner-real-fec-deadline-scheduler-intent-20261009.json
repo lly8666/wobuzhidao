@@ -1,0 +1,48 @@
+{
+  "schema": "wbd-e1-runtime-owner-parity-scheduler-candidate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "13fa4723c9bf2c03b23323c76ecc8fb02e76314f",
+  "parent_product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "previous_primitives_commit": "13fa4723c9bf2c03b23323c76ecc8fb02e76314f",
+  "previous_tests": {
+    "foundation": 37903621183,
+    "lifecycle": 37903621272,
+    "conclusion": "SUCCESS"
+  },
+  "original_root_cause": "FastBlockEncoder tracks firstAt+8ms but 100ms client/server lifecycle ticker was sole partial-parity flushing trigger; ack already uses independent 2ms timer.",
+  "architecture": {
+    "shared_owner_wake_channel": "1 buffer per logical tunnel, only first/earlier pending deadline; send under TX mutex nonblocking",
+    "fixed_group_bound": 3,
+    "active_lanes_max": 4,
+    "scheduler": "one reusable time.Timer and one goroutine per ACTIVE real client/server logical owner, does not run for bare low-level Runtime.New tests",
+    "activation": "client DialTunnelClient + server LifecycleServer.Run on accepted tunnel (not packet or lane)",
+    "runner": "RunFECDeadlineSchedule, wakes on owner edge/replacement or absolute earliest deadline, parked when no pending groups; context/deadlineStop stops on close",
+    "scheduled_work": "flushDuePartialParity only (owner.TickLane with generation fence then emit, may expire recv state), not full repair/health/lease/platform Tick",
+    "error_propagation": "asynchronous parity send error accumulated and reported once by next periodic Runtime.Tick",
+    "periodic_tick": "100ms still executes health, repair, table sweeps, startup padding and service maintenance",
+    "receiver_path": "separate goroutine, never runs on raw socket receive select loop",
+    "max_additional_timers": "1 per active logical owner (per lane 0)",
+    "max_extra_wake_channel_slots": "1 per logical owner",
+    "replacement_semantics": "candidate notification cannot authorize fresh parity; promotion wakes timer for new active only, dormant/close cancels prior deadline",
+    "source_wire_unchanged": true,
+    "send_queue_buffer_expansion": false
+  },
+  "new_tests": [
+    "TestTunnelOwnerFECDeadlineWakeOnlyNewEarliestOrGeneration",
+    "TestFECDeadlineSchedulerSparseFirstAndStop",
+    "TestFECDeadlineSchedulerIdleCancel"
+  ],
+  "initial_runs": "PENDING_FOUNDATION_AND_NEXT_LIFECYCLE",
+  "new_300s_sample_runs": 0,
+  "all_four_protectors": "NOT_RUN_NEW_SOURCE",
+  "historical_oneparse_5205": {
+    "run": 37898379013,
+    "scope": "PASS_SCOPED_ACTIONS with one S2C 4068B missing under 20% artificial-loss stress, no kernel drops"
+  },
+  "old_baseline_AF_PACKET_drop_failures": [
+    37857040784,
+    37871243581
+  ],
+  "cpu_gain": "UNPROVEN",
+  "e7": "OPEN_DEFERRED"
+}

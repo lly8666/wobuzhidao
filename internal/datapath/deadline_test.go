@@ -40,3 +40,45 @@ func TestTunnelOwnerActiveOnlyFlushDeadlineAndGeneration(t *testing.T){
 	owner.Close()
 	if got:=owner.NextActiveFlushDeadline();!got.IsZero(){t.Fatalf("closed owner due=%v",got)}
 }
+
+func TestTunnelOwnerFECDeadlineWakeOnlyNewEarliestOrGeneration(t *testing.T) {
+	start := time.Unix(300, 0)
+	owner, err := NewTunnelOwner(1, 8)
+	if err != nil { t.Fatal(err) }
+	defer owner.Close()
+	lane, err := NewLane(pairConfig(RoleClient, 20))
+	if err != nil { t.Fatal(err) }
+	snapshot, err := owner.AttachInitial(1, lane)
+	if err != nil { t.Fatal(err) }
+	// Initial attach may signal a rescan but must never invent a deadline.
+	select { case <-owner.FECDeadlineWake(): default: }
+	if _, err := lane.Outbound([]byte("first"), start); err != nil { t.Fatal(err) }
+	select {
+	case <-owner.FECDeadlineWake():
+	default: t.Fatal("first partial source did not notify the owner")
+	}
+	if _, err := lane.Outbound([]byte("second"), start.Add(time.Millisecond)); err != nil { t.Fatal(err) }
+	select {
+	case <-owner.FECDeadlineWake(): t.Fatal("ordinary additional source woke timer")
+	default:
+	}
+	candidate, err := NewLane(pairConfig(RoleClient, 20))
+	if err != nil { t.Fatal(err) }
+	if err := owner.BeginSameIDReplacement(snapshot.Ref, candidate); err != nil { t.Fatal(err) }
+	if _, err := candidate.Outbound([]byte("candidate"), start.Add(2*time.Millisecond)); err != nil { t.Fatal(err) }
+	// A candidate may only request a rescan: owner still reports old deadline.
+	if got := owner.NextActiveFlushDeadline(); !got.Equal(start.Add(8*time.Millisecond)) {
+		t.Fatalf("candidate incorrectly scheduled parity: %v", got)
+	}
+	select {case <-owner.FECDeadlineWake(): default: }
+	if _, err := owner.PromoteSameIDReplacement(snapshot.Ref); err != nil { t.Fatal(err) }
+	select {
+	case <-owner.FECDeadlineWake():
+	default: t.Fatal("generation promotion did not re-arm the owner deadline")
+	}
+	if got := owner.NextActiveFlushDeadline(); !got.Equal(start.Add(10*time.Millisecond)) {
+		t.Fatalf("retiring deadline still scheduled: %v", got)
+	}
+	if _, err := owner.Dormant(); err != nil { t.Fatal(err) }
+	if due := owner.NextActiveFlushDeadline(); !due.IsZero() { t.Fatalf("dormant due=%v", due) }
+}

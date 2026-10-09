@@ -1089,6 +1089,10 @@ type Runtime struct {
 	lanes      map[logicaltunnel.LaneRef]*laneTransport
 	active     map[uint8]logicaltunnel.LaneRef
 	candidates map[uint8]candidateTransport
+	// Timer-driven FEC flush failures must reach the existing 100ms error
+	// path; never silently lose failed emits from the owner wake goroutine.
+	parityDeadlineErr error
+	deadlineStop chan struct{}
 	closed     bool
 }
 
@@ -1101,6 +1105,7 @@ func New(owner *datapath.TunnelOwner, deliver PacketSink) (*Runtime, error) {
 		lanes:      make(map[logicaltunnel.LaneRef]*laneTransport),
 		active:     make(map[uint8]logicaltunnel.LaneRef),
 		candidates: make(map[uint8]candidateTransport),
+		deadlineStop: make(chan struct{}),
 	}, nil
 }
 
@@ -1635,6 +1640,8 @@ func (r *Runtime) Tick(now time.Time) error {
 		r.mu.Unlock()
 		return nil
 	}
+	asyncParityErr := r.parityDeadlineErr
+	r.parityDeadlineErr = nil
 	active := make(map[logicaltunnel.LaneRef]struct{}, len(r.active))
 	for _, ref := range r.active {
 		active[ref] = struct{}{}
@@ -1647,6 +1654,9 @@ func (r *Runtime) Tick(now time.Time) error {
 	r.mu.Unlock()
 
 	var errs []error
+	if asyncParityErr != nil {
+		errs = append(errs, asyncParityErr)
+	}
 	for _, lane := range lanes {
 		// Only the authoritative incarnation may form new timer-driven FEC
 		// parity. Retiring transports keep their bounded repair tick but cannot
@@ -1727,6 +1737,7 @@ func (r *Runtime) Close() {
 		return
 	}
 	r.closed = true
+	close(r.deadlineStop)
 	lanes := make([]*laneTransport, 0, len(r.lanes))
 	for _, transport := range r.lanes {
 		lanes = append(lanes, transport)

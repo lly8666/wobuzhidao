@@ -134,6 +134,9 @@ type Lane struct {
 	decoder *tlsrecord.Decoder
 	txPath  *linkdata.FECPath
 	rxPath  *linkdata.FECPath
+	// A single buffered owner signal is emitted only when a first/earlier
+	// partial-FEC deadline is created. Nonblocking: never delay fresh data.
+	fecDeadlineWake chan<- struct{}
 
 	stats         LaneStats
 	timingEnabled atomic.Bool
@@ -263,6 +266,15 @@ func (l *Lane) rejectInvalidPadding(request PaddingRequest) error {
 // padding=0 path and uses tlsrecord.Seal, so existing zero-padding vectors stay
 // byte-for-byte unchanged. A caller may retain a WireRecord and retransmit its
 // Wire at the same TCP sequence without invoking Seal again.
+// setFECDeadlineWake is called only before an incarnation is published.
+// A candidate may notify before promotion; the scheduler rechecks active
+// generation and never emits parity from an unpublished candidate.
+func (l *Lane) setFECDeadlineWake(ch chan<- struct{}) {
+	l.mu.Lock()
+	l.fecDeadlineWake = ch
+	l.mu.Unlock()
+}
+
 func (l *Lane) Outbound(packet []byte, now time.Time) ([]WireRecord, error) {
 	return l.outbound(packet, now, nil)
 }
@@ -291,9 +303,17 @@ func (l *Lane) outbound(packet []byte, now time.Time, selector paddingSelector) 
 	if l.closed {
 		return nil, ErrLaneClosed
 	}
+	previous := l.txPath.NextFlushDeadline()
 	wire, err := l.txPath.Encode(packet, now)
 	if err != nil {
 		return nil, err
+	}
+	if next := l.txPath.NextFlushDeadline(); !next.IsZero() &&
+		(previous.IsZero() || next.Before(previous)) && l.fecDeadlineWake != nil {
+		select {
+		case l.fecDeadlineWake <- struct{}{}:
+		default:
+		}
 	}
 	l.stats.OutboundDatagrams++
 	return l.sealLocked(wire, selector)

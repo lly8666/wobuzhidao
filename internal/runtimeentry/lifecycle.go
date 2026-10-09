@@ -457,6 +457,9 @@ func DialTunnelClient(ctx context.Context, cfg TunnelClientConfig) (*TunnelClien
 	}
 	c.scheduleNextRotationLocked(time.Now())
 	c.opMu.Unlock()
+	// A single owner timer handles only pending 8ms partial FEC deadlines.
+	// It cannot block client receive, or replace the 100ms health/repair tick.
+	go c.rt.RunFECDeadlineSchedule(c.runCtx)
 	go c.lifecycleLoop()
 	return c, nil
 }
@@ -1207,6 +1210,10 @@ type LifecycleServer struct {
 	byLease        map[netip.Addr]*serverLifecycleTunnel
 
 	pipeline serverPipelineTiming
+	// The per-tunnel parity timers are started only by the real Run
+	// lifecycle; direct low-level tests with synthetic timestamps retain
+	// explicit Tick control. Each group stops its worker on Runtime.Close.
+	fecDeadlineSchedulerEnabled bool
 	once     sync.Once
 }
 
@@ -1269,6 +1276,9 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 	// budget instead of multiplying it per lane. Join consumers before
 	// closing the owner/table to preserve generation and FIN fences.
 	runCtx, cancelWorkers := context.WithCancel(ctx)
+	s.mu.Lock()
+	s.fecDeadlineSchedulerEnabled = true
+	s.mu.Unlock()
 	var workerWG sync.WaitGroup
 	defer func() {
 		cancelWorkers()
@@ -1880,7 +1890,13 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 	}
 	s.byTunnel[id] = group
 	s.byLease[leaseAddr] = group
+	startDeadlineScheduler := s.fecDeadlineSchedulerEnabled
 	s.mu.Unlock()
+	if startDeadlineScheduler {
+		// One parked goroutine/timer per logical tunnel owner (not per lane
+		// or packet). Runtime.Close stops it on lease expiry or server exit.
+		go rt.RunFECDeadlineSchedule(context.Background())
+	}
 	return group, nil
 }
 
@@ -2313,6 +2329,7 @@ func (s *LifecycleServer) Close() error {
 		clear(s.byTunnel)
 		clear(s.byLease)
 		clear(s.pending)
+		s.fecDeadlineSchedulerEnabled = false
 		s.mu.Unlock()
 		for _, group := range groups {
 			group.service.Close()

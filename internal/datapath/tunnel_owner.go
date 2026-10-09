@@ -77,6 +77,9 @@ type TunnelOwner struct {
 	active     map[uint8]tunnelLaneBinding
 	candidates map[uint8]replacementCandidate
 	retiring   map[logicaltunnel.LaneRef]*Lane
+	// One coalescing deadline notification for all authoritative lanes.
+	// Never closed: stale-generation producers must not panic.
+	fecDeadlineWake chan struct{}
 
 	lease    logicaltunnel.Lease
 	hasLease bool
@@ -109,6 +112,7 @@ func NewTunnelOwner(desiredLanes, maxFlows int) (*TunnelOwner, error) {
 		active:     make(map[uint8]tunnelLaneBinding, desiredLanes),
 		candidates: make(map[uint8]replacementCandidate, desiredLanes),
 		retiring:   make(map[logicaltunnel.LaneRef]*Lane, logicaltunnel.MaxRetiringPublicTransportIncarnations),
+		fecDeadlineWake: make(chan struct{}, 1),
 	}, nil
 }
 
@@ -116,6 +120,8 @@ func (o *TunnelOwner) AttachInitial(laneID uint8, lane *Lane) (TunnelLaneSnapsho
 	if lane == nil || !logicaltunnel.ValidProductLaneID(laneID) {
 		return TunnelLaneSnapshot{}, logicaltunnel.ErrLaneState
 	}
+	// Avoid owner.mu -> lane.mu inversion against outbound padding callbacks.
+	lane.setFECDeadlineWake(o.fecDeadlineWake)
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	if o.closed {
@@ -138,6 +144,7 @@ func (o *TunnelOwner) AttachInitial(laneID uint8, lane *Lane) (TunnelLaneSnapsho
 		return TunnelLaneSnapshot{}, err
 	}
 	o.active[laneID] = tunnelLaneBinding{ref: ref, lane: lane}
+	o.notifyFECDeadlineChanged()
 	return snapshotFor(ref, lane), nil
 }
 
@@ -290,6 +297,7 @@ func (o *TunnelOwner) BeginSameIDReplacement(old logicaltunnel.LaneRef, candidat
 	if candidate == nil || !logicaltunnel.ValidProductLaneID(old.ID) || old.Generation == 0 {
 		return logicaltunnel.ErrLaneState
 	}
+	candidate.setFECDeadlineWake(o.fecDeadlineWake)
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	if o.closed {
@@ -359,6 +367,7 @@ func (o *TunnelOwner) PromoteSameIDReplacement(old logicaltunnel.LaneRef) (Tunne
 	o.active[old.ID] = tunnelLaneBinding{ref: fresh, lane: candidate.lane}
 	delete(o.candidates, old.ID)
 	o.retiring[old] = current.lane
+	o.notifyFECDeadlineChanged()
 	return snapshotFor(fresh, candidate.lane), nil
 }
 
@@ -551,6 +560,7 @@ func (o *TunnelOwner) Dormant() ([]logicaltunnel.LaneRef, error) {
 	clear(o.active)
 	clear(o.candidates)
 	clear(o.retiring)
+	o.notifyFECDeadlineChanged()
 	o.mu.Unlock()
 	closeLaneSet(lanes)
 	return refs, nil
@@ -577,8 +587,25 @@ func (o *TunnelOwner) Close() {
 	o.padding.startup.active.Init()
 	o.padding.startup.retained.Init()
 	o.closed = true
+	o.notifyFECDeadlineChanged()
 	o.mu.Unlock()
 	closeLaneSet(lanes)
+}
+
+// FECDeadlineWake is an edge notification. A wake may come from a stale
+// candidate, so the scheduler must recompute the authoritative next deadline.
+func (o *TunnelOwner) FECDeadlineWake() <-chan struct{} {
+	if o == nil {
+		return nil
+	}
+	return o.fecDeadlineWake
+}
+
+func (o *TunnelOwner) notifyFECDeadlineChanged() {
+	select {
+	case o.fecDeadlineWake <- struct{}{}:
+	default:
+	}
 }
 
 // NextActiveFlushDeadline inspects only authoritative outbound generations.
