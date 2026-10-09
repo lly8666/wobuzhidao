@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_AF_PACKET_DIAGNOSTIC_TOOLS_QUALIFIED_OFF_LOSSLESS_SOCKET_DROP_FAIL_STILL_OPEN",
+    "phase": "E4_SAME_RUN_AF_PACKET_RECV_GAP_CLOCK_WITNESS_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1242,13 +1242,27 @@
           "synthetic_test_count": 6,
           "measured_perf_samples": 0
         },
-        "scope_evidence": "docs/evidence/e4-afpacket-live-parser-numeric-reducer-actions-foundation-20261009.json"
+        "scope_evidence": "docs/evidence/e4-afpacket-live-parser-numeric-reducer-actions-foundation-20261009.json",
+        "read_gap_cgroup_correlator": {
+          "status": "PENDING_FOUNDATION_SYNTHETIC_7",
+          "source": "tools/afpacket_drop_witness.py",
+          "tests": "tools/test_afpacket_drop_witness.py",
+          "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+          "latest_prior_foundation": {
+            "run_id": 37868844579,
+            "status": "SUCCESS"
+          },
+          "historical_bad_100ms_trace": "UNUSABLE_NOT_RECONSTRUCTABLE",
+          "run_new_300s": false,
+          "real_runtime_input_matched": true,
+          "limitation": "Go raw recv gap is only coarse server read_gap 1s cumulative high watermark; no exact per-syscall or runnable timeline"
+        }
       },
       "historical_foundation_race_fix": "Original timing assertion failure addressed; after repair Foundation 37856615069 and latest 37868567381 SUCCESS; see earlier devlogs. This is historical, not current blocker."
     }
   },
-  "next_task": "E4 is blocked by unproven original 9V45 AF_PACKET packet-socket drop cause (run37857040784 client33/server86; business-relative server86.053–87.053s, client142.053–143.053s). One 9V74 diagnosticON clean run cannot close old OFF FAIL. Native ss parser and conservative 100ms reducer are now fully Foundation validated; do not rerun 300s solely because parser was repaired and do not claim CPU cost gain. Next justified action: design a targeted bounded same-run kernel skmem drop plus raw recv loop read-gap/scheduler stall witness with accurate ss-bracketing and reject full queue/cgroup attribution without coincident evidence. Change product only once causal/protection hypothesis exists; no buffer/queue expansion. If no repeatable witness, record E4 blocked/inconclusive and hold additional Normal/Game protectors, leaving E7 ~80s downstream stall deferred; CPU gain UNPROVEN and E6/P6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-e4-live-kernel-afpacket-and-failclosed-reducer-actions-verified.md",
+  "next_task": "Verify next Foundation for new read-only `afpacket_drop_witness.py`: clock offset drift bound, server 1s cumulative read_gap and raw_io deltas, cgroup cpu.stat throttle overlap, all-null UNUSABLE, no kernel-event timestamp/CPU cause claim. Then inspect original artifact at same-run granularity; OFF 9V45 no diagnostic ON fields, existing 100ms ON run37865738583 all-null cannot reconstruct, so true root remains OPEN. Consider one narrowly justified, one-case observer probe only after measurable scheduler/raw receive stall signal is specified and live parser test passes. Do not rerun for parser fix, no product code or buffer/queue increases. Other Normal/Game protectors and E7 ~80s downlink remain OPEN; CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e4-same-run-afpacket-recv-readgap-cgroup-clock-witness.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1261,7 +1275,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 diagnostic helpers: native AF_PACKET `ss` kernel preflight Foundation37868281112 SUCCESS, 100ms fail-closed numerical trace reducer 7+4+6 synthetic Foundation37868567381 SUCCESS; original game4 lossless OFF run37857040784 skmem d33/d86 FAIL OPEN, old malformed ON helper run37865738583 workflow FAIL preserved; business CPU gain UNPROVEN.",
+    "E4 socket-drop causality remains OPEN. Foundation37868844579 success. New read-only same-run 100ms packet socket vs 1s product raw_io/read_gap and cgroup CPU-throttle observational witness pending Foundation. No new 300s performance run, same ba8ed1 product; old OFF 9V45 d33/d86 FAIL and broken ON 100ms artifact workflow FAIL preserved.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

@@ -1,0 +1,32 @@
+{
+  "schema": "wbd-e4-same-run-afpacket-recv-cgroup-witness-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "e809218eee1ae4a8b6dc8ec7777ec815c2b88540",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "change_scope": [
+    "tools/afpacket_drop_witness.py readonly metadata correlator",
+    "synthetic unittest only",
+    "next-foundation.yml only",
+    "docs/STATUS.json and log/evidence"
+  ],
+  "new_perf_samples": 0,
+  "reason": "Original OFF kernel drops only 1s samples, later ON 100ms trace all null; need guard against false cause attribution when joining different clocks and 1s product telemetry.",
+  "source_input_schemas": {
+    "resource": "resources.jsonl monotonic_ns/unix_ns, cgroup cpu.stat",
+    "product": "client-diag/server-diag observed_unix_ns, product.raw_io and server tunnel.server_pipeline.read_gap",
+    "socket": "client/server-packet-probe.jsonl 100ms skmem d and bracket",
+    "business": "stage-events.jsonl business_start/end monotonic_ns"
+  },
+  "join_constraints": {
+    "offset": "median exact int of 1s resource monotonic-unix paired anchors drift <=20ms",
+    "socket_bracket": "previous ss start until next ss end only",
+    "runtime_receive_gap": "cumulative 1s over10ms counter, high watermark only, no raw syscall event timestamp",
+    "cgroup": "shared cpu.stat throttling numeric only, not a host causal conclusion",
+    "missing_probe": "UNUSABLE, not zero",
+    "old_off_without_diag": "no one-run read-gap correlation possible"
+  },
+  "tests": "7 synthetic cases pending GitHub Foundation",
+  "legacy_fail_preserved": 37857040784,
+  "legacy_100ms_bad_probe_preserved": 37865738583,
+  "product_cpu_gain": "UNPROVEN"
+}
