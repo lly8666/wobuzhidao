@@ -1,0 +1,179 @@
+{
+  "schema": "wbd-e4-oneparse-source-game4-off-real-protection/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent": "9bd2b69f7d0ad7609aa5fa9864e26f07b79a9bae",
+  "run_id": 37886694720,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37886694720",
+  "artifact_id": 11597305253,
+  "artifact_zip": "github-actions-artifact-11597305253.zip",
+  "product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "helper_sha": "9bd2b69f7d0ad7609aa5fa9864e26f07b79a9bae",
+  "source_candidate_commit": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "one_sample_only": true,
+  "one_measurement_job": true,
+  "workflow": "next-efficiency-e0-single",
+  "workflow_conclusion": "success",
+  "sample_job_conclusion": "success",
+  "original_analyzer": "PASS_SCOPED_ACTIONS",
+  "issues": [],
+  "preflight_foundation": 37886445830,
+  "preflight_conclusion": "SUCCESS",
+  "same_dispatch_foundation": 37886694668,
+  "same_dispatch_foundation_conclusion": "SUCCESS",
+  "sample": {
+    "workload": "mixed",
+    "mode": "game",
+    "lanes_configured": 4,
+    "active_lanes": "NOT_COLLECTED_PROFILE_OFF",
+    "loss_waveform": {
+      "pre": [
+        0,
+        75,
+        5
+      ],
+      "stress": [
+        75,
+        225,
+        20
+      ],
+      "post": [
+        225,
+        300,
+        5
+      ]
+    },
+    "seed": 1840,
+    "rate_mbps_each_direction": 3,
+    "diagnostic_mode": "off",
+    "size_profile": "ordinary",
+    "duration_s": 300,
+    "drain_s": 3,
+    "one_way_delay_ms": 300,
+    "fec": "20:20",
+    "formal_default_tick_ms": 100,
+    "realized_loss_pct_by_phase": {
+      "pre": {
+        "c2s": 5.035392030781134,
+        "s2c": 5.0333732027401155
+      },
+      "stress": {
+        "c2s": 20.05145455339738,
+        "s2c": 20.10548043503297
+      },
+      "post": {
+        "c2s": 4.979050959758355,
+        "s2c": 4.989867586136597
+      }
+    }
+  },
+  "business": {
+    "udp_sent_per_direction": 103062,
+    "udp_delivered_per_direction": 103062,
+    "udp_missing_each_direction": 0,
+    "UDP_stage_sent_delivered": {
+      "pre": [
+        25792,
+        25792
+      ],
+      "stress": [
+        51503,
+        51503
+      ],
+      "post": [
+        25767,
+        25767
+      ]
+    },
+    "udp_over_1s_or_3s_per_direction": 0,
+    "probe": {
+      "c2s": {
+        "sent": 1500,
+        "returned": 1500,
+        "missing": 0,
+        "p99_ms": 620.32278
+      },
+      "s2c": {
+        "sent": 1495,
+        "returned": 1495,
+        "missing": 0,
+        "p99_ms": 621.112374
+      }
+    },
+    "tcp_stream_hashes": "PRESERVED_BY_ORIGINAL_ANALYZER_PASS",
+    "http_https_requests": 20,
+    "web_returned": 20,
+    "https_cert_validated": 10,
+    "web_missing": 0,
+    "web_server_errors": 0,
+    "active_10ms_receiver_empty_largest_gap_ms": {
+      "c2s": 70,
+      "s2c": 80
+    },
+    "goodput_mbps_each_direction": 2.97231648,
+    "no_hol_scope": "ONLY_THIS_ONE_STAGED_5205_SAMPLE_NOT_GENERAL_HOL_PROOF"
+  },
+  "resources": {
+    "host_cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "logical_cpus": 4,
+    "cgroup_cpu_quota_cores": null,
+    "cpu_psi_some_avg10_max": 34.77,
+    "host_busy_max_pct": 72.39583333333333,
+    "host_steal_max_pct": 0,
+    "client_cpu_s": 131.34,
+    "server_cpu_s": 132.24,
+    "product_total_cpu_s": 263.58,
+    "total_cpu_s_per_delivered_gib": 1269.3086552905181,
+    "socket_extra_drop_max": 0,
+    "interface_drop_max": 0,
+    "packet_socket_client_max_d": 0,
+    "packet_socket_server_max_d": 0,
+    "client_rss_peak_mib": 100.2578125,
+    "server_rss_peak_mib": 97.265625,
+    "strict_resource_errors": []
+  },
+  "artifact_hashes": {
+    "summary.json": "e35e592e60be61b23e89dc8bafffbb294c9d16b4a861ed7c18dce5750f0fdf98",
+    "efficiency-ledger.json": "1c529792c4babc18fc8cfc9f317197cf88e3698326b56f30e357d94958e64bbd",
+    "manifest.json": "407678290cc84fec555eca2783ce1f94a6b0b34dc02e56f675c69740a20e9c45",
+    "sample-claim.json": "3e142592a12cf905c4b9264581b1988f33a7313f1cff3b2c15ceb5f5ce4b342e"
+  },
+  "previous_same_scenario": {
+    "run": 37853468730,
+    "source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "host": "AMD EPYC 9V74",
+    "cpu_total_s": 265.02,
+    "classification": "PASS_SCOPED_ACTIONS",
+    "socket_drop": 0,
+    "psi_max": 32.22
+  },
+  "cpu_gain_claim": "UNPROVEN",
+  "why_cpu_unproven": "Separate fresh hosted VM instance, no verified matching cgroup CPU quota or host PSI; 1.44CPU-s difference ≈0.54% not causal estimate",
+  "previous_9v45_lossless_failure_retained": [
+    {
+      "run": 37857040784,
+      "profile": "OFF",
+      "client_socket_drop": 33,
+      "server_socket_drop": 86
+    },
+    {
+      "run": 37871243581,
+      "profile": "ON",
+      "client_socket_drop": 42,
+      "server_socket_drop": 0
+    }
+  ],
+  "outstanding": {
+    "game4_lossless": "FAIL_FROM_PRIOR_SOURCE_NOT_REQUALIFIED",
+    "normal1": "NOT_RUN_CANDIDATE",
+    "game2": "NOT_RUN_CANDIDATE",
+    "e6_p6_physical": "NOT_RUN_CANDIDATE",
+    "e7_80s_downstream_stall": "OPEN_DEFERRED",
+    "afpacket_lossless_root": "OPEN"
+  },
+  "guardrails": {
+    "no_queue_or_rcvbuf_increase": true,
+    "no_more_perf_samples_automatically": true,
+    "canonical_or_main_changed": false,
+    "product_source_frozen_at": "aa931d5822a5378c48bf0763216f0446a5af8683"
+  }
+}
