@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_UNIFORM32_NORMAL_AND_GAME2_BUSINESS_0_5205_SCOPED_PASS_15MS_SPARSE_LINK_TEST_PENDING",
+    "phase": "E1_UNIFORM32_NORMAL_GAME2_0AND5205_BUSINESS_SCOPED_PASS_SPARSE_15MS_LINK_RACE_PASS_REAL_LOW_RTT_NOT_RUN",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2655,7 +2655,7 @@
         "normal1_5205": "PASS_SCOPED_ACTIONS_37924613499",
         "game2_lossless": "PASS_SCOPED_BUSINESS_PROFILEOFF_37925722025_REAL_LANE_CARDINALITY_UNOBSERVED",
         "game2_5205": "PASS_SCOPED_BUSINESS_PROFILEOFF_37926864614_ACTUAL_TWO_LANES_NOT_PROVEN",
-        "low_rtt_sparse": "FOUNDATION_PENDING_15MS_ONE_WAY_LINK_ONLY",
+        "low_rtt_sparse": "PASS_DETERMINISTIC_LINK_ONLY_37928943014_REAL_E2E_15MS_NOT_RUN",
         "cpu_gain": "UNPROVEN"
       },
       "history_failures": [
@@ -2970,7 +2970,7 @@
         "artifact_zip_sha256": "79224bc646d548269502a84b44710ec3ae03db4ebdfa5333a81158df0909a77a"
       },
       "low_rtt_sparse_test": {
-        "state": "PENDING_FOUNDATION",
+        "state": "PASS_SCOPED_DETERMINISTIC_LINK_FEC_FOUNDATION_AND_LIFECYCLE",
         "path": "internal/linkdata/e1_sparse_15ms_32ms_test.go",
         "packet_sizes_bytes": [
           96,
@@ -2994,12 +2994,32 @@
         ],
         "scope": "SYNTHETIC_LINK_FEC_ONLY_NOT_REAL_15MS_NETNS",
         "cpu_claim": "NONE",
-        "evidence": "docs/evidence/e1-uniform32-game2-5205-profileoff-pass-and-15ms-sparse-protector-20261009.json"
+        "evidence": "docs/evidence/e1-uniform32-game2-5205-profileoff-pass-and-15ms-sparse-protector-20261009.json",
+        "foundation": {
+          "id": 37928943014,
+          "conclusion": "SUCCESS",
+          "linux_go_unit": "SUCCESS",
+          "linux_go_race": "SUCCESS",
+          "windows_go_unit": "SUCCESS",
+          "tproxy": "SUCCESS",
+          "tun_iptables": "SUCCESS",
+          "tun_nft": "SUCCESS",
+          "p2_fallback": "SUCCESS"
+        },
+        "lifecycle": {
+          "id": 37928943023,
+          "conclusion": "SUCCESS"
+        },
+        "real_15ms_lowrtt_e2e": "NOT_RUN",
+        "qualification": "SYNTHETIC_LINK_FEC_TIMING_ONLY_NOT_PRODUCT_LOW_RTT_P99",
+        "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+        "fresh_lag_for_unaffected_datagram_ms": 0,
+        "additional_repair_wait_vs_8ms_up_to_ms": 24
       }
     }
   },
-  "next_task": "Check new Foundation for internal/linkdata/e1_sparse_15ms_32ms_test.go (2 parity profiles x sizes96/1372/4068, one-way15ms, 45ms sparse interval, 32ms partial parity, exactly one erased initial LINK fragment and recovery on 47ms, subsequent independent fresh at 60ms, no HOL/duplicate, timer retirement). Check all Go core/race, Linux/Windows, lifecycle, TPROXY/TUN/fallback before advancing. This is deterministic LINK scope ONLY, not real 15ms RTT E2E qualification; next build one source-pinned real 15ms one-way sparse protector using existing single-sample workflow with no extra matrix or source changes, or record unsupported harness. Do not interpret Game2 profileOFF as proof of active 2 lanes: runtime_game_evidence={} requires separately authorized same-SOURCE profileON lane-count diagnostic (never OFF CPU cost). Product SOURCE a2db frozen; no additional classifiers, buffers, ready/shard queues, or per-packet timers. Keep old 9V45 Game4 socket drop official FAIL, E7~80s downlink deferred, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-213000-e1-uniform32-game2-5205-real-pass-lowrtt-sparse-link-protector.md",
+  "next_task": "Implement ONE source-pinned actual low-RTT sparse real-socket end-to-end protector (15ms each direction, >32ms source spacing, FEC20:20 and uniform32) using existing single-case strict netns harness; it currently hardcodes netem one-way300ms and ordinary mixed business rates, so first add the MINIMUM bounded scenario knob and exact config/receipt guard, do not silently claim existing 300ms run qualifies 15ms. Keep 1 sample/job/run, don't automatically run 300s on normal code commits, and validate helper/unit/race before that one explicit case. Require fresh small UDP immediate at ~15ms one-way, lost partial recovered by scheduled parity, no application HOL/duplicates, and account any p99 penalty up to24ms vs 8ms. If it cannot be staged without changing product or introducing packet-size classifier, record UNAVAILABLE rather than claim PASS. Runtime Game2 actual lane count remains NOT_OBSERVED on OFF; a separate ON diagnostic is needed before full Game2 lane cardinality qualification. After true low-RTT protector, only then proceed to evidenced E4 repair/maintenance hotspots; no buffer/queue expansion, no multiple baselines or cross-host CPU claim. E7 ~80s S2C OPEN_DEFERRED, original Game4 socket d33/d86 OFF and client42 ON FAIL, CPU benefit UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-214500-e1-sparse-15ms-link-test-full-foundation-green-real-rtt-outstanding.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -3012,7 +3032,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 uniform32 FEC defaults PRODUCT SOURCE a2db258b: Normal1 lossless37922038550 PASS, Normal1 staged5205 37924613499 PASS, configured Game2 lossless37925722025 PASS, configured Game2 staged5205 run37926864614 exact 300s profileOFF PASS udp0/206124 both, probe1/2995, TCP304/304 each, HTTP/HTTPS20/20, local packet drops0. True two active Game lanes NOT OBSERVED in profileOFF, product CPU benefit UNPROVEN; 15ms one-way sparse LINK/FEC protection new test pending Foundation. Legacy Game4 9V45 lossless socket drops remain FAIL, E7~80s S2C OPEN_DEFERRED.",
+    "E1 uniform32 product source a2db Normal1 lossless and 5205, Game2 configured lossless and 5205 real profileOFF 300s all PASS_SCOPED_ACTIONS (Game2 runtime actual lane count profileOFF not observed). 15ms one-way sparse deterministic LINK/FEC protector in internal/linkdata/e1_sparse_15ms_32ms_test.go all 2 profiles x 3 sizes and core/race Windows/TPROXY/TUN/fallback Foundation37928943014 SUCCESS Lifecycle37928943023 SUCCESS; real 15ms netns sparse E2E NOT_RUN. 8->32ms partial parity adds at most 24ms recovery wait; no new packet-size classification or new timer. CPU gain UNPROVEN. Legacy Game4 9V45 packet-socket drop failures and E7 80s stalled downstream remain open/deferred.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

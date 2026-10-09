@@ -1,0 +1,62 @@
+{
+  "schema": "wbd-e1-uniform32-15ms-sparse-link-timing-test-github-ci-receipt/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "a72153ad878db7c2c92ee00e93c7789d2f132f69",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "test_path": "internal/linkdata/e1_sparse_15ms_32ms_test.go",
+  "scope": "deterministic LINK FEC only; not real network or per-packet timer measurements",
+  "cases": {
+    "parity": [
+      4,
+      20
+    ],
+    "sizes": [
+      96,
+      1372,
+      4068
+    ],
+    "one_way_delay_ms": 15,
+    "source_spacing_ms": 45,
+    "parity_deadline_ms": 32,
+    "first_missing_source_fec_repair_arrival_ms": 47,
+    "next_intact_fresh_source_arrival_ms": 60,
+    "additional_fec_recovery_wait_relative_8ms_up_to_ms": 24,
+    "assertions": [
+      "immediate systematic on Encode",
+      "strict <32ms no early parity",
+      "one initial LINK shard erased, complete datagram recovered from parity exactly once",
+      "new independent intact 96B packet delivered upon arrival before its parity",
+      "no duplicate after parity",
+      "no pending timer after drain"
+    ]
+  },
+  "foundation": {
+    "run_id": 37928943014,
+    "conclusion": "SUCCESS",
+    "linux_go_tests": "SUCCESS",
+    "go_race": "SUCCESS",
+    "windows": "SUCCESS",
+    "tproxy": "SUCCESS",
+    "tun_both_backends": "SUCCESS",
+    "fallback": "SUCCESS"
+  },
+  "lifecycle": {
+    "run_id": 37928943023,
+    "conclusion": "SUCCESS"
+  },
+  "protection_status": "PASS_DETERMINISTIC_LINK_FEC_ONLY",
+  "real_lowrtt_15ms_e2e": "NOT_RUN",
+  "profileoff_business_protector_references": [
+    37922038550,
+    37924613499,
+    37925722025,
+    37926864614
+  ],
+  "full_game2_lanes_actually_active": "NOT_PROVEN_PROFILE_OFF",
+  "cpu_gain": "UNPROVEN",
+  "old_game4_socket_failures": [
+    37857040784,
+    37871243581
+  ],
+  "e7": "OPEN_DEFERRED"
+}
