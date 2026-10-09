@@ -1,0 +1,41 @@
+{
+  "schema": "wbd-e4-diagnostic-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "f5da4c854e7b83b9eb348d612664e0103ee8816c",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_sha": "GITHUB_SHA_OF_THIS_COMMIT",
+  "sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1840,
+    "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "single_case_per_run": true,
+  "previous_off_run": 37857040784,
+  "previous_off_original": "FAIL RESOURCE_AUDIT_WARNINGS LOCAL_SOCKET_DROP",
+  "previous_off_socket_drop": {
+    "client": 33,
+    "server": 86
+  },
+  "previous_off_drop_intervals_s": {
+    "server": [
+      98,
+      99
+    ],
+    "client": [
+      154,
+      155
+    ]
+  },
+  "question": "Did 4 lanes become active; per-shard queue/handler/TCP maintenance/runtime periods and packet socket receive drops; partial parity deadline/actual issue; stable drop attribution?",
+  "profile_on_not_cpu_comparable": true,
+  "original_analysis": "NOT_RUN",
+  "run_id": null,
+  "artifact_id": null,
+  "privacy": "no packet payloads or secrets"
+}

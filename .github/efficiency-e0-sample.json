@@ -7,5 +7,5 @@
   "lanes": 4,
   "rate_mbps": 3,
   "size_profile": "ordinary",
-  "diagnostic_mode": "off"
+  "diagnostic_mode": "on"
 }

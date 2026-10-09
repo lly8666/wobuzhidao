@@ -131,3 +131,14 @@ E6组合SOURCE冻结后：core/race、相关privileged Linux网络与Windows契�
 约80秒单向中断按用户要求为DEFERRED_UNTIL_AFTER_E6，原证据不可删。优化测试若碰到同类失活，保存独立失败、界定该样本无法做普通收益比较，不用优化门掩盖它；必要时在E6声明受其阻塞的资格，转E7。E7查emit tuple/header、raw syscall返回、OUTPUT/路由/conntrack/qdisc到NIC，未确认不归因互联网/FEC。之后才同SOURCE物理复验。保活15s/dead-after90s和初始/稳态RTO不在本计划盲目调小，旧late/root原因仍OPEN。
 
 本方案不承诺CPU提升倍数，也不承诺hosted500M通过；目标是在每一步保住真实业务质量后，获得可复核的更低CPU和有界资源成本。
+
+
+## 附录：不同虚拟CPU的可比较效率量化规则（2026-10-09）
+
+该段是**测量规则**，不是第2套状态系统。用户要求量化7763/9V45/9V74。公网数据库主要测**整颗物理CPU**，不能直接代表4vCPU hosted Actions来宾配额、虚拟化争用与CPU-s。原始业务源质量始终先于效率指数。
+
+- 外部参照来源：SPEC CPU2017 官方结果（https://www.spec.org/osg/cpu2017/；按SPECspeed单任务与SPECrate吞吐分开）、PassMark CPU Benchmark（https://www.cpubenchmark.net/）、Geekbench Browser（https://browser.geekbench.com/）、公开runner**来宾实测**RunsOn CPU Benchmarks（https://runs-on.com/benchmarks/github-actions-cpu-performance/；第三方提供商自测、存在商业利益，独立核对原始harness）。SPEC整机交叉验证有配置/编译器差异，公网CPU型号不等同来宾可得性能。
+- 2026-10-09只读来源核对：PassMark 7763整颗CPU的单线程2517、CPU Mark84492、样本61；EPYC9V74单线程2888、CPU Mark117606、**样本仅2、官方标高误差**；9V45**没有核实到同口径、统计量足够的PassMark型号级样本**，标为NOT_AVAILABLE，绝不用近似9V74/9B45/9R45数字替代。二者整机CPU Mark之比不可用作4vCPU修正因子。SPEC公开7763的裸机报告、RunsOn部分9V74的4/8vCPU基准也不是本次runner虚拟机独立测得值。
+- 第一层官方比较量：`Q = Σ(product client+server CPU-s) / Σ(有效按期限到达且校验正确的逻辑GiB)`；必须并列报告全部请求的交付/期限率、最坏持续空桶、p99（缺失时给下界/不可确定）、外层TX/RX bytes/PPS、丢包、有效TUN MTU、FEC/padding以及RSS/PSI/steal/cgroup quota。LOSS、GOODPUT、错误与drop不同则**不作优化因果比较**。不能用总注入或重复Game包作为GiB分母。每源码/同配置/同seed至少3条独立OFF，CPU型号、核数/配额、host busy/PSI/steal/softirq分层并报告分布/异常，不选最佳样本；跨层无重叠 -> `INCONCLUSIVE_CROSS_HOST`。
+- 第二层**探索**指标，不是PASS门：若未来独立Action为资源层收集相同版本、可复现的来宾workload-specific速度`S_i`，包含有界加密seal/open、FEC20:20、marshal/解析、收发系统调用吞吐与稀疏单包延迟（分别单线程和固定4 vCPU），并证明每资源层可重复/稳定且无宿主限额干扰，可以给`reference_equivalent_CPU_s_per_GiB = Q × (S_i / S_reference)`。这个比率只对**能代表本产品瓶颈**的速度维度有意义；多维异构无共同单值时应输出向量/区间，而不以任意权重压成高精度总分。速度锚/校准必须为**独立Actions run，一次一场景一测量job**；不得在产品300s样本内夹带基准、改变定时/profile OFF、或假定不同host同一时段可校准。验证不足则该探索指标`NOT_CALIBRATED`，不得把外部PassMark乘在产品CPU-s上宣布收益。
+- 任何一个跨CPU归一化分数都**不能抵消**应用丢失、p99变坏、AF_PACKET本地drop、慢首达或跨业务HOL；失真时先修数据质量/可比性。9V45 lossless/166.97 CPU-s与9V74 staged5205/265.02 CPU-s不仅CPU不同，损伤场景也不同，按规则结论始终`INCOMPARABLE`。

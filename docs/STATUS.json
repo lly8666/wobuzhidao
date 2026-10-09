@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_GAME4_LOSSLESS_DELIVERY_COMPLETE_SOCKET_DROPS_FAIL_PROTECTION_GATE_OPEN",
+    "phase": "E4_LOSSLESS_SOCKET_DROP_DIAGNOSTIC_ON_SINGLE_SAMPLE_DISPATCH",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1153,11 +1153,30 @@
         "netem_actual": "0%_both_directions",
         "actual_tun_mtu": 1273,
         "next_decision": "HOLD_GATE_TARGETED_PACKET_SOCKET_BURST_DIAGNOSIS_NO_CPU_COMPARISON"
+      },
+      "next_diagnostic_lossless": {
+        "state": "PENDING_ACTION",
+        "sample": {
+          "workload": "mixed",
+          "loss": 0,
+          "seed": 1840,
+          "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+          "mode": "game",
+          "lanes": 4,
+          "rate_mbps": 3,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "on"
+        },
+        "helper_sha": "GITHUB_SHA_OF_THIS_COMMIT",
+        "evidence": "docs/evidence/performance-efficiency-e4-game4-lossless-diagnostic-seed1840-intent-20261009.json",
+        "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+        "purpose": "Diagnose lossless socket drops, queue shard/handler and real lanes",
+        "compare_with_profile_off_cpu": false
       }
     }
   },
-  "next_task": "HOLD next performance config dispatch. Inspect AF_PACKET packet socket drops in Game4 lossless SOURCE ba8ed1 exact run37857040784: client d0→33 between 154..155s; server d0→86 between 98..99s, 1s sampler cannot identify root. Business complete, netem0, queue capacity not proven, original analyzer FAIL. Perform targeted cause/protection diagnostic (same source Game diagnostics ON separately if warranted, no OFF CPU comparison) before retry or other Normal/Game protectors. Do not expand wait queues to hide bursts; preserve 5205 scoped PASS, older failures, CPU UNPROVEN and E7 OPEN.",
-  "latest_log": "docs/devlog/20261009-e4-game4-lossless-original-socket-drop-fail-37857040784.md",
+  "next_task": "Read exactly one independent Game4 lossless 0% seed1840 diagnostic ON Action triggered by this helper commit, inspect profile/diagnostic actual enabled, 4 lanes, shard overflow/age, handler and TCP maintenance, AF_PACKET drop timestamps and network resource strata. Record original analyzer PASS/FAIL; do not compare profile ON CPU with OFF or force lossless qualification. Then decide narrow correction/targeted tests; hold Normal/Game independent formal samples and other optimizations until socket-drop cause is supported. Normalize CPUs only by matching stratum ordinary OFF samples; public full-socket PassMark not VM calibration.",
+  "latest_log": "docs/devlog/20261009-e4-lossless-socket-burst-profileon-diagnostic-and-cpu-normalization.md",
   "qualification_scope": "Current ba8ed1 source: exact Game4 true5205 off run37853468730 PASS_SCOPED_ACTIONS one sample; exact Game4 0loss off run37857040784 FAIL RESOURCE_AUDIT_WARNINGS/LOCAL_SOCKET_DROP client33/server86; all other protectors held, CPU UNPROVEN, E7 and old failure OPEN, physical NOT_RUN",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "Game4 lossless seed1840 run37857040784 FAIL due AF_PACKET socket drops despite complete business; Game4 true5205 seed1840 run37853468730 PASS_SCOPED_ACTIONS; no CPU benefit proven",
@@ -1170,7 +1189,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 Game4 lossless independent Action run37857040784 returned original FAIL with AF_PACKET socket client33/server86 drops, despite complete application delivery; protection gate BLOCKED",
+    "E4 lossless 0% profileOFF original FAIL client33 server86 packet-socket drops retained. Diagnostic ON independent single fullstack run pending, no product code or queue change.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
