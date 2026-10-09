@@ -16,10 +16,10 @@ jobs:
     env:
       ART: "${{ github.workspace }}/artifacts/large-mtu-single"
       PRODUCT_SOURCE: aa931d5822a5378c48bf0763216f0446a5af8683
-      WBD_STRICT_MODE: normal
+      WBD_STRICT_MODE: game
       WBD_STRICT_SCENARIO: lossless
-      WBD_STRICT_RATE_MBPS: "10"
-      WBD_STRICT_LANES: "1"
+      WBD_STRICT_RATE_MBPS: "3"
+      WBD_STRICT_LANES: "4"
       WBD_STRICT_FEC_PARITY: "20"
       WBD_STRICT_FEC_SCREEN: "0"
       WBD_STRICT_CPU_PROFILE: "0"

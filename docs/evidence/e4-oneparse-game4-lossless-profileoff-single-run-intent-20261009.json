@@ -1,0 +1,85 @@
+{
+  "schema": "wbd-e4-oneparse-game4-lossless-300s-single-source-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "5de6e817780fb8e8be18359f8ff35e417b22aa11",
+  "product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "scenario": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1843,
+    "product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off",
+    "seconds": 300,
+    "drain_s": 3,
+    "actual_game_lanes": 4,
+    "logical_rate_per_direction_mbps": 3,
+    "latency_one_way_ms": 300,
+    "fec": "20:20",
+    "outer_mtu": 1400,
+    "business": [
+      "UDP six ordinary buckets",
+      "TCP streams+short flows",
+      "HTTP HTTPS certified",
+      "independent two-way probes"
+    ],
+    "fullstack": "real application socket -> TPROXY/client -> game4 TLS-like -> netem router -> server shared TUN -> target socket",
+    "test_mode": "PROFILE_OFF"
+  },
+  "guards": {
+    "one_source": true,
+    "one_300s_action": true,
+    "one_seed": true,
+    "one_measurement_job": true,
+    "no_retry_or_matrix": true,
+    "no_game_buffer_or_rcvbuf_increase": true,
+    "analysis_must_be_raw": "Original summary.json / efficiency-ledger.json, not inferred from CI green",
+    "hard_fail_conditions": [
+      "any UDP loss/corruption/malformed",
+      "missing or delayed independent probe",
+      "TCP hash/byte mismatch or flow failure",
+      "HTTP or HTTPS verification shortfall",
+      "AF_PACKET skmem.d client or server increase >0",
+      "netdev/socket/interface extra drop >0",
+      "resource strict errors nonempty",
+      "CPU profile accidentally enabled",
+      "loss or send budget wrong",
+      "drain not 3s"
+    ],
+    "cpu_cost_comparable": false
+  },
+  "prior_qualified_new_source": [
+    {
+      "name": "game4_5205",
+      "run": 37886694720
+    },
+    {
+      "name": "game2_zero_loss",
+      "run": 37888356909
+    },
+    {
+      "name": "normal1_zero_loss",
+      "run": 37890396316
+    }
+  ],
+  "old_source_failures": [
+    {
+      "run": 37857040784,
+      "profile": "OFF",
+      "socket_d_client": 33,
+      "socket_d_server": 86
+    },
+    {
+      "run": 37871243581,
+      "profile": "ON",
+      "socket_d_client": 42
+    }
+  ],
+  "product_cpu_gain": "UNPROVEN",
+  "e7": "OPEN_DEFERRED",
+  "state": "PENDING_REAL_ACTION",
+  "output": "summary + ledger + resource evidence after actual run"
+}
