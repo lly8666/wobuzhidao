@@ -71,7 +71,9 @@ def report(root,start,end):
     summary=runpy.run_path("tools/check_strict_weaknet.py")["resource_summary"](
         samples,start+offset,end+offset)
     during=[r for r in samples if start<=r.get("monotonic_ns",0)<=end]
-    if len(during)<270: summary["errors"].append("fewer than 270 resource snapshots in 300s")
+    duration_s=(end-start)/1e9
+    min_samples=max(3,int(duration_s*0.90))
+    if len(during)<min_samples: summary["errors"].append(f"fewer than {min_samples} resource snapshots in {duration_s:g}s")
     busy=[];softirq=[];steal=[];psic=[];psim=[];rss={};hwm={}
     pressure_events=[]
     cpu_quota=None
@@ -101,7 +103,7 @@ def report(root,start,end):
                                     "cpu_psi_some_avg10":value})
     # Cgroup quota saturation and contemporaneous CPU PSI are stronger
     # evidence than poor throughput or a busy host snapshot alone.
-    process_core_usage=sum(summary.get("process_cpu_seconds",{}).values())/300
+    process_core_usage=sum(summary.get("process_cpu_seconds",{}).values())/duration_s
     sustained_pressure=len(pressure_events)>=10 or (psic and max(psic)>=25)
     quota_pressure=cpu_quota is not None and cpu_quota>0 and process_core_usage>=.85*cpu_quota
     capacity_evidence=[]

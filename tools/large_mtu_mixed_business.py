@@ -58,7 +58,8 @@ def addr(text):
     return ip,int(port)
 
 class Totals:
-    def __init__(self, start):
+    def __init__(self, start, duration_s=300):
+        self.duration_ns=duration_s*1_000_000_000
         self.lock=threading.Lock()
         self.start=start
         self.d={"offered_bytes":0,"sent_bytes":0,"received_bytes":0,"send_errors":0,
@@ -93,7 +94,7 @@ class Totals:
     def stage_record_locked(self,metric,sent_ns,received_ns=None,size=None):
         """Called only while holding Totals.lock."""
         offset=sent_ns-self.start
-        phase=("outside" if offset < 0 or offset >= 300_000_000_000 else
+        phase=("outside" if offset < 0 or offset >= self.duration_ns else
                "pre" if offset < 75_000_000_000 else
                "stress" if offset < 225_000_000_000 else "post")
         row=self.d[metric].setdefault(phase,{"count":0,"by_size":{},
@@ -173,17 +174,17 @@ def udp_recv(s,role,t,peer,stop):
         t.add("received_bytes",length)
         t.bucket("receive_bucket_10ms",stamp,length)
 
-def udp_send(s,role,peer,start,stop,rate,seed,scenario,size_profile,t):
+def udp_send(s,role,peer,start,stop,rate,seed,scenario,size_profile,duration_s,t):
     if rate<=0:return
     values=BOUNDARY if size_profile=="boundary" else ((A_JUMBO if scenario=="udp" else C_JUMBO) if size_profile=="jumbo" else (A_ORDINARY if scenario=="udp" else C_ORDINARY))
     # Fixed 100-slot count weights. Accounting and pacing are in total payload BYTES.
     budget=max(1.0,rate*125000-PROBE_BYTES_PER_SECOND)
-    total=0; seq=0; end=start+300_000_000_000
+    total=0; seq=0; end=start+duration_s*1_000_000_000
     while not stop.is_set():
         length=values[seq%100]
         # Never emit an entire last UDP datagram beyond the logical byte cap.
         # Skipping the unscheduled final datagram is not packet truncation.
-        if total+length>int(budget*300):break
+        if total+length>int(budget*duration_s):break
         target=start+int(total*1e9/budget)
         if target>=end:break
         now=ns()
@@ -207,10 +208,10 @@ def udp_send(s,role,peer,start,stop,rate,seed,scenario,size_profile,t):
                 except OSError:t.add("send_errors")
         total+=length;seq+=1
 
-def probe(s,remote,start,stop,t,offset_s=0):
-    for seq in range(1500):
+def probe(s,remote,start,stop,t,offset_s=0,duration_s=300):
+    for seq in range(duration_s*5):
         target=start+int(offset_s*1e9)+seq*200_000_000
-        if target>=start+300_000_000_000 or stop.is_set():break
+        if target>=start+duration_s*1_000_000_000 or stop.is_set():break
         wait(target)
         destination=remote() if callable(remote) else remote
         t.add("offered_bytes",96)
@@ -253,8 +254,8 @@ def tcp_reader(s,flow,seed,t):
     finally:
         with t.lock:t.d["tcp_rx"][str(flow)]={"bytes":received,"frames":seq,"sha256":h.hexdigest(),"bad":bad}
 
-def tcp_writer(s,flow,seed,start,stop,mbps,short,t):
-    h=hashlib.sha256(); total=0;seq=0;end=start+300_000_000_000
+def tcp_writer(s,flow,seed,start,stop,mbps,short,duration_s,t):
+    h=hashlib.sha256(); total=0;seq=0;end=start+duration_s*1_000_000_000
     sizes=(4096,16384,4096) if short else TCP_WRITES
     if short:
         rate=1e20
@@ -265,7 +266,7 @@ def tcp_writer(s,flow,seed,start,stop,mbps,short,t):
         while not stop.is_set():
             length=sizes[seq%len(sizes)]
             if not short:
-                remaining=int(rate*300)-total
+                remaining=int(rate*duration_s)-total
                 if remaining<=0:break
                 # TCP is a stream: the last application write may be smaller
                 # than 1MiB; its CRC/hash covers exactly these bytes.
@@ -301,19 +302,19 @@ def mss(s,t):
         with t.lock:t.d["tcp_mss"].append(val)
     except OSError:pass
 
-def tcp_pair(s,flow,role,seed,start,stop,rate,short,t):
+def tcp_pair(s,flow,role,seed,start,stop,rate,short,duration_s,t):
     mss(s,t)
     sndseed=seed+(1 if role=="biz" else 2)*100000
     rcvseed=seed+(2 if role=="biz" else 1)*100000
-    send=threading.Thread(target=tcp_writer,args=(s,flow,sndseed,start,stop,rate,short,t),daemon=True)
+    send=threading.Thread(target=tcp_writer,args=(s,flow,sndseed,start,stop,rate,short,duration_s,t),daemon=True)
     recv=threading.Thread(target=tcp_reader,args=(s,flow,rcvseed,t),daemon=True)
     recv.start();send.start()
-    send.join(timeout=max(1,(start+315_000_000_000-ns())/1e9))
-    recv.join(timeout=max(1,(start+320_000_000_000-ns())/1e9))
+    send.join(timeout=max(1,(start+(duration_s+15)*1_000_000_000-ns())/1e9))
+    recv.join(timeout=max(1,(start+(duration_s+20)*1_000_000_000-ns())/1e9))
     try:s.close()
     except OSError:pass
 
-def target_tcp(listener,t,start,stop,seed,rate):
+def target_tcp(listener,t,start,stop,seed,rate,duration_s):
     listener.settimeout(.2)
     jobs=[]
     while not stop.is_set():
@@ -327,7 +328,7 @@ def target_tcp(listener,t,start,stop,seed,rate):
         except (OSError,EOFError):
             s.close();continue
         short=flow>=1000
-        th=threading.Thread(target=tcp_pair,args=(s,flow,"target",seed,start if not short else ns(),stop,rate,short,t),daemon=True)
+        th=threading.Thread(target=tcp_pair,args=(s,flow,"target",seed,start if not short else ns(),stop,rate,short,duration_s,t),daemon=True)
         th.start();jobs.append(th)
     for th in jobs: th.join(timeout=1)
 
@@ -345,26 +346,26 @@ def dial(ip,port,flow,timeout,t):
     t.add("tcp_connections_failed")
     return None
 
-def business_tcp(remote,t,start,stop,seed,rate):
+def business_tcp(remote,t,start,stop,seed,rate,duration_s):
     jobs=[]
     for flow in range(4):
         s=dial(*remote,flow,8,t)
         if s is not None:
-            th=threading.Thread(target=tcp_pair,args=(s,flow,"biz",seed,start,stop,rate,False,t),daemon=True)
+            th=threading.Thread(target=tcp_pair,args=(s,flow,"biz",seed,start,stop,rate,False,duration_s,t),daemon=True)
             th.start();jobs.append(th)
-    for seq in range(300):
+    for seq in range(duration_s):
         when=start+seq*1_000_000_000
         wait(when)
         if stop.is_set():break
         s=dial(*remote,1000+seq,1,t)
         if s:
-            th=threading.Thread(target=tcp_pair,args=(s,1000+seq,"biz",seed,ns(),stop,0,True,t),daemon=True)
+            th=threading.Thread(target=tcp_pair,args=(s,1000+seq,"biz",seed,ns(),stop,0,True,duration_s,t),daemon=True)
             th.start();jobs.append(th)
     for th in jobs:th.join(timeout=2)
 
 def run(args):
-    start=args.start_ns;end=start+300_000_000_000
-    stop=threading.Event();t=Totals(start);jobs=[]
+    start=args.start_ns;end=start+args.duration_s*1_000_000_000
+    stop=threading.Event();t=Totals(start,args.duration_s);jobs=[]
     own=addr(args.bind);remote=addr(args.peer)
     # HTTP+verified HTTPS sidecars reserve 20kbps total budget in TCP cases;
     # their bounded 20 x 2KiB replies use < 2kbps. No extra bulk traffic.
@@ -383,26 +384,26 @@ def run(args):
                     except OSError:pass
                     time.sleep(.2)
             jobs.append(threading.Thread(target=register,daemon=True))
-        jobs.append(threading.Thread(target=udp_send,args=(s,args.role,other,start,stop,udp_rate,args.seed+(1 if args.role=="biz" else 2),args.workload,args.size_profile,t),daemon=True))
+        jobs.append(threading.Thread(target=udp_send,args=(s,args.role,other,start,stop,udp_rate,args.seed+(1 if args.role=="biz" else 2),args.workload,args.size_profile,args.duration_s,t),daemon=True))
     if udp_rate or tcp_rate:
         if args.role=="biz":
             probe_socket=setup_udp(own[0],own[1]+2)
             jobs.append(threading.Thread(target=udp_recv,args=(probe_socket,"biz",t,[remote],stop),daemon=True))
-            jobs.append(threading.Thread(target=probe,args=(probe_socket,(remote[0],remote[1]+2),start,stop,t),daemon=True))
+            jobs.append(threading.Thread(target=probe,args=(probe_socket,(remote[0],remote[1]+2),start,stop,t,0,args.duration_s),daemon=True))
         else:
             probe_socket=setup_udp(own[0],own[1]+2)
             reverse_peer=[None]
             jobs.append(threading.Thread(target=udp_recv,args=(probe_socket,"target",t,reverse_peer,stop),daemon=True))
-            jobs.append(threading.Thread(target=probe,args=(probe_socket,lambda:reverse_peer[0],start,stop,t,1.0),daemon=True))
+            jobs.append(threading.Thread(target=probe,args=(probe_socket,lambda:reverse_peer[0],start,stop,t,1.0,args.duration_s),daemon=True))
     if tcp_rate:
         if args.role=="target":
             ls=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             ls.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
             ls.bind((own[0],own[1]+1));ls.listen(32)
             # Three long connections take the TCP budget after fixed short/probe quotas.
-            jobs.append(threading.Thread(target=target_tcp,args=(ls,t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000-PROBE_BYTES_PER_SECOND/125000)/4),daemon=True))
+            jobs.append(threading.Thread(target=target_tcp,args=(ls,t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000-PROBE_BYTES_PER_SECOND/125000)/4,args.duration_s),daemon=True))
         else:
-            jobs.append(threading.Thread(target=business_tcp,args=((remote[0],remote[1]+1),t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000-PROBE_BYTES_PER_SECOND/125000)/4),daemon=True))
+            jobs.append(threading.Thread(target=business_tcp,args=((remote[0],remote[1]+1),t,start,stop,args.seed,(tcp_rate-SHORT_BYTES_PER_SECOND/125000-PROBE_BYTES_PER_SECOND/125000)/4,args.duration_s),daemon=True))
     for th in jobs:th.start()
     wait(end+DRAIN_S*1_000_000_000)
     stop.set()
@@ -413,7 +414,7 @@ def run(args):
     if tcp_rate and args.role=="target": ls.close()
     output={"schema":"wbd-large-mixed/v1","role":args.role,"workload":args.workload,
             "source_sha":args.source,"helper_sha":args.helper,
-            "start_monotonic_ns":start,"duration_seconds":300,"drain_seconds":DRAIN_S,
+            "start_monotonic_ns":start,"duration_seconds":args.duration_s,"drain_seconds":DRAIN_S,
             "configured_per_direction_mbps":args.rate_mbps,"size_profile":args.size_profile,"udp_budget_mbps":udp_rate,
             "tcp_budget_mbps":tcp_rate,"seed":args.seed,
             "ip_mtu_discover":"IP_PMTUDISC_DONT for UDP (DF off)",
@@ -434,4 +435,5 @@ if __name__=="__main__":
     p.add_argument("--output",required=True)
     p.add_argument("--size-profile",choices=["ordinary","jumbo","boundary"],required=True)
     p.add_argument("--rate-mbps",type=float,choices=[3.0,10.0],required=True)
+    p.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
     run(p.parse_args())

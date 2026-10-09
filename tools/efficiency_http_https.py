@@ -69,7 +69,7 @@ def target(args):
             ctx.load_cert_chain(args.tls_cert,args.tls_key)
             server.socket=ctx.wrap_socket(server.socket,server_side=True)
         servers.append((server,secure))
-    deadline=args.start_ns+DURATION_NS+DRAIN_NS
+    deadline=args.start_ns+args.duration_s*1_000_000_000+DRAIN_NS
     while now()<deadline:
         for server,_ in servers:server.handle_request()
     result={"role":"target","http_served":servers[0][0].served,
@@ -83,7 +83,7 @@ def business(args):
     ctx.check_hostname=True
     completed=[];failures=[]
     for seq in range(REQUESTS):
-        wait_until(args.start_ns+seq*15_000_000_000)
+        wait_until(args.start_ns+seq*args.duration_s*1_000_000_000//REQUESTS)
         secure=bool(seq&1)
         started=now()
         sock=None
@@ -133,11 +133,12 @@ def main():
     p.add_argument("--source",required=True)
     p.add_argument("--helper",required=True)
     p.add_argument("--output",required=True)
+    p.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
     a=p.parse_args()
     result=target(a) if a.role=="target" else business(a)
     result.update({"schema":"wbd-efficiency-http/v1","seed":a.seed,
                    "product_source_sha":a.source,"helper_sha":a.helper,
-                   "duration_seconds":300,"drain_seconds":3,
+                   "duration_seconds":a.duration_s,"drain_seconds":3,
                    "certificate_validation":"system roots + pinned fixture CA, hostname qual.test" if a.role=="biz" else "self-signed fixture only"})
     Path(a.output).write_text(json.dumps(result,indent=2))
     print("E0_HTTP_FINISHED",a.role,result.get("returned",result.get("https_served")),flush=True)

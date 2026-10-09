@@ -71,6 +71,8 @@ def diag(side):
 
 def analyze(s,m,host):
     d=s.get("direction") or {};r=s.get("resources") or {};strict=r.get("strict_resource") or {}
+    duration=int(m.get("config",{}).get("duration_s",300))
+    if duration not in (15,120,300):raise ValueError("invalid measured duration")
     cpu=strict.get("process_cpu_seconds") or {}
     delivered=sum((d.get(side) or {}).get("total_logical_delivered_bytes_including_verified_http",(d.get(side) or {}).get("receiver_bytes",0)) for side in ("c2s","s2c"))
     submitted=sum((d.get(side) or {}).get("total_logical_sent_bytes_including_http",(d.get(side) or {}).get("sent_bytes",0)) for side in ("c2s","s2c"))
@@ -87,7 +89,7 @@ def analyze(s,m,host):
                      "udp_app_datagrams":sum(v.get("sent_datagrams",0) for v in udp.values()),
                      "udp_missing_datagrams":sum(v.get("missing",0) for v in udp.values()),
                      "qdisc_attempted_outer_packets":q.get("attempted"),
-                     "qdisc_attempted_outer_pps_not_nic_pps":quotient(q.get("attempted"),300),
+                     "qdisc_attempted_outer_pps_not_nic_pps":quotient(q.get("attempted"),duration),
                      "probe_sent":probe.get("sent"),"probe_returned":probe.get("returned"),
                      "probe_missing":probe.get("missing"),
                      "probe_returned_only_p99_ms":probe.get("p99_ms"),
@@ -99,10 +101,10 @@ def analyze(s,m,host):
                       "size_profile":s.get("size_profile"),"config":m.get("config")},
             "raw_analysis_classification":s.get("classification"),
             "raw_issues":s.get("issues"),
-            "measurement_300s":True,
+            "measurement_300s":duration==300,"measurement_duration_s":duration,
             "cpu":{"client_seconds":cpu.get("client"),"server_seconds":cpu.get("server"),
                    "total_product_seconds":cpu_total,
-                   "total_cores_average_300s":quotient(cpu_total,300),
+                   "total_cores_average":quotient(cpu_total,duration),
                    "seconds_per_delivered_gib":quotient(cpu_total,delivered/GIB),
                    "seconds_per_submitted_gib_probe_included":quotient(cpu_total,submitted/GIB)},
             "delivery":{"delivered_bytes_both_directions":delivered,
