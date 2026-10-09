@@ -55,6 +55,8 @@ jobs:
           python3 -m unittest discover -s tools -p 'test_afpacket_drop_witness.py' -v
           python3 -m py_compile tools/afpacket_schedstat.py tools/afpacket_socket_probe.py
           python3 -m unittest discover -s tools -p 'test_afpacket_schedstat.py' -v
+          python3 -m py_compile tools/afpacket_recvmmsg_tracepoint.py
+          python3 -m unittest discover -s tools -p 'test_afpacket_recvmmsg_tracepoint.py' -v
       - id: layout
         name: Detect active module
         shell: bash
@@ -295,6 +297,32 @@ jobs:
         with:
           name: p4-linux-shared-tun-${{ matrix.backend }}-${{ github.sha }}
           path: artifacts/p4-linux-shared-tun-${{ matrix.backend }}.log
+          if-no-files-found: warn
+
+  e4-recvmmsg-tracepoint-capability:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true' && github.ref_name == 'next/performance-efficiency-20261008'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install optional bpftrace for two-second no-traffic probe
+        shell: bash
+        run: |
+          if ! command -v bpftrace >/dev/null 2>&1; then
+            sudo apt-get update -qq || true
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y bpftrace || true
+          fi
+      - name: Check bounded recvmmsg tracepoints without product
+        run: |
+          mkdir -p artifacts
+          sudo python3 tools/afpacket_recvmmsg_tracepoint.py --preflight --output artifacts/e4-recvmmsg-tracepoint-capability.json
+          cat artifacts/e4-recvmmsg-tracepoint-capability.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e4-recvmmsg-tracepoint-capability-${{ github.sha }}
+          path: artifacts/e4-recvmmsg-tracepoint-capability.json
           if-no-files-found: warn
 
   p4-openwrt-tproxy-privileged:

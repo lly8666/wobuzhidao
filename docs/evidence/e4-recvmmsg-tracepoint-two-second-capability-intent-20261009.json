@@ -1,0 +1,32 @@
+{
+  "schema": "wbd-e4-recvmmsg-bpftrace-attach-preflight-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "42990db57968f447eaf8ef295d4d8e88d3d659f9",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "method": "Linux bpftrace attach two recvmmsg syscall tracepoints filtered to nonexistent TGID 2147483647 for two seconds; no product",
+  "tracepoints": [
+    "syscalls:sys_enter_recvmmsg",
+    "syscalls:sys_exit_recvmmsg"
+  ],
+  "anomaly_threshold_ms": 20,
+  "time_bucket_ms": 100,
+  "print_each_syscall": false,
+  "trace_packet_bytes": false,
+  "trace_fd_or_addresses": false,
+  "map_key_cap": 4096,
+  "host_sysctl_mutation": false,
+  "tracefs_mount_changes": false,
+  "executable_go_product_modified": false,
+  "result_levels": [
+    "TRACEPOINT_ATTACH_ONLY (no overhead proof)",
+    "UNSUPPORTED kernel/permission/tool",
+    "CI_FAILURE dependency/test"
+  ],
+  "new_performance_sample_runs": 0,
+  "formal_product_pass": "NOT_EVALUATED",
+  "historical_failures": [
+    37857040784,
+    37871243581
+  ],
+  "state": "PENDING_FOUNDATION"
+}
