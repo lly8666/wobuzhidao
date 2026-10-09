@@ -59,8 +59,8 @@ class SocketClockTests(unittest.TestCase):
         # Same-line skmem layout was observed in resource JSONL, run37865738583.
         row = sample(1)
         row["namespaces"]["client"]["ss_packet"]["stdout"] = (
-            "Netid State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\\n"
-            "p_raw UNCONN 0 0 [2048]:cwan *     skmem:(r0,rb1048576,t0,tb212992,f0,w0,o0,bl0,d33)\\n")
+            "Netid State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\n"
+            "p_raw UNCONN 0 0 [2048]:cwan *     skmem:(r0,rb1048576,t0,tb212992,f0,w0,o0,bl0,d33)\n")
         self.assertEqual(packet_socket(row, "client"),
                          {"r": 0, "rb": 1048576, "d": 33})
 
