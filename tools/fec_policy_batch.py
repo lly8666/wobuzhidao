@@ -63,6 +63,15 @@ def preflight(out,root):
             if word not in script:raise ValueError("generated script missing "+word)
         (d/"preflight.json").write_text(json.dumps({"case":case,"generated_sha256":filehash(d/"generated.sh"),"static_only":True},indent=2))
     print("FEC_STATIC_PREFLIGHT_PASS; REALPATH_NOT_RUN",flush=True)
+def namespace_suffix(case_id):
+    # Strict WAN-neighbor guard permits only numeric or $ owned suffixes.
+    # Distinguish smoke pilot from A, never broaden the upstream whitelist.
+    if re.fullmatch(r"s[0-9]{2}",case_id):
+        return case_id[1:]
+    if re.fullmatch(r"pilot-[0-9]+",case_id):
+        return str(900+int(case_id.split("-")[-1]))
+    raise ValueError("non-owned case namespace suffix")
+
 def owned(d,suffix):
     ps=subprocess.run(["ps","-eo","pid=,args="],check=True,text=True,capture_output=True).stdout
     pids=[]
@@ -88,7 +97,7 @@ def one(case,root,helper):
       "WBD_STRICT_CPU_PROFILE":"0","WBD_STRICT_STATEFUL_GATE":"0",
       "WBD_STRICT_WAN_NEIGHBORS":"dynamic","WBD_LARGE_WORKLOAD":case["workload"],
       "WBD_LARGE_LOSS":str(case["loss"]),"WBD_EFF_SIZE_PROFILE":"ordinary",
-      "WBD_EFF_DIAGNOSTIC":"0","WBD_FEC_CASE_SFX":case["id"],
+      "WBD_EFF_DIAGNOSTIC":"0","WBD_FEC_CASE_SFX":namespace_suffix(case["id"]),
       "WBD_FEC_DURATION_S":str(case["duration_s"]),"WBD_FEC_DELAY_MS":str(case["delay_ms"])})
     before=snapshot()
     cmd=["sudo","--preserve-env="+",".join(ENV_NAMES),"env",
@@ -132,7 +141,7 @@ def one(case,root,helper):
         raw.append({"name":f.name,"bytes":f.stat().st_size,"sha256":filehash(f)})
         f.unlink()
     (d/"emergency-capture-cleanup.json").write_text(json.dumps(raw,indent=2))
-    guard=owned(d,case["id"])
+    guard=owned(d,namespace_suffix(case["id"]))
     try:s=json.loads((d/"summary.json").read_text())
     except (OSError,ValueError):s={}
     try:l=json.loads((d/"efficiency-ledger.json").read_text())
