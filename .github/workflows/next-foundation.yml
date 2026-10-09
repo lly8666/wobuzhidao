@@ -53,6 +53,8 @@ jobs:
           python3 -m unittest discover -s tools -p 'test_afpacket_probe_report.py' -v
           python3 -m py_compile tools/afpacket_drop_witness.py
           python3 -m unittest discover -s tools -p 'test_afpacket_drop_witness.py' -v
+          python3 -m py_compile tools/afpacket_schedstat.py tools/afpacket_socket_probe.py
+          python3 -m unittest discover -s tools -p 'test_afpacket_schedstat.py' -v
       - id: layout
         name: Detect active module
         shell: bash

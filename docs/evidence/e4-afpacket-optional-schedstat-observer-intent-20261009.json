@@ -1,0 +1,28 @@
+{
+  "schema": "wbd-e4-optional-os-thread-scheduler-witness/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "cae35369605df3129bef089e5635551bb7037e1a",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "reason": "raw_io/read_gap is aggregated 1s and cannot identify kernel receive loop scheduler stalls. Observe bounded per-OS-thread runqueue wait in same future sample, correlation only.",
+  "new_perf_runs": 0,
+  "thread_cap": 64,
+  "keys_in_memory": "(numeric tid, task stat starttime) per observation; not serialized",
+  "reported": [
+    "matched_threads",
+    "new_threads",
+    "exited_threads",
+    "runqueue_wait_ns_delta",
+    "runtime_ns_delta",
+    "sample monotonic interval",
+    "quality"
+  ],
+  "wrong_executable": "UNAVAILABLE",
+  "thread_reuse": "MATCHED_PARTIAL",
+  "missing_procfs": "UNAVAILABLE",
+  "go_reader_goroutine": "UNOBSERVABLE",
+  "profile": "ON ONLY; optional PID=0 disabled",
+  "test": "7 synthetic Foundation cases pending",
+  "no_wire_or_product_change": true,
+  "prior_original_failure": 37857040784,
+  "prior_bad100ms": 37865738583
+}

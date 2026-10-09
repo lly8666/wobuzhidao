@@ -11,6 +11,7 @@ import subprocess
 import time
 from pathlib import Path
 from packet_socket_drop_forensics import packet_socket, psi_avg10
+from afpacket_schedstat import snapshot as sched_snapshot, aggregate as sched_aggregate
 
 def numeric_row(side, began, finished, ss_out, rc, pressure):
     sock=packet_socket({"namespaces":{side:{"ss_packet":{"returncode":rc,"stdout":ss_out}}}},side)
@@ -22,11 +23,14 @@ def numeric_row(side, began, finished, ss_out, rc, pressure):
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--side",choices=("client","server"),required=True)
+    ap.add_argument("--process-pid",type=int,default=0)
     ap.add_argument("--business-start-ns",type=int,required=True)
     ap.add_argument("--interval-ms",type=int,default=100)
     ap.add_argument("--duration-s",type=int,default=303)
     ap.add_argument("--output",required=True,type=Path)
     args=ap.parse_args()
+    if args.process_pid<0:
+        ap.error("negative process pid")
     if args.business_start_ns<=0 or args.interval_ms!=100 or args.duration_s!=303:
         ap.error("fixed bounded probe requires positive business start, 100ms and 303s")
     stop=False
@@ -36,6 +40,7 @@ def main():
     signal.signal(signal.SIGTERM,stop_handler)
     signal.signal(signal.SIGINT,stop_handler)
     count=0; next_ns=time.monotonic_ns()
+    previous_sched=None
     deadline=args.business_start_ns+303_000_000_000
     args.output.parent.mkdir(parents=True,exist_ok=True)
     with args.output.open("w",encoding="utf-8",buffering=1) as f:
@@ -53,6 +58,10 @@ def main():
             except OSError:
                 pressure=""
             row=numeric_row(args.side,began,finished,out,rc,pressure)
+            if args.process_pid:
+                current_sched=sched_snapshot(args.process_pid,args.side)
+                row["process_sched"]=sched_aggregate(previous_sched,current_sched)
+                previous_sched=current_sched
             row["business_elapsed_bracket_s"]=[
                 round((began-args.business_start_ns)/1e9,9),
                 round((finished-args.business_start_ns)/1e9,9)]
