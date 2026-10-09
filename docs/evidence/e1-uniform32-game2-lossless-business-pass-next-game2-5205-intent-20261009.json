@@ -1,0 +1,92 @@
+{
+  "schema": "wbd-e1-uniform32-game2-lossless-business-verdict-and-5205-next/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "d2ddcdc3a47eac9867943f5e207dd0d8d7492382",
+  "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "prior_normal": {
+    "zero_loss": 37922038550,
+    "staged5205": 37924613499,
+    "verdicts": [
+      "PASS_SCOPED_ACTIONS",
+      "PASS_SCOPED_ACTIONS"
+    ]
+  },
+  "game2_lossless": {
+    "run_id": 37925722025,
+    "artifact_id": 11613618570,
+    "job_id": 113804050091,
+    "conclusion": "SUCCESS",
+    "original_classification": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "profile": "OFF",
+    "duration_s": 300,
+    "mode": "game",
+    "requested_lanes": 2,
+    "runtime_lane_count": "UNKNOWN_PROFILE_OFF",
+    "runtime_game_evidence": {},
+    "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "helper_sha": "d2ddcdc3a47eac9867943f5e207dd0d8d7492382",
+    "seed": 1841,
+    "workload": "mixed",
+    "rate_mbps": 3,
+    "realized_outer_netem_pct": {
+      "c2s": 0,
+      "s2c": 0
+    },
+    "app_udp_sent_each_direction": 103062,
+    "app_udp_missing": {
+      "c2s": 0,
+      "s2c": 0
+    },
+    "probe_sent": {
+      "c2s": 1500,
+      "s2c": 1495
+    },
+    "probe_missing": {
+      "c2s": 0,
+      "s2c": 0
+    },
+    "tcp_flows_each_direction": 304,
+    "tcp_hash_mismatch": 0,
+    "web_returned": 20,
+    "https_verified": 10,
+    "socket_drop": {
+      "client": 0,
+      "server": 0
+    },
+    "link_drop_all": 0,
+    "host": "AMD EPYC 7763 4vCPU",
+    "cpu_total_s": 197.24,
+    "cgroup_quota": "UNKNOWN",
+    "cpu_psi_max_percent": 34.75,
+    "cpu_gain": "UNPROVEN",
+    "summary_sha256": "a7e027647bca884f4b55ccaebb81616f387a54f27b70664f70ba001065779a4e",
+    "zip_sha256": "0673c0e3efc79c8bbf4173efe90d5bd9f5441a5475cb4a37a9a0ac3f81afe493",
+    "limitation": "The analyzer verifies actual lanes ONLY when diagnostic mode ON; OFF cannot qualify game lane topology even though business passes."
+  },
+  "next_game2_5205": {
+    "config": {
+      "workload": "mixed",
+      "loss": 5205,
+      "seed": 1842,
+      "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+      "mode": "game",
+      "lanes": 2,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "status": "PENDING",
+    "single_sample_per_Action": true,
+    "profile": "OFF",
+    "actual_lane_diagnostic_future": "ON_NOT_RUN"
+  },
+  "open_gates": [
+    "GAME2_REAL_LANE_CARDINALITY_UNOBSERVED",
+    "GAME2_TRUE_5205_PENDING",
+    "LOW_RTT_SPARSE_NOT_RUN",
+    "E4_GAME4_9V45_SOCKET_DROP_FAIL",
+    "CPU_GAIN_UNPROVEN",
+    "E7_S2C_80S_DEFERRED"
+  ]
+}
