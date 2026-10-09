@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_8MS_PARTIAL_PARITY_WEAKNET_RECOVERY_CAUSAL_COUNTEREXAMPLE_TEST_PENDING",
+    "phase": "E1_FEC_EARLY_PARITY_CAN_REDUCE_20PCT_ERASURE_RECOVERY_PROVEN_IN_LINK_SCOPE_REAL_5205_CAUSALITY_OPEN",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2287,7 +2287,7 @@
       },
       "next_source_cpu_comparison": "NO_COMPARABLE_HOST_STRATUM_YET",
       "causal_test": {
-        "status": "PENDING_FOUNDATION",
+        "status": "PASS_DETERMINISTIC_LINK_FEC_COUNTEREXAMPLE_SCOPED_FOUNDATION",
         "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
         "path": "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go",
         "hypothesis": "8ms parity closure with ~12ms sparse fragments creates tiny partial 20:20 groups; earlier parity can reduce 20% erasure recovery vs 100ms aggregation",
@@ -2299,12 +2299,42 @@
         ],
         "proof_limit": "deterministic LINK/FEC sensitivity only; not statistical netem or actual 5205 source attribution",
         "no_product_source_edits": true,
-        "evidence": "docs/evidence/e1-fec-8ms-vs-100ms-20percent-erasures-deterministic-intent-20261009.json"
+        "evidence": "docs/evidence/e1-fec-parity-8ms-100ms-deterministic-erasure-foundation-20261009.json",
+        "foundation": {
+          "run_id": 37911050821,
+          "conclusion": "SUCCESS",
+          "go_all_packages_unit": "SUCCESS",
+          "go_all_packages_race": "SUCCESS",
+          "linux_and_windows": "SUCCESS",
+          "tproxy_tun_fallback": "SUCCESS"
+        },
+        "lifecycle": {
+          "run_id": 37911050779,
+          "conclusion": "SUCCESS"
+        },
+        "test_result": {
+          "sizes": [
+            96,
+            1372,
+            4068
+          ],
+          "flush_ms_compared": [
+            8,
+            100
+          ],
+          "targeted_wire_erasure_rate": 0.2,
+          "short_8ms_first_logical_datagram": "NOT_RECOVERABLE_UNDER_THIS_PATTERN",
+          "long_100ms_first_logical_datagram": "RECOVERABLE_UNDER_THIS_PATTERN",
+          "four_later_logical_datagrams": "DELIVERED_ONCE_NO_CORRUPTION_IN_BOTH_MODES",
+          "qualifications": "constructive counterexample for LINK+FEC only; NOT a claim of 5205 random-netem root cause"
+        },
+        "hypothesis_confirmed_scoped": "early close creates smaller FEC size-class groups and can reduce erasure resilience while improving parity timing",
+        "actual_5205_root": "OPEN_CAUSAL_ATTRIBUTION_NOT_YET_PROVEN"
       }
     }
   },
-  "next_task": "Read new Foundation for TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff using 96/1372/4068B LINK packets, one 12ms spacing, 8ms vs100ms FEC closure, exactly20% targeted erased sources+parity. PASS would show a real FEC policy tradeoff but NOT attribution to random 5205 Action or license to revert 8ms sparse lowRTT; FAIL fix test/assumptions only after reading logs. Decide narrow E1 product candidate preserving sparse 8ms protection and high-loss 5205 without global 1ms polling or unbounded retransmission. Then core/race + Normal1 lossless and 5205 individually before Game2, each workload own Action. Original 5205 FAIL and E4 socket drops remain; E7 80s open deferred, CPU gain UNPROVEN. No new fullstack until causal proposal justified.",
-  "latest_log": "docs/devlog/20261009-e1-fec-short-deadline-20percent-erasure-counterexample.md",
+  "next_task": "E1 design ONE minimal reliability-preserving parity policy from proven construct: 8ms partial-group flush can sacrifice 20% erasure resilience at 12ms interarrival for LINK 1372/4068, while lowRTT sparse parity promptness remains required. Do not globally move to 100ms, blindly send >min(N,R) parity, increase socket buffers, busy-poll or violate FEC20:20 wire/first-delivery; compare any candidate against new deterministic 96/1372/4068 test AND existing 8ms sparse deadlines. Need explicit bounded source-rate/size-class hypothesis and memory/CPU bound first. If tradeoff cannot be resolved within current wire/latency contract, mark E1 blocked rather than chasing CI green. Once one candidate justified, one product code change+core/race then Normal1 lossless, Normal1 5205, Game2 lossless, Game2 5205, low RTT sparse one Action each; no unqualified CPU speed claim across host CPU models. Original 5205 FAIL run37907829434 and old E4 kernel socket drops retained, E7~80s S2C deferred.",
+  "latest_log": "docs/devlog/20261009-e1-fec-parity-deadline-erasure-counterexample-ci-passed.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2317,7 +2347,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 new 622e5 source Normal1 zero-loss run37905658013 scoped PASS, staged5205 run37907829434 original FAIL UDP 425/463+probe; no packet socket drops. Source review found 8ms due partial parity can close sparse size-class groups before next 12ms datagram whereas prior effective 100ms tick groups more shards; bounded exact20% erasure counterexample Go test pending CI, no product change/new 300s sample. Game2 blocked, CPU gain UNPROVEN.",
+    "E1 actual source 622e5 normal1 0loss PASS run37905658013, normal1 staged5205 FAIL run37907829434 UDP/probe high loss (no kernel socket drops). NEW deterministic real LINK/FEC 96/1372/4068 8ms vs100ms exact20% erasure test passed full Foundation37911050821 + Lifecycle37911050779, demonstrating SHORT 8ms partial parity can reduce FEC recoverability for sparse size classes. This is scoped causal mechanism, not proof actual run failure. No product code change yet, no new 300s run, Game2+lowRTT held. CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

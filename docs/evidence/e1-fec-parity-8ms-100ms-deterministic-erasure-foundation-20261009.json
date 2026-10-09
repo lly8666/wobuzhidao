@@ -1,0 +1,69 @@
+{
+  "schema": "wbd-e1-real-link-fec-partial-parity-early-closure-timing-tradeoff-scoped-qualification/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "b89998a96e6323cd31044f3a621dce1e85efd25a",
+  "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+  "proof_test": "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go",
+  "foundation": {
+    "run": 37911050821,
+    "conclusion": "SUCCESS",
+    "all_go_tests": "SUCCESS",
+    "go_race": "SUCCESS",
+    "windows": "SUCCESS",
+    "linux": "SUCCESS",
+    "nft_and_iptables_tun": "SUCCESS",
+    "tproxy": "SUCCESS",
+    "fallback": "SUCCESS"
+  },
+  "lifecycle": {
+    "run": 37911050779,
+    "conclusion": "SUCCESS"
+  },
+  "deterministic_counterexample": {
+    "link_datagram_sizes_bytes": [
+      96,
+      1372,
+      4068
+    ],
+    "payload_count_each": 5,
+    "interarrival_ms": 12,
+    "link_mtu": 1200,
+    "fec_profile": "20:20",
+    "partial_parity_deadlines_ms": [
+      8,
+      100
+    ],
+    "erased_wire_fraction_each": 0.2,
+    "erasure_selection": "all fragments of first logical datagram and the same number of its FEC-block parity shards",
+    "first_datagram_8ms": "NOT_RECOVERED",
+    "first_datagram_100ms": "RECOVERED",
+    "next_four_datagrams": "DELIVERED_ONCE_IN_BOTH_MODES",
+    "method_scope": "actual LINK Fragmenter/FECPath/size-class encoder/decoder/Reassembler synthetic event timeline with targeted not random loss"
+  },
+  "mechanical_implication": "Under 8ms closure, per-class blocks may contain only first datagram's fragments. At 100ms, later sources in same class increase number of independent parity equations. Equal wire losses can be recoverable only in latter; 8ms is lower parity latency, not universally stronger loss resilience.",
+  "nonimplications": [
+    "This is NOT the measured random 20% netem erasure pattern from Actions37907829434",
+    "This is NOT proof E1 scheduler is the unique cause of high UDP loss",
+    "This is NOT a reason to change all lanes to 100ms and violate lowRTT sparse timing",
+    "This test is not an actual Go client/server/TUN/socket product run",
+    "No CPU-s gain established"
+  ],
+  "old_off_normal1": {
+    "run_id": 37905658013,
+    "status": "PASS_SCOPED_ACTIONS"
+  },
+  "old_5205_normal1": {
+    "run_id": 37907829434,
+    "status": "FAIL",
+    "app_udp_missing_c2s": 425,
+    "app_udp_missing_s2c": 463,
+    "packet_socket_drop_client": 0,
+    "packet_socket_drop_server": 0
+  },
+  "new_300s_runs": 0,
+  "product_source_modified": false,
+  "game2": "HOLD",
+  "low_rtt_sparse": "NOT_RUN",
+  "cpu_gain": "UNPROVEN",
+  "e7": "OPEN_DEFERRED"
+}
