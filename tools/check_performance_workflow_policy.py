@@ -115,8 +115,8 @@ if cal.count("  one-nonproduct-calibration-case:\n")!=1:
     errors.append("E4 calibration: exactly one measurement job required")
 if 'assert d["mode"] in ("off","on")' not in cal or 'assert re.fullmatch(r"e4-"+d["mode"]' not in cal:
     errors.append("E4 calibration: config mode must be exactly one of off/on with scoped case ID")
-if cal.count("tools/e4_recvmmsg_calibration.py")!=2:
-    errors.append("E4 calibration: exactly one script py_compile and one execution required")
+if cal.count("python3 -m py_compile tools/e4_recvmmsg_calibration.py")!=1 or cal.count("sudo python3 tools/e4_recvmmsg_calibration.py")!=1:
+    errors.append("E4 calibration: exactly one py_compile and one actual execution required")
 if "continue-on-error: true" not in cal or 'test "$RESULT" = success' not in cal:
     errors.append("E4 calibration: failed measurement must propagate even after artifact upload")
 if any(x in cal for x in ("scripts/strict_weaknet_sample.sh","tools/prepare_large_mtu_harness.py","tools/prepare_soak_harness.py")):

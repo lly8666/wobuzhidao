@@ -1,0 +1,15 @@
+{
+  "schema": "wbd-e4-static-policy-script-path-count-error/v1",
+  "parent": "b706c464debc9230fe3a5153e3cd0bebcd57b33b",
+  "failed_foundation": 37878851060,
+  "failed_step": "Enforce performance workflow one-sample policy",
+  "cause": "calibration script pathname appears three times: py_compile, command execution, immutable hash guard; stale count expected two",
+  "repair": "check exact py_compile command count ==1 and exact sudo execution command count ==1, preserve source git-hash allowlist",
+  "prior_failure": 37878736543,
+  "executed_measurement": false,
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "original_product_failures": [
+    37857040784,
+    37871243581
+  ]
+}
