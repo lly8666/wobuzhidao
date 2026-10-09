@@ -1,0 +1,145 @@
+{
+  "schema": "wbd-e1-32ms-sparse-fullstack-15ms-action-native-receipt/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "helper_sha": "63ab6e83b1e4087172fda1c5e5e191779bfabd50",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "workflow": {
+    "id": 37937452545,
+    "name": "next-e1-lowrtt-fullstack",
+    "result": "SUCCESS",
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37937452545",
+    "artifact_id": 11619545001,
+    "artifact_sha256": "ccece3c9281e5edcd1ccd08a3f0a64e93da32c63a43466a21335e5ee3403fc3e"
+  },
+  "foundation": {
+    "id": 37937452458,
+    "result": "SUCCESS",
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37937452458",
+    "jobs": [
+      "repository-contract",
+      "linux-active-Go",
+      "windows-active-Go",
+      "linux-race",
+      "p4-tproxy-privileged",
+      "p4-tun-iptables",
+      "p4-tun-nft",
+      "p2-fallback",
+      "e4-short-native-smoke"
+    ]
+  },
+  "scope": "ONE REAL client/TPROXY/server-TUN/target low-RTT fullstack lossless 120-second Normal1 functional business; not CPU qualification and not fullstack controlled packet erasure",
+  "pinned_sample": {
+    "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "normal_lanes": 1,
+    "seed": 1846,
+    "FEC": "20:20",
+    "parity_window_ms": 32,
+    "loss_percent": 0,
+    "netem_delay_one_way_ms": 15,
+    "duration_s": 120,
+    "drain_s": 10,
+    "period_ms": 45,
+    "payload_sizes_bytes": [
+      96,
+      1372,
+      4068
+    ],
+    "one_job": true,
+    "mode": "profile_OFF"
+  },
+  "actual_business": {
+    "total_sent_both_directions": 5334,
+    "total_received_both_directions": 5334,
+    "c2s": {
+      "sent": 2667,
+      "received": 2667,
+      "size96": {
+        "count": 889,
+        "p99_ns": 15505412
+      },
+      "size1372": {
+        "count": 889,
+        "p99_ns": 15552994
+      },
+      "size4068": {
+        "count": 889,
+        "p99_ns": 15750874
+      }
+    },
+    "s2c": {
+      "sent": 2667,
+      "received": 2667,
+      "size96": {
+        "count": 889,
+        "p99_ns": 15441736
+      },
+      "size1372": {
+        "count": 889,
+        "p99_ns": 15550428
+      },
+      "size4068": {
+        "count": 889,
+        "p99_ns": 15753568
+      }
+    },
+    "missing": 0,
+    "duplicates": 0,
+    "corrupt": 0,
+    "skipped_slots": 0,
+    "analyzer_status": "PASS_SCOPED_FULLSTACK_15MS_SPARSE_LOSSLESS"
+  },
+  "real_netem": {
+    "router_rsrv": {
+      "delay_seconds": 0.015,
+      "packets": 19727,
+      "bytes": 13719704,
+      "drop": 0
+    },
+    "router_rcli": {
+      "delay_seconds": 0.015,
+      "packets": 19726,
+      "bytes": 13961329,
+      "drop": 0
+    },
+    "stages": [
+      "pre_start",
+      "stress_start",
+      "post_start",
+      "post_end",
+      "drain_start"
+    ],
+    "stage_loss_both_percent": 0,
+    "tcp_underlay_pre_capture_packet_counts": [
+      19705,
+      19706
+    ],
+    "tcpdump_kernel_drops": 0
+  },
+  "artifact_files_sha256": {
+    "e1-lowrtt-summary.json": "20238d5beb81743850ad06b3bb826fc4ffa8c0cfc8fde4f34edcf4a10467d4b7",
+    "manifest.json": "45021aa440683ecc261c55568470b26c45ef05d2a29affa1333cd4d8fd5b1a2a",
+    "biz.json": "71796a0d957c771fbc746a1732177e3598f2d03b8103d08613c958f557d630a9",
+    "target.json": "ed4bf083bfd77d50de8099de1101ad681e1b514873a88983d08c37da9ae7a64d",
+    "stage-events.jsonl": "3b8bbb8ff70be90fb5bb23f0f1899c794a1d03e2c08708ba9e8d2ba6ffba652d"
+  },
+  "raw_capture_policy": "4 bounded TCP underlay pcaps SHA recorded then deleted; only hash/size receipts uploaded, no payloads",
+  "limitations": [
+    "This is lossless real FakeTCP/TPROXY/TUN; does not inject a missing shard and therefore cannot qualify 15ms fullstack FEC repair after a deliberate erasure.",
+    "The previous real kernel UDP LINK-only test 37933861380 did exercise an intentionally missing LINK source shard and fresh later source without blocking, but is not the same fullstack case.",
+    "No CPU gain or bandwidth savings measured by this scope.",
+    "One sampled runner, not an all-host/RTT distribution. No Game4 active lanes claimed."
+  ],
+  "previous_source32_protector_actions": [
+    37922038550,
+    37924613499,
+    37925722025,
+    37926864614
+  ],
+  "old_game4_formal_fail_runs": [
+    37857040784,
+    37871243581
+  ],
+  "e7": "OPEN_DEFERRED",
+  "cpu_gain": "UNPROVEN",
+  "decision": "PASS_SCOPED_REAL_15MS_LOSSLESS"
+}

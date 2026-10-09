@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_UNIFORM32_LOWRTT_15MS_REAL_FULLSTACK_SPARSE_NORMAL1_ACTION_PENDING",
+    "phase": "E1_UNIFORM32_REAL_FULLSTACK_15MS_SPARSE_NORMAL1_LOSSLESS_PASS_CPU_UNPROVEN",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3158,7 +3158,7 @@
       "qualifier": "REAL_UDP_SOCKET_LINK_FEC_ONLY; FORMAL_FAKETCP_TUN_CLIENT_TARGET_15MS_NOT_RUN"
     },
     "e1_fullstack_sparse15": {
-      "state": "PENDING_REAL_ACTION",
+      "state": "PASS_SCOPED_FULLSTACK_15MS_SPARSE_LOSSLESS_NO_ERASURE",
       "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
       "prev_head": "13ebfaae2b7a2d14b6c23620793b27b7fdd19625",
       "workflow": ".github/workflows/next-e1-lowrtt-fullstack.yml",
@@ -3190,13 +3190,60 @@
         37857040784,
         37871243581
       ],
-      "evidence": "docs/evidence/e1-uniform32-15ms-45ms-sparse-fullstack-intent-20261009.json",
-      "action_id": null,
-      "cpu_gain": "UNPROVEN"
+      "evidence": "docs/evidence/e1-uniform32-real-faketcp-tproxy-tun-15ms-sparse-action37937452545-pass.json",
+      "action_id": 37937452545,
+      "cpu_gain": "UNPROVEN",
+      "helper_sha": "63ab6e83b1e4087172fda1c5e5e191779bfabd50",
+      "action_conclusion": "SUCCESS",
+      "foundation_id": 37937452458,
+      "foundation_conclusion": "SUCCESS",
+      "artifact_id": 11619545001,
+      "artifact_zip_sha256": "ccece3c9281e5edcd1ccd08a3f0a64e93da32c63a43466a21335e5ee3403fc3e",
+      "analyzer_summary_sha256": "20238d5beb81743850ad06b3bb826fc4ffa8c0cfc8fde4f34edcf4a10467d4b7",
+      "actual_scope": "formal client TPROXY, raw underlay, real server TUN, target UDP socket, 5 netns",
+      "source_fec": "20:20 32ms",
+      "one_way_netem_ms": 15,
+      "native_qdisc_packets": {
+        "c2s": 19727,
+        "s2c": 19726
+      },
+      "native_qdisc_drops": {
+        "c2s": 0,
+        "s2c": 0
+      },
+      "per_direction": {
+        "c2s": {
+          "sent": 2667,
+          "received": 2667,
+          "each_size_count": 889,
+          "p99_ms": {
+            "96": 15.505412,
+            "1372": 15.552994,
+            "4068": 15.750874
+          }
+        },
+        "s2c": {
+          "sent": 2667,
+          "received": 2667,
+          "each_size_count": 889,
+          "p99_ms": {
+            "96": 15.441736,
+            "1372": 15.550428,
+            "4068": 15.753568
+          }
+        }
+      },
+      "business_missing": 0,
+      "duplicates": 0,
+      "corruption": 0,
+      "skipped_sends": 0,
+      "measured_mode": "REAL_NORMAL1_15MS_LOSSLESS_120S_FEC20_20",
+      "intentionally_erased_repair_in_formal_stack": "NOT_RUN",
+      "product_source_modified": false
     }
   },
-  "next_task": "Inspect the single next-e1-lowrtt-fullstack workflow Action and Foundation after commit. Require exact SOURCE a2db258..., one Normal1 lossless seed1846 FEC20:20 parity32ms, 15ms real netem both router directions, 120s two-direction client/TPROXY/server/TUN/target traffic every45ms 96/1372/4068, no missing/duplicates/corrupt/sends skipped, >=800 packets each size each direction, small96 p99 <=180ms, other p99 <=350ms. Fullstack source/probes cannot claim erasure recovery in lossless sample; if success next examine targeted one-case fullstack shard-erasure without new instrumentation platform. Protect old Game4 9V45 OFF socket drops33/86 and ON42 FAIL and E7 ~80s downlink OPEN_DEFERRED. If preflight fails, correct proven helper issue then revalidate; no blind 300s host shopping, no source/buffer/queue edits, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e1-uniform32-15ms-fullstack-sparse-normal1-qualification.md",
+  "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes.",
+  "latest_log": "docs/devlog/20261009-e1-uniform32-sparse15ms-formal-fullstack-5334-5334-pass.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -3209,7 +3256,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 uniform32 SOURCE a2db258b436a41fdee98c6c53abec9bab6ce600f already has 4 independent 300s Normal1/Game2 lossless+5205 scoped business PASS and standalone native LINK/FEC 15ms netem repair PASS, latest Foundation37934311902 SUCCESS. New one-source one-job real FakeTCP/TPROXY/TUN Normal1 sparse45ms 96/1372/4068 on actual15ms router netem 120s business protector pending. Test-side per-size stats opt-in only; NO new product classifier. Game4 old socket drops FAIL, CPU UNPROVEN, E7 deferred.",
+    "E1 uniform32 true formal product SOURCE a2db258... actual Normal1 fullstack FakeTCP/TPROXY/server TUN/target under native one-way15ms netem source sparse45ms 96/1372/4068, 120s run37937452545 SUCCESS and full Foundation37937452458 SUCCESS; 2667/2667 packets each way, 889 each size, 0 missing/duplicate/corrupt/skips, 96B p99~15.44-15.51ms, 4068B p99~15.75ms, netem qdisc 0 drops. This is formal lossless scoped PASS, not fullstack intentional FEC erasure or CPU savings. Old 9V45 Game4 OFF d33/d86 and ON d42 resource FAIL, E7 deferred, CPU UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
