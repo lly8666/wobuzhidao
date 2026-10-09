@@ -1,11 +1,11 @@
 {
   "workload": "mixed",
   "loss": 5205,
-  "seed": 1844,
+  "seed": 1842,
   "product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
-  "mode": "normal",
-  "lanes": 1,
-  "rate_mbps": 10,
+  "mode": "game",
+  "lanes": 2,
+  "rate_mbps": 3,
   "size_profile": "ordinary",
   "diagnostic_mode": "off"
 }
