@@ -1,0 +1,65 @@
+{
+  "schema": "wbd-e4-oneparse-game4-real5205-preflight/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent": "36b5f6e49d9fd214aeced8e2a39b015a2e5a1f72",
+  "source_candidate": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "prior_source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "new_perf_runs_so_far": 0,
+  "source_tests": {
+    "foundation": 37882854877,
+    "conclusion": "SUCCESS",
+    "lifecycle": 37882854858,
+    "lifecycle_conclusion": "SUCCESS",
+    "latest_docs_foundation": 37883179279
+  },
+  "workflow_source_pin": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "proposed_unique_sample": {
+    "mode": "game",
+    "lanes": 4,
+    "workload": "mixed",
+    "loss": 5205,
+    "seed": 1840,
+    "rate_mbps_each_direction": 3,
+    "profile": "OFF",
+    "size_profile": "ordinary",
+    "duration_sec": 300,
+    "default_tick_ms": 100,
+    "drain_sec": 3
+  },
+  "prior_same_scenario": {
+    "run": 37853468730,
+    "source": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "analyzer": "PASS_SCOPED_ACTIONS",
+    "socket_drop": 0,
+    "interface_drop": 0,
+    "udp_missing": 0,
+    "tcp_and_https": "VERIFIED",
+    "host": "AMD EPYC 9V74",
+    "cpu_s": 265.02
+  },
+  "stop_conditions": [
+    "helper/source mismatch",
+    "business missing/corrupt/long HOL",
+    "LOCAL_SOCKET_DROP",
+    "RESOURCE_AUDIT_WARNINGS",
+    "CPU/rate/host unknown -> CPU_NOT_COMPARABLE",
+    "workflow or ledger FAIL"
+  ],
+  "product_claim": "PROTECTION_ONLY_ONE_SOURCE_ONE_WORKLOAD",
+  "cpu_gain": "UNPROVEN",
+  "formal_9v45_lossless_failed": [
+    {
+      "run": 37857040784,
+      "profile": "OFF",
+      "client_d": 33,
+      "server_d": 86
+    },
+    {
+      "run": 37871243581,
+      "profile": "ON",
+      "client_d": 42
+    }
+  ],
+  "socket_root": "OPEN",
+  "E7": "OPEN_DEFERRED"
+}
