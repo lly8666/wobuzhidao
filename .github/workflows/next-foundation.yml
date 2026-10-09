@@ -315,6 +315,16 @@ jobs:
       - name: Build OpenWrt TPROXY privileged test
         shell: bash
         run: go test -c ./internal/openwrtclient -o /tmp/p4-openwrt-tproxy.test
+      - name: Live Linux AF_PACKET ss parser smoke in isolated netns (no traffic)
+        shell: bash
+        run: |
+          set -euo pipefail
+          NS="wbdpkt-$GITHUB_RUN_ID-$"
+          cleanup() { sudo ip netns del "$NS" 2>/dev/null || true; }
+          trap cleanup EXIT
+          sudo ip netns add "$NS"
+          sudo ip -n "$NS" link set lo up
+          sudo ip netns exec "$NS" python3 tools/test_afpacket_socket_probe_live.py
       - name: Qualify real TCP UDP TPROXY ownership
         shell: bash
         run: |

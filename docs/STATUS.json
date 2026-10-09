@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_BOTH_AF_PACKET_PARSER_TEST_SUITES_FOUNDATION_GATE_PENDING",
+    "phase": "E4_LIVE_LINUX_AF_PACKET_SS_PARSE_PREFLIGHT_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1216,12 +1216,19 @@
         "root": "ss p_raw and skmem are inline, parser expected newline",
         "actual_parser_fix": "a2adbbf real-inline fixture parser passed repository-contract run37866677567; Foundation now gates both parser suite + py_compile, awaiting full independent latest Actions",
         "evidence": "docs/evidence/e4-game4-100ms-probe-run37865738583-failure-analysis.json",
-        "prior_off_original_fail": "FAIL_37857040784"
+        "prior_off_original_fail": "FAIL_37857040784",
+        "live_kernel_ss_preflight": {
+          "state": "PENDING_FOUNDATION",
+          "exercises": "one real AF_PACKET SO_RAW ETH_P_IP socket with native ss -0 -a -m -n in a fresh isolated Linux network namespace",
+          "run": "PENDING",
+          "performance_measurement": false,
+          "evidence": "Live Foundation test step no traffic/no pcap"
+        }
       }
     }
   },
-  "next_task": "Verify latest Foundation repository-contract executes both unittest suites (historical drop forensics and 100ms AF_PACKET numerical probe) and Python py_compile on exact branch HEAD, then full Linux/Windows/race/TUN/TPROXY/fallback results. DO NOT rerun 300s solely to fix a probe parser; run37865738583 overall FAIL despite original business PASS_SCOPED, no subsecond socket counts recoverable. Old 9V45 lossless OFF original FAIL d33/d86 remains OPEN; E7 OPEN_DEFERRED, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e4-foundation-cross-check-both-afpacket-parser-suites.md",
+  "next_task": "Read one new Foundation run for exact HEAD. Verify `Live Linux AF_PACKET ss parser smoke in isolated netns (no traffic)` returns WBD_LIVE_AF_PACKET_NUMERIC_PARSE_PASS, plus existing Windows/Linux/race/TUN/TPROXY/fallback. If actual kernel p_raw presentation differs, preserve failure and repair parser via test, NOT a new 300s measurement. Then develop read-only 100ms numerical trace correlation and missing-data classification; no profileOFF CPU gain, no expansion of queues or buffers, previous lossless OFF run37857040784 socket d33/d86 FAIL and probe run37865738583 overall FAIL retained. E7 OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261009-e4-live-afpacket-ss-isolated-kernel-preflight.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1234,7 +1241,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "Inline p_raw skmem parser works in a2adbbf Foundation repository-contract; now Foundation explicitly tests both historical clock forensics and profileON 100ms observer parsers, no new performance run; run37865738583 probe audit final FAIL preserved.",
+    "Game4 E4 bounded AF_PACKET parse: historical and 100ms parser unit suites 7/7 and 4/4 pass, Foundation 37866805754 complete SUCCESS; new isolated kernel AF_PACKET actual ss format preflight pending; historical OFF 9V45 d33/d86 FAIL and 100ms malformed helper FAIL both retained.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
