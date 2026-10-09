@@ -18,6 +18,7 @@ import tempfile
 import time
 
 from afpacket_recvmmsg_tracepoint import MAX_BPF_MAP_KEYS, program
+from e4_recvmmsg_calibration_compare import host_psi_avg10
 
 CALLS=48000
 MARKER="WBD_E4_RECVMMSG_FIXTURE_TRACER_READY"
@@ -95,6 +96,25 @@ def wait_usage(child):
     code=os.waitstatus_to_exitcode(status)
     child.returncode=code
     return code,usage
+
+def assess_host_quality(receipt):
+    issues=[]
+    before=receipt.get("host_before") or {}
+    after=receipt.get("host_after") or {}
+    for label,host in (("before",before),("after",after)):
+        psi=host_psi_avg10(host)
+        if psi is None or psi>10.0:
+            issues.append("CPU_PSI_UNKNOWN_OR_OVER_10_PCT_"+label.upper())
+        if not host.get("cgroup_cpu_max"):
+            issues.append("CPU_QUOTA_UNKNOWN_"+label.upper())
+    for name in ("model","vcpus","cgroup_cpu_max"):
+        if before.get(name)!=after.get(name):
+            issues.append("HOST_STRATUM_CHANGED_"+name.upper())
+    if receipt.get("cgroup_throttled_delta")!=0:
+        issues.append("CPU_THROTTLE_NONZERO_OR_UNKNOWN")
+    if receipt.get("host_steal_ticks_delta")!=0:
+        issues.append("HOST_STEAL_NONZERO_OR_UNKNOWN")
+    return {"eligible":not issues,"reasons":issues,"scope":"SYNTHETIC_HOST_QUALITY_ONLY"}
 
 def run_one(fixture_binary,mode):
     if mode not in ("off","on"):
@@ -215,6 +235,9 @@ def run_one(fixture_binary,mode):
             st=receipt["host_before"]["host_steal_ticks"]
             et=receipt["host_after"]["host_steal_ticks"]
             receipt["host_steal_ticks_delta"]=et-st if st is not None and et is not None and et>=st else None
+            receipt["host_quality"]=assess_host_quality(receipt)
+            if receipt["status"]=="ONE_SYNTHETIC_CASE_COMPLETE_NOT_CALIBRATED" and not receipt["host_quality"]["eligible"]:
+                receipt["status"]="SYNTHETIC_EXECUTION_COMPLETE_HOST_QUALITY_INELIGIBLE"
     return receipt
 
 def main():

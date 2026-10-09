@@ -1,0 +1,54 @@
+{
+  "schema": "wbd-e4-synthetic-calibration-single-off-quality-receipt/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "case_commit": "af2c649b9cc5f0fe8d3dfe36a7d5a0cbc1dec77f",
+  "workflow_run_id": 37879351995,
+  "link": "https://github.com/lly8666/wobuzhidao/actions/runs/37879351995",
+  "artifact_id": 11594190797,
+  "artifact": "e4-recvmmsg-calibration.json",
+  "sha256": "d58d6384e40991c203c65060240a1445e058770f430306fdfc6e593d47de6294",
+  "workflow_conclusion": "SUCCESS",
+  "mode": "off",
+  "fixture": {
+    "transport": "AF_UNIX SOCK_DGRAM only",
+    "target_calls": 48000,
+    "decoy_calls": 48000,
+    "elapsed_ns": 11999813752,
+    "target_calls_per_second": 4000.062,
+    "recv_p99_ns": 2694,
+    "recv_p999_ns": 3184,
+    "recv_max_ns": 20560,
+    "system_cpu_s": 0.541867,
+    "user_cpu_s": 0.032085,
+    "total_cpu_s": 0.573952,
+    "maxrss_kib": 18152,
+    "late_over_250us": 0,
+    "max_lateness_ns": 106054,
+    "ELF_sha256": "8eea2a681f58ec1df05553d68489a38fd8e1dfc2f5176e29d0eba9998a627d4d"
+  },
+  "host": {
+    "model": "AMD EPYC 9V74 80-Core Processor",
+    "vcpus": 4,
+    "cgroup_cpu_max": null,
+    "cgroup_throttled_delta": 0,
+    "host_steal_ticks_delta": 0,
+    "cpu_psi_some_avg10_before_percent": 17.06,
+    "cpu_psi_some_avg10_after_percent": 5.14
+  },
+  "tracing": "OFF_NO_BPF_EVENT_MEASUREMENT",
+  "business_product_used": false,
+  "case_execution": "ONE_SYNTHETIC_CASE_COMPLETE_NOT_CALIBRATED",
+  "sample_quality": "INELIGIBLE",
+  "quality_reasons": [
+    "CPU_PSI_BEFORE_17_06_GT_10_PERCENT",
+    "CGROUP_CPU_MAX_MISSING_CPU_QUOTA_STRATUM_UNKNOWN"
+  ],
+  "calibration_status": "NOT_CALIBRATED",
+  "cpu_gain": "UNPROVEN",
+  "preserved_game4_resource_failures": [
+    37857040784,
+    37871243581
+  ],
+  "decision": "STOP; do not dispatch ON against this red baseline, do not host-shop. Gate individual future case workflow to propagate host quality failure, preserve prior successful execution claim distinct from eligibility.",
+  "artifact_independently_read": true
+}

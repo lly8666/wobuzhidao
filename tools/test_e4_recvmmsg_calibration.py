@@ -5,6 +5,7 @@ from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from e4_recvmmsg_calibration_compare import compare,valid_case,host_psi_avg10
 from afpacket_recvmmsg_tracepoint import program
+from e4_recvmmsg_calibration import assess_host_quality
 
 def item(mode, cpu=1.0, p99=1000, model="AMD EPYC 9V45", sha="f"*64):
     d={"mode":mode,"status":"ONE_SYNTHETIC_CASE_COMPLETE_NOT_CALIBRATED",
@@ -74,6 +75,21 @@ class CalibrationContract(unittest.TestCase):
         off=[item("off")]*3+[item("off",model="EPYC 9V74")]*3
         on=[item("on")]*3+[item("on",model="EPYC 9V74")]*3
         self.assertEqual(compare(off,on)["reason"],"ONLY_ONE_EXACT_STRATUM_SUPPORTED")
+    def test_single_case_host_quality_gate_is_independent_of_workload_success(self):
+        x=item("off")
+        x["host_before"]["cpu_pressure_first_line"]="some avg10=17.06 total=100"
+        x["host_after"]["cpu_pressure_first_line"]="some avg10=5.14 total=200"
+        x["host_before"]["cgroup_cpu_max"]=None
+        x["host_after"]["cgroup_cpu_max"]=None
+        quality=assess_host_quality(x)
+        self.assertFalse(quality["eligible"])
+        self.assertIn("CPU_PSI_UNKNOWN_OR_OVER_10_PCT_BEFORE",quality["reasons"])
+        self.assertIn("CPU_QUOTA_UNKNOWN_BEFORE",quality["reasons"])
+    def test_truly_known_stable_host_quality(self):
+        x=item("off")
+        quality=assess_host_quality(x)
+        self.assertTrue(quality["eligible"])
+        self.assertEqual(quality["reasons"],[])
     def test_no_implicit_total_cpu_gain(self):
         x=compare([item("off")]*3,[item("on")]*3)
         self.assertEqual(x["product_cpu_gain"],"UNPROVEN")
