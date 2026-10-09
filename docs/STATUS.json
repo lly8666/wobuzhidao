@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_BRANCH_SCOPED_EXPLICIT_CONFIG_SYSCALL_CALIBRATION_TRIGGER_PENDING_FOUNDATION",
+    "phase": "E4_CALIBRATION_EXPLICIT_CASE_CONFIG_POLICY_ASSERTION_REPAIRED_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1482,13 +1482,20 @@
           "previous_foundation": {
             "run_id": 37878413760,
             "conclusion": "SUCCESS"
+          },
+          "static_policy_failure": {
+            "run_id": 37878736543,
+            "step": "Enforce performance workflow one-sample policy",
+            "cause": "legacy workflow_dispatch options assertion incorrectly remained after branch-only config switch",
+            "fix": "require JSON d.mode off/on and scoped regex case_id in push workflow",
+            "state": "PENDING_NEXT_FOUNDATION"
           }
         }
       }
     }
   },
-  "next_task": "Verify Foundation for strict .github/e4-recvmmsg-calibration-case.json-only push trigger and exact config/ELF-helper Git SHA security guards; CI must reject any other calibration measurement path, mode mixing, matrix or automatic source push. Once Foundation green, one separate commit touching ONLY case-config with mode OFF and pinned fixture/tracer/driver blobs may run exactly ONE nonproduct 12s local AF_UNIX trial. Inspect actual Action/JSON before any ON commit; if OFF valid, allow a later separate case-config-only ON trial, no A/B same run, no hidden fullstack Game4. Cross-VM result remains NOT_CALIBRATED without >=3 each valid same CPU/vCPU/quota/ELF SHA and stable PSI/throttle/steal. No main, canonical, real product or buffers/queues changes. E4 original 9V45 socket-drop FAIL root OPEN; CPU gain UNPROVEN, E7 OPEN_DEFERRED.",
-  "latest_log": "docs/devlog/20261009-e4-calibration-feature-branch-explicit-one-case-trigger.md",
+  "next_task": "Verify fresh Foundation after 37878736543 policy FAIL correction; require policy enforces only config-only push to strict branch, frozen fixture/tracer/driver source SHA, JSON mode off/on case-id pattern; C/Python contracts and all Linux/Windows/race/TPROXY/TUN/fallback green. Only after FULL green, create exactly one config-only mode OFF commit with fixed source hashes, inspect actual synthetic calibration artifact and host before any separate mode ON. No ordinary push calibration and NO Game4 300s, root E4 OPEN and CPU UNPROVEN, E7 OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261009-e4-calibration-config-mode-policy-static-test-repair.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1501,7 +1508,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 source ba8ed1 frozen, 9V45 profileOFF Game4 socket client33/server86 and ON client42 formal FAIL unchanged. Synthetic 12s AF_UNIX standalone calibration helpers and PSI comparator Foundation37878119120/37878413760 COMPLETE SUCCESS; new workflow_dispatch file cannot run from nondefault branch, replaced with EXPLICIT CONFIG FILE ONLY push trigger, no calibration dispatched yet. CPU gain UNPROVEN.",
+    "Synthetic 12s one-case config-only push job changes 291a558 first Foundation37878736543 policy FAIL: static old workflow_dispatch options check remained, no product/kernel failure and NO calibration run. One-assertion fix pending Foundation; product ba8ed1 and old 9V45 OFF client33/server86 and ON client42 FAIL unchanged.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

@@ -90,9 +90,9 @@ for job in FOUNDATION_DISABLED:
         errors.append(f"next-foundation: legacy measurement job {job} is not disabled")
 
 
-# Separate synthetic observer overhead workflow: intentionally DISPATCH ONLY.
-# Each dispatch is one standalone 12s AF_UNIX case, not normal product traffic,
-# and OFF/ON comparisons cannot be performed in one Action.
+# Separate synthetic observer overhead workflow: explicitly case-config PUSH only.
+# A config-only commit is one standalone 12s AF_UNIX case, not product traffic,
+# and OFF/ON comparisons cannot be performed in the same Action.
 cal = Path(".github/workflows/next-e4-recvmmsg-calibration.yml").read_text(encoding="utf-8")
 # GitHub only exposes a newly created workflow_dispatch workflow after
 # its file exists on the repository default branch; main is prohibited here.
@@ -113,8 +113,8 @@ if re.search(r"(?m)^\s+matrix:",cal):
     errors.append("E4 calibration: matrix/fanout forbidden")
 if cal.count("  one-nonproduct-calibration-case:\n")!=1:
     errors.append("E4 calibration: exactly one measurement job required")
-if "options:\n          - off\n          - on" not in cal:
-    errors.append("E4 calibration: explicit single mode must be off or on")
+if 'assert d["mode"] in ("off","on")' not in cal or 'assert re.fullmatch(r"e4-"+d["mode"]' not in cal:
+    errors.append("E4 calibration: config mode must be exactly one of off/on with scoped case ID")
 if cal.count("tools/e4_recvmmsg_calibration.py")!=2:
     errors.append("E4 calibration: exactly one script py_compile and one execution required")
 if "continue-on-error: true" not in cal or 'test "$RESULT" = success' not in cal:

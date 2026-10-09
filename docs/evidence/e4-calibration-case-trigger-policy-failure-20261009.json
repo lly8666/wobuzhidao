@@ -1,0 +1,12 @@
+{
+  "schema": "wbd-e4-calibration-static-policy-legacy-option-failure/v1",
+  "failed_run_id": 37878736543,
+  "step": "Enforce performance workflow one-sample policy",
+  "result": "FAIL",
+  "cause": "original manual workflow_dispatch choices assertion remained after new branch-only single case config push",
+  "fix": "validate explicit JSON d.mode in off/on and e4-(off|on)-NN case ID in isolated workflow; leave fail-closed source-hash/git diff gates unchanged",
+  "new_sample_run": false,
+  "product_fail": false,
+  "previous_overhead_calibration": "NOT_RUN",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072"
+}
