@@ -1,0 +1,34 @@
+{
+  "schema": "wbd-e4-afpacket-exact-recvfd-inode-preflight/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent": "9f280f0b9e003872e8adcbf824dc0c0ffba6be6b",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "previous_capability": {
+    "run_id": 37873072683,
+    "validated": "TRACEPOINT_ATTACH_ONLY"
+  },
+  "previous_functional": {
+    "run_id": 37873408635,
+    "status": "TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY",
+    "two_syscall_exits": true,
+    "one_60ms_gap": true,
+    "product_benchmark": false
+  },
+  "objective": "Resolve exactly one AF_PACKET SOCK_RAW target FD via intersecting /proc/PID/net/packet inode table with /proc/PID/fd socket links; fail closed if wrong binary, reused PID/FD, multiple or missing sockets",
+  "privacy": {
+    "fd_not_serialized": true,
+    "inode_not_serialized": true,
+    "packet_not_captured": true,
+    "addresses_not_captured": true
+  },
+  "bounds": {
+    "max_file_descriptors": 4096,
+    "target_exe_exact": true,
+    "process_starttime_unchanged": true,
+    "recv_fd_link_unchanged": true
+  },
+  "real_linux_test": "inside existing privileged Foundation isolated netns with one real AF_PACKET socket, no traffic",
+  "future_bpf_filter": "PID AND exact receiver FD (NOT YET_IMPLEMENTED_OR_MEASURED)",
+  "new_300s_samples": 0,
+  "state": "PENDING_FOUNDATION"
+}

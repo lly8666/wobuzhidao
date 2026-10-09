@@ -4,11 +4,13 @@
 Called by Foundation in a newly created network namespace. No workload,
 packets, packet captures, secrets, host networking changes or performance data.
 """
+import os
 import socket
 import subprocess
 import time
 
 from afpacket_socket_probe import numeric_row
+from afpacket_recv_fd_identity import resolve as resolve_packet_fd
 
 
 def main():
@@ -18,6 +20,11 @@ def main():
     # The enclosing workflow owns a fresh netns, so exactly one socket is expected.
     with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800)) as recv:
         recv.bind(("lo", 0))
+        # Kernel packet-table inode must select this precise AF_PACKET FD.
+        exe=os.path.basename(os.readlink("/proc/self/exe"))
+        if resolve_packet_fd(os.getpid(),exe)!=recv.fileno():
+            raise AssertionError("wrong AF_PACKET receiver descriptor selected")
+        print("WBD_LIVE_AFPACKET_FD_INODE_PASS unique_socket=1",flush=True)
         began = time.monotonic_ns()
         ss = subprocess.run(["ss", "-0", "-a", "-m", "-n"],
                             capture_output=True, text=True, timeout=2, check=False)

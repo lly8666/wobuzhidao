@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RECVMMSG_REAL_SYSCALL_TWO_EVENTS_FUNCTIONAL_NONPERF_PENDING",
+    "phase": "E4_RECVMMSG_EVENT_FUNCTIONAL_PASS_AF_PACKET_FD_IDENTITY_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1356,13 +1356,28 @@
           "expected_long_intercall_gaps": 1,
           "overhead_validated": false,
           "state": "PENDING_FOUNDATION",
-          "intent": "docs/evidence/e4-recvmmsg-two-syscall-functional-preflight-intent-20261009.json"
+          "intent": "docs/evidence/e4-recvmmsg-two-syscall-functional-preflight-intent-20261009.json",
+          "run_id": 37873408635,
+          "artifact_id": 11591250797,
+          "status": "TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY",
+          "fixture_exit": 0,
+          "bpftrace_exit": 0
+        },
+        "fd_identity": {
+          "state": "PENDING_FOUNDATION",
+          "source": "tools/afpacket_recv_fd_identity.py",
+          "test": "tools/test_afpacket_recv_fd_identity.py",
+          "real_test": "tools/test_afpacket_socket_probe_live.py",
+          "scope": "Match single AF_PACKET SOCK_RAW inode in target /proc/PID/net/packet to /proc/PID/fd, verify process identity and FD stable; no fd/inode serialized",
+          "one_packet_socket_required": true,
+          "run_performance": false,
+          "evidence": "docs/evidence/e4-afpacket-recvfd-inode-unique-identity-intent-20261009.json"
         }
       }
     }
   },
-  "next_task": "Verify new Foundation functional recvmmsg tracepoint fixture. Require artifact e4-recvmmsg-functional.json status TWO_SYSCALLS_ONE_GAP_FUNCTIONAL_ONLY, 2 recvmmsg exits, exactly one >20ms exit-to-next-enter gap, no product network, and full Foundation Linux/Windows/race/TUN/TPROXY/fallback success. Any unsupported/timeouts/incorrect map receipts remain NOT_QUALIFIED. Do not run a fullstack 300s merely for tracepoint capability; first provide bounded overhead/event-loss validity/target-fd guard design. Older 9V45 profileOFF d33/86 and profileON d42 remain official FAIL, no CPU gain. E7 downstream outage deferred.",
-  "latest_log": "docs/devlog/20261009-e4-recvmmsg-real-synthetic-socketpair-gap-smoke.md",
+  "next_task": "Check latest Foundation for 7 FD inode identity tests plus real privileged AF_PACKET one-socket /proc PID net packet and FD inode live marker WBD_LIVE_AFPACKET_FD_INODE_PASS, alongside full Windows/Linux/race/network. If /proc packet layout is unsupported or multiple packet sockets, report UNSUPPORTED/AMBIGUOUS, do not guess FD. `recvmmsg` 5s synthetic test only proves two exits and one gap, not real product recvFD tracing nor run-time overhead. Before another 300s Game4 run, create bounded FD+PID filtering and explicit overhead/lost-event/timeout hard gate, with no profileOFF CPU comparison and frozen product ba8ed1; otherwise stay E4 blocked and stop host shopping. Existing socket drop FAIL, E7 deferred, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e4-afpacket-recvfd-inode-exact-one-no-traffic-preflight.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1375,7 +1390,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 OFF 9V45 d33/d86 FAIL and ON 9V45 d42 at 140.769..140.871s FAIL retained. Nontraffic 2s recvmmsg tracepoint attachment Foundation37873072683 capability TRACEPOINT_ATTACH_ONLY (full Foundation SUCCESS); now synthetic 2 recvmmsg calls and one deliberately 60ms user-space gap in local AF_UNIX socketpair for 5s functional test pending, no product/300s samples.",
+    "Kernel tracepoints on hosted VM attachment-only Foundation37873072683 and actual two-recvmmsg-one-60ms intercall gap synthetic functional smoke Foundation37873408635 both complete SUCCESS; no product tested, no overhead estimate. AF_PACKET receiver FD identification via /proc inode with live netns smoke pending next Foundation; original EPYC9V45 OFF d33/86 FAIL and ON d42 FAIL remain.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

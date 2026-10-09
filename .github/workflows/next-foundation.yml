@@ -59,6 +59,8 @@ jobs:
           python3 -m unittest discover -s tools -p 'test_afpacket_recvmmsg_tracepoint.py' -v
           python3 -m py_compile tools/afpacket_recvmmsg_functional.py
           python3 -m unittest discover -s tools -p 'test_afpacket_recvmmsg_functional.py' -v
+          python3 -m py_compile tools/afpacket_recv_fd_identity.py
+          python3 -m unittest discover -s tools -p 'test_afpacket_recv_fd_identity.py' -v
           cc -fsyntax-only tools/testdata/e4_recvmmsg_socketpair_smoke.c
       - id: layout
         name: Detect active module
