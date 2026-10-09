@@ -20,6 +20,11 @@ func TestE1LargestSizeClass16msSmallClasses8msRealFECPath(t *testing.T) {
  if err!=nil||len(smallWire)!=1 {t.Fatalf("small systematic=%d err=%v",len(smallWire),err)}
  largeWire,err:=path.Encode(large,t0)
  if err!=nil||len(largeWire)!=2 {t.Fatalf("large link fragments=%d err=%v",len(largeWire),err)}
+ firstH,err:=fec.ParseBlockHeader(largeWire[0]);if err!=nil{t.Fatal(err)}
+ tailH,err:=fec.ParseBlockHeader(largeWire[1]);if err!=nil{t.Fatal(err)}
+ if firstH.BlockID!=tailH.BlockID || firstH.ShardIndex==tailH.ShardIndex {
+   t.Fatalf("large UDP tail placed in different parity group: first=%+v tail=%+v",firstH,tailH)
+ }
  if due:=path.NextFlushDeadline();!due.Equal(t0.Add(8*time.Millisecond)) {t.Fatalf("first small deadline=%v",due)}
  if wire,err:=path.FlushDue(t0.Add(8*time.Millisecond-time.Nanosecond));err!=nil||len(wire)!=0 {t.Fatalf("early small flush %d %v",len(wire),err)}
  smallParity,err:=path.FlushDue(t0.Add(8*time.Millisecond))

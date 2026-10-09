@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_LARGE_FEC_GROUP_16MS_SCOPED_CANDIDATE_FOUNDATION_LIFECYCLE_PENDING_AFTER_E2_5205_FAIL",
+    "phase": "E1_16MS_LARGE_FRAGMENT_TAIL_CONSISTENT_FEC_GROUP_CANDIDATE_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2527,7 +2527,7 @@
       "unit_guard": "PASS_ALL_SUPPORTED_PROFILES_PARTIAL_SIZES_AND_EXACT_GENERIC_RS_WIRE"
     },
     "e1_large_class_window_candidate": {
-      "state": "SCOPED_16MS_LARGEST_ONLY_SOURCE_UNBUILT_PENDING_FOUNDATION_LIFECYCLE",
+      "state": "FIRST_FOUNDATION_37918866355_FAIL_CAUSAL_FRAGMENT_TAIL_DISCOVERED_FIXED_NEXT_FOUNDATION_PENDING",
       "working_branch": "next/performance-efficiency-20261008",
       "parent_head": "19239ad45970ec1cca00e9b272d1e6d1d224b2f0",
       "parent_product_source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
@@ -2536,7 +2536,8 @@
         "internal/fec/size_class_encoder.go",
         "internal/linkdata/fec_path.go",
         "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go",
-        "internal/linkdata/e1_large_group_window_16ms_test.go"
+        "internal/linkdata/e1_large_group_window_16ms_test.go",
+        "internal/linkdata/fec_size_class_test.go"
       ],
       "scope": {
         "fec_parity_shards_only": 20,
@@ -2559,8 +2560,8 @@
         "TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff"
       ],
       "acceptance": {
-        "foundation": "PENDING",
-        "lifecycle": "PENDING",
+        "foundation": "PENDING_NEW_SOURCE",
+        "lifecycle": "PENDING_NEW_SOURCE",
         "normal1_lossless": "NOT_RUN_NEW_SOURCE",
         "normal1_5205": "NOT_RUN_NEW_SOURCE",
         "game2_lossless": "HOLD",
@@ -2568,11 +2569,44 @@
         "low_rtt_sparse": "NOT_RUN",
         "cpu_gain": "UNPROVEN"
       },
-      "evidence": "docs/evidence/e1-selective-largest-fec-window-16ms-candidate-normal5205-actual-fail-20261009.json"
+      "evidence": "docs/evidence/e1-selective-largest-fec-window-16ms-candidate-normal5205-actual-fail-20261009.json",
+      "failed_foundation": {
+        "run_id": 37918866355,
+        "result": "FAIL",
+        "failed_job": "active-go-tests (ubuntu-24.04)",
+        "reasons": [
+          "TestE1LargestSizeClass16msSmallClasses8msRealFECPath: 8ms flush yielded 2 parity not 1",
+          "TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff/1372: configured8ms still failed because short tail used 8ms small group",
+          "TestFECSizeClassesFragmentRecoveryOwnershipAndNoHOL: historical expectation three parities at8ms no longer valid"
+        ],
+        "other_jobs": "TPROXY/TUN/fallback and repo contract PASS; overall FAIL preserved",
+        "lifecycle_run": 37918866377,
+        "lifecycle_result": "SUCCESS"
+      },
+      "root_causal_discovery": "Large UDP LINK fragmentation produced a <=256B tail fragment, which SizeClassEncoder classified by fragment length into independent 8ms small group; extending >512 class to 16ms cannot help first large UDP recover if tail lost.",
+      "correction": {
+        "source_paths": [
+          "internal/fec/size_class_encoder.go",
+          "internal/linkdata/fec_path.go"
+        ],
+        "test_paths": [
+          "internal/linkdata/fec_size_class_test.go",
+          "internal/linkdata/e1_large_group_window_16ms_test.go"
+        ],
+        "strategy": "In default8ms 20:20 only, if original application datagram becomes >1 LINK shard, AddFragmentOfLargeDatagram forces EVERY shard including short tail into largest >512B class with same 16ms deadline; separate <=512B standalone packets remain in 8ms groups.",
+        "first_delivery": "STILL_IMMEDIATE",
+        "risk": "PADDING_LARGER_TAIL_TO_LARGEST_SHARD_MAY_INCREASE_PARITY_WIRE_BYTES_AND_CPU",
+        "size_class_hint": "INTERNAL_ONLY_NO_WIRE_OR_CONFIG_FORMAT_CHANGE",
+        "weak_loss_adaptation": "NOT_IMPLEMENTED_NO_TRUSTED_FEEDBACK_SIGNAL",
+        "validation": "NEXT_FOUNDATION_AND_LIFECYCLE_PENDING",
+        "original_staged5205_run": "37915859759_FAIL_RETAINED",
+        "official_cpu_gain": "UNPROVEN"
+      },
+      "evidence_update": "docs/evidence/e1-16ms-largest-group-fragmented-link-tail-class-failure-and-fix-20261009.json"
     }
   },
-  "next_task": "First verify Foundation and lifecycle Go/race/core for E1 largest >512B 20:20 partial FEC group16ms only (small <=512B still8ms, nondefault windows unchanged). Inspect deterministic LINK test (8ms configured but effective largest16ms), immediate systematic/independent no-HOL, FEC lower profiles and forced flush; fix genuine failures without relaxing protections. After all green, EXACTLY ONE source-pinned profileOFF Normal1 lossless 300s (not old source qualification), then independent Normal1 staged5205 seed-new protected, evaluate raw missing by 1372/4068 and small 96 probe p99/missing. If weak STILL FAIL, preserve and stop before Game; revert candidate if benefits fail, don't tune 24/100ms blindly. Then, only if scoped passes, Game2 lossless/5205 and lowRTT sparse. Original E2 run37915859759 and old E1 run37907829434 both remain fullstack FAIL, no matched CPU gain claim. E7 ~80s deferred; no queue/buffer/wire changes or canonical merge.",
-  "latest_log": "docs/devlog/20261009-182800-e1-selective-largest-fec-window-16ms-candidate.md",
+  "next_task": "Check new Foundation and lifecycle first, do not run fullstack until Linux/Windows/core/race PASS. Required tests: first+tail LINK shards of fragmented 1372B share same BlockID and 16ms parity deadline, standalone <=256B stays 8ms, 5 linked packets targeted20% FEC proof, lower parity profiles unchanged, TestFECSizeClassesFragmentRecoveryOwnershipAndNoHOL still delivers small fresh and recovers large. If source candidate core green, run one Normal1 zero-loss mixed profileOFF 300s from EXACT new product source and verify strict analyzer, then one independent Normal1 5/20/5 weak 300s; if weak fails hold Game and revert or narrow causality, never crank24/100ms blindly. Observe possible extra large-FEC parity bandwidth/cpu due small tail padding; no product CPU gain claim without matched host. Preserve old E2 37915859759 and old E1 37907829434 staged5205 FAIL, E7 ~80s deferred; no buffer/queue/wire/physical/default branch changes.",
+  "latest_log": "docs/devlog/20261009-190000-e1-largest-group-fragment-tail-fec-recovery-fix.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2585,7 +2619,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "Current E2 source fc92076b Normal1 300s true staged5205 profileOFF run37915859759 FAIL 413 c2s /480 s2c eventual app UDP missing; 20% stress 410/474, mostly1372/4068, zero packet socket drops, TCP+HTTPS intact. Distinct deterministic controlled LINK 20% erasure proves 16ms recovery vs 8ms for spaced groups, but real 5205 causal not established. New strictly scoped large-size 20:20 FEC group16ms candidate keeps <=512B and other profiles 8ms, systematic immediate, no dynamic loss feedback; core/race Foundation & lifecycle PENDING, no new 300s sample, CPU gain UNPROVEN.",
+    "E1 limited 16ms largest 20:20 FEC candidate first source commit 6bde35e Foundation37918866355 FAIL, Lifecycle37918866377 SUCCESS. Failed Linux unit tests identified REAL design gap: 1372B LINK fragments include <=256B tail assigned to 8ms small parity group, so large-only timeout failed to repair whole datagram. Next source correction routes all shards of multi-fragment datagrams to largest 16ms class while independent small datagrams stay8ms; padding overhead explicit; new Foundation/lifecycle PENDING, original staged5205 E2 run37915859759 FAIL kept, CPU UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

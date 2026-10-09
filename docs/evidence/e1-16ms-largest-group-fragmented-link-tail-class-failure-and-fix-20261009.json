@@ -1,0 +1,38 @@
+{
+  "schema": "wbd-e1-largest-fec-16ms-link-tail-classification-corrective-design/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent": "6bde35e43c31d12665cf49e3e580ee2b387f77a6",
+  "first_candidate_commit": "6bde35e43c31d12665cf49e3e580ee2b387f77a6",
+  "failed_foundation_run": 37918866355,
+  "first_candidate_lifecycle_run": 37918866377,
+  "lifecycle_conclusion": "SUCCESS",
+  "failure": "Linux TestE1LargestSizeClass16msSmallClasses8msRealFECPath/old deterministic weak loss/size-class fragmented recovery failed. This is a REAL policy bug in targeted group extension, not only a stale assertion.",
+  "mechanism": "Large original datagram 1372B fragmented to >512B plus <=256B tail, tail classified by its fragment length as independent small 8ms group. Larger 16ms group for first shard alone cannot improve recovery of entire datagram if tail remains unrecovered.",
+  "correction": "Use FECPath's knowledge that len(fragments)>1 for one original datagram to classify every LINK shard of that datagram into the largest >512B 20:20 FEC group with 16ms parity in default8ms configuration; independently emitted <=512B datagrams still have own 8ms parity.",
+  "complexity": {
+    "per_packet_timers": 0,
+    "new_goroutines": 0,
+    "new_queue_growth": 0,
+    "new_wire_format": false,
+    "new_protocol_fields": false,
+    "lane_window_shards_max": 20,
+    "only_20_20_default_8ms": true,
+    "other_fec_profiles_unchanged": true
+  },
+  "costs": [
+    "An originally small last LINK shard may now be padded to large-shard parity size; emitted FEC parity bytes/cpu can increase.",
+    "Missing large datagram's parity can arrive up to 8ms later than previous default.",
+    "This is a static size-based policy, NOT adaptive to a measured network loss state."
+  ],
+  "tests": [
+    "TestE1LargestSizeClass16msSmallClasses8msRealFECPath exact first and tail BlockID same",
+    "TestFECSizeClassesFragmentRecoveryOwnershipAndNoHOL independent small first no HOL",
+    "TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff staged constructed targeted 20%",
+    "TestE1LargestGroupExtensionLimitedTo20x20Default8ms lower profiles unchanged"
+  ],
+  "original_new_e2_5205_run_id": 37915859759,
+  "original_analyzer": "FAIL",
+  "next_foundation": "PENDING",
+  "new_300s_samples": 0,
+  "product_cpu_gain": "UNPROVEN"
+}

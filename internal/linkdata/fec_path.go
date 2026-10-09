@@ -139,7 +139,19 @@ func (p *FECPath) Encode(packet []byte, now time.Time) ([][]byte, error) {
 			out = append(out, append([]byte(nil), fragment...))
 			continue
 		}
-		wire, err := p.encoder.Add(fragment, now)
+		// A large application UDP may have a sub-256B final LINK shard.
+		// Classifying just that fragment's length would close its parity
+		// block at 8ms, even though the other fragments group for 16ms.
+		// Keep only multi-fragment 20:20 default-8ms datagrams together
+		// in the largest FEC class; independent 96B game traffic still
+		// uses the usual low-latency group. No other FEC profile changes.
+		var wire [][]byte
+		if len(fragments) > 1 && p.config.ParityShards == fec.ParityShards &&
+			p.config.FlushAfter == 8*time.Millisecond {
+			wire, err = p.encoder.AddFragmentOfLargeDatagram(fragment, now)
+		} else {
+			wire, err = p.encoder.Add(fragment, now)
+		}
 		if err != nil {
 			return nil, err
 		}
