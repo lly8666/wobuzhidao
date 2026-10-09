@@ -3242,7 +3242,7 @@
       "product_source_modified": false
     },
     "fec_policy_comparison": {
-      "state": "BATCH_A_12_OF_12_VALID_AUDITED_B_300MS_TRIGGERED_AWAITING_EVIDENCE",
+      "state": "BATCH_A_12_VALID_B_300MS_ABORTED_AT_TCP0_INTEGRITY_STOP",
       "plan": "docs/FEC_POLICY_EXPERIMENT.md",
       "fixture_guide": "docs/REALPATH_TEST_FIXTURE_GUIDE.md",
       "agent_prompt": "docs/templates/FEC_POLICY_AGENT_PROMPT.md",
@@ -3254,8 +3254,8 @@
       "batch_a_duration_per_case_s": 120,
       "product_defaults_changed": false,
       "test_adapter_implemented": true,
-      "actions": "PILOT_PASS_37949699339;_BATCH_A_SCOPED_SUCCESS_37952897144;B_300MS_TRIGGER_PENDING_ACTIONS;B_FIRST_STATIC_FAIL_37958978378_NO_TRAFFIC;B_STATIC_HOTFIX_RETRIGGER_PENDING",
-      "cpu_gain": "SIX_SCOPED_SAME_JOB_OFF_LOWER_CPU_S_PER_DELIVERED_GIB_BUT_1PCT_LOSS_AND_TAIL_REGRESSION_NOT_PHYSICAL_PASS",
+      "actions": "PILOT_PASS_37949699339;_BATCH_A_SCOPED_SUCCESS_37952897144;B_300MS_TRIGGER_PENDING_ACTIONS;B_FIRST_STATIC_FAIL_37958978378_NO_TRAFFIC;B_STATIC_HOTFIX_RETRIGGER_PENDING;B_REALPATH_FAIL_37959180188_4_VALID_1_INTEGRITY_STOP_7_NOT_RUN",
+      "cpu_gain": "A_SIX_SAME_JOB_OFF_LOWER_BUT_LOSS_TAIL;B_UDP0_OFF_LOWER_31P22PCT_PSI_CONFOUNDED;B_UDP1_NOT_COMPARABLE;NO_PRODUCT_GAIN_CLAIM",
       "previous_latest_log": "docs/devlog/20261009-e1-uniform32-sparse15ms-formal-fullstack-5334-5334-pass.md",
       "mainline_next_task_preserved": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes.",
       "workflow_entry_contract": "EXACT_EXPERIMENT_BRANCH_CONFIG_PUSH_WITH_DEDICATED_STATIC_SERIAL_POLICY_CHECK_REQUIRED",
@@ -3298,15 +3298,15 @@
       "batch_a_cleanup": "12/12_CLEAN",
       "batch_a_next": "BATCH_B_AUTHORIZED_BY_USER_CONTINUE_2026-10-10; NOW_ACTIONS_PENDING; NO_RESULT_YET",
       "batch_a_evidence_log": "docs/devlog/20261010-001500-fec-policy-batch-a-12-real-observations-audit.md",
-      "batch_b_state": "STATIC_GUARD_HOTFIX_RETRIGGERED_REAL_TRAFFIC_NOT_YET_MEASURED",
+      "batch_b_state": "FAIL_REALPATH_STOP_5_MEASURED_4_VALID_1_INTEGRITY_STOP_7_NOT_RUN",
       "batch_b_planned_cases": 12,
       "batch_b_duration_per_case_s": 120,
       "batch_b_one_way_delay_ms": 300,
       "batch_b_seed_scheme": "same_pairs_as_A_1909_TO_1914_ORDER_ALTERNATED",
       "batch_b_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
-      "batch_b_helper_sha": "next_exact_GITHUB_SHA",
-      "batch_b_actions_run_id": null,
-      "batch_b_valid_cases": 0,
+      "batch_b_helper_sha": "cfd7b7d5d9cda6d783450010965026a1e7b0209c",
+      "batch_b_actions_run_id": 37959180188,
+      "batch_b_valid_cases": 4,
       "batch_b_initial_gate_failure": {
         "run_id": 37958978378,
         "job_id": 113916652836,
@@ -3315,11 +3315,76 @@
         "cause": "B rejected by leftover d['batch']!='A' validator although B phase and unit plan were added",
         "real_traffic_samples": 0,
         "artifact": "NONE"
-      }
+      },
+      "batch_b_job_id": 113917341264,
+      "batch_b_artifact_id": 11630703644,
+      "batch_b_artifact_sha256": "615d5b3842795217434ba2f6429c73765c5ac02cc3c2c909f82bd6e59f3ff3bd",
+      "batch_b_integrity_stop_cases": 1,
+      "batch_b_not_run_cases": 7,
+      "batch_b_case_statuses": [
+        {
+          "id": "s01",
+          "status": "VALID_OBSERVATION"
+        },
+        {
+          "id": "s02",
+          "status": "VALID_OBSERVATION"
+        },
+        {
+          "id": "s03",
+          "status": "VALID_OBSERVATION"
+        },
+        {
+          "id": "s04",
+          "status": "VALID_OBSERVATION"
+        },
+        {
+          "id": "s05",
+          "status": "INTEGRITY_STOP"
+        },
+        {
+          "id": "s06",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "s07",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "s08",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "s09",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "s10",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "s11",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "s12",
+          "status": "NOT_RUN"
+        }
+      ],
+      "batch_b_probe_on_1pct": "1195_OF_1195_WITHIN_1S_AND_3S",
+      "batch_b_probe_off_1pct": "1184_OF_1195_RETURNED;1170_OF_1195_WITHIN_1S;1184_OF_1195_WITHIN_3S",
+      "batch_b_udp_off_1pct_missing": "3257_OF_352560;FEC20_20_0_OF_352560",
+      "batch_b_tcp0_off": "INTEGRITY_STOP_S05_0PCT_INJECTION_7P955_MBPS_BOTH;4_LONG_FLOWS_PER_DIRECTION_MISSING_RECEIVER_FINAL_RECEIPTS;RAW_CORRUPTION_NOT_PROVEN",
+      "batch_b_cpu_comparison": "PAIR_UDP0_OFF_296P00_ON_430P34_CPU_S_PER_GIB_SAME_RUN_31P22PCT_OFF_LOWER_BUT_PSI_DRIFT;PAIR_UDP1_NOT_COMPARABLE_DELIVERY_DIFF_OVER_2PCT",
+      "batch_b_wire_bytes": "NOT_COLLECTED_FULL_WINDOW",
+      "batch_b_cpu_model": "NOT_COLLECTED_VERIFIABLY",
+      "batch_b_decision": "NO_DEFAULT_FEC_CHANGE;HOLD_B_RETRY_AND_C_5PCT_AND_20TO4_PENDING_TARGETED_ROOT_CAUSE;NOT_PHYSICAL_PASS",
+      "batch_b_evidence_json": "docs/evidence/fec-policy-batch-b-run37959180188.json",
+      "batch_b_evidence_log": "docs/devlog/20261010-014000-fec-policy-batch-b-300ms-stopped-tcp-incomplete.md"
     }
   },
-  "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes. 独立FEC A批run37952897144同job已完成12/12真实VALID_OBSERVATION；六对off CPU较低但1% UDP丢失和probe p99变差；outer wire NOT_COLLECTED，物理NOT_RUN。FEC比较300ms B批已获用户继续授权并由独立config-only push触发，首个B静态门禁FAIL run37958978378且零样本；修复batch B白名单遗漏后再次Actions触发，PENDING_ACTIONS_NOT_YET_QUALIFIED；不改默认/repair/缓存，不覆盖原E1进度。",
-  "latest_log": "docs/devlog/20261010-003100-fec-policy-batch-b-static-gate-bug-retry.md",
+  "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes. 独立FEC A批run37952897144同job已完成12/12真实VALID_OBSERVATION；六对off CPU较低但1% UDP丢失和probe p99变差；outer wire NOT_COLLECTED，物理NOT_RUN。FEC独立B批300ms run37959180188 FAIL: 前4段UDP VALID，1% FEC-off丢3257/352560、11/1195探针无返回，FEC20:20零业务缺包；第5段0% TCP-off 4长流每方向缺最终接收核验、仅7.955Mbps，原分析FAIL、runner INTEGRITY_STOP；剩7段NOT_RUN。完整payload损坏未被证明但完整性验收失败，需先定位TCP背压/收尾，禁止放宽判定或盲目B重跑；C 5%、20:4、默认策略调整暂停。详见docs/devlog/20261010-014000-fec-policy-batch-b-300ms-stopped-tcp-incomplete.md；外层wire字节和物理资格未采集/未运行。主线E1与Game4/E7历史不变。",
+  "latest_log": "docs/devlog/20261010-014000-fec-policy-batch-b-300ms-stopped-tcp-incomplete.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

@@ -1,0 +1,289 @@
+{
+  "schema": "wbd-fec-policy-batch-b-evidence/v1",
+  "run_id": 37959180188,
+  "job_id": 113917341264,
+  "conclusion": "FAIL",
+  "artifact_id": 11630703644,
+  "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37959180188/artifacts/11630703644",
+  "artifact_zip_sha256": "615d5b3842795217434ba2f6429c73765c5ac02cc3c2c909f82bd6e59f3ff3bd",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "helper_sha": "cfd7b7d5d9cda6d783450010965026a1e7b0209c",
+  "runner": "ubuntu-24.04",
+  "cpu_model": "NOT_COLLECTED_VERIFIABLY",
+  "nproc_visible": 4,
+  "cgroup_cpu_quota": "UNKNOWN",
+  "profile": "OFF",
+  "frozen_product_binary_sha256": {
+    "client": "303495af95d02f8644af6c3d49a45f5c9c093a3fd9e23b307e31dc1ef0079c67",
+    "server": "4b165f41862f98cf502549f2db75eb5cf9801ea088bf6b922d8bc9d3c46af69a"
+  },
+  "plan": {
+    "cases_planned": 12,
+    "case_ids_run": [
+      "s01",
+      "s02",
+      "s03",
+      "s04",
+      "s05"
+    ],
+    "not_run": [
+      "s06",
+      "s07",
+      "s08",
+      "s09",
+      "s10",
+      "s11",
+      "s12"
+    ],
+    "mode": "normal",
+    "lanes": 1,
+    "delay_ms_one_way": 300,
+    "loss_percent_both_directions": [
+      0,
+      1
+    ],
+    "duration_s_per_case": 120,
+    "drain_s": 3,
+    "rate_mbps_per_direction_total": 10,
+    "outer_mtu": 1400
+  },
+  "samples": [
+    {
+      "id": "s01",
+      "workload": "udp",
+      "loss_percent": 0,
+      "fec": "off",
+      "classification": "VALID_OBSERVATION",
+      "cpu_s_per_delivered_gib": 296.00262,
+      "cpu_total_s": 82.67,
+      "delivered_bytes": 299883280,
+      "udp_missing_both": 0,
+      "probe": {
+        "c2s": {
+          "sent": 600,
+          "returned": 600,
+          "within_1s": 600,
+          "within_3s": 600,
+          "p99_returned_ms": 601.39
+        },
+        "s2c": {
+          "sent": 595,
+          "returned": 595,
+          "within_1s": 595,
+          "within_3s": 595,
+          "p99_returned_ms": 601.41
+        }
+      },
+      "psi_cpu_some_avg10_max": 35.65
+    },
+    {
+      "id": "s02",
+      "workload": "udp",
+      "loss_percent": 0,
+      "fec": "20:20",
+      "classification": "VALID_OBSERVATION",
+      "cpu_s_per_delivered_gib": 430.3442,
+      "cpu_total_s": 120.19,
+      "delivered_bytes": 299883280,
+      "udp_missing_both": 0,
+      "probe": {
+        "c2s": {
+          "sent": 600,
+          "returned": 600,
+          "within_1s": 600,
+          "within_3s": 600,
+          "p99_returned_ms": 602.98
+        },
+        "s2c": {
+          "sent": 595,
+          "returned": 595,
+          "within_1s": 595,
+          "within_3s": 595,
+          "p99_returned_ms": 603.23
+        }
+      },
+      "psi_cpu_some_avg10_max": 13.18
+    },
+    {
+      "id": "s03",
+      "workload": "udp",
+      "loss_percent": 1,
+      "fec": "20:20",
+      "classification": "VALID_OBSERVATION",
+      "cpu_s_per_delivered_gib": 518.99818,
+      "cpu_total_s": 144.95,
+      "delivered_bytes": 299883280,
+      "udp_missing_both": 0,
+      "probe": {
+        "c2s": {
+          "sent": 600,
+          "returned": 600,
+          "within_1s": 600,
+          "within_3s": 600,
+          "p99_returned_ms": 624.21
+        },
+        "s2c": {
+          "sent": 595,
+          "returned": 595,
+          "within_1s": 595,
+          "within_3s": 595,
+          "p99_returned_ms": 604.47
+        }
+      },
+      "psi_cpu_some_avg10_max": 16.23
+    },
+    {
+      "id": "s04",
+      "workload": "udp",
+      "loss_percent": 1,
+      "fec": "off",
+      "classification": "VALID_OBSERVATION",
+      "cpu_s_per_delivered_gib": 366.34816,
+      "cpu_total_s": 100.12,
+      "delivered_bytes": 293444992,
+      "udp_missing_both": 3257,
+      "udp": {
+        "c2s": {
+          "sent": 176280,
+          "missing": 1699,
+          "delivered": 174581,
+          "late_over_1s": 732,
+          "late_over_3s": 0,
+          "goodput_mbps": 9.7719533,
+          "by_size_missing": {
+            "96": 270,
+            "256": 182,
+            "512": 146,
+            "1000": 136,
+            "1372": 314,
+            "4068": 651
+          }
+        },
+        "s2c": {
+          "sent": 176280,
+          "missing": 1558,
+          "delivered": 174722,
+          "late_over_1s": 909,
+          "late_over_3s": 0,
+          "goodput_mbps": 9.7910461,
+          "by_size_missing": {
+            "96": 255,
+            "256": 157,
+            "512": 129,
+            "1000": 124,
+            "1372": 301,
+            "4068": 592
+          }
+        }
+      },
+      "probe": {
+        "c2s": {
+          "sent": 600,
+          "returned": 595,
+          "within_1s": 586,
+          "within_3s": 595,
+          "p99_returned_ms": 2662.44
+        },
+        "s2c": {
+          "sent": 595,
+          "returned": 589,
+          "within_1s": 584,
+          "within_3s": 589,
+          "p99_returned_ms": 602.45
+        }
+      },
+      "psi_cpu_some_avg10_max": 10.32
+    },
+    {
+      "id": "s05",
+      "workload": "tcp",
+      "loss_percent": 0,
+      "fec": "off",
+      "classification": "INTEGRITY_STOP",
+      "analyzer_classification": "FAIL",
+      "analyzer_issues": [
+        "INSUFFICIENT_INJECTION_c2s",
+        "TCP_HASH_MISMATCH_c2s",
+        "INSUFFICIENT_INJECTION_s2c",
+        "TCP_HASH_MISMATCH_s2c"
+      ],
+      "sent_mbps": {
+        "c2s": 7.95513173,
+        "s2c": 7.95509973
+      },
+      "goodput_mbps": {
+        "c2s": 7.67167147,
+        "s2c": 7.67167147
+      },
+      "tcp": {
+        "c2s": {
+          "flows_sent": 124,
+          "flows_rx_completed_receipt": 120,
+          "long_flows_without_receiver_final_receipt": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "write_backpressure_over_10ms": 140,
+          "max_write_ms": 5405.656
+        },
+        "s2c": {
+          "flows_sent": 124,
+          "flows_rx_completed_receipt": 120,
+          "long_flows_without_receiver_final_receipt": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "write_backpressure_over_10ms": 136,
+          "max_write_ms": 5404.358
+        }
+      },
+      "web": {
+        "http_https_returned": 20,
+        "http_https_requested": 20,
+        "https_cert_verified": 10
+      },
+      "probe": {
+        "c2s": {
+          "sent": 600,
+          "returned": 600,
+          "within_1s": 600,
+          "within_3s": 600,
+          "p99_returned_ms": 601.68
+        },
+        "s2c": {
+          "sent": 595,
+          "returned": 595,
+          "within_1s": 595,
+          "within_3s": 595,
+          "p99_returned_ms": 601.54
+        }
+      },
+      "cpu_total_s": 34.02,
+      "psi_cpu_some_avg10_max": 2.57
+    }
+  ],
+  "verified_per_run_checks": {
+    "static_policy": "PASS",
+    "sample_exits": "5_OF_5_ZERO",
+    "adapter_analyzer_valid": "4_OF_5",
+    "all_5_owned_cleanup": "CLEAN",
+    "no_packet_socket_drops": "5_OF_5",
+    "no_link_interface_drops": "5_OF_5",
+    "sample_binaries_hash_identical": "5_OF_5",
+    "actual_fec_flags_match_case": "5_OF_5",
+    "wire_bytes_full_window": "NOT_COLLECTED",
+    "nic_pps": "NOT_COLLECTED"
+  },
+  "within_same_job_pair0_cpu_s_per_delivered_gib_off_reduction_percent": 31.217,
+  "within_same_job_pair1_comparable": false,
+  "noncomparability_reason": "at 1% FEC off delivered 293444992 bytes vs on 299883280 bytes: 2.147% less, outside configured +/-2% comparable delivery tolerance",
+  "s05_integrity_scope": "NO_RECEIVER_FINAL_RECEIPT_LONG_FLOWS; no proof of payload bit corruption; missing/incomplete verification still FAIL and INTEGRITY_STOP",
+  "root_cause": "OPEN (true RTT TCP backpressure, business reader finalization timing, product path; no raw binary/pcap retained)",
+  "decision": "B_ABORTED_STOP_FURTHER_PAIRED_CLAIMS_NO_DEFAULT_CHANGE_NO_C_OR_20_4_RUN",
+  "not_product_qualification": true,
+  "physical": "NOT_RUN"
+}
