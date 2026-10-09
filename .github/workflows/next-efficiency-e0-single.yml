@@ -17,7 +17,7 @@ jobs:
       ART: "${{ github.workspace }}/artifacts/large-mtu-single"
       PRODUCT_SOURCE: fc92076b3cab548c8e180cc19e8d69e8bde742d2
       WBD_STRICT_MODE: normal
-      WBD_STRICT_SCENARIO: 0
+      WBD_STRICT_SCENARIO: lossless
       WBD_STRICT_RATE_MBPS: "10"
       WBD_STRICT_LANES: "1"
       WBD_STRICT_FEC_PARITY: "20"
@@ -57,6 +57,10 @@ jobs:
           assert d["size_profile"] in ("ordinary","jumbo","boundary")
           assert d["diagnostic_mode"] in ("off","on")
           assert d["product_source_sha"]==os.environ["PRODUCT_SOURCE"]
+          if d["loss"]==0:
+              assert os.environ["WBD_STRICT_SCENARIO"]=="lossless", "loss 0 must use harness scenario lossless"
+          elif d["loss"]==5205:
+              assert os.environ["WBD_STRICT_SCENARIO"]=="5205", "loss 5205 must use harness scenario 5205"
           helper=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
           assert helper==os.environ["GITHUB_SHA"]
           assert os.environ["GITHUB_REF_NAME"]=="next/performance-efficiency-20261008"

@@ -1,0 +1,34 @@
+{
+  "schema": "wbd-e2-fast-fec-newsource-lossless-harness-scenario-preflight-failure/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "product_source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
+  "failed_helper_head": "40c82ec95caaf6a77febb3af06f17a2a763fc98f",
+  "failed_run": 37914383139,
+  "failed_artifact_id": 11609690428,
+  "original_conclusion": "FAILURE",
+  "failure_stage": "Run real 300s client/server TCP and UDP sample: pre-business validation",
+  "first_error": "invalid scenario 0",
+  "other_errors": [
+    "analyzer cannot analyze absent manifest",
+    "efficiency_cost_ledger.py missing manifest"
+  ],
+  "root": "Helper env WBD_STRICT_SCENARIO=0 incompatible with formal harness case accepting lossless/5205",
+  "causal_product_fault": "NOT_ASSESSED",
+  "product_cpu_sample": "NOT_RUN",
+  "corrective_guard": "0 -> WBD_STRICT_SCENARIO=lossless, 5205->5205; explicit assert before sample",
+  "retry_config": {
+    "loss": 0,
+    "seed": 1846,
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "diagnostic_mode": "off",
+    "duration_s": 300,
+    "workload": "mixed",
+    "product_source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2"
+  },
+  "no_more_concurrent_samples": true,
+  "legacy_real_5205_failure": 37907829434,
+  "cache_8ms": "UNCHANGED",
+  "cpu_gain": "UNPROVEN"
+}

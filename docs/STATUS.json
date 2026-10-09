@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E2_FAST_FEC_PADDING_CLEAR_FOUNDATION_SUCCESS_NORMAL1_0LOSS_PROFILEOFF_ACTION_PENDING",
+    "phase": "E2_FAST_FEC_NEW_SOURCE_NORMAL1_0LOSS_SCENARIO_GUARD_FIXED_RETRY_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2420,7 +2420,30 @@
           "one_job_one_sample": true
         },
         "baseline": "E1_old_source_622e_0loss_PASS_run37905658013_NOT_INHERITED",
-        "helper_sha": "PENDING_COMMIT_SHA"
+        "helper_sha": "PENDING_COMMIT_SHA",
+        "initial_run": {
+          "run_id": 37914383139,
+          "status": "FAIL",
+          "cause": "WBD_STRICT_SCENARIO=0 not accepted by strict_weaknet_sample.sh; valid zero-loss token is lossless",
+          "test_elapsed_s": 0,
+          "not_a_product_failure": true,
+          "artifact_id": 11609690428,
+          "raw_business_analyzer": "NOT_RUN_OR_UNUSABLE"
+        },
+        "current": {
+          "state": "RETRY_PENDING_ACTION",
+          "source_sha": "fc92076b3cab548c8e180cc19e8d69e8bde742d2",
+          "loss": 0,
+          "seed": 1846,
+          "mode": "normal",
+          "lanes": 1,
+          "rate_mbps": 10,
+          "diagnostic_mode": "off",
+          "duration_s": 300,
+          "one_job_per_action": true,
+          "strict_scenario": "lossless"
+        },
+        "previous_seed_1845": "HELPER_PRECHECK_FAIL_NO_PRODUCT_SAMPLE"
       },
       "normal1_5205": "NOT_RUN_NEW_SOURCE",
       "game2_0loss": "NOT_RUN_NEW_SOURCE",
@@ -2431,8 +2454,8 @@
       "unit_guard": "PASS_ALL_SUPPORTED_PROFILES_PARTIAL_SIZES_AND_EXACT_GENERIC_RS_WIRE"
     }
   },
-  "next_task": "Check single exact-source E2 Normal1 0loss Actions triggered by this helper-config commit: mode normal lanes1 10Mbps 300s mixed source fc92076b3cab548c8e180cc19e8d69e8bde742d2 seed1845 diagnostic OFF. Require original analyzer PASS_SCOPED_ACTIONS, delivered UDP/TCP/web/HTTPS, zero socket skmem.d, legitimate offered traffic, no skip/queue masking; record cpu host/PSI/real business p99 but do NOT infer gain vs prior E1 622e on different CPU strata. If it fails preserve original FAIL and stop, no 5205 or Game. If success, then separate Normal1 5205 seed1846 and Game2 0loss/5205, lowRTT sparse one-case-per-run, with actual SOURCE pinned. E1 global 8ms extension blocked sparse parity latency tradeoff. E7 80s outage deferred.",
-  "latest_log": "docs/devlog/20261009-e2-fast-fec-padding-clear-normal1-lossless-profileoff-300s-dispatch.md",
+  "next_task": "Read retry Actions result from scenario-token-corrected helper commit. Require single product fc92076b3cab548c8e180cc19e8d69e8bde742d2 mixed normal1 10Mbps zero-loss seed1846, OFF 300s, actual manifest and original analyzer, zero socket drops and fully delivered app UDP/TCP/HTTP/HTTPS. Last Actions37914383139 sample=FAIL analyzer=FAIL ledger=FAIL because WBD_STRICT_SCENARIO invalid 0, not a 300s product failure; preserve and never claim PASS. No simultaneous Normal 5205/Game2 Action until retry verified. If new retry fails, preserve causes; do not weaken analyzer. 8ms default unchanged; global 16/24ms could trade sparse p99 for erasure grouping but no CPU proof. E7 ~80s stall deferred.",
+  "latest_log": "docs/devlog/20261009-e2-normal1-lossless-preflight-invalid-scenario-0-fix.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2445,7 +2468,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E2 product SOURCE fc92076b3cab548c8e180cc19e8d69e8bde742d2 skips unused fast FEC padding clear only, FEC wire fully identical in poisoned-buffer unit matrix; Foundation37913987141 and Lifecycle37913987174 FULL SUCCESS. Dispatching ONE new-source 300s Normal1 true lossless mixed profileOFF strict business sample seed1845, no Game/5205 until result; CPU gain UNPROVEN. E1 default FEC 8ms retained; original E1 5205 FAIL37907829434 remains.",
+    "E2 first new source fc920 Normal1 zero-loss Actions37914383139 failed BEFORE 300s work: helper WBD_STRICT_SCENARIO=0 invalid; original analyzer+ledger cannot find generated manifest; NOT a product/reliability result. Preserve failure. Retry one scenario `lossless`, seed1846, pinned product fc920, exact helper guard newly verifies 0->lossless, 5205->5205. Core/race Foundation37913987141 and Lifecycle37913987174 SUCCESS; E1 8ms retained and 5205 old FAIL37907829434 remains; CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
