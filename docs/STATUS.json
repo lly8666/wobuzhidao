@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_SPARSE_PARITY_OWNER_TIMER_FOUNDATION_LIFECYCLE_GREEN_NORMAL1_LOSSLESS_SINGLE_REAL_ACTION_PENDING",
+    "phase": "E1_NEAREST_DEADLINE_NORMAL1_ZEROLOSS_SCOPED_PASS_NORMAL1_5205_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2076,7 +2076,7 @@
       }
     },
     "e1_deadline_scheduler": {
-      "state": "IMPLEMENTED_FOUNDATION_AND_LIFECYCLE_SUCCESS_NORMAL_PROTECTORS_RUNNING",
+      "state": "IMPLEMENTED_CORE_RACE_FOUNDATION_LIFECYCLE_SUCCESS_NORMAL1_ZEROLOSS_SCOPED_PASS_5205_PENDING",
       "working_branch": "next/performance-efficiency-20261008",
       "parent_head": "166115aba85927eae0b866fdbdfd99492252aaa3",
       "parent_product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
@@ -2099,9 +2099,9 @@
       "old_100ms_tick": "UNCHANGED",
       "timer_or_goroutine_per_packet": false,
       "no_wire_mtu_queue_buffer_changes": true,
-      "functionality_qualification": "PENDING_CORE_RACE_FOUNDATION",
-      "normal_lossless": "PENDING_ONE_SOURCE_ONE_300S_PROFILE_OFF",
-      "normal_5205": "NOT_RUN_NEW_SOURCE",
+      "functionality_qualification": "FOUNDATION_37905174156_SUCCESS_LIFECYCLE_37905174130_SUCCESS",
+      "normal_lossless": "PASS_SCOPED_ACTIONS_RUN37905658013",
+      "normal_5205": "PENDING_ONE_SOURCE_ONE_300S_PROFILE_OFF",
       "game_lossless": "NOT_RUN_NEW_SOURCE",
       "game_5205": "NOT_RUN_NEW_SOURCE",
       "low_rtt_sparse": "NOT_RUN_NEW_SOURCE",
@@ -2132,7 +2132,7 @@
       },
       "protectors": {
         "normal1_lossless": {
-          "state": "PENDING_ACTION",
+          "state": "PASS_SCOPED_ACTIONS",
           "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
           "workload": "mixed",
           "loss": 0,
@@ -2142,11 +2142,54 @@
           "rate_mbps": 10,
           "duration_s": 300,
           "diagnostic_mode": "off",
-          "workflow": ".github/workflows/next-efficiency-e0-single.yml"
+          "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+          "run_id": 37905658013,
+          "artifact_id": 11604552639,
+          "helper_sha": "a084fbac21c5297c64c39c6865cd7addcb1551a6",
+          "original_analyzer": "PASS_SCOPED_ACTIONS",
+          "original_issues": [],
+          "raw_udp_missing_both_directions": 0,
+          "raw_udp_corrupt_both": 0,
+          "app_udp_sent_per_direction": 345672,
+          "app_udp_received_per_direction": 345672,
+          "tcp_sent_and_received_each_direction": 304,
+          "tcp_hash_mismatch": 0,
+          "web_returned": "20/20",
+          "https_certificate_verified": "10/10",
+          "probe_missing_both": 0,
+          "probe_p99_c2s_ms": 613.905431,
+          "probe_p99_s2c_ms": 613.313112,
+          "socket_drop_client": 0,
+          "socket_drop_server": 0,
+          "strict_resource_errors": [],
+          "product_cpu_seconds_total": 242.37,
+          "host": "AMD EPYC 9V74 4vCPU",
+          "cpu_psi_max_percent": 32.18,
+          "quota": "UNKNOWN",
+          "cpu_gain": "UNPROVEN",
+          "qualification": "ONE_NORMAL1_TRUE_ZEROLOSS_MIXED_PROFILEOFF_300S_ONLY",
+          "evidence": "docs/evidence/e1-normal1-zero-loss-profileoff-pass-run37905658013.json"
         },
         "normal1_staged5205": {
-          "state": "NOT_RUN",
-          "seed": 1844
+          "state": "PENDING_ONE_REAL_ACTION",
+          "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+          "seed": 1844,
+          "config": {
+            "workload": "mixed",
+            "loss": 5205,
+            "seed": 1844,
+            "product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+            "mode": "normal",
+            "lanes": 1,
+            "rate_mbps": 10,
+            "size_profile": "ordinary",
+            "diagnostic_mode": "off"
+          },
+          "test_duration_s": 300,
+          "expected_netem": "5% for 75s, 20% for 150s, 5% for 75s",
+          "one_action_one_job": true,
+          "profile": "OFF",
+          "no_unqualified_cpu_claim": true
         },
         "game2_lossless": {
           "state": "NOT_RUN",
@@ -2163,8 +2206,8 @@
       "next_source_cpu_comparison": "NO_COMPARABLE_HOST_STRATUM_YET"
     }
   },
-  "next_task": "Read first E1 exact SOURCE622e5a Normal1 lossless profileOFF 300s Action business+strict_resource+efficiency ledger original verdict; must check app UDP both directions missing/corrupt, TCP hashes, HTTP/HTTPS certificate, probe return p99, no kernel/socket AF_PACKET skmem.d; preserve FAIL and do not auto rerun to pick VM. If Scoped PASS, schedule exactly one Normal1 5/20/5% seed1844 independent action, then Game2 lossless seed1841 and Game2 5205 seed1842, all with same exact E1 PRODUCT_SOURCE, profileOFF 1 case per action. E1 sparse due-to-send timer behavior must have separate low RTT protector after real fullstack gates; E4 expiry/repair/FEC hotspots only after E1. No cross-EPYC CPU arithmetic, no queue/buffer changes, old oneparse 4068B S2C missing under20% retained, E7 80s downstream OPEN_DEFERRED, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e1-normal1-lossless-profileoff-one-real-fullstack-protection-intent.md",
+  "next_task": "Inspect first exact-source 622e5a E1 Normal1 mixed staged5/20/5% profileOFF one 300s Action (seed1844) original summary/efficiency-ledger: require real qdisc stage loss about 5/20/5 each direction, business UDP missing/corruption both directions, exact TCP hashes and HTTP/HTTPS certificate, probe sent/returned/p99, no socket skmem.d or strict resource errors. Preserve any Action FAIL and single missing 4068B UDP under 20% as scoped failure; do not automatically rerun on a different VM. On scoped PASS proceed one Game2 true-zero loss seed1841 and then Game2 5205 seed1842 each a separate Action and same E1 source 622e5a. LowRTT sparse parity 8ms deadline protector still required. Do NOT confuse profileOFF CPU242.37s on EPYC9V74 with gains from 9V45/7763; E4 expire/repair/FEC only after E1 gates, E7~80s OPEN_DEFERRED, no queue/buffer changes.",
+  "latest_log": "docs/devlog/20261009-e1-normal1-zero-loss-qualified-next-normal5205-one-action.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2177,7 +2220,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 client/server owner-level one timer real 8ms partial parity scheduler candidate source 622e5a: Foundation37905174156 SUCCESS, lifecycle37905174130 SUCCESS. Now one independent 300s fullstack profileOFF Normal1 true0% packet-loss mix UDP/TCP/HTTP/HTTPS (seed1843 10Mbps) queued via exact SOURCE+config; old aa931d protections NOT inherited. Subsequent Normal5205/Game2 lossless/Game2 5205/low RTT still NOT_RUN NEW SOURCE. No BPF/VM calibration, buffers/queues preserved.",
+    "E1 SOURCE622e5a one owner reused timer real client/server with 100ms other maintenance tick. Foundation37905174156 and lifecycle37905174130 SUCCESS. Normal1 0loss mixed 300s profileOFF run37905658013 full business PASS_SCOPED_ACTIONS, UDP 345672/dir zero missing, TCP304/dir exact, web20/20, socket d0/d0 and no strict errors. Normal1 staged5205 seed1844 single Action pending; then Game2 lossless and staged5205 plus lowRTT sparse, same exact product source. CPU gain UNPROVEN; old 9V45 E4 socket-drop FAIL and E7 80s outage deferred.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

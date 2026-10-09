@@ -1,7 +1,7 @@
 {
   "workload": "mixed",
-  "loss": 0,
-  "seed": 1843,
+  "loss": 5205,
+  "seed": 1844,
   "product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
   "mode": "normal",
   "lanes": 1,

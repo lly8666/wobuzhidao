@@ -1,0 +1,79 @@
+{
+  "schema": "wbd-e1-normal1-zero-loss-scoped-qualification/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "action": 37905658013,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37905658013",
+  "artifact_id": 11604552639,
+  "artifact_zip_sha256": "a4a7a2fe017793c8aebcb9c952fded73d91900abdea82a5e29f81254e200918d",
+  "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+  "helper_sha": "a084fbac21c5297c64c39c6865cd7addcb1551a6",
+  "foundation": 37905658029,
+  "core_lifecycle_runs": [
+    37905174156,
+    37905174130
+  ],
+  "sample": {
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps_each_direction": 10,
+    "workload": "mixed",
+    "loss_percent": 0,
+    "seed": 1843,
+    "seconds": 300,
+    "profile": "OFF",
+    "one_job": true
+  },
+  "original": {
+    "workflow": "SUCCESS",
+    "summary": "PASS_SCOPED_ACTIONS",
+    "summary_issues": [],
+    "efficiency_ledger": "PASS_SCOPED_ACTIONS",
+    "ledger_issues": []
+  },
+  "business": {
+    "per_direction_udp_sent": 345672,
+    "per_direction_udp_delivered": 345672,
+    "per_direction_udp_missing": 0,
+    "per_direction_udp_corrupt": 0,
+    "per_direction_TCP_flows_sent_and_received": 304,
+    "tcp_hash_mismatch": 0,
+    "web_requests_and_returns": 20,
+    "https_certificates_verified": 10,
+    "probe_c2s_sent_returned": 1500,
+    "probe_s2c_sent_returned": 1495,
+    "probe_missing": 0,
+    "probe_p99_ms": {
+      "c2s": 613.905431,
+      "s2c": 613.313112
+    },
+    "longest_active_recv_gap_ms": 10
+  },
+  "kernel_resource": {
+    "AF_PACKET_sk_mem_d_client": 0,
+    "AF_PACKET_sk_mem_d_server": 0,
+    "netdev_drops_extra": 0,
+    "strict_resource_errors": []
+  },
+  "cost": {
+    "product_total_cpu_seconds": 242.37,
+    "host_cpu_model": "AMD EPYC 9V74",
+    "logical_cpus": 4,
+    "host_cpu_psi_some_avg10_max_percent": 32.18,
+    "known_cgroup_quota": null,
+    "cpu_gain": "UNPROVEN"
+  },
+  "scope": "THIS_ONE_E1_NORMAL1_ZEROLOSS_MIXED_300S_ONLY",
+  "no_general_regression_claim": true,
+  "historical_E4_AF_PACKET_failures_retained": [
+    37857040784,
+    37871243581
+  ],
+  "E7": "OPEN_DEFERRED",
+  "next_single_action": {
+    "scenario": "NORMAL1_MIXED_STAGED5205",
+    "seed": 1844,
+    "rate_mbps": 10,
+    "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+    "diagnostic_mode": "off"
+  }
+}
