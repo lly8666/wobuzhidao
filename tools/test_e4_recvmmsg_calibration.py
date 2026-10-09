@@ -3,7 +3,7 @@
 import sys, unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from e4_recvmmsg_calibration_compare import compare,valid_case
+from e4_recvmmsg_calibration_compare import compare,valid_case,host_psi_avg10
 from afpacket_recvmmsg_tracepoint import program
 
 def item(mode, cpu=1.0, p99=1000, model="AMD EPYC 9V45", sha="f"*64):
@@ -12,7 +12,8 @@ def item(mode, cpu=1.0, p99=1000, model="AMD EPYC 9V45", sha="f"*64):
        "tracer_overhead_qualified":False,
        "fixture_sha256":sha,"cgroup_throttled_delta":0,
        "host_steal_ticks_delta":0,
-       "host_before":{"model":model,"vcpus":4,"cgroup_cpu_max":"max 100000"},
+       "host_before":{"model":model,"vcpus":4,"cgroup_cpu_max":"max 100000","cpu_pressure_first_line":"some avg10=2.00 avg60=2.00 total=1000"},
+       "host_after":{"model":model,"vcpus":4,"cgroup_cpu_max":"max 100000","cpu_pressure_first_line":"some avg10=3.00 avg60=2.00 total=2000"},
        "fixture":{"target_calls":48000,"decoy_calls":48000,
                   "cpu_total_s":cpu,"recv_p99_ns":p99,"recv_p999_ns":p99+1000},
        "kernel_counters":"NOT_MEASURED_OBSERVER_OFF"}
@@ -46,6 +47,18 @@ class CalibrationContract(unittest.TestCase):
         x=item("off");x["cgroup_throttled_delta"]=None
         self.assertFalse(valid_case(x,"off"))
         x=item("off");x["host_steal_ticks_delta"]=1
+        self.assertFalse(valid_case(x,"off"))
+    def test_missing_or_high_cpu_psi_never_qualifies(self):
+        x=item("on")
+        x["host_before"]["cpu_pressure_first_line"]=None
+        self.assertFalse(valid_case(x,"on"))
+        x=item("on")
+        x["host_after"]["cpu_pressure_first_line"]="some avg10=18.3 avg60=9.0 total=250"
+        self.assertFalse(valid_case(x,"on"))
+        self.assertEqual(host_psi_avg10(x["host_after"]),18.3)
+    def test_midrun_host_stratum_change_rejected(self):
+        x=item("off")
+        x["host_after"]["cgroup_cpu_max"]="200000 100000"
         self.assertFalse(valid_case(x,"off"))
     def test_three_each_on_same_host_stratum_needed(self):
         x=compare([item("off")]*3,[item("on")]*2)

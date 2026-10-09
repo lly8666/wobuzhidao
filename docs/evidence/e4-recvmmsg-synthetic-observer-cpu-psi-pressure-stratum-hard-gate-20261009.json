@@ -1,0 +1,28 @@
+{
+  "schema": "wbd-e4-calibration-host-pressure-fail-closed-gate/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "3da8fa448b5ebbb21af07e70fc711bb130dae59c",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "previous_foundation": 37878119120,
+  "previous_foundation_status": "SUCCESS",
+  "reason": "CPU PSI can materially change 12s recvmmsg latency and CPU utilization, so a visually matching CPU name/quota alone must not automatically qualify an observer-on/off comparison.",
+  "guard": "CPU PSI some avg10 <=10% at both endpoints for every OFF and ON case; missing or malformed PSI is ineligible; model/vCPUs/cgroup quota unchanged within a case",
+  "new_synthetic_unit_tests": 2,
+  "existing_conditions": [
+    "exact same CPU model/vCPUs/quota/compiled ELF SHA among cases",
+    "min 3 independent cases per mode",
+    "zero cgroup throttling and host steal",
+    "48k ON kernel entered/exited with zero unpaired",
+    "tracer RSS <=512MiB",
+    "max CPU on/off ratio <=1.05",
+    "max syscall recv p99 ratio <=1.10"
+  ],
+  "status": "PENDING_FOUNDATION",
+  "dispatched_off_cases": 0,
+  "dispatched_on_cases": 0,
+  "product_gain": "UNPROVEN",
+  "original_failures": [
+    37857040784,
+    37871243581
+  ]
+}

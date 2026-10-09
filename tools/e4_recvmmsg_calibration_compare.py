@@ -14,6 +14,21 @@ MIN_INDEPENDENT_CASES_PER_MODE = 3
 MAX_CPU_RATIO = 1.05
 MAX_RECV_P99_RATIO = 1.10
 MAX_TRACER_RSS_KIB = 512 * 1024
+MAX_HOST_CPU_PSI_AVG10_PERCENT = 10.0
+
+def host_psi_avg10(host):
+    line=(host or {}).get("cpu_pressure_first_line")
+    if not isinstance(line,str) or not line.startswith("some "):
+        return None
+    for part in line.split():
+        if part.startswith("avg10="):
+            try:
+                value=float(part.split("=",1)[1])
+            except ValueError:
+                return None
+            return value if 0<=value<=100 else None
+    return None
+
 
 def stratum(row):
     host=row.get("host_before") or {}
@@ -44,8 +59,18 @@ def valid_case(row,mode):
             return False
     if row.get("cgroup_throttled_delta") != 0 or row.get("host_steal_ticks_delta") != 0:
         return False
-    if not stratum(row):
+    base=row.get("host_before")
+    after=row.get("host_after")
+    if not stratum(row) or not isinstance(after,dict):
         return False
+    if (base.get("model")!=after.get("model") or
+            base.get("vcpus")!=after.get("vcpus") or
+            base.get("cgroup_cpu_max")!=after.get("cgroup_cpu_max")):
+        return False
+    for host in (base,after):
+        pressure=host_psi_avg10(host)
+        if pressure is None or pressure>MAX_HOST_CPU_PSI_AVG10_PERCENT:
+            return False
     if mode=="on":
         counters=row.get("kernel_counters")
         tracer=row.get("tracer")
@@ -66,6 +91,7 @@ def compare(off,on):
             "min_cases_per_mode":MIN_INDEPENDENT_CASES_PER_MODE,
             "cpu_ratio_budget":MAX_CPU_RATIO,
             "recv_p99_ratio_budget":MAX_RECV_P99_RATIO,
+            "max_host_cpu_psi_avg10_percent":MAX_HOST_CPU_PSI_AVG10_PERCENT,
             "product_qualification":"NOT_RUN",
             "product_cpu_gain":"UNPROVEN"}
     good_off=[x for x in off if valid_case(x,"off")]

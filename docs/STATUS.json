@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RECVMMSG_SYNTHETIC_OVERHEAD_MANUAL_SINGLE_CASE_WORKFLOW_FOUNDATION_PENDING",
+    "phase": "E4_RECVMMSG_SYNTHETIC_CALIBRATION_CPU_PSI_HARD_GUARD_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1427,7 +1427,7 @@
         },
         "state": "KERNEL_TARGET_FD_INTEGRITY_SCOPED_PASS_OVERHEAD_NOT_VALIDATED",
         "overhead_calibration": {
-          "status": "CODE_PENDING_FOUNDATION_NOT_DISPATCHED",
+          "status": "ONE_CASE_MANUAL_ONLY_CALIBRATION_CODE_GREEN_PSI_GUARD_PENDING",
           "workflow": ".github/workflows/next-e4-recvmmsg-calibration.yml",
           "trigger": "workflow_dispatch ONLY",
           "job_count": 1,
@@ -1452,13 +1452,31 @@
           "code_not_real_measurement": true,
           "product_cpu_gain": "UNPROVEN",
           "product_trace_admission": "NOT_VALIDATED",
-          "evidence": "docs/evidence/e4-recvmmsg-synthetic-overhead-single-mode-workflow-intent-20261009.json"
+          "evidence": "docs/evidence/e4-recvmmsg-synthetic-observer-cpu-psi-pressure-stratum-hard-gate-20261009.json",
+          "first_foundation": {
+            "run_id": 37878119120,
+            "status": "SUCCESS"
+          },
+          "cpu_psi_hard_gate": {
+            "status": "PENDING_FOUNDATION",
+            "max_some_avg10_percent": 10,
+            "reads": "both before and after",
+            "missing": "REJECT",
+            "model_vcpus_quota_changed": "REJECT",
+            "new_tests": 2
+          },
+          "independent_calibration_runs": {
+            "off": 0,
+            "on": 0
+          },
+          "provisional_claim": "NOT_CALIBRATED",
+          "actual_business_sample_count": 0
         }
       }
     }
   },
-  "next_task": "Check Foundation for new C 12s 4000/s local AF_UNIX fixture compiler -Wall/-Wextra/-Werror, exact mode 30s bpftrace opt-in, comparator fail-closed unit tests, and manual workflow policy plus full Linux/Windows/race/TPROXY/TUN/fallback. New .github/workflows/next-e4-recvmmsg-calibration.yml is ONLY workflow_dispatch, not auto-triggered, has one case/job/mode. Once code green, dispatch OFF and ON as distinct Actions only through an explicitly permitted action, >=3 each under exact matching VM CPU/vCPU/cpu.max/fixture ELF SHA; collect actual tracer userspace CPU and fixture CPU/p99/RSS, cgroup throttle/steal/PSI, exact 48000 BPF enters/exits. Without matched cases and predefined CPU+5% p99+10% budget, NOT_CALIBRATED, and any synthetic green remains NOT_PRODUCT_VALIDATED. Never create another 300s Game4 workload without causal budget; no buffer/queue increases; prior 9V45 OFF d33/86 and ON d42 formal resource FAIL preserved, E7 OPEN_DEFERRED, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e4-recvmmsg-independent-observer-overhead-workflow-contract.md",
+  "next_task": "Confirm next Foundation for new CPU PSI fail-closed cross-host comparator 13 synthetic tests, 12s C fixture compilation, manual-only single-case workflow and unchanged Windows/Linux/race/TUN/TPROXY/fallback. Do not claim synthetic overhead calibrated until >=3 independent OFF and ON workflow_dispatch Actions each, identical CPU model/vCPU/cgroup cpu.max/ELF SHA, pressure avg10 <=10% at both endpoints, no throttling/steal, exact BPF 48000 target enters/exits, and conservative worst-case CPU ratio <=1.05 p99<=1.10. Current GitHub connector has no manual workflow_dispatch action, so calibration cases remain NOT_RUN; DO NOT change to automatic push trigger. Product ba8ed1 frozen, Game4 real ON/OFF 9V45 socket drop FAIL retained, no new 300s workload, E7 OPEN_DEFERRED, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e4-observer-calibration-psi-resource-cohort-guard.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1471,7 +1489,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 lossless 9V45 original OFF AF_PACKET d33/86 and same-model ON d42 formal FAIL remain. Last Foundation37876452065 SUCCESS. Code-only no-prod 12s AF_UNIX PID+FD trace OFF/ON standalone single-dispatch one-job synthetic overhead workflow pending Foundation, NOT dispatched. Needs >=3 matched CPU/quota/fixture-sha independent runs per mode for even synthetic provisional budget, no 300s Game4 run; CPU UNPROVEN.",
+    "E4 calibrated observer code on branch only: Foundation37878119120 SUCCESS; manually dispatched OFF/ON separate 12s local AF_UNIX cases NOT_RUN. Additional hard-guard CPU PSI avg10 <=10% before and after, exact CPU/vCPU/cpu.max unchanged, otherwise ineligible pending Foundation. Original 9V45 Game4 OFF socket-drop client33/server86 and ON client42 formal FAIL ROOT OPEN; CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

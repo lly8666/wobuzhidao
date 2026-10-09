@@ -1,0 +1,9 @@
+# E4 observer CPU PSI resource-cohort conservative hard guard (2026-10-09)
+
+On only branch next/performance-efficiency-20261008, parent 3da8fa448b5ebbb21af07e70fc711bb130dae59c, product source frozen ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072. The independent 12s C+Python+workflow_dispatch calibration implementation passed [Foundation37878119120](https://github.com/lly8666/wobuzhidao/actions/runs/37878119120) all jobs and 11 calibration unit tests, Linux/Windows/race/TPROXY/TUN/fallback. No synthetic calibration Actions were dispatched: only a manually triggered one-case-per-Action workflow exists, not an auto-running performance job.
+
+The reviewed comparator previously recorded CPU PSI but did not reject an unknown or saturated CPU PSI host. This edit adds a strict quality threshold to valid_case: both before and after CPU pressure 'some avg10' must parse numerically <=10%, or the entire case is ineligible. Also require host CPU model, vCPU and cgroup cpu.max remain identical across same case. Tests explicitly verify missing/CPU PSI=18.3% and changed cgroup quota are rejected. This prevents a superficially matching host from producing a false calibrated inference.
+
+One short local AF_UNIX fixture still cannot validate Go receiver goroutine behavior or million-event 300s trace perturbation. Even valid >=3 OFF />=3 ON same-model/VM/quota/binary strata can at most give a conservative synthetic-scope observer interference gate and not a product PASS. No new Game4 samples, buffer, queue, FEC, MTU, product Go, mainline, or physical change. Historical EPYC9V45 Game4 OFF client socket d33/server86 and ON client d42 original analyzer/workflow FAIL remain; E4 root OPEN; E7 80s stall OPEN_DEFERRED; CPU gain UNPROVEN.
+
+Next check the new Foundation and only then decide whether independently triggered synthetic comparisons can be run. Current connected GitHub tools cannot issue Actions workflow_dispatch, so no hidden auto-trigger replacement is allowed.
