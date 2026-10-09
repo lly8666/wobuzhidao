@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_NEAREST_DEADLINE_NORMAL1_ZEROLOSS_SCOPED_PASS_NORMAL1_5205_ACTION_PENDING",
+    "phase": "E1_DEADLINE_TIMER_NORMAL1_ZEROLOSS_PASS_NORMAL1_5205_FAIL_STRESS_UDP_GAME_HELD",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2076,7 +2076,7 @@
       }
     },
     "e1_deadline_scheduler": {
-      "state": "IMPLEMENTED_CORE_RACE_FOUNDATION_LIFECYCLE_SUCCESS_NORMAL1_ZEROLOSS_SCOPED_PASS_5205_PENDING",
+      "state": "FOUNDATION_GREEN_NORMAL1_ZEROLOSS_PASS_NORMAL1_5205_APPLICATION_UDP_PROBE_FAIL",
       "working_branch": "next/performance-efficiency-20261008",
       "parent_head": "166115aba85927eae0b866fdbdfd99492252aaa3",
       "parent_product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
@@ -2101,7 +2101,7 @@
       "no_wire_mtu_queue_buffer_changes": true,
       "functionality_qualification": "FOUNDATION_37905174156_SUCCESS_LIFECYCLE_37905174130_SUCCESS",
       "normal_lossless": "PASS_SCOPED_ACTIONS_RUN37905658013",
-      "normal_5205": "PENDING_ONE_SOURCE_ONE_300S_PROFILE_OFF",
+      "normal_5205": "FAIL_ORIGINAL_ANALYZER_APPLICATION_UDP_AND_PROBE_37907829434",
       "game_lossless": "NOT_RUN_NEW_SOURCE",
       "game_5205": "NOT_RUN_NEW_SOURCE",
       "low_rtt_sparse": "NOT_RUN_NEW_SOURCE",
@@ -2171,7 +2171,7 @@
           "evidence": "docs/evidence/e1-normal1-zero-loss-profileoff-pass-run37905658013.json"
         },
         "normal1_staged5205": {
-          "state": "PENDING_ONE_REAL_ACTION",
+          "state": "FAIL_37907829434_PROTECTION_NOT_QUALIFIED",
           "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
           "seed": 1844,
           "config": {
@@ -2189,25 +2189,107 @@
           "expected_netem": "5% for 75s, 20% for 150s, 5% for 75s",
           "one_action_one_job": true,
           "profile": "OFF",
-          "no_unqualified_cpu_claim": true
+          "no_unqualified_cpu_claim": true,
+          "run_id": 37907829434,
+          "artifact_id": 11604943513,
+          "helper_sha": "494a2caa005e228ab7b610e2cc47c697492fb158",
+          "foundation_run": 37907829715,
+          "workflow_conclusion": "failure",
+          "original_summary": "FAIL",
+          "original_issues": [
+            "5205_STAGE_UDP_LOSS_OVER_0P1PCT_c2s_stress",
+            "5205_STAGE_PROBE_LOSS_OVER_1PCT_c2s_stress",
+            "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_c2s",
+            "5205_STAGE_UDP_LOSS_OVER_0P1PCT_s2c_stress",
+            "5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress",
+            "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_s2c",
+            "5205_PROBE_TIMEOUT_OVER_1PCT_s2c"
+          ],
+          "original_ledger": "FAIL",
+          "netem_stages_actual_percent": {
+            "pre": {
+              "c2s": 4.999521915516884,
+              "s2c": 5.028485976851029
+            },
+            "stress": {
+              "c2s": 20.016326838266718,
+              "s2c": 20.048150668381624
+            },
+            "post": {
+              "c2s": 5.020477088935439,
+              "s2c": 5.047370949449526
+            }
+          },
+          "app_udp": {
+            "c2s": {
+              "sent_total": 345672,
+              "missing_total": 425,
+              "stress_sent": 172835,
+              "stress_missing": 424,
+              "stress_1372_missing": 206,
+              "stress_4068_missing": 187
+            },
+            "s2c": {
+              "sent_total": 345672,
+              "missing_total": 463,
+              "stress_sent": 172835,
+              "stress_missing": 460,
+              "stress_1372_missing": 157,
+              "stress_4068_missing": 263
+            }
+          },
+          "probe": {
+            "c2s": {
+              "sent": 1500,
+              "returned": 1485,
+              "missing": 15,
+              "stress_sent": 750,
+              "stress_missing": 14,
+              "p99_returned_ms": 617.528868
+            },
+            "s2c": {
+              "sent": 1495,
+              "returned": 1476,
+              "missing": 19,
+              "stress_sent": 750,
+              "stress_missing": 18,
+              "p99_returned_ms": 614.30455
+            }
+          },
+          "tcp_hash_failures": 0,
+          "tcp_flows_per_direction": 304,
+          "http_https": "20/20 HTTPS10/10",
+          "packet_socket_sk_mem_d": {
+            "client": 0,
+            "server": 0
+          },
+          "netdev_extra_drops": 0,
+          "strict_resource_errors": [],
+          "host": "Intel Xeon Platinum 8573C 4vCPU",
+          "cpu_psi_max_percent": 31.77,
+          "product_cpu_s": 250.1,
+          "comparison_with_previous_zero_loss": "INVALID_DIFFERENT_VM_CPU_MODEL_AND_LOSS_SCENARIO",
+          "causal_status": "NOT_ESTABLISHED_E1_TIMER_VS_EXISTING_FEC_OR_CONGESTION",
+          "artifact_sha256": "112d4494ce71930dc33c8187747e7b2e81639c3b993ac2bf398557bd65910b2d",
+          "evidence": "docs/evidence/e1-normal1-staged5205-profileoff-fail-run37907829434.json"
         },
         "game2_lossless": {
-          "state": "NOT_RUN",
+          "state": "HOLD_AFTER_E1_NORMAL1_5205_FAIL",
           "seed": 1841
         },
         "game2_staged5205": {
-          "state": "NOT_RUN",
+          "state": "HOLD_AFTER_E1_NORMAL1_5205_FAIL",
           "seed": 1842
         },
         "low_rtt_sparse": {
-          "state": "NOT_RUN"
+          "state": "NOT_RUN_REQUIRES_8MS_DEADLINE_PROTECTION"
         }
       },
       "next_source_cpu_comparison": "NO_COMPARABLE_HOST_STRATUM_YET"
     }
   },
-  "next_task": "Inspect first exact-source 622e5a E1 Normal1 mixed staged5/20/5% profileOFF one 300s Action (seed1844) original summary/efficiency-ledger: require real qdisc stage loss about 5/20/5 each direction, business UDP missing/corruption both directions, exact TCP hashes and HTTP/HTTPS certificate, probe sent/returned/p99, no socket skmem.d or strict resource errors. Preserve any Action FAIL and single missing 4068B UDP under 20% as scoped failure; do not automatically rerun on a different VM. On scoped PASS proceed one Game2 true-zero loss seed1841 and then Game2 5205 seed1842 each a separate Action and same E1 source 622e5a. LowRTT sparse parity 8ms deadline protector still required. Do NOT confuse profileOFF CPU242.37s on EPYC9V74 with gains from 9V45/7763; E4 expire/repair/FEC only after E1 gates, E7~80s OPEN_DEFERRED, no queue/buffer changes.",
-  "latest_log": "docs/devlog/20261009-e1-normal1-zero-loss-qualified-next-normal5205-one-action.md",
+  "next_task": "E1 NORMAL1 5205 failure preserves original FAIL and blocks automatic Game2 protectors. First inspect existing FEC repair/reassembly and 1372/4068 size-dependent delivery under true 20% netem with read-only source evidence plus current artifact; distinguish preexisting workload/protection limits from E1 8ms parity wake regression before product changes. No new 300s run without one targeted causal hypothesis and a bounded deterministic regression test; no host shopping. If proven fix, core/race then re-run each NORMAL1 lossless/5205 and Game2 lossless/5205 one sample per Action on pinned new SOURCE. LowRTT sparse 8ms protector still NOT_RUN, E4 maintenance/FEC CPU hotspots deferred until E1 reliability scope explained. Old E4 socket failures, Game2 prior 4068B UDP missing and E7~80s outage retained. Never compare EPYC9V74 242.37s zero-loss to Xeon8573C 250.1s 5205 for gains; CPU UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e1-normal1-5205-real-protector-fail-weaknet-udp-size.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2220,7 +2302,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 SOURCE622e5a one owner reused timer real client/server with 100ms other maintenance tick. Foundation37905174156 and lifecycle37905174130 SUCCESS. Normal1 0loss mixed 300s profileOFF run37905658013 full business PASS_SCOPED_ACTIONS, UDP 345672/dir zero missing, TCP304/dir exact, web20/20, socket d0/d0 and no strict errors. Normal1 staged5205 seed1844 single Action pending; then Game2 lossless and staged5205 plus lowRTT sparse, same exact product source. CPU gain UNPROVEN; old 9V45 E4 socket-drop FAIL and E7 80s outage deferred.",
+    "E1 SOURCE622e5a first Normal1 lossless mixed 300s run37905658013 PASS_SCOPED_ACTIONS, but next same-source Normal1 staged5/20/5 mixed profileOFF run37907829434 original analyzer+workflow FAIL: 20% stress app UDP missing c2s424/172835 and s2c460/172835, size1372/4068 disproportionately affected, probe stress missing 14/750 c2s 18/750 s2c; TCP hash, web, AF_PACKET skmem.d0, netdev and strict resource clean. Foundation37907829715 SUCCESS. Do not infer E1 scheduler caused weakness vs pre-existing FEC; no rerun or Game without targeted source hypothesis. CPU gain UNPROVEN, E7 OPEN_DEFERRED.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

@@ -1,0 +1,123 @@
+{
+  "schema": "wbd-e1-normal1-staged5205-true-business-failure/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+  "run_id": 37907829434,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37907829434",
+  "helper_head": "494a2caa005e228ab7b610e2cc47c697492fb158",
+  "foundation_run_id": 37907829715,
+  "artifact_id": 11604943513,
+  "artifact_zip_sha256": "112d4494ce71930dc33c8187747e7b2e81639c3b993ac2bf398557bd65910b2d",
+  "identity": "one run/one source/normal lane1 mixed seed1844 loss5205 rate10Mbps ordinary duration300 profileOFF",
+  "original_workflow": "FAILURE",
+  "original_summary": "FAIL",
+  "original_issues": [
+    "5205_STAGE_UDP_LOSS_OVER_0P1PCT_c2s_stress",
+    "5205_STAGE_PROBE_LOSS_OVER_1PCT_c2s_stress",
+    "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_c2s",
+    "5205_STAGE_UDP_LOSS_OVER_0P1PCT_s2c_stress",
+    "5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress",
+    "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_s2c",
+    "5205_PROBE_TIMEOUT_OVER_1PCT_s2c"
+  ],
+  "original_cost_ledger": "FAIL",
+  "measured_real_netem_loss_percent": {
+    "pre": {
+      "c2s": 4.999521915516884,
+      "s2c": 5.028485976851029
+    },
+    "stress": {
+      "c2s": 20.016326838266718,
+      "s2c": 20.048150668381624
+    },
+    "post": {
+      "c2s": 5.020477088935439,
+      "s2c": 5.047370949449526
+    }
+  },
+  "udp_loss": {
+    "c2s": {
+      "sent_total": 345672,
+      "missing_total": 425,
+      "by_stage": {
+        "pre": 0,
+        "stress": 424,
+        "post": 1
+      },
+      "stress_sent": 172835,
+      "stress_size_missing": {
+        "96": 6,
+        "256": 6,
+        "512": 1,
+        "1000": 18,
+        "1372": 206,
+        "4068": 187
+      }
+    },
+    "s2c": {
+      "sent_total": 345672,
+      "missing_total": 463,
+      "by_stage": {
+        "pre": 2,
+        "stress": 460,
+        "post": 1
+      },
+      "stress_sent": 172835,
+      "stress_size_missing": {
+        "96": 10,
+        "256": 4,
+        "512": 0,
+        "1000": 26,
+        "1372": 157,
+        "4068": 263
+      }
+    }
+  },
+  "probe": {
+    "c2s": {
+      "sent": 1500,
+      "returned": 1485,
+      "missing": 15,
+      "stress_missing": 14,
+      "stress_sent": 750,
+      "returned_only_p99_ms": 617.528868
+    },
+    "s2c": {
+      "sent": 1495,
+      "returned": 1476,
+      "missing": 19,
+      "stress_missing": 18,
+      "stress_sent": 750,
+      "returned_only_p99_ms": 614.30455
+    }
+  },
+  "other_business": {
+    "tcp_each_direction_flows": 304,
+    "tcp_hash_or_length_mismatch": 0,
+    "http_https_returned": 20,
+    "https_certificate_verified": 10
+  },
+  "strict_resource": {
+    "AF_PACKET_sk_mem_d_client": 0,
+    "server": 0,
+    "netdev_extra_drop": 0,
+    "errors": []
+  },
+  "runner": {
+    "cpu_model": "Intel Xeon Platinum 8573C",
+    "vcpus": 4,
+    "cgroup_cpu_quota_cores": null,
+    "cpu_psi_some_avg10_max": 31.77,
+    "product_total_cpu_seconds": 250.1
+  },
+  "qualification": "FAIL_E1_NORMAL1_5205_PROTECTOR",
+  "causal_claim": "UNKNOWN_NOT_PROOF_OF_E1_DEADLINE_TIMER_REGRESSION",
+  "protection_gate": "STOP_NEXT_GAME2_UNTIL_CAUSAL_TEST",
+  "unrelated_original_failures": [
+    37857040784,
+    37871243581,
+    37898379013
+  ],
+  "e7": "OPEN_DEFERRED",
+  "cpu_gain": "UNPROVEN"
+}
