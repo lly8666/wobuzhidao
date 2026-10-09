@@ -1,0 +1,123 @@
+{
+  "schema": "wbd-e1-uniform32-normal1-5205-pass-game2-zero-next/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "e8a4ec860a6107fd7fffdcdce0fb852d58ee30f4",
+  "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "previous": {
+    "zero_loss_normal1": {
+      "run_id": 37922038550,
+      "conclusion": "SUCCESS",
+      "original_analyzer": "PASS_SCOPED_ACTIONS",
+      "profile": "OFF",
+      "seed": 1843
+    }
+  },
+  "actual_5205": {
+    "run_id": 37924613499,
+    "job_id": 113800450856,
+    "artifact_id": 11613134297,
+    "workflow": "next-efficiency-e0-single",
+    "conclusion": "SUCCESS",
+    "original_classification": "PASS_SCOPED_ACTIONS",
+    "original_issues": [],
+    "profile": "OFF",
+    "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "helper_sha": "e8a4ec860a6107fd7fffdcdce0fb852d58ee30f4",
+    "duration_s": 300,
+    "scenario": "5pct/75s -> 20pct/150s -> 5pct/75s",
+    "seed": 1844,
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "netem_actual_pct": {
+      "pre": {
+        "c2s": 5.0008587622,
+        "s2c": 5.028690208
+      },
+      "stress": {
+        "c2s": 20.0170876426,
+        "s2c": 20.0482213977
+      },
+      "post": {
+        "c2s": 5.0220955788,
+        "s2c": 5.0453616247
+      }
+    },
+    "app_udp_each_direction_sent": 345672,
+    "app_udp_missing": {
+      "c2s": 7,
+      "s2c": 2
+    },
+    "app_udp_stress_missing": {
+      "c2s": 7,
+      "s2c": 2
+    },
+    "stress_large_udp_1372_missing": {
+      "c2s": 0,
+      "s2c": 0
+    },
+    "stress_large_udp_4068_missing": {
+      "c2s": 0,
+      "s2c": 1
+    },
+    "probes_missing": {
+      "c2s": 4,
+      "s2c": 3
+    },
+    "probe_sent": {
+      "c2s": 1500,
+      "s2c": 1495
+    },
+    "tcp_flows_each_direction": 304,
+    "tcp_hash_mismatch": 0,
+    "http_https_returned": 20,
+    "https_verified": 10,
+    "local_packet_socket_drops": {
+      "client": 0,
+      "server": 0
+    },
+    "netdev_extra_drops": 0,
+    "resource_errors": [],
+    "cpu_total_s": 381.03,
+    "host_cpu": "AMD EPYC 7763 64-Core Processor",
+    "host_vcpus": 4,
+    "cgroup_quota": null,
+    "cpu_psi_some_avg10_max_pct": 36.15,
+    "cpu_gain": "UNPROVEN",
+    "no_causal_AB_claim": true,
+    "summary_sha256": "9f2ba742a566562c91c34b221487fe8a4589b6b5112391eab7d09162689a6011",
+    "zip_sha256": "eb60a8e5a1526f3f31c6b011dd428859e665d5f9521c0c35c33c046f623ad1fe"
+  },
+  "next_protection": {
+    "config": {
+      "workload": "mixed",
+      "loss": 0,
+      "seed": 1841,
+      "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+      "mode": "game",
+      "lanes": 2,
+      "rate_mbps": 3,
+      "size_profile": "ordinary",
+      "diagnostic_mode": "off"
+    },
+    "action_state": "PENDING",
+    "original_analyzer_must_pass": true,
+    "game2_staged5205_seed1842": "BLOCKED_UNTIL_GAME2_ZEROLOSS",
+    "low_rtt_sparse": "NOT_RUN"
+  },
+  "historical_failures_retained": [
+    37907829434,
+    37915859759,
+    37857040784,
+    37871243581
+  ],
+  "product_properties": {
+    "existing_fec_size_classes_at_most": 3,
+    "add_packet_size_classifier": false,
+    "uniform_partial_parity_flush_ms": 32,
+    "systematic_immediate": true,
+    "full_20_source_block_flush_immediate": true
+  },
+  "e7": "OPEN_DEFERRED",
+  "cpu_gain": "UNPROVEN"
+}

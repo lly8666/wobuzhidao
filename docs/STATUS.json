@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_UNIFORM32_NORMAL1_ZEROLOSS_PASS_NEXT_NORMAL1_TRUE5205_300S_ONE_CASE_PENDING",
+    "phase": "E1_UNIFORM32_NORMAL1_5205_PASS_NEXT_GAME2_ZEROLOSS_PROFILEOFF_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2652,9 +2652,9 @@
         "foundation": "SUCCESS_37921471604",
         "lifecycle": "SUCCESS_37921471596",
         "normal1_lossless": "PASS_SCOPED_ACTIONS_37922038550",
-        "normal1_5205": "PENDING_ONE_ACTION_SEED1844",
-        "game2_lossless": "HOLD_UNTIL_NORMAL5205_RESULT",
-        "game2_5205": "HOLD_UNTIL_NORMAL5205_RESULT",
+        "normal1_5205": "PASS_SCOPED_ACTIONS_37924613499",
+        "game2_lossless": "PENDING_ONE_ACTION_SOURCE_A2DB_SEED1841",
+        "game2_5205": "HOLD_UNTIL_GAME2_ZEROLOSS_RESULT",
         "low_rtt_sparse": "NOT_RUN",
         "cpu_gain": "UNPROVEN"
       },
@@ -2731,7 +2731,7 @@
         "product_cpu_gain": "UNPROVEN"
       },
       "normal1_5205_next": {
-        "state": "PENDING_ACTION",
+        "state": "PASS_SCOPED_ACTIONS",
         "config": {
           "workload": "mixed",
           "loss": 5205,
@@ -2752,12 +2752,97 @@
           37915859759
         ],
         "cpu_comparison": "NOT_COMPARABLE_CROSS_HOST_AND_LOSS",
-        "evidence": "docs/evidence/e1-uniform32-normal1-staged5205-profileoff-intent-20261009.json"
+        "evidence": "docs/evidence/e1-uniform32-normal1-5205-pass-and-game2-lossless-intent-20261009.json",
+        "action_id": 37924613499,
+        "job_id": 113800450856,
+        "artifact_id": 11613134297,
+        "actual_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+        "helper_sha": "e8a4ec860a6107fd7fffdcdce0fb852d58ee30f4",
+        "original_analyzer": "PASS_SCOPED_ACTIONS",
+        "issues": [],
+        "netem_stages_actual_percent": {
+          "pre": {
+            "c2s": 5.0008587622,
+            "s2c": 5.028690208
+          },
+          "stress": {
+            "c2s": 20.0170876426,
+            "s2c": 20.0482213977
+          },
+          "post": {
+            "c2s": 5.0220955788,
+            "s2c": 5.0453616247
+          }
+        },
+        "udp_sent_per_direction": 345672,
+        "udp_missing": {
+          "c2s": 7,
+          "s2c": 2
+        },
+        "udp_stress_missing": {
+          "c2s": 7,
+          "s2c": 2
+        },
+        "udp_stress_by_size_missing": {
+          "c2s": {
+            "96": 2,
+            "256": 5,
+            "1372": 0,
+            "4068": 0
+          },
+          "s2c": {
+            "512": 1,
+            "1372": 0,
+            "4068": 1
+          }
+        },
+        "probe_missing": {
+          "c2s": 4,
+          "s2c": 3
+        },
+        "probe_sent": {
+          "c2s": 1500,
+          "s2c": 1495
+        },
+        "tcp_flows_each_direction": 304,
+        "tcp_hash_mismatch": 0,
+        "http_https_returned": "20/20",
+        "tls_verified": "10/10",
+        "socket_drop_client": 0,
+        "socket_drop_server": 0,
+        "network_device_extra_drops": 0,
+        "resource_errors": [],
+        "host": "AMD EPYC 7763 4vCPU",
+        "product_cpu_seconds_total": 381.03,
+        "cpu_psi_max_percent": 36.15,
+        "cgroup_cpu_quota": "UNKNOWN",
+        "cpu_gain": "UNPROVEN",
+        "artifact_summary_sha256": "9f2ba742a566562c91c34b221487fe8a4589b6b5112391eab7d09162689a6011",
+        "artifact_zip_sha256": "eb60a8e5a1526f3f31c6b011dd428859e665d5f9521c0c35c33c046f623ad1fe"
+      },
+      "next_game2_zero": {
+        "sample": {
+          "workload": "mixed",
+          "loss": 0,
+          "seed": 1841,
+          "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+          "mode": "game",
+          "lanes": 2,
+          "rate_mbps": 3,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "off"
+        },
+        "profile": "OFF",
+        "one_case_one_job": true,
+        "duration_seconds": 300,
+        "state": "PENDING_ACTION",
+        "acceptance": "Original analyzer PASS, UDP no missing both, probe no missing both, all TCP+HTTPS, AF_PACKET skmem.d zero",
+        "evidence": "docs/evidence/e1-uniform32-normal1-5205-pass-and-game2-lossless-intent-20261009.json"
       }
     }
   },
-  "next_task": "Check exactly ONE triggered next-efficiency-e0-single Action for 32ms source a2db258b Normal1 mixed staged5205 5%75s/20%150s/5%75s seed1844 profileOFF, 300s, 10Mbps, lanes1. Inspect raw analyzer/ledger/stage UDP c2s+s2c including large 1372/4068 UDP, probe, TCP/HTTPS, AF_PACKET socket drop, resource PSI/CPU; FAIL must remain FAIL, not explain missing data away. If PASS, next run Game2 true lossless and staged5205 separately plus lowRTT sparse before calling 32ms qualified. If FAIL, stop broad rollout and investigate scoped FEC/weaknet tradeoff without adding classifier or chasing host speed. Retain 8ms losses and E4 9V45 kernel drop FAIL. CPU improvement requires comparable hosts; E7 ~80s downlink issue deferred.",
-  "latest_log": "docs/devlog/20261009-203500-e1-uniform32-normal1-5205-profileoff-sample-dispatch.md",
+  "next_task": "Read newly triggered Game2 lossless 300s mixed profileOFF Action for uniform32 frozen SOURCE a2db258b...; seed1841, mode game lanes2 rate3Mbps, one job. Require original analyzer PASS_SCOPED_ACTIONS, ZERO raw UDP and probe missing both, TCP+HTTPS integrity, correct game lanes, no local AF_PACKET or netdev resource drops, strict resource audit. FAIL -> stop game2 5205 and investigate; PASS -> separate source-pinned Game2 staged true5205 seed1842 (one Action), then lowRTT sparse protection before 32ms rollout. Preserve Game4 9V45 socket-drop FAIL legacy and 8ms Normal1 true5205 old FAIL; CPU gain UNPROVEN cross-host; no E7 80s S2C until optimization passes. No extra packet classifier or buffer/queue size change.",
+  "latest_log": "docs/devlog/20261009-204500-e1-uniform32-normal5205-pass-game2-lossless-next.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2770,7 +2855,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 uniform32 frozen product source a2db258b 32ms all preexisting FEC sizes no added classifier, zero-loss Normal1 mixed seed1843 profileOFF run37922038550 + Foundation37922038536 SUCCESS. Now explicit one Normal1 staged 5/20/5 mixed seed1844 profileOFF 300s pending Action, evaluate original analyzer UDP/probe/socket drops; no CPU gain claim. Historical 8ms weak5205 FAIL retained. E7 deferred; no main/physical/queues.",
+    "E1 uniform32 source a2db: Normal1 mixed zero loss profileOFF 300s run37922038550 PASS, Normal1 true staged5205 profileOFF run37924613499 PASS original analyzer with application UDP missing c2s7/s2c2 only at 20% stage, 1372 missing0 both, 4068 s2c1, probes 4/3, TCP+HTTPS good, socket drops0. CPU381.03s AMD EPYC7763 4vCPU with PSI36.15% and unknown quota: NO cross-host CPU gain claim. Next exactly one Game2 lossless seed1841 profileOFF pending. Game2 5205 and lowRTT sparse remain HOLD, E7 deferred.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
