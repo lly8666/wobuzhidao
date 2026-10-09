@@ -1,0 +1,19 @@
+{
+  "schema": "wbd-e4-dual-fd-static-test-assertion-failure/v1",
+  "run_id": 37875503896,
+  "conclusion": "FAIL",
+  "job": "repository-contract",
+  "synthetic_suite": "tools/test_afpacket_recvmmsg_tracepoint.py",
+  "failed_test": "test_no_user_payload_or_cross_thread_gap_claim",
+  "raw_assertion": "AssertionError: 3 != 2",
+  "cause": "BPF @previous_exit[tid] is used in if condition, gap subtraction and assignment, but synthetic string assertion mistakenly expected only two occurrences",
+  "corrective_change": "assert each of 3 required semantic forms and absence of process-global previous_exit[pid]",
+  "real_kernel_two_fd_test_was_run": false,
+  "product_fail_new": false,
+  "other_original_failures_preserved": [
+    37857040784,
+    37871243581
+  ],
+  "next_run": "PENDING",
+  "no_perf_runs": true
+}

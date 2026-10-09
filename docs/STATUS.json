@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RECVMMSG_PID_FD_FILTER_NONPERF_ADVERSARIAL_FOUNDATION_PENDING",
+    "phase": "E4_RECVMMSG_DUAL_FD_TEST_STATIC_ASSERTION_CORRECTED_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1381,7 +1381,7 @@
         "latest_foundation": 37873954093,
         "latest_foundation_result": "SUCCESS",
         "latest_fd_filter": {
-          "state": "PENDING_FOUNDATION_REAL_TWO_FD_SMOKE",
+          "state": "STATIC_UNIT_ASSERTION_FAIL_37875503896_CORRECTED_PENDING_FOUNDATION",
           "helper": "tools/afpacket_recvmmsg_tracepoint.py",
           "target_fd": "enter tracepoint args.fd==30",
           "exit_pairing": "target-enter armed matched OS thread; all other fd excluded; per-thread previous_exit not process-wide",
@@ -1401,14 +1401,20 @@
           "performance_overhead": "NOT_MEASURED",
           "lost_event_rate": "NOT_MEASURED",
           "hard_gate": "per-script exact enters/exits/gap, bpftrace exit0, fixture exit0",
-          "intent": "docs/evidence/e4-recvmmsg-two-fd-same-tgid-adversarial-tracepoint-intent-20261009.json"
+          "intent": "docs/evidence/e4-recvmmsg-two-fd-same-tgid-adversarial-tracepoint-intent-20261009.json",
+          "failed_run": 37875503896,
+          "failed_step": "repository-contract Test both historical forensic and live numerical probe parsers",
+          "reason": "test asserted 2 string uses of @previous_exit[tid], actual correct BPF script checks, reads, writes 3; synthetic test failed 3 != 2",
+          "previous_version_not_qualified": true,
+          "new_product_sample_runs": 0,
+          "receipt": "docs/evidence/e4-recvmmsg-fd-smoke-static-test-assertion-fail-20261009.json"
         },
         "state": "ATTACH_EVENT_FD_INODE_PRECHECK_GREEN_PID_FD_EVENT_ISOLATION_PENDING"
       }
     }
   },
-  "next_task": "Verify one new Foundation run for target-FD adversarial tracepoint: within one PID C AF_UNIX fixture two recvmmsg calls on fd30 and two on fd31; bpftrace filter pid+args.fd==30 at enter, matched OS-thread exits MUST yield @enters=2, @exits=2, exactly one >20ms target inter-call gap; no unpaired events. Inspect uploaded e4-recvmmsg-two-fd.json actual status TWO_FD_TARGET_ONLY_FUNCTIONAL, and confirm original single-socket fixture and full Linux/Windows/race/TPROXY/TUN/fallback. If failed, preserve raw workflow FAIL and fix only a proven helper defect. If pass, still no fullstack Game4 until independent bounded overhead/false-negative/lost-event control is designed and qualified (do not in-run A/B inside one business sample); filter matches OS thread and numeric FD, not Go goroutine identity, and FD reuse remains a caveat. Do not expand socket buffers/queues, CPU gain UNPROVEN, E7 OPEN_DEFERRED; prior OFF skmem d33/86 and ON d42 formal FAIL stay OPEN.",
-  "latest_log": "docs/devlog/20261009-e4-syscall-bpftrace-target-fd-only-two-socketpair-smoke.md",
+  "next_task": "Verify new Foundation after correcting only the brittle static previous_exit[tid] count assertion. The prior run37875503896 repository-contract FAILURE remains in evidence. Must separately verify live two-FD same-PID C fixture real syscall enters2/exits2/one target gap and non-target FD31 excluded, plus original fixture and full Linux/Windows/race/TPROXY/TUN/fallback. If actual bpftrace verifier or interval fails, retain that FAIL and repair real problem, never fake qualification. No Game4 300s; overhead/lost-events still NOT_MEASURED; 9V45 socket-drop root OPEN, CPU gain UNPROVEN and E7 OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261009-e4-recv-fd-smoke-test-assertion-corrected.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1421,7 +1427,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 native non-business precheck: Foundation37874273922 complete SUCCESS; 2s recvmmsg attach, 5s 2 real syscalls/60ms gap, exact AF_PACKET raw recvFD /proc inode already green. New 5s adversarial 2 FD same-TGID smoke with args.fd 30 filter and thread-paired enters/exits awaiting Foundation; source ba8ed1 and original OFF9V45 d33/86, ON9V45 d42 formal FAIL retained. No 300s performance sample.",
+    "E4 double-FD bpftrace adversarial nonbusiness preflight run37875503896 repository-contract FAIL due faulty static assertion count @previous_exit[tid] 2 vs 3 (check/read/write); changing only synthetic assert to check all three semantics. No real dual-FD execution on failed run, prior OFF9V45 d33/86 and ON9V45 d42 original socket-drop FAIL untouched; CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

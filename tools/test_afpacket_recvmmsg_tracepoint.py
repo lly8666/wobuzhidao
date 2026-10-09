@@ -55,6 +55,9 @@ class TraceDesign(unittest.TestCase):
         self.assertNotIn("args.msg",s)
         self.assertNotIn("args.vlen",s)
         self.assertNotIn("printf(\"%d",s)
-        self.assertEqual(s.count("@previous_exit[tid]"),2)
+        self.assertIn("if (@previous_exit[tid] != 0)",s)
+        self.assertIn("nsecs - @previous_exit[tid]",s)
+        self.assertIn("@previous_exit[tid] = nsecs",s)
+        self.assertNotIn("@previous_exit[pid]",s)
 
 if __name__=="__main__": unittest.main()
