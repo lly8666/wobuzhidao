@@ -65,7 +65,7 @@ def decode_packet(data):
 
 
 class Stats:
-    def __init__(self, start_ns, duration_s, drain_s):
+    def __init__(self, start_ns, duration_s, drain_s, sparse_latency=False):
         self.start_ns = start_ns
         self.duration_s = duration_s
         self.drain_s = drain_s
@@ -93,6 +93,8 @@ class Stats:
         self.skipped_bytes_by_second = [0] * self.seconds
         self.send_lag_ns = []
         self.oneway_ns = []
+        self.sparse_latency = sparse_latency
+        self.oneway_by_size = {}
         self.probe_sent = 0
         self.probe_recv = 0
         self.probe_rtt_ns = []
@@ -166,7 +168,10 @@ class Stats:
             wall_bucket = int((now_ns - self.start_ns) // self.wall_bucket_ns)
             if 0 <= wall_bucket < self.wall_buckets:
                 self.recv_wall_bytes_by_bucket[wall_bucket] += packet["size"]
-            self.oneway_ns.append(max(0, now_ns - packet["send_ns"]))
+            latency=max(0,now_ns-packet["send_ns"])
+            self.oneway_ns.append(latency)
+            if self.sparse_latency:
+                self.oneway_by_size.setdefault(packet["size"],[]).append(latency)
 
     def snapshot(self):
         with self.lock:
@@ -195,6 +200,14 @@ class Stats:
                 "oneway_p50_ns": percentile(self.oneway_ns, 0.50),
                 "oneway_p95_ns": percentile(self.oneway_ns, 0.95),
                 "oneway_p99_ns": percentile(self.oneway_ns, 0.99),
+                "oneway_by_size": {
+                    str(size): {
+                        "count": len(values),
+                        "p50_ns": percentile(values, 0.5),
+                        "p99_ns": percentile(values, 0.99),
+                        "max_ns": max(values),
+                    } for size, values in self.oneway_by_size.items()
+                },
                 "probe_sent": self.probe_sent,
                 "probe_recv": self.probe_recv,
                 "probe_rtt_p50_ns": percentile(self.probe_rtt_ns, 0.50),
@@ -222,7 +235,7 @@ def wait_until(target_ns):
         time.sleep(remaining / 1e9)
 
 
-def run_sender(sock, peer_getter, kind, rate_mbps, seed, stats, stop_event):
+def run_sender(sock, peer_getter, kind, rate_mbps, seed, stats, stop_event, sparse_interval_ms=0):
     seq = 0
     cumulative = 0
     end_ns = stats.start_ns + int(stats.duration_s * 1e9)
@@ -233,8 +246,9 @@ def run_sender(sock, peer_getter, kind, rate_mbps, seed, stats, stop_event):
         return
     bytes_per_second = rate_mbps * 1_000_000.0 / 8.0
     while not stop_event.is_set():
-        size = SIZES[seq % len(SIZES)]
-        target_ns = stats.start_ns + int((cumulative / bytes_per_second) * 1e9)
+        size = (96,1372,4068)[seq % 3] if sparse_interval_ms else SIZES[seq % len(SIZES)]
+        target_ns = (stats.start_ns + seq*sparse_interval_ms*1_000_000
+                     if sparse_interval_ms else stats.start_ns + int((cumulative / bytes_per_second)*1e9))
         if target_ns >= end_ns:
             break
 
@@ -273,11 +287,11 @@ def run_sender(sock, peer_getter, kind, rate_mbps, seed, stats, stop_event):
         seq += 1
 
 
-def receiver_loop(role, sock, expected_kind, stats, peer_holder, stop_ns, stop_event):
+def receiver_loop(role, sock, expected_kind, stats, peer_holder, stop_ns, stop_event, max_datagram=2048):
     sock.settimeout(0.1)
     while not stop_event.is_set() and time.monotonic_ns() < stop_ns:
         try:
-            data, addr = sock.recvfrom(2048)
+            data, addr = sock.recvfrom(max_datagram)
         except socket.timeout:
             continue
         except OSError:
@@ -364,10 +378,15 @@ def main():
                     help="biz RTT probe interval in seconds; 0 disables probes")
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--output", required=True)
+    ap.add_argument("--sparse-interval-ms",type=int,default=0,choices=(0,45),
+                    help="E1 dedicated 15ms fullstack only: 96/1372/4068 every 45ms")
     ap.add_argument("--bounded-stats", action="store_true",
                     help="exact preallocated sequence bitset and bounded latency histograms for target-rate soak")
     args = ap.parse_args()
-
+    if args.sparse_interval_ms and args.bounded_stats:
+        ap.error("sparse protector needs exact per-size timings, not bounded soak stats")
+    if args.sparse_interval_ms and args.duration > 120:
+        ap.error("sparse protector duration must not exceed 120s")
     bind = parse_addr(args.bind)
     peer = parse_addr(args.peer) if args.peer else None
     if args.role == "biz" and peer is None:
@@ -384,7 +403,7 @@ def main():
         from soak_stats import stats_class
         stats = stats_class(Stats)(args.start_ns, args.duration, args.drain, args.rate_mbps)
     else:
-        stats = Stats(args.start_ns, args.duration, args.drain)
+        stats = Stats(args.start_ns, args.duration, args.drain, sparse_latency=bool(args.sparse_interval_ms))
     peer_holder = {"peer": peer if args.role == "biz" else None, "lock": threading.Lock()}
     stop_event = threading.Event()
     stop_ns = args.start_ns + int((args.duration + args.drain) * 1e9)
@@ -392,7 +411,7 @@ def main():
 
     recv_thread = threading.Thread(
         target=receiver_loop,
-        args=(args.role, sock, expected_kind, stats, peer_holder, stop_ns, stop_event),
+        args=(args.role, sock, expected_kind, stats, peer_holder, stop_ns, stop_event, 8192 if args.sparse_interval_ms else 2048),
         daemon=True,
     )
     recv_thread.start()
@@ -415,7 +434,7 @@ def main():
             with peer_holder["lock"]:
                 return peer_holder["peer"]
 
-    run_sender(sock, peer_getter, sender_kind, args.rate_mbps, args.seed, stats, stop_event)
+    run_sender(sock, peer_getter, sender_kind, args.rate_mbps, args.seed, stats, stop_event, args.sparse_interval_ms)
     wait_until(stop_ns)
     stop_event.set()
     recv_thread.join(timeout=1.0)
@@ -435,6 +454,8 @@ def main():
         "drain_s": args.drain,
         "rate_mbps": args.rate_mbps,
         "probe_interval_s": args.probe_interval,
+        "sparse_interval_ms": args.sparse_interval_ms,
+        "sparse_sizes": [96,1372,4068] if args.sparse_interval_ms else None,
         "seed": args.seed,
         "socket_rcvbuf": rcvbuf,
         "socket_sndbuf": sndbuf,

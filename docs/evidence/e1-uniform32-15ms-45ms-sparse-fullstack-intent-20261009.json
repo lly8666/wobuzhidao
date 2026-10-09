@@ -1,0 +1,64 @@
+{
+  "schema": "wbd-e1-uniform32-sparse-15ms-fullstack-one-case-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "13ebfaae2b7a2d14b6c23620793b27b7fdd19625",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "workflow": ".github/workflows/next-e1-lowrtt-fullstack.yml",
+  "topology": "5 netns, formal client TPROXY and server TUN, actual raw underlay; derived exact strict harness",
+  "mode": "normal",
+  "lanes": 1,
+  "scenario": "lossless",
+  "fec": "20:20",
+  "source_parity_deadline_ms": 32,
+  "network_one_way_ms": 15,
+  "source_spacing_ms": 45,
+  "sizes": [
+    96,
+    1372,
+    4068
+  ],
+  "duration_s": 120,
+  "drain_s": 10,
+  "seed": 1846,
+  "job_count": 1,
+  "profile": "OFF",
+  "rates_mbps_each_direction_approx": 0.328,
+  "protected": {
+    "zero_missing": true,
+    "zero_duplicate": true,
+    "zero_corrupt": true,
+    "zero_skipped_sends": true,
+    "min_per_size": 800,
+    "p99_size96_max_ms": 180,
+    "p99_1372_4068_max_ms": 350,
+    "real_netem_required": true
+  },
+  "no_product_change": true,
+  "tooling_changes": [
+    "tools/realpath_udp_duplex.py optional sparse only",
+    "tools/prepare_e1_lowrtt_fullstack.py",
+    "tools/e1_lowrtt_sparse_stage.py",
+    "tools/check_e1_lowrtt_fullstack.py",
+    "tools/test_e1_lowrtt_fullstack.py"
+  ],
+  "previous_qualifications": {
+    "foundation": 37934311902,
+    "link_netem15ms": 37933861380,
+    "normal1_lossless": 37922038550,
+    "normal1_5205": 37924613499,
+    "game2_lossless": 37925722025,
+    "game2_5205": 37926864614
+  },
+  "not_proven": [
+    "true erased shard FEC recovery in fullstack",
+    "Game4 active lanes",
+    "CPU benefit",
+    "wire parity saving"
+  ],
+  "prior_old_Game4_fail_runs": [
+    37857040784,
+    37871243581
+  ],
+  "e7": "OPEN_DEFERRED",
+  "status": "PENDING"
+}

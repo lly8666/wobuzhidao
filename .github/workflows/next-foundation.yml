@@ -68,6 +68,8 @@ jobs:
           python3 -m unittest discover -s tools -p 'test_e4_recvmmsg_calibration.py' -v
           python3 -m py_compile tools/e4_runner_cpu_scope.py
           python3 -m unittest discover -s tools -p 'test_e4_runner_cpu_scope.py' -v
+          python3 -m py_compile tools/prepare_e1_lowrtt_fullstack.py tools/e1_lowrtt_sparse_stage.py tools/check_e1_lowrtt_fullstack.py tools/realpath_udp_duplex.py
+          python3 -m unittest discover -s tools -p 'test_e1_lowrtt_fullstack.py' -v
           cc -O2 -Wall -Wextra -Werror -fsyntax-only tools/testdata/e4_recvmmsg_calibration.c
       - id: layout
         name: Detect active module

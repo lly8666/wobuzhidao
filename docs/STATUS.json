@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_UNIFORM32_15MS_NATIVE_UDP_PASS_FEC_PARTIAL_BLOCKS_30_TO_10_NO_WIRE_CPU_CLAIM",
+    "phase": "E1_UNIFORM32_LOWRTT_15MS_REAL_FULLSTACK_SPARSE_NORMAL1_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3156,10 +3156,47 @@
         "core_and_privileged_partial_pass": true
       },
       "qualifier": "REAL_UDP_SOCKET_LINK_FEC_ONLY; FORMAL_FAKETCP_TUN_CLIENT_TARGET_15MS_NOT_RUN"
+    },
+    "e1_fullstack_sparse15": {
+      "state": "PENDING_REAL_ACTION",
+      "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+      "prev_head": "13ebfaae2b7a2d14b6c23620793b27b7fdd19625",
+      "workflow": ".github/workflows/next-e1-lowrtt-fullstack.yml",
+      "derivation": "tools/prepare_e1_lowrtt_fullstack.py reuses audited five-netns strict topology",
+      "topology": "biz UDP -> client TPROXY -> raw underlay -> dual-direction 15ms router netem -> server -> TUN -> target UDP",
+      "one_job": true,
+      "one_workload": "normal1 lossless 120s sparse UDP, seed1846",
+      "fec": "20:20",
+      "parity_window_ms": 32,
+      "one_way_ms": 15,
+      "size_bytes": [
+        96,
+        1372,
+        4068
+      ],
+      "period_ms": 45,
+      "rate_mbps_each_direction": 0.328,
+      "business_acceptance": {
+        "min_packets_per_size": 800,
+        "zero_missing": true,
+        "zero_corruption": true,
+        "small96_p99_max_ms": 180,
+        "large_p99_max_ms": 350
+      },
+      "scope": "NORMAL1_FULLSTACK_LOSSLESS_LOWRTT_ONLY_NOT_FEC_ERASURE_CPU_OR_GAME",
+      "foundation_reference": 37934311902,
+      "netem_link_reference": 37933861380,
+      "older_Game4_socket_failures": [
+        37857040784,
+        37871243581
+      ],
+      "evidence": "docs/evidence/e1-uniform32-15ms-45ms-sparse-fullstack-intent-20261009.json",
+      "action_id": null,
+      "cpu_gain": "UNPROVEN"
     }
   },
-  "next_task": "Confirm final result of Foundation37933861390 (repository/Go Linux+Windows/race and TPROXY/TUN/fallback) then documentation-only Foundation triggered by final receipt. Do not repeat successful real LINK/FEC 15ms socket test for confidence shopping. Next justified product gate is ONE source-pinned true 15ms one-way fullstack strict netns business workload with sender-created sparse 45ms 96/1372/4068 UDP, FEC20:20 32ms due, source/FEC parity protection and independent business first arrival with p99; adapt current strict harness minimally because it hardcodes 300ms and ordinary mixed rate. Maintain one workload/seed/job/Action and rate/latency/AF_PACKET drop audit. Any missing big UDP or Game4 socket drop retain FAIL; never conflate netns LINK-only result with client/server/TUN product. No extra classifier/timer or buffer/queue expansion. CPU benefit UNPROVEN (20 fewer partial-block closures is not CPU-s), Game2 real active lane count profileOFF unknown, E7 ~80s downlink outage deferred. Physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261009-235510-e1-32ms-sparse-fec-block-closure-30to10-15ms-native-green.md",
+  "next_task": "Inspect the single next-e1-lowrtt-fullstack workflow Action and Foundation after commit. Require exact SOURCE a2db258..., one Normal1 lossless seed1846 FEC20:20 parity32ms, 15ms real netem both router directions, 120s two-direction client/TPROXY/server/TUN/target traffic every45ms 96/1372/4068, no missing/duplicates/corrupt/sends skipped, >=800 packets each size each direction, small96 p99 <=180ms, other p99 <=350ms. Fullstack source/probes cannot claim erasure recovery in lossless sample; if success next examine targeted one-case fullstack shard-erasure without new instrumentation platform. Protect old Game4 9V45 OFF socket drops33/86 and ON42 FAIL and E7 ~80s downlink OPEN_DEFERRED. If preflight fails, correct proven helper issue then revalidate; no blind 300s host shopping, no source/buffer/queue edits, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e1-uniform32-15ms-fullstack-sparse-normal1-qualification.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -3172,7 +3209,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 32ms product source a2db unchanged. Corrected Foundation37933015548, Lifecycle37933015529 and native Linux15ms UDP37933015518 full SUCCESS. Latest isolated true UDP15ms and verbose resource Action37933861380 SUCCESS: 30 sparse96B FEC20:20 8ms partial-blocks30 vs32ms10 (-66.7% closures), but BOTH parity30 and4560 bytes NO bandwidth savings, CPU gain UNPROVEN. Initial invalid Actions37933510916 due malformed YAML retained; exact workflow repair green. Fresh Foundation37933861390 running/pending final. Existing Normal1/Game2 0loss+5205 profileOFF scoped PASS, true15ms fullstack NOT_RUN, Game2 runtime active lanes not proven.",
+    "E1 uniform32 SOURCE a2db258b436a41fdee98c6c53abec9bab6ce600f already has 4 independent 300s Normal1/Game2 lossless+5205 scoped business PASS and standalone native LINK/FEC 15ms netem repair PASS, latest Foundation37934311902 SUCCESS. New one-source one-job real FakeTCP/TPROXY/TUN Normal1 sparse45ms 96/1372/4068 on actual15ms router netem 120s business protector pending. Test-side per-size stats opt-in only; NO new product classifier. Game4 old socket drops FAIL, CPU UNPROVEN, E7 deferred.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

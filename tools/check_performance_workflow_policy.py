@@ -125,6 +125,27 @@ if "continue-on-error: true" not in cal or 'test "$RESULT" = success' not in cal
 if any(x in cal for x in ("scripts/strict_weaknet_sample.sh","tools/prepare_large_mtu_harness.py","tools/prepare_soak_harness.py")):
     errors.append("E4 calibration: product sample scripts forbidden")
 
+
+# E1 sparse 15ms fullstack: one pinned 32ms product, 120s functional
+# business case and one Actions measurement job, never an A/B/matrix.
+e1 = Path(".github/workflows/next-e1-lowrtt-fullstack.yml").read_text(encoding="utf-8")
+if 'branches: ["next/performance-efficiency-20261008"]' not in e1:
+    errors.append("E1 lowrtt: exact working branch required")
+if "workflow_dispatch:" in e1 or re.search(r"(?m)^\s+matrix:",e1):
+    errors.append("E1 lowrtt: matrix or manual variants forbidden")
+if e1.count("  one-15ms-real-fullstack-protector:\n")!=1:
+    errors.append("E1 lowrtt: one physical measurement job required")
+if e1.count("tools/perf_sample_guard.py claim")!=1:
+    errors.append("E1 lowrtt: exactly one source/seed/workload claim required")
+if 'a2db258b436a41fdee98c6c53abec9bab6ce600f' not in e1:
+    errors.append("E1 lowrtt: fullstack must pin uniform32 SOURCE")
+if 'test "$SAMPLE" = success' not in e1 or 'test "$AUDIT" = success' not in e1:
+    errors.append("E1 lowrtt: real business and analyzer failures must propagate")
+if "tools/prepare_e1_lowrtt_fullstack.py --output" not in e1:
+    errors.append("E1 lowrtt: audited strict topology derivation required")
+if 'WBD_STRICT_RATE_MBPS: "0.328"' not in e1:
+    errors.append("E1 lowrtt: exact sparse payload rate model required")
+
 if errors:
     raise SystemExit("\n".join(errors))
 print("WBD_PERF_WORKFLOW_POLICY_PASS")
