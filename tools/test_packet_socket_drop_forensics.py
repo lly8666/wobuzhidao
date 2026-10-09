@@ -55,6 +55,15 @@ class SocketClockTests(unittest.TestCase):
         self.assertEqual(report["sides"]["client"]["all_adjacent_drop_increments"], 0)
         self.assertEqual(report["sides"]["client"]["first_observed_drops"], 90)
 
+    def test_real_iproute2_inline_packet_socket_format(self):
+        # Same-line skmem layout was observed in resource JSONL, run37865738583.
+        row = sample(1)
+        row["namespaces"]["client"]["ss_packet"]["stdout"] = (
+            "Netid State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\\n"
+            "p_raw UNCONN 0 0 [2048]:cwan *     skmem:(r0,rb1048576,t0,tb212992,f0,w0,o0,bl0,d33)\\n")
+        self.assertEqual(packet_socket(row, "client"),
+                         {"r": 0, "rb": 1048576, "d": 33})
+
     def test_multi_packet_socket_fails_closed(self):
         row = sample(1)
         row["namespaces"]["client"]["ss_packet"]["stdout"] += (

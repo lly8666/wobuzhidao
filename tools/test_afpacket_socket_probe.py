@@ -16,6 +16,13 @@ class TestPacketProbe(unittest.TestCase):
         self.assertEqual(r["cpu_psi_some_avg10_percent"],6.12)
         self.assertTrue(r["ss_ok"])
         self.assertNotIn("swan",str(r))
+    def test_real_iproute2_inline_format(self):
+        line = ("Netid State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\\n"
+                "p_raw UNCONN 0 0 [2048]:swan *     skmem:(r0,rb1048576,t0,tb212992,f0,w0,o992,bl0,d86)\\n")
+        row = numeric_row("server", 123, 456, line, 0, "some avg10=5.53 total=11\\n")
+        self.assertEqual(row["packet_socket"]["d"], 86)
+        self.assertTrue(row["ss_ok"])
+
     def test_unavailable_not_zero(self):
         r=numeric_row("client",100,101,"",-1,"")
         self.assertIsNone(r["packet_socket"])

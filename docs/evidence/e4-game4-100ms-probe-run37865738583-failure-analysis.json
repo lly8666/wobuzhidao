@@ -1,0 +1,103 @@
+{
+  "schema": "wbd-e4-single-profileon-numerical-probe-failure-analysis/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "4d958ccea9af82fe8dd0c67f38a1b8de409c905a",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_sha": "4d958ccea9af82fe8dd0c67f38a1b8de409c905a",
+  "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "run_id": 37865738583,
+  "job_id": 113611907874,
+  "artifact_id": 11588092908,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37865738583",
+  "final_workflow": "FAIL",
+  "sample_step": "success",
+  "analyze_step": "success",
+  "cost_ledger_step": "success",
+  "probe_audit_outcome": "failure",
+  "probe_audit_failure": "AssertionError ('client', 'ss_unavailable')",
+  "original_analyzer": "PASS_SCOPED_ACTIONS",
+  "original_issues": [],
+  "artifacts_sha256": {
+    "manifest.json": "0ca6f7f7b55b784296714b3b2098005280172a61b75aee62e71a2dc7dd29439a",
+    "summary.json": "dce3d76fd1032912babc64083b0f07a133bc20006bf9f49d582cee02ad333c72",
+    "efficiency-ledger.json": "febdcd7c42f151340316e381576b371f77372e4279ce9ed6360408f75dc3d729",
+    "client-packet-probe.jsonl": "3e9bf579b94945d88aa4dd4a28a6fc137640dd153f0d5c8c2ec34b8d20405984",
+    "server-packet-probe.jsonl": "188892860414e9aed3557e10c4a61edbad655c0b2c28c8d32bace952dcc2287f"
+  },
+  "sample": {
+    "mode": "game",
+    "lanes": 4,
+    "actual_lanes_both": 4,
+    "loss": 0,
+    "seed": 1840,
+    "workload": "mixed",
+    "duration_s": 300,
+    "drain_s": 3,
+    "one_way_delay_ms": 300,
+    "rate_mbps_each_direction": 3,
+    "fec": "20:20",
+    "padding": "off",
+    "profile": "ON",
+    "host_cpu": "AMD EPYC 9V74 4vCPU"
+  },
+  "business": {
+    "udp_delivered_each_direction": 103062,
+    "udp_missing_both": 0,
+    "probes_c2s": [
+      1500,
+      1500
+    ],
+    "probes_s2c": [
+      1495,
+      1495
+    ],
+    "p99_ms_c2s": 614.879274,
+    "p99_ms_s2c": 617.022575,
+    "tcp_flows_each_direction": 304,
+    "http_https": [
+      20,
+      20
+    ],
+    "https_verified": 10
+  },
+  "original_resource": {
+    "packet_socket_drops": {
+      "client": 0,
+      "server": 0
+    },
+    "interface_drops_zero": true,
+    "resource_samples": 316,
+    "resource_socket_ss_success_each": 316,
+    "source_socket_rcv_buffer_bytes": 1048576,
+    "cpu_psi_some_avg10_max_pct": 38.08,
+    "capacity_limited_evidenced": false
+  },
+  "probe": {
+    "samples_each": 3150,
+    "ss_ok_each": 0,
+    "parser_output_packet_socket_each": "ALL_NULL",
+    "time_business_start_earliest_s": -11.9,
+    "time_business_end_latest_s": 302.9,
+    "why": "actual ss -0 -a -m -n stdout for p_raw has inline skmem:(...) without line break; RAW_RE assumed newline; synthetic tests only contained two-line format",
+    "root_attribution": "NOT_AVAILABLE",
+    "numeric_raw_ss_stdout_in_probe": "NOT_RETAINED_PRIVACY_BY_DESIGN"
+  },
+  "original_perf_quality": "ONLY_PROFILE_ON_DIAGNOSTIC; NO_CPU_BENEFIT_CLAIM",
+  "classification": "FAIL_HELPER_AUDIT_ORIGINAL_ANALYZER_PASS_SCOPED_NOT_FORMAL_QUALIFICATION",
+  "parser_patch_scope": "source-free read-only regex + synthetic actual layout tests; NO_REPEAT_300S_SAMPLE",
+  "previous_off_9v45_failure": {
+    "run_id": 37857040784,
+    "original": "FAIL_LOCAL_SOCKET_DROP",
+    "drops": {
+      "client": 33,
+      "server": 86
+    }
+  },
+  "limitations": [
+    "No valid subsecond kernel socket observations survived in new numeric trace; cannot repair from already stripped stdout",
+    "The independent existing 1s sampler proves new run socket drops d0 only at 1s observations",
+    "A clean ON runner does not close failed OFF 9V45 result or establish drop root",
+    "Do not count helper malformed PASS as formal workflow PASS, preserve final FAIL",
+    "Profile ON and observer CPU overhead disallow comparison with profile OFF candidates"
+  ]
+}

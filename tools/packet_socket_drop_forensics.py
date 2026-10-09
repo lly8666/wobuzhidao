@@ -10,7 +10,8 @@ import json
 import re
 from pathlib import Path
 
-RAW_RE = re.compile(r"(?m)^p_raw\b[^\n]*\n[ \t]*skmem:\(([^)]*)\)")
+# iproute2 ss -0 prints skmem either inline (actual Actions) or indented next line.
+RAW_RE = re.compile(r"(?m)^p_raw\b[^\n]*?(?:[ \t]+|\n[ \t]*)skmem:\(([^)]*)\)")
 KV_RE = re.compile(r"(?<![A-Za-z])(rb|tb|bl|r|d|o|f|w|t)(\d+)(?!\w)")
 PSI_RE = re.compile(r"(?m)^some\s+[^\n]*\bavg10=([0-9.]+)")
 

@@ -2,7 +2,7 @@
   "schema": "wbd-e4-afpacket-100ms-one-sample-diagnostic-intent/v1",
   "branch": "next/performance-efficiency-20261008",
   "parent_sha": "debf470e6875705e9a94ac0efe9523a598039246",
-  "helper_sha": "COMMIT_AT_THIS_CHANGE",
+  "helper_sha": "4d958ccea9af82fe8dd0c67f38a1b8de409c905a",
   "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "single_sample": {
     "workload": "mixed",
@@ -15,9 +15,9 @@
     "size_profile": "ordinary",
     "diagnostic_mode": "on"
   },
-  "run_id": null,
-  "artifact_id": null,
-  "original_analyzer": "NOT_RUN",
+  "run_id": 37865738583,
+  "artifact_id": 11588092908,
+  "original_analyzer": "PASS_SCOPED_ACTIONS",
   "new_network_samples": 1,
   "profile_on_only": true,
   "diagnostic": {
@@ -71,5 +71,8 @@
     "sidecars are not separate performance samples",
     "diagnostic ON CPU overhead prevents OFF cost comparison",
     "new host cannot prove prior 9V45 root; no repeated host shopping"
-  ]
+  ],
+  "new_ci_status": "FAIL",
+  "final_status": "FAIL_PROBE_SS_UNAVAILABLE_FORMAT_PARSER",
+  "evidence": "docs/evidence/e4-game4-100ms-probe-run37865738583-failure-analysis.json"
 }
