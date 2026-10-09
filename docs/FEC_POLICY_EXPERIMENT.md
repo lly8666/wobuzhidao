@@ -65,7 +65,7 @@ UDP复用ordinary混合96/256/512/1000/1372/4068B；独立小probe按明确周�
 
 ## 6. GitHub留痕与结束
 
-在独立 `experiment/fec-policy-sequential-20261009` 分支从最新优化分支开发夹具适配，避免与正在做E1/E4的agent共享源码；先git状态/远端/HEAD核对，不覆盖别人。新workflow仅该明确实验分支、一个job、顺序case；不要改canonical主线或触发原单样本测量。可以复用已有foundation/lifecycle功能门，增加分支触发仅限明确实验分支，不改旧验收内容。
+在独立 `experiment/fec-policy-sequential-20261009` 分支从最新优化分支开发夹具适配，避免与正在做E1/E4的agent共享源码；先git状态/远端/HEAD核对，不覆盖别人。新workflow仅该明确实验分支、一个job、顺序case；不要改canonical主线或触发原单样本测量。可以复用已有foundation/lifecycle功能门，增加分支触发仅限明确实验分支，不改旧验收内容。新入口固定命名建议`next-fec-policy-sequential.yml`+`fec-policy-batch.json`，feature分支优先受限配置push触发，不依赖未注册的workflow_dispatch。为`check_performance_workflow_policy.py`增加仅此命名/分支/一个job/配置push/batch guard的串行校验，旧单样本规则原样保留；不要跳过策略检查。
 
 每次修改同提交新增devlog+更新唯一STATUS，将STATUS.working_branch注明实验分支，保留规范branch与原产品失败、E1/E7进度，在active_work.fec_policy_comparison记录本项。每段小artifact与hash，aggregate只读全部段、保留失败/未跑；不上传凭据/密钥/正文。pcap有界并在每段分析后清理，最后also emergency cleanup。校验case数量、SOURCE/helper、实际两端FEC模式、profile OFF和序列性；不要以12段全workflow绿色代替每段真实性。
 

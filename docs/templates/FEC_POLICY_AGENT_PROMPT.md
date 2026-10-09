@@ -6,7 +6,7 @@
 
 复用上个agent的五netns真实业务夹具：scripts/strict_weaknet_sample.sh、prepare_large_mtu_harness.py、large_mtu_mixed_business.py、efficiency_http_https.py、large_mtu_loss_stage.py、check_large_mtu_mixed.py、strict_resource_sampler.py和efficiency_cost_ledger.py；已有真实TPROXY/FakeTCP/TUN路径、TCP hash/HTTPS证书、UDP各尺寸和独立probe、seeded tc、socket/drop/CPU/RSS、pcap清理。不是只跑LINK/FEC unit，不恢复DTLS。
 
-注意当前正式入口并不直接支持本实验：固定300s/300ms、loss choices不含1、旧workflow限0/5205和FEC20:20、ledger CPU/PPS分母硬编码300。先在独立实验入口做最小adapter，120s/drain3、15/300ms、0/1/5%、off/20:20与批次manifest/串行guard全部真生效。原单样本guard/默认/严格门不放宽；新增参数可选且原默认不变。sudo env、两端CLI、实际handshake、MTU/FEC、manifest和分析分母一致。off不强求send_multi，不为测试攒包。所有build/unit/race/业务只在Actions，本地只编辑读Git文档。
+注意当前正式入口并不直接支持本实验：固定300s/300ms、loss choices不含1、旧workflow限0/5205和FEC20:20、ledger CPU/PPS分母硬编码300。先在独立实验入口做最小adapter，120s/drain3、15/300ms、0/1/5%、off/20:20与批次manifest/串行guard全部真生效。原单样本guard/默认/严格门不放宽；新增参数可选且原默认不变。新workflow固定建议next-fec-policy-sequential.yml，仅实验分支的fec-policy-batch.json配置push触发；不要假定新feature分支workflow_dispatch可用。check_performance_workflow_policy.py给此精确入口增加独立串行校验，保留其它入口规则，不跳过旧政策门。sudo env、两端CLI、实际handshake、MTU/FEC、manifest和分析分母一致。off不强求send_multi，不为测试攒包。所有build/unit/race/业务只在Actions，本地只编辑读Git文档。
 
 先批次A：同一个runner一个job，15ms单向；0%和1%双向固定loss；udp/tcp/mixed；每种off/20:20一对，共12段，每段120s+3s，各方向逻辑10Mbps。配对同seed/速率/尺寸，交替off→on/on→off，off/on配置是变量。每段独立目录/receipt、fresh进程和netns/会话，重置计数/RTO/FEC/shadow/信用；完整stop/wait/owned清理检查后下一段，无并行残留。批次预计30..50分钟，90分钟超时。业务FAIL保留可继续后续；无法隔离/完整性失败停批，其余NOT_RUN。
 

@@ -31,6 +31,7 @@
 |`tools/strict_resource_sampler.py`、`tools/large_mtu_resource_report.py`|每段独立CPU/内存/系统压力及socket/drop资源观测|
 |`tools/afpacket_socket_probe.py`及schedstat/report/witness工具|诊断ON的有界额外观测；普通性能不要启用|
 |`tools/perf_sample_guard.py`|原正式入口的单样本claim约束；本实验不得全局删除或绕过旧门|
+|`tools/check_performance_workflow_policy.py`|foundation静态策略检查；给新实验增加精确命名的串行例外校验，保留旧入口全部约束|
 |`tools/prepare_e1_lowrtt_fullstack.py`、`.github/workflows/next-e1-lowrtt-fullstack.yml`|真实15ms稀疏Normal1的完整产品路径模板；它不是持续10M混合性能测试|
 |`internal/linkdata/e1_sparse_real_netem_linux_test.go`|真实UDP socket+LINK/FEC定向损伤测试；不能当完整FakeTCP/TUN产品资格|
 
@@ -69,6 +70,8 @@ python3 tools/efficiency_cost_ledger.py --artifact-dir "$ART" --output "$ART/eff
 底层strict模板已支持FEC_PARITY=0/4/8/10/12/16/20，非20要求显式FEC_SCREEN=1，off已有single-only合法批量路径先例。复用时核实际两端--fec-parity与handshake结果，不能把FEC_SCREEN仅当改变标签；不能要求off必须形成send_multi而强行攒包。
 
 最小做法：新建独立实验workflow+case plan+轻量serial runner/adapter；复用现有拓扑、业务和资源实现。必要给共享helper增加可选参数时保留所有正式默认、strict分支与原门；或采用专用派生器并记录原模板hash。为120s统一适配业务源、HTTP调度、stage sampler、捕获、manifest、analyzer和CPU/PPS分母，不能只把shell sleep改短。命名/claim/branch断言不可声称旧单样本入口本来支持serial。
+
+新workflow建议固定为`.github/workflows/next-fec-policy-sequential.yml`，实验计划配置为`.github/fec-policy-batch.json`；仅明确实验分支的该配置路径push触发，一个job无matrix，批次guard核配置/源码/逐段顺序。当前仓库新feature分支workflow_dispatch尚不能假定可启动（已有E4方案为此使用配置push）；先读实际GitHub入口，优先沿用这种受限配置push，不修改default/canonical分支为触发测试。`check_performance_workflow_policy.py`目前按固定入口校验；新增精确实验名的独立串行规则，不把它放进旧单样本ACTIVE后再取消所有claim约束，也不利用未枚举workflow躲过策略门。
 
 旧四门和E6正式300s资格不因这个120s探索实验放宽。新入口细则见[FEC策略实验](FEC_POLICY_EXPERIMENT.md)。
 

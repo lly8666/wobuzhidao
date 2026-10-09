@@ -1,0 +1,7 @@
+# FEC策略实验：补全新workflow触发与策略门复用边界
+
+方案提交2e5935b6已推优化分支；Actions37943663999的repository-contract SUCCESS，其余功能/Go门当时运行中，不声明全部PASS。用户新实验与产品默认仍NOT_RUN/未修改。
+
+进一步读取next-foundation与check_performance_workflow_policy.py，确认新feature分支不能假定workflow_dispatch可用，现有E4使用精确配置push；策略检查主要枚举固定入口。为夹具指南/实验计划/接手模板补充建议精确入口next-fec-policy-sequential.yml与fec-policy-batch.json、实验分支配置push、独立batch guard，并要求新agent把该入口纳入单独串行校验而不绕过静态门或放宽旧ACTIVE。
+
+仅文档澄清，无实现/dispatch/本地开发测试；同提交更新STATUS和新devlog，保留原优化状态和失败。下一步接手agent按完整模板实现最小adapter、Actions功能门和首批A。
