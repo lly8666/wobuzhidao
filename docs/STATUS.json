@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_OWNER_REALTIME_PARTIAL_FEC_DEADLINE_TIMER_CLIENT_SERVER_FOUNDATION_PENDING",
+    "phase": "E1_SPARSE_PARITY_OWNER_TIMER_FOUNDATION_LIFECYCLE_GREEN_NORMAL1_LOSSLESS_SINGLE_REAL_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2076,7 +2076,7 @@
       }
     },
     "e1_deadline_scheduler": {
-      "state": "FULL_CLIENT_SERVER_REALTIME_SCHEDULER_CANDIDATE_PENDING_CORE_RACE_FOUNDATION",
+      "state": "IMPLEMENTED_FOUNDATION_AND_LIFECYCLE_SUCCESS_NORMAL_PROTECTORS_RUNNING",
       "working_branch": "next/performance-efficiency-20261008",
       "parent_head": "166115aba85927eae0b866fdbdfd99492252aaa3",
       "parent_product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
@@ -2100,7 +2100,7 @@
       "timer_or_goroutine_per_packet": false,
       "no_wire_mtu_queue_buffer_changes": true,
       "functionality_qualification": "PENDING_CORE_RACE_FOUNDATION",
-      "normal_lossless": "NOT_RUN_NEW_SOURCE",
+      "normal_lossless": "PENDING_ONE_SOURCE_ONE_300S_PROFILE_OFF",
       "normal_5205": "NOT_RUN_NEW_SOURCE",
       "game_lossless": "NOT_RUN_NEW_SOURCE",
       "game_5205": "NOT_RUN_NEW_SOURCE",
@@ -2122,11 +2122,49 @@
       "new_tests": [
         "datapath first/new due coalescing and promotion",
         "runtimeowner real wallclock sparse partial parity and timer stop"
-      ]
+      ],
+      "product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+      "core_race": {
+        "foundation_run": 37905174156,
+        "foundation_conclusion": "SUCCESS",
+        "lifecycle_run": 37905174130,
+        "lifecycle_conclusion": "SUCCESS"
+      },
+      "protectors": {
+        "normal1_lossless": {
+          "state": "PENDING_ACTION",
+          "source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+          "workload": "mixed",
+          "loss": 0,
+          "seed": 1843,
+          "mode": "normal",
+          "lanes": 1,
+          "rate_mbps": 10,
+          "duration_s": 300,
+          "diagnostic_mode": "off",
+          "workflow": ".github/workflows/next-efficiency-e0-single.yml"
+        },
+        "normal1_staged5205": {
+          "state": "NOT_RUN",
+          "seed": 1844
+        },
+        "game2_lossless": {
+          "state": "NOT_RUN",
+          "seed": 1841
+        },
+        "game2_staged5205": {
+          "state": "NOT_RUN",
+          "seed": 1842
+        },
+        "low_rtt_sparse": {
+          "state": "NOT_RUN"
+        }
+      },
+      "next_source_cpu_comparison": "NO_COMPARABLE_HOST_STRATUM_YET"
     }
   },
-  "next_task": "FIRST verify newest Foundation and next-lifecycle for new E1 full client/server owner-level deadline scheduler. Require core/race Linux+Windows and lifecycle/retirement/low RTT sparse tests, no perpacket goroutines/timers, no receive blocking, no double parity or stale generation. Repair any observed Go race/deadlock/behavior failure before running performance. THEN run four independent profileOFF fullstack protectors (one per 300s Action) for exact new E1 SOURCE: Normal1 true lossless, Normal1 staged5/20/5, Game2 (or explicit Game4) true lossless, Game2 (or same Game4) staged5/20/5; exact mode/lanes/loss/seed/MTU/helpers separately pinned; do not inherit old aa931d single-scoped passes, may retain old failures including 4068B S2C one missing. Include separate low-RTT sparse protector after relevant implementation, not a test with artificially smaller tick; must report sparse partial-parity actual due-to-send time and FEC systematic no HOL. If all gates pass, then E4 expiry/repair selection/FEC reusable bounded workspace only for evidenced hotspots. No buffer/queue grow, no main/physical changes, E7 80s S2C outage OPEN_DEFERRED, CPU gain UNPROVEN without host-matched strata.",
-  "latest_log": "docs/devlog/20261009-e1-client-server-owner-parity-deadline-wake-core-race-candidate.md",
+  "next_task": "Read first E1 exact SOURCE622e5a Normal1 lossless profileOFF 300s Action business+strict_resource+efficiency ledger original verdict; must check app UDP both directions missing/corrupt, TCP hashes, HTTP/HTTPS certificate, probe return p99, no kernel/socket AF_PACKET skmem.d; preserve FAIL and do not auto rerun to pick VM. If Scoped PASS, schedule exactly one Normal1 5/20/5% seed1844 independent action, then Game2 lossless seed1841 and Game2 5205 seed1842, all with same exact E1 PRODUCT_SOURCE, profileOFF 1 case per action. E1 sparse due-to-send timer behavior must have separate low RTT protector after real fullstack gates; E4 expiry/repair/FEC hotspots only after E1. No cross-EPYC CPU arithmetic, no queue/buffer changes, old oneparse 4068B S2C missing under20% retained, E7 80s downstream OPEN_DEFERRED, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e1-normal1-lossless-profileoff-one-real-fullstack-protection-intent.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2139,7 +2177,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 now has actual deadline-aware client and server runtime scheduling candidate: one reusable timer per existing logical owner, one coalescing earliest-deadline channel, no perpacket timer/goroutine or 1ms scan, parity flushed on existing TX owner worker off raw receive loop; 100ms periodic health/repair/lease kept. First E1 primitives commit13fa472 Foundation37903621183 and lifecycle37903621272 COMPLETE SUCCESS. New scheduler candidate pending fresh core/race/functional Foundation. No candidate Normal/Game new-source 300s sampled, cpu gain UNPROVEN; old aa931d scoped passes not inherited.",
+    "E1 client/server owner-level one timer real 8ms partial parity scheduler candidate source 622e5a: Foundation37905174156 SUCCESS, lifecycle37905174130 SUCCESS. Now one independent 300s fullstack profileOFF Normal1 true0% packet-loss mix UDP/TCP/HTTP/HTTPS (seed1843 10Mbps) queued via exact SOURCE+config; old aa931d protections NOT inherited. Subsequent Normal5205/Game2 lossless/Game2 5205/low RTT still NOT_RUN NEW SOURCE. No BPF/VM calibration, buffers/queues preserved.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

@@ -1,0 +1,47 @@
+{
+  "schema": "wbd-e1-owner-deadline-normal1-zero-loss-single-qualification-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "helper_parent": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+  "product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+  "previous_qualification": [
+    {
+      "run_id": 37905174156,
+      "result": "FOUNDATION_SUCCESS"
+    },
+    {
+      "run_id": 37905174130,
+      "result": "LIFECYCLE_CORE_RACE_SUCCESS"
+    }
+  ],
+  "scenario": {
+    "workload": "mixed",
+    "mode": "normal",
+    "lanes": 1,
+    "loss": 0,
+    "seed": 1843,
+    "target_rate_mbps_both_directions": 10,
+    "profile": "OFF",
+    "duration_s": 300,
+    "mtu_profile": "ordinary",
+    "tcp_udp_http_https": true
+  },
+  "hard_gates": [
+    "Business summary+ledger original PASS_SCOPED_ACTIONS issues empty",
+    "Lossless UDP both directions zero missing/corruption and no >1s first arrival delay",
+    "TCP transfers content hashes and sequence, HTTP+HTTPS trusted tests succeed",
+    "All probe ids returned and report honest p99",
+    "AF_PACKET packet socket skmem.d client/server 0, netdev extra drops 0, strict resource errors empty",
+    "Actual product binary SOURCE matches 622e5a",
+    "Host PSI/CPU quota documented, NO unstratified CPU-s gain claims"
+  ],
+  "workflow": "next-efficiency-e0-single.yml",
+  "run_id": "PENDING",
+  "source_parent_comparison": "aa931d prev oneparse scoped PASS cannot transfer to E1 new source",
+  "business_profile_on": false,
+  "product_cpu_gain": "UNPROVEN",
+  "older_failures": [
+    37857040784,
+    37871243581
+  ],
+  "e7": "OPEN_DEFERRED"
+}
