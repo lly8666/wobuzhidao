@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_UNIFORM_32MS_RUNTIME_SOURCE_A2DB_CORE_OLD_TEST_EXPECTATION_FIXED_FOUNDATION_PENDING",
+    "phase": "E1_UNIFORM_32MS_NORMAL1_ZEROLOSS_300S_ONE_SOURCE_ONE_JOB_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2605,7 +2605,7 @@
       "evidence_update": "docs/evidence/e1-16ms-largest-group-fragmented-link-tail-class-failure-and-fix-20261009.json"
     },
     "e1_uniform_32ms_candidate": {
-      "state": "FIRST_FOUNDATION_LIFECYCLE_FAIL_OLD_TEST_ASSERTION_CORRECTED_CORE_PENDING",
+      "state": "FOUNDATION_LIFECYCLE_GREEN_NORMAL1_LOSSLESS_ONE_ACTION_PENDING",
       "source_parent": "e50d62aab5ef74dac686f51ad1acb961cc73806a",
       "user_goal": "Change all runtime FEC partial parity 8ms defaults to 32ms without adding packet-size classifiers",
       "prev_window": {
@@ -2649,9 +2649,9 @@
         "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go"
       ],
       "gates": {
-        "foundation": "NOT_RUN",
-        "lifecycle": "NOT_RUN",
-        "normal1_lossless": "NOT_RUN_NEW_SOURCE",
+        "foundation": "SUCCESS_37921471604",
+        "lifecycle": "SUCCESS_37921471596",
+        "normal1_lossless": "PENDING_ONE_ACTION",
         "normal1_5205": "NOT_RUN_NEW_SOURCE",
         "game2_lossless": "HOLD",
         "game2_5205": "HOLD",
@@ -2676,7 +2676,19 @@
         "root_type": "STALE_DEFAULT_EXPECTATION_ONLY",
         "go_fec_and_linkdata_tests": "PASSED_IN_FIRST_FOUNDATION",
         "go_product_compilation": "PASSED",
-        "cpu_gain": "UNPROVEN"
+        "cpu_gain": "UNPROVEN",
+        "previous_failures_retained": [
+          37921000330,
+          37921000365
+        ],
+        "corrected_foundation": {
+          "id": 37921471604,
+          "status": "SUCCESS"
+        },
+        "corrected_lifecycle": {
+          "id": 37921471596,
+          "status": "SUCCESS"
+        }
       },
       "current_fix": {
         "path": "internal/datapath/handoff_client_test.go",
@@ -2686,11 +2698,30 @@
         "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
         "actions_pending": true,
         "history_evidence": "docs/evidence/e1-32ms-first-foundation-lifecycle-existing-8ms-assertion-fail-20261009.json"
+      },
+      "next_lossless_sample": {
+        "config_path": ".github/efficiency-e0-sample.json",
+        "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+        "source": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+        "helper_parent_head": "49133735fe4d2e4ac5ac348246f8fc7b81d028be",
+        "profile": "OFF",
+        "size_profile": "ordinary",
+        "workload": "mixed",
+        "seed": 1843,
+        "mode": "normal",
+        "lanes": 1,
+        "rate_mbps": 10,
+        "loss": 0,
+        "duration_seconds": 300,
+        "expected_harness": "lossless",
+        "one_job_per_run": true,
+        "not_cpu_gain": true,
+        "trigger": "one explicit sample config push"
       }
     }
   },
-  "next_task": "Check new Foundation+Lifecycle after correcting ONLY old FixedFECRuntimeDefaults test expectation8ms->32ms (product source remains a2db258b436a41fdee98c6c53abec9bab6ce600f), require both SUCCESS full core/race/Linux/Windows and FEC/linkdata 32ms noHOL deterministic. Preserve first Foundation37921000330 and Lifecycle37921000365 FAIL in evidence. Then dispatch ONE Normal1 mixed lossless profileOFF 300s for source a2db; separate Normal1 staged5205 only after lossless pass. Verify strict business/socket resource output, no cross-host CPU gain claims. If weak FAIL block Game2 and investigate causes rather than crank 32 further. Low RTT sparse proof still required. No size class addition/timer/goroutine/wire/queue/mtu change, E7 deferred.",
-  "latest_log": "docs/devlog/20261009-201000-e1-32ms-existing-handoff-unit-expectation-fix.md",
+  "next_task": "Read ONE Normal1 mixed 0loss source a2db258b strict E0 Action triggered by .github/efficiency-e0-sample.json seed1843 300s profileOFF (product cloned from git rev pinned), require analyzer PASS_SCOPED_ACTIONS, raw UDP missing0 both, TCP/HTTPS/probe and AF_PACKET skmem.d zero, host resource report. If fail do NOT proceed 5205 until causal/fixture issue fixed; preserve original FAIL. If pass, submit separate 300s Normal1 staged 5/20/5 loss5205 seed1844 using SAME source and helper-safe workflow conditional, then Gate Game2 lossless/5205 and low RTT sparse. CPU gains only comparable host strata; 32ms sparse FEC parity may delay recover up to24ms. E7 deferred and physical/main untouched.",
+  "latest_log": "docs/devlog/20261009-202500-e1-32ms-normal1-lossless-sample-dispatch.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2703,7 +2734,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "32ms FEC candidate product source a2db258b; first Foundation37921000330 and Lifecycle37921000365 FAIL sole stale TestFixedFECRuntimeDefaults expects8ms at handoff_client_test.go:63 while actual32ms. Linux/Windows FEC/linkdata passed; correction only test expectation pending new Foundation+Lifecycle, product unchanged; no 300s sample. Legacy weak5205 and Game4 drops official FAIL, CPU gain UNPROVEN.",
+    "Uniform32ms product source a2db258b standalone corrected Foundation37921471604 and Lifecycle37921471596 FULL SUCCESS; prior test-expectation-only FAIL 37921000330/37921000365 preserved. Dispatch one 300s Normal1 mixed lossless FEC20:20 profileOFF with exact source SHA, then separate staged5205 only after analyzer pass. New size classifier NONE, CPU gain UNPROVEN, old failures remain.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

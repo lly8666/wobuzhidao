@@ -1,0 +1,39 @@
+{
+  "schema": "wbd-e1-32ms-normal1-lossless-exact-case-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "helper_parent_sha": "49133735fe4d2e4ac5ac348246f8fc7b81d028be",
+  "core": {
+    "foundation": 37921471604,
+    "conclusion": "SUCCESS",
+    "lifecycle": 37921471596,
+    "conclusion2": "SUCCESS"
+  },
+  "previous_failed_ci": [
+    37921000330,
+    37921000365
+  ],
+  "test_workflow": ".github/workflows/next-efficiency-e0-single.yml",
+  "one_job_one_case": true,
+  "one_seed": 1843,
+  "mode": "normal",
+  "lanes": 1,
+  "rate_mbps": 10,
+  "workload": "mixed",
+  "profile": "OFF",
+  "loss": 0,
+  "strict_scenario": "lossless",
+  "duration_s": 300,
+  "no_dynamic_size_classes": true,
+  "expected": "Normal1 source-frozen no-loss strict analyzer PASS only if all business and resources pass",
+  "prior_weak_loss_failures": [
+    37907829434,
+    37915859759
+  ],
+  "game4_socket_drop_failures": [
+    37857040784,
+    37871243581
+  ],
+  "not_proven": "CPU_GAIN_UNPROVEN",
+  "e7": "OPEN_DEFERRED"
+}
