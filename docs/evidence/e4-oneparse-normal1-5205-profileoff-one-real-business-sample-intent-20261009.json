@@ -1,0 +1,109 @@
+{
+  "schema": "wbd-e4-oneparse-normal1-5205-single-real-business-test-intent/v1",
+  "working_branch": "next/performance-efficiency-20261008",
+  "parent_sha": "0a7f0887c360da1f45afacd1a7ac0c15ace5c84e",
+  "candidate_source": "aa931d5822a5378c48bf0763216f0446a5af8683",
+  "source_changed": false,
+  "scenario": {
+    "workload": "mixed",
+    "loss": 5205,
+    "seed": 1844,
+    "product_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off",
+    "business_duration_s": 300,
+    "drain_seconds": 3,
+    "stage_loss_percent": [
+      {
+        "start_s": 0,
+        "end_s": 75,
+        "loss": 5
+      },
+      {
+        "start_s": 75,
+        "end_s": 225,
+        "loss": 20
+      },
+      {
+        "start_s": 225,
+        "end_s": 300,
+        "loss": 5
+      }
+    ],
+    "one_way_delay_ms": 300,
+    "fec": "20:20",
+    "client_ingress": "TPROXY",
+    "server_tun": "shared",
+    "normal_lanes": 1,
+    "logical_rate_mbps_each_direction": 10
+  },
+  "action": {
+    "workflow": ".github/workflows/next-efficiency-e0-single.yml",
+    "trigger": ".github/efficiency-e0-sample.json",
+    "one_source": true,
+    "one_case": true,
+    "one_seed": true,
+    "one_measurement_job": true,
+    "max_repeat_in_this_step": 1,
+    "diag_bpf": false,
+    "workflow_env": {
+      "WBD_STRICT_MODE": "normal",
+      "WBD_STRICT_SCENARIO": "5205",
+      "WBD_STRICT_RATE_MBPS": "10",
+      "WBD_STRICT_LANES": "1",
+      "PRODUCT_SOURCE": "aa931d5822a5378c48bf0763216f0446a5af8683"
+    }
+  },
+  "hard_gates": [
+    "workflow action SUCCESS and original summary/ledger PASS_SCOPED_ACTIONS issues empty; refuse any helper-only green",
+    "actual qdisc applied 5/20/5% stages and output business stage evidence; no hand-wave effective loss",
+    "UDP both directions delivered correctly or original analyzer will fail; inspect phase delivery and app-level true loss",
+    "TCP application byte lengths and per-flow hashes exact; no silent replay/dedup failure",
+    "real UDP probes and request RTT complete with no missing",
+    "HTTP/HTTPS 20/20 and HTTPS certificate verified",
+    "AF_PACKET skmem.d max zero both endpoints, netdev extra drops zero and strict_resource.errors empty",
+    "No cross-host CPU benefit claim and no hidden performance retest"
+  ],
+  "previous_passes": [
+    {
+      "scenario": "GAME4_5205_PROFILEOFF",
+      "run": 37886694720
+    },
+    {
+      "scenario": "GAME2_0LOSS_PROFILEOFF",
+      "run": 37888356909
+    },
+    {
+      "scenario": "NORMAL1_0LOSS_PROFILEOFF",
+      "run": 37890396316
+    },
+    {
+      "scenario": "GAME4_0LOSS_PROFILEOFF",
+      "run": 37892395498
+    }
+  ],
+  "previous_old_source_failures": [
+    {
+      "run": 37857040784,
+      "profile": "OFF",
+      "client_socket_d": 33,
+      "server_socket_d": 86
+    },
+    {
+      "run": 37871243581,
+      "profile": "ON",
+      "client_socket_d": 42
+    }
+  ],
+  "after_qualifier": "only one Normal1 true staged5205 source-specific protection",
+  "status": "PENDING_SINGLE_ACTION",
+  "cpu_gain": "UNPROVEN",
+  "other_pending": [
+    "Game2 5205",
+    "E7 ~80s downstream pause",
+    "P6/E6 physical"
+  ]
+}
