@@ -1,0 +1,55 @@
+{
+  "schema": "wbd-e1-uniform32-normal1-staged5205-business-sample-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_head": "6b56c0b4093b03c27cc195e210e86aee16c2c3bc",
+  "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "sample": {
+    "workload": "mixed",
+    "loss": 5205,
+    "seed": 1844,
+    "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps": 10,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "off"
+  },
+  "expected": {
+    "duration_s": 300,
+    "stages": [
+      {
+        "loss_pct": 5,
+        "duration_s": 75
+      },
+      {
+        "loss_pct": 20,
+        "duration_s": 150
+      },
+      {
+        "loss_pct": 5,
+        "duration_s": 75
+      }
+    ],
+    "profile": "OFF",
+    "strict_original_analyzer": true,
+    "baseline_zero_loss": {
+      "run": 37922038550,
+      "result": "SUCCESS"
+    },
+    "prior_weak5205_failures": [
+      37907829434,
+      37915859759
+    ]
+  },
+  "qualifier": "PENDING_FIRST_TRUE_5205_RUN",
+  "guardrails": [
+    "one Action, one business sample, one job",
+    "no Go product changes",
+    "keep packet-size classes unchanged",
+    "no extra CPU classifier",
+    "CPU gain UNPROVEN",
+    "E7 S2C 80s deferred",
+    "old Game4 OFF socket drop FAIL remains"
+  ],
+  "next_step": "verify original analyzer result before any other sample"
+}

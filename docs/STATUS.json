@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_UNIFORM_32MS_NORMAL1_ZEROLOSS_300S_ONE_SOURCE_ONE_JOB_PENDING",
+    "phase": "E1_UNIFORM32_NORMAL1_ZEROLOSS_PASS_NEXT_NORMAL1_TRUE5205_300S_ONE_CASE_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2651,10 +2651,10 @@
       "gates": {
         "foundation": "SUCCESS_37921471604",
         "lifecycle": "SUCCESS_37921471596",
-        "normal1_lossless": "PENDING_ONE_ACTION",
-        "normal1_5205": "NOT_RUN_NEW_SOURCE",
-        "game2_lossless": "HOLD",
-        "game2_5205": "HOLD",
+        "normal1_lossless": "PASS_SCOPED_ACTIONS_37922038550",
+        "normal1_5205": "PENDING_ONE_ACTION_SEED1844",
+        "game2_lossless": "HOLD_UNTIL_NORMAL5205_RESULT",
+        "game2_5205": "HOLD_UNTIL_NORMAL5205_RESULT",
         "low_rtt_sparse": "NOT_RUN",
         "cpu_gain": "UNPROVEN"
       },
@@ -2717,11 +2717,47 @@
         "one_job_per_run": true,
         "not_cpu_gain": true,
         "trigger": "one explicit sample config push"
+      },
+      "normal1_lossless_run": {
+        "run_id": 37922038550,
+        "foundation_run": 37922038536,
+        "workflow_conclusion": "SUCCESS",
+        "profile": "OFF",
+        "workload": "mixed",
+        "loss": 0,
+        "seed": 1843,
+        "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+        "scope": "NORMAL1_300S_ONE_SAMPLE",
+        "product_cpu_gain": "UNPROVEN"
+      },
+      "normal1_5205_next": {
+        "state": "PENDING_ACTION",
+        "config": {
+          "workload": "mixed",
+          "loss": 5205,
+          "seed": 1844,
+          "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+          "mode": "normal",
+          "lanes": 1,
+          "rate_mbps": 10,
+          "size_profile": "ordinary",
+          "diagnostic_mode": "off"
+        },
+        "profile": "OFF",
+        "duration_s": 300,
+        "one_job_one_sample": true,
+        "scenario": "staged5205_5pct_75s_20pct_150s_5pct_75s",
+        "original_old_fail_runs": [
+          37907829434,
+          37915859759
+        ],
+        "cpu_comparison": "NOT_COMPARABLE_CROSS_HOST_AND_LOSS",
+        "evidence": "docs/evidence/e1-uniform32-normal1-staged5205-profileoff-intent-20261009.json"
       }
     }
   },
-  "next_task": "Read ONE Normal1 mixed 0loss source a2db258b strict E0 Action triggered by .github/efficiency-e0-sample.json seed1843 300s profileOFF (product cloned from git rev pinned), require analyzer PASS_SCOPED_ACTIONS, raw UDP missing0 both, TCP/HTTPS/probe and AF_PACKET skmem.d zero, host resource report. If fail do NOT proceed 5205 until causal/fixture issue fixed; preserve original FAIL. If pass, submit separate 300s Normal1 staged 5/20/5 loss5205 seed1844 using SAME source and helper-safe workflow conditional, then Gate Game2 lossless/5205 and low RTT sparse. CPU gains only comparable host strata; 32ms sparse FEC parity may delay recover up to24ms. E7 deferred and physical/main untouched.",
-  "latest_log": "docs/devlog/20261009-202500-e1-32ms-normal1-lossless-sample-dispatch.md",
+  "next_task": "Check exactly ONE triggered next-efficiency-e0-single Action for 32ms source a2db258b Normal1 mixed staged5205 5%75s/20%150s/5%75s seed1844 profileOFF, 300s, 10Mbps, lanes1. Inspect raw analyzer/ledger/stage UDP c2s+s2c including large 1372/4068 UDP, probe, TCP/HTTPS, AF_PACKET socket drop, resource PSI/CPU; FAIL must remain FAIL, not explain missing data away. If PASS, next run Game2 true lossless and staged5205 separately plus lowRTT sparse before calling 32ms qualified. If FAIL, stop broad rollout and investigate scoped FEC/weaknet tradeoff without adding classifier or chasing host speed. Retain 8ms losses and E4 9V45 kernel drop FAIL. CPU improvement requires comparable hosts; E7 ~80s downlink issue deferred.",
+  "latest_log": "docs/devlog/20261009-203500-e1-uniform32-normal1-5205-profileoff-sample-dispatch.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2734,7 +2770,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "Uniform32ms product source a2db258b standalone corrected Foundation37921471604 and Lifecycle37921471596 FULL SUCCESS; prior test-expectation-only FAIL 37921000330/37921000365 preserved. Dispatch one 300s Normal1 mixed lossless FEC20:20 profileOFF with exact source SHA, then separate staged5205 only after analyzer pass. New size classifier NONE, CPU gain UNPROVEN, old failures remain.",
+    "E1 uniform32 frozen product source a2db258b 32ms all preexisting FEC sizes no added classifier, zero-loss Normal1 mixed seed1843 profileOFF run37922038550 + Foundation37922038536 SUCCESS. Now explicit one Normal1 staged 5/20/5 mixed seed1844 profileOFF 300s pending Action, evaluate original analyzer UDP/probe/socket drops; no CPU gain claim. Historical 8ms weak5205 FAIL retained. E7 deferred; no main/physical/queues.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
