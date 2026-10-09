@@ -1,0 +1,83 @@
+name: next-e4-recvmmsg-synthetic-calibration
+run-name: e4-recvmmsg-${{ inputs.mode }}-${{ github.sha }}
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "ONE isolated 12s AF_UNIX recvmmsg synthetic case. Distinct Actions for off/on."
+        required: true
+        type: choice
+        options:
+          - off
+          - on
+permissions:
+  contents: read
+jobs:
+  one-nonproduct-calibration-case:
+    if: github.ref_name == 'next/performance-efficiency-20261008'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      MODE: ${{ inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce one case and pin synthetic source and mode
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$MODE" = off || test "$MODE" = on
+          test "$GITHUB_REF_NAME" = next/performance-efficiency-20261008
+          python3 -m py_compile tools/e4_recvmmsg_calibration.py tools/afpacket_recvmmsg_tracepoint.py
+          cc -O2 -Wall -Wextra -Werror tools/testdata/e4_recvmmsg_calibration.c -o "$RUNNER_TEMP/e4-recvmmsg-calibration"
+          test -x "$RUNNER_TEMP/e4-recvmmsg-calibration"
+      - name: Install BPF observer only in the ON case
+        if: inputs.mode == 'on'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v bpftrace >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y bpftrace
+          fi
+      - name: Run exactly ONE 12s local AF_UNIX calibration case
+        id: single
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          sudo python3 tools/e4_recvmmsg_calibration.py \
+            --fixture "$RUNNER_TEMP/e4-recvmmsg-calibration" \
+            --mode "$MODE" \
+            --output artifacts/e4-recvmmsg-calibration.json
+          cat artifacts/e4-recvmmsg-calibration.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("artifacts/e4-recvmmsg-calibration.json").read_text())
+          assert x["status"]=="ONE_SYNTHETIC_CASE_COMPLETE_NOT_CALIBRATED"
+          assert x["mode"] in ("off","on")
+          assert x["fixture"]["target_calls"]==48000
+          assert x["fixture"]["decoy_calls"]==48000
+          assert x["product_cpu_gain"]=="UNPROVEN"
+          assert x["tracer_overhead_qualified"] is False
+          if x["mode"]=="on":
+              assert x["kernel_counters"]["entered"]==48000
+              assert x["kernel_counters"]["exited"]==48000
+              assert x["kernel_counters"]["unpaired"]==0
+          else:
+              assert x["kernel_counters"]=="NOT_MEASURED_OBSERVER_OFF"
+          print("WBD_E4_ONE_SYNTHETIC_CASE_COMPLETE_NOT_CALIBRATED")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e4-recvmmsg-calibration-${{ inputs.mode }}-${{ github.run_id }}
+          path: artifacts/e4-recvmmsg-calibration.json
+          if-no-files-found: warn
+      - name: Propagate invalid case even if upload succeeded
+        if: always()
+        shell: bash
+        env:
+          RESULT: ${{ steps.single.outcome }}
+        run: test "$RESULT" = success

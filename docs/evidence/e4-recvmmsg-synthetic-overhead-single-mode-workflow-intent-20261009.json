@@ -1,0 +1,72 @@
+{
+  "schema": "wbd-e4-synthetic-observer-overhead-dispatch-only-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "81c43b266aaebf3ed88b17ae24132f4712e2272b",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "old_foundation": 37876452065,
+  "calibration_workflow": ".github/workflows/next-e4-recvmmsg-calibration.yml",
+  "trigger": "workflow_dispatch only (no push)",
+  "one_job_and_mode": true,
+  "fixture": {
+    "transport": "AF_UNIX two socketpairs",
+    "target_fd": 30,
+    "decoy_fd": 31,
+    "duration_s": 12,
+    "rate_target_hz": 4000,
+    "target_calls": 48000,
+    "decoy_calls": 48000,
+    "p99_and_p999_monotonic_clock": true
+  },
+  "bpf": {
+    "on_only": true,
+    "expected_exact_enters": 48000,
+    "expected_exact_exits": 48000,
+    "unpaired_max": 0,
+    "max_map_keys": 4096,
+    "automatic_exit_s": 30,
+    "per_event_stdout": false
+  },
+  "host_observation": [
+    "model",
+    "vcpus",
+    "cpu.max",
+    "cpu.stat",
+    "cpu.pressure",
+    "steal delta",
+    "memory.current"
+  ],
+  "metrics": [
+    "fixture cpu user+system seconds",
+    "fixture recv p99 and p999",
+    "tracer process user+system CPU via wait4",
+    "tracer RSS and stderr/exitcode"
+  ],
+  "comparison": {
+    "separate_Actions_for_OFF_and_ON": true,
+    "min_valid_cases_per_mode": 3,
+    "matching_strata": [
+      "cpu model",
+      "vcpus",
+      "cpu.max",
+      "exact fixture ELF SHA"
+    ],
+    "no_throttling_or_steal": true,
+    "worst_case_cpu_ratio_budget": 1.05,
+    "worst_case_p99_ratio_budget": 1.1,
+    "max_tracer_rss_kib": 524288,
+    "unmatched": "NOT_CALIBRATED",
+    "even_green": "SYNTHETIC_SCOPE_ONLY_NOT_PRODUCT_QUALIFICATION"
+  },
+  "limits": [
+    "no real results are produced by pushing this workflow",
+    "GitHub connector does not expose workflow_dispatch action",
+    "no product source or actual network interface touched",
+    "single-process BPF observed syscall counts are not Go goroutine scheduling or AF_PACKET kernel drops"
+  ],
+  "new_business_300s_runs": 0,
+  "historical_failed_samples": [
+    37857040784,
+    37871243581
+  ],
+  "cpu_gain": "UNPROVEN"
+}

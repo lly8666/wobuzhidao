@@ -18,11 +18,13 @@ MAX_BPF_MAP_KEYS = 4096
 MIN_GAP_NS = 20_000_000
 BUCKET_NS = 100_000_000
 
-def program(pid, seconds=2, ready=False, recv_fd=None):
+def program(pid, seconds=2, ready=False, recv_fd=None, calibration=False):
     if type(pid) is not int or not 1 <= pid <= 2147483647:
         raise ValueError("positive numeric target tgid required")
-    if type(seconds) is not int or seconds not in (2, 5):
-        raise ValueError("only bounded 2s capability or 5s functional smoke may execute")
+    if type(seconds) is not int or not (
+        seconds in (2, 5) or (calibration is True and seconds==30)
+    ):
+        raise ValueError("only 2s attach, 5s synthetic, or explicit bounded 30s calibration")
     if recv_fd is not None and (type(recv_fd) is not int or recv_fd < 0 or recv_fd >= 4096):
         raise ValueError("target receive FD must be an exact bounded integer")
     # The exit tracepoint has only its return value. Remember a matching

@@ -64,6 +64,9 @@ jobs:
           cc -fsyntax-only tools/testdata/e4_recvmmsg_socketpair_smoke.c
           cc -fsyntax-only tools/testdata/e4_recvmmsg_two_fd_smoke.c
           cc -fsyntax-only tools/testdata/e4_recvmmsg_two_fd_256_events.c
+          python3 -m py_compile tools/e4_recvmmsg_calibration.py tools/e4_recvmmsg_calibration_compare.py
+          python3 -m unittest discover -s tools -p 'test_e4_recvmmsg_calibration.py' -v
+          cc -O2 -Wall -Wextra -Werror -fsyntax-only tools/testdata/e4_recvmmsg_calibration.c
       - id: layout
         name: Detect active module
         shell: bash

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_RECVMMSG_TARGET_FD_FILTER_AND_256_EVENT_INTEGRITY_GREEN_OVERHEAD_UNMEASURED",
+    "phase": "E4_RECVMMSG_SYNTHETIC_OVERHEAD_MANUAL_SINGLE_CASE_WORKFLOW_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1425,12 +1425,40 @@
           "result_evidence": "docs/evidence/e4-recvmmsg-256-target-256-decoy-in-kernel-foundation-success-20261009.json",
           "independent_business_runs": 0
         },
-        "state": "KERNEL_TARGET_FD_INTEGRITY_SCOPED_PASS_OVERHEAD_NOT_VALIDATED"
+        "state": "KERNEL_TARGET_FD_INTEGRITY_SCOPED_PASS_OVERHEAD_NOT_VALIDATED",
+        "overhead_calibration": {
+          "status": "CODE_PENDING_FOUNDATION_NOT_DISPATCHED",
+          "workflow": ".github/workflows/next-e4-recvmmsg-calibration.yml",
+          "trigger": "workflow_dispatch ONLY",
+          "job_count": 1,
+          "mode": "off OR on; NEVER BOTH",
+          "runner": "ubuntu-24.04",
+          "fixture": "tools/testdata/e4_recvmmsg_calibration.c",
+          "script": "tools/e4_recvmmsg_calibration.py",
+          "comparator": "tools/e4_recvmmsg_calibration_compare.py",
+          "tests": "tools/test_e4_recvmmsg_calibration.py",
+          "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+          "duration_s": 12,
+          "target_recvmmsg_rate_hz": 4000,
+          "target_calls": 48000,
+          "decoy_calls": 48000,
+          "trace_run_bound_s": 30,
+          "bpf_max_map_keys": 4096,
+          "need_per_mode_matched_host": 3,
+          "cpu_budget_ratio_worst_case": 1.05,
+          "p99_budget_ratio_worst_case": 1.1,
+          "rss_tracer_cap_kib": 524288,
+          "host_strata": "CPU model, vCPUs, cpu.max, ELF hash, zero cgroup throttling/steal",
+          "code_not_real_measurement": true,
+          "product_cpu_gain": "UNPROVEN",
+          "product_trace_admission": "NOT_VALIDATED",
+          "evidence": "docs/evidence/e4-recvmmsg-synthetic-overhead-single-mode-workflow-intent-20261009.json"
+        }
       }
     }
   },
-  "next_task": "E4 next gate: independently validate kernel tracepoint interference and lost-event bounds under a representative synthetic raw receiver syscall rate, using distinct Actions single-case single-job per baseline-vs-PID+recvFD trace mode, never A/B within one run, no unqualified normalization across CPU/host strata. Record known generated recvmmsg counts vs in-kernel enter/exit, map lost/overflow or unknown, separate fixture CPU-s, tracer CPU-s, memory, p99/high tails, host CPU model/vCPU/PSI/steal/cgroup quota; require predefined budget and overlapping baseline/tracer strata or mark NOT_CALIBRATED. Do not run another Game4 300s or change frozen ba8ed1 product until overhead and causal evidence justify. 5s 256+256 synthetic pass is NOT this overhead gate; Go receiver goroutine state still NOT_OBSERVED. Prior 9V45 OFF client33/server86 and ON client42 resource FAIL remain; E7 OPEN_DEFERRED, Normal/Game protectors hold, CPU gain UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e4-recvmmsg-kernel-256-256-event-integrity-scoped-pass.md",
+  "next_task": "Check Foundation for new C 12s 4000/s local AF_UNIX fixture compiler -Wall/-Wextra/-Werror, exact mode 30s bpftrace opt-in, comparator fail-closed unit tests, and manual workflow policy plus full Linux/Windows/race/TPROXY/TUN/fallback. New .github/workflows/next-e4-recvmmsg-calibration.yml is ONLY workflow_dispatch, not auto-triggered, has one case/job/mode. Once code green, dispatch OFF and ON as distinct Actions only through an explicitly permitted action, >=3 each under exact matching VM CPU/vCPU/cpu.max/fixture ELF SHA; collect actual tracer userspace CPU and fixture CPU/p99/RSS, cgroup throttle/steal/PSI, exact 48000 BPF enters/exits. Without matched cases and predefined CPU+5% p99+10% budget, NOT_CALIBRATED, and any synthetic green remains NOT_PRODUCT_VALIDATED. Never create another 300s Game4 workload without causal budget; no buffer/queue increases; prior 9V45 OFF d33/86 and ON d42 formal resource FAIL preserved, E7 OPEN_DEFERRED, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e4-recvmmsg-independent-observer-overhead-workflow-contract.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1443,7 +1471,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 external Linux kernel recvmmsg diagnostics have scoped Foundation SUCCESS: native two-second attach; synthetic 2 syscall /60ms gap; exact /proc AF_PACKET socket recvFD; 2 target+2 decoy; now bounded 256 target +256 decoy eBPF count exact on 5s fixture in Foundation37876138265, raw artifact verified SHA256. No high-PPS observer CPU/latency overhead qualification; original EPYC9V45 OFF d33/86 and ON d42 Game4 lossless socket-drop resource FAIL remain OPEN; CPU gain UNPROVEN.",
+    "E4 lossless 9V45 original OFF AF_PACKET d33/86 and same-model ON d42 formal FAIL remain. Last Foundation37876452065 SUCCESS. Code-only no-prod 12s AF_UNIX PID+FD trace OFF/ON standalone single-dispatch one-job synthetic overhead workflow pending Foundation, NOT dispatched. Needs >=3 matched CPU/quota/fixture-sha independent runs per mode for even synthetic provisional budget, no 300s Game4 run; CPU UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
