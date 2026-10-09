@@ -1,0 +1,93 @@
+{
+  "schema": "wbd-e1-uniform32-game2-staged5205-and-15ms-sparse-link-protector/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "helper_head": "e1d93a50778000e95e68d1c60f1dca5b1ab9d279",
+  "product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "fullstack": {
+    "run_id": 37926864614,
+    "job_id": 113807779206,
+    "artifact_id": 11614806364,
+    "source": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "helper": "e1d93a50778000e95e68d1c60f1dca5b1ab9d279",
+    "seed": 1842,
+    "profile": "OFF",
+    "mode": "game",
+    "configured_lanes": 2,
+    "actual_active_lanes": "NOT_OBSERVED_PROFILE_OFF",
+    "workload": "mixed",
+    "duration_s": 300,
+    "one_way_delay_ms": 300,
+    "staged_loss": "5%-20%-5%",
+    "original_decision": "PASS_SCOPED_ACTIONS",
+    "issues": [],
+    "udp_each_direction": {
+      "sent": 103062,
+      "missing": 0,
+      "stress_sent": 51503,
+      "stress_missing": 0,
+      "stress_by_size_96_256_512_1000_1372_4068_missing": 0
+    },
+    "probe": {
+      "c2s_missing_of_1500": 0,
+      "s2c_missing_of_1495": 1
+    },
+    "tcp_each_direction": {
+      "sent": 304,
+      "received": 304,
+      "mismatch": 0
+    },
+    "http_https": {
+      "returned": 20,
+      "attempted": 20,
+      "tls_verified": 10
+    },
+    "kernel_packet_socket_drops": {
+      "client": 0,
+      "server": 0
+    },
+    "netdev_extra_drops": 0,
+    "resource_errors": [],
+    "host_model": "AMD EPYC 7763",
+    "vcpus": 4,
+    "cgroup_quota": "UNKNOWN",
+    "cpu_psi_max_percent": 37.35,
+    "product_cpu_total_s": 223.88,
+    "summary_sha256": "e3bdc9783e882ee7097760db45c6b39c3994bc9f8a5cd43180bb48e4dcd78c71",
+    "ledger_sha256": "93624e5c1b00f1682ac437742d3bbaeb71522931cc30e79486b6b6b145580f0c",
+    "artifact_zip_sha256": "79224bc646d548269502a84b44710ec3ae03db4ebdfa5333a81158df0909a77a"
+  },
+  "next_protector": {
+    "test": "internal/linkdata/e1_sparse_15ms_32ms_test.go",
+    "state": "PENDING_FOUNDATION",
+    "scope": "deterministic LINK/FEC only, NOT simulated RTT distribution",
+    "parity_profiles": [
+      4,
+      20
+    ],
+    "udp_sizes": [
+      96,
+      1372,
+      4068
+    ],
+    "one_way_ms": 15,
+    "first_source_loss_count": 1,
+    "partial_parity_deadline_ms": 32,
+    "expected_first_repair_arrival_ms": 47,
+    "independent_next_packet_send_ms": 45,
+    "expected_next_immediate_delivery_arrival_ms": 60,
+    "max_extra_parity_latency_relative_old8_ms": 24,
+    "new_classifier": false,
+    "new_product_hotpath": false
+  },
+  "gates": {
+    "normal1_lossless": 37922038550,
+    "normal1_5205": 37924613499,
+    "game2_lossless": 37925722025,
+    "game2_5205": 37926864614,
+    "low_rtt_real_e2e": "NOT_RUN",
+    "game2_actual_2_lane_runtime_count": "NOT_QUALIFIED",
+    "game4_9v45_off_drop_failure": "OPEN",
+    "cpu_gain": "UNPROVEN",
+    "e7": "OPEN_DEFERRED"
+  }
+}

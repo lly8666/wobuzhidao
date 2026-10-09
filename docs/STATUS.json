@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_UNIFORM32_NORMAL1_0AND5205_PASS_GAME2_0_BUSINESS_PASS_NEXT_GAME2_5205_PROFILEOFF_PENDING",
+    "phase": "E1_UNIFORM32_NORMAL_AND_GAME2_BUSINESS_0_5205_SCOPED_PASS_15MS_SPARSE_LINK_TEST_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -2654,8 +2654,8 @@
         "normal1_lossless": "PASS_SCOPED_ACTIONS_37922038550",
         "normal1_5205": "PASS_SCOPED_ACTIONS_37924613499",
         "game2_lossless": "PASS_SCOPED_BUSINESS_PROFILEOFF_37925722025_REAL_LANE_CARDINALITY_UNOBSERVED",
-        "game2_5205": "PENDING_ONE_SOURCE_A2DB_SEED1842_PROFILEOFF",
-        "low_rtt_sparse": "NOT_RUN_CURRENT_SOURCE",
+        "game2_5205": "PASS_SCOPED_BUSINESS_PROFILEOFF_37926864614_ACTUAL_TWO_LANES_NOT_PROVEN",
+        "low_rtt_sparse": "FOUNDATION_PENDING_15MS_ONE_WAY_LINK_ONLY",
         "cpu_gain": "UNPROVEN"
       },
       "history_failures": [
@@ -2884,7 +2884,7 @@
         "artifact_zip_sha256": "0673c0e3efc79c8bbf4173efe90d5bd9f5441a5475cb4a37a9a0ac3f81afe493"
       },
       "next_game2_5205": {
-        "state": "PENDING_ONE_ACTION",
+        "state": "PASS_SCOPED_BUSINESS_PROFILEOFF_LANE_COUNT_UNOBSERVED",
         "sample": {
           "workload": "mixed",
           "loss": 5205,
@@ -2899,13 +2899,107 @@
         "duration_s": 300,
         "profile": "OFF",
         "one_job": true,
-        "actual_game_lanes_proof": "NOT_MEASURED_PROFILE_OFF; NEXT_SEPARATE_ON_DIAGNOSTIC_REQUIRED",
-        "evidence": "docs/evidence/e1-uniform32-game2-lossless-business-pass-next-game2-5205-intent-20261009.json"
+        "actual_game_lanes_proof": "NOT_QUALIFIED_PROFILE_OFF_runtime_game_evidence_empty",
+        "evidence": "docs/evidence/e1-uniform32-game2-5205-profileoff-pass-and-15ms-sparse-protector-20261009.json",
+        "run_id": 37926864614,
+        "job_id": 113807779206,
+        "artifact_id": 11614806364,
+        "helper_sha": "e1d93a50778000e95e68d1c60f1dca5b1ab9d279",
+        "actual_product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+        "analyzer": "PASS_SCOPED_ACTIONS",
+        "issues": [],
+        "stress_stage_realized": {
+          "c2s_percent": 20.006861661917775,
+          "s2c_percent": 20.079234753585496
+        },
+        "pre_stage_realized": {
+          "c2s_percent": 4.992226422729816,
+          "s2c_percent": 4.971089197206562
+        },
+        "post_stage_realized": {
+          "c2s_percent": 4.9473351015641205,
+          "s2c_percent": 4.992422157872439
+        },
+        "udp_per_direction": {
+          "sent": 103062,
+          "eventually_missing": 0,
+          "stress_sent": 51503,
+          "stress_missing": 0,
+          "stress_missing_by_size": {
+            "96": 0,
+            "256": 0,
+            "512": 0,
+            "1000": 0,
+            "1372": 0,
+            "4068": 0
+          }
+        },
+        "probes": {
+          "c2s": {
+            "sent": 1500,
+            "missing": 0
+          },
+          "s2c": {
+            "sent": 1495,
+            "missing": 1,
+            "stress_missing": 1
+          }
+        },
+        "tcp": {
+          "sent_flows_each_direction": 304,
+          "received_flows_each_direction": 304,
+          "hash_mismatches": 0
+        },
+        "web": {
+          "http_https_returned": "20/20",
+          "tls_verified": "10/10"
+        },
+        "packet_socket_drop": {
+          "client": 0,
+          "server": 0
+        },
+        "netdev_extra_drops": 0,
+        "resource_errors": [],
+        "rtt_one_way_ms": 300,
+        "cpu_total_product_s": 223.88,
+        "host": "AMD EPYC 7763 4vCPU",
+        "host_cpu_psi_max_pct": 37.35,
+        "cgroup_cpu_quota": "UNKNOWN",
+        "summary_sha256": "e3bdc9783e882ee7097760db45c6b39c3994bc9f8a5cd43180bb48e4dcd78c71",
+        "cost_ledger_sha256": "93624e5c1b00f1682ac437742d3bbaeb71522931cc30e79486b6b6b145580f0c",
+        "artifact_zip_sha256": "79224bc646d548269502a84b44710ec3ae03db4ebdfa5333a81158df0909a77a"
+      },
+      "low_rtt_sparse_test": {
+        "state": "PENDING_FOUNDATION",
+        "path": "internal/linkdata/e1_sparse_15ms_32ms_test.go",
+        "packet_sizes_bytes": [
+          96,
+          1372,
+          4068
+        ],
+        "parity_profiles": [
+          4,
+          20
+        ],
+        "one_way_delay_ms": 15,
+        "source_gap_ms": 45,
+        "parity_deadline_ms": 32,
+        "first_repair_arrival_ms": 47,
+        "later_fresh_arrival_ms": 60,
+        "assertions": [
+          "first missing systematic is recovered by parity",
+          "next independent small packet delivered on first arrival",
+          "no repeat delivery after later parity",
+          "no dead timer after flush"
+        ],
+        "scope": "SYNTHETIC_LINK_FEC_ONLY_NOT_REAL_15MS_NETNS",
+        "cpu_claim": "NONE",
+        "evidence": "docs/evidence/e1-uniform32-game2-5205-profileoff-pass-and-15ms-sparse-protector-20261009.json"
       }
     }
   },
-  "next_task": "Inspect ONE new Game2 mixed staged5205 source a2db profileOFF 300s Action seed1842, 2 configured lanes rate3Mbps, exact original analyzer and stress UDP by-size/size 4068 missing, probes, TCP+HTTPS, socket+netdev drops, host CPU; FAIL must remain FAIL. If PASS, still Game2 real ActiveLogicalLanes/PhysicalLanes 2 not yet evidenced: OFF summary runtime_game_evidence {}, needs separate source-pinned profiling ON diagnostic Action; never compare that CPU to OFF. Then 15ms one-way low-RTT sparse protection before global 32ms approval. Preserve 9V45 Game4 socket lossless FAIL, E7 80s downlink deferred and CPU UNPROVEN. No product source/packet size classes/queues changes.",
-  "latest_log": "docs/devlog/20261009-211000-e1-uniform32-game2-lossless-pass-game2-5205-next.md",
+  "next_task": "Check new Foundation for internal/linkdata/e1_sparse_15ms_32ms_test.go (2 parity profiles x sizes96/1372/4068, one-way15ms, 45ms sparse interval, 32ms partial parity, exactly one erased initial LINK fragment and recovery on 47ms, subsequent independent fresh at 60ms, no HOL/duplicate, timer retirement). Check all Go core/race, Linux/Windows, lifecycle, TPROXY/TUN/fallback before advancing. This is deterministic LINK scope ONLY, not real 15ms RTT E2E qualification; next build one source-pinned real 15ms one-way sparse protector using existing single-sample workflow with no extra matrix or source changes, or record unsupported harness. Do not interpret Game2 profileOFF as proof of active 2 lanes: runtime_game_evidence={} requires separately authorized same-SOURCE profileON lane-count diagnostic (never OFF CPU cost). Product SOURCE a2db frozen; no additional classifiers, buffers, ready/shard queues, or per-packet timers. Keep old 9V45 Game4 socket drop official FAIL, E7~80s downlink deferred, CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-213000-e1-uniform32-game2-5205-real-pass-lowrtt-sparse-link-protector.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
@@ -2918,7 +3012,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E1 uniform32 SOURCE a2db: Normal1 zero-loss 37922038550 PASS, Normal1 true5205 37924613499 PASS with c2s/s2c app UDP missing7/2 and 0 kernel drops. Game2 config 2 lanes zero-loss profileOFF run37925722025 original analyzer PASS, 103062 UDP each side missing0, probes0, all TCP HTTPS, socket/netdev drop0; BUT runtime_game_evidence {} because profile OFF, actual lane multiplicity unverified. Now one Game2 true5205 profileOFF seed1842 pending, then independent diagnosticON for lane count and lowRTT sparse. CPU gain UNPROVEN.",
+    "E1 uniform32 FEC defaults PRODUCT SOURCE a2db258b: Normal1 lossless37922038550 PASS, Normal1 staged5205 37924613499 PASS, configured Game2 lossless37925722025 PASS, configured Game2 staged5205 run37926864614 exact 300s profileOFF PASS udp0/206124 both, probe1/2995, TCP304/304 each, HTTP/HTTPS20/20, local packet drops0. True two active Game lanes NOT OBSERVED in profileOFF, product CPU benefit UNPROVEN; 15ms one-way sparse LINK/FEC protection new test pending Foundation. Legacy Game4 9V45 lossless socket drops remain FAIL, E7~80s S2C OPEN_DEFERRED.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
