@@ -1,0 +1,9 @@
+{
+  "schema": "wbd-e4-synthetic-calibration-case/v1",
+  "case_id": "e4-off-01",
+  "mode": "off",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "fixture_git_blob": "619370aec8ec9c98f09b5fe34aea60205f126870",
+  "driver_git_blob": "2bb9f8a7ef628ac3dc2b00159db20b62601e01e1",
+  "tracer_git_blob": "9628f85aa683d98682a9492bc0ebfd3a35a0a857"
+}

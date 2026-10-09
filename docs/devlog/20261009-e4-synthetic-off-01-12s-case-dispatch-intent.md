@@ -1,0 +1,7 @@
+# E4 synthetic recvmmsg observer OFF-only 12s baseline e4-off-01 (2026-10-09)
+
+Branch next/performance-efficiency-20261008; this case-sample commit must change EXACTLY .github/e4-recvmmsg-calibration-case.json (A), docs/STATUS.json (M), and this new docs/devlog markdown (A). Fixed C fixture Git blob 619370aec8ec9c98f09b5fe34aea60205f126870, Python driver blob 2bb9f8a7ef628ac3dc2b00159db20b62601e01e1, trace script blob 9628f85aa683d98682a9492bc0ebfd3a35a0a857, product source ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072. This is an explicit one-case pseudo-dispatch via audited config change on nondefault feature branch; it is NOT a broad push measurement trigger.
+
+OFF synthetic standalone 12s local AF_UNIX target fd30 at4000 recvmmsg/s = 48000, decoy fd31 48000; no BPF, no Game4 or product network. The independent workflow runs only one job and uploads one receipt including C fixture elapsed/p99/p999/self CPU user/system/RSS, CPU model/vCPUs/quota/PSI/steal/throttle and exact binary SHA. It MUST NOT describe BPF events as 0 (they are NOT_MEASURED_OBSERVER_OFF). No CPU efficiency claim: this one OFF Action without 3 matching ON/OFF pairs is NOT_CALIBRATED. Normal/Foundation state separately checked.
+
+Keep original EPYC9V45 lossless OFF Game4 run37857040784 client socket d33/server d86 and same-model ON run37871243581 client d42 official LOCAL_SOCKET_DROP FAIL. Prior all other protection/E7 ~80sec outage still blocked/deferred, CPU gain UNPROVEN.

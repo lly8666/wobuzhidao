@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_CALIBRATION_CASE_STATUS_LOG_EXACT_DIFF_GUARD_FOUNDATION_PENDING",
+    "phase": "E4_EXPLICIT_CONFIG_ONLY_OFF_01_12S_LOCAL_SYNTHETIC_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1476,7 +1476,7 @@
           "config_git_hash_guard": "fixture/driver/tracer source git blob SHA exact, one config-only commit per Action",
           "code_only_push_triggers_calibration": false,
           "calibration_cases": {
-            "off": 0,
+            "off": "PENDING_01",
             "on": 0
           },
           "previous_foundation": {
@@ -1494,13 +1494,21 @@
           },
           "case_commit_guard": "EXACT THREE PATHS: .github/e4-recvmmsg-calibration-case.json + docs/STATUS.json modified + one new docs/devlog/*.md",
           "state": "PENDING_FOUNDATION",
-          "reason": "repository check_repository requires STATUS and one NEW devlog per commit; strict helper hash guard still active"
+          "reason": "repository check_repository requires STATUS and one NEW devlog per commit; strict helper hash guard still active",
+          "case_status": {
+            "case_id": "e4-off-01",
+            "mode": "off",
+            "status": "PENDING_SINGLE_PUSH_ACTION_RESULT",
+            "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+            "no_game4": true,
+            "one_case_one_job": true
+          }
         }
       }
     }
   },
-  "next_task": "Verify Foundation for case commit guard exact 3 paths: A/M .github/e4-recvmmsg-calibration-case.json, M docs/STATUS.json, A exactly one docs/devlog/*.md, and all 3 helper SHA unchanged; no code changes in case commit. After full Foundation green, push one e4-off-01 case+STATUS+new devlog, inspect exactly one 12s synthetic workflow and full separate Foundation; if OFF valid, later one independent e4-on-01 commit, no in-run A/B. Product source ba8ed1 frozen and 300s Game4 no reruns. Matching calibration groups minimum 3 each CPU model/vCPU/quota/ELF SHA and stable PSI<=10%, no throttle/steal; absent remains NOT_CALIBRATED. E4 original socket-drop FAIL OPEN, CPU UNPROVEN E7 deferred.",
-  "latest_log": "docs/devlog/20261009-e4-calibration-case-status-new-log-whitelist.md",
+  "next_task": "Check unique Action for .github/e4-recvmmsg-calibration-case.json e4-off-01 after config-only/STATUS/new-log push; require original 12s synthetic runner OFF receipt ONE_SYNTHETIC_CASE_COMPLETE_NOT_CALIBRATED, 48000 target and 48000 decoy, valid duration/p99/CPU, actual host model/vcpu/cgroup/PSI, stdout and artifact hash. Confirm coincident Foundation but do NOT claim its product relevance. If OFF valid, next independent ON e4-on-01 separate config-only/STATUS/new-log push; if OFF FAIL preserve red and fix demonstrated tool flaw. No 300s Game4, no product SOURCE or buffers/queues change. Keep old socket FAIL, CPU UNPROVEN, E7 deferred.",
+  "latest_log": "docs/devlog/20261009-e4-synthetic-off-01-12s-case-dispatch-intent.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1513,7 +1521,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "E4 12s synthetic branch-only calibration requires explicit case file push, but repository contract also requires modified STATUS and new devlog. Guard now restricts each case commit to EXACT three paths with A/M states and unchanged fixture/tracer/driver source hashes; pending Foundation, not launched. Prior static policy failed Actions retained. Frozen ba8ed1 Game4 lossless 9V45 OFF socket33/86 and ON socket42 remain official FAIL, CPU gain UNPROVEN.",
+    "E4 synthetic observer overhead isolated OFF first 12s AF_UNIX fixture mode e4-off-01 pending one-workflow ACTION on audited three-path case push. Fixture target FD30 48000 recvmmsg and decoy FD31 48000. Product ba8ed1 and canonical unchanged. E4 historical 9V45 Game4 0loss profileOFF client33/server86 and profileON client42 AF_PACKET original FAIL remain, CPU gain UNPROVEN.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
