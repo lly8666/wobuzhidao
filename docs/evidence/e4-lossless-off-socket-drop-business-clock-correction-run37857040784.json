@@ -1,0 +1,84 @@
+{
+  "schema": "wbd-e4-existing-artifact-monotonic-reinterpretation/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent_sha": "ceb7294d398f0cb8886495f1edc32824bdb79618",
+  "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "original_run_id": 37857040784,
+  "original_artifact_id": 11583983972,
+  "original_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37857040784",
+  "original_analyzer": "FAIL",
+  "original_issues": [
+    "RESOURCE_AUDIT_WARNINGS",
+    "LOCAL_SOCKET_DROP"
+  ],
+  "observed_resource_first_monotonic_ns": 78906235662,
+  "business_start_monotonic_ns": 90853719043,
+  "delta_resource_start_to_business_start_s": 11.947483381,
+  "sha256": {
+    "resources.jsonl": "d20dd40645ff7188f7ce1a804799cd983030f74bb814e5666c1ea5de8e75b624",
+    "stage-events.jsonl": "bf609cd849c1abf6bf631d10a3348a23da4298b9a366a9b1450c755bb7953c28"
+  },
+  "drop_intervals": [
+    {
+      "side": "server",
+      "d_before": 0,
+      "d_after": 86,
+      "business_elapsed_s": [
+        86.052515,
+        87.052582
+      ],
+      "packet_socket_rmem_bytes_at_both_snapshots": [
+        0,
+        0
+      ],
+      "effective_rb_bytes": 1048576,
+      "cpu_psi_some_avg10_at_both_snapshots_percent": [
+        5.53,
+        5.53
+      ],
+      "process_user_system_ticks_total_interval_delta": 71
+    },
+    {
+      "side": "client",
+      "d_before": 0,
+      "d_after": 33,
+      "business_elapsed_s": [
+        142.052521,
+        143.052518
+      ],
+      "packet_socket_rmem_bytes_at_both_snapshots": [
+        0,
+        0
+      ],
+      "effective_rb_bytes": 1048576,
+      "cpu_psi_some_avg10_at_both_snapshots_percent": [
+        6.12,
+        6.12
+      ],
+      "process_user_system_ticks_total_interval_delta": 92
+    }
+  ],
+  "previous_reported_intervals": {
+    "server": [
+      98,
+      99
+    ],
+    "client": [
+      154,
+      155
+    ],
+    "clock": "RESOURCE_FIRST_SAMPLE_NOT_BUSINESS_START",
+    "status": "SUPERSEDED_TIME_AXIS_ONLY"
+  },
+  "limitations": [
+    "Single-second resource snapshots cannot determine drop instant or burst length",
+    "rmem0 snapshots before and after do not exclude short saturation",
+    "CPU PSI some avg10 is not proof of CPU quota saturation",
+    "No packet text or payload inspected; no new measured sample",
+    "No resource/CPU win; existing product OFF original FAIL preserved"
+  ],
+  "forensics_script": "tools/packet_socket_drop_forensics.py",
+  "forensics_tests": "tools/test_packet_socket_drop_forensics.py",
+  "forensic_ci": "PENDING_NEXT_FOUNDATION",
+  "new_performance_run": false
+}
