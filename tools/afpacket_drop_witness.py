@@ -145,8 +145,28 @@ def correlate(probes, diag, resources, stages):
                        if w["read_gap_over10ms_count_delta"] is not None]
             throttle_values=[w["nr_throttled_delta"] for w in cpu
                             if w["nr_throttled_delta"] is not None]
+            # Every OS schedstat delta is over two sampling instants, and
+            # only matched TID+birth threads survive. Neither Go goroutine
+            # identity nor recvmmsg start/finish timestamps are accessible.
+            sched = [
+                row["process_sched"] for row in probes[side]
+                if isinstance(row.get("process_sched"), dict) and
+                   row["process_sched"].get("status") in ("MATCHED_COMPLETE","MATCHED_PARTIAL") and
+                   type(row["process_sched"].get("from_monotonic_ns")) is int and
+                   type(row["process_sched"].get("to_monotonic_ns")) is int and
+                   row["process_sched"]["from_monotonic_ns"] < z and
+                   row["process_sched"]["to_monotonic_ns"] > a
+            ]
+            sched_delay = (sum(row["runqueue_wait_ns_delta"] for row in sched)
+                           if sched else None)
+            sched_complete = bool(sched) and all(
+                row["status"]=="MATCHED_COMPLETE" for row in sched)
             witness.append({
                 "drop_increment":interval["drop_increment"],
+                "os_thread_runqueue_wait_ns_overlapping_lower_bound":sched_delay,
+                "os_thread_sched_matching_observations":len(sched),
+                "os_thread_sched_population_complete":sched_complete,
+                "os_thread_evidence":"NOT_GO_GOROUTINE_OR_RECV_SYSCALL_TRACE",
                 "business_elapsed_bound_s":[interval["earliest_possible_s"],interval["latest_possible_s"]],
                 "kernel_time_exact":False,
                 "ss_gap_over_250ms":interval["missed_sample_bracket"],
@@ -181,6 +201,7 @@ def correlate(probes, diag, resources, stages):
             "raw_io receive_calls are cumulative and snapshots are ~1s: positives cannot exclude a 100ms recv starvation",
             "server read_gap is inter-successful-read high watermark and over10ms count, not recvmmsg syscall stall timestamps",
             "cgroup CPU throttling may be shared across processes/host; 1s overlap does not prove socket-drop cause",
+            "OS-thread schedstat shows only matching threads and cannot identify which Go goroutine runs the raw receiver",
             "wall-to-monotonic alignment via paired resources is approximate; raw ss kernel drop time not timestamped",
             "absent and malformed numeric probe data are UNUSABLE, not zero packet loss",
             "profile ON overhead and different CPUs forbid formal CPU efficiency comparison",

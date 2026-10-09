@@ -1,0 +1,20 @@
+{
+  "schema": "wbd-e4-same-run-witness-workflow-preflight/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent": "e90cc2eaec32e32b86ca12598f03b4daf46b47b2",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "triggered_performance_runs": 0,
+  "only_tested_on": "Foundation pending",
+  "changes": [
+    "join matched OS thread schedstat in readonly correlator",
+    "new synthetic timing bracket guard",
+    "100ms profileON witness analysis and independent fail-closed step in single-sample workflow"
+  ],
+  "no_sample_config_or_generator_change": true,
+  "new_output": "e4-packet-drop-witness.json",
+  "profile_on_only": true,
+  "no_cpu_claim": true,
+  "original_analyzer_preserved": true,
+  "previous_off_socket_fail": 37857040784,
+  "prior_broken_probe_workflow_fail": 37865738583
+}

@@ -56,6 +56,22 @@ class SameRunWitness(unittest.TestCase):
         self.assertEqual(result["causal_root"],"NOT_ESTABLISHED")
         self.assertIsNone(result["sides"]["client"]["socket_drop_witnesses"][0]["server_read_gap_over10ms_bucket_delta"])
 
+    def test_sched_context_overlap_cannot_assert_reader_stall(self):
+        probes={side:trace(side,(0,7,7)) for side in ("client","server")}
+        for side in ("client","server"):
+            probes[side][1]["process_sched"]={
+                "status":"MATCHED_COMPLETE",
+                "from_monotonic_ns":1_000_000_000,
+                "to_monotonic_ns":1_100_000_000,
+                "runqueue_wait_ns_delta":8_000_000}
+        got=correlate(probes,{side:diags(side) for side in ("client","server")},
+                      resources(),stage())
+        w=got["sides"]["server"]["socket_drop_witnesses"][0]
+        self.assertEqual(w["os_thread_runqueue_wait_ns_overlapping_lower_bound"],8_000_000)
+        self.assertTrue(w["os_thread_sched_population_complete"])
+        self.assertEqual(w["os_thread_evidence"],"NOT_GO_GOROUTINE_OR_RECV_SYSCALL_TRACE")
+        self.assertEqual(got["causal_root"],"NOT_ESTABLISHED")
+
     def test_invalid_trace_does_not_become_zero_drop(self):
         probes={side:trace(side,good=False) for side in ("client","server")}
         res=correlate(probes,{side:diags(side) for side in ("client","server")},resources(),stage())

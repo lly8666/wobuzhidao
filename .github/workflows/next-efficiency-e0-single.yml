@@ -140,6 +140,22 @@ jobs:
               print("AF_PACKET_PROBE_DIAGNOSTIC_ONLY",side,"samples",len(rows))
           PY
           fi
+      - name: Fail-closed observational E4 same-run witness
+        id: witness
+        if: always()
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [[ "$WBD_EFF_DIAGNOSTIC" == "1" ]]; then
+            python3 tools/afpacket_drop_witness.py \
+              --client-packet-probe "$ART/client-packet-probe.jsonl" \
+              --server-packet-probe "$ART/server-packet-probe.jsonl" \
+              --client-diag "$ART/client-diag.jsonl" \
+              --server-diag "$ART/server-diag.jsonl" \
+              --resources "$ART/resources.jsonl" \
+              --stage-events "$ART/stage-events.jsonl" \
+              --output "$ART/e4-packet-drop-witness.json"
+          fi
       - name: Enforce true profile-off measurement
         if: always()
         run: |
@@ -208,6 +224,7 @@ jobs:
             ${{ env.ART }}/client-diag.jsonl
             ${{ env.ART }}/client-packet-probe.jsonl
             ${{ env.ART }}/server-packet-probe.jsonl
+            ${{ env.ART }}/e4-packet-drop-witness.json
             ${{ env.ART }}/server-diag.jsonl
             ${{ env.ART }}/client-cpu-top.txt
             ${{ env.ART }}/server-cpu-top.txt
@@ -231,6 +248,7 @@ jobs:
           ANALYZER: ${{ steps.analyze.outcome }}
           LEDGER: ${{ steps.ledger.outcome }}
           PROBE_AUDIT: ${{ steps.probe_audit.outcome }}
+          WITNESS: ${{ steps.witness.outcome }}
         run: |
           echo "sample=$SAMPLE analyzer=$ANALYZER ledger=$LEDGER"
-          test "$SAMPLE" = success && test "$ANALYZER" = success && test "$LEDGER" = success && { [[ "$WBD_EFF_DIAGNOSTIC" != 1 ]] || [[ "$PROBE_AUDIT" = success ]]; }
+          test "$SAMPLE" = success && test "$ANALYZER" = success && test "$LEDGER" = success && { [[ "$WBD_EFF_DIAGNOSTIC" != 1 ]] || { [[ "$PROBE_AUDIT" = success ]] && [[ "$WITNESS" = success ]]; }; }

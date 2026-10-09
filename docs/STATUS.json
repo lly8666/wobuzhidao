@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_OPTIONAL_OS_THREAD_SCHEDSTAT_PROBE_FOUNDATION_PENDING",
+    "phase": "E4_SAME_RUN_AF_PACKET_WITNESS_WIRED_NO_PERF_DISPATCH_FOUNDATION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1267,13 +1267,23 @@
           "product_unchanged": true,
           "causality": "OS matched threads only; no Go goroutine/specific recv syscall visibility",
           "new_perf_samples": 0
+        },
+        "same_run_witness_workflow": {
+          "state": "PENDING_FOUNDATION_ONLY_NOT_TRIGGERED",
+          "profile": "ON_ONLY",
+          "read_only": true,
+          "integration": ".github/workflows/next-efficiency-e0-single.yml analyzer before independent original gate",
+          "output": "e4-packet-drop-witness.json",
+          "sched_context": "MATCHED_COMPLETE/MATCHED_PARTIAL OS threads, no Go goroutine guarantee",
+          "new_sample_count": 0,
+          "strict_fail_closed": "original fullstack analyzer + cost ledger + trace audit + witness success, independent"
         }
       },
       "historical_foundation_race_fix": "Original timing assertion failure addressed; after repair Foundation 37856615069 and latest 37868567381 SUCCESS; see earlier devlogs. This is historical, not current blocker."
     }
   },
-  "next_task": "Verify new Foundation optional schedstat observer 7 synthetic cases, full Linux/Windows/race/TPROXY/TUN. It is not armed in the 300s runner, so no perf run triggered. After real pass assess one single justified targeted diagnosticON sample with frozen ba8ed1 source, same Game4 loss0 seed1840 and both 100ms socket and per-PID schedstat, 1s raw_io/readgap and cgroup witness. Do not mistake runnable-thread delay for Go raw-read goroutine latency, or zero drops on other runner for root closure. Original 9V45 OFF socket d33/d86 FAIL remains, E7 OPEN_DEFERRED, CPU UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e4-optional-bounded-raw-recv-os-thread-schedstat.md",
+  "next_task": "Confirm Foundation for same-run witness with added OS-thread matched runqueue correlation synthetic test, then check e90cc2e Foundation full. Only after both green and witness scope exact, authorize at most one same-source ba8ed1 Game4 lossless profileON seed1840 300s one-case run by updating ONLY tools/prepare_large_mtu_harness.py to pass client/server process pid, with bundle hashes. This is for same-run kernel drops+raw recv calls/read_gap+cgroup/sched witness, not parser rerun; absent socket drops => INCONCLUSIVE, stop blind host shopping. Keep 9V45 OFF FAIL open, E7 deferred and CPU UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e4-evidence-witness-wired-readonly-no-dispatch.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1286,7 +1296,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "Foundation37870329781 COMPLETE SUCCESS; same-run socket+product receive/read_gap+cgroup correlator tests 7/4/6/7 green. Optional 100ms pid-bound thread schedstat observation with TID+birth matching and synthetic tests pending new Foundation, NOT armed in performance harness; original OFF 9V45 d33/d86 FAIL unchanged.",
+    "Foundation 37870329781 full SUCCESS; optional schedstat observer synthetic 7/7 passed in repository-contract 37870704868; now same-run socket+product receive gap+cgroup+OS-thread observational witness wired into E0 diagnostic ON workflow and explicit fail-closed gate, but no one-case 300s dispatch until Foundation verified. Original 9V45 OFF Game4 socket drop client33/server86 FAIL unchanged.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"
