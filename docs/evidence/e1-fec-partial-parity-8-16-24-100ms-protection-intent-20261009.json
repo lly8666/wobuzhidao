@@ -1,0 +1,50 @@
+{
+  "schema": "wbd-e1-fec-parity-grouping-latency-recovery-test-intent/v1",
+  "working_branch": "next/performance-efficiency-20261008",
+  "parent_head": "9ba246179c2017de82ac87af1bf5fba1b430387c",
+  "product_source_sha": "622e5a3130ca96a3ca39b42ecae673dfefd5cf26",
+  "scope": "One additional Go deterministic LINK/FEC20:20 unit qualification, no product runtime default change",
+  "test": "internal/linkdata/e1_parity_flush_loss_sensitivity_test.go",
+  "input_sizes_bytes": [
+    96,
+    1372,
+    4068
+  ],
+  "datagrams": 5,
+  "spacing_ms": 12,
+  "flush_after_ms": [
+    8,
+    16,
+    24,
+    100
+  ],
+  "impairment": {
+    "synthetic_targeted_wire_erasure": 0.2,
+    "erasure_count_preserved": true,
+    "no_network_netem_claim": true
+  },
+  "hypothesis": "16 or 24ms may group second datagram's FEC shard by 12ms arrival, allowing parity to repair first datagram under the same exact 20% constructed erasure pattern; 8ms closes prior to second arrival",
+  "expected_results": {
+    "8ms_first": "UNRECOVERABLE",
+    "16ms_first": "RECOVERABLE",
+    "24ms_first": "RECOVERABLE",
+    "100ms_first": "RECOVERABLE",
+    "later_messages": "4 delivered once, all cases"
+  },
+  "tradeoff": "8ms first-parity promptness for sparse low RTT vs longer 16/24ms grouped recovery cannot both be guaranteed by one static unconditional flushAfter for the first solitary source",
+  "performance_claim": "NO COMPARABLE_CPU_BENCHMARK",
+  "actual_5205_netem_causation": "OPEN",
+  "previous_full_foundation": 37911555425,
+  "previous_normal1_0loss": {
+    "run_id": 37905658013,
+    "state": "PASS_SCOPED_ACTIONS"
+  },
+  "previous_normal1_5205": {
+    "run_id": 37907829434,
+    "state": "FAIL_ORIGINAL_ANALYZER"
+  },
+  "no_300s_product_sample": true,
+  "full_source_change": false,
+  "phys_or_mainline_change": false,
+  "next": "Go test and race first; no business protector claim and no 8ms default adjustment without policy/protection"
+}

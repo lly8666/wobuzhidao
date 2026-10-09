@@ -11,7 +11,7 @@ import (
 
 // This is a deterministic counterexample, NOT a simulated netem probability
 // or a product performance claim. Compare the same five LINK datagrams and
-// exactly 20% targeted erasures under 8ms and 100ms partial-parity closure.
+// exactly 20% targeted erasures under 8ms, 16ms, 24ms and 100ms partial-parity closure.
 //
 // At 12ms inter-arrival, 8ms closes each size class before the next datagram:
 // erasing the first datagram's sources plus as many parity shards for its
@@ -126,13 +126,21 @@ func TestE1PartialParityDeadlineDeterministic20PercentErasureTradeoff(t *testing
 				return verdict{deliveredFirst:delivered[0]==1,totalWire:len(wire),
 					lostWire:lost,sourceFragments:sourceFragments,blockIDs:len(firstSources)}
 			}
+			// A bounded 16ms/24ms extension is enough to include the second
+			// 12ms-spaced source in the same block in THIS deterministic
+			// erasure construction; the tradeoff is a later first parity.
+			// Neither latency nor lost-event behavior is an E2E/netem claim.
 			short := run(8*time.Millisecond)
+			medium := run(16*time.Millisecond)
+			extended := run(24*time.Millisecond)
 			long := run(100*time.Millisecond)
-			if short.totalWire != long.totalWire || short.lostWire != long.lostWire {
-				t.Fatalf("different impairment budget: short=%+v long=%+v",short,long)
+			for _, candidate := range []verdict{medium, extended, long} {
+				if short.totalWire != candidate.totalWire || short.lostWire != candidate.lostWire {
+					t.Fatalf("different impairment budget: short=%+v candidate=%+v", short, candidate)
+				}
 			}
-			if short.deliveredFirst || !long.deliveredFirst {
-				t.Fatalf("expected short partial block unrecoverable and grouped long block recoverable: short=%+v long=%+v",short,long)
+			if short.deliveredFirst || !medium.deliveredFirst || !extended.deliveredFirst || !long.deliveredFirst {
+				t.Fatalf("8ms fast parity loses first under targeted 20%% erasure; >=16ms grouped parity repairs but delays parity: 8=%+v 16=%+v 24=%+v 100=%+v", short, medium, extended, long)
 			}
 		})
 	}
