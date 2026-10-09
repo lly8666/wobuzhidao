@@ -80,6 +80,9 @@ jobs:
           python3 tools/test_efficiency_5205_waveform.py
           python3 tools/test_efficiency_5205_phase_delivery.py
           python3 -m unittest discover -s tools -p 'test_afpacket_socket_probe.py' -v
+          python3 -m py_compile tools/afpacket_schedstat.py tools/afpacket_probe_report.py tools/afpacket_drop_witness.py
+          python3 -m unittest discover -s tools -p 'test_afpacket_schedstat.py' -v
+          python3 -m unittest discover -s tools -p 'test_afpacket_drop_witness.py' -v
           # Fail before the 300s sample if any helper CLI forgets the configured profile.
           python3 tools/large_mtu_mixed_business.py --help | grep -Fq '{ordinary,jumbo,boundary}'
           python3 tools/check_large_mtu_mixed.py --help | grep -Fq '{ordinary,jumbo,boundary}'
@@ -137,6 +140,10 @@ jobs:
               assert rows[-1]["business_elapsed_bracket_s"][1]>250,(side,"coverage")
               assert all(x["schema"]==1 and x["side"]==side and x["ss_end_monotonic_ns"]>=x["ss_start_monotonic_ns"] for x in rows)
               assert sum(x["ss_ok"] for x in rows)>=.95*len(rows),(side,"ss_unavailable")
+              assert all("process_sched" in x for x in rows),(side,"missing_process_scheduler")
+              matched=sum(x["process_sched"].get("status") in ("MATCHED_COMPLETE","MATCHED_PARTIAL") for x in rows)
+              assert matched>=.80*len(rows),(side,"invalid_matched_os_thread_schedstat",matched,len(rows))
+              print("MATCHED_OS_THREAD_SCHEDSTAT_DIAGNOSTIC_ONLY",side,"matched",matched)
               print("AF_PACKET_PROBE_DIAGNOSTIC_ONLY",side,"samples",len(rows))
           PY
           fi

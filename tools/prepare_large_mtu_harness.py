@@ -89,9 +89,9 @@ CAP_PIDS+=("$!")''')
         swap('SAMPLER_PID="$!"',
              '''SAMPLER_PID="$!"
 # Only numerical AF_PACKET counters and exact per-ss monotonic timing.
-ip netns exec "$CLI" python3 "$GITHUB_WORKSPACE/tools/afpacket_socket_probe.py" --side client --business-start-ns "$START_NS" --output "$ART/client-packet-probe.jsonl" > "$ART/client-packet-probe.log" 2>&1 &
+ip netns exec "$CLI" python3 "$GITHUB_WORKSPACE/tools/afpacket_socket_probe.py" --side client --process-pid "$CLIENT_PID" --business-start-ns "$START_NS" --output "$ART/client-packet-probe.jsonl" > "$ART/client-packet-probe.log" 2>&1 &
 BURST_CLIENT_PID="$!"
-ip netns exec "$SRV" python3 "$GITHUB_WORKSPACE/tools/afpacket_socket_probe.py" --side server --business-start-ns "$START_NS" --output "$ART/server-packet-probe.jsonl" > "$ART/server-packet-probe.log" 2>&1 &
+ip netns exec "$SRV" python3 "$GITHUB_WORKSPACE/tools/afpacket_socket_probe.py" --side server --process-pid "$SERVER_PID" --business-start-ns "$START_NS" --output "$ART/server-packet-probe.jsonl" > "$ART/server-packet-probe.log" 2>&1 &
 BURST_SERVER_PID="$!"''')
         swap('kill -TERM "$SAMPLER_PID" 2>/dev/null || true',
              '''kill -TERM "$BURST_CLIENT_PID" "$BURST_SERVER_PID" 2>/dev/null || true
@@ -135,6 +135,9 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
     "scripts/build_seeded_tc.sh",
     "tools/strict_resource_sampler.py",
     "tools/afpacket_socket_probe.py",
+    "tools/afpacket_schedstat.py",
+    "tools/afpacket_probe_report.py",
+    "tools/afpacket_drop_witness.py",
     "tools/large_mtu_mixed_business.py",
     "tools/efficiency_http_https.py",
     "tools/large_mtu_loss_stage.py",

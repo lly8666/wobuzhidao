@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
   "active_work": {
     "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E4_SAME_RUN_AF_PACKET_WITNESS_WIRED_NO_PERF_DISPATCH_FOUNDATION_PENDING",
+    "phase": "E4_GAME4_LOSSLESS_AF_PACKET_SCHEDSTAT_ONE_DIAGNOSTIC_ACTION_PENDING",
     "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -1277,13 +1277,39 @@
           "sched_context": "MATCHED_COMPLETE/MATCHED_PARTIAL OS threads, no Go goroutine guarantee",
           "new_sample_count": 0,
           "strict_fail_closed": "original fullstack analyzer + cost ledger + trace audit + witness success, independent"
+        },
+        "single_game4_lossless_schedstat_diagnostic": {
+          "state": "SINGLE_ACTION_DISPATCH_BY_THIS_GENERATOR_PUSH",
+          "profile": "ON",
+          "sample": {
+            "workload": "mixed",
+            "loss": 0,
+            "seed": 1840,
+            "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+            "mode": "game",
+            "lanes": 4,
+            "rate_mbps": 3,
+            "size_profile": "ordinary",
+            "diagnostic_mode": "on"
+          },
+          "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+          "helper_sha": "THIS_COMMIT",
+          "one_run_one_job_one_source_seed": true,
+          "new_product_candidate": false,
+          "new_buffer_or_queue": false,
+          "output": "e4-packet-drop-witness.json",
+          "intended_evidence": "docs/evidence/e4-one-game4-lossless-100ms-kernel-raw-read-schedstat-witness-intent-20261009.json",
+          "previous_off_failed_run": 37857040784,
+          "previous_broken_on_run": 37865738583,
+          "not_a_cpu_baseline": true,
+          "stop_after_one_run": true
         }
       },
       "historical_foundation_race_fix": "Original timing assertion failure addressed; after repair Foundation 37856615069 and latest 37868567381 SUCCESS; see earlier devlogs. This is historical, not current blocker."
     }
   },
-  "next_task": "Confirm Foundation for same-run witness with added OS-thread matched runqueue correlation synthetic test, then check e90cc2e Foundation full. Only after both green and witness scope exact, authorize at most one same-source ba8ed1 Game4 lossless profileON seed1840 300s one-case run by updating ONLY tools/prepare_large_mtu_harness.py to pass client/server process pid, with bundle hashes. This is for same-run kernel drops+raw recv calls/read_gap+cgroup/sched witness, not parser rerun; absent socket drops => INCONCLUSIVE, stop blind host shopping. Keep 9V45 OFF FAIL open, E7 deferred and CPU UNPROVEN.",
-  "latest_log": "docs/devlog/20261009-e4-evidence-witness-wired-readonly-no-dispatch.md",
+  "next_task": "Read EXACT one performance Actions on new helper commit (no other sample dispatch), full 300s Game4 0loss seed1840 profileON, original product ba8ed1. Inspect original analyzer independently, 100ms ss success/validity, bounded OS thread schedstat quality, new e4-packet-drop-witness.json join quality, host CPU model/resource cgroup. If kernel d does not increase, mark INCONCLUSIVE_REPRODUCTION and STOP; do not host-shop/dispatch another. If d increases, correlate conservative ss brackets vs 1s raw recv read_gap, scheduler and cgroup without causal overclaim. Old OFF FAIL remains until matched OFF qualification; no product edits or queue/buffer expansion; E7 OPEN_DEFERRED CPU gain UNPROVEN.",
+  "latest_log": "docs/devlog/20261009-e4-one-game4-lossless-afpacket-os-schedstat-witness-dispatch.md",
   "qualification_scope": "Game4 5205 OFF one scoped PASS; Game4 0loss OFF FAIL local skmem drops (run37857040784); Game4 0loss ON scoped diagnostic PASS different 9V74 host (run37863612374). Cannot infer ROOT or CPU benefit; OTHER protectors NOT_RUN E7 OPEN.",
   "last_tested_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
   "last_tested_scope": "E4 ba8ed1 product: ON lossless Game4 run37863612374 scoped diagnostic pass on EPYC9V74; OFF lossless Game4 run37857040784 original FAIL skmem drops on EPYC9V45; OFF true5205 run37853468730 scoped pass only; cross-host CPU gain unproven",
@@ -1296,7 +1322,7 @@
     "E4 ba8ed1 Game4 true staged5205 seed1840 independent profile OFF run37853468730 PASS_SCOPED_ACTIONS only; original analyzer issues=[] and artifact hashes reviewed"
   ],
   "in_progress": [
-    "Foundation 37870329781 full SUCCESS; optional schedstat observer synthetic 7/7 passed in repository-contract 37870704868; now same-run socket+product receive gap+cgroup+OS-thread observational witness wired into E0 diagnostic ON workflow and explicit fail-closed gate, but no one-case 300s dispatch until Foundation verified. Original 9V45 OFF Game4 socket drop client33/server86 FAIL unchanged.",
+    "Exact one pinned Game4 lossless mixed 0loss seed1840 profileON same-source ba8ed1 single Actions diagnostic pending on generator push. Two real 100ms AF_PACKET socket and matched OS-thread schedstat observations, original 1s product raw_io/read_gap and cgroup context, strict fail-closed witness. NO CPU gain claim, legacy profileOFF 9V45 socket d33/d86 FAIL retained.",
     "E4 source ba8ed1 protectors Game4 lossless, Normal1 and Game2 lossless/true5205, profile ON diagnostics and low RTT sparse NOT_RUN",
     "CPU benefit UNPROVEN; compare >=3 independent matched OFF samples each and runner resource strata",
     "~80s S2C root OPEN_DEFERRED until after E6"

@@ -1,0 +1,62 @@
+{
+  "schema": "wbd-e4-exactly-one-on-drop-scheduler-receiver-witness-intent/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "parent": "65bc4d8b08a43479d9f65c73e7f6205ccff02b2d",
+  "helper_sha": "THIS_COMMIT",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "sample": {
+    "workload": "mixed",
+    "loss": 0,
+    "seed": 1840,
+    "product_source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+    "mode": "game",
+    "lanes": 4,
+    "rate_mbps": 3,
+    "size_profile": "ordinary",
+    "diagnostic_mode": "on"
+  },
+  "why_sample_is_new": "Both native ss numeric parsing and OS-thread schedstat bounded PID identity are now Foundation validated; one same-run correlation brings new scheduler observations and joins to real existing read-gap/cgroup, not another rerun simply to repair old parser.",
+  "previous_checks": [
+    {
+      "run_id": 37870329781,
+      "result": "SUCCESS"
+    },
+    {
+      "run_id": 37870704868,
+      "result": "SUCCESS"
+    },
+    {
+      "run_id": 37870926075,
+      "result": "SUCCESS"
+    }
+  ],
+  "one_action_one_job_one_case": true,
+  "profile_on_only": true,
+  "diagnostic_overhead_prohibits_cpu_efficiency_comparison": true,
+  "product_code_modified": false,
+  "socket_receive_buffer_modified": false,
+  "queues_modified": false,
+  "legacy_off_failure": {
+    "run_id": 37857040784,
+    "original": "FAIL_RESOURCE_AUDIT_WARNINGS_LOCAL_SOCKET_DROP",
+    "client_drop": 33,
+    "server_drop": 86
+  },
+  "old_on_failed_probe": {
+    "run_id": 37865738583,
+    "workflow": "FAIL",
+    "reason": "all 100ms socket values null from old multiline-only parser"
+  },
+  "new_observations": [
+    "100ms AF_PACKET ss skmem d,r,rb",
+    "100ms OS matched thread schedstat runqueue wait and runtime delta",
+    "1s raw_io receive_calls/messages",
+    "1s server read_gap >10ms and max",
+    "1s process/cgroup cpu.stat throttle windows"
+  ],
+  "kernel_event_exact_timestamp": false,
+  "can_identify_go_recv_goroutine": false,
+  "future_run_id": null,
+  "future_original_analyzer": "NOT_YET_RUN",
+  "no_second_action_without_new_causal_evidence": true
+}
