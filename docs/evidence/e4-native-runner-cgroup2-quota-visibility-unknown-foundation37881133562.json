@@ -1,0 +1,81 @@
+{
+  "schema": "wbd-e4-native-runner-cgroup2-quota-scope-foundation-receipt/v1",
+  "branch": "next/performance-efficiency-20261008",
+  "source_sha": "ba8ed1e656d32fa2d59cd0d5907fbc1ad10b3072",
+  "helper_commit": "c25dbdca15ab6746541b43a46ef634f296a9ad81",
+  "foundation": {
+    "run_id": 37881133562,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37881133562",
+    "status": "completed",
+    "conclusion": "SUCCESS",
+    "synthetic_suites": [
+      7,
+      4,
+      6,
+      8,
+      7,
+      10,
+      12,
+      7,
+      19,
+      9
+    ],
+    "linux_active": true,
+    "windows_active": true,
+    "race": true,
+    "p2_fallback": true,
+    "tproxy": true,
+    "tun_iptables": true,
+    "tun_nft": true,
+    "bpf_short_functional": true
+  },
+  "native_artifact": {
+    "id": 11594646157,
+    "zip_name": "e4-recvmmsg-tracepoint-capability-c25dbdca15ab6746541b43a46ef634f296a9ad81",
+    "file": "e4-runner-cpu-scope.json",
+    "sha256": "816a86b1eaf2168995e4aafbbf5dd9ff8fb805e67b5c7c6cda0cf05a8abbc13b",
+    "receipt": {
+      "mount_type": "cgroup2",
+      "cpu_stat_visible": true,
+      "controllers_visible": true,
+      "cpu_max_visible": false,
+      "cgroup_namespace_root": false,
+      "quota_visibility": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+      "effective_host_or_hypervisor_quota": "UNKNOWN",
+      "suitable_as_same_vm_identifier": false,
+      "use_as_performance_normalization": false
+    }
+  },
+  "observations": [
+    "No proof of cgroup2 namespace root: the output explicitly reports false.",
+    "No proof of unrestricted CPU, quota or same VM.",
+    "Future 12s ON/ OFF samples cannot compare host PSI at 30s cleanup; new driver takes host_after immediately at fixture end.",
+    "Matching Linux image, CPU model, vCPU number, kernel release and affinity is matching resource stratum only, not VM identity."
+  ],
+  "synthetic_off_baseline": {
+    "run_id": 37879351995,
+    "mode": "OFF",
+    "host": "AMD EPYC 9V74",
+    "vcpus": 4,
+    "psi_before_avg10_percent": 17.06,
+    "visible_quota": null,
+    "quality": "INELIGIBLE",
+    "cpu_fixture_s": 0.573952,
+    "recv_p99_ns": 2694
+  },
+  "synthetic_calibration_status": "NOT_CALIBRATED",
+  "ON_cases_dispatched": 0,
+  "new_300s_product_samples": 0,
+  "game4_off_fail": {
+    "run": 37857040784,
+    "client_d": 33,
+    "server_d": 86
+  },
+  "game4_on_fail": {
+    "run": 37871243581,
+    "client_d": 42
+  },
+  "cpu_gain": "UNPROVEN",
+  "root": "OPEN",
+  "e7": "OPEN_DEFERRED"
+}
