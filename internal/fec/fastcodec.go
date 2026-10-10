@@ -86,6 +86,12 @@ func (r *FastReedSolomon20x20) EncodeActive(shards [][]byte, dataCount, parityCo
 	if err != nil {
 		return err
 	}
+	// The fused backend is deliberately opt-in until same-runner micro and
+	// real-business CPU/p99 measurements justify making it the default.
+	// Partial blocks ALWAYS use the active-only span backend.
+	if dataCount == DataShards && fecFusedEnabled && fecSIMDEnabled {
+		return r.encodeFullFused(shards, parityCount)
+	}
 	for p := 0; p < parityCount; p++ {
 		out := shards[DataShards+p]
 		clear(out)
@@ -96,6 +102,11 @@ func (r *FastReedSolomon20x20) EncodeActive(shards [][]byte, dataCount, parityCo
 	}
 	return nil
 }
+
+// IgnoresInactiveSources is a semantic capability (not a concrete-type
+// shortcut). Both the span and fused full-block encoders avoid inactive slots.
+// A new generic/active codec must opt in explicitly before skipping zero-fill.
+func (r *FastReedSolomon20x20) IgnoresInactiveSources() bool { return true }
 
 func (r *FastReedSolomon20x20) Reconstruct(shards [][]byte, present []bool) error {
 	_, err := validateShards(shards)

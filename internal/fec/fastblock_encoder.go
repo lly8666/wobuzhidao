@@ -54,6 +54,12 @@ type activeParityEncoder interface {
 	EncodeActive(shards [][]byte, dataCount, parityCount int) error
 }
 
+// Explicit contract: a codec that only reads [0,dataCount) may omit the
+// costly (20-dataCount) known-zero writes. Missing capability means clear.
+type inactiveSourceCapability interface {
+	IgnoresInactiveSources() bool
+}
+
 func NewFastBlockEncoder(codec Codec, maxPacketSize int, flushAfter time.Duration, firstBlockID uint32) (*FastBlockEncoder, error) {
 	return NewFastBlockEncoderWithParity(codec, maxPacketSize, flushAfter, firstBlockID, ParityShards)
 }
@@ -151,12 +157,16 @@ func (e *FastBlockEncoder) Stats() FastBlockEncoderStats {
 func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	dataCount := e.dataCount
 	shardSize := e.shardSize
-	// FastReedSolomon20x20.EncodeActive uses only source slots [0,dataCount).
-	// Clearing the remaining (20-dataCount) full shard buffers for every
-	// sparse partial block costs memory bandwidth but cannot affect parity.
-	// Keep the authoritative known-zero padded inputs for every other codec:
-	// generic Encode (and any future active implementation) may read them.
-	if _, ignoresPadding := e.codec.(*FastReedSolomon20x20); !ignoresPadding {
+	// Do not depend on a concrete codec implementation: only an explicit
+	// active-only read contract allows dirty inactive storage to be retained.
+	// Generic/unknown implementations still get authoritative known zeros.
+	skipInactiveClear := false
+	if e.activeCodec != nil {
+		if capability, ok := e.codec.(inactiveSourceCapability); ok {
+			skipInactiveClear = capability.IgnoresInactiveSources()
+		}
+	}
+	if !skipInactiveClear {
 		for i := dataCount; i < DataShards; i++ {
 			clear(e.shardBuf[i][:shardSize])
 		}
