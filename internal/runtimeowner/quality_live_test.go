@@ -67,7 +67,7 @@ func TestN1QualityV3ActualProtectedControlBothDirectionsAndTwoSecondGate(t *test
         }
     }
     initial:=countN1PayloadSegments(c2s)
-    if initial!=2 {t.Fatalf("initial c2s should emit one legacy health plus one quality control; got=%d",initial)}
+    if initial!=1 {t.Fatalf("one merged encrypted quality+idle control expected at bootstrap; got=%d",initial)}
     if err:=client.Tick(t0.Add(time.Second));err!=nil{t.Fatal(err)}
     if countN1PayloadSegments(c2s)!=initial {t.Fatal("quality control emitted before the 2s bound")}
     if err:=client.Tick(t0.Add(2*time.Second));err!=nil{t.Fatal(err)}

@@ -136,3 +136,18 @@ Linux 客户端和服务端统一参数 `raw-recv-buffer` 表示传给 `SO_RCVBU
 | 1500 | 1460 | 1429 | 1373 |
 
 不改变 `logicaltunnel.MaxLeasedIPv4PacketLen=9000`、`platformflow.MaxPayload=8936`、旧12条longmix FAIL。0/5/10% hosted kernel+LINK 矩阵不等于真实Wintun、完整WBD加密通道、实际网络PMTU或性能验收。修改候选按其独立 Actions SHA/STATUS 记录结论，不能援引旧成功来替代。
+
+
+## N1 控制发送独立填充/调度候选（接口可用性限制）
+
+在正式 CLI 参数进入 `tools/parameter_catalog.py` 生成流程之前，下面均为**内部 Runtime.TransportConfig 字段**，不是 Linux/Windows/Server 可直接输入的 `--` 参数：
+
+| 内部字段 | 当前候选默认 | 意义 |
+| --- | --- | --- |
+| `ControlPaddingDisabled` | false | 为 KindHealth 9B/104B/128B 启用独立加密零填充。true 强制关闭；不改变业务或 startup padding。 |
+| `ControlPaddingMaxBytes` | 0 | 0 = 当前方向真正 pathmtu 余量；正值 1..16384 为单条控制上限；裁剪到实际 record cap，不拆包或扩大发送。 |
+| 控制反馈动态间隔 | 1.5–2.0s 初值 | 有新数据水位、成熟回执、状态变化等才尝试质量报文；稳定有新近观测最多约 3.5s 刷新，完全空闲由普通保活接手。 |
+| 普通保活浮动 | `keepalive-interval` ±10% | 仅成功发出后更新下次普通 health，符合原有 PeerIdle 的 2× 间隔新鲜度；强制 idle 通知不等待。 |
+| 失败退避 | 1s | 不更新成功保活时间，不在每次 Tick 重试。 |
+
+真实的 `pathmtu.Budget.RecordWireMTU` 已考虑 configured IPv4/TCP options、peer MSS、negotiated record cap。外层 IPv6 此候选没有独立被证实的路径预算，NOT_RUN。GUI 两秒缓存读不等于网络报告间隔。参数目录仍以现有 CLI 代码自动生成，**不准**将上述内部字段虚构成已发布 CLI 开关。详见 `docs/ADAPTIVE_NETWORK_PLAN.md`、`docs/STATUS.json`。

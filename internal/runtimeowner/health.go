@@ -13,6 +13,7 @@ type healthState struct {
 	interval                  time.Duration
 	idleSource                func(time.Time) time.Duration
 	started, nextSend, hintAt time.Time
+	retryAfter time.Time
 	hintPN                    uint64
 	haveHint                  bool
 	idle                      time.Duration
@@ -39,54 +40,46 @@ func (t *laneTransport) observeHealthLocked(result datapath.InboundResult, now t
 func (t *laneTransport) tickHealth(now time.Time) error { return t.sendHealth(now, false) }
 
 func (t *laneTransport) sendHealth(now time.Time, force bool) (err error) {
-	defer func() {
-		if errors.Is(err, datapath.ErrLaneUnavailable) || errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) || errors.Is(err, ErrRuntimeClosed) || errors.Is(err, ErrTransportWriteClosed) || errors.Is(err, ErrTransportPeerReset) {
-			err = nil
-		}
-	}()
-	t.mu.Lock()
-	interval := t.health.interval
-	source := t.health.idleSource
-	if interval <= 0 {
-		t.mu.Unlock()
-		return nil
-	}
-	if t.closed || t.localFINQueued || (t.health.waitForPeer && t.stats.AuthenticatedRecords == 0) {
-		t.mu.Unlock()
-		return nil
-	}
-	if t.health.started.IsZero() {
-		t.health.started = now
-	}
-	if !force && now.Before(t.health.nextSend) {
-		t.mu.Unlock()
-		return nil
-	}
-	t.health.nextSend = now.Add(interval)
-	t.mu.Unlock()
-	idle := time.Duration(0)
-	if source != nil {
-		idle = source(now)
-	}
-	// The acceptance-only build tag can consume a scheduled health send before
-	// sealing/FEC. Production builds compile this to a constant false no-op.
-	if acceptancefault.Consume("health", t.ref.ID) {
-		return nil
-	}
-	record, err := t.owner.HealthRecord(t.ref, idle)
-	if err != nil {
-		return err
-	}
-	if err = t.owner.ValidateGeneration(t.ref); err != nil {
-		return err
-	}
-	if err = t.send([]datapath.WireRecord{record}, now); err != nil {
-		return err
-	}
-	t.mu.Lock()
-	t.stats.HealthSent++
-	t.mu.Unlock()
-	return nil
+ defer func() {
+  if errors.Is(err,datapath.ErrLaneUnavailable)||errors.Is(err,logicaltunnel.ErrStaleLaneGeneration)||
+   errors.Is(err,ErrRuntimeClosed)||errors.Is(err,ErrTransportWriteClosed)||errors.Is(err,ErrTransportPeerReset) {
+   err=nil
+  }
+ }()
+ t.mu.Lock()
+ interval:=t.health.interval
+ source:=t.health.idleSource
+ if interval<=0 || t.closed || t.localFINQueued ||
+  (t.health.waitForPeer&&t.stats.AuthenticatedRecords==0) {
+  t.mu.Unlock();return nil
+ }
+ if t.health.started.IsZero(){t.health.started=now}
+ if !force && (now.Before(t.health.nextSend)||now.Before(t.health.retryAfter)) {
+  t.mu.Unlock();return nil
+ }
+ // Guard against reentrant tick without treating a failed attempt as a
+ // successful keepalive. Failure backs off separately for at least 1s.
+ t.health.retryAfter=now.Add(time.Second)
+ t.mu.Unlock()
+ idle:=time.Duration(0)
+ if source!=nil{idle=source(now)}
+ if acceptancefault.Consume("health",t.ref.ID) {
+  t.noteControlFailure(now,false)
+  return nil
+ }
+ plain:=legacyIdleBody(idle)
+ rec,err:=t.sealControl(t.ref,plain[:])
+ if err!=nil{t.noteControlFailure(now,false);return err}
+ if err=t.owner.ValidateGeneration(t.ref);err!=nil{t.noteControlFailure(now,false);return err}
+ if err=t.send([]datapath.WireRecord{rec},now);err!=nil{
+  t.noteControlFailure(now,false)
+  return err
+ }
+ t.noteControlSuccess(now,rec,false)
+ t.mu.Lock()
+ t.stats.HealthSent++
+ t.mu.Unlock()
+ return nil
 }
 
 // PeerIdle requires a recent authenticated observation from every active lane.

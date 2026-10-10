@@ -23,6 +23,12 @@ type qualityState struct {
     received uint64
     rejected uint64
     sent uint64
+    lastSentAt time.Time
+    lastSentWindow QualityTransmitWindow
+    lastEchoState datapath.QualityFeedbackState
+    lastEchoSourcePN uint64
+    lastEchoSourceTx uint64
+    lastEchoMissing uint64
 }
 
 // ConfigureQualityV3 is used only after authenticated V3 protected admission.
@@ -51,104 +57,139 @@ func (r *Runtime) ConfigureQualityV3(ref logicaltunnel.LaneRef, nonce [16]byte) 
     return nil
 }
 
-// tickQuality is invoked only in the Runtime.Tick authoritative ACTIVE lane
-// branch, not a timer created per lane or a data-path callback. A failed send
-// consumes the bounded 2s slot, rather than retrying control in a hot loop.
-func (t *laneTransport) tickQuality(now time.Time) (err error) {
-    defer func() {
-        if errors.Is(err,datapath.ErrLaneUnavailable) ||
-            errors.Is(err,logicaltunnel.ErrStaleLaneGeneration) ||
-            errors.Is(err,ErrRuntimeClosed) || errors.Is(err,ErrTransportWriteClosed) ||
-            errors.Is(err,ErrTransportPeerReset) {err=nil}
-    }()
-    t.mu.Lock()
-    if !t.quality.enabled || t.closed || t.localFINQueued ||
-        (t.health.waitForPeer && t.stats.AuthenticatedRecords==0) ||
-        (!t.quality.nextSend.IsZero() && now.Before(t.quality.nextSend)) {
-        t.mu.Unlock();return nil
-    }
-    t.quality.nextSend=now.Add(QualityReportInterval)
-    if t.quality.reportSeq==^uint64(0) {
-        t.mu.Unlock()
-        return nil // never wrap report sequence within incarnation
-    }
-    t.quality.reportSeq++
-    seq:=t.quality.reportSeq
-    nonce:=t.quality.nonce
-    idleSource:=t.health.idleSource
-    srtt:=t.srtt
-    txWindow:=t.quality.tx.snapshot(now) // only once/2s, not hot packet path
-    pair:=t.quality.pair // one immutable auth-gated remote report copy
-    t.mu.Unlock()
-
-    idle:=time.Duration(0)
-    if idleSource!=nil {idle=idleSource(now)}
-    if idle<0 {idle=0}
-    if idle>datapath.MaxHealthIdle {idle=datapath.MaxHealthIdle}
-    idle=idle.Truncate(time.Millisecond)
-    report:=datapath.QualityHealthReport{
-        Flags:datapath.QualityFlagInsufficient,
-        IdleFor:idle,
-        ReportSeq:seq,
-        IncarnationNonce:nonce,
-        Generation:t.ref.Generation,
-        AgeMillis:0xffff, RTTMillis:0xffff,
-    }
-    // DATA-only PN window describes actual post-Emit successful fresh
-    // records and local failures, not gaps between PNs (which may be control
-    // or failed seals). The peer's matching receive window is not yet
-    // aligned, so LossEstimated is NEVER set in this N1 increment.
-    if txWindow.Success>0 {
-        report.Flags|=datapath.QualityFlagWindowValid
-        report.WindowFirstPN=txWindow.FirstPN
-        report.WindowLastPN=txWindow.LastPN
-        report.TxSuccess=txWindow.Success
-        report.AgeMillis=txWindow.AgeMillis
-    }
-    report.LocalDrops=txWindow.LocalDrops
-    if txWindow.CapacityLimited { report.Flags|=datapath.QualityFlagCapacityLimited }
-    // SRTT is only a transport estimate, not application p99. Until the
-    // matured sender/receiver DATA watermarks are aligned, *never* set the
-    // window-valid/estimated-loss flags or emit an apparent zero WAN loss.
-    if srtt>0 && srtt/time.Millisecond<0xffff {
-        report.RTTMillis=uint16(srtt/time.Millisecond)
-    }
-    // One control record per 2s slot, regardless of whether it also
-    // carries independently scoped receiver evidence for the peer. Never
-    // publish a same-direction PN difference as a physical WAN loss.
-    var rec datapath.WireRecord
-    if pair.accepted {
-        rx,queryErr:=t.owner.QualityReceiveRange(t.ref,pair.report.WindowFirstPN,pair.report.WindowLastPN,now)
-        if queryErr==nil {
-            local:=evaluateQualityPair(pair,rx,now)
-            echo:=datapath.QualityEchoV4{
-                Report:report,
-                State:local.State,
-                SourceReportSeq:pair.report.ReportSeq,
-                SourceGeneration:pair.report.Generation,
-                SourceLastPN:pair.report.WindowLastPN,
-            }
-            if local.State==datapath.QualityFeedbackEstimated {
-                echo.ReceiverUnique=local.ReceiverUnique
-                echo.ReceiverLate=local.ReceiverLate
-                echo.ReceiverDuplicate=local.ReceiverDuplicate
-                echo.EstimatedMissing=uint32(local.EstimatedMissing)
-            }
-            rec,err=t.owner.QualityHealthEchoRecord(t.ref,echo)
-        }else{
-            rec,err=t.owner.QualityHealthRecord(t.ref,report)
-        }
-    }else{
-        rec,err=t.owner.QualityHealthRecord(t.ref,report)
-    }
-    if err!=nil{return err}
-    if err=t.owner.ValidateGeneration(t.ref);err!=nil{return err}
-    if err=t.send([]datapath.WireRecord{rec},now);err!=nil{return err}
-    t.mu.Lock()
-    t.quality.sent++
-    t.quality.recordSentSource(report,now)
-    t.mu.Unlock()
-    return nil
+// tickQuality is selected by the one per-lane tickControl arbiter, never
+// by a separate timer. It only snapshots O(256) windows at an eligible
+// ~2s control decision, never once per packet/Tick.
+func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
+ defer func() {
+  if errors.Is(err,datapath.ErrLaneUnavailable)||
+   errors.Is(err,logicaltunnel.ErrStaleLaneGeneration)||
+   errors.Is(err,ErrRuntimeClosed)||
+   errors.Is(err,ErrTransportWriteClosed)||
+   errors.Is(err,ErrTransportPeerReset){err=nil}
+ }()
+ t.mu.Lock()
+ if !t.quality.enabled||t.closed||t.localFINQueued||
+  (t.health.waitForPeer&&t.stats.AuthenticatedRecords==0)||
+  now.Before(t.quality.nextSend) {
+  t.mu.Unlock();return false,nil
+ }
+ tx:=t.quality.tx.snapshot(now)
+ pair:=t.quality.pair
+ last:=t.quality
+ srtt:=t.srtt
+ idleSource:=t.health.idleSource
+ t.mu.Unlock()
+ var estimate QualityInboundEstimate
+ if pair.accepted {
+  rx,queryErr:=t.owner.QualityReceiveRange(t.ref,pair.report.WindowFirstPN,pair.report.WindowLastPN,now)
+  if queryErr!=nil{return false,queryErr}
+  estimate=evaluateQualityPair(pair,rx,now)
+ }
+ // A peer's growing *report sequence alone* is not new evidence. Compare
+ // the true sender DATA window and our independently paired receiver state.
+ // Stable values without new observations are not repeatedly stamped fresh.
+ freshTX:=tx.HasAttempts&&(tx.LastPN!=last.lastSentWindow.LastPN||
+  tx.Success!=last.lastSentWindow.Success||
+  tx.LocalDrops!=last.lastSentWindow.LocalDrops||
+  tx.CapacityLimited!=last.lastSentWindow.CapacityLimited)
+ sourceChanged:=pair.accepted&&(pair.report.WindowLastPN!=last.lastEchoSourcePN||
+  pair.report.TxSuccess!=last.lastEchoSourceTx)
+ echoChanged:=pair.accepted&&(estimate.State!=last.lastEchoState||
+  estimate.EstimatedMissing!=last.lastEchoMissing)
+ // Stable busy-lane values may need a bounded freshness update, but a
+ // genuinely idle source's stale PN window must NOT become a new sample.
+ busy:=tx.Success>0&&tx.AgeMillis!=0xffff&&tx.AgeMillis<3000
+ deadline:=busy&&!last.lastSentAt.IsZero()&&now.Sub(last.lastSentAt)>=3500*time.Millisecond
+ bootstrap:=last.sent==0
+ if !bootstrap&&!freshTX&&!sourceChanged&&!echoChanged&&!deadline {
+  t.mu.Lock()
+  t.control.SuppressedNoNewObservation++
+  t.quality.nextSend=now.Add(500*time.Millisecond)
+  t.mu.Unlock()
+  return false,nil
+ }
+ // Source history/3s maturity and 10s expiry outrank optional cosmetic
+ // delay: the next eligible tick gets the mature echo. No zero-wait reply.
+ t.mu.Lock()
+ if t.quality.reportSeq==^uint64(0) {t.mu.Unlock();return false,nil}
+ t.quality.reportSeq++
+ seq:=t.quality.reportSeq
+ nonce:=t.quality.nonce
+ t.quality.nextSend=now.Add(time.Second) // failure backoff; never hot-retry
+ if bootstrap {t.control.QualityBootstrap++}
+ if freshTX {t.control.QualityNewWindow++}
+ if sourceChanged {t.control.QualityEchoChange++}
+ if echoChanged {t.control.QualityStatusChange++}
+ if deadline {t.control.QualityRefreshDeadline++}
+ t.mu.Unlock()
+ attempted=true
+ idle:=time.Duration(0)
+ if idleSource!=nil {idle=idleSource(now)}
+ if idle<0{idle=0}
+ if idle>datapath.MaxHealthIdle{idle=datapath.MaxHealthIdle}
+ idle=idle.Truncate(time.Millisecond)
+ report:=datapath.QualityHealthReport{
+  Flags:datapath.QualityFlagInsufficient,IdleFor:idle,
+  ReportSeq:seq,IncarnationNonce:nonce,Generation:t.ref.Generation,
+  AgeMillis:0xffff,RTTMillis:0xffff,
+ }
+ if tx.Success>0 {
+  report.Flags|=datapath.QualityFlagWindowValid
+  report.WindowFirstPN=tx.FirstPN
+  report.WindowLastPN=tx.LastPN
+  report.TxSuccess=tx.Success
+  report.AgeMillis=tx.AgeMillis
+ }
+ report.LocalDrops=tx.LocalDrops
+ if tx.CapacityLimited{report.Flags|=datapath.QualityFlagCapacityLimited}
+ if srtt>0&&srtt/time.Millisecond<0xffff{report.RTTMillis=uint16(srtt/time.Millisecond)}
+ var plain []byte
+ if pair.accepted {
+  echo:=datapath.QualityEchoV4{
+   Report:report,State:estimate.State,
+   SourceReportSeq:pair.report.ReportSeq,
+   SourceGeneration:pair.report.Generation,
+   SourceLastPN:pair.report.WindowLastPN,
+  }
+  if estimate.State==datapath.QualityFeedbackEstimated {
+   echo.ReceiverUnique=estimate.ReceiverUnique
+   echo.ReceiverLate=estimate.ReceiverLate
+   echo.ReceiverDuplicate=estimate.ReceiverDuplicate
+   echo.EstimatedMissing=uint32(estimate.EstimatedMissing)
+  }
+  var bytes [datapath.QualityEchoV4Size]byte
+  bytes,err=datapath.EncodeQualityEchoV4(echo)
+  if err==nil {plain=bytes[:]}
+ }else{
+  var bytes [datapath.QualityHealthV3Size]byte
+  bytes,err=datapath.EncodeQualityHealthV3(report)
+  if err==nil {plain=bytes[:]}
+ }
+ if err!=nil {t.noteControlFailure(now,true);return attempted,err}
+ rec,err:=t.sealControl(t.ref,plain)
+ if err!=nil{t.noteControlFailure(now,true);return attempted,err}
+ if err=t.owner.ValidateGeneration(t.ref);err!=nil{t.noteControlFailure(now,true);return attempted,err}
+ if err=t.send([]datapath.WireRecord{rec},now);err!=nil{
+  t.noteControlFailure(now,true);return attempted,err
+ }
+ delay:=qualityNextDelay()
+ t.noteControlSuccess(now,rec,true)
+ t.mu.Lock()
+ t.quality.sent++
+ t.quality.recordSentSource(report,now)
+ t.quality.lastSentAt=now
+ t.quality.lastSentWindow=tx
+ t.quality.lastEchoState=estimate.State
+ if pair.accepted {
+  t.quality.lastEchoSourcePN=pair.report.WindowLastPN
+  t.quality.lastEchoSourceTx=pair.report.TxSuccess
+ }
+ t.quality.lastEchoMissing=estimate.EstimatedMissing
+ t.quality.nextSend=now.Add(delay)
+ if estimate.Age>0{t.control.FeedbackAgeMillis=uint64(estimate.Age/time.Millisecond)}
+ t.mu.Unlock()
+ return attempted,nil
 }
 
 func (t *laneTransport) observeQualityLocked(result datapath.InboundResult, now time.Time) {

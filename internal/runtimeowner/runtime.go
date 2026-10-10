@@ -64,12 +64,21 @@ type TransportConfig struct {
 	// Qualification-only, immutable opt-in for synchronous receive feedback.
 	// Ordinary diagnostics and server timing do not enable this extra clock work.
 	ObserveFeedbackTiming bool
+	// ControlPaddingDisabled explicitly opts out of control-only encrypted
+	// zero padding. False preserves the bounded default. No LINK/business
+	// padding or TLS startup behavior changes.
+	ControlPaddingDisabled bool
+	// 0 uses full proven direction-specific record headroom, otherwise cap it.
+	ControlPaddingMaxBytes int
 	// Native Windows opts in to one bounded latest-ACK sender per generation.
 	// Payload/FIN/repair emission remains synchronous; direct embedders default off.
 	AsyncACKFeedback bool
 }
 
 func (c *TransportConfig) normalize() error {
+	if c.ControlPaddingMaxBytes < 0 || c.ControlPaddingMaxBytes > 16384 {
+		return ErrTransportConfig
+	}
 	if c.ACKDelay < 0 || c.ACKDelay > DefaultACKDelay {
 		return ErrTransportConfig
 	}
@@ -290,6 +299,7 @@ type TransportStats struct {
 type laneTransport struct {
 	health   healthState
 	quality  qualityState
+	control  ControlStats
 	pressure receivePressure
 	mu       sync.Mutex
 
@@ -1681,10 +1691,7 @@ func (r *Runtime) Tick(now time.Time) error {
 				r.outboundMu.RUnlock()
 				continue
 			}
-			if err := lane.transport.tickHealth(now); err != nil {
-				errs = append(errs, err)
-			}
-			if err := lane.transport.tickQuality(now); err != nil {
+			if err := lane.transport.tickControl(now); err != nil {
 				errs = append(errs, err)
 			}
 			records, err := r.owner.TickLane(lane.ref, now)

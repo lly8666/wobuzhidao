@@ -239,3 +239,14 @@ DNS劫持优先于CN/LAN普通分流，明确dns-hijack=false能走system direct
 - [Go AES](https://pkg.go.dev/crypto/aes)、[Go AES-GCM amd64/arm64实现](https://go.dev/src/crypto/internal/fips140/aes/gcm/gcm_asm.go)、[Go旧版ARM AES](https://go.googlesource.com/go/+/c814ac44c0571f844718f07aa52afa47e37fb1ed/src/crypto/aes/cipher_arm64.go)：标准库路线和硬件检测，需核当前Go1.23实现，不假定新版实现已进入产品。
 - [Go TLS Config](https://pkg.go.dev/crypto/tls#Config)、[既有uTLS](https://github.com/refraction-networking/utls)：TLS1.3 cipher不受Config.CipherSuites控制；优先复用已依赖uTLS，不使用linkname修改全局私有TLS列表。
 - [sing-tun system stack](https://github.com/SagerNet/sing-tun/blob/dev/stack_system.go)、[NAT](https://github.com/SagerNet/sing-tun/blob/dev/stack_system_nat.go)、[许可](https://github.com/SagerNet/sing-tun/blob/dev/LICENSE)：轻量内核栈重定向思路参考，不能忽略许可或五元组/防回环。
+
+
+## N1 控制调度与外观优化（2026-10-11 候选，Actions 待验）
+
+本段在既有 N1 9B/104B/128B 加密 KindHealth 报告与可信 3s receiver-watermark 配对上**原位加法**，不修改 admission、FEC 编解码、4096 缓存、LINK 分片、业务 TLS startup padding、Game 固定冗余或启动额外计时线程。受认证 104B / 128B 本身携带 IdleFor，接收端已有单调 PN idle hint 路径；统一发送决策先尝试事件型 quality，再在无 quality 发包时判断 9B 定时 health。同一 Tick 最多一条控制；只有真实成功 Emit 才重新计划普通 health，下次为配置 keepalive 的 ±10% 小幅浮动。强制 idle 通知仍不等随机时间。失败独立 1s 短退避，失败不刷新成功保活。
+
+N1 质量首次可发一条建立初始样本，之后以**真实 TX PN 采样窗口/本地 drop 变化**、认证 peer 发送水位和回执成熟/状态变化为触发，稳态已观测 DATA 新鲜时 3.5s 截止刷新；没有新观测、不再有本端近期真实业务 DATA、没有待回执变化时不重新包装旧质量，改由 9B keepalive 支撑长空闲。控制决策仅在已到达下次允许触发时扫描有界 256PN 快照；间隔的控制浮动初值 1.5~2.0s（属于建议 1.5~2.5s 的保守子区间，后续性能样本可调整），早熟状态仍受限制不能报告风暴。原有 3s maturity、10s stale 和最多 16 份真实成功发出来源的历史关联继续把 UNKNOWN/CAPACITY 与估计值区分。任何丢失报告不得导致 PeerIdle 将未知当空闲。
+
+KindHealth 单独增加 encrypted zero padding，复用 tlsrecord.inner_type 后的已有格式，最终密文/PN/TCP Seq 固定缓存供原 RTO 重发；不调用 KindLINK 的 SealWithPadding、不逐字节产生随机明文、更不等待业务。一次控制选择时才从密码学随机源取长度，合法范围 0..min(pathmtu.RecordWireMTU-31-bodyLen, 配置 max)，RecordWireMTU 已经过真实 configured IPv4/TCP options、peer MSS、方向协商 record cap；若不足减小或跳过，正文基础超预算则显式错误。默认内部 TransportConfig 开启、上限 0 表示预算允许的最大长度；两个排错字段 ControlPaddingDisabled 与 ControlPaddingMaxBytes(0..16384) 目前是内部调用层**明确开关与上限**，**正式 Linux/Windows CLI/JSON 参数尚未接线，不得写成用户可用参数**。有关 CLI 同源参数目录更新是后续独立原子项。外层 IPv6 预算目前不是该路径的既有支持，明确 NOT_RUN，禁止按 IPv4 数值推断。
+
+单位/race 和真实三客户端功能回归首先由 Actions 执行；接下来固定源基线与优化源分别以一个 SOURCE、一个配置、一个工况独立执行 Normal 10Mbps off/20:20 × lossless/low-loss、Game4 3Mbps each-way 20:20、长空闲/稀疏/单向/突发、0/1/5/20% 阶段恢复、低 RTT/300ms、变小 MTU 与真实 TCP options，并记录 runner CPU/quota、注入达标、原始首交付、goodput/p99/连续无交付、CPU/alloc、控制间隔长度。未经 Actions 原始完整结果一律 NOT_RUN。外观最多说减少固定特征，绝不声称与 HTTPS 一致或不可识别。

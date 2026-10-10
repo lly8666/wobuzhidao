@@ -484,3 +484,43 @@ estimation still apply at the receiver: it is not directly measured WAN
 packet loss, a network pcap or an application-level completion metric.
 Candidate requires exact-source Actions Go race, old admission/repair,
 Linux+Windows and real nine-netns three-client functional checks.
+
+
+## 2026-10-11 control-only encrypted zero padding / arbiter candidate
+
+The 9B legacy health, 104B N1 V3 quality and 128B correlated echo
+**plaintext bodies remain byte-identical**. The KindHealth record shares the
+single TLS-like AEAD/PN sealer with the data path, but a new independent
+SealHealthWithPadding is KindHealth-only: it encrypts zero padding **after
+inner_type**. The existing record opener strips it before strict body-length
+and reserved-field validation. The cached complete ciphertext/PN at the
+original FakeTCP Seq is retransmitted unchanged. There is no LINK/FEC or new
+business-fragment path.
+
+The direction-specific safe single-record padding bound is
+`pathmtu.Budget.RecordWireMTU - tlsrecord.FixedWireOverhead(31) -
+KindHealthBodyLength`, additionally clipped by an optional internal control
+padding max. `RecordWireMTU` already accounts for negotiated record cap,
+actual configured IPv4/TCP options, peer MSS, effective outer PMTU. One
+control-attempt random draw may choose length zero or a larger legal value.
+No packet fragments, extra control records or random bytes in business
+hot paths. Unsupported IPv6 outer combinations are NOT_RUN.
+
+Runtime.Tick now uses one per-ACTIVE-lane control arbiter: quality/echo and
+timed legacy health no longer each emit within the same maintenance Tick.
+Successfully emitted quality carries the real IdleFor and satisfies the
+ordinary health timer as the authenticated receive path already consumes
+its protected idle hint. The initial bounded quality report may advertise
+the first known sample; subsequent reports require genuine TX DATA
+watermark/local-drop evidence or qualified peer-window/state change.
+A stable source without new observations eventually stops repeating
+quality; long-idle ordinary health remains necessary. Control emission
+failures never advance successful health time and instead back off 1s.
+One-time idle/close control can bypass ordinary jitter. Keepalive jitter
+is at most ±10% and sampled only on successfully emitted control.
+
+This is a control-characteristic reduction and byte/interval distribution
+change, NOT a claim of indistinguishability, standards-conformant HTTPS
+behavior, physical WAN loss measurement, N2 automatic FEC activation or
+performance qualification. All new SOURCE Actions remain PENDING until
+their actual results are recorded.

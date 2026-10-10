@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_AUTH_CORRELATED_128B_ECHO_SCOPED_RACE_FOUNDATION_NATIVE_3CLIENT_PASS_IMPAIRED_QUALITY_CONFIDENCE_NEXT",
+    "phase": "N1_UNIFIED_IDLE_QUALITY_CONTROL_EVENT_SCHEDULER_PADDED_KINDHEALTH_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+    "new_product_source_sha": "CONTAINING_COMMIT_SHA",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N0_SCOPED_ACTIONS_PASS_N1_104B_V3_2S_CONTROL_PLUS_256_PN_3S_MATURE_RECEIVER_FIRST_ARRIVAL_ESTIMATE_AND_128B_CORRELATED_ECHO_BACK_TO_SENDER_SCOPED_ACTIONS_PASS_N1_IMPAIRMENT_STRESS_PENDING",
     "ordinary_performance": "NOT_RUN_N1_SOURCE_6220A3B",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_128B_V3_AUTH_CORRELATED_FIRST_ARRIVAL_ESTIMATE_RETURN_SCOPED_RACE_FOUNDATION_NATIVE_PASS_NO_PHYSICAL_WAN_LOSS_N2_AUTO_OFF",
+      "N1_quality": "IN_PROGRESS_AUTH_ECHO_SCOPED_PASS_CONTROL_UNIFIED_KEEPALIVE_EVENT_DRIVEN_PADDED_9_104_128_CANDIDATE_ACTIONS_PENDING",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -92,10 +92,20 @@
       "n1_echo_foundation_run": 38078435386,
       "n1_echo_native_three_run": 38078435343,
       "n1_echo_scope": "V3 exact 128B AEAD KindHealth echoes receiver estimate referencing earlier source reportSeq+nonce+generation+last DATA PN, per-incarnation 16 successfully emitted report history and <=10s source, actual 20 postEmit vs 19 authenticated firstUnique 3s matured returned to original sender; N2 disabled. V2 104B and legacy 9B maintained; 9-netns 3 clients only configured zero loss business functional."
+    },
+    "pending_candidate": {
+      "scope": "Runtime.Tick single arbiter: successful quality/128B echo IdleFor also meets normal health; no two same tick; event-triggered TX watermark and matured echo, no old idle report flood; failed Emit 1s retry backoff not successful health; control-only randomized encrypted zero padding 9/104/128 strictly bounded by direction pathmtu RecordWireMTU, no business/startup/FEC changes; keepalive success jitter ±10%",
+      "source_sha": "CONTAINING_COMMIT_SHA",
+      "actions": "PENDING",
+      "fullstack_perf_matrix": "NOT_RUN",
+      "ipv6_outer": "NOT_RUN",
+      "cli_padding_knobs": "NOT_WIRED_INTERNAL_TRANSPORT_CONFIG_ONLY",
+      "physical": "NOT_RUN",
+      "n2_auto": "NOT_ENABLED"
     }
   },
-  "next_task": "N1 next: qualify scoped reciprocal 128B echo under controlled impairments (0%, 1%, 5% including reorder/late/partial batch local-drop vs actual first-unique transport deficit) in exact Actions; avoid falsely interpreting synthetic tail-omission as measured physical WAN loss. Add 16-history expiration/invalidation/nonce rotation, multi-lane direction independence, stale, overflow and capacity; inspect possible mixed-version V3 echo compatibility. Advance N1 only after true loss/age/quality feedback gates PASS. N2 auto FEC must remain OFF, N3-N6 NOT_STARTED, final one physical-machine stage only after all N0-N6 and P6 Actions.",
-  "latest_log": "docs/devlog/20261011-101500-n1-correlated-128b-echo-actions-scoped-pass.md",
+  "next_task": "Read exact source N1 focused -race x2 9/104/128 padded health strict decode tamper, explicit0/max headroom and on-wire bounded record, control merged keepalive actual IdleFor, idle report suppression, failure backoff and stored ciphertext original Seq; inspect next-foundation Linux/Windows and actual 9-netns native 3 clients. Keep FAIL exact SHA, fix in new commit. After unit/race & native functional, wire internal padding switch/max through official CLI/JSON and generated PARAMETERS.json using tools/parameter_catalog.py in Actions, then separately run specified single SOURCE/config/scenario fullstack matched baseline and candidate, including 10Mbps Normal off/20:20, Game4 3Mbps each direction, 0/1/5/20% phases, idle/sparse/oneway, 300ms vs low RTT and MTU bounds. Unrun scenarios remain NOT_RUN and capacity limited distinct. N2 auto remains OFF until N1 qualification; physical final only after N0–N6 and P6.",
+  "latest_log": "docs/devlog/20261011-113000-n1-unified-event-control-padding-first-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
   "last_tested_scope": "4f0cf78 N1 128B strict codec and actual authenticated echoed feedback -race count2, lifecycle, samewire six cases, Linux/Windows foundation and 9-netns three formal native clients all scoped PASS; genuine impaired netem loss confidence/burst/late/overflow and reciprocal multi-lane soak not tested; N2-N6/P6 and physical NOT_RUN",
@@ -678,6 +688,15 @@
       "scope": "N1_V3_128B_ECHO_FOUNDATION_LINUX_WINDOWS_AND_PRIVILEGED",
       "status": "PASS",
       "cause": "PASS all required baseline jobs Linux+Windows active Go, Linux/OpenWrt privileged TUN and repository authority. P5/P6 policy skipped, not qualified."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "6d7381f5ed9c5e8c0998d5bdd0ece6b57e4d33b5",
+      "run_id": 38078732005,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38078732005",
+      "scope": "N1_CORRELATED_128B_ECHO_DOCS_ONLY_RECEIPT_FOUNDATION",
+      "status": "PASS",
+      "cause": "Docs-only 6d7381f receipt foundation PASS; no source evidence for control scheduling/padding optimization."
     }
   ],
   "required_read_set": [

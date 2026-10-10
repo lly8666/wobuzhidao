@@ -15,12 +15,17 @@ on:
       - "internal/datapath/quality_echo_v4.go"
       - "internal/datapath/quality_echo_v4_test.go"
       - "internal/datapath/quality_health_echo_live.go"
+      - "internal/datapath/control_health_padding.go"
+      - "internal/tlsrecord/record.go"
+      - "internal/tlsrecord/control_padding_test.go"
       - "internal/datapath/quality_pn_window_test.go"
       - "internal/tlsrecord/decoder.go"
       - "internal/runtimeowner/quality.go"
       - "internal/runtimeowner/quality_window.go"
       - "internal/runtimeowner/quality_pair.go"
       - "internal/runtimeowner/quality_echo_live.go"
+      - "internal/runtimeowner/control_policy.go"
+      - "internal/runtimeowner/control_policy_test.go"
       - "internal/runtimeowner/quality_echo_live_test.go"
       - "internal/runtimeowner/quality_pair_test.go"
       - "internal/runtimeowner/quality_window_test.go"
@@ -60,6 +65,16 @@ jobs:
           set -euo pipefail
           go test -race ./internal/datapath \
             -run '^TestN1Quality(HealthV3|Feedback|ReceivePN|EchoV4)' -count=2 -timeout=90s -v
+      - name: Control-only KindHealth encrypted padding lengths and tamper under race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./internal/tlsrecord -run '^TestN1Control' -count=2 -timeout=90s -v
+      - name: Merged idle and event-driven quality control under race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./internal/runtimeowner -run '^TestN1Control' -count=2 -timeout=90s -v
       - name: Legacy health v1 and plaintext record regression
         shell: bash
         run: |

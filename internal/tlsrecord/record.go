@@ -118,6 +118,13 @@ func (s *Sealer) SealHealth(payload []byte) ([]byte, uint64, error) {
 	return s.seal(payload, 0, false, KindHealth)
 }
 
+// SealHealthWithPadding is limited to KindHealth. Padding is authenticated
+// encrypted ZERO bytes after inner_type, shared PN and replay semantics. It
+// never passes through SealWithPadding (which uses KindLINK).
+func (s *Sealer) SealHealthWithPadding(payload []byte, padding int) ([]byte,uint64,error) {
+ return s.seal(payload,padding,true,KindHealth)
+}
+
 func (s *Sealer) seal(payload []byte, padding int, explicitPadding bool, kind byte) ([]byte, uint64, error) {
 	if s.exhausted {
 		return nil, 0, ErrPNExhausted

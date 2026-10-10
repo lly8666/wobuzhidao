@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "kind": "N1_MERGED_CONTROL_EVENT_SCHEDULER_AND_ENCRYPTED_HEALTH_PADDING_FIRST_CANDIDATE",
+  "parent_sha": "6d7381f5ed9c5e8c0998d5bdd0ece6b57e4d33b5",
+  "source_sha": "CONTAINING_COMMIT_SHA",
+  "scope": {
+    "single_control_per_tick": true,
+    "successful_quality_meets_legacy_health_timer": true,
+    "auth_recv_quality_idle_hint_already_supported": true,
+    "legacy_9b_unchanged": true,
+    "quality_v2_104b_unchanged": true,
+    "echo_v3_128b_unchanged": true,
+    "quality_trigger": [
+      "first bootstrap",
+      "new postEmit data PN/window",
+      "new authenticated opposite direction watermark",
+      "receiver echo status or estimated deficit changed",
+      "3.5s freshness with genuinely recent DATA"
+    ],
+    "min_decision_interval": "random 1.5s..2.0s after successful report",
+    "suppression_recheck": "500ms without network packet",
+    "ordinary_keepalive_jitter": "±10% on successful Emit",
+    "failure": "no successful health time advance; independent 1s retry",
+    "wire_padding": "KindHealth only encrypted zero bytes after InnerType",
+    "padding_config": {
+      "scope": "runtimeowner.TransportConfig internal only; CLI not yet wired",
+      "ControlPaddingDisabled_default": false,
+      "ControlPaddingMaxBytes_default": 0,
+      "max_field_bytes": 16384
+    },
+    "padding_safe_limit": "pathmtu true direction RecordWireMTU - tlsrecord.FixedWireOverhead(31) - actual 9B/104B/128B body, bounded by cap",
+    "pathmtu_ipv6_outer": "NOT_RUN",
+    "per_business_rand_or_scan": false,
+    "additional_worker": false,
+    "link_fec_or_4096_changed": false,
+    "n2_auto": false
+  },
+  "tests": {
+    "tlsrecord_padding_body_9_104_128": "PENDING",
+    "exact_zero_wire_tamper_headroom": "PENDING",
+    "runtime_merge_real_peer_idle": "PENDING",
+    "idle_suppression_force_idle": "PENDING",
+    "failure_no_successful_health_and_retry": "PENDING",
+    "sameSeq_complete_ciphertext": "PENDING",
+    "nine_netns_three_client": "PENDING",
+    "linux_windows_foundation": "PENDING"
+  },
+  "performance": {
+    "normal_10mbps_off_lossless": "NOT_RUN",
+    "normal_10mbps_20_20_lossless": "NOT_RUN",
+    "normal_lowloss": "NOT_RUN",
+    "game4_3mbps_each_direction": "NOT_RUN",
+    "idle_sparse_burst_unidirectional": "NOT_RUN",
+    "dynamic_0_1_5_20_recover": "NOT_RUN",
+    "low_rtt_and_300ms": "NOT_RUN",
+    "smaller_mtu_tcp_options": "NOT_RUN",
+    "ipv6_outer": "NOT_RUN",
+    "prior_source_matched_baseline": "NOT_RUN",
+    "candidate_matched_comparison": "NOT_RUN"
+  },
+  "physical": "NOT_RUN",
+  "deployment": false
+}
