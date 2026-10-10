@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C5_NATIVE_AES_GCM_MICRO_HUGE_WIN_RECORD_SUITE_POC_PENDING_ACTIONS",
+    "phase": "C5_AES_GCM_RECORD_SUITE_NATIVE_SCREEN_PASS_REALPATH_AND_VERSION_NEGOTIATION_NOT_RUN",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4084,7 +4084,7 @@
       }
     },
     "crypto_packet_efficiency": {
-      "state": "POLY1305_MAC_AND_AEAD_NATIVE_MICRO_PASS_PACKED_REJECT_PRODUCT_UNCHANGED",
+      "state": "AES256_GCM_NATIVE_ARM64_AMD64_RECORD_PROBE_PASS_NO_PRODUCTION_CRYPTO_CHANGE",
       "plan": "docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md",
       "baseline_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
       "branch_start_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
@@ -4097,7 +4097,7 @@
         "tcp_checksum": "PRODUCTION_UNCHANGED_NATIVE_ARM64_INDEPENDENT_U64_ORACLE_PASS; REALPATH_CPU_HOTSPOT_NOT_RUN",
         "sha_copy_locks": "NO_PRODUCTION_CHANGE; REALPATH_HOTSPOT_NOT_RUN",
         "x86_aead": "MATURE_XCRYPTO_ASSEMBLY_SOURCE_VERIFIED; DIRECT_RUNTIME_PATH_PROOF_NOT_RUN",
-        "lan_minimal_security": "RESEARCH_ONLY_NO_AUTH_PLAINTEXT_COMPARATOR; NO PRODUCT CONFIG OR WIRE CHANGE"
+        "lan_minimal_security": "TEST_ONLY_AES256GCM_FULL_RECORD_GAIN_WITH_AUTHENTICATION; NO_AUTH_CHACHA_AND_PLAINTEXT_DIAGNOSTIC_ONLY; PRODUCTION_STILL_CHACHA20POLY1305"
       },
       "actions": {
         "baseline_core": 38032963434,
@@ -4134,21 +4134,25 @@
         "rollback_lifecycle": 38049393283,
         "native_hotspot_yaml_parse_fail": 38049682130,
         "native_arm64_hotspot": 38049793709,
-        "latest_foundation": 38052541804,
+        "latest_foundation": 38056302188,
         "poly1305_packaging_source": "PENDING_FIXED_CI_RETRY",
         "poly1305_packaging_broken_yaml_run": 38052140743,
         "poly1305_packaging_native": 38052216364,
         "poly1305_packaging_artifact": 11670300227,
         "poly1305_packed_full_aead_native": 38052541722,
         "poly1305_packed_full_aead_artifact": 11670116461,
-        "latest_core": 38052541722,
-        "latest_lifecycle": 38052541801,
+        "latest_core": 38056301902,
+        "latest_lifecycle": 38056301900,
         "lan_crypto_cost": "PENDING_ACTIONS_SOURCE",
         "lan_crypto_cost_core": 38055895924,
         "lan_crypto_cost_artifact": 11671461373,
         "lan_crypto_cost_foundation": 38055895925,
         "lan_crypto_cost_lifecycle": 38055895927,
-        "lan_record_suite": "PENDING_ACTIONS_TEST_ONLY_SOURCE"
+        "lan_record_suite": "PENDING_ACTIONS_TEST_ONLY_SOURCE",
+        "lan_record_suite_native": 38056301902,
+        "lan_record_suite_artifact": 11671226378,
+        "lan_record_suite_foundation": 38056302188,
+        "lan_record_suite_lifecycle": 38056301900
       },
       "acceptance": {
         "unit": "PASS_SOURCE_AB4510E_NATIVE_ARM64_LINUX_AMD64_WINDOWS_AMD64",
@@ -4160,10 +4164,10 @@
         "p6": "NOT_RUN",
         "physical": "NOT_RUN",
         "post_revert": "PASS_LINUX_AMD64_WINDOWS_AMD64_NATIVE_ARM64_CORE_FOUNDATION_LIFECYCLE",
-        "latest_unit": "PASS_SOURCE_AB4510E_LINUX_WINDOWS_NATIVE_ARM64",
-        "latest_race": "PASS_SOURCE_AB4510E_LINUX_NATIVE_ARM64",
-        "latest_fuzz": "PASS_SOURCE_AB4510E_LINUX_AMD64",
-        "latest_foundation": "PASS_SOURCE_AB4510E",
+        "latest_unit": "PASS_SOURCE_196E016_NATIVE_ARM64_LINUX_AMD64_WINDOWS_AMD64",
+        "latest_race": "PASS_SOURCE_196E016_LINUX_AMD64_NATIVE_ARM64",
+        "latest_fuzz": "PASS_SOURCE_196E016_LINUX_AMD64",
+        "latest_foundation": "PASS_SOURCE_196E016",
         "checksum_oracle": "PASS_NATIVE_ARM64",
         "native_aead_short_mtu_micro": "PASS_SYNTHETIC_BENCH_NOT_BUSINESS",
         "arm64_business": "NOT_RUN",
@@ -4173,8 +4177,8 @@
         "three_runners": "NOT_RUN",
         "poly1305_packaging": "PASS_NATIVE_ARM64_TEST_ONLY_64B_31P74_PERCENT_MAC_ONLY_1400B_1P28_PERCENT_MAC_ONLY",
         "poly1305_packed_aead": "PASS_NATIVE_ARM64_FULL_SEAL_GOLDEN_ORACLE_AND_TAMPER_REFERENCE_OPEN; MICRO_64B_4P67PCT_FASTER_1400B_0P20PCT_SLOWER; NO_PRODUCTION_CHANGE",
-        "lan_crypto_cost": "PASS_TEST_ONLY_NATIVE_ARM64_LINUX_AMD64_WINDOWS_AMD64; AES256GCM_SEAL_4P0_TO_5P9X_FASTER_ON_ARM64_STANDALONE; NO_PRODUCT_GAIN_CLAIM",
-        "lan_record_suite": "NOT_RUN_PENDING_ACTIONS"
+        "lan_crypto_cost": "PASS_NATIVE_ARM64_LINUX_AMD64_WINDOWS_CORE; SECURITY_COST_MICRO; NO_INTEGRITY_DROP_IMPL",
+        "lan_record_suite": "PASS_NATIVE_ARM64_LINUX_AMD64_WINDOWS_CORE; WBD_RECORD_TEST_ONLY_AES256GCM_ARM64_SEAL_35P19_TO_60P28_PCT_FASTER_OPEN_39P63_TO_62P42_PCT_FASTER; ALL_EQUAL_FORMAT_SIZE_TAG16_NO_WIRE_INTEROP_CROSS_SUITE"
       },
       "inherited_failures": [
         "Q2 300s probe phase 3/4 original FAIL run38042928701",
@@ -4184,7 +4188,7 @@
         "80 second downlink OPEN_DEFERRED"
       ],
       "code_changed": true,
-      "metrics_claim": "NO_PRODUCT_CPU_GAIN; SYNTHETIC_SEAL_MICRO_ONLY",
+      "metrics_claim": "NO_END_TO_END_PRODUCT_GAIN; AES_GCM_TEST_ONLY_ARM64_RECORD_SEAL_OPEN_MICRO_WIN_35_TO_62_PERCENT",
       "helper_source_sha": "branch commits when measured; never HEAD aliases",
       "micro_v1": {
         "unit": "ns/op",
@@ -4297,8 +4301,8 @@
       "evidence_native_hotspot": "docs/evidence/crypto-packet-arm64-native-hotspot-run38049793709.json"
     }
   },
-  "next_task": "Native synthetic AES256GCM beats ChaCha20Poly1305 Seal with SAME 16-byte integrity tag at ARM64 64B 354.9->89.27ns and 1400B 2051->481.3ns; amd64 64B171->128.6 and 1400B728.3->523ns. Chacha-only NO_AUTH is worse than AESGCM. Both suite oracle and tamper PASS; no product switch. Run complete WBD record seal/open test-only benchmarks including headerMask/nonce/AAD/alloc and wrong-key version before a protocol suite migration decision. Must follow up native realpath ABBA with product exact source; no whole tunnel speedup proven. Original Q2 3/4 FAIL, other qualification open.",
-  "latest_log": "docs/devlog/20261010-234000-lan-aes-gcm-micro-surprise-and-record-suite-screen.md",
+  "next_task": "Candidate AES-256-GCM (authentication retained; 16-byte tag, 12-byte nonce, same WBD record size/PN header mask) significantly faster test-only: native ARM64 record Seal +35..60% and Open +40..62% vs x/crypto ChaCha20Poly1305; x86 micro record Seal +6..22%, Open +14..23%. All core native ARM64/Windows/Linux, foundation, lifecycle PASS Action38056301902/38056302188/38056301900. Production record.go UNCHANGED; NOT_YET_SHIPPABLE. Next if user chooses: explicit new suite negotiation/version w/ both ends, test-only guarded prototype cross-platform Open, same-runner fullstack profile-off A→B→B→A with exact product SHA, Q1/Q2/weaknet/Game/300s/3runner/P6; ARM fullstack currently NOT_RUN. No-auth is unnecessary for near-term CPU improvement, x86 ChaCha-only can be slower, never silently downgrade. Original FEC Q2 3/4 FAIL; E7 Game4 TCP etc OPEN; physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-235000-lan-aes-gcm-record-arm64-amd64-screen-and-decision.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

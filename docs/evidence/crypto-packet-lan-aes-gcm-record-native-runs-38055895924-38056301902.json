@@ -1,0 +1,278 @@
+{
+  "schema": "wbd-lan-crypto-cost-native-record-screen/v1",
+  "branch": "next/crypto-packet-efficiency-20261010",
+  "product_baseline_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "test_only_source_sha": "196e01665df956a749e00f3b7a25ce426b8f5050",
+  "production_tlsrecord_record_blob_sha": "1181eee429a2a6025e5544078d3905dee1a54a48",
+  "production_changed": false,
+  "crypto_micro": {
+    "run_id": 38055895924,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38055895924",
+    "result": "success",
+    "artifact_arm64": 11671461373,
+    "arm64_ns": {
+      "64": {
+        "chacha20poly1305": 354.9,
+        "aes256gcm": 89.27,
+        "chacha20_only_NO_AUTH": 243.6,
+        "copy_PLAINTEXT": 5.908
+      },
+      "256": {
+        "chacha20poly1305": 708.9,
+        "aes256gcm": 119.3,
+        "chacha20_only_NO_AUTH": 237.1,
+        "copy_PLAINTEXT": 7.467
+      },
+      "1400": {
+        "chacha20poly1305": 2051,
+        "aes256gcm": 481.3,
+        "chacha20_only_NO_AUTH": 1325,
+        "copy_PLAINTEXT": 30.66
+      }
+    },
+    "linux_amd64_ns": {
+      "64": {
+        "chacha20poly1305": 171,
+        "aes256gcm": 128.6,
+        "chacha20_only_NO_AUTH": 137.9,
+        "copy_PLAINTEXT": 4.067
+      },
+      "256": {
+        "chacha20poly1305": 250.8,
+        "aes256gcm": 135.5,
+        "chacha20_only_NO_AUTH": 463.6,
+        "copy_PLAINTEXT": 7.179
+      },
+      "1400": {
+        "chacha20poly1305": 728.3,
+        "aes256gcm": 523,
+        "chacha20_only_NO_AUTH": 2469,
+        "copy_PLAINTEXT": 16.24
+      }
+    },
+    "oracle": "PASS_AES256GCM_AND_CHACHA_AEAD_SEAL_OPEN_TAMPER_FAIL_AND_UNAUTH_STREAM_BITFLIP_DEMONSTRATION_ONLY",
+    "linux_amd64_job": 114224273145,
+    "notes": "Synthetic cryptographic Seal only; no headerMask, record, FEC or I/O."
+  },
+  "native_record": {
+    "run_id": 38056301902,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38056301902",
+    "result": "success",
+    "platforms": {
+      "linux_amd64": "success",
+      "windows_amd64": "success",
+      "linux_arm64_native": "success"
+    },
+    "foundation_run": 38056302188,
+    "foundation_status": "success",
+    "lifecycle_run": 38056301900,
+    "lifecycle_status": "success",
+    "artifact_arm64": {
+      "id": 11671226378,
+      "digest": "sha256:c5ed4ddd5323e9ca4c610fa470f28f46d498e9859ca9a3d590db243b8eff3dd6"
+    },
+    "file_sha256": {
+      "research-record-suite-arm64.txt": "0b0afe156d521b311042dbed8ea66abdd2644de8917b840c397e261c9e153d9a"
+    },
+    "amd64_job": 114225421635,
+    "bench_median_ns_per_op_reference_chacha20poly1305_to_aes256gcm": {
+      "arm64": {
+        "64": {
+          "Seal": [
+            746.8,
+            484
+          ],
+          "Open": [
+            734.6,
+            443.5
+          ]
+        },
+        "128": {
+          "Seal": [
+            826.7,
+            497.4
+          ],
+          "Open": [
+            803.5,
+            459.7
+          ]
+        },
+        "256": {
+          "Seal": [
+            1145,
+            546.1
+          ],
+          "Open": [
+            1124,
+            504.7
+          ]
+        },
+        "512": {
+          "Seal": [
+            1511,
+            656
+          ],
+          "Open": [
+            1475,
+            601.7
+          ]
+        },
+        "1200": {
+          "Seal": [
+            2342,
+            955.9
+          ],
+          "Open": [
+            2303,
+            910.5
+          ]
+        },
+        "1400": {
+          "Seal": [
+            2669,
+            1060
+          ],
+          "Open": [
+            2589,
+            973
+          ]
+        }
+      },
+      "amd64": {
+        "64": {
+          "Seal": [
+            439.8,
+            411.5
+          ],
+          "Open": [
+            436.5,
+            373.3
+          ]
+        },
+        "128": {
+          "Seal": [
+            468.9,
+            391.2
+          ],
+          "Open": [
+            461.2,
+            377.5
+          ]
+        },
+        "256": {
+          "Seal": [
+            541,
+            442.7
+          ],
+          "Open": [
+            530.3,
+            427.5
+          ]
+        },
+        "512": {
+          "Seal": [
+            686,
+            533.6
+          ],
+          "Open": [
+            664.6,
+            514.1
+          ]
+        },
+        "1200": {
+          "Seal": [
+            1039,
+            813.4
+          ],
+          "Open": [
+            1015,
+            779.5
+          ]
+        },
+        "1400": {
+          "Seal": [
+            1174,
+            941.2
+          ],
+          "Open": [
+            1063,
+            860.6
+          ]
+        }
+      }
+    },
+    "gain_pct": {
+      "arm64": {
+        "64": {
+          "Seal": 35.19,
+          "Open": 39.63
+        },
+        "128": {
+          "Seal": 39.83,
+          "Open": 42.79
+        },
+        "256": {
+          "Seal": 52.31,
+          "Open": 55.1
+        },
+        "512": {
+          "Seal": 56.59,
+          "Open": 59.21
+        },
+        "1200": {
+          "Seal": 59.18,
+          "Open": 60.46
+        },
+        "1400": {
+          "Seal": 60.28,
+          "Open": 62.42
+        }
+      },
+      "amd64": {
+        "64": {
+          "Seal": 6.43,
+          "Open": 14.48
+        },
+        "128": {
+          "Seal": 16.57,
+          "Open": 18.15
+        },
+        "256": {
+          "Seal": 18.17,
+          "Open": 19.39
+        },
+        "512": {
+          "Seal": 22.22,
+          "Open": 22.65
+        },
+        "1200": {
+          "Seal": 21.71,
+          "Open": 23.2
+        },
+        "1400": {
+          "Seal": 19.83,
+          "Open": 19.04
+        }
+      }
+    },
+    "allocations_per_op": {
+      "both_cipher_modes": "3 allocations per WBD record Seal and Open at tested 64/1400 ARM64; B/op equal between suites"
+    },
+    "oracle": "PASS_TestResearchRecordSuiteCompatibility_synthetic_Keys_AAD_PN_HeaderMask_Timestamp_NONE_Nonce_Wire_31_OVERHEAD_TAMPER_AUTH_FAIL_Padded_19B_CROSS_SUITE_AUTH_FAIL",
+    "scope": "Actual tlrecord Sealer.Seal / Opener.OpenRecord CODE using test-only cipher.AEAD swap, including 5B TLS-like header/8B protected PN/16B auth tag/1B kind/1B inner type/ChaCha20 headerMask / output buffer allocation; NOT full WBD business."
+  },
+  "decision": "AES-256-GCM is promising with authentication retained; investigate production candidate only after explicit new negotiated suite/version and actual same-runner fullstack ABBA. Do not adopt unauthenticated cipher or plaintext; do not infer WBD actual CPU gains from synthetic/record tests.",
+  "limitations": {
+    "native_arm64_business_fullstack": "NOT_RUN",
+    "realpath_aesgcm_abba": "NOT_RUN",
+    "weaknet_aesgcm": "NOT_RUN",
+    "game_aesgcm": "NOT_RUN",
+    "independent_3_runners": "NOT_RUN",
+    "confirm300": "NOT_RUN",
+    "P6": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "historical_FEC_Q2": "FAIL_3_OF_4_ORIGINAL_300s",
+    "historical_e7": "OPEN_80s_DOWNLINK",
+    "historical_headerMask_B": "REVERTED_REALPATH_CPU_PLUS_2P02_PERCENT"
+  }
+}
