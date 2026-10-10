@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_LIVE_QUALITY_FIRST_ACTIONS_BUILD_FAIL_INTERFACE_FIX_PENDING",
+    "phase": "N1_LIVE_ENCRYPTED_2S_GORACE_PASS_NATIVE_3_CLIENT_GATE_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "a8936d20f623959892906dfe1443d3e495fec62f",
+    "new_product_source_sha": "860fc3c7634f6298b1584e4263260a009e390f1b",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "PREVIOUS_N0_SCOPED_PASS_AND_N1_NONLIVE_CODEC_MAILBOX_PASS_NEW_AF74C18_SOURCE_FAIL_COMPILE",
+    "core": "N0_SCOPED_ACTIONS_PASS_N1_LIVE_PROTECTED_QUALITY_FOCUSED_RACE_860FC3C_NATIVE_3CLIENT_PENDING",
     "ordinary_performance": "NOT_RUN_N0_SOURCE_60D6415",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_NEW_LIVE_V3_2S_CANDIDATE_COMPILE_FAIL_MISSING_ACCEPTDECODED_FIX_PENDING",
+      "N1_quality": "IN_PROGRESS_ACTUAL_V3_HEALTH_CONTROL_2S_RACE_PASS_MATURE_WAN_QUALITY_NOT_IMPLEMENTED_NATIVE_3_CLIENT_PENDING",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -73,16 +73,16 @@
       "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
     },
     "pending_candidate": {
-      "scope": "N1 correction: expose previously omitted AcceptDecoded report API so runtimeowner can publish authenticated-only quality summaries; all original six Actions FAIL retained",
-      "previous_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
-      "reason": "MISSING_ACCEPTDECODED_SYMBOL",
+      "scope": "N1 exact-source 860fc3c actual live 2s authenticated KindHealth partial-quality feedback, code+focused race PASS; newly expanded native 9-netns Actions requested, no genuine WAN loss estimates",
       "source_sha": "CONTAINING_COMMIT_SHA",
-      "actions": "PENDING",
+      "native_3_client_actions": "PENDING",
+      "native_windows": "NOT_RUN",
+      "n2_auto": "NOT_STARTED",
       "physical": "NOT_RUN"
     }
   },
-  "next_task": "N1: rerun exact new SOURCE six Actions after minimal missing AcceptDecoded mailbox compile fix; inspect all targeted races/native 9-netns and fix genuine functional regressions with new SHA, preserve failures. Live report flags INSUFFICIENT only, no WAN loss estimate or N2 auto. After qualification implement bounded mature DATA-only counters. Physical only after all N0–N6 Actions/P6.",
-  "latest_log": "docs/devlog/20261011-035000-n1-live-quality-missing-acceptdecoded-fix.md",
+  "next_task": "N1 check workflow-expanded next-adaptive-n0-multi 9-netns native Action on new SHA, scoped send/receive two-second encrypted KindHealth quality with old health v1 still alive. Independently inspect newest source foundation/lifecycle. Preserve previous af74 six pre-test compile FAIL and later 860 fixed PASS; if network functional FAIL, fix with new source. After native verify, implement honest bounded matured sender/receiver DATA watermark and estimated loss unknown policies, no N2 auto or physical.",
+  "latest_log": "docs/devlog/20261011-041500-n1-live-2s-unit-race-pass-native-3-client-pending.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "a8936d20f623959892906dfe1443d3e495fec62f",
   "last_tested_scope": "N1 104-byte protected health quality codec literal vector and one latest report mailbox -race 2x PASS; source a8936d2 workflow+docs-only over f2d72e implementation. Foundation for a8936d2 still in progress at receipt time; previous f2d72e foundation PASS.",
@@ -419,6 +419,25 @@
       "scope": "N1_LIVE_FIRST_COMPILE_FAILURE_three-client negotiated Go race build",
       "status": "FAIL",
       "cause": "Exact SOURCE af74c18: runtimeowner/quality.go:111 calls mailbox.AcceptDecoded, missing from committed datapath mailbox method set. Build stopped before functional/race/native execution. Correct method in new SOURCE; failures remain recorded."
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "source_sha": "860fc3c7634f6298b1584e4263260a009e390f1b",
+      "run_id": 38073999026,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073999026",
+      "scope": "N1_LIVE_V3_104B_HEALTH_SEND_RECEIVE_FOCUSED_RACE_2X",
+      "status": "PASS",
+      "job_id": 114277051793,
+      "cause": "Go race tested actual production Runtime.Tick and encrypted V3 health control both directions, 2-second slot, legacy strict V2-like receiver, dormant no wake and latest/stale checks twice. Codec/mailbox race and normal legacy tests PASS. No native netns evidence yet."
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "860fc3c7634f6298b1584e4263260a009e390f1b",
+      "run_id": 38073999138,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073999138",
+      "scope": "N1_LIVE_V3_LIFECYCLE_TESTS",
+      "status": "PASS",
+      "cause": "Existing lifecycle and wire regression PASS on 860fc3c."
     }
   ],
   "required_read_set": [

@@ -7,6 +7,8 @@ on:
       - "tools/adaptive_n0_multi_realpath.py"
       - "tools/adaptive_n0_multi_check.py"
       - "internal/datapath/quality_health_live.go"
+      - "internal/datapath/quality_feedback_v3.go"
+      - "internal/datapath/quality_health_v3.go"
       - "internal/datapath/lane.go"
       - "internal/runtimeowner/quality.go"
       - "internal/runtimeowner/health.go"

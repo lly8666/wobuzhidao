@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "kind": "N1_LIVE_QUALITY_PARTIAL_FOCUSED_ACTIONS_PASS_NATIVE_PENDING",
+  "code_source_sha": "860fc3c7634f6298b1584e4263260a009e390f1b",
+  "focused_run": {
+    "name": "next-adaptive-n1-codec",
+    "run_id": 38073999026,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073999026",
+    "job_id": 114277051793,
+    "status": "PASS",
+    "race_repetitions": 2,
+    "covered": [
+      "authenticated protected V3 104B quality report both directions",
+      "active-only two second cadence",
+      "one latest receiver state and stale",
+      "dormant no further quality traffic",
+      "legacy nonopted receiver rejects v2",
+      "previous codec and mailbox replay concurrent race"
+    ]
+  },
+  "lifecycle_run": {
+    "run_id": 38073999138,
+    "status": "PASS"
+  },
+  "foundation_run": {
+    "run_id": 38073998989,
+    "status_at_receipt": "IN_PROGRESS"
+  },
+  "failed_previous": {
+    "source_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+    "root_cause": "missing AcceptDecoded method; compile failure, NOT functional test",
+    "run_ids": [
+      38073834018,
+      38073833955,
+      38073833994,
+      38073834004,
+      38073834041,
+      38073834029
+    ],
+    "statuses": "ALL_FAIL_PRESERVED"
+  },
+  "scope": "2-second authenticated low frequency encrypted KindHealth V3 partial report INS UFFICIENT only; no WAN loss estimator or auto",
+  "new_source": "containing_commit",
+  "native_9_netns_3_clients": "PENDING_WORKFLOW_TRIGGER",
+  "physical": "NOT_RUN",
+  "n2_auto": "NOT_ENABLED",
+  "performance": "NOT_RUN"
+}
