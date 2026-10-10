@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C4_POLY1305_SYNTHETIC_SCREEN_COMPLETE_REJECT_PACKED_PRODUCTION_ROUTE",
+    "phase": "C5_TRUSTED_LAN_CRYPTO_COST_DIAGNOSTIC_TEST_ONLY_PENDING_ACTIONS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4096,7 +4096,8 @@
         "arm64_poly1305": "GENERIC_ORIGINAL_PRODUCT; EXPERIMENT_ONLY_POLY1305_PACKED_AEAD_FULL_SEAL_MICRO_64B_4P67PCT_FASTER_1400B_0P20PCT_SLOWER_REJECT_AS_PRODUCTION_REWRITE; NO_NEW_ARM64_ASM",
         "tcp_checksum": "PRODUCTION_UNCHANGED_NATIVE_ARM64_INDEPENDENT_U64_ORACLE_PASS; REALPATH_CPU_HOTSPOT_NOT_RUN",
         "sha_copy_locks": "NO_PRODUCTION_CHANGE; REALPATH_HOTSPOT_NOT_RUN",
-        "x86_aead": "MATURE_XCRYPTO_ASSEMBLY_SOURCE_VERIFIED; DIRECT_RUNTIME_PATH_PROOF_NOT_RUN"
+        "x86_aead": "MATURE_XCRYPTO_ASSEMBLY_SOURCE_VERIFIED; DIRECT_RUNTIME_PATH_PROOF_NOT_RUN",
+        "lan_minimal_security": "RESEARCH_ONLY_NO_AUTH_PLAINTEXT_COMPARATOR; NO PRODUCT CONFIG OR WIRE CHANGE"
       },
       "actions": {
         "baseline_core": 38032963434,
@@ -4141,7 +4142,8 @@
         "poly1305_packed_full_aead_native": 38052541722,
         "poly1305_packed_full_aead_artifact": 11670116461,
         "latest_core": 38052541722,
-        "latest_lifecycle": 38052541801
+        "latest_lifecycle": 38052541801,
+        "lan_crypto_cost": "PENDING_ACTIONS_SOURCE"
       },
       "acceptance": {
         "unit": "PASS_SOURCE_AB4510E_NATIVE_ARM64_LINUX_AMD64_WINDOWS_AMD64",
@@ -4165,7 +4167,8 @@
         "confirm300": "NOT_RUN",
         "three_runners": "NOT_RUN",
         "poly1305_packaging": "PASS_NATIVE_ARM64_TEST_ONLY_64B_31P74_PERCENT_MAC_ONLY_1400B_1P28_PERCENT_MAC_ONLY",
-        "poly1305_packed_aead": "PASS_NATIVE_ARM64_FULL_SEAL_GOLDEN_ORACLE_AND_TAMPER_REFERENCE_OPEN; MICRO_64B_4P67PCT_FASTER_1400B_0P20PCT_SLOWER; NO_PRODUCTION_CHANGE"
+        "poly1305_packed_aead": "PASS_NATIVE_ARM64_FULL_SEAL_GOLDEN_ORACLE_AND_TAMPER_REFERENCE_OPEN; MICRO_64B_4P67PCT_FASTER_1400B_0P20PCT_SLOWER; NO_PRODUCTION_CHANGE",
+        "lan_crypto_cost": "NOT_RUN_PENDING_ACTIONS"
       },
       "inherited_failures": [
         "Q2 300s probe phase 3/4 original FAIL run38042928701",
@@ -4288,8 +4291,8 @@
       "evidence_native_hotspot": "docs/evidence/crypto-packet-arm64-native-hotspot-run38049793709.json"
     }
   },
-  "next_task": "Poly1305 experiment done native ARM64 Actions38052541722 (Linux/Windows/ARM64 core, foundation, lifecycle SUCCESS): test-only packed AEAD Seal reference golden/tamper PASS; ns/op ref->packed 64B 353.7->337.2 (4.665% faster), 128B 406.1->389 (4.211%), 256B 707->695.8 (1.584%), 512B 1022->1019 (0.294%), 1200B 1734->1743 (0.519% slower), 1400B 2041->2045 (0.196% slower). REJECT PACKED PRODUCT route due negligible/mixed AEAD gains and cryptographic API rewrite risk. No production crypto changed. Next if resuming optimization: native ARM64 fullstack realpath profile and source-scoped quality gate before investigating mature license-checked ARM64 Poly1305 assembly, not generic Go reimplementation. Q2 historical FAIL, Game4/TCP/80s, three runners/300s/P6/physical NOT_RUN remain.",
-  "latest_log": "docs/devlog/20261010-230000-crypto-poly1305-packed-aead-native-results-and-decision.md",
+  "next_task": "Evaluate local-only security-cost alternatives on native ARM64 and Linux amd64 via test-only micro: ChaCha20-Poly1305, AES-256-GCM hardware when available, ChaCha20 encryption-only no authentication, and plaintext copy theoretical floor. Every code-path vectors/tamper or explicit malleability demo must pass. No release/production modifications, no auth removal. Compare full AEAD with same runner and messages; hardware features and real ARM64 fullstack profile still future. Existing FEC Q2 3/4 FAIL and 300s/physical NOT_RUN preserved.",
+  "latest_log": "docs/devlog/20261010-232000-lan-security-cost-options-test-only.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
