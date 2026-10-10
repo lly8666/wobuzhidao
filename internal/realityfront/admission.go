@@ -119,6 +119,12 @@ type ServerAdmissionConfig struct {
 	ExpectedPassword string
 	ServerLimit      uint16
 	Random           io.Reader
+	// RequireV3 is the production coordinated-upgrade gate. V2 stays available
+	// only to explicit legacy/unit entrypoints without this gate.
+	RequireV3        bool
+	// PolicyAllow is an optional operator allow-list, checked after identity
+	// authentication and before lease allocation. It must reject, not coerce.
+	PolicyAllow      func(AdmissionPolicy) error
 	// ValidateRequest runs after TLS protection + credential verification but
 	// before the success reply is emitted. It lets the runtime fail closed when
 	// a TunnelID/LaneID cannot be bound to current lifecycle state.
@@ -287,10 +293,20 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 		_ = writeAdmissionFailure(tlsConn, admissionAuthFail)
 		return nil, ErrAdmissionAuth
 	}
+	if cfg.RequireV3 && req.RecordVersion != RecordVersionV3 {
+		_ = writeAdmissionFailure(tlsConn, admissionVersionFail)
+		return nil, ErrAdmissionVersion
+	}
 	if req.RecordVersion == RecordVersionV3 {
 		if err := req.Policy.SupportedNow(); err != nil {
 			_ = writeAdmissionFailure(tlsConn, admissionParamFail)
 			return nil, err
+		}
+		if cfg.PolicyAllow != nil {
+			if err := cfg.PolicyAllow(req.Policy); err != nil {
+				_ = writeAdmissionFailure(tlsConn, admissionParamFail)
+				return nil, errors.Join(ErrAdmissionUnsupported, err)
+			}
 		}
 	}
 	var assigned string

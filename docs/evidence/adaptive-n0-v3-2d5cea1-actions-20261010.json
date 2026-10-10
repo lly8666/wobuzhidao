@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "source_sha": "2d5cea1c7add5d04d56c94bf98cf82a944b80d2a",
+  "runs": [
+    {
+      "workflow": "next-foundation",
+      "id": 38061700075,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38061700075",
+      "status": "PASS",
+      "jobs": [
+        {
+          "id": 114241110452,
+          "name": "repository-contract",
+          "status": "success"
+        },
+        {
+          "id": 114241151019,
+          "name": "p4-openwrt-tproxy-privileged",
+          "status": "success"
+        },
+        {
+          "id": 114241151033,
+          "name": "p2-kernel-fallback",
+          "status": "success"
+        },
+        {
+          "id": 114241151067,
+          "name": "active-go-tests (windows-2022)",
+          "status": "success"
+        },
+        {
+          "id": 114241151074,
+          "name": "p4-linux-shared-tun-privileged (nft)",
+          "status": "success"
+        },
+        {
+          "id": 114241151105,
+          "name": "p4-linux-shared-tun-privileged (iptables)",
+          "status": "success"
+        },
+        {
+          "id": 114241151107,
+          "name": "active-go-tests (ubuntu-24.04)",
+          "status": "success"
+        }
+      ]
+    },
+    {
+      "workflow": "next-lifecycle",
+      "id": 38061700072,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38061700072",
+      "status": "PASS",
+      "jobs": [
+        {
+          "id": 114241110249,
+          "name": "core",
+          "status": "success"
+        }
+      ]
+    }
+  ],
+  "qualification_scope": "foundation_unit_and_existing_kernel_regression_only",
+  "multi_client_v3_real_tls": "NOT_RUN_PARENT_SOURCE",
+  "new_source_tests": "PENDING",
+  "native_windows_tun": "NOT_RUN",
+  "perftest": "NOT_RUN",
+  "cpu_quota_psi_drop": "NOT_MEASURED"
+}

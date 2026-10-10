@@ -106,3 +106,75 @@ func TestFixedPolicyForClientNoImplicitAutoMigration(t *testing.T) {
         }
     }
 }
+
+func TestV3AuthenticatedPolicyAllowListRejectsBeforeLeaseAllocation(t *testing.T) {
+    cert:=makeServerCert(t)
+    key:=[]byte("0123456789abcdef0123456789abcdef")
+    assoc,peer:=newAssociationPeer(t)
+    defer peer.Close();defer assoc.Close()
+    type result struct {err error;allocated bool;validated bool}
+    done:=make(chan result,1)
+    go func(){
+        allocated:=false
+        validated:=false
+        _,err:=EstablishServer(context.Background(),assoc,ServerAdmissionConfig{
+            TLS:ServerConfig{ServerName:"target.test",RouteKey:key,
+                TLSConfig:&tls.Config{Certificates:[]tls.Certificate{cert}},Timeout:3*time.Second},
+            ExpectedUsername:"solo",ExpectedPassword:"secret",ServerLimit:1400,
+            RequireV3:true,
+            PolicyAllow:func(p AdmissionPolicy)error{
+                validated=true
+                if p.FixedParity==8 {return errors.New("profile not allowed")}
+                return nil
+            },
+            AllocateLease:func(req AdmissionRequest)(string,error){
+                allocated=true
+                return "10.66.0.17/32",nil
+            },
+        })
+        done<-result{err,allocated,validated}
+    }()
+    p:=fixedV3Policy(8)
+    _,err:=EstablishClient(context.Background(),peer,ClientAdmissionConfig{
+        TLS:ClientConfig{ServerName:"target.test",RouteKey:key,Timeout:3*time.Second},
+        Username:"solo",Password:"secret",TunnelID:[]byte("0123456789abcdef"),
+        ClientLimit:1400,AutoLease:true,DesiredLanes:1,
+        InstallationID:bytes.Repeat([]byte{0x12},16),Policy:p})
+    if !errors.Is(err,ErrAdmissionParams){t.Fatalf("client rejection %v",err)}
+    got:= <-done
+    if !errors.Is(got.err,ErrAdmissionUnsupported) || !got.validated || got.allocated {
+        t.Fatalf("allowlist bypass: %+v",got)
+    }
+}
+func TestRequireV3RejectsLegacyV2WithoutAllocating(t *testing.T) {
+    cert:=makeServerCert(t)
+    key:=[]byte("0123456789abcdef0123456789abcdef")
+    assoc,peer:=newAssociationPeer(t)
+    defer peer.Close();defer assoc.Close()
+    type result struct {err error;allocated bool}
+    done:=make(chan result,1)
+    go func(){
+        allocated:=false
+        _,err:=EstablishServer(context.Background(),assoc,ServerAdmissionConfig{
+            TLS:ServerConfig{ServerName:"target.test",RouteKey:key,
+                TLSConfig:&tls.Config{Certificates:[]tls.Certificate{cert}},Timeout:3*time.Second},
+            ExpectedUsername:"solo",ExpectedPassword:"secret",ServerLimit:1400,
+            RequireV3:true,
+            AllocateLease:func(req AdmissionRequest)(string,error){
+                allocated=true
+                return "10.66.0.17/32",nil
+            },
+        })
+        done<-result{err,allocated}
+    }()
+    _,err:=EstablishClient(context.Background(),peer,ClientAdmissionConfig{
+        TLS:ClientConfig{ServerName:"target.test",RouteKey:key,Timeout:3*time.Second},
+        Username:"solo",Password:"secret",TunnelID:[]byte("0123456789abcdef"),
+        ClientLimit:1400,AutoLease:true,DesiredLanes:1,
+        InstallationID:bytes.Repeat([]byte{0x12},16)})
+    if !errors.Is(err,ErrAdmissionVersion){t.Fatalf("client version rejection %v",err)}
+    got:= <-done
+    if !errors.Is(got.err,ErrAdmissionVersion) || got.allocated {
+        t.Fatalf("legacy admission unexpectedly accepted: %+v",got)
+    }
+}

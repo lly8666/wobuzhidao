@@ -312,6 +312,7 @@ func runServer() error {
 				},
 				ExpectedUsername: *username,
 				ExpectedPassword: *password,
+				RequireV3:        true, // Production upgrades must be coordinated.
 				ServerLimit:      uint16(*serverLimit),
 			},
 			Fallback: realityfront.FallbackConfig{
