@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_UNIFIED_CONTROL_PADDING_FIRST_GO_RACE_NATIVE_PASS_OLD_40BYTE_HEALTH_TEST_FAIL_FIX_PENDING",
+    "phase": "N1_CONTROL_PADDED_ACTIONS_PASS_CLI_CONFIG_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -94,26 +94,16 @@
       "n1_echo_scope": "V3 exact 128B AEAD KindHealth echoes receiver estimate referencing earlier source reportSeq+nonce+generation+last DATA PN, per-incarnation 16 successfully emitted report history and <=10s source, actual 20 postEmit vs 19 authenticated firstUnique 3s matured returned to original sender; N2 disabled. V2 104B and legacy 9B maintained; 9-netns 3 clients only configured zero loss business functional."
     },
     "pending_candidate": {
-      "scope": "Only alter outdated legacy regression to assert exactly 1 health KindHealth, wire >=40 within true derived pathmtu headroom rather than exact fixed 40B, same authenticated IdleFor and no FEC/business. Product code unchanged. Preserve previous FAIL and rerun all Actions under corrective SHA.",
-      "first_source_sha": "6482c184d980028f002440e87b281a78b092ccfe",
-      "new_source_sha": "CONTAINING_COMMIT_SHA",
-      "first_source_actions": {
-        "n1_race": "PASS",
-        "samewire": "PASS",
-        "native_three": "PASS",
-        "lifecycle": "FAIL",
-        "foundation": "FAIL"
-      },
-      "failed_root_cause": "health_test.go:62 assumed unpadded 9B health ciphertext fixed 40B and rejected now legal encrypted zero padding",
-      "correction": "TEST_ONLY",
-      "user_cli_switch": "INTERNAL_TRANSPORT_CONFIG_ONLY_NOT_CLI",
-      "performance_matrix": "NOT_RUN",
-      "physical": "NOT_RUN",
-      "n2_auto": "NOT_ENABLED"
+      "source_sha": "CONTAINING_COMMIT_SHA",
+      "scope": "CLI/JSON control-padding and control-padding-max on Linux/Windows clients and server",
+      "actions": "PENDING",
+      "fullstack_perf": "NOT_RUN",
+      "n2_auto": "OFF",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "Rerun N1 control-focused race, lifecycle, Linux/Windows foundation and real nine-netns 3-client source after health_test corrected to bounded variable length. Verify 9B strict decoded IdleFor, forced idle and no FEC amplification, original Seq entire padded ciphertext. Then wire user CLI/config field through generated parameter catalog, perf comparison as separate source/config/condition Actions. N1 overall pending impaired feedback + full matrix, N2 off, final physical after N0–N6/P6.",
-  "latest_log": "docs/devlog/20261011-121500-n1-control-padding-first-actions-fixed40-test-fail.md",
+  "next_task": "Validate new-source official CLI/JSON parameter catalog and Linux+Windows build, focused Go race, and nine-netns native client regression; then isolated one source/config/scenario performance comparison, weaknet and bounded length histogram. No N2 auto or physical.",
+  "latest_log": "docs/devlog/20261011-130000-n1-control-only-padding-merged-actions-pass-cli-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
   "last_tested_scope": "4f0cf78 N1 128B strict codec and actual authenticated echoed feedback -race count2, lifecycle, samewire six cases, Linux/Windows foundation and 9-netns three formal native clients all scoped PASS; genuine impaired netem loss confidence/burst/late/overflow and reciprocal multi-lane soak not tested; N2-N6/P6 and physical NOT_RUN",
@@ -750,6 +740,38 @@
       "scope": "N1_CONTROL_UNIFY_PADDING_FIRST_SOURCE_ACTIONS",
       "status": "FAIL",
       "cause": "active-go-tests on ubuntu and windows fail same legacy fixed 40B health ciphertext length assertion; unaffected repository/privileged jobs do not make entire foundation PASS"
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "run_id": 38081514431,
+      "source_sha": "2dafe7cccc537554e7baede9fcbedb0dfd559c4d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081514431",
+      "status": "PASS",
+      "scope": "CONTROL_SCHEDULER_PADDED_HEALTH_SCOPED_REGRESSION"
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38081514430,
+      "source_sha": "2dafe7cccc537554e7baede9fcbedb0dfd559c4d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081514430",
+      "status": "PASS",
+      "scope": "CONTROL_SCHEDULER_PADDED_HEALTH_SCOPED_REGRESSION"
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38081514422,
+      "source_sha": "2dafe7cccc537554e7baede9fcbedb0dfd559c4d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081514422",
+      "status": "PASS",
+      "scope": "CONTROL_SCHEDULER_PADDED_HEALTH_SCOPED_REGRESSION"
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "run_id": 38081514389,
+      "source_sha": "2dafe7cccc537554e7baede9fcbedb0dfd559c4d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081514389",
+      "status": "PASS",
+      "scope": "CONTROL_SCHEDULER_PADDED_HEALTH_SCOPED_REGRESSION"
     }
   ],
   "required_read_set": [

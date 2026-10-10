@@ -250,3 +250,8 @@ N1 质量首次可发一条建立初始样本，之后以**真实 TX PN 采样�
 KindHealth 单独增加 encrypted zero padding，复用 tlsrecord.inner_type 后的已有格式，最终密文/PN/TCP Seq 固定缓存供原 RTO 重发；不调用 KindLINK 的 SealWithPadding、不逐字节产生随机明文、更不等待业务。一次控制选择时才从密码学随机源取长度，合法范围 0..min(pathmtu.RecordWireMTU-31-bodyLen, 配置 max)，RecordWireMTU 已经过真实 configured IPv4/TCP options、peer MSS、方向协商 record cap；若不足减小或跳过，正文基础超预算则显式错误。默认内部 TransportConfig 开启、上限 0 表示预算允许的最大长度；两个排错字段 ControlPaddingDisabled 与 ControlPaddingMaxBytes(0..16384) 目前是内部调用层**明确开关与上限**，**正式 Linux/Windows CLI/JSON 参数尚未接线，不得写成用户可用参数**。有关 CLI 同源参数目录更新是后续独立原子项。外层 IPv6 预算目前不是该路径的既有支持，明确 NOT_RUN，禁止按 IPv4 数值推断。
 
 单位/race 和真实三客户端功能回归首先由 Actions 执行；接下来固定源基线与优化源分别以一个 SOURCE、一个配置、一个工况独立执行 Normal 10Mbps off/20:20 × lossless/low-loss、Game4 3Mbps each-way 20:20、长空闲/稀疏/单向/突发、0/1/5/20% 阶段恢复、低 RTT/300ms、变小 MTU 与真实 TCP options，并记录 runner CPU/quota、注入达标、原始首交付、goodput/p99/连续无交付、CPU/alloc、控制间隔长度。未经 Actions 原始完整结果一律 NOT_RUN。外观最多说减少固定特征，绝不声称与 HTTPS 一致或不可识别。
+
+
+## N1 控制 padding 参数接线候选（2026-10-11）
+
+在先前已通过 SOURCE `2dafe7c` 的合并保活、控制-only AEAD zero padding、事件驱动限频基础上，此**独立源码候选**把 `control-padding` / `control-padding-max` 接入 Linux/Windows client、Linux server 的唯一 CLI/JSON 配置源，经 `TunnelClientConfig` / `LifecycleServerConfig` 原样传递到现有每 lane `TransportConfig`，不额外重开框架。内建默认 true/0、显式 false 关闭、上限0..16384且实际长度仍受真正外层方向 pathmtu 限制。命令行值覆盖 JSON，CLI 初始参数语义与 `docs/PARAMETERS.json` 的官方生成器完全一致。该接口代码及参数目录在新 SOURCE 的 Linux/Windows 构建/参数合约 Actions 之前仍为候选，不得记为 PASS。独立 fullstack 性能/外观基线场景仍 NOT_RUN。

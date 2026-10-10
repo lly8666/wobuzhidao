@@ -151,3 +151,15 @@ Linux 客户端和服务端统一参数 `raw-recv-buffer` 表示传给 `SO_RCVBU
 | 失败退避 | 1s | 不更新成功保活时间，不在每次 Tick 重试。 |
 
 真实的 `pathmtu.Budget.RecordWireMTU` 已考虑 configured IPv4/TCP options、peer MSS、negotiated record cap。外层 IPv6 此候选没有独立被证实的路径预算，NOT_RUN。GUI 两秒缓存读不等于网络报告间隔。参数目录仍以现有 CLI 代码自动生成，**不准**将上述内部字段虚构成已发布 CLI 开关。详见 `docs/ADAPTIVE_NETWORK_PLAN.md`、`docs/STATUS.json`。
+
+
+## N1 控制 padding 正式参数接线（2026-10-11，新 SOURCE Actions 待验）
+
+在前一段内部 API 设计之上，此候选将开关和上限**正式接入** Linux 客户端、Windows 客户端、Linux 服务端的同名 CLI/扁平 JSON，且已同步 `docs/PARAMETERS.json`（资格以 Actions 的 `tools/parameter_catalog.py` 为准）：
+
+| 参数 | 默认 | 有效值 | 影响 |
+| --- | --- | --- | --- |
+| `--control-padding` / `"control-padding"` | true | true / false | **只**控制 TLS-like KindHealth 的 9B/104B/128B 加密零填充；false 关闭，零填充与普通旧密文兼容。 |
+| `--control-padding-max` / `"control-padding-max"` | 0 | 0..16384 | 0 使用方向性 MTU/record/MSS 真实剩余预算，正值另外限制每条控制最多填充字节数；实际应用仍裁剪到安全余量。 |
+
+与 `tls-startup-padding` 独立，未引入业务逐包填充/请求队列/后台假流量。配置校验发生在 CLI/configfile 加载后、任何正式设备启动前，越界启动失败。底层 `runtimeowner.TransportConfig` 默认开且上限 0 的行为不变。先核实新 SOURCE 的参数目录 gate、Linux/Windows 编译、原 9-netns 正式三客户端与 N1 race 再称之为正式用户开关已验收；之前“内部字段未接 CLI”仅说明旧源码状态，不适用于此次候选来源。

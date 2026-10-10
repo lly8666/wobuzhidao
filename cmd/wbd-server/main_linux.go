@@ -44,6 +44,8 @@ func runServer() error {
 		maxClients         = flag.Int("max-clients", 256, "maximum seven-day in-memory automatic client leases; 1..4096")
 		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
+		controlPadding     = flag.Bool("control-padding", true, "enable randomized zero padding only on encrypted timed health/quality controls; independent of startup padding")
+		controlPaddingMax  = flag.Int("control-padding-max", 0, "control-only padding byte cap 0=actual negotiated outer record headroom; 1..16384 clamps to safe budget")
 		rawIface           = flag.String("raw-interface", "", "Linux interface used for FakeTCP raw IPv4 I/O")
 		rawRecvBuffer      = flag.Int("raw-recv-buffer", faketcp.DefaultRawReceiveBufferRequestBytes, "Linux AF_PACKET SO_RCVBUF request bytes; 0 inherits; capped requests attempt per-socket privileged fallback; actual readback authoritative")
 		listenIPText       = flag.String("listen-ip", "", "public IPv4 address bound by the raw endpoint")
@@ -78,6 +80,9 @@ func runServer() error {
 	}
 	if handleVersion() {
 		return nil
+	}
+	if *controlPaddingMax < 0 || *controlPaddingMax > 16384 {
+		return errors.New("control-padding-max must be 0..16384")
 	}
 	if *recoverNetwork {
 		return linuxserver.RecoverManagedNetwork(*statePath)
@@ -341,6 +346,8 @@ func runServer() error {
 		DesiredLanes:      *lanes,
 		DormantAfter:      *idleDormant,
 		KeepaliveInterval: *keepalive,
+		ControlPaddingDisabled: !*controlPadding,
+		ControlPaddingMaxBytes: *controlPaddingMax,
 		ObserveTiming:     *diagnosticJSONL != "",
 	})
 	if err != nil {

@@ -291,6 +291,9 @@ type TunnelClientConfig struct {
 	ReconnectMin      time.Duration
 	ReconnectMax      time.Duration
 	TLSStartupPadding bool
+	// Independent control-only AEAD zero padding, never LINK/FEC/startup.
+	ControlPaddingDisabled bool
+	ControlPaddingMaxBytes int
 	// Explicit qualification-only client receive/decode/feedback timing.
 	// Ordinary diagnostic snapshots leave per-record timing disabled.
 	ObserveTiming bool
@@ -840,6 +843,8 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		EmitBatch:             ioCfg.EmitBatch,
 		ObserveFeedbackTiming: c.cfg.ObserveTiming,
 		AsyncACKFeedback:      c.cfg.AsyncACKFeedback,
+		ControlPaddingDisabled: c.cfg.ControlPaddingDisabled,
+		ControlPaddingMaxBytes: c.cfg.ControlPaddingMaxBytes,
 	}
 
 	var snapshot datapath.TunnelLaneSnapshot
@@ -1175,6 +1180,8 @@ func randomDuration(minimum, maximum time.Duration) (time.Duration, error) {
 
 type LifecycleServerConfig struct {
 	KeepaliveInterval time.Duration
+	ControlPaddingDisabled bool
+	ControlPaddingMaxBytes int
 	ServerConfig
 	DesiredLanes     int
 	DormantAfter     time.Duration
@@ -1965,6 +1972,8 @@ func (s *LifecycleServer) serverTransportConfig(session *realityfront.ServerAdmi
 		ACKDelay:      runtimeowner.DefaultACKDelay,
 		Emit:          s.cfg.IO.Emit,
 		EmitBatch:     s.cfg.IO.EmitBatch,
+		ControlPaddingDisabled: s.cfg.ControlPaddingDisabled,
+		ControlPaddingMaxBytes: s.cfg.ControlPaddingMaxBytes,
 	}
 }
 

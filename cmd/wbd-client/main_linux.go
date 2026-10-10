@@ -47,6 +47,8 @@ func runLinuxClient() error {
 		chinaIPFile        = flag.String("china-ip-file", "", "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply")
 		updateChinaIP      = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
+		controlPadding     = flag.Bool("control-padding", true, "enable randomized zero padding only on encrypted timed health/quality controls; independent of startup padding")
+		controlPaddingMax  = flag.Int("control-padding-max", 0, "control-only padding byte cap 0=actual negotiated outer record headroom; 1..16384 clamps to safe budget")
 		rawIface           = flag.String("raw-interface", "", "Linux/OpenWrt underlay interface")
 		rawRecvBuffer      = flag.Int("raw-recv-buffer", faketcp.DefaultRawReceiveBufferRequestBytes, "Linux AF_PACKET SO_RCVBUF request bytes; 0 inherits; capped requests attempt per-socket privileged fallback; actual readback authoritative")
 		localIPText        = flag.String("local-ip", "", "underlay source IPv4")
@@ -82,6 +84,9 @@ func runLinuxClient() error {
 	}
 	if handleVersion() {
 		return nil
+	}
+	if *controlPaddingMax < 0 || *controlPaddingMax > 16384 {
+		return errors.New("control-padding-max must be 0..16384")
 	}
 	if *updateChinaIP != "" {
 		if err := splitroute.Update(*updateChinaIP); err != nil {
@@ -273,6 +278,8 @@ func runLinuxClient() error {
 		},
 		Lease:             lease,
 		TLSStartupPadding: *tlsStartupPadding,
+		ControlPaddingDisabled: !*controlPadding,
+		ControlPaddingMaxBytes: *controlPaddingMax,
 		DesiredLanes:      *lanes,
 		Admission: realityfront.ClientAdmissionConfig{
 			TLS: realityfront.ClientConfig{

@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "scope": "N1_MERGED_EVENT_CONTROL_RANDOM_KINDHEALTH_PADDING_SCOPED_PASS_CLI_NEXT",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_code_sha": "6482c184d980028f002440e87b281a78b092ccfe",
+  "qualified_test_source_sha": "2dafe7cccc537554e7baede9fcbedb0dfd559c4d",
+  "actions": {
+    "focused": {
+      "run": 38081514431,
+      "status": "PASS",
+      "race_count": 2
+    },
+    "lifecycle": {
+      "run": 38081514430,
+      "status": "PASS"
+    },
+    "foundation": {
+      "run": 38081514422,
+      "status": "PASS",
+      "platforms": [
+        "Linux",
+        "Windows",
+        "privileged Linux TUN/OpenWrt"
+      ]
+    },
+    "native": {
+      "run": 38081514389,
+      "status": "PASS",
+      "job": 114299218644,
+      "artifact_id": 11680422445,
+      "sha256": "1959536d872dd83658fd4fe5fcd3217922628c60128e991c87130c2b2b1fa2a2",
+      "six_directions_each": {
+        "packets_sent": 297,
+        "first_unique_delivered": 297,
+        "sent_bytes": 150480,
+        "first_unique_bytes": 150480
+      },
+      "problems": []
+    }
+  },
+  "historical_source_failure": {
+    "sha": "6482c184d980028f002440e87b281a78b092ccfe",
+    "lifecycle_run": 38081234695,
+    "foundation_run": 38081234724,
+    "root_cause": "obsolete fixed 40B health entire wire expectation now legitimate variable-length encrypted-zero padding"
+  },
+  "claimed_features": [
+    "one Tick active lane only one quality or ordinary timed health",
+    "quality 104/128 carries authenticated business IdleFor",
+    "event-trigger changed TX/echo state without reporting unchanged idle repeatedly",
+    "health success jitter +/-10%; report 1.5..2.0s and active business 3.5s refresh",
+    "1s retry on failure without successful health clock update",
+    "control zero padding on KindHealth strictly bounded by derived negotiated record MTU incl configured IPv4 and TCP steady payload options/peerMSS",
+    "no changes to business payload padding/FEC/4096 or ciphertext retransmit"
+  ],
+  "candidate_next": {
+    "name": "Expose user control-padding and control-padding-max flags through existing flat config",
+    "status": "PENDING_ACTIONS",
+    "source_sha": "CONTAINING_COMMIT_SHA"
+  },
+  "not_run": [
+    "paired fullstack source/config/performance/appearance matrix",
+    "controlled 1/5/20 percent WAN impairment feedback",
+    "IPv6 outer budget",
+    "N2 auto FEC",
+    "P6 release",
+    "user physical"
+  ]
+}

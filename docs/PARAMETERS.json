@@ -37,6 +37,20 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": false
       },
+      "control-padding": {
+        "type": "Bool",
+        "default_expression": "true",
+        "help": "enable randomized zero padding only on encrypted timed health/quality controls; independent of startup padding",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "control-padding-max": {
+        "type": "Int",
+        "default_expression": "0",
+        "help": "control-only padding byte cap 0=actual negotiated outer record headroom; 1..16384 clamps to safe budget",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "dead-after": {
         "type": "Duration",
         "default_expression": "runtimeentry.DefaultDeadAfter",
@@ -326,6 +340,20 @@
         "source": "cmd/wbd-client/main_windows.go",
         "json": false
       },
+      "control-padding": {
+        "type": "Bool",
+        "default_expression": "true",
+        "help": "enable randomized zero padding only on encrypted timed health/quality controls; independent of startup padding",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "control-padding-max": {
+        "type": "Int",
+        "default_expression": "0",
+        "help": "control-only padding byte cap 0=actual negotiated outer record headroom; 1..16384 clamps to safe budget",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
       "control-stdin": {
         "type": "Bool",
         "default_expression": "false",
@@ -572,6 +600,20 @@
         "help": "JSON configuration file; CLI flags override matching keys",
         "source": "cmd/wbd-server/main_linux.go",
         "json": false
+      },
+      "control-padding": {
+        "type": "Bool",
+        "default_expression": "true",
+        "help": "enable randomized zero padding only on encrypted timed health/quality controls; independent of startup padding",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "control-padding-max": {
+        "type": "Int",
+        "default_expression": "0",
+        "help": "control-only padding byte cap 0=actual negotiated outer record headroom; 1..16384 clamps to safe budget",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
       },
       "decoy": {
         "type": "String",
