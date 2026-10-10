@@ -1,0 +1,18 @@
+{
+  "schema": "wbd-crypto-packet-preflight-failure/v1",
+  "source_A": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "source_B": "37e18653b0d08f4a1d932b6fd67fe081e84bda78",
+  "helper_sha": "18b5dad8c3a937f317008a343fce153064e29cba",
+  "run_id": 38048292234,
+  "job_id": 114202143567,
+  "conclusion": "failure",
+  "exact_three_file_guard": "PASS",
+  "policy_and_python_unit": "PASS",
+  "static_preflight": "FAIL",
+  "error": "missing generated shell marker next-crypto-packet-abba.yml",
+  "root_cause": "shared historical --simd-ab generator hardcodes next-fec-simd-ab.yml and tools/fec_simd_ab.py",
+  "solution": "single-purpose post-generator two-selector adapter with receipt SHA re-computation and independent Actions tests; historical generator bytes unchanged",
+  "business": "NOT_RUN",
+  "cpu_gain": "NOT_MEASURED",
+  "physical": "NOT_RUN"
+}

@@ -1,0 +1,6 @@
+# ABBA static preflight: provenance-preserving selector adapter
+
+- Config-only run [38048292234](https://github.com/lly8666/wobuzhidao/actions/runs/38048292234), job114202143567: three-file trigger guard PASS, policy and helper tests PASS, then static-only generator FAIL `missing generated shell marker next-crypto-packet-abba.yml`. Product binaries/realpath never started; preserve failure, no performance claim.
+- Root cause exactly two hardcoded **old experiment selectors** inside generated.sh: old workflow file and tools/fec_simd_ab.py, emitted by shared `prepare_large_mtu_harness.py --simd-ab`. **Did not change** historic generator, original workflow, old case IDs, SOURCE, helper, rate, budgets, topology or FEC policy.
+- Added a thin, fail-closed post-generation adapter `tools/prepare_crypto_packet_harness.py`. It requires exact one occurrence each, verifies SHA256 against origin receipt, substitutes only the new workflow+runner selector, updates generated_sha256 to actual new bytes and retains base_fec_simd_generated_sha256 and original template SHA. New unit negatives reject missing/duplicate selectors and receipt mismatch, no local run; Actions required.
+- Next separate config/status/devlog-only commit to rerun static. If static success, Q1 A-B-B-A 120s then full business quality. Original FEC Q2 quality fails and physical NOT_RUN unchanged.

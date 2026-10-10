@@ -42,9 +42,10 @@ jobs:
           set -euo pipefail
           python3 tools/check_repository.py
           python3 tools/check_performance_workflow_policy.py
-          python3 -m py_compile tools/crypto_packet_abba.py tools/fec_policy_batch.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_loss_stage.py tools/large_mtu_mixed_business.py
+          python3 -m py_compile tools/prepare_crypto_packet_harness.py tools/crypto_packet_abba.py tools/fec_policy_batch.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_loss_stage.py tools/large_mtu_mixed_business.py
           python3 -m unittest discover -s tools -p 'test_fec_simd_adapter.py' -v
           python3 -m unittest discover -s tools -p 'test_crypto_packet_abba.py' -v
+          python3 -m unittest discover -s tools -p 'test_prepare_crypto_packet_harness.py' -v
           python3 tools/crypto_packet_abba.py --mode verify --root artifacts/crypto-packet-abba
       - name: Static preflight or frozen binaries
         run: |

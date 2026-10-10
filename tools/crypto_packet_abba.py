@@ -59,6 +59,7 @@ def prepared(c,root):
       "--output",str(d/"generated.sh"),"--workload","mixed","--loss",str(c["loss"]),
       "--duration-s",str(c["duration"]),"--delay-ms",str(c["delay"])]
  subprocess.run(cmd,check=True,env={**os.environ,"WBD_EFF_DIAGNOSTIC":"0"})
+ subprocess.run([sys.executable,"tools/prepare_crypto_packet_harness.py",str(d/"generated.sh")],check=True)
  subprocess.run(["bash","-n",str(d/"generated.sh")],check=True)
  return d
 
