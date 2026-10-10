@@ -9,14 +9,14 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_V3_FIXED_OFF_POLICY_FENCE_ACTIONS_RERUN_PENDING",
+    "phase": "N0_V3_RECEIPT_REPAIR_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": null,
-    "implementation": "PARTIAL_N0_FIRST_ACTIONS_FAIL_REGRESSION_FIXED_UNVERIFIED",
-    "core": "NOT_RUN_LATEST_SOURCE_FIRST_SOURCE_FAIL",
+    "implementation": "PARTIAL_N0_UNQUALIFIED",
+    "core": "NOT_RUN_LATEST_SOURCE_PREVIOUS_FAILURES_RETAINED",
     "ordinary_performance": "NOT_RUN_NEW_SOURCE",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
@@ -48,8 +48,8 @@
     "performance_policy": "One SOURCE/config/seed/scenario and one measurement job per Action; no inherited serial exception.",
     "parameter_proposals": "Plan only; PARAMETERS currently lists actual implemented capability. Update all entrances when implemented."
   },
-  "next_task": "N0: inspect second SOURCE Actions foundation/lifecycle/core/Windows results, repair any failures; realpath 3 simultaneous clients and true first bidirectional packets, policy fence rotation/allowlist, record effective receipt. Do not unlock N1 or mark PASS from tests alone.",
-  "latest_log": "docs/devlog/20261010-224800-n0-v3-first-actions-fix-fence.md",
+  "next_task": "N0: inspect current-source Actions; do not claim PASS until repository-contract, Linux/Windows Go, race and real-path first C2S/S2C succeed; continue policy/cipher per-Tunnel first-record production wiring, multi-client, allow-list.",
+  "latest_log": "docs/devlog/20261010-225300-n0-actions-receipt-contract.md",
   "qualification_scope": "N0_PARTIAL_LAST_SOURCE_PENDING_ACTIONS; PRIOR_SOURCE_FAILED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "Historical parent scope only; see archived STATUS. Not current qualification.",
@@ -60,18 +60,30 @@
   ],
   "actions": [
     {
-      "source": "9729fe1d3e34d2a0cb85772e2ef5ef5868bff70d",
       "name": "next-foundation",
       "run_id": 38060813844,
       "status": "FAIL",
-      "cause": "old unsupported-version test assumed V2+1 remains unknown, while it is V3; Linux and Windows active-go-tests failed; other privileged jobs passed"
+      "cause": "old unsupported-version test assumed V2+1 remains unknown, while it is V3; Linux and Windows active-go-tests failed; other privileged jobs passed",
+      "source_sha": "9729fe1d3e34d2a0cb85772e2ef5ef5868bff70d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38060813844",
+      "scope": "core_regression"
     },
     {
-      "source": "9729fe1d3e34d2a0cb85772e2ef5ef5868bff70d",
       "name": "next-lifecycle",
       "run_id": 38060813846,
       "status": "FAIL",
-      "cause": "same unsupported-version unit test in core job"
+      "cause": "same unsupported-version unit test in core job",
+      "source_sha": "9729fe1d3e34d2a0cb85772e2ef5ef5868bff70d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38060813846",
+      "scope": "core_regression"
+    },
+    {
+      "source_sha": "da885bcee82151168fdcd6d4d719ce21994ddcab",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38061204386",
+      "scope": "repository-contract",
+      "status": "FAIL",
+      "run_id": 38061204386,
+      "cause": "check_repository.py requires actions[] source_sha/url/scope/status; two first-source failure entries omitted these keys; subsequent jobs skipped."
     }
   ],
   "required_read_set": [

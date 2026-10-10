@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "source_sha": "da885bcee82151168fdcd6d4d719ce21994ddcab",
+  "run_id": 38061204386,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38061204386",
+  "workflow": "next-foundation",
+  "conclusion": "FAIL",
+  "failed_job": {
+    "id": 114239659803,
+    "name": "repository-contract",
+    "error": "Incomplete Actions receipt (twice)",
+    "cause": "docs/STATUS.json actions[] prior first-source FAIL records missing mandatory source_sha/url/scope/status"
+  },
+  "Go_unblocked": false,
+  "product_qualification": "NOT_RUN",
+  "cpu_quota_psi_injection": "NOT_MEASURED",
+  "first_source_fail_preserved": true
+}
