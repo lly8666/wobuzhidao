@@ -74,4 +74,11 @@ class TestABBA(unittest.TestCase):
    self.assertNotIn("qsecret",repr(diag))
    self.assertNotIn("0123456789abcdef",repr(diag))
    self.assertIn("server stopped network closed socket",diag["last_error_vocabulary"][0])
+ def test_bounded_error_line_redacts_credentials(self):
+  raw="2026/10/10 08:08:08 connection error password=qsecret route-key=0123456789abcdef 198.18.0.1 /tmp/private/key"
+  clean=ab.sanitized_product_error_line(raw)
+  for secret in ("qsecret","0123456789abcdef","198.18.0.1","/tmp/private/key"):
+   self.assertNotIn(secret,clean)
+  self.assertIn("connection error",clean)
+  self.assertEqual(ab.sanitized_product_error_line("WBD_RAW_RCVBUF secret=qsecret"),"")
 if __name__=="__main__":unittest.main()

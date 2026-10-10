@@ -1,0 +1,44 @@
+{
+  "schema": "wbd-fec-simd-old-a-server-exit-classification/v1",
+  "run_id": 38037784206,
+  "artifact_id": 11664263694,
+  "job_id": 114171738284,
+  "helper_sha": "ae2688e6e5d19d3847769af49e85cf49e7235a2b",
+  "A": {
+    "source": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "binary_client_sha256": "303495af95d02f8644af6c3d49a45f5c9c093a3fd9e23b307e31dc1ef0079c67",
+    "binary_server_sha256": "4b165f41862f98cf502549f2db75eb5cf9801ea088bf6b922d8bc9d3c46af69a",
+    "sample_exit": 1,
+    "classification": "INFRA_INVALID",
+    "manifest": false,
+    "biz": true,
+    "target": true,
+    "stage": true,
+    "server_log_sha256": "f2ce5e29a7811e3ebb095d029f7ee87949443650edc88814dc165574dac36de7",
+    "server_log_bytes": 490,
+    "lines": 4,
+    "server_stopped": true,
+    "panic": false,
+    "sanitized_last_vocab": [
+      "wbd_raw_rcvbuf",
+      "wbd_server_stopped cleanup",
+      "connection",
+      "no such file"
+    ],
+    "clean": false
+  },
+  "B": {
+    "source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+    "status": "NOT_RUN"
+  },
+  "confirmed": "OLD_SERVER_EXECUTED_GRACEFUL_STOP_PRINT_PATH_AND_RETURNED_ERROR",
+  "unconfirmed": [
+    "actual connection error source",
+    "missing file teardown secondary vs primary",
+    "relation to E7 80s issue",
+    "CPU gain/p99"
+  ],
+  "physical": "NOT_RUN",
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38037784206",
+  "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38037784206/artifacts/11664263694"
+}

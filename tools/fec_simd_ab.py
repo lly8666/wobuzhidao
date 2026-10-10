@@ -74,6 +74,26 @@ def shell_failure_classes(raw):
  return markers[-16:]
 
 
+
+def sanitized_product_error_line(line):
+ # Only print bounded textual error categories after replacing identifiers.
+ # No raw log upload, command lines, payloads or credentials. Test fixture's
+ # passwords are synthetic but must still never appear in public artifacts.
+ import re
+ if "WBD_RAW_RCVBUF" in line or "WBD_SERVER_STOPPED" in line:return ""
+ if not re.match(r"^\d{4}/\d\d/\d\d ",line):return ""
+ line=re.sub(r"^\d{4}/\d\d/\d\d \d\d:\d\d:\d\d(?:\.\d+)?\s*","",line)
+ line=re.sub(r"(?i)(--(?:password|username|route-key-hex|tls-key|token)\s+)\S+",r"\1<redacted>",line)
+ line=re.sub(r"(?i)\b(?:password|passwd|secret|token|credential|route[-_]?key|tls[-_]?key|username|account)\s*[:=]\s*\S+","<redacted_field>",line)
+ line=re.sub(r'"[^"]*"',"<quoted>",line)
+ line=re.sub(r"'[^']*'","<quoted>",line)
+ line=re.sub(r"\b[0-9a-fA-F]{16,}\b","<hex>",line)
+ line=re.sub(r"\b\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?\b","<ip>",line)
+ line=re.sub(r"/(?:[\w.-]+/)*[\w.-]+","<path>",line)
+ line="".join(c if c.isascii() and (c.isalnum() or c in " .:,;_-()<>[]=+") else " " for c in line).strip()
+ if not any(word in line.lower() for word in ("error","no such file","connection","fail","closed","panic","invalid","cannot","denied","unreachable","route","timeout")):return ""
+ return line[:240]
+
 def bounded_product_exit_evidence(path):
  # No raw product logs in artifacts. Preserve only fixed error vocabulary,
  # per-file sizes and SHA; unknown/private words cannot pass the vocabulary.
@@ -103,7 +123,9 @@ def bounded_product_exit_evidence(path):
  return {"present":True,"byte_size":len(raw),"sha256":hashlib.sha256(raw).hexdigest(),
          "line_count":len(lines),"last_error_vocabulary":groups[-6:],
          "panic_present":any("panic:" in s or "fatal error:" in s for s in lines),
-         "server_stopped_present":any("WBD_SERVER_STOPPED" in s for s in lines)}
+         "server_stopped_present":any("WBD_SERVER_STOPPED" in s for s in lines),
+         "sanitized_error_tail":[x for x in (sanitized_product_error_line(line)
+             for line in lines[-8:]) if x][-3:]}
 
 def run_case(c,root,helper):
  d=prepared(c,root)

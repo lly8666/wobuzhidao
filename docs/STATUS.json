@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_CAUSE_TARGETED_PILOT",
+    "phase": "FEC_SIMD_S3_OLD_A_EXIT_SAFE_REASON_PREFLIGHT",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_CAUSE_PILOT_A_OLD_SERVER_EARLY_EXIT_NOT_YET_RESOLVED",
+      "state": "S3_OLD_A_EXIT_UNRESOLVED_SAFELY_REDACTED_ERROR_PREFLIGHT",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3652,7 +3652,7 @@
         "s2_core": 38032963434,
         "s2_foundation": 38032963574,
         "s2_lifecycle": 38032963427,
-        "s3": "FAIL_A_BASELINE_SERVER_EARLY_EXIT_B_NOT_RUN_RUN38036729414",
+        "s3": "FAIL_RUN38037784206_BASELINE_SERVER_STOPPED_JOINED_ERRORS_B_NOT_RUN",
         "s4": "NOT_RUN",
         "s5": "NOT_RUN"
       },
@@ -3784,12 +3784,30 @@
           "reason": "STATIC_SYNTAX_ERROR_GENERATOR_240",
           "business": "NOT_RUN"
         },
-        "pilot": "REQUESTED_NONCE13_TYPED_PRODUCT_LOG"
+        "pilot": "REQUESTED_NONCE13_TYPED_PRODUCT_LOG",
+        "latest_pilot": {
+          "run_id": 38037784206,
+          "artifact_id": 11664263694,
+          "helper_sha": "ae2688e6e5d19d3847769af49e85cf49e7235a2b",
+          "old_A": "INFRA_INVALID_SERVER_STOPPED",
+          "new_B": "NOT_RUN",
+          "private_server_log_sha256": "f2ce5e29a7811e3ebb095d029f7ee87949443650edc88814dc165574dac36de7",
+          "server_log_lines": 4,
+          "panic": false,
+          "server_stopped": true,
+          "error_vocab": [
+            "connection",
+            "no such file"
+          ],
+          "cpu": "NOT_MEASURED"
+        },
+        "new_finding": "Server emitted WBD_SERVER_STOPPED; joined fatal log includes connection and no-such-file terms. Distinguish runtime root error from teardown warning before changing FEC or quality gates.",
+        "next": "STATIC_PREFLIGHT_NONCE14_BOUNDED_REDACTED_LAST_FATAL_TEXT"
       }
     }
   },
-  "next_task": "Inspect Actions run for pilot nonce13; A old server may early exit: compare fixed vocabulary, panic/stop and log hashes to root cause; B is NOT_RUN unless real pilot proceeds. Do not Q/L without valid A/B. Keep quality gates and no CPU gains absent ABBA.",
-  "latest_log": "docs/devlog/20261010-184500-fec-simd-server-exit-classifier-pilot.md",
+  "next_task": "After static preflight nonce14, run one targeted pilot with redacted fatal server.log lines (not raw logs) to distinguish runtime connection error from network teardown missing-file. If A remains invalid stop: do not fake A pass or start Q/L; S1/S2 core scoped PASS only.",
+  "latest_log": "docs/devlog/20261010-190000-fec-simd-old-a-server-error-token-findings.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
