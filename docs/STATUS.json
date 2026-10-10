@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C5_TRUSTED_LAN_CRYPTO_COST_DIAGNOSTIC_TEST_ONLY_PENDING_ACTIONS",
+    "phase": "C5_NATIVE_AES_GCM_MICRO_HUGE_WIN_RECORD_SUITE_POC_PENDING_ACTIONS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4143,7 +4143,12 @@
         "poly1305_packed_full_aead_artifact": 11670116461,
         "latest_core": 38052541722,
         "latest_lifecycle": 38052541801,
-        "lan_crypto_cost": "PENDING_ACTIONS_SOURCE"
+        "lan_crypto_cost": "PENDING_ACTIONS_SOURCE",
+        "lan_crypto_cost_core": 38055895924,
+        "lan_crypto_cost_artifact": 11671461373,
+        "lan_crypto_cost_foundation": 38055895925,
+        "lan_crypto_cost_lifecycle": 38055895927,
+        "lan_record_suite": "PENDING_ACTIONS_TEST_ONLY_SOURCE"
       },
       "acceptance": {
         "unit": "PASS_SOURCE_AB4510E_NATIVE_ARM64_LINUX_AMD64_WINDOWS_AMD64",
@@ -4168,7 +4173,8 @@
         "three_runners": "NOT_RUN",
         "poly1305_packaging": "PASS_NATIVE_ARM64_TEST_ONLY_64B_31P74_PERCENT_MAC_ONLY_1400B_1P28_PERCENT_MAC_ONLY",
         "poly1305_packed_aead": "PASS_NATIVE_ARM64_FULL_SEAL_GOLDEN_ORACLE_AND_TAMPER_REFERENCE_OPEN; MICRO_64B_4P67PCT_FASTER_1400B_0P20PCT_SLOWER; NO_PRODUCTION_CHANGE",
-        "lan_crypto_cost": "NOT_RUN_PENDING_ACTIONS"
+        "lan_crypto_cost": "PASS_TEST_ONLY_NATIVE_ARM64_LINUX_AMD64_WINDOWS_AMD64; AES256GCM_SEAL_4P0_TO_5P9X_FASTER_ON_ARM64_STANDALONE; NO_PRODUCT_GAIN_CLAIM",
+        "lan_record_suite": "NOT_RUN_PENDING_ACTIONS"
       },
       "inherited_failures": [
         "Q2 300s probe phase 3/4 original FAIL run38042928701",
@@ -4291,8 +4297,8 @@
       "evidence_native_hotspot": "docs/evidence/crypto-packet-arm64-native-hotspot-run38049793709.json"
     }
   },
-  "next_task": "Evaluate local-only security-cost alternatives on native ARM64 and Linux amd64 via test-only micro: ChaCha20-Poly1305, AES-256-GCM hardware when available, ChaCha20 encryption-only no authentication, and plaintext copy theoretical floor. Every code-path vectors/tamper or explicit malleability demo must pass. No release/production modifications, no auth removal. Compare full AEAD with same runner and messages; hardware features and real ARM64 fullstack profile still future. Existing FEC Q2 3/4 FAIL and 300s/physical NOT_RUN preserved.",
-  "latest_log": "docs/devlog/20261010-232000-lan-security-cost-options-test-only.md",
+  "next_task": "Native synthetic AES256GCM beats ChaCha20Poly1305 Seal with SAME 16-byte integrity tag at ARM64 64B 354.9->89.27ns and 1400B 2051->481.3ns; amd64 64B171->128.6 and 1400B728.3->523ns. Chacha-only NO_AUTH is worse than AESGCM. Both suite oracle and tamper PASS; no product switch. Run complete WBD record seal/open test-only benchmarks including headerMask/nonce/AAD/alloc and wrong-key version before a protocol suite migration decision. Must follow up native realpath ABBA with product exact source; no whole tunnel speedup proven. Original Q2 3/4 FAIL, other qualification open.",
+  "latest_log": "docs/devlog/20261010-234000-lan-aes-gcm-micro-surprise-and-record-suite-screen.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

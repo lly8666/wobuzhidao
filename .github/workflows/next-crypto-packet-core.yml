@@ -34,6 +34,8 @@ jobs:
           GOOS=linux GOARCH=arm64 go build ./...
           go test ./internal/tlsrecord -run '^TestResearchCryptoCostVectors$' -bench '^BenchmarkResearchSecurityFloor$' -benchtime=250ms -count=3 -cpu=1 > research-security-floor-amd64.txt
           cat research-security-floor-amd64.txt
+          go test ./internal/tlsrecord -run '^TestResearchRecordSuiteCompatibility$' -bench '^BenchmarkResearchWBDRecordSuites$' -benchtime=250ms -count=3 -cpu=1 > research-record-suite-amd64.txt
+          cat research-record-suite-amd64.txt
   windows-amd64:
     runs-on: windows-2022
     timeout-minutes: 25
@@ -70,6 +72,7 @@ jobs:
           go test ./internal/tlsrecord -run '^TestPoly1305PackagingOracle$' -bench '^BenchmarkPoly1305PackagingResearch$' -benchtime=250ms -count=3 -cpu=1 > artifacts/native-arm64-crypto/poly1305-packaging-bench.txt
           go test ./internal/tlsrecord -run '^TestPoly1305ResearchPackedAEADReference$' -bench '^BenchmarkPoly1305PackedAEADResearch$' -benchtime=250ms -count=3 -cpu=1 > artifacts/native-arm64-crypto/poly1305-packed-aead-bench.txt
           go test ./internal/tlsrecord -run '^TestResearchCryptoCostVectors$' -bench '^BenchmarkResearchSecurityFloor$' -benchtime=250ms -count=3 -cpu=1 > artifacts/native-arm64-crypto/research-security-floor-arm64.txt
+          go test ./internal/tlsrecord -run '^TestResearchRecordSuiteCompatibility$' -bench '^BenchmarkResearchWBDRecordSuites$' -benchtime=250ms -count=3 -cpu=1 > artifacts/native-arm64-crypto/research-record-suite-arm64.txt
           uname -a > artifacts/native-arm64-crypto/uname.txt
           go version > artifacts/native-arm64-crypto/go-version.txt
           sha256sum artifacts/native-arm64-crypto/* > artifacts/native-arm64-crypto/SHA256SUMS
