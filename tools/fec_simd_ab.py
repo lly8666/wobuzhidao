@@ -18,15 +18,15 @@ PARAMS={
 def plan(phase):
  groups={"preflight":("Q1","Q2","Q3","L1","L2","L3"),"pilot":("Q1",),
          "q120":("Q1","Q2","Q3"),"l120":("L1","L2","L3"),
-         "confirm300":("Q1","Q2","Q3"),"q2historic300":("Q2",)}[phase]
+         "confirm300":("Q1","Q2","Q3"),"q2historic300":("Q2",),"q2observe300":("Q2",)}[phase]
  # Pilot Q1 must exercise all 20 serial HTTP/HTTPS requests over 300ms RTT;
  # 15s + fixed 3s drain can close targets before their final TCP opens.
  # Use the same 120s real workload as Q1 without relaxing any validity gate.
- n=300 if phase in ("confirm300","q2historic300") else 120
+ n=300 if phase in ("confirm300","q2historic300","q2observe300") else 120
  result=[]
  for context in groups:
   mode,lanes,rate,parity,delay,loss,seed=PARAMS[context]
-  if phase=="q2historic300":seed=1844 # Same as historical 300s old A PASS run37924613499.
+  if phase in ("q2historic300","q2observe300"):seed=1844 # Same as historical 300s old A PASS run37924613499.
   labels=("A","B") if phase=="pilot" else ("A",) if phase=="preflight" else ("A","B","B","A")
   for label in labels:
    result.append(dict(id=("pilot-%d"%(len(result)+1) if phase=="pilot" else "s%02d"%(len(result)+1)),
@@ -40,7 +40,7 @@ def conf():
  if d != {"schema":"wbd-fec-simd-ab/v1","phase":d.get("phase"),
           "baseline_source_sha":A,"candidate_source_sha":B,"nonce":d.get("nonce")}:
   raise ValueError("unapproved source or config keys")
- if d["phase"] not in ("preflight","pilot","q120","l120","confirm300","q2historic300") or type(d["nonce"])!=int or d["nonce"]<1:
+ if d["phase"] not in ("preflight","pilot","q120","l120","confirm300","q2historic300","q2observe300") or type(d["nonce"])!=int or d["nonce"]<1:
   raise ValueError("unapproved phase")
  return d
 
@@ -250,11 +250,88 @@ def simd_owned(d,suffix):
          "cleanup_signal_failures":failures,"leftover_namespaces":leaked_ns,
          "clean":not pids and not leaked_ns and not failures}
 
+
+# The original quality FAIL remains a FAIL. The diagnostic observation
+# alone may move to the next leg after a measured UDP/probe rate FAIL.
+ALLOW_QUALITY=(
+ "5205_STAGE_PROBE_LOSS_OVER_1PCT_",
+ "5205_STAGE_UDP_LOSS_OVER_0P1PCT_",
+ "5205_UDP_EVENTUAL_LOSS_OVER_0P1PCT_",
+ "5205_PROBE_TIMEOUT_OVER_1PCT_",
+)
+def may_observe_next(phase,r):
+ if phase!="q2observe300" or r.get("classification")!="FAIL":return False
+ issues=r.get("issues",[])
+ if not isinstance(issues,list) or not issues:return False
+ if not all(isinstance(x,str) and x.startswith(ALLOW_QUALITY) for x in issues):return False
+ if (r.get("sample_exit")!=0 or r.get("sample_error") is not None or
+     r.get("analyzer_exit")!=1 or r.get("ledger_exit")!=0 or
+     not r.get("owned_cleanup",{}).get("clean")):return False
+ return all(r.get("evidence_sha256",{}).get(x) for x in
+       ("summary.json","manifest.json","efficiency-ledger.json","runtime-flags.json"))
+
+def loss_overview(root,cases,receipts):
+ byid={r["case"]["id"]:r for r in receipts}
+ out={"schema":"wbd-fec-simd-all-legs-loss/v1","quality_gates_unchanged":True,
+      "missing_is_never_zero":True,"leg_details":[],"aggregate_by_label_direction_medium_phase":{},
+      "not_measurable":[]}
+ total=out["aggregate_by_label_direction_medium_phase"]
+ for c in cases:
+  r=byid.get(c["id"],{})
+  d=j(root/c["id"],"summary.json")
+  clean=bool(d.get("direction") and
+    (r.get("classification")=="VALID_OBSERVATION" or may_observe_next("q2observe300",r)))
+  leg={"id":c["id"],"label":c["label"],"classification":r.get("classification","NOT_RUN"),
+       "issues":r.get("issues",[]),"phase_counts":{}}
+  vals=[]
+  if clean:
+   for direction in ("c2s","s2c"):
+    phases=d["direction"].get(direction,{}).get("phase_delivery_5205",{})
+    for med in ("udp","probe"):
+     for stage in ("pre","stress","post"):
+      z=phases.get(med,{}).get(stage,{})
+      if (not all(isinstance(z.get(k),int) and z[k]>=0 for k in ("sent","delivered","missing","over_3s"))
+          or z["sent"]!=z["delivered"]+z["missing"]):
+       clean=False;break
+      vals.append((direction,med,stage,z))
+     if not clean:break
+    if not clean:break
+  if not clean:
+   leg["status"]="NOT_MEASURABLE"
+   out["not_measurable"].append(c["id"])
+  else:
+   leg["status"]="COMPLETE_ORIGINAL_ANALYZER_COUNTS"
+   for direction,med,stage,z in vals:
+    key="/".join((c["label"],direction,med,stage))
+    slot=total.setdefault(key,{"label":c["label"],"direction":direction,"medium":med,
+        "phase":stage,"sent":0,"delivered":0,"missing":0,"over_3s":0,
+        "missing_by_size":{},"legs":[]})
+    for k in ("sent","delivered","missing","over_3s"):slot[k]+=z[k]
+    slot["legs"].append(c["id"])
+    for size,part in z.get("by_size",{}).items():
+     if isinstance(part.get("missing"),int):
+      slot["missing_by_size"][size]=slot["missing_by_size"].get(size,0)+part["missing"]
+    leg["phase_counts"][direction+"/"+med+"/"+stage]={
+      "sent":z["sent"],"missing":z["missing"],
+      "loss_pct":100*z["missing"]/z["sent"] if z["sent"] else None}
+  out["leg_details"].append(leg)
+ full={}
+ for item in total.values():
+  item["loss_pct"]=100*item["missing"]/item["sent"] if item["sent"] else None
+  key="/".join((item["label"],item["direction"],item["medium"]))
+  slot=full.setdefault(key,{"sent":0,"delivered":0,"missing":0,"over_3s":0})
+  for k in ("sent","delivered","missing","over_3s"):slot[k]+=item[k]
+ for z in full.values():z["loss_pct"]=100*z["missing"]/z["sent"] if z["sent"] else None
+ out["full_window_loss_by_label_direction_medium"]=full
+ out["all_four_measurable"]=len(out["leg_details"])==4 and not out["not_measurable"]
+ (root/"loss-overview.json").write_text(json.dumps(out,indent=2)+"\n")
+ return out
+
 def aggregate(root,phase,cases,receipts,helper):
  found={r["case"]["id"]:r for r in receipts}
  states=[{"case":c,"status":found[c["id"]]["classification"] if c["id"] in found else "NOT_RUN"} for c in cases]
  pairs=[]
- if phase in ("q120","l120","confirm300","q2historic300"):
+ if phase in ("q120","l120","confirm300","q2historic300","q2observe300"):
   for i in range(0,len(cases),4):
    group=cases[i:i+4];v=[]
    for c in group:
@@ -282,6 +359,12 @@ def aggregate(root,phase,cases,receipts,helper):
     "states":states,"pairs":pairs,"not_run":sum(x["status"]=="NOT_RUN" for x in states),
     "classification":"SCOPED_OBSERVATION_NOT_PHYSICAL" if ok else "FAIL_OR_NOT_RUN",
     "physical":"NOT_RUN"}
+ if phase=="q2observe300":
+  observed=loss_overview(root,cases,receipts)
+  result["diagnostic_loss_report"]="loss-overview.json"
+  result["diagnostic_all_legs_measurable"]=observed["all_four_measurable"]
+  result["original_quality_fail_legs"]=sum(x["status"]=="FAIL" for x in states)
+  result["original_hard_gates_unchanged"]=True
  (root/"ab-manifest.json").write_text(json.dumps(result,indent=2)+"\n")
  return ok
 
@@ -309,6 +392,8 @@ def main():
   script=(history/"generated.sh").read_text()
   for word in ("--simd-ab","WBD_FEC_DURATION_S","WBD_FEC_DELAY_MS"):
    if word not in script:raise ValueError("historical static script missing "+word)
+  observe=prepared(dict(plan("q2observe300")[0],id="observe-preflight"),root)
+  if "--simd-ab" not in (observe/"generated.sh").read_text():raise ValueError("observe script missing")
   print("FEC_SIMD_PREFLIGHT_STATIC_ONLY");return
  for label in ("A","B"):
   for role in ("client","server"):
@@ -332,7 +417,9 @@ def main():
      (d/"case-receipt.json").write_text(json.dumps(r,indent=2)+"\n")
     rows.append(r)
     print("ABBA_LEG_END",c["id"],r["classification"],r.get("issues",[])[:6],flush=True)
-    if r["classification"]!="VALID_OBSERVATION":break
+    if r["classification"]!="VALID_OBSERVATION":
+     if not may_observe_next(phase,r):break
+     print("OBSERVE_NEXT_KEEPING_ORIGINAL_FAIL",c["id"],flush=True)
     time.sleep(3)
   finally:
    result=aggregate(root,phase,cases,rows,helper)

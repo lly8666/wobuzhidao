@@ -20,6 +20,46 @@ class TestABBA(unittest.TestCase):
    self.assertEqual((c["context"],c["mode"],c["lanes"],c["rate"],c["parity"],c["delay"],c["loss"],c["seed"],c["duration"]),("Q2","normal",1,10,20,300,5205,1844,300))
   self.assertEqual(ab.plan("q120")[4]["seed"],2262)
   self.assertEqual(ab.plan("confirm300")[4]["seed"],2262)
+ def test_observation_exact_same_historic300_plan(self):
+  self.assertEqual(ab.plan("q2observe300"),ab.plan("q2historic300"))
+ def test_diagnostic_continues_only_loss_quality_fail(self):
+  base={"classification":"FAIL","issues":["5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress"],
+    "sample_exit":0,"sample_error":None,"analyzer_exit":1,"ledger_exit":0,
+    "owned_cleanup":{"clean":True},
+    "evidence_sha256":{k:"sha" for k in
+      ("summary.json","manifest.json","efficiency-ledger.json","runtime-flags.json")}}
+  self.assertTrue(ab.may_observe_next("q2observe300",base))
+  self.assertFalse(ab.may_observe_next("q2historic300",base))
+  for change in ({"classification":"INFRA_INVALID"},{"issues":["LOCAL_SOCKET_DROP"]},
+    {"issues":["5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress","TCP_HASH_MISMATCH"]},
+    {"sample_exit":1},{"sample_error":"TimeoutExpired"},{"analyzer_exit":0},
+    {"ledger_exit":1},{"owned_cleanup":{"clean":False}},{"evidence_sha256":{}}):
+   self.assertFalse(ab.may_observe_next("q2observe300",dict(base,**change)))
+ def test_loss_overview_aggregates_failed_leg_instead_of_omitting_it(self):
+  import json
+  from tempfile import TemporaryDirectory
+  cases=ab.plan("q2observe300")
+  with TemporaryDirectory() as d:
+   root=Path(d);rows=[]
+   for c in cases:
+    p=root/c["id"];p.mkdir()
+    z={"sent":100,"delivered":96 if c["label"]=="A" else 99,
+       "missing":4 if c["label"]=="A" else 1,"over_3s":0,"by_size":{"96":{"missing":4 if c["label"]=="A" else 1}}}
+    dirs={side:{"phase_delivery_5205":{med:{k:z for k in ("pre","stress","post")}
+          for med in ("udp","probe")}} for side in ("c2s","s2c")}
+    (p/"summary.json").write_text(json.dumps({"direction":dirs}))
+    row={"case":c,"classification":"FAIL" if c["label"]=="A" else "VALID_OBSERVATION",
+     "issues":["5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress"] if c["label"]=="A" else [],
+     "sample_exit":0,"sample_error":None,"analyzer_exit":1 if c["label"]=="A" else 0,
+     "ledger_exit":0,"owned_cleanup":{"clean":True},
+     "evidence_sha256":{k:"sha" for k in
+       ("summary.json","manifest.json","efficiency-ledger.json","runtime-flags.json")}}
+    rows.append(row)
+   out=ab.loss_overview(root,cases,rows)
+   self.assertTrue(out["all_four_measurable"])
+   self.assertEqual(out["full_window_loss_by_label_direction_medium"]["A/s2c/probe"]["missing"],24)
+   self.assertEqual(out["full_window_loss_by_label_direction_medium"]["B/s2c/probe"]["missing"],6)
+   self.assertTrue((root/"loss-overview.json").is_file())
  def test_pilot(self):
   self.assertEqual([c["label"] for c in ab.plan("pilot")],["A","B"])
   self.assertNotEqual(ab.A,ab.B)

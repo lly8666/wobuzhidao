@@ -1,0 +1,9 @@
+# S4 Q2 complete all-leg loss observation -- static preflight
+
+User requested running all product ABBA legs before evaluating whole-window packet loss. Previous separate 300s Q2 matched sample Actions38041440305 old A stress probe s2c8/750 failed, stopping B. This new **diagnostic-only** `q2observe300` phase repeats exactly Normal1/FEC20:20/300ms one-way/mixed10Mbps per direction/5->20->5% 75/150/75s seed1844, with four sequential 300s+3s A-B-B-A isolated five-netns legs.
+
+Only the narrow residual UDP/probe phase/overall loss quality issue prefixes can continue past an ORIGINAL `FAIL`, if sample exit0, analyzer exit1, ledger exit0, original cleanup clean, and summary/manifest/ledger/flags SHA all present. Non-allowlisted TCP, hash, web, socket, MTU, integrity, native infra or leftover PID/ns errors still stop. Original FAIL is **not** changed to PASS; aggregated ABBA classification remains FAIL_OR_NOT_RUN and Action nonzero if any leg FAIL. Original Q120 and previous historic300 FAILs retained. Config phase preflight nonce20 only, before measurement nonce21.
+
+`loss-overview.json` uploaded, aggregated from original sender-monotonic stage delivery counters for each label/direction/UDP vs probe/phase, independently tallying sent, delivered, missing, >3s, missing by size and full-window distinct denominators. Missing or bad summary is NOT_MEASURABLE, never counted as zero. Test coverage verifies product SHA plan same, white-listed loss continuation only, all hard stop paths, and synthetic loss aggregation including original FAIL legs. Immutable A a2db258b436a41fdee98c6c53abec9bab6ce600f / B 7fb98fab79834a351a1dbe04eebb207f66bea28b, still Go1.23.12 GOAMD64=v1. No weakening of quality or altered business/FEC/timing/cleanup.
+
+Q1 CPU-s/GiB 10.923% lower B single runner only; Q2 candidate B not yet measured. Q3/L/native ARM fullstack/global300/P6/physical NOT_RUN, historical E7/Game4/TCP-off retained.

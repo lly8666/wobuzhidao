@@ -85,6 +85,7 @@ jobs:
           if-no-files-found: warn
           path: |
             artifacts/fec-simd-ab/ab-manifest.json
+            artifacts/fec-simd-ab/loss-overview.json
             artifacts/fec-simd-ab/go-version.txt
             artifacts/fec-simd-ab/uname.txt
             artifacts/fec-simd-ab/binaries/*/SOURCE_SHA

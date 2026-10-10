@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S4_HISTORICAL300_Q2_OLD_A_STRESS_PROBE_REAL_FAIL",
+    "phase": "FEC_SIMD_Q2_OBSERVE300_STATIC_PREFLIGHT",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S4_Q1_SCOPED_ABBA_PASS_Q2_OLD_A_120S_FAIL_AND_MATCHED_300S_FAIL_B_Q2_NOT_RUN",
+      "state": "S4_Q1_ABBA_SCOPED_PASS_Q2_OLD_A_120S_AND_300S_FAIL_OBSERVATION_ALL_LEGS_PENDING",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3900,11 +3900,38 @@
         "diagnostic_evidence": "docs/evidence/fec-simd-q2historic300-run38041440305-audit.json",
         "historical_300s_A_result": "PASS_RUN37924613499_SAME_SEED_SOURCE",
         "explanation": "VALID_OLD_A_300S_REAL_LOSS_QUALITY_FAIL_NO_B_MEASUREMENT"
+      },
+      "q2_loss_observation": {
+        "state": "STATIC_PREFLIGHT_REQUESTED",
+        "phase": "q2observe300",
+        "preflight_nonce": 20,
+        "planned_measurement_nonce": 21,
+        "order": [
+          "A",
+          "B",
+          "B",
+          "A"
+        ],
+        "duration_s": 300,
+        "stage_seconds": [
+          75,
+          150,
+          75
+        ],
+        "seed": 1844,
+        "workload": "Normal1 20:20 mixed 10Mbps each direction 300ms one-way 5-20-5pct",
+        "continue_only_after": "STRICT_QUALITY_FAIL_WITH_EXCLUSIVELY_ALLOWED_5205_UDP_PROBE_RATE_ISSUES_AND_CLEAN_AUDIT",
+        "hard_stop": "ALL_INFRA_INTEGRITY_RESOURCE_OR_CLEANUP_FAILURE",
+        "aggregate": "loss-overview.json A_B/by_direction/UDP_probe/phase/full_window",
+        "hard_gates": "UNCHANGED_ORIGINAL_FAIL_RETAINED",
+        "real_business": "NOT_RUN",
+        "original_Q120_FAIL_run": 38039151704,
+        "historic300_A_FAIL_run": 38041440305
       }
     }
   },
-  "next_task": "Matched Q2 historic300 ABBA run38041440305 (helper6f8e49744a0fb4a4b9218d35db99671aaaf37543) failed in FIRST OLD A sample with 8/750 s2c stress probes missing >1pct threshold; c2s3/750; s2c stress UDP 12/172835 all 96B; actual netem20.015/20.048pct, TCP+HTTP verified, socket/links/owned cleanup all clean. Rest 3 legs B/B/A NOT_RUN. Original A same seed1844 300s run37924613499 PASS c2s4/750 s2c3/750; conclude fluctuating residual probe/96B loss; neither pure shorter window nor verified SIMD regression. Keep original Q120 A FAIL, and Q1 scoped 10.923pct CPU difference. Next evidence-driven investigation is per-size/96B FEC recovery and probe path with safe diagnostics, not another uninformative ABBA retry. Q2 B perf, L, ARM fullstack, full confirm300, P6 and physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-210500-fec-simd-q2historic300-old-a-probe-fail.md",
+  "next_task": "Check q2observe300 static preflight nonce20. On PASS trigger q2observe300 nonce21. Each 300s Q2 A-B-B-A leg runs independently even after bounded original 5205 packet/probe loss quality FAIL with clean integrity; all other FAIL/INFRA stop. Preserve original per-leg FAIL, final workflow FAIL if any not VALID. Read loss-overview.json all-window A/B loss ratio separately for UDP/probe c2s/s2c, every stage and size plus quality gates; no censor missing. Physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-213000-fec-simd-q2-all-legs-observation-preflight.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
