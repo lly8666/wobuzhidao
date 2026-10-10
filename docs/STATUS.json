@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_AUTHENTICATED_PEER_TX_VS_LOCAL_RX_STABLE_3S_PAIRED_ESTIMATOR_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N1_RECEIVER_LOCAL_AUTH_PEER_TX_WATERMARK_3S_MATURE_PAIR_SCOPED_FOCUSED_RACE_FOUNDATION_NATIVE_PASS_RECIPROCAL_ECHO_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "CONTAINING_COMMIT_SHA",
+    "new_product_source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "N0_SCOPED_ACTIONS_PASS_N1_V3_LIVE_2S_CONTROL_AND_256_DATA_PN_TX_RX_SCOPED_ACTIONS_PASS_WAN_LOSS_ESTIMATOR_PENDING",
+    "core": "N0_SCOPED_ACTIONS_PASS_N1_104B_LIVE_2S_TX_RX_COUNTERS_AND_RECEIVER_LOCAL_3S_PEER_TX_PAIRED_ESTIMATE_RACE_NATIVE_PASS_RECIPROCAL_FEEDBACK_NOT_IMPLEMENTED",
     "ordinary_performance": "NOT_RUN_N1_SOURCE_6220A3B",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_RECEIVER_LOCAL_PEER_TX_CONTROL_PN_WATERMARK_AND_3S_MATURE_PAIR_CANDIDATE_TEST_PENDING_NO_WIRE_ESTIMATE_NO_N2_AUTO",
+      "N1_quality": "IN_PROGRESS_RECEIVER_LOCAL_PEER_TX_TO_RX_STABLE_3S_PAIRED_ESTIMATOR_FOCUSED_RACE_NATIVE_PASS_NO_WIRE_ECHO_NO_N2_AUTO",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -79,23 +79,19 @@
       "n1_bounded_pn_race_run": 38075731969,
       "n1_bounded_pn_native_3client_run": 38075731983,
       "n1_bounded_pn_foundation_run": 38075732117,
-      "n1_bounded_pn_scope": "256 PN span actual KindLINK post Emit successful/failed and authenticated RX first unique/late/duplicate (not health), local separate TX/RX windows, V3 2s quality still only INSUFFICIENT, no physical WAN loss estimate or aligned peer watermarks"
-    },
-    "pending_candidate": {
-      "scope": "N1 receiver-local peer TX 104B report+authenticated enclosing health PN as watermark, pair receiver-local 256 PN DATA first-unique, three second same-window maturity; only ESTIMATED local read API when sufficiently sampled, always explicit INSUFFICIENT on transmitted 104B/N2",
-      "source_sha": "CONTAINING_COMMIT_SHA",
-      "actions": "PENDING",
-      "native_three": "PENDING",
-      "estimated_wire_feedback": "NOT_ENABLED",
-      "N2_auto": "NOT_ENABLED",
-      "physical": "NOT_RUN"
+      "n1_bounded_pn_scope": "256 PN span actual KindLINK post Emit successful/failed and authenticated RX first unique/late/duplicate (not health), local separate TX/RX windows, V3 2s quality still only INSUFFICIENT, no physical WAN loss estimate or aligned peer watermarks",
+      "n1_receiver_local_pair_source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+      "n1_receiver_local_pair_focused_run": 38077202207,
+      "n1_receiver_local_pair_native_run": 38077202155,
+      "n1_receiver_local_pair_scope": "auth peer KindHealth control PN + sender TX data span + local authenticated RX count, >=3s unchanged window and 16 sent 8 unique minima, local read only ESTIMATED first-arrival deficit, old 104B report still INSUFFICIENT and N2 HOLD; real same Seq RTO, actual 9-netns 3-client scoped regression PASS",
+      "n1_receiver_local_pair_foundation_run": 38077202208
     }
   },
-  "next_task": "Check exact-source next-adaptive-n1-codec -race count2 pure paired estimator and authenticated 20-DATA-one-tail-omitted/repair 3s; lifecycle, Linux/Windows foundation, 9-netns 3 native clients. Preserve FAIL and correct in new SHA. If scoped PASS, design bounded reciprocal on-wire echo of receiver paired estimate without confusing independent local TX/RX PN spaces or claiming actual raw WAN loss; maintain N2 HOLD until N1 complete. Physical tests only after all N0–N6 features and P6.",
-  "latest_log": "docs/devlog/20261011-080000-n1-paired-peer-watermark-receiver-local-candidate.md",
+  "next_task": "Verify exact-source foundation #38077202208 Linux+Windows complete. Then N1 next: design explicit authenticated opposite-direction echo/correlation for receiver-local qualified first-arrival estimate back to sender using <=128B control, no misuse of 104B outbound TX-only PN span or receiver's own outbound PN, with source reportSeq+nonce+generation, bounded 3s horizon/age and error states, no new per-data callback/control HOL. Do not claim raw WAN physical loss or enable N2 auto until closed feedback Actions. Physical only after all N0–N6 functions+P6.",
+  "latest_log": "docs/devlog/20261011-083000-n1-local-auth-peer-tx-watermark-mature-actions-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "427a43f2582e4df9891a4ed4384f913bd5dc226d",
-  "last_tested_scope": "427a43f focused Go -race count2, lifecycle, Linux+Windows foundation, real 9-netns 3-client functional all PASS scoped; earlier 1d5e N1/lifecycle/foundation test assertion FAIL preserved, next paired authenticated mature window not implemented, N2–N6/physical NOT_RUN",
+  "last_tested_source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+  "last_tested_scope": "d8c16d4 N1 focused -race count2, lifecycle, samewire, Linux/Windows foundation and real 9-netns 3-native all scoped PASS; reciprocal authenticated feedback echo and N2 auto not enabled; physical NOT_RUN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -576,6 +572,51 @@
       "scope": "N1_BOUND_256_DATA_PN_WINDOW_DOC_ONLY_RECEIPT_FOUNDATION",
       "status": "PASS",
       "cause": "Docs-only 705c4e2 foundation all jobs PASS; not new paired-estimator code evidence."
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+      "run_id": 38077202207,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38077202207",
+      "scope": "N1_AUTH_PEER_TX_PN_ENVELOPE_STABLE_3S_LOCAL_RX_PAIRED_ESTIMATE_RACE_2X",
+      "status": "PASS",
+      "cause": "PASS: new pure fallback/marker/maturity/capacity tests plus real 20-DATA source, one missing tail and RTOs, 3s mature authenticated peer TX PN paired with receiver local RX, estimate 1/20 only locally; raw focused test Go race twice."
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+      "run_id": 38077202273,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38077202273",
+      "scope": "N1_LOCAL_PAIRED_FEEDBACK_LIFECYCLE_REGRESSION",
+      "status": "PASS",
+      "cause": "PASS on exact code source d8c16d4."
+    },
+    {
+      "name": "next-adaptive-n0-samewire",
+      "source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+      "run_id": 38077202147,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38077202147",
+      "scope": "N1_PAIRED_QUALITY_SAME_TCP_SEQ_REPAIR_REGRESSION",
+      "status": "PASS",
+      "cause": "PASS on exact d8c16d4 source, six scoped same-Seq ciphertext repairs."
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+      "run_id": 38077202155,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38077202155",
+      "scope": "N1_PAIRED_QUALITY_REAL_9_NETNS_THREE_CLIENTS_ZERO_LOSS_FUNCTIONAL",
+      "status": "PASS",
+      "cause": "PASS on exact d8c16d4 source job 114286558048, artifact 11679272225 sha256 f5d20aa8506d3c64f77d954edfb730b25181679c4e6c4423c0360a6b379791a1. All six directions each 297/297 first unique and 150480/150480B, 300ms each-way configured lossless, independent problems []. No physical loss validation."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+      "run_id": 38077202208,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38077202208",
+      "scope": "N1_LOCAL_PEER_TX_PAIRED_QUALITY_FOUNDATION_LINUX_WINDOWS_PRIVILEGED",
+      "status": "PASS",
+      "cause": "Exact d8c16d4 foundation all required jobs completed PASS, Linux/Windows active Go and privileged Linux TUN/OpenWrt baseline; P5/P6 skipped under policy and remain NOT_RUN."
     }
   ],
   "required_read_set": [

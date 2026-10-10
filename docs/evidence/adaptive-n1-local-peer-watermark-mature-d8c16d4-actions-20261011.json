@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "kind": "N1_AUTHENTICATED_PEER_TX_MARKER_LOCAL_RX_3S_FIRST_ARRIVAL_DEFICIT_SCOPED_PASS",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "tested_source_sha": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+  "actions": {
+    "n1_focused": {
+      "name": "next-adaptive-n1-codec",
+      "run_id": 38077202207,
+      "job_id": 114286558380,
+      "status": "PASS",
+      "race_repetitions": 2,
+      "checks": [
+        "Pure marker/window maturity/insufficient/capacity/stale, reset on changed source window",
+        "Actual protected V3 receiver-local paired 20 LINK source records and 1 omitted DATA tail/RTO, correct estimate 1/20 after 3 seconds stable, on-wire quality still INSUFFICIENT",
+        "Existing codec/mailbox/256 PN RX/TX scoped regression"
+      ]
+    },
+    "lifecycle": {
+      "run_id": 38077202273,
+      "status": "PASS"
+    },
+    "samewire": {
+      "run_id": 38077202147,
+      "status": "PASS"
+    },
+    "foundation": {
+      "run_id": 38077202208,
+      "status": "PASS",
+      "includes": "Linux and Windows active-Go and required privileged OpenWrt/Linux TUN baseline; P5/P6 policy skipped NOT_RUN"
+    },
+    "native_three": {
+      "run_id": 38077202155,
+      "job_id": 114286558048,
+      "status": "PASS",
+      "artifact_id": 11679272225,
+      "artifact_sha256": "f5d20aa8506d3c64f77d954edfb730b25181679c4e6c4423c0360a6b379791a1",
+      "nine_linux_netns": true,
+      "formal_clients": 3,
+      "profile_set": [
+        "Normal off",
+        "Normal fixed 20:4",
+        "Game2 fixed 20:20"
+      ],
+      "shared_server_port": 443,
+      "each_direction": {
+        "sent": 297,
+        "first_unique_received": 297,
+        "business_bytes": 150480,
+        "first_unique_bytes": 150480
+      },
+      "validator_problems": []
+    }
+  },
+  "gates": {
+    "admission": "Only authenticated V3 source report from current logical lane, nonce and monotonic seq",
+    "marker": "Quality control's own AEAD-authenticated sender PN strictly after sender DATA last PN",
+    "reorder_maturity_seconds": 3,
+    "stale_after_seconds": 10,
+    "sender_age_max_millis": 10000,
+    "span_capacity": 256,
+    "minimum_sender_success": 16,
+    "minimum_receiver_unique": 8,
+    "source_window_must_be_stable": true,
+    "capacity_or_unknown": "Not estimated",
+    "reported_metric": "Receiver-local estimated timely first-unique deficit, not physical WAN loss",
+    "returns_to_peer": "NOT_WIRED",
+    "packet_wire_changed": false,
+    "legacy_health_9B_retained": true,
+    "live_quality_report_loss_flag": "INSUFFICIENT",
+    "N2_auto": "NOT_ENABLED",
+    "new_hot_path_goroutine": false,
+    "physical": "NOT_RUN",
+    "N3_to_N6": "NOT_RUN"
+  },
+  "note": "The zero configured loss native 3-client sample is only a functional regression, not a loss measurement; 1/20 synthetic emitted-tail-withheld unit is estimate only, not WAN physical captured loss."
+}
