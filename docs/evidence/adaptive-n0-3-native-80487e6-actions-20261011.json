@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "scope": "N0_PARTIAL_REAL_3_NATIVE_LINUX_CLIENT_FUNCTIONAL_SCOPED_PASS_NOT_PERFORMANCE",
+  "source_sha": "80487e6175c16cd6d689b82fca5d1053167cc1fa",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "actions": {
+    "native_real_three_client": {
+      "name": "next-adaptive-n0-multi",
+      "run_id": 38067388763,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38067388763",
+      "job_id": 114257695523,
+      "status": "PASS",
+      "artifact_id": 11674289902,
+      "artifact_sha256": "61c4c8f7b02ca43dad59347c44540a585cf12ed83a21a6f010ec1cd2be57d220"
+    },
+    "foundation": {
+      "run_id": 38067388735,
+      "status": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38067388735"
+    }
+  },
+  "functional_sample": {
+    "duration_seconds": 8,
+    "drain_seconds": 10,
+    "one_way_delay_ms_each_direction": 300,
+    "loss_percent": 0,
+    "client_mbps_each_direction": 0.15,
+    "namespace_count": 9,
+    "formal_client_processes": 3,
+    "formal_server_processes": 1,
+    "server_port": 443,
+    "shared_server_tun": true,
+    "account_shared": true,
+    "installations_distinct": true,
+    "all_running_after_drain": true,
+    "clients": [
+      {
+        "index": 1,
+        "mode": "normal-off",
+        "lanes": 1,
+        "record_version": 3,
+        "record_cipher": "chacha20-poly1305",
+        "actual_tls_handshake_suite": 4865,
+        "actual_parity": [
+          0
+        ],
+        "auto_lease": "10.66.54.103/32",
+        "c2s": {
+          "sent": 297,
+          "unique_delivered": 297,
+          "sent_bytes": 150480,
+          "unique_delivered_bytes": 150480
+        },
+        "s2c": {
+          "sent": 297,
+          "unique_delivered": 297,
+          "sent_bytes": 150480,
+          "unique_delivered_bytes": 150480
+        },
+        "probes": {
+          "sent": 8,
+          "received": 8,
+          "p99_returned_ns": 600459383
+        }
+      },
+      {
+        "index": 2,
+        "mode": "normal-fixed20:4",
+        "lanes": 1,
+        "record_version": 3,
+        "record_cipher": "chacha20-poly1305",
+        "actual_tls_handshake_suite": 4865,
+        "actual_parity": [
+          4
+        ],
+        "auto_lease": "10.66.68.242/32",
+        "c2s": {
+          "sent": 297,
+          "unique_delivered": 297,
+          "sent_bytes": 150480,
+          "unique_delivered_bytes": 150480
+        },
+        "s2c": {
+          "sent": 297,
+          "unique_delivered": 297,
+          "sent_bytes": 150480,
+          "unique_delivered_bytes": 150480
+        },
+        "probes": {
+          "sent": 8,
+          "received": 8,
+          "p99_returned_ns": 600523710
+        }
+      },
+      {
+        "index": 3,
+        "mode": "game2-fixed20:20",
+        "lanes": 2,
+        "record_version": 3,
+        "record_cipher": "chacha20-poly1305",
+        "actual_tls_handshake_suite": 4865,
+        "actual_parity": [
+          20,
+          20
+        ],
+        "auto_lease": "10.66.19.168/32",
+        "c2s": {
+          "sent": 297,
+          "unique_delivered": 297,
+          "sent_bytes": 150480,
+          "unique_delivered_bytes": 150480
+        },
+        "s2c": {
+          "sent": 297,
+          "unique_delivered": 297,
+          "sent_bytes": 150480,
+          "unique_delivered_bytes": 150480
+        },
+        "probes": {
+          "sent": 8,
+          "received": 8,
+          "p99_returned_ns": 600488156
+        }
+      }
+    ],
+    "corrupt_packets": 0,
+    "duplicate_packets": 0,
+    "send_failures": 0,
+    "capture_kernel_drops": 0,
+    "client1_c2s_qdisc_median_delay_ns": 300010000,
+    "client1_s2c_qdisc_median_delay_ns": 300010000,
+    "client2_underlay_real_syn_flows": 1,
+    "client3_underlay_real_syn_flows": 2,
+    "client1_captured_c2s_outer_repair_payload_bytes": 0,
+    "client1_captured_s2c_outer_repair_payload_bytes": 0,
+    "pcap_handling": "sha256 computed then all original bounded raw pcaps deleted, small digest-only evidence uploaded",
+    "independent_validator": "PASS_N0_3_NATIVE_CLIENTS_SCOPED; problems=[]"
+  },
+  "other_evidence": {
+    "in_memory_first_s2c_and_tls_suite_race": {
+      "source_sha": "a50accc45ff7925f4f7488640dad86e76bee1767",
+      "run_id": 38066837682,
+      "status": "PASS",
+      "count": 2
+    },
+    "original_focused_shallow_checkout_fail_preserved": {
+      "source_sha": "62e66ddddc53e6cee6459578b7db353913419a33",
+      "run_id": 38066640082,
+      "status": "FAIL_HARNESS_BEFORE_GO_TESTS"
+    }
+  },
+  "unqualified": [
+    "no physical host testing",
+    "not native first S2C before any client business",
+    "not exact full-ciphertext same Seq on actual repair",
+    "not performance or stress",
+    "not native Windows Wintun",
+    "not AES, auto, GUI, P6 or N1..N6"
+  ],
+  "physical": "NOT_RUN",
+  "actions_first_final_physical_only": true,
+  "docs_commit_source": "Git containing commit (docs-only; cannot self-reference commit SHA)"
+}
