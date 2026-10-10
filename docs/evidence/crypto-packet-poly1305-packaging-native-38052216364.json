@@ -1,0 +1,68 @@
+{
+  "schema": "wbd-poly1305-native-packaging/v1",
+  "branch": "next/crypto-packet-efficiency-20261010",
+  "production_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "head_test_only_sha": "965778f9c03bf96fab18b322e9d458d9a9dab8e2",
+  "run_id": 38052216364,
+  "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38052216364",
+  "native_job": "SUCCESS_NATIVE_AARCH64_GO1_23_12",
+  "core_jobs": "SUCCESS_LINUX_AMD64_WINDOWS_AMD64_ARM64",
+  "artifact_id": 11670300227,
+  "artifact_digest": "sha256:65fa9680bdb634c27f45f0793bd78aa1fb5725b60ee1c766d92ac2488f7624c8",
+  "file_sha256": {
+    "poly1305-packaging-bench.txt": "dde9c7e71494e1e27c252789469b179dce41481763a6775835b7263e8f193e66"
+  },
+  "benchmark_medians_ns": {
+    "64": [
+      77.97,
+      53.22,
+      47.07
+    ],
+    "128": [
+      103,
+      79.87,
+      71.48
+    ],
+    "256": [
+      153.1,
+      132.1,
+      120.5
+    ],
+    "512": [
+      253.2,
+      239.6,
+      220.5
+    ],
+    "1200": [
+      525.9,
+      515.3,
+      485.7
+    ],
+    "1400": [
+      617.8,
+      609.9,
+      565.3
+    ]
+  },
+  "mac_stream_to_contiguous_copy_gain_pct": {
+    "64": 31.742978068487883,
+    "128": 22.456310679611647,
+    "256": 13.716525146962766,
+    "512": 5.371248025276454,
+    "1200": 2.0155923179311697,
+    "1400": 1.278730980899967
+  },
+  "allocations_per_op": 0,
+  "test_oracle": "PASS_TestPoly1305PackagingOracle_0..65535_AES_AAD_0_1_13_16_17_32_4_keys",
+  "classification": "MAC_ONLY_SYNTHETIC_MICRO_CANNOT_CLAIM_AEAD_OR_BUSINESS_GAIN",
+  "limitations": {
+    "whole_aead": "NOT_RUN_AT_THIS_SOURCE",
+    "arm64_fullstack": "NOT_RUN",
+    "confirm300": "NOT_RUN",
+    "three_runners": "NOT_RUN",
+    "p6": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "historical_q2_original": "FAIL_3_OF_4",
+    "headerMaskB": "REJECTED_FULLSTACK_CPU_PLUS2P02_PERCENT"
+  }
+}
