@@ -1,7 +1,3 @@
-## 当前分支使用说明
-
-next/adaptive-fec-aes-tun-20261010每性能Action一条，不继承下文历史FEC串行ABBA例外。下面旧文件地图仍可复用，实际能力核源码。先按ADAPTIVE_NETWORK_PLAN第9节建立新的branch/config受限single adapter，V3协商/effective cipher/FEC变化/质量反馈必须有receipt，旧分析器及历史FAIL不得改写。Linux TPROXY五netns不是Windows TUN/direct性能证据，真实Wintun/system栈功能另列WindowsActions；unsupported明确交后续物理。
-
 # 真实业务测试夹具：功能、入口与复用边界
 
 ## 2026-10-10 helper能力更新与SIMD新旧比较

@@ -1,5 +1,3 @@
-> 本轮Windows改造计划：ADAPTIVE_NETWORK_PLAN第7节。以下描述继承的现有实现；新TUN分流尚未开发，不能声称已取消大型路由。Linux/OpenWrt nft interval继续保留。新Windows少量routes+TUN分类必须完整实现direct回程/underlay绑定/owned取消清理，DNS/IPv6/三个route-mode语义不丢。
-
 # IPv4地址分流
 
 默认 `route-mode=bypass-lan-cn`：本机/局域网/链路本地/CGNAT/组播保留IPv4及中国IPv4直连，其余通过TLS-like隧道。另有`bypass-lan`与`all`。all仍保留服务器/本地地址必需绕行。用户2026-10-04新增：IPv6默认捕获并丢弃，普通DNS默认经隧道访问1.1.1.1与8.8.8.8互备。Linux普通业务仍走PREROUTING，新增OUTPUT只处理DNS及IPv6；Windows Wintun按内核路由捕获。

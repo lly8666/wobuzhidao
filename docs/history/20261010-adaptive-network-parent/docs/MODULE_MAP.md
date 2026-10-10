@@ -1,9 +1,3 @@
-## 当前 N0..N6 覆盖（计划，未实现）
-
-详细设计ADAPTIVE_NETWORK_PLAN，实时状态STATUS。N0改realityfront/admission与runtimeentry每Tunnel policy，N1复用runtimeowner RTT/record PN并扩展datapath health，N2新增轻量控制器/通用有界FEC RX，N3扩展tlsrecord AES AEAD/HP及uTLS真实协商，N4在windowsclient增加TUN分类/native direct和网络事务取消，N5配置/catalog/GUI，N6复用真实路径helper。Linux/OpenWrt nft分流不重构。
-
-复用当前FEC SIMD/32ms/3s/ownership/lease/lifecycle/MTU，不能用old循环替换已优化实现。下文原模块历程仅来源参考，其中“固定密码”“Windows补集capture”“不动态FEC”等历史范围不限制本轮明确授权。所有新增外部代码依赖登记版本/许可，不把GPL sing-tun当MIT摘取；优先标准库与本项目模块。
-
 # 复用与重写地图
 
 2026-10-06 Npcap发送所有权微优化：`faketcp/npcap.go`直接返回MarshalSegment新分配的packet，保留Ethernet frame独立复制；去掉第三份返回clone，不借用外部/驱动存储、不改批量/ACK/重传/恢复边界。`npcap_test.go`覆盖输入、frame、后续发送和返回packet互不污染。Actions及原生状态看STATUS.windows_npcap_return_ownership，未继承a280成绩。

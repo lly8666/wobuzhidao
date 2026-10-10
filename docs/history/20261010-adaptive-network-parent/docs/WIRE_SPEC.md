@@ -1,5 +1,3 @@
-> 当前分支新增 **V3提案，尚未实现**：见ADAPTIVE_NETWORK_PLAN第3..6节。下文是继承的V2实现规范，固定ChaCha/health9B等只描述旧wire，旧“不比较加密选项”不限制本轮用户授权。V3在实现时一次协商FEC/密码、绑定KDF、扩展受保护quality payload，业务31B固定开销保留；未知版本明确拒绝。新agent必须先写V3精确编码与向量，再改接线，不能偷偷改V2向量或把提案写成已生效。
-
 # TLS-like Record — admission V2 / 既有 record 封装规范
 
 此规范是新产品唯一稳态 wire。开发 agent 不再比较不同加密选项。使用成熟 Go ChaCha20-Poly1305 和 ChaCha20 primitive；这不意味着采用标准 TLS 的按序接收器。

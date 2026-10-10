@@ -1,0 +1,151 @@
+{
+  "scope": "DOCUMENT_PLAN_AND_ARCHIVE_AUDIT_ONLY",
+  "parent_document_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
+  "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "working_branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_code_modified": false,
+  "product_tests": "NOT_RUN",
+  "performance": "NOT_RUN",
+  "physical": "NOT_RUN_NEW_SOURCE",
+  "archive_files": [
+    {
+      "original_path": "AGENTS.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/AGENTS.history.md",
+      "parent_git_blob": "4db8f7a40c6e7af710398a18d0c323d05aabe83c",
+      "git_content_sha256": "8c716c7d9229d127623e07aa83adf06f67f94068c41f31925c4d0b4321ec970f",
+      "local_checkout_sha256": "8c716c7d9229d127623e07aa83adf06f67f94068c41f31925c4d0b4321ec970f",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/ACCEPTANCE.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/ACCEPTANCE.md",
+      "parent_git_blob": "7a0f59ac8f01cac0e2375e3b834e37474d96e23b",
+      "git_content_sha256": "c69fc29318d47ffa602229143bc8a690ac93d140c1d5514cdf255de3d0b34351",
+      "local_checkout_sha256": "c69fc29318d47ffa602229143bc8a690ac93d140c1d5514cdf255de3d0b34351",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/AGENT_CONTINUITY.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/AGENT_CONTINUITY.md",
+      "parent_git_blob": "adf0456a5d766d067c8e3d20a2f7c32beeeed227",
+      "git_content_sha256": "7b4ffaf9036208b2b301b7f77c0361e5598e62a6ce2e06a1cce9243fc187dff5",
+      "local_checkout_sha256": "7b4ffaf9036208b2b301b7f77c0361e5598e62a6ce2e06a1cce9243fc187dff5",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/DEVELOPMENT_PLAN.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/DEVELOPMENT_PLAN.md",
+      "parent_git_blob": "b5663404697aa042f6929494356428d2d69ac45f",
+      "git_content_sha256": "23a972d78d4c638c5e07fe504062bcc945a3c22a500fc8c5e6f3e69ea5c4055b",
+      "local_checkout_sha256": "23a972d78d4c638c5e07fe504062bcc945a3c22a500fc8c5e6f3e69ea5c4055b",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/FEC_POLICY_EXPERIMENT.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/FEC_POLICY_EXPERIMENT.md",
+      "parent_git_blob": "be255cf3637d732ba341dd0d16675eccb33da871",
+      "git_content_sha256": "a695b7f49b6a355b0115c24057df021454bce1020b6b1fe8944826dec2037686",
+      "local_checkout_sha256": "a695b7f49b6a355b0115c24057df021454bce1020b6b1fe8944826dec2037686",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
+      "parent_git_blob": "524368eedb78339663a328f0c5a13be23763046a",
+      "git_content_sha256": "cc406fcdd71684dd9d44d3511be9d0767d59edfc8496fa97066284a0fa4ab664",
+      "local_checkout_sha256": "cc406fcdd71684dd9d44d3511be9d0767d59edfc8496fa97066284a0fa4ab664",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/MODULE_MAP.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/MODULE_MAP.md",
+      "parent_git_blob": "dec7e8ab7b8c5129569df9b851c0899830260f77",
+      "git_content_sha256": "45ea1f0cec08099e7feca3d9bd4f93b04ab52573bee4d6a4ee330eb9ccdb6770",
+      "local_checkout_sha256": "45ea1f0cec08099e7feca3d9bd4f93b04ab52573bee4d6a4ee330eb9ccdb6770",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/PERFORMANCE_EFFICIENCY_PLAN.md",
+      "parent_git_blob": "0081096ae6bed2e8bc38870febf45088e851ca1a",
+      "git_content_sha256": "814525f9698fdfce225913b4489529819391d2a62b45f59f93232b4451ac1629",
+      "local_checkout_sha256": "814525f9698fdfce225913b4489529819391d2a62b45f59f93232b4451ac1629",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/REALPATH_TEST_FIXTURE_GUIDE.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/REALPATH_TEST_FIXTURE_GUIDE.md",
+      "parent_git_blob": "0ba5b48f922acfc1faa2851b86dfb8cb360700a9",
+      "git_content_sha256": "a1da73ae0e2317250c1f5032ae7ba66b4d94ff4cbaf235d1da040d3b207fe808",
+      "local_checkout_sha256": "a1da73ae0e2317250c1f5032ae7ba66b4d94ff4cbaf235d1da040d3b207fe808",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/ROADMAP.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/ROADMAP.md",
+      "parent_git_blob": "776b4d151cf37410c2c598591fa786e26f32c71f",
+      "git_content_sha256": "f3ce29c3dc5f101e9bfbcd7f6e7353f965fda6b86a9834ac5a31814d2e6c3ade",
+      "local_checkout_sha256": "f3ce29c3dc5f101e9bfbcd7f6e7353f965fda6b86a9834ac5a31814d2e6c3ade",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/SPLIT_ROUTING.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/SPLIT_ROUTING.md",
+      "parent_git_blob": "8b5c950441862cd307b1cf2bb07c47595cb819ca",
+      "git_content_sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+      "local_checkout_sha256": "06cfb0608424b7e74ec99663a0d6495a3bb2491c89894eb0c248e0ca1a5cac32",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/STATUS.json",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/STATUS.json",
+      "parent_git_blob": "426ed50f1f6c0f18db33c42e7652a2219a796e92",
+      "git_content_sha256": "a930c3e2ab0afd7489608431b71673163113a8e6cddd77e4a8650ebf73e46170",
+      "local_checkout_sha256": "a930c3e2ab0afd7489608431b71673163113a8e6cddd77e4a8650ebf73e46170",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/templates/FEC_POLICY_AGENT_PROMPT.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/templates/FEC_POLICY_AGENT_PROMPT.md",
+      "parent_git_blob": "34606d91ec4a5fb14aacd39bb546f92ae667579b",
+      "git_content_sha256": "7d4dcfb168320d6bdd8e16586c5032fbc3dae668f77622bb531f99c67fe7ed6b",
+      "local_checkout_sha256": "7d4dcfb168320d6bdd8e16586c5032fbc3dae668f77622bb531f99c67fe7ed6b",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/templates/FEC_SIMD_AGENT_PROMPT.md",
+      "parent_git_blob": "332866e1a9229ad403eea4aeadb576f1a921aae6",
+      "git_content_sha256": "03eb8158322260a1e5ab45162e986186f51e9a0d51d477065b43173f82b71990",
+      "local_checkout_sha256": "03eb8158322260a1e5ab45162e986186f51e9a0d51d477065b43173f82b71990",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "docs/WIRE_SPEC.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/docs/WIRE_SPEC.md",
+      "parent_git_blob": "ec8ddd227c6ceabd4a4ee7741cbfd342e0d43470",
+      "git_content_sha256": "da4fd8886a53e27cd5cb9eac624cdfe057e21317ace10df43eae9ae5ba88007f",
+      "local_checkout_sha256": "da4fd8886a53e27cd5cb9eac624cdfe057e21317ace10df43eae9ae5ba88007f",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "PROJECT_CHARTER.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/PROJECT_CHARTER.md",
+      "parent_git_blob": "8f685327fc27d0698c5b077aecf3f4e6496ef49b",
+      "git_content_sha256": "369218f8db6628a651bc6be649ef8b50fc5b5df51194a777e46b0609b8b962ae",
+      "local_checkout_sha256": "369218f8db6628a651bc6be649ef8b50fc5b5df51194a777e46b0609b8b962ae",
+      "parent_content_equal_after_checkout_line_endings": true
+    },
+    {
+      "original_path": "README.md",
+      "snapshot_path": "docs/history/20261010-adaptive-network-parent/README.md",
+      "parent_git_blob": "ed99a422657f0a1dc93f0982b55a22a6433b7efb",
+      "git_content_sha256": "479e507032a7a195168ea31668d102c6485dfad07e38065af6dfac03ccf7005c",
+      "local_checkout_sha256": "479e507032a7a195168ea31668d102c6485dfad07e38065af6dfac03ccf7005c",
+      "parent_content_equal_after_checkout_line_endings": true
+    }
+  ],
+  "required_paths_and_new_entry_links": "VALID",
+  "historical_failures": "RETAINED_IN_FULL_PARENT_STATUS_AND_ORIGINAL_EVIDENCE",
+  "future_features": "PLAN_NOT_IMPLEMENTED"
+}

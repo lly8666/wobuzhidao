@@ -1,22 +1,15 @@
-# 唯一开发路线图
+# 唯一路线图
 
-当前工作：PERFORMANCE_EFFICIENCY，实际分支next/performance-efficiency-20261008；实时步骤只看STATUS.json。本轮执行[E0..E7方案](PERFORMANCE_EFFICIENCY_PLAN.md)，不恢复历史提示词里的任务。
+本轮N0→N1→N2→N3→N4→N5→N6，详细方案ADAPTIVE_NETWORK_PLAN，实时步骤只看STATUS。P0..P7保留产品资格含义：本轮处于P5开发验收，P6打包后交原聊天P7物理，不继承旧通过。
 
-|顺序|工作|退出条件|
-|---|---|---|
-|E0|核MTU集成、资格化真实进程助手、普通CPU/包数基线|可核验路径/注入/资源，热点账本及局限齐全|
-|E1|最近deadline唤醒、partial FEC/维护调度|稀疏及时、无忙轮询，core/race及四独立保护样本|
-|E2|有界预分配与所有权/分配复制|无ownership/race损坏、内存上限、CPU/alloc收益|
-|E3|已就绪批量收发与公平性|实际batch/syscall收益、部分失败/关闭语义及延迟保护|
-|E4|有限ACK/shadow索引与淘汰成本|fresh持续，容量满/放弃洞无HOL，同wire修复|
-|E5|剩余FEC/LINK/record热点|证据驱动，保持档位和wire，收益可复核|
-|E6|组合冻结、真实业务矩阵/容量/配置/长测/P6|SOURCE精确、全部失败/能力边界透明|
-|E7|优化后查80秒下行及迟到，交原聊天物理复验|独立根因/修复资格；未完成前不标交付|
+|阶段|退出条件|
+|---|---|
+|N0|每客户端明确协商，双向首包正确，错误/旧版本/身份冲突拒绝|
+|N1|方向/样本/水位正确，有界非阻塞，UNKNOWN/HOLD/休眠边界|
+|N2|Normal自动/激进、所有切档迟到语义、Game隔离，动态弱网真实路径|
+|N3|三AEAD/HP、硬件与generic、TLS actual值、同wire、混合客户|
+|N4|Windows少量routes、TUN direct实际回程、防回环、owned幂等取消清理|
+|N5|CLI/JSON/GUI/catalog生效、低开销两秒状态|
+|N6|固定Normal/Game保护、组合配置/MTU/弱网/生命周期/三目标包|
 
-P0..P7正式阶段仍用于产品资格：P0仓库，P1记录，P2握手，P3数据面，P4平台/生命周期，P5端到端弱网性能，P6同源包，P7物理。历史曾关闭某门不代表新SOURCE继承；本轮处于P5资源优化与P6/P7待验。
-
-不得扩大任务做协议/加密选型、新旧DTLS性能比赛、在线安装升级工具或第二套交接系统。用户已允许有界内存换CPU，但未允许队列膨胀、牺牲p99/完整性或把fresh恢复成ACK窗口门控。
-
-本轮之后：80秒下行断点仍OPEN_DEFERRED；真实物理MTU压力、剩余配置/PMTU/低档尾延迟及当前SOURCE完整资格按STATUS保留。优化期间出现失活不删FAIL，不以健康样本关闭。
-
-历程见[AGENT_CONTINUITY](AGENT_CONTINUITY.md)，整理前路线图在[历史快照](history/20261008-before-efficiency-roadmap.md)。历史快照不可作为当前任务来源。
+之后：单独定位80秒S2C、补Windows驱动/ARMnative物理门。出现严重中断如实留FAIL；任何阶段未完成不标完整交付。历史路线归档，不是当前指令。
