@@ -12,7 +12,7 @@ fixed parity 只能是 4/8/10/12/16/20，initial/min/max 必须为 0。off 的�
 
 V3 exporter context = SHA256(原 V2 上下文原始编码但 version=3，后紧接 10B canonical policy)；exporter label 仍为 `EXPORTER-WBD-TLSLIKE-V1`。HKDF-SHA256 用原 exporter master 32B/nonce salt，info 为 `WBD-TLSLIKE-V3/<suite>/c2s` 或 `.../s2c`，suite 为 chacha20-poly1305、aes-128-gcm、aes-256-gcm。输出 32B AEAD、12B IV、32B HP，AES128 未来用首 16B。动态档位不进入 KDF、不得重置 PN。
 
-**阶段性能力门**：目前 V3 只允许 fixed/off + ChaCha + quality=0，其他语法合法但返回 UNSUPPORTED；N2/N3/N1 运行代码成熟后才依次解锁。V2 保留历史夹具兼容，GUI/CLI 尚未启用 V3；per-Tunnel rotation 策略冲突、真实业务双向第一包及 Actions 尚未验收，N0 仍为 IN_PROGRESS。
+**阶段性能力门**：目前 V3 只允许 fixed/off + ChaCha + quality=0，其他语法合法但返回 UNSUPPORTED；N2/N3/N1 运行代码成熟后才依次解锁。V2 保留历史夹具兼容；当前 Linux/Windows 产品 CLI 将既有 `fec-parity` 按 off/fixed+ChaCha 规范化为受保护 V3 请求，未新增自动档参数，服务端为各客户按回显值配置 lane，且共享 TUN 预留 FEC-on 上限。Windows GUI/JSON 仍需单独完整组合验收；多客户端真实业务与 Windows TUN 仍未完成 N0 资格，N0 IN_PROGRESS。
 
 ---
 

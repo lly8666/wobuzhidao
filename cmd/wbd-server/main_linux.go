@@ -190,12 +190,14 @@ func runServer() error {
 		return err
 	}
 
-	// Shared-TUN interface MTU is static across lanes, derived from the
-	// inbound configured record/FEC envelope. The runtime still budgets
-	// every lane using actual peer MSS and LINK-fragments when required.
+	// One shared TUN must reserve the largest V3 wrapper for heterogeneous
+	// clients. All non-off FEC profiles consume the same 56-byte shard header.
+	// Off clients retain their own larger lane budget, not a shared TUN resize.
+	sharedBudgetParity := *fecParity
+	if sharedBudgetParity == 0 { sharedBudgetParity = 20 }
 	innerMTU, err := pathmtu.DeriveTunnelInterfaceMTU(pathmtu.Config{
 		ConnectionMTU: *mtu, IPv4HeaderLen: 20, TCPHeaderLen: 20,
-		RecordWireLimit: int(*serverLimit), ParityShards: *fecParity,
+		RecordWireLimit: int(*serverLimit), ParityShards: sharedBudgetParity,
 	})
 	if err != nil {
 		return err

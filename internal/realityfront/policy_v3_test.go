@@ -84,3 +84,25 @@ func TestV3ProtectedFixedAdmissionKeys(t *testing.T) {
     if c.Negotiated.Keys != s.sess.Negotiated.Keys ||
         c.Negotiated.Keys.C2S==c.Negotiated.Keys.S2C {t.Fatal("V3 exporter direction mismatch")}
 }
+
+func TestFixedPolicyForClientNoImplicitAutoMigration(t *testing.T) {
+    for _,lanes:=range []int{1,2,4} {
+        for _,parity:=range []int{0,4,8,10,12,16,20} {
+            p,err:=FixedPolicyForClient(lanes,parity)
+            if err!=nil {t.Fatalf("lanes=%d parity=%d: %v",lanes,parity,err)}
+            if p.EffectiveParity()!=parity ||
+                (lanes==1 && p.Transport!=TransportNormal) ||
+                (lanes>1 && p.Transport!=TransportGame) ||
+                (parity==0 && p.FECMode!=FECOff) ||
+                (parity>0 && p.FECMode!=FECFixed) ||
+                p.Cipher!=CipherChaCha || p.Quality!=0 {
+                t.Fatalf("silent migration: %+v",p)
+            }
+        }
+    }
+    for _,tc:=range [][2]int{{0,4},{5,4},{1,-1},{1,9},{2,21}} {
+        if _,err:=FixedPolicyForClient(tc[0],tc[1]);!errors.Is(err,ErrAdmissionParams){
+            t.Fatalf("invalid fixed policy %+v accepted %v",tc,err)
+        }
+    }
+}

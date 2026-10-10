@@ -80,7 +80,7 @@ FEC首源32ms（本分支E1统一窗口候选）是encoder的默认partial parit
 
 ## 协议兼容
 
-本轮 lifecycle-capable admission record version 为 **2**；真实 TLS/uTLS 建连、外层 0x17/0x0303 记录格式不变，新增的是加密内部 health kind。必须成对升级端点。V1 端点在 admission 被明确拒绝，不允许混用后静默反复重连。历史 V1 的通过证据仍保留历史 SHA，不能视作 V2 已通过。
+本轮生产客户端逐步接线到 admission **V3**：旧 `fec-parity` 配置仍解释为固定 0/4/8/10/12/16/20，绝不隐式迁移 auto；受保护短策略 per-Tunnel 回显并按每客户生效，默认 ChaCha、quality=0。V3 客户端必须配套 V3 服务端；旧服务端明确拒绝版本，不进行隐式配置猜测。旧 V2 仍保留单元/历史夹具兼容；外层 record 0x17/0x0303、原 health kind 和独立解密不变。新 auto/AES/quality 参数尚未开放，详细见 ADAPTIVE_NETWORK_PLAN；新代码正确性资格仍由具体 SOURCE Actions 决定。
 
 2026-10-03资源优化阶段3：生产steady ACK内部采用每2个正常连续record或2ms截止，首包/缺口开关/SACK/重复/FIN即时；成功携最新ACK的data可取消gap-free待发ACK。每lane一个可复用timer，关闭取消、异步失败计数并由tick报告。业务立即交付，不等ACK；internal/runtimeowner/ack.go，无新增CLI/configfile入口。阶段状态与exact-SHA验收看STATUS。
 

@@ -92,3 +92,21 @@ func (p AdmissionPolicy) EffectiveParity() int {
     if p.FECMode==FECFixed { return int(p.FixedParity) }
     return 0
 }
+
+// FixedPolicyForClient maps the already-shipped fec-parity configuration to
+// the V3 authenticated policy without silently moving an old fixed tunnel
+// into automatic control. This policy must be retained across rotation.
+func FixedPolicyForClient(desiredLanes, parity int) (AdmissionPolicy, error) {
+    p := AdmissionPolicy{
+        Schema: PolicySchemaV3, Transport: TransportNormal,
+        DesiredLanes: uint8(desiredLanes), FECMode: FECFixed,
+        FixedParity: uint8(parity), Cipher: CipherChaCha,
+    }
+    if desiredLanes > 1 { p.Transport = TransportGame }
+    if parity == 0 { p.FECMode = FECOff }
+    if desiredLanes < 1 || desiredLanes > 4 || parity < 0 || parity > 20 {
+        return AdmissionPolicy{}, ErrAdmissionParams
+    }
+    if err := p.SupportedNow(); err != nil { return AdmissionPolicy{}, err }
+    return p,nil
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "source_sha": "5f60d169ad67c6191281ae8e424bc3ec6f916a6f",
+  "workflow": "next-foundation",
+  "run_id": 38061330856,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38061330856",
+  "conclusion": "PASS_FOUNDATION_ONLY",
+  "jobs": [
+    {
+      "name": "repository-contract",
+      "id": 114240030418,
+      "status": "success"
+    },
+    {
+      "name": "active-go-tests (windows-2022)",
+      "id": 114240065234,
+      "status": "success"
+    },
+    {
+      "name": "active-go-tests (ubuntu-24.04)",
+      "id": 114240065265,
+      "status": "success"
+    },
+    {
+      "name": "p4-openwrt-tproxy-privileged",
+      "id": 114240065256,
+      "status": "success"
+    },
+    {
+      "name": "p2-kernel-fallback",
+      "id": 114240065259,
+      "status": "success"
+    },
+    {
+      "name": "p4-linux-shared-tun-privileged (nft)",
+      "id": 114240065283,
+      "status": "success"
+    },
+    {
+      "name": "p4-linux-shared-tun-privileged (iptables)",
+      "id": 114240065298,
+      "status": "success"
+    }
+  ],
+  "product_realpath": "NOT_RUN",
+  "performance": "NOT_RUN",
+  "native_windows_tun": "NOT_RUN",
+  "runner_cpu_quota_psi_and_drops": "NOT_MEASURED",
+  "historical_FAIL_retained": true
+}

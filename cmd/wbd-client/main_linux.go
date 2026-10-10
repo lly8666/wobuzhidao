@@ -106,6 +106,8 @@ func runLinuxClient() error {
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
 		return err
 	}
+	requestedPolicy, err := realityfront.FixedPolicyForClient(*lanes, *fecParity)
+	if err != nil { return err }
 	fecFlushAfter, fecMaxBlocks, err := datapath.FixedFECRuntimeDefaults(*fecParity)
 	if err != nil {
 		return err
@@ -277,7 +279,7 @@ func runLinuxClient() error {
 				ServerName: *serverName, RouteKey: routeKey, Timeout: 15 * time.Second,
 			},
 			AutoLease: autoLease, InstallationID: installation[:], Username: *username, Password: *password,
-			TunnelID: tunnelID.Bytes(), ClientLimit: uint16(*clientLimit),
+			TunnelID: tunnelID.Bytes(), ClientLimit: uint16(*clientLimit), Policy: requestedPolicy,
 		},
 		Lane: datapath.ClientLaneParams{
 			ConnectionMTU:   *mtu,
