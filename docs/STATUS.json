@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C1_THIN_ADAPTER_STATIC_PREFLIGHT_RETRY_CONFIG_ONLY",
+    "phase": "C1_Q1_LOSSLESS_PROFILE_OFF_120S_ABBA_REQUESTED",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4117,7 +4117,8 @@
           "step": "Static preflight or frozen binaries",
           "root_cause": "generator uses historical next-fec-simd-ab.yml not new workflow selector",
           "measurement": "NOT_RUN"
-        }
+        },
+        "preflight_success_run": 38048430938
       },
       "acceptance": {
         "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
@@ -4185,8 +4186,8 @@
           "B",
           "A"
         ],
-        "phase_preflight": "RETRY_REQUESTED_3",
-        "phase_q1screen120": "NOT_RUN",
+        "phase_preflight": "PASS_RUN_38048430938_STATIC_ONLY",
+        "phase_q1screen120": "REQUESTED_PROFILE_OFF_4x120s_plus3s",
         "config_nonce": 2
       },
       "native_arm64_v2_micro": {
@@ -4235,8 +4236,8 @@
       }
     }
   },
-  "next_task": "Assess second static preflight on exact A/B and pinned helper; ONLY if PASS, authorize q1screen120 serial four-leg real business (A-B-B-A). Preserve both preflight failures.",
-  "latest_log": "docs/devlog/20261010-235900-crypto-thin-adapter-preflight-retry.md",
+  "next_task": "Observe one job same-host A-B-B-A Q1 Normal1 20:20 300ms 0loss 120s+3s each, exact immutable A7fb/B37e, all HTTP/TCP/UDP/probes/drops/CPU; FAIL and NOT_RUN retained. Must not treat micro as realpath qualified.",
+  "latest_log": "docs/devlog/20261011-000100-crypto-q1-lossless-abba-120s-trigger.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

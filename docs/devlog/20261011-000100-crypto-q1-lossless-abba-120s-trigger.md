@@ -1,0 +1,5 @@
+# Start first true business paired ABBA after static preflight PASS
+
+- Static preflight (adapter SHA receipts, exact three-file change guard, helper tests, generated.sh bash -n) [Actions 38048430938](https://github.com/lly8666/wobuzhidao/actions/runs/38048430938) **SUCCESS**. Prior 38048292234 static FAIL remains historical with scoped cause, no source change.
+- This config-only trigger changes only config, unique STATUS and added devlog; phase `q1screen120`, nonce4. Single measurement job serial four fresh network + state+process legs `A→B→B→A`, Q1 Normal1 **mixed business** (bidirectional logical10Mbps, 20:20 FEC, one-way300ms, lossless, each120s business+3s drain); fixed seed2261 same scripts/config, profile-off. A exact product 7fb98fab79834a351a1dbe04eebb207f66bea28b, B exact product 37e18653b0d08f4a1d932b6fd67fe081e84bda78. Go1.23.12, GOAMD64=v1 both; SHA/buildinfo artifact.
+- Original probe loss stage hard checks, TCP content hashes, HTTP/HTTPS and owned cleanup continue to gate every leg; micro win alone not PASS. Original FEC weaknet FAIL/physical NOT_RUN preserved. Any missing leg recorded NOT_RUN.
