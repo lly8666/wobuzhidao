@@ -18,14 +18,15 @@ PARAMS={
 def plan(phase):
  groups={"preflight":("Q1","Q2","Q3","L1","L2","L3"),"pilot":("Q1",),
          "q120":("Q1","Q2","Q3"),"l120":("L1","L2","L3"),
-         "confirm300":("Q1","Q2","Q3")}[phase]
+         "confirm300":("Q1","Q2","Q3"),"q2historic300":("Q2",)}[phase]
  # Pilot Q1 must exercise all 20 serial HTTP/HTTPS requests over 300ms RTT;
  # 15s + fixed 3s drain can close targets before their final TCP opens.
  # Use the same 120s real workload as Q1 without relaxing any validity gate.
- n=300 if phase=="confirm300" else 120
+ n=300 if phase in ("confirm300","q2historic300") else 120
  result=[]
  for context in groups:
   mode,lanes,rate,parity,delay,loss,seed=PARAMS[context]
+  if phase=="q2historic300":seed=1844 # Same as historical 300s old A PASS run37924613499.
   labels=("A","B") if phase=="pilot" else ("A",) if phase=="preflight" else ("A","B","B","A")
   for label in labels:
    result.append(dict(id=("pilot-%d"%(len(result)+1) if phase=="pilot" else "s%02d"%(len(result)+1)),
@@ -39,7 +40,7 @@ def conf():
  if d != {"schema":"wbd-fec-simd-ab/v1","phase":d.get("phase"),
           "baseline_source_sha":A,"candidate_source_sha":B,"nonce":d.get("nonce")}:
   raise ValueError("unapproved source or config keys")
- if d["phase"] not in ("preflight","pilot","q120","l120","confirm300") or type(d["nonce"])!=int or d["nonce"]<1:
+ if d["phase"] not in ("preflight","pilot","q120","l120","confirm300","q2historic300") or type(d["nonce"])!=int or d["nonce"]<1:
   raise ValueError("unapproved phase")
  return d
 
@@ -253,7 +254,7 @@ def aggregate(root,phase,cases,receipts,helper):
  found={r["case"]["id"]:r for r in receipts}
  states=[{"case":c,"status":found[c["id"]]["classification"] if c["id"] in found else "NOT_RUN"} for c in cases]
  pairs=[]
- if phase in ("q120","l120","confirm300"):
+ if phase in ("q120","l120","confirm300","q2historic300"):
   for i in range(0,len(cases),4):
    group=cases[i:i+4];v=[]
    for c in group:
@@ -303,6 +304,11 @@ def main():
    content=(d/"generated.sh").read_text()
    for word in ("WBD_FEC_DURATION_S","WBD_FEC_DELAY_MS","next-fec-simd-ab.yml","--simd-ab"):
     if word not in content:raise ValueError("missing generated shell marker "+word)
+  # Validate the new 300s historical Q2 generator with bash -n, no product run.
+  history=prepared(dict(plan("q2historic300")[0],id="history-preflight"),root)
+  script=(history/"generated.sh").read_text()
+  for word in ("--simd-ab","WBD_FEC_DURATION_S","WBD_FEC_DELAY_MS"):
+   if word not in script:raise ValueError("historical static script missing "+word)
   print("FEC_SIMD_PREFLIGHT_STATIC_ONLY");return
  for label in ("A","B"):
   for role in ("client","server"):

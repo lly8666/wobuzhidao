@@ -1,0 +1,8 @@
+# S4 separate Q2 historic 300s same-runner ABBA static preflight
+
+- Following historical old A Normal1 staged5205 300s PASS [run37924613499](https://github.com/lly8666/wobuzhidao/actions/runs/37924613499), add exact isolated `q2historic300` phase: single Q2 context, 4 ordered A/B/B/A fresh 5-netns legs, each 300s with phases75/150/75s, seed1844, 300ms one-way, loss5/20/5 both ways, 20:20 FEC, Normal1, mixed, 10Mbps each way and fixed 3s drain.
+- Frozen product A=a2db258b436a41fdee98c6c53abec9bab6ce600f and B=7fb98fab79834a351a1dbe04eebb207f66bea28b, same go1.23.12 GOAMD64=v1; unchanged analyzer, generator, envelope, socket/drop integrity and per-phase 1pct probe loss hard gate, same 20 HTTP(S). No reduction of any load, and no profile/driver changes.
+- Add targeted Python unit asserting order, SOURCE, exactly seed1844 duration300 for all four, and Q120/general confirm300 unchanged seed2262. Static `preflight` also generates/shell-parses a historical300 script, no product/real measurement.
+- At this commit config remains phase=preflight nonce18. Trigger q2historic300 only if GitHub Actions preflight succeeds; measure with independently immutable helper SHA of config commit. Always STOP at first original FAIL, later legs NOT_RUN.
+- Preserve original 120s Q2 A failure run38039151704 with stress probe 4/300 c2s and 5/300 s2c vs strict1pct. Original 300s A historical PASS had 4/750 c2s and 3/750 s2c stress missing. Seed/duration/runner differ; cannot assert product regression or guaranteed success.
+- This phase is supplementary apples-to-apples 300s Q2 historical comparability, **not** retroactive Q120 S4 pass, cross-runner repeat, ARM native perf, P6 or physical verification. Historical Game4/TCP-off/E7 remain open.

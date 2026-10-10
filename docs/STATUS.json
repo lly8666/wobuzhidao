@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S4_Q2_OLD_A_PASS_FAIL_HISTORY_RECONCILED_NOT_S4_PASS",
+    "phase": "FEC_SIMD_S4_Q2_HISTORICAL300_STATIC_PREFLIGHT",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S4_Q1_SCOPED_ABBA_PASS_Q2_A_120S_FAIL_HISTORIC_IDENTICAL_BINARY_300S_PASS",
+      "state": "S4_Q1_ABBA_SCOPED_PASS_Q2_120S_A_FAIL_HISTORIC300_STATIC_PREFLIGHT",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3855,11 +3855,36 @@
         "causal_restriction": "Changed duration 300->120, seed1844->2262, runner; cannot infer product regression or isolate which factor",
         "current_A_fail": "PRESERVED",
         "current_B": "NOT_RUN"
+      },
+      "q2_historic300": {
+        "state": "STATIC_PREFLIGHT_REQUESTED_NONCE18",
+        "phase": "q2historic300",
+        "historical_actions": 37924613499,
+        "old_q120_fail_run": 38039151704,
+        "workload": "Normal1 mixed 20:20 300ms delay 5-20-5 10Mbps each direction",
+        "seed": 1844,
+        "periods_s": [
+          75,
+          150,
+          75
+        ],
+        "duration_s": 300,
+        "drain_s": 3,
+        "order": [
+          "A",
+          "B",
+          "B",
+          "A"
+        ],
+        "old_source": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+        "new_source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+        "classification": "SUPPLEMENTAL_NOT_RETROACTIVE_Q120_PASS",
+        "real_business": "NOT_RUN"
       }
     }
   },
-  "next_task": "Q2 investigation: historical exact identical old-A binary passed 300s Normal1 5205 seed1844 run37924613499 with stress probes c2s4/750 s2c3/750; current 120s seed2262 run38039151704 had c2s4/300 s2c5/300 -> strict unchanged >1pct per phase FAIL. This is a changed duration and random seed with smaller denominator, not proof of old-A regression. Keep 120s FAIL, no Q2 B qualification and 7 NOT_RUN. Before concluding weaknet performance do separately labeled matched 300s seed1844 same-runner Q2 ABBA or directed class/parity diagnostic; no blanket quality relaxation. Q1 single-run ABBA 10.923pct CPU lower only; native ARM business, L, final 300s, P6, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-203000-fec-simd-q2-history-apples-to-apples-investigation.md",
+  "next_task": "Read exact SIMD historical300 static preflight nonce18. If PASS, trigger config-only q2historic300 nonce19 A-B-B-A in one Actions runner, 4x300s with seed1844, original 1pct phase probe gate unchanged. Original Q120 Q2 old-A FAIL preserved and Q2 B NOT_RUN. Historical 300s PASS run37924613499 is comparison only. Do not claim global S4 qualification from supplemental 300s; L, ARM fullstack, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-204000-fec-simd-q2historic300-static-preflight.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

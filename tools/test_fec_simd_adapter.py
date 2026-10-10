@@ -12,6 +12,14 @@ class TestABBA(unittest.TestCase):
     self.assertEqual([r["label"] for r in group],["A","B","B","A"])
     for key in ("context","mode","seed","rate","lanes","parity","duration","delay","loss"):
      self.assertEqual(len({r[key] for r in group}),1)
+ def test_historic_q2_300s_exact_parameters(self):
+  cases=ab.plan("q2historic300")
+  self.assertEqual([c["label"] for c in cases],["A","B","B","A"])
+  self.assertEqual([c["source"] for c in cases],[ab.A,ab.B,ab.B,ab.A])
+  for c in cases:
+   self.assertEqual((c["context"],c["mode"],c["lanes"],c["rate"],c["parity"],c["delay"],c["loss"],c["seed"],c["duration"]),("Q2","normal",1,10,20,300,5205,1844,300))
+  self.assertEqual(ab.plan("q120")[4]["seed"],2262)
+  self.assertEqual(ab.plan("confirm300")[4]["seed"],2262)
  def test_pilot(self):
   self.assertEqual([c["label"] for c in ab.plan("pilot")],["A","B"])
   self.assertNotEqual(ab.A,ab.B)
