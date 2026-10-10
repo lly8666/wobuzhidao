@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_LIVE_ENCRYPTED_2S_GORACE_PASS_NATIVE_3_CLIENT_GATE_PENDING",
+    "phase": "N1_LIVE_V3_2S_PROTECTED_HEALTH_SCOPED_RACE_AND_NATIVE_3_CLIENT_PASS_QUALITY_ESTIMATOR_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "860fc3c7634f6298b1584e4263260a009e390f1b",
+    "new_product_source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "N0_SCOPED_ACTIONS_PASS_N1_LIVE_PROTECTED_QUALITY_FOCUSED_RACE_860FC3C_NATIVE_3CLIENT_PENDING",
-    "ordinary_performance": "NOT_RUN_N0_SOURCE_60D6415",
+    "core": "N0_SCOPED_PASS_N1_ACTUAL_PROTECTED_QUALITY_RUNTIME_RACE_860FC3C_NATIVE_3_CLIENT_6220A3B_PASS",
+    "ordinary_performance": "NOT_RUN_N1_SOURCE_6220A3B",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_ACTUAL_V3_HEALTH_CONTROL_2S_RACE_PASS_MATURE_WAN_QUALITY_NOT_IMPLEMENTED_NATIVE_3_CLIENT_PENDING",
+      "N1_quality": "IN_PROGRESS_LIVE_2S_CONTROL_SCOPED_GO_RACE_AND_REAL_3CLIENT_PASS_ESTIMATED_OUTER_LOSS_NOT_IMPLEMENTED",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -70,22 +70,18 @@
       "source_scope": "single 8-second zero-loss 300ms each-way real Linux netns multi-client functional; no performance",
       "native_first_s2c_before_any_client_business": "INMEMORY_REAL_TLS_FAKETCP_PASS_RUN_38066837682;UNSOLICITED_NATIVE_TPROXY_APPLICATION_RECEIVER_NEEDS_FIRST_FLOW_MAPPING_NOT_CLAIMED",
       "same_seq_full_wire_repair_proof": "PASS_CONTROLLED_PRODUCTION_GO_RUNTIME_ACTUAL_RTO_C2S_S2C_OFF4_20_12_RACE_CASES_SOURCE_60D6415_RUN_38071266000_NOT_NATIVE_LOSS_PCAP",
-      "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
-    },
-    "pending_candidate": {
-      "scope": "N1 exact-source 860fc3c actual live 2s authenticated KindHealth partial-quality feedback, code+focused race PASS; newly expanded native 9-netns Actions requested, no genuine WAN loss estimates",
-      "source_sha": "CONTAINING_COMMIT_SHA",
-      "native_3_client_actions": "PENDING",
-      "native_windows": "NOT_RUN",
-      "n2_auto": "NOT_STARTED",
-      "physical": "NOT_RUN"
+      "tls_decoy_algorithm_alignment": "NOT_CLAIMED",
+      "n1_live_quality_source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
+      "n1_live_quality_race_run": 38073999026,
+      "n1_live_quality_native_multi_run": 38074203293,
+      "n1_quality_live_scope": "V3 post-admission encrypted 104B KindHealth active 2s, per-lane peer nonce/generation/seq replay gate with INSUFFICIENT/no claimed WAN loss; verified in Go race and protected 9-netns 3 native client business"
     }
   },
-  "next_task": "N1 check workflow-expanded next-adaptive-n0-multi 9-netns native Action on new SHA, scoped send/receive two-second encrypted KindHealth quality with old health v1 still alive. Independently inspect newest source foundation/lifecycle. Preserve previous af74 six pre-test compile FAIL and later 860 fixed PASS; if network functional FAIL, fix with new source. After native verify, implement honest bounded matured sender/receiver DATA watermark and estimated loss unknown policies, no N2 auto or physical.",
-  "latest_log": "docs/devlog/20261011-041500-n1-live-2s-unit-race-pass-native-3-client-pending.md",
+  "next_task": "N1: implement low-overhead bounded DATA-only sender success and receiver unique/late/duplicate counters with first-unique record PN maturity and local failures, separate C2S/S2C, distinguish control PN holes and missing-tail UNKNOWN, only publish ESTIMATED with corresponding sender-watermark/valid confidence else INSUFFICIENT; no hot-path history scan, no new packet metadata, feedback max once/2s active only. Test deterministic dropped/reordered/late/PN skip/stale/generation/32-bit wrap and privilege path in Actions. No N2 auto before N1 complete. All functions Actions before final coordinated physical.",
+  "latest_log": "docs/devlog/20261011-050000-n1-live-2s-actions-race-native-scoped-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "a8936d20f623959892906dfe1443d3e495fec62f",
-  "last_tested_scope": "N1 104-byte protected health quality codec literal vector and one latest report mailbox -race 2x PASS; source a8936d2 workflow+docs-only over f2d72e implementation. Foundation for a8936d2 still in progress at receipt time; previous f2d72e foundation PASS.",
+  "last_tested_source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
+  "last_tested_scope": "6220a3b exact next-foundation + real 9-netns 3 native Linux clients first-unique business PASS, 860fc3c exact N1 2s protected quality runtime focused race and lifecycle PASS; quality estimator and N2..N6/performance/physical still NOT_RUN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -438,6 +434,35 @@
       "scope": "N1_LIVE_V3_LIFECYCLE_TESTS",
       "status": "PASS",
       "cause": "Existing lifecycle and wire regression PASS on 860fc3c."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "860fc3c7634f6298b1584e4263260a009e390f1b",
+      "run_id": 38073998989,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073998989",
+      "scope": "N1_FIXED_MISSING_METHOD_FOUNDATION",
+      "status": "PASS",
+      "cause": "All baseline Linux/Windows and privileged network jobs PASS after initial compile fix, source 860fc3c."
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
+      "run_id": 38074203293,
+      "job_id": 114277642709,
+      "artifact_id": 11678406730,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38074203293",
+      "scope": "N1_LIVE_2S_V3_QUALITY_CONTROL_WITH_NATIVE_3_CLIENTS_ZERO_LOSS_FUNCTIONAL",
+      "status": "PASS",
+      "cause": "Real nine-netns 3 Linux OpenWrt client binaries + formal shared Linux TUN/server/port 443 source 6220a3b: every client 297/297 150480/150480 first-unique bytes both directions, no corrupt/duplicate/send fail, distinct leases and observed actual V3 suites/policies/parity; 300ms each direction, no tcpdump drops; independent validator problems []. Artifact 11678406730 hash sha256:22dcda4c0ae774dfdb3898b0ee30cd1c83917a44b7e39e6f54e60cea747c1ad5. The checker confirms native business with new live quality code but does not decode/count quality frames in native capture."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
+      "run_id": 38074203251,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38074203251",
+      "scope": "N1_LIVE_QUALITY_NATIVE_ENVELOPE_FOUNDATION_REGRESSION",
+      "status": "PASS",
+      "cause": "All next-foundation jobs PASS on exact same SHA as 9-netns native 3-client functional PASS, including Linux/Windows Go, privileged OpenWrt/Linux TUN, kernel fallback and repository authority."
     }
   ],
   "required_read_set": [

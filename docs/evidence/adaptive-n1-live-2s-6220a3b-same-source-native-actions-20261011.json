@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "kind": "N1_LOW_RATE_V3_ENCRYPTED_QUALITY_CONTROL_SCOPED_ACTIONS_PASS_WITH_INSUFFICIENT_LOSS",
+  "work_branch": "next/adaptive-fec-aes-tun-20261010",
+  "live_product_code_sha": "860fc3c7634f6298b1584e4263260a009e390f1b",
+  "native_sample_source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
+  "actions": {
+    "n1_focus": {
+      "run_id": 38073999026,
+      "job_id": 114277051793,
+      "status": "PASS",
+      "race_count": 2,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073999026"
+    },
+    "lifecycle": {
+      "run_id": 38073999138,
+      "status": "PASS"
+    },
+    "foundation_live_code": {
+      "run_id": 38073998989,
+      "status": "PASS"
+    },
+    "native_three": {
+      "run_id": 38074203293,
+      "job_id": 114277642709,
+      "status": "PASS",
+      "artifact_id": 11678406730,
+      "artifact_sha256": "22dcda4c0ae774dfdb3898b0ee30cd1c83917a44b7e39e6f54e60cea747c1ad5",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38074203293"
+    },
+    "foundation_native_envelope": {
+      "run_id": 38074203251,
+      "status_at_receipt": "PASS_COMPLETED_AFTER_INITIAL_DRAFT",
+      "final_status": "PASS"
+    }
+  },
+  "native_summary": {
+    "scenario": "9 actual Linux netns 3 independently authenticated formal client binaries same account distinct installation/autolease; one formal server shared TUN port 443; 8s both-direction 0.15Mbps/client/direction 300ms each-way netem 0 percent loss",
+    "profiles": [
+      "normal-off",
+      "normal-fixed20:4",
+      "game2-fixed20:20-two-lanes"
+    ],
+    "per_client_per_direction": {
+      "sent_packets": 297,
+      "unique_received_packets": 297,
+      "sent_business_bytes": 150480,
+      "first_unique_business_bytes": 150480
+    },
+    "corrupt": 0,
+    "duplicates": 0,
+    "local_send_failures": 0,
+    "independent_validator_problems": [],
+    "actual_V3_and_parity_checked_both_ends": true,
+    "actual_tls_cipher_checked_both_ends": true
+  },
+  "new_quality_live_behavior": {
+    "protected_V3_only": true,
+    "encrypted_KindHealth_version": 2,
+    "body_bytes": 104,
+    "active_only": true,
+    "max_report_interval": "one per 2 seconds per active lane",
+    "same_app_packet_wire_fields": true,
+    "existing_v1_9_byte_health_unchanged": true,
+    "receiver_nonce_and_local_ref_fenced": true,
+    "remote_generation_is_independent_of_local": true,
+    "peer_seq_monotonic": true,
+    "one_latest_only": true,
+    "dormant_no_wake": true,
+    "report_flags": "INSUFFICIENT; no qualified physical loss report",
+    "native_quality_report_wire_evidence": "NOT_CAPTURED_OR_DECODED_NATIVE_ONLY_GO_RUNTIME_TESTED"
+  },
+  "historic_af74_compile_fails_retained": [
+    38073834018,
+    38073833955,
+    38073833994,
+    38073834004,
+    38073834041,
+    38073834029
+  ],
+  "next": "N1 bounded sender-success DATA watermark vs mature unique RX reporting including local failures/reorders/retrans/control exclusion",
+  "n2_auto": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "performance": "NOT_RUN",
+  "deployment": false
+}
