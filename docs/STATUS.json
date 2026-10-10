@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_LIVE_V3_2S_QUALITY_CONTROL_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N1_LIVE_QUALITY_FIRST_ACTIONS_BUILD_FAIL_INTERFACE_FIX_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "a8936d20f623959892906dfe1443d3e495fec62f",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "PASS_N0_SCOPED_AND_N1_CODEC_MAILBOX_FOCUSED_RACE_A8936D2",
+    "core": "PREVIOUS_N0_SCOPED_PASS_AND_N1_NONLIVE_CODEC_MAILBOX_PASS_NEW_AF74C18_SOURCE_FAIL_COMPILE",
     "ordinary_performance": "NOT_RUN_N0_SOURCE_60D6415",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_V3_ACTIVE_2S_HEALTH_QUALITY_SEND_RECEIVE_CANDIDATE_NO_VALID_LOSS_ESTIMATE_ACTIONS_PENDING",
+      "N1_quality": "IN_PROGRESS_NEW_LIVE_V3_2S_CANDIDATE_COMPILE_FAIL_MISSING_ACCEPTDECODED_FIX_PENDING",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -73,18 +73,16 @@
       "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
     },
     "pending_candidate": {
-      "scope": "N1 real V3 opt-in encrypted 104-byte health reports from ACTIVE lanes ~2s; actual authenticated receive and one-latest mailbox with independent peer generation; legacy V1 9-byte strict unchanged; all loss estimates INSUFFICIENT pending aligned bounded counters",
+      "scope": "N1 correction: expose previously omitted AcceptDecoded report API so runtimeowner can publish authenticated-only quality summaries; all original six Actions FAIL retained",
+      "previous_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+      "reason": "MISSING_ACCEPTDECODED_SYMBOL",
       "source_sha": "CONTAINING_COMMIT_SHA",
       "actions": "PENDING",
-      "real_native_3_client": "PENDING",
-      "focused_race": "PENDING",
-      "real_WAN_loss_estimation": "NOT_ENABLED",
-      "n2_auto": "NOT_ENABLED",
       "physical": "NOT_RUN"
     }
   },
-  "next_task": "N1: read exact-source next-adaptive-n1-codec focused race on live encrypted 104B health send/receive, peer generation mismatch, dormant and V2 strict. Check next-foundation Linux/Windows and actual 9-netns next-adaptive-n0-multi. Preserve FAIL, fix only in new SHA. Once live control proven, instrument bounded mature DATA sender-success watermark and receiver unique/late/duplicates + FEC recovered, independently per-direction without per-packet locks/record fields, only label ESTIMATED when aligned and validated else UNKNOWN; no N2 auto before N1. User physical test only after all N0–N6 Actions/P6.",
-  "latest_log": "docs/devlog/20261011-034000-n1-live-v3-quality-insufficient-control-candidate.md",
+  "next_task": "N1: rerun exact new SOURCE six Actions after minimal missing AcceptDecoded mailbox compile fix; inspect all targeted races/native 9-netns and fix genuine functional regressions with new SHA, preserve failures. Live report flags INSUFFICIENT only, no WAN loss estimate or N2 auto. After qualification implement bounded mature DATA-only counters. Physical only after all N0–N6 Actions/P6.",
+  "latest_log": "docs/devlog/20261011-035000-n1-live-quality-missing-acceptdecoded-fix.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "a8936d20f623959892906dfe1443d3e495fec62f",
   "last_tested_scope": "N1 104-byte protected health quality codec literal vector and one latest report mailbox -race 2x PASS; source a8936d2 workflow+docs-only over f2d72e implementation. Foundation for a8936d2 still in progress at receipt time; previous f2d72e foundation PASS.",
@@ -367,6 +365,60 @@
       "scope": "N1_CODEC_MAILBOX_DOCS_RECEIPT_FOUNDATION",
       "status": "PASS",
       "cause": "Docs-only receipt source completed the foundation regression successfully; no live sender/receiver test for new source."
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+      "run_id": 38073834018,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073834018",
+      "scope": "N1_LIVE_FIRST_COMPILE_FAILURE_compile official entries",
+      "status": "FAIL",
+      "cause": "Exact SOURCE af74c18: runtimeowner/quality.go:111 calls mailbox.AcceptDecoded, missing from committed datapath mailbox method set. Build stopped before functional/race/native execution. Correct method in new SOURCE; failures remain recorded."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+      "run_id": 38073833955,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073833955",
+      "scope": "N1_LIVE_FIRST_COMPILE_FAILURE_Linux and Windows active package Go build",
+      "status": "FAIL",
+      "cause": "Exact SOURCE af74c18: runtimeowner/quality.go:111 calls mailbox.AcceptDecoded, missing from committed datapath mailbox method set. Build stopped before functional/race/native execution. Correct method in new SOURCE; failures remain recorded."
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "source_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+      "run_id": 38073833994,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073833994",
+      "scope": "N1_LIVE_FIRST_COMPILE_FAILURE_focused runtime-owner race build",
+      "status": "FAIL",
+      "cause": "Exact SOURCE af74c18: runtimeowner/quality.go:111 calls mailbox.AcceptDecoded, missing from committed datapath mailbox method set. Build stopped before functional/race/native execution. Correct method in new SOURCE; failures remain recorded."
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "source_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+      "run_id": 38073834004,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073834004",
+      "scope": "N1_LIVE_FIRST_COMPILE_FAILURE_build exact client/server before native netns",
+      "status": "FAIL",
+      "cause": "Exact SOURCE af74c18: runtimeowner/quality.go:111 calls mailbox.AcceptDecoded, missing from committed datapath mailbox method set. Build stopped before functional/race/native execution. Correct method in new SOURCE; failures remain recorded."
+    },
+    {
+      "name": "next-adaptive-n0-samewire",
+      "source_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+      "run_id": 38073834041,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073834041",
+      "scope": "N1_LIVE_FIRST_COMPILE_FAILURE_controlled runtime Go race build",
+      "status": "FAIL",
+      "cause": "Exact SOURCE af74c18: runtimeowner/quality.go:111 calls mailbox.AcceptDecoded, missing from committed datapath mailbox method set. Build stopped before functional/race/native execution. Correct method in new SOURCE; failures remain recorded."
+    },
+    {
+      "name": "next-adaptive-n0-negotiated",
+      "source_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+      "run_id": 38073834029,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073834029",
+      "scope": "N1_LIVE_FIRST_COMPILE_FAILURE_three-client negotiated Go race build",
+      "status": "FAIL",
+      "cause": "Exact SOURCE af74c18: runtimeowner/quality.go:111 calls mailbox.AcceptDecoded, missing from committed datapath mailbox method set. Build stopped before functional/race/native execution. Correct method in new SOURCE; failures remain recorded."
     }
   ],
   "required_read_set": [

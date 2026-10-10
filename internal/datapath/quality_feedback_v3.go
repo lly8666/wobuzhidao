@@ -59,6 +59,16 @@ func (m *QualityFeedbackMailbox) Accept(ref logicaltunnel.LaneRef, plaintext []b
     }
     report, err := DecodeQualityHealthV3(plaintext)
     if err != nil { return err }
+    return m.AcceptDecoded(ref, report, now)
+}
+
+// AcceptDecoded must receive a report already authenticated and decoded by
+// the matching live Lane's protected KindHealth receive path. This routine
+// revalidates the structure before any publication; never call it for raw
+// untrusted network data.
+func (m *QualityFeedbackMailbox) AcceptDecoded(ref logicaltunnel.LaneRef, report QualityHealthReport, now time.Time) error {
+    if m == nil || now.IsZero() {return ErrQualityFeedbackIdentity}
+    if !validQualityHealthV3(report) {return ErrQualityHealthV3}
     m.mu.Lock()
     defer m.mu.Unlock()
     // Peers maintain independent local LaneRef.Generation counters: their

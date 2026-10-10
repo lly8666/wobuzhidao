@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "scope": "N1_LIVE_FIRST_CANDIDATE_ALL_ACTIONS_COMPILE_FAILURE",
+  "failed_source_sha": "af74c18b3313b0cf4e5acc369e7aa6ddbc67446a",
+  "failed_actions": [
+    {
+      "name": "next-lifecycle",
+      "run_id": 38073834018,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073834018",
+      "status": "FAIL_BEFORE_N1_FUNCTIONAL_TESTS"
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38073833955,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073833955",
+      "status": "FAIL_BEFORE_N1_FUNCTIONAL_TESTS"
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "run_id": 38073833994,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073833994",
+      "status": "FAIL_BEFORE_N1_FUNCTIONAL_TESTS"
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "run_id": 38073834004,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073834004",
+      "status": "FAIL_BEFORE_N1_FUNCTIONAL_TESTS"
+    },
+    {
+      "name": "next-adaptive-n0-samewire",
+      "run_id": 38073834041,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073834041",
+      "status": "FAIL_BEFORE_N1_FUNCTIONAL_TESTS"
+    },
+    {
+      "name": "next-adaptive-n0-negotiated",
+      "run_id": 38073834029,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38073834029",
+      "status": "FAIL_BEFORE_N1_FUNCTIONAL_TESTS"
+    }
+  ],
+  "root_cause": "internal/runtimeowner/quality.go:111:25 mailbox.AcceptDecoded undefined (type *datapath.QualityFeedbackMailbox has no field or method AcceptDecoded)",
+  "fix_source": "containing_commit",
+  "correction": "Introduce AcceptDecoded with explicit valid quality structure and same remote peer generation/nonce/local incarnation/reportSeq gates; Accept plaintext decoding delegates; no format change",
+  "actions_status": "PENDING_NEW_SOURCE",
+  "physical": "NOT_RUN",
+  "performance": "NOT_RUN",
+  "native_windows_tun": "NOT_RUN",
+  "product_acceptance": "NOT_QUALIFIED"
+}
