@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "kind": "N1_FIRST_INCREMENT_CODEC_ONLY_PENDING",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_head": "ecebc59bca3dddc2d4c0587169332c9743c74886",
+  "candidate_source_sha": "containing_commit",
+  "preceding_N0": {
+    "product_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
+    "samewire_run": 38071266000,
+    "foundation_run": 38071265930,
+    "lifecycle_run": 38071265929,
+    "conclusion": "SCOPED_PASS"
+  },
+  "codec": {
+    "wire_kind": "tlsrecord.KindHealth, encrypted ONLY if future opt-in enabled",
+    "version": 2,
+    "size_bytes": 104,
+    "legacy_v1_size": 9,
+    "live_emission": false,
+    "live_decode": false,
+    "incarnation_nonce_bytes": 16,
+    "report_seq_bytes": 8,
+    "generation_bytes": 8,
+    "unknown_age_rtt": 65535,
+    "estimate_requires_window": true,
+    "unknown_flags_reject": true,
+    "tests": [
+      "independent literal vector",
+      "malformed reserved/version",
+      "PN and generation fences validity",
+      "legacy v1 parser rejects v2",
+      "UNKNOWN/capacity/stale/insufficient roundtrip"
+    ]
+  },
+  "actions": {
+    "name": "next-adaptive-n1-codec",
+    "status": "PENDING",
+    "performance_sample": false
+  },
+  "limitations": [
+    "codec alone is not authenticated receive, generation report sequence comparison must be integrated",
+    "no real quality counters or WAN loss estimation",
+    "no active two-second feedback, no N2 auto enabled",
+    "not production changes to existing N0 health"
+  ],
+  "physical": "NOT_RUN",
+  "deploy": false
+}

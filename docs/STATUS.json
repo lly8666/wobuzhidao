@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_FIXED_OFF_V3_ACTIONS_SCOPED_PASS_N1_LOW_FREQUENCY_QUALITY_CODEC_NEXT",
+    "phase": "N1_RESERVED_104B_HEALTH_QUALITY_CODEC_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -21,7 +21,7 @@
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "NOT_STARTED_NEXT_FEATURE",
+      "N1_quality": "IN_PROGRESS_RESERVED_ENCRYPTED_HEALTH_V2_CODEC_ONLY_NOT_LIVE_ACTIONS_PENDING",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -71,10 +71,19 @@
       "native_first_s2c_before_any_client_business": "INMEMORY_REAL_TLS_FAKETCP_PASS_RUN_38066837682;UNSOLICITED_NATIVE_TPROXY_APPLICATION_RECEIVER_NEEDS_FIRST_FLOW_MAPPING_NOT_CLAIMED",
       "same_seq_full_wire_repair_proof": "PASS_CONTROLLED_PRODUCTION_GO_RUNTIME_ACTUAL_RTO_C2S_S2C_OFF4_20_12_RACE_CASES_SOURCE_60D6415_RUN_38071266000_NOT_NATIVE_LOSS_PCAP",
       "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
+    },
+    "pending_candidate": {
+      "scope": "N1 first codec-only increment: reserved encrypted-health v2 104 byte strict validator and literal independent wire vector, incarnation/generation/report sequence, UNKNOWN/stale/capacity semantics. Live emission/reader integration NOT ENABLED.",
+      "source_sha": "CONTAINING_COMMIT_SHA",
+      "actions": "PENDING",
+      "receiver": "NOT_ENABLED",
+      "sender": "NOT_ENABLED",
+      "two_second_ticker": "NOT_ENABLED",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "N1 first implementation increment: define bounded <=128B V3 health-quality report codec with independent incarnation/generation and report sequence, explicit UNKNOWN/INSUFFICIENT/LATE/ESTIMATED versus honest loss accounting, no live emission and no N0 live-wire change until suite/race tests; then add <=2s lane-wise active-only publication, bounded receiver, maturity and honest quality snapshots without packet HOL or per-packet diagnostic JSON. N0 full native unsolicited S2C→TPROXY business-host reception is NOT claimed (mapping absent before first client business), keep as a limitation. All functionality tested in Actions before final physical.",
-  "latest_log": "docs/devlog/20261011-013000-n0-closure-scoped-pass-n1-next.md",
+  "next_task": "N1: verify next-adaptive-n1-codec -race fixed vector/malformed and existing health v1 Actions for exact SOURCE; if failure, preserve raw failed run and fix. Then implement low-overhead 2s active-lane only quality report publication/reception on admission V3 with generation+incarnation+reportSeq fencing, no FEC, no per-data-packet overhead, no HOL, honest sender watermarks/UNKNOWN for unmeasurable WAN loss; test stale/reordered/repeated/dormant and no silent V2 enablement in Actions. N0 scoped core PASS unchanged. All N0–N6 feature Actions before final physical.",
+  "latest_log": "docs/devlog/20261011-020000-adaptive-n1-reserved-health-quality-codec.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
   "last_tested_scope": "test-only SOURCE 60d6415 targeted 12 same Seq full sealed record RTO race + foundation Linux/Windows/lifecycle PASS; 80487e6 earlier exact real 9-netns 3-client single functional PASS; a50accc earlier first S2C before C2S in-memory actual TLS PASS; no N1-Auto-AES-TUN-Perf-P6",

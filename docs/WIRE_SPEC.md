@@ -223,3 +223,62 @@ Promotion后新业务只由active generation生成并发送；old Ref的FenceOut
 `record_wire_limit = min(configured_outer_ipv4_mtu - configured_outer_ipv4_header - configured_outer_tcp_header, tlsrecord.MaxWireLen, explicit_nonzero_record_cap_if_any)`。当前正常 data header 为 20+20；逐 lane 运行时仍由真实 MSS、实际头长、协商 record 及更低路径约束收紧。record 的 V2 受保护 admission 协商字段和格式不变；未启用新的 PMTUD 或动态共享 TUN 调整。两端 `--mtu` 建议一致，不一致时无双向单 record 保证。
 
 内层 IPv4 包不可能以保留的 WBDLFRG1 8 字节魔数开头，因此能放进 `LinkFrameMTU` 的普通 IPv4 包是**无 LINK 分片头的裸包**。`DerivedInterfaceMTU = max(576, LinkFrameMTU)`，不应使用 `LinkFragmentPayloadMTU` 重复扣 20B；只有超出 LINK frame 后分片的各段才各带 20B 分片头。计算后的 record→TLS-like31B→FEC-on56B→LinkFrame/TUN 是同一原预算链，并不修改 wire、FEC、repair。举例外层1300/1400/1500、FEC off 的双方默认 record 是1260/1360/1460，静态 TUN 为1229/1329/1429；FEC-on 则 TUN1173/1273/1373。合法 IPv4 的 576 下限可能强制 LINK 分片，不作单 record 保证。明确配置比自动小的 record cap 生效；大于外层的 cap 被外层限幅。旧 9000 逻辑 IP 校验/8936 UDP 平台限制不因此改变；不能宣称原生大 UDP 或性能已达标。
+
+## 2026-10-11 N1 V3 encrypted health-quality payload v2 — format RESERVED, not yet live
+
+This is an **N1 format candidate and codec only**. It must NOT be emitted or
+accepted by the current shipping connection while N1's rate-limited sender,
+receiver, generation fencing, and baseline tests remain unqualified. The
+current `tlsrecord.KindHealth` plaintext v1 is exactly 9 bytes:
+`version(1)=0x01 | idle_milliseconds(8)`. Existing V1 parser rejects v2;
+V2-admission and all currently running V3 fixed/off tunnels continue to use
+only v1 until an explicitly coordinated N1 activation.
+
+Proposed v2 body is exactly **104 bytes**, carried **inside authenticated
+`tlsrecord.KindHealth` ciphertext** (not LINK/FEC and not an outer TCP header).
+All fields network big-endian; no extra field per business packet:
+
+| Offset | Size | Field | Rule |
+|---|---:|---|---|
+| 0 | 1 | health payload version | 2 |
+| 1 | 1 | flags | bits 0 valid window, 1 loss **estimated**, 2 local capacity limited, 3 insufficient, 4 stale; all others reject |
+| 2–3 | 2 | reserved | zero |
+| 4–11 | 8 | peer business idle ms | 0..7 days, millisecond exact |
+| 12–19 | 8 | report sequence | nonzero, monotonically per incarnation |
+| 20–35 | 16 | lane incarnation nonce | nonzero; protected generation fence |
+| 36–43 | 8 | lane generation | nonzero |
+| 44–51 | 8 | PN window first | inclusive, big-endian |
+| 52–59 | 8 | PN window last | inclusive, >=first if valid |
+| 60–67 | 8 | successfully emitted local DATA records | no control; excludes local unsent/seal failures |
+| 68–75 | 8 | authenticated first-unique received DATA records | excludes health itself |
+| 76–79 | 4 | late received DATA records | bounded statistic, not a loss verdict |
+| 80–83 | 4 | duplicate received DATA records | bounded statistic |
+| 84–87 | 4 | FEC-recovered source shards | auxiliary, not first-wire loss |
+| 88–91 | 4 | local dropped records | locally observed only |
+| 92–93 | 2 | age ms | 65535 = UNKNOWN, not zero |
+| 94–95 | 2 | trusted RTT ms | 65535 = UNKNOWN, not business p99 |
+| 96–99 | 4 | estimated missing records | only valid with bit1 and nonempty window |
+| 100–101 | 2 | max missing burst | <= estimated missing |
+| 102–103 | 2 | reserved | zero |
+
+Window-invalid summaries must zero PN bounds, data counters and loss/burst
+fields; they can still carry local-drop and age/capacity/insufficiency/staleness
+information. Invalid version, length, reserved bits, flags, zero
+incarnation/generation/sequence, invalid PN range, missing window count,
+or inconsistent missing/burst flags cause a hard decode error with no partial
+state publication. Nonce/generation/report sequence are checked against the
+**currently authenticated lane incarnation** at receive; the codec alone does
+not do live authentication and may never authorize a new lease/lane.
+
+The `estimated missing` field is never labelled a precise WAN loss rate:
+PN can skip local sends, control consumes PN, RTT/feedback may be stale, the
+last missing tail may be invisible, and an older repair can arrive after the
+reorder window. Only aligned successful sender watermarks + mature receiver
+windows can support a qualified estimate. No feedback or insufficient sample
+means HOLD/UNKNOWN. If no reliable basis exists, send flags without a loss
+estimate, never zero-as-good. N1 sender/receiver integration must run only for
+active lanes, at most about one report every 2s per direction, at most one
+latest pending report, no passive timeout wake, no data/FEC batching, no
+per-business wall-clock diagnostic, and no additional global locks. The
+independent test vector in `internal/datapath/quality_health_v3_test.go`
+pins these 104 bytes before any live wire enablement.

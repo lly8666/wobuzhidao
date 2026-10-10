@@ -1,0 +1,44 @@
+name: next-adaptive-n1-codec
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n1-codec.yml"
+      - "internal/datapath/quality_health_v3.go"
+      - "internal/datapath/quality_health_v3_test.go"
+      - "docs/WIRE_SPEC.md"
+permissions:
+  contents: read
+concurrency:
+  group: next-adaptive-n1-codec-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  versioned-104-byte-health-codec-strict-vector-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Repository/Actions authority and exact SOURCE
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          echo "SOURCE=$GITHUB_SHA; N1 pure 104-byte codec, no live emission or loss qualification" >> "$GITHUB_STEP_SUMMARY"
+      - name: Independent fixed vector and malformed/unknown decoder under race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./internal/datapath \
+            -run '^TestN1QualityHealthV3' -count=2 -timeout=90s -v
+      - name: Legacy health v1 and plaintext record regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./internal/datapath ./internal/tlsrecord -count=1 -timeout=90s
