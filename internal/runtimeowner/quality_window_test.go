@@ -131,11 +131,18 @@ func TestN1QualityV3RealEmitOutcomeAndAuthenticatedInboundWindow(t *testing.T) {
     if !ok || inbound.Unique!=1 || inbound.Duplicate!=1 {
         t.Fatalf("health replay polluted DATA-only counters: %+v",inbound)
     }
+    beforeTick:=len(c2s)
     if err:=client.Tick(t0.Add(2*time.Second));err!=nil {t.Fatal(err)}
-    // The newly issued v2 quality has a sender-success window but no matched
+    // The runtime 2s tick can also schedule same-Seq FakeTCP RTO recovery.
+    // The *last* segment is not guaranteed to be the newest KindHealth v2;
+    // deliver all fresh emissions in the same order as the real outer path.
+    // A repair of prior ciphertext must remain idempotent at the decoder.
+    for _,seg:=range c2s[beforeTick:] {
+        if len(seg.Payload)==0 {continue}
+        if err:=server.HandleSegment(d.Ref,seg,t0.Add(2*time.Second));err!=nil{t.Fatal(err)}
+    }
+    // The new v2 quality has a sender-success window but no matched
     // RX watermark and MUST remain explicitly INSUFFICIENT, not ESTIMATED.
-    newest:=c2s[len(c2s)-1]
-    if err:=server.HandleSegment(d.Ref,newest,t0.Add(2*time.Second));err!=nil{t.Fatal(err)}
     report,state,enabled:=server.QualityFeedback(d.Ref,t0.Add(2*time.Second),0)
     if !enabled || state!=datapath.QualityFeedbackInsufficient ||
         report.Flags&datapath.QualityFlagWindowValid==0 ||

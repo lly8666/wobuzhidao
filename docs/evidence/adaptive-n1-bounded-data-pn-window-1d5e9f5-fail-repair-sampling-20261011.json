@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "failed_test_source_sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+  "reason": "A new Go runtime integration test incorrectly assumed last FakeTCP segment after 2s tick is latest encrypted quality v2 report; actual existing FakeTCP RTO emits same-Seq prior ciphertext after health; receiving only last segment retained prior report seq1.",
+  "failed_runs": [
+    {
+      "name": "next-adaptive-n1-codec",
+      "id": 38075490771,
+      "status": "FAIL",
+      "scope": "production quality integration test twice under race"
+    },
+    {
+      "name": "next-lifecycle",
+      "id": 38075490780,
+      "status": "FAIL",
+      "scope": "same integration test"
+    },
+    {
+      "name": "next-foundation",
+      "id": 38075490767,
+      "status": "FAIL",
+      "scope": "both Linux and Windows active Go tests, same test assumption; privileged baseline PASS"
+    }
+  ],
+  "pass_runs": [
+    {
+      "name": "next-adaptive-n0-samewire",
+      "id": 38075490773,
+      "status": "PASS"
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "id": 38075490784,
+      "status": "PASS",
+      "scope": "9 real Linux netns, 3 formal clients 6 directions 297/297 first unique and 150480/150480B, checker problems []"
+    }
+  ],
+  "correction": "Deliver every emitted segment from c2s[beforeTick:] in order, including duplicate repair, then assert latest authenticated quality report seq2, TxSuccess=1, LocalDrops=1 with Insufficient not loss estimated; code ledger unchanged",
+  "fix_source": "CONTAINING_COMMIT_SHA",
+  "exact_fix_test_only": true,
+  "estimator": "NOT_ENABLED",
+  "auto_fec": "NOT_ENABLED",
+  "physical": "NOT_RUN"
+}

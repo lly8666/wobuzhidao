@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_BOUNDED_DATA_TX_RX_PN_WINDOWS_AWAITING_ACTIONS",
+    "phase": "N1_BOUNDED_TX_RX_DATA_PN_WINDOWS_RACE_TEST_SAMPLING_FAILURE_FIX_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -21,7 +21,7 @@
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_V3_2S_CONTROL_SCOPED_RACE_NATIVE_PASS_BOUNDED_DATA_PN_TX_RX_WINDOW_CANDIDATE_ACTIONS_PENDING_MATURE_PAIRED_ESTIMATOR_NOT_DONE",
+      "N1_quality": "IN_PROGRESS_BOUNDED_PN_WINDOW_FIRST_ACTIONS_N1_FOCUSED_AND_LIFECYCLE_FAIL_TEST_ASSUMPTION_SAME_SEQ_REPAIR_FIX_PENDING",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -77,18 +77,26 @@
       "n1_quality_live_scope": "V3 post-admission encrypted 104B KindHealth active 2s, per-lane peer nonce/generation/seq replay gate with INSUFFICIENT/no claimed WAN loss; verified in Go race and protected 9-netns 3 native client business"
     },
     "pending_candidate": {
-      "name": "N1 bounded DATA-PN accounting after protected 2s V3 quality control",
-      "source_sha": "CONTAINING_COMMIT_SHA",
+      "scope": "N1 bounded TX post-Emit and RX authenticated KindLINK counters plus corrected integration: deliver all tick-produced FakeTCP segments, including original sameSeq retransmissions, before checking quality",
+      "original_source_sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+      "first_failed_runs": [
+        38075490771,
+        38075490780
+      ],
+      "samewire_pass_run": 38075490773,
+      "correction_source_sha": "CONTAINING_COMMIT_SHA",
       "actions": "PENDING",
-      "native_9_netns_3_client": "PENDING",
-      "changes": "256-PN data-only post-Emit successes/failures incl partial batches and no FakeTCP retransmit double count; authenticated KindLINK received first-unique/late/duplicate excluding health using lane rxMu; actual 104B sender success watermark flags WindowValid|Insufficient, never LossEstimated; explicit receiver-local snapshot unpaired with sender",
-      "risk": "May fail compile or tests; record exact Actions failures then fix in new source. No aligned peer window or mature loss estimate",
+      "native_3client_first_source": "CHECK_SEPARATELY",
       "physical": "NOT_RUN",
-      "n2_auto": "NOT_ENABLED"
+      "auto": "NOT_ENABLED",
+      "first_foundation_run": 38075490767,
+      "first_native_three_run": 38075490784,
+      "first_native_three_status": "PASS_SCOPED",
+      "first_foundation_status": "FAIL_SAME_TEST_SAMPLING"
     }
   },
-  "next_task": "Read new GitHub Actions exact SOURCE: dedicated next-adaptive-n1-codec Go -race count2 for bounded PN ledger, real Emit failures/control and authenticated RX, existing legacy; foundation Linux/Windows, lifecycle, 9-netns native 3-client same port, samewire. Preserve failed jobs with exact root causes; fix by new SHA if required. After PASS design authenticated paired sender watermark vs peer receiver 256 PN maturity with tail, control exclusions and aligned windows to estimate loss; HONEST UNKNOWN until strong evidence. N2 auto must remain OFF; final physical phase only after N0..N6/P6.",
-  "latest_log": "docs/devlog/20261011-063000-n1-bounded-tx-rx-data-pn-window-candidate.md",
+  "next_task": "Check N1 focused Go race and lifecycle new SOURCE after correcting integration test that assumed last FakeTCP segment after tick was latest encrypted health; keep exact first N1/lifecycle FAIL, verify true quality report seq2 and actual fields after processing full tick send set. Check native three client and Linux/Windows foundation new source. Then continue paired PN windows/maturity or UNKNOWN; no N2 auto or physical.",
+  "latest_log": "docs/devlog/20261011-064500-n1-pn-ledger-first-actions-test-sampling-failure.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
   "last_tested_scope": "6220a3b exact next-foundation + real 9-netns 3 native Linux clients first-unique business PASS, 860fc3c exact N1 2s protected quality runtime focused race and lifecycle PASS; quality estimator and N2..N6/performance/physical still NOT_RUN",
@@ -482,6 +490,51 @@
       "scope": "N1_2S_QUALITY_DOC_ONLY_RECEIPT_FOUNDATION",
       "status": "PASS",
       "cause": "Post-receipt docs-only commit 0cda5d7 completed foundation PASS; does not add quality estimation evidence."
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+      "run_id": 38075490780,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38075490780",
+      "scope": "N1_LEDGER_ALL_RUNTIME_TESTS",
+      "status": "FAIL",
+      "cause": "New integration test wrongly selected the last FakeTCP segment after 2s; same tick can emit old Seq repair after new quality, so server had old report seq1; source test expectation invalid"
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "source_sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+      "run_id": 38075490771,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38075490771",
+      "scope": "N1_LEDGER_FOCUSED_RACE_2X",
+      "status": "FAIL",
+      "cause": "Same test incorrectly picked last FakeTCP segment post-tick; no product code compile failure"
+    },
+    {
+      "name": "next-adaptive-n0-samewire",
+      "source_sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+      "run_id": 38075490773,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38075490773",
+      "scope": "N1_LEDGER_SAME_SEQ_CIPHERTEXT_RACE",
+      "status": "PASS",
+      "cause": "Existing six-profile-direction same FakeTCP Seq actual ciphertext retransmission scoped Go race PASS on failed test-source (different job); no ledger estimator acceptance."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+      "run_id": 38075490767,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38075490767",
+      "scope": "N1_BOUNDED_WINDOW_FOUNDATION_UNIT_TESTS",
+      "status": "FAIL",
+      "cause": "Both Linux and Windows active Go tests failed same newly-added quality_window_test.go line146: assumed final emitted segment after runtime Tick was new v2 Quality, but true RTO sameSeq ciphertext recovery followed it. Privileged OpenWrt/TUN and repository jobs PASS, not enough to make foundation PASS."
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "source_sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+      "run_id": 38075490784,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38075490784",
+      "scope": "N1_BOUNDED_WINDOW_NATIVE_N0_3_CLIENT_ZEROLOSS",
+      "status": "PASS",
+      "cause": "Real 9 Linux netns three independently authenticated official clients on same server/shared TUN, bidirectional each client 297/297 first-unique 150480/150480 bytes, independent validator problems [] on the exact source; this does not override failed standalone tests or qualify estimator."
     }
   ],
   "required_read_set": [
