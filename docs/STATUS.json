@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C2_NATIVE_ARM64_AEAD_AND_TCP_CHECKSUM_HOTSPOT_ACTIONS_PENDING",
+    "phase": "C2_NATIVE_ARM64_PROFILE_YAML_FIX_RETRY_REQUESTED",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4130,7 +4130,8 @@
         "q1_business_artifact": 11668389415,
         "rollback_core": 38049393333,
         "rollback_foundation": 38049393295,
-        "rollback_lifecycle": 38049393283
+        "rollback_lifecycle": 38049393283,
+        "native_hotspot_yaml_parse_fail": 38049682130
       },
       "acceptance": {
         "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
@@ -4260,11 +4261,11 @@
         "decisions": "REVERT_CANDIDATE_DUE_TO_2P0178_PERCENT_MORE_CPU_PER_VERIFIED_GIB; MICRO_BENCHMARK_WIN_NOT_BIZ_GAIN"
       },
       "rollback_pending_actions": false,
-      "evidence_arm64_native_profile": "ACTION_PENDING"
+      "evidence_arm64_native_profile": "RETRY_REQUESTED_AFTER_YAML_GENERATION_FAILURE"
     }
   },
-  "next_task": "Collect native ARM64 AEAD short/MTU pprof, Poly1305 fraction vs ChaCha and current TCP checksum by size, separate from profile-off business. Only if proven meaningful native fullpath hotspot plan mature licensed assembly; otherwise defer/NO_BOTTLENECK. No new product CPU claim; original Q1 realpath optimized B negative and reverted.",
-  "latest_log": "docs/devlog/20261010-205000-arm64-poly-checksum-native-hotspot-probe.md",
+  "next_task": "Obtain native ARM64 synthetic AEAD 64..1400B pprof and checksum oracle/bench only after Actions job executes. Run38049682130 YAML parse FAIL before jobs, NOT_RUN; production baseline unchanged.",
+  "latest_log": "docs/devlog/20261010-205700-arm64-native-profiling-yaml-generation-repair.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

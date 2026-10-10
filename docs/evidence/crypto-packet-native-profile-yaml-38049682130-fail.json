@@ -1,0 +1,14 @@
+{
+  "schema": "wbd-crypto-packet-native-profiling-preflight/v1",
+  "run_id": 38049682130,
+  "conclusion": "failure",
+  "source_sha": "04abdfc0b0e8ca808fd8bfd4f0d0158ddf7925eb",
+  "branch": "next/crypto-packet-efficiency-20261010",
+  "root_cause": "Workflow shell commands damaged by JS String.replace interpreting `$' within `-run '^$'`. No Actions jobs existed; native test and benchmarks NOT_RUN.",
+  "correction": "Repair exact two corrupted Go test command lines with literal function-callback replacement. No production files modified.",
+  "product_crypto_changed": false,
+  "quality": "NOT_RUN",
+  "arm_native_hotspot": "NOT_RUN",
+  "checksum_oracle": "NOT_RUN",
+  "physical": "NOT_RUN"
+}
