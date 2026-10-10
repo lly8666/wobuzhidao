@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "source_sha": "7aad939c81db1d7b90cf48ba0238d825a0e314dd",
+  "actions": [
+    {
+      "workflow": "next-foundation",
+      "run_id": 38062107532,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38062107532",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "repository-contract",
+          "id": 114242288179,
+          "conclusion": "success"
+        },
+        {
+          "name": "p2-kernel-fallback",
+          "id": 114242327007,
+          "conclusion": "success"
+        },
+        {
+          "name": "p4-openwrt-tproxy-privileged",
+          "id": 114242327040,
+          "conclusion": "success"
+        },
+        {
+          "name": "active-go-tests (ubuntu-24.04)",
+          "id": 114242327047,
+          "conclusion": "success"
+        },
+        {
+          "name": "p4-linux-shared-tun-privileged (iptables)",
+          "id": 114242327048,
+          "conclusion": "success"
+        },
+        {
+          "name": "active-go-tests (windows-2022)",
+          "id": 114242327058,
+          "conclusion": "success"
+        },
+        {
+          "name": "p4-linux-shared-tun-privileged (nft)",
+          "id": 114242327072,
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "workflow": "next-lifecycle",
+      "run_id": 38062107479,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38062107479",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114242287769,
+          "name": "core",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "scope": "N0 partial real TLS memory-carrier 3-client test, independent baseline Linux kernel tests, Windows build/unit only",
+  "real_multi_client_netns": "NOT_RUN",
+  "native_windows_tun": "NOT_RUN",
+  "performance": "NOT_RUN",
+  "capacity": "NOT_MEASURED",
+  "new_realpath_source": "NOT_RUN_PENDING_ACTIONS",
+  "historical_FAIL_preserved": true
+}

@@ -9,18 +9,18 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_V3_PRODUCTION_MIXED_CLIENT_TESTS_ACTIONS_PENDING",
+    "phase": "N0_V3_REALPATH_FIXED4_ONE_SAMPLE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": null,
-    "implementation": "PARTIAL_N0_MIXED_TESTS_REQUIRE_V3_ALLOWLIST_UNVERIFIED",
-    "core": "PARENT_FOUNDATION_AND_LIFECYCLE_PASS_NEW_SOURCE_NOT_RUN",
+    "implementation": "PARTIAL_N0_MIXED_TLS_MEMORY_PASS_REAL_NETNS_PENDING",
+    "core": "PARENT_7AAD_FOUNDATION_AND_LIFECYCLE_PASS_CURRENT_SOURCE_PENDING",
     "ordinary_performance": "NOT_RUN_NEW_SOURCE",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
-      "N0_admission": "IN_PROGRESS_PRODUCTION_HETEROGENEOUS_CASES_PENDING_ACTIONS",
+      "N0_admission": "IN_PROGRESS_REAL_NETNS_SINGLE_PROFILE_PENDING",
       "N1_quality": "NOT_STARTED",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
@@ -48,9 +48,9 @@
     "performance_policy": "One SOURCE/config/seed/scenario and one measurement job per Action; no inherited serial exception.",
     "parameter_proposals": "Plan only; PARAMETERS currently lists actual implemented capability. Update all entrances when implemented."
   },
-  "next_task": "N0: inspect mixed Normal/Game V3 memory-carrier real TLS/FEC Actions; add privileged realpath 3 clients, latency/fault and generation tests; then N1 under STATUS. Do not claim physical or N0 total PASS.",
-  "latest_log": "docs/devlog/20261010-230400-n0-requirev3-allowlist-mixed-real-tls.md",
-  "qualification_scope": "N0_SOURCE_PENDING_ACTIONS_PARENT_BASE_GO_PASS_NO_PERF",
+  "next_task": "N0: inspect dedicated one-sample five-netns V3 client fixed20:4/server-config20:20 Actions and newly pushed foundation/lifecycle; if failed fix source, if PASS add simultaneous 3 clients true netns, first S2C proof and actual effective cipher/FEC instrumentation, then N1. Keep N0 IN_PROGRESS until required functional scope. Do not claim performance/Windows real TUN/physical.",
+  "latest_log": "docs/devlog/20261010-233000-adaptive-n0-realpath-single-functional.md",
+  "qualification_scope": "N0_PARTIAL_ONE_V3_FIXED4_REALPATH_ACTIONS_PENDING_NOT_PERF",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "Historical parent scope only; see archived STATUS. Not current qualification.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
@@ -108,6 +108,24 @@
       "status": "PASS",
       "run_id": 38061700072,
       "cause": "next-lifecycle core unit tests; not actual mixed-client/realpath acceptance."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "7aad939c81db1d7b90cf48ba0238d825a0e314dd",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38062107532",
+      "scope": "foundation_regression",
+      "status": "PASS",
+      "run_id": 38062107532,
+      "cause": "full Linux/Windows active-go-tests and existing kernel functional jobs PASS; includes mixed Normal off/20:4 Game 20:20 in-memory real TLS/FakeTCP client test, not native netns 3-client"
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "7aad939c81db1d7b90cf48ba0238d825a0e314dd",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38062107479",
+      "scope": "lifecycle_core",
+      "status": "PASS",
+      "run_id": 38062107479,
+      "cause": "full core qualification PASS on exact 7aad SOURCE"
     }
   ],
   "required_read_set": [

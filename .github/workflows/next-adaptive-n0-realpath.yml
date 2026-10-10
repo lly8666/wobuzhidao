@@ -1,0 +1,112 @@
+name: next-adaptive-n0-realpath
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n0-realpath.yml"
+      - "tools/adaptive_n0_realpath.py"
+permissions:
+  contents: read
+concurrency:
+  group: adaptive-n0-single-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  one-v3-fixed-realpath-functional:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Exact one SOURCE and one functional sample
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/adaptive-n0-realpath
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          python3 tools/perf_sample_guard.py claim \
+            --identity "adaptive-n0:fixed4:lossless:300ms:sha$GITHUB_SHA" \
+            --receipt artifacts/adaptive-n0-realpath/sample-claim.json
+          python3 tools/e4_runner_cpu_scope.py --output artifacts/adaptive-n0-realpath/runner-cpu-scope.json
+          {
+            cat /proc/pressure/cpu 2>/dev/null || true
+            cat /sys/fs/cgroup/cpu.max 2>/dev/null || true
+            grep '^cpu ' /proc/stat || true
+            cat /proc/loadavg || true
+          } > artifacts/adaptive-n0-realpath/runner-preflight.txt
+      - name: Install five-netns kernel prerequisites
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables nftables tcpdump openssl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+          test -c /dev/net/tun
+      - name: Build exact current SOURCE binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ART=artifacts/adaptive-n0-realpath
+          go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+          "$ART/wbd-client" --version > "$ART/client-version.txt"
+          "$ART/wbd-server" --version > "$ART/server-version.txt"
+          sha256sum "$ART/wbd-client" "$ART/wbd-server" > "$ART/binary-sha256.txt"
+          python3 tools/adaptive_n0_realpath.py prepare \
+            --root . --script "$ART/n0-derived.sh" --receipt "$ART/harness-prep.json"
+          bash -n "$ART/n0-derived.sh"
+      - name: One real bidirectional socket TPROXY TUN sample
+        id: sample
+        continue-on-error: true
+        env:
+          WBD_REALPATH_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/adaptive-n0-realpath
+        shell: bash
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_REALPATH_ARTIFACT_DIR \
+            bash artifacts/adaptive-n0-realpath/n0-derived.sh
+      - name: Independent V3 configuration and first delivery check
+        id: verify
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          python3 tools/adaptive_n0_realpath.py check \
+            --artifact-dir artifacts/adaptive-n0-realpath \
+            --source-sha "$GITHUB_SHA" \
+            --output artifacts/adaptive-n0-realpath/summary.json
+      - name: Report fail and preserve small evidence
+        if: always()
+        shell: bash
+        run: |
+          cat artifacts/adaptive-n0-realpath/summary.json || true
+          tail -n 50 artifacts/adaptive-n0-realpath/client.log || true
+          tail -n 50 artifacts/adaptive-n0-realpath/server.log || true
+          echo "SOURCE_SHA=$GITHUB_SHA; N0 functional only; Windows TUN/3 native clients/performance NOT_RUN" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: adaptive-n0-fixed4-realpath-${{ github.sha }}
+          path: |
+            artifacts/adaptive-n0-realpath/
+            !artifacts/adaptive-n0-realpath/*.pcap
+            !artifacts/adaptive-n0-realpath/wbd-client
+            !artifacts/adaptive-n0-realpath/wbd-server
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Enforce functional result
+        if: always()
+        env:
+          SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+        run: |
+          test "$SAMPLE_OUTCOME" = success
+          test "$VERIFY_OUTCOME" = success
