@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "kind": "Actions_harness_failure_retained",
+  "source_sha": "62e66ddddc53e6cee6459578b7db353913419a33",
+  "run_id": 38066640082,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38066640082",
+  "job_id": 114255508333,
+  "conclusion": "FAIL",
+  "first_failing_step": "Exact SOURCE and repository authority",
+  "cause": "actions/checkout@v4 default fetch-depth 1 excludes baseline tree b5c848f4e9afdffd15d1bc451560edf4e9390a35 required by tools/check_repository.py",
+  "go_test": "SKIPPED",
+  "go_race": "SKIPPED",
+  "fix": "new commit use fetch-depth: 0; retain full repository authority checks and targeted 3-client race",
+  "other_source_action": {
+    "run_id": 38066640027,
+    "name": "next-lifecycle",
+    "conclusion": "PASS"
+  },
+  "new_source_sha": "containing_commit",
+  "candidate_pending": true,
+  "performance_claim": false,
+  "physical": "NOT_RUN"
+}
