@@ -15,7 +15,9 @@
 5. Windows用少量捕获路由+TUN内有界分类，取消中国CIDR补集的大量系统route。direct用内核TCP重定向/native物理绑定socket与UDP mapping，解决完整五元组、源地址/回程、防回环、fragment/DF/ICMP范围。代理数据面不进入新TCP代理，Linux/OpenWrt保留nft。网络Apply取消/重复Stop/部分失败/owned清理幂等，不再卡界面。保留DNS双备份、IPv6默认丢弃、portable和三种分流模式。
 6. 同步CLI/JSON/GUI/catalog/帮助/示例，中文界面每两秒显示大概RTT、上下行估计丢包、实际档位与UNKNOWN/休眠/过载。不要为显示打开重型diagnostic-jsonl/逐包计时。完成真实工况与三目标同源P6包核hash，标ACTIONS_READY_FOR_PHYSICAL，physical仍NOT_RUN。
 
-所有构建、Go/unit/race/fuzz/功能/性能在Actions。本分支每个性能Action严格一条样本，一个SOURCE/配置/seed/场景和一个测量job；无matrix/并行负载/顺序多leg，不继承旧SIMD ABBA例外。单配置固定loss波形属于一个场景。复用现有五netns真实业务夹具，另做Windows实际TUN/direct功能，mock不冒充驱动资格；支持不足写UNSUPPORTED。
+**最新用户追加且必须持续遵守的开发/测试次序**：N0→N6 的各功能先完成代码，再在 Actions 运行该功能的 unit/race/功能/性能与所需回归，失败逐项修复并基于新精确 SOURCE 复验；整个开发期间不插入物理机试跑。只有所有功能、跨功能 Actions 验收及同源 P6 三目标包/manifest/hash 都收口后，才能标记 `ACTIONS_READY_FOR_PHYSICAL`（`physical=NOT_RUN`），之后由**原聊天统一进行最终物理机测试**。不能让物理机替代 Actions；Actions 无真实 Windows Wintun/硬件能力时如实记 `UNSUPPORTED/NOT_RUN`，在最终物理阶段统一核验，不能以 Linux/mock 冒充。任何中途的 Actions PASS 都不是物理部署授权，不自动部署、不合并主线。
+
+所有构建、Go/unit/race/fuzz/功能/性能在Actions.本分支每个性能Action严格一条样本，一个SOURCE/配置/seed/场景和一个测量job；无matrix/并行负载/顺序多leg，不继承旧SIMD ABBA例外。单配置固定loss波形属于一个场景。复用现有五netns真实业务夹具，另做Windows实际TUN/direct功能，mock不冒充驱动资格；支持不足写UNSUPPORTED。
 
 测试全面但门槛合理，按方案第9节执行：真实双向Normal10M/Game4逻辑各3M、大小UDP/TCP/HTTPS、0/低loss/5205/5305、动态升降/突发/乱序/反馈中断、多客户混合、rotation/idle/keepalive/DNS/IPv6/分流/MTU边界。损伤超过FEC实际恢复能力可有残余业务loss，不统一要求探针全回或大包全恢复；重点真实首次交付/p99/无HOL/CPU/有界恢复。硬门仍严格，原历史FAIL不能改写。
 

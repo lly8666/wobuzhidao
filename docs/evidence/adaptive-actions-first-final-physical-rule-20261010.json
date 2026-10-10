@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "kind": "user_development_governance_change",
+  "date": "2026-10-10",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "verified_parent_head_sha": "9d597cdce6d32128365340e0f9d95a384444e7b1",
+  "previous_validated_product_source_sha": "b52ed0edad655baaed0411c594f85fe3d82bb79a",
+  "user_rule": "Finish all functionality N0 through N6; run the respective tests and integrated qualification in GitHub Actions first; only after all functions and Actions are done schedule one coordinated final physical-machine test phase.",
+  "implementation": {
+    "stage_gate": "development → GitHub Actions unit/race/fuzz/function/performance → repair/retest; repeat for N0..N6",
+    "final_gate": "all features + integration Actions + same-SOURCE P6 packages/manifests before ACTIONS_READY_FOR_PHYSICAL",
+    "physical_machine": "NOT_RUN until final coordinated physical phase by original chat",
+    "native_windows_tun": "Test on native Actions if supported; else UNSUPPORTED/NOT_RUN, not Linux/mock PASS",
+    "performance_rule": "one SOURCE/config/seed/scenario and one measurement job per performance run, no inherited serial ABBA exception"
+  },
+  "files_updated": [
+    "AGENTS.md",
+    "PROJECT_CHARTER.md",
+    "docs/ADAPTIVE_NETWORK_PLAN.md",
+    "docs/AGENT_CONTINUITY.md",
+    "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
+    "docs/STATUS.json",
+    "docs/devlog/20261010-234500-actions-first-final-physical-policy.md"
+  ],
+  "status_at_decision": "N0 IN_PROGRESS; N1..N6 NOT_STARTED",
+  "physical_tests_started": false,
+  "automatic_machine_deployment": false,
+  "mainline_merged": false,
+  "previous_failure_records_changed": false,
+  "existing_parent_foundation": {
+    "source_sha": "9d597cdce6d32128365340e0f9d95a384444e7b1",
+    "run_id": 38064279578,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38064279578",
+    "conclusion": "success",
+    "scope": "parent-docs baseline; not acceptance for this governance-only change"
+  },
+  "current_docs_commit_sha": "Use containing git commit SHA (hash cannot self-reference)",
+  "new_code_or_qualification_claim": "NONE"
+}

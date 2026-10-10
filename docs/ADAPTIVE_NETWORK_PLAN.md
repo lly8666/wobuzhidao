@@ -184,6 +184,10 @@ DNS劫持优先于CN/LAN普通分流，明确dns-hijack=false能走system direct
 
 ### 9.1 测试治理
 
+**新增强制执行顺序（2026-10-10 用户确认）**：按照 N0→N6 完成功能开发，各阶段的新源码先由 GitHub Actions 完成针对性 unit/race/fuzz、真实功能、性能及回归测试；失败保留原始 FAIL、修复后以新精确 SOURCE 独立复验，未验证项目不得提前标完成。N0–N6 全部功能、跨功能组合、同源 P6 三目标包及 Actions 可执行验收均完成后，才在最终一个集中阶段安排物理机测试；**不再在中间阶段/单项功能通过后穿插物理试用**。物理机不能替代 Actions；Linux/mock 不能冒充 Windows native TUN，受 Actions runner/驱动限制未验证的项目标记 UNSUPPORTED/NOT_RUN 并留待最后的统一物理核验，不能写 PASS。
+
+**两道独立门**：开发中始终是「代码→Actions→修复/复验→下一功能」，不部署试用机器；最后是「全部功能与 Actions/P6 收口→ACTIONS_READY_FOR_PHYSICAL（physical=NOT_RUN）→原聊天统一安排最终物理机验收」。若 Actions 存在阻塞则如实保留并报告，不能通过先做物理测试绕过。物理阶段开始前不自动升级已有机器、不合并主线、不操作原 qualification ref。
+
 所有编译、unit/race/fuzz/功能/性能在Actions；本地只编辑/Git/文档。本分支每个性能Action只一条样本：一个SOURCE/配置/seed/场景，一个测量job，不跑matrix/并行负载，也不沿用历史SIMD串行ABBA例外。一个样本可含事先固定的loss波形/休眠/rotation事件，不得借此把多个密码/策略串行塞成多个测量leg。功能正确性job可组合多client，不能用它声称CPU性能资格。重复性用独立run；aggregate只读。
 
 新建分支精确受限的single workflow/config，保留现有guard，不能改老分析器让历史FAIL变PASS。新功能采用独立versioned验收contract，历史判定原样保留，新宽松合理门槛不得回写旧结果。docs-only push不需要主动dispatch测量；基础workflow自动触发按实际报告。

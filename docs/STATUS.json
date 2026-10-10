@@ -46,10 +46,20 @@
       "existing_configs": "no silent fixed-to-auto migration"
     },
     "performance_policy": "One SOURCE/config/seed/scenario and one measurement job per Action; no inherited serial exception.",
-    "parameter_proposals": "Plan only; PARAMETERS currently lists actual implemented capability. Update all entrances when implemented."
+    "parameter_proposals": "Plan only; PARAMETERS currently lists actual implemented capability. Update all entrances when implemented.",
+    "acceptance_sequence": {
+      "rule": "ACTIONS_FIRST_FINAL_PHYSICAL_ONLY",
+      "applies_to": "N0 through N6 including integration and same-source P6",
+      "during_development": "After each feature/stage implement, run relevant build/unit/race/functional/performance tests in GitHub Actions; fix and rerun on exact new SOURCE; no staged physical-machine tests or deployment.",
+      "final_gate": "Only after all planned functions and cross-functional Actions validations and same-SOURCE three-target P6 packages/manifest hashes have finished, mark ACTIONS_READY_FOR_PHYSICAL while physical remains NOT_RUN.",
+      "physical_execution": "One coordinated final physical-machine acceptance phase arranged by original chat, never automatically deployed by development agent.",
+      "unsupported_in_actions": "Record UNSUPPORTED/NOT_RUN and defer explicit native device checks to final physical acceptance; do not claim Linux/mock verifies Windows Wintun.",
+      "legacy_failure_policy": "Do not rewrite historical FAIL, do not inherit prior SOURCE qualifications.",
+      "owner": "User explicit instruction 2026-10-10"
+    }
   },
-  "next_task": "N0: add one bounded functional Actions scenario with 3 concurrent isolated real netns client processes (Normal off, Normal20:4, Game fixed20:20) + distinct leases and same server port, and exact first S2C before any client business if possible; instrument independent actual negotiated suite/profile/actual TLS cipher and same-Seq same-wire. Keep source-specific controlled lossless b52 PASS scoped to one client. Only after these N0 checks and race gate proceed N1 quality.",
-  "latest_log": "docs/devlog/20261010-234200-adaptive-n0-realpath-scoped-pass.md",
+  "next_task": "N0: add one bounded functional Actions scenario with 3 concurrent isolated real netns client processes (Normal off, Normal20:4, Game fixed20:20) + distinct leases and same server port, and exact first S2C before any client business if possible; instrument independent actual negotiated suite/profile/actual TLS cipher and same-Seq same-wire. Keep source-specific controlled lossless b52 PASS scoped to one client. Only after these N0 checks and race gate proceed N1 quality. New mandatory sequencing: complete feature Actions before next step; do not run or deploy to physical machines until N0-N6, integration Actions and same-source P6 are all finished; coordinate one final physical acceptance through original chat.",
+  "latest_log": "docs/devlog/20261010-234500-actions-first-final-physical-policy.md",
   "qualification_scope": "N0_PARTIAL_SINGLE_REALPATH_PASS_NO_N0_WIDE_ACCEPTANCE",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "Historical parent scope only; see archived STATUS. Not current qualification.",

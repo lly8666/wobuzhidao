@@ -19,7 +19,9 @@
 
 ## 开发、测试与留痕
 
-所有编译/Go/unit/race/fuzz/功能/性能在GitHub Actions。本地只编辑、阅读、Git和文档处理。每轮同一提交新增详细docs/devlog并更新唯一STATUS；源码/helper/配置/seed/运行/hash/失败限制和下一步记录齐全。参数实际新增时同步PARAMETERS.json/MD、catalog生成器、CLI/JSON/GUI。
+**用户新增固定验收顺序（当前 N0–N6 优先执行）**：先连续完成各项功能开发，每项/每阶段完成代码后在 GitHub Actions 上运行相应 unit/race/功能/性能及集成检查，失败则继续修复并复验；所有 N0–N6 功能、跨功能组合、同源 P6 包和 Actions 可执行验收都收口后，才统一安排**一次最终阶段物理机测试**。开发中和单阶段 Actions 通过后不得提前安排用户现有物理机试跑，不以物理测试替代 Actions，也不得把 Linux/mock 结果记作 Windows 真实 TUN 通过。Actions 不具备真实硬件能力时明确记 UNSUPPORTED/NOT_RUN 和待最终物理核验项；不得虚报 PASS。最后仅标 ACTIONS_READY_FOR_PHYSICAL，物理测试和部署须由原聊天统一组织，本开发过程不得自动操作。
+
+所有编译/Go/unit/race/fuzz/功能/性能在GitHub Actions。本地只编辑、阅读、Git和文档处理.每轮同一提交新增详细docs/devlog并更新唯一STATUS；源码/helper/配置/seed/运行/hash/失败限制和下一步记录齐全。参数实际新增时同步PARAMETERS.json/MD、catalog生成器、CLI/JSON/GUI。
 
 本分支每个性能Actions run严格一个SOURCE/配置/seed/场景、一个测量job；无matrix/并行或顺序多leg。旧SIMD/FEC-policy串行例外不适用。单场景预声明loss波形合法，不能拿波形当理由串行换算法和配置。功能多client正确性可多job但不是性能资格。新workflow精确branch/config受限，保留旧guards/旧分析结论。
 

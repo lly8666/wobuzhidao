@@ -36,7 +36,9 @@ DNS默认1.1.1.1/8.8.8.8互备，IPv6默认捕获丢弃，已有LAN/CN/all语义
 
 ## 验收与协作
 
-构建和测试只在Actions。每性能run一条样本，一SOURCE/配置/seed/场景、一测量job，旧串行例外不跨任务继承。普通unit/race/功能可多job。源码精确SHA证据归属，新源码不继承历史资格；core/包/hosted/物理分别写。
+**最终统一物理机验收规则（用户明确追加）**：N0→N6 各功能先开发、在 Actions 测试并修复，全部功能与组合验收、同源 P6 构建及 Actions 证据齐备后，才进入统一的最后物理机测试阶段。不得在任一单功能或中间迭代后要求物理试跑；物理机测试不得用来代替缺失的 Actions 回归或冒充已通过的 Windows native 功能。Actions 无法验证的硬件项目要记录 UNSUPPORTED/待物理复验，不冒写 PASS。完成 Actions 只更新 ACTIONS_READY_FOR_PHYSICAL，保持 physical=NOT_RUN；由原聊天统一安排最终物理测试，禁止本开发线程自动部署。
+
+构建和测试只在Actions。每性能run一条样本，一SOURCE/配置/seed/场景、一测量job，旧串行例外不跨任务继承。普通unit/race/功能可多job。源码精确SHA证据归属，新源码不继承历史资格；core/包/hosted/物理分别写.
 
 弱网按真实k/r/partial/相关性解释，重点首次交付/p99/无HOL/CPU/有界恢复，不强求全探针/大包零loss；完整性、隔离、同wire、MTU和清理硬门仍严格。runner差异/容量上限突出报告。
 
