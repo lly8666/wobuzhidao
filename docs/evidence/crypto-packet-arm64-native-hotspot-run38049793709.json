@@ -1,0 +1,120 @@
+{
+  "schema": "wbd-crypto-packet-native-arm64-hotspot-results/v1",
+  "checked_at": "2026-10-10",
+  "branch": "next/crypto-packet-efficiency-20261010",
+  "head_helper_sha": "261c919711d82b976fae8fff8ba6a927d1f368c2",
+  "production_code": "headerMask restored to original FEC product baseline A; only diagnostic tests/workflows added since rollback",
+  "baseline_A": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "rejected_B": "37e18653b0d08f4a1d932b6fd67fe081e84bda78",
+  "rollback_sha": "fe52e9123d230cb82cc4ad3fea39634a398ee4da",
+  "check_base_record_blob_sha": "1181eee429a2a6025e5544078d3905dee1a54a48",
+  "actions": {
+    "current_core": {
+      "id": 38049793709,
+      "conclusion": "success",
+      "jobs": {
+        "linux_amd64": "success",
+        "windows_amd64": "success",
+        "linux_arm64_native": "success"
+      },
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38049793709"
+    },
+    "current_foundation": {
+      "id": 38049793592,
+      "conclusion": "success",
+      "notes": "repository contract, Linux/Windows unit, P2 kernel fallback, P4 privileged TUN/TPROXY; extended P5 and P6 skipped"
+    },
+    "rollback_lifecycle": {
+      "id": 38049393283,
+      "conclusion": "success"
+    },
+    "post_revert_core": {
+      "id": 38049393333,
+      "conclusion": "success"
+    },
+    "original_q1_abba": {
+      "id": 38048567640,
+      "conclusion": "success",
+      "classification": "SCOPED_OBSERVATION_NOT_PHYSICAL",
+      "cpu_gain_B_vs_A_pct": -2.0177501327466985,
+      "delivered_bytes_each_leg": 299213826,
+      "all_four_leg_quality": "VALID_OBSERVATION",
+      "decision": "REVERT_SLOWER_CANDIDATE"
+    }
+  },
+  "native_arm64": {
+    "arch": "linux/arm64",
+    "go": "go1.23.12",
+    "native_execution": "YES aarch64 uname",
+    "sample": "synthetic short and near-MTU AEAD Seal/Open, NOT production tunnel business",
+    "artifact": {
+      "id": 11668991442,
+      "name": "native-arm64-crypto-hotspot",
+      "digest": "sha256:5b074c9439adf65b4d8eefd91694efecf5fc020bea439a51e1b170f2f5f4a071"
+    },
+    "profile_seconds": 5.06,
+    "profile_top_flat": {
+      "golang.org/x/crypto/chacha20.xorKeyStreamVX": 58.89,
+      "golang.org/x/crypto/internal/poly1305.updateGeneric": 19.57,
+      "golang.org/x/crypto/chacha20.(*Cipher).XORKeyStream": 8.89,
+      "golang.org/x/crypto/internal/poly1305.(*macGeneric).Write": 3.36
+    },
+    "seal_ns_per_op": {
+      "64": 364.1,
+      "128": 416.8,
+      "256": 721.3,
+      "512": 1036,
+      "1200": 1748,
+      "1400": 2052
+    },
+    "open_ns_per_op": {
+      "64": 376.1,
+      "128": 427.8,
+      "256": 734.1,
+      "512": 1052,
+      "1200": 1765,
+      "1400": 2069
+    },
+    "allocations_per_op": 0,
+    "bytes_per_op": 0,
+    "conclusion": "GENERIC_POLY1305_PRESENT_AND_SYNTHETIC_HOTSPOT; NOT_NATIVE_FULLSTACK_PROFILE; ACCELERATION_NOT_BUILT_OR_QUALIFIED"
+  },
+  "tcp_checksum": {
+    "oracle": "PASS_NATIVE_ARM64_TestTCPChecksumIndependentOracleExtended",
+    "cases": "zero/FF/random, odd-even, unaligned, carry stress up to 65535 bytes, SACK/options/ACK/FIN, immutable retransmit vs independent uint64 oracle",
+    "benchmark_median_ns_per_op": {
+      "40": 19.32,
+      "96": 42.81,
+      "128": 56.13,
+      "256": 109.8,
+      "512": 217.1,
+      "1200": 510.9,
+      "1400": 594.8,
+      "1460": 619.5
+    },
+    "allocations_per_op": 0,
+    "production_change": "NONE",
+    "realpath_hotspot_cost": "NOT_MEASURED_ON_CURRENT_SOURCE",
+    "decision": "DEFER_OPTIMIZATION_UNTIL_PROFILE_OFF_HOTSPOT_AND_QUALITY_PROTECTION"
+  },
+  "artifact_file_sha256": {
+    "aead-bench.txt": "4294423e5cfa06d505a6aecb5572051752f4917565bfb04397f922e3e9ee3bb1",
+    "aead-profile-top.txt": "3527cee202a9c6cc378f19582eca36103b2766cefd14039eb88802e7ce678dd6",
+    "checksum-bench.txt": "af34329d11858119de216411d4bb6b782d4db40d892882d1722835d818ed375e",
+    "cpu.pprof": "61f01556c5ce40c3599aa2048de65997f062eb2bf44592fa99b41bfa9e499315"
+  },
+  "limitations": {
+    "normal1_300s": "NOT_RUN_THIS_CYCLE",
+    "normal1_weaknet": "NOT_RUN_THIS_CYCLE",
+    "off_15ms": "NOT_RUN",
+    "game2_game4": "NOT_RUN_THIS_CYCLE",
+    "independent_runners_3": "NOT_RUN",
+    "arm64_native_fullstack": "NOT_RUN",
+    "sha_copy_allocation_lock_changes": "NOT_RUN",
+    "P6": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "historical_fec_weaknet_q2": "3/4 ORIGINAL QUALITY FAIL PRESERVED",
+    "E7_80s_downlink": "OPEN_DEFERRED"
+  },
+  "next_decision": "Retain verified mature headerMask and AEAD; do not ship rejected scalar candidate; next prioritize realpath profile-off ARM64 before any Poly1305 backend, and checksum only if actual CPU hotspot. No end-to-end CPU improvement claimed this cycle."
+}

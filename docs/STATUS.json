@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C2_NATIVE_ARM64_PROFILE_YAML_FIX_RETRY_REQUESTED",
+    "phase": "C2_NATIVE_ARM64_HOTSPOT_RECORDED_NO_NEW_PRODUCTION_CHANGE",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4084,7 +4084,7 @@
       }
     },
     "crypto_packet_efficiency": {
-      "state": "HEADER_MASK_ROLLED_BACK_CORE_FOUNDATION_LIFECYCLE_PASS_NATIVE_PROFILE_PENDING",
+      "state": "HEADER_MASK_REVERTED_FULL_CORE_AND_FOUNDATION_PASS_NATIVE_ARM_SYNTHETIC_HOTSPOT_EVIDENCE_COLLECTED",
       "plan": "docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md",
       "baseline_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
       "branch_start_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
@@ -4093,10 +4093,10 @@
       "baseline_basis": "FEC SIMD core/race native ARM pass 38032963434 and regular profile-off Q1 120s ABBA observed -10.923%; Q2 300s original 3/4 FAIL, only descriptive CPU -13.213%, not qualified",
       "implementation": {
         "header_mask": "REVERTED_TO_MATURE_XCRYPTO_V0_38_0_HEADER_MASK; CUSTOM_OPT_BACKEND_NOT_SHIPPED",
-        "arm64_poly1305": "SOURCE_CONFIRMS_GENERIC; NATIVE_SYNTHETIC_HOTSPOT_TEST_SUBMITTED_PROFILE_PENDING",
-        "tcp_checksum": "UNCHANGED; INDEPENDENT_ORACLE_AND_SHORT_MTU_BENCH_ACTIONS_PENDING",
-        "sha_copy_locks": "NEEDS_PROFILE",
-        "x86_aead": "EXISTING_ASSEMBLY_TO_VERIFY"
+        "arm64_poly1305": "CURRENT_GENERIC_CONFIRMED_SYNTHETIC_PROFILE_19P57_PERCENT_FLAT; NO_ACCELERATOR; NATIVE_REALPATH_HOTSPOT_NOT_RUN",
+        "tcp_checksum": "PRODUCTION_UNCHANGED_NATIVE_ARM64_INDEPENDENT_U64_ORACLE_PASS; REALPATH_CPU_HOTSPOT_NOT_RUN",
+        "sha_copy_locks": "NO_PRODUCTION_CHANGE; REALPATH_HOTSPOT_NOT_RUN",
+        "x86_aead": "MATURE_XCRYPTO_ASSEMBLY_SOURCE_VERIFIED; DIRECT_RUNTIME_PATH_PROOF_NOT_RUN"
       },
       "actions": {
         "baseline_core": 38032963434,
@@ -4131,18 +4131,31 @@
         "rollback_core": 38049393333,
         "rollback_foundation": 38049393295,
         "rollback_lifecycle": 38049393283,
-        "native_hotspot_yaml_parse_fail": 38049682130
+        "native_hotspot_yaml_parse_fail": 38049682130,
+        "native_arm64_hotspot": 38049793709,
+        "latest_foundation": 38049793592
       },
       "acceptance": {
         "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
         "race": "PASS_SOURCE_37E1865_CORE",
         "native_arm64": "PASS_NATIVE_MICRO_ONLY",
-        "normal1": "Q1_120S_0LOSS_4_VALID_CPU_OPTIMIZATION_FAIL_ROLLBACK",
+        "normal1": "Q1_120S_0LOSS_FOUR_VALID_CANDIDATE_CPU_+2P02_PERCENT_REVERTED",
         "game2": "NOT_RUN",
         "game4": "NOT_RUN",
         "p6": "NOT_RUN",
         "physical": "NOT_RUN",
-        "post_revert": "PASS_LINUX_AMD64_WINDOWS_AMD64_NATIVE_ARM64_CORE_FOUNDATION_LIFECYCLE"
+        "post_revert": "PASS_LINUX_AMD64_WINDOWS_AMD64_NATIVE_ARM64_CORE_FOUNDATION_LIFECYCLE",
+        "latest_unit": "PASS_CURRENT_SOURCE_LINUX_AMD64_WINDOWS_AMD64_NATIVE_ARM64",
+        "latest_race": "PASS_CURRENT_SOURCE_LINUX_AMD64_NATIVE_ARM64",
+        "latest_fuzz": "PASS_CURRENT_SOURCE_LINUX_AMD64",
+        "latest_foundation": "PASS_CURRENT_SOURCE",
+        "checksum_oracle": "PASS_NATIVE_ARM64",
+        "native_aead_short_mtu_micro": "PASS_SYNTHETIC_BENCH_NOT_BUSINESS",
+        "arm64_business": "NOT_RUN",
+        "weaknet_5205": "NOT_RUN_THIS_CYCLE",
+        "game2_game4": "NOT_RUN_THIS_CYCLE",
+        "confirm300": "NOT_RUN",
+        "three_runners": "NOT_RUN"
       },
       "inherited_failures": [
         "Q2 300s probe phase 3/4 original FAIL run38042928701",
@@ -4261,11 +4274,12 @@
         "decisions": "REVERT_CANDIDATE_DUE_TO_2P0178_PERCENT_MORE_CPU_PER_VERIFIED_GIB; MICRO_BENCHMARK_WIN_NOT_BIZ_GAIN"
       },
       "rollback_pending_actions": false,
-      "evidence_arm64_native_profile": "RETRY_REQUESTED_AFTER_YAML_GENERATION_FAILURE"
+      "evidence_arm64_native_profile": "RETRY_REQUESTED_AFTER_YAML_GENERATION_FAILURE",
+      "evidence_native_hotspot": "docs/evidence/crypto-packet-arm64-native-hotspot-run38049793709.json"
     }
   },
-  "next_task": "Obtain native ARM64 synthetic AEAD 64..1400B pprof and checksum oracle/bench only after Actions job executes. Run38049682130 YAML parse FAIL before jobs, NOT_RUN; production baseline unchanged.",
-  "latest_log": "docs/devlog/20261010-205700-arm64-native-profiling-yaml-generation-repair.md",
+  "next_task": "Native ARM64 AES ChaCha/Poly1305 synthetic profile captured run38049793709: generic Poly1305 update 19.57% flat of AEAD synthetic workload, ChaCha VX 58.89%; no native fullstack evidence yet. Keep mature crypto; next perform Actions native ARM64 fullstack profile-off or profile-on separate diagnostic before backend change. Original headerMask B CPU +2.02% rejected and reverted, all core/foundation pass. TCP checksum oracle PASS no implementation. Weaknet Q2 original FAIL/Game4/TCP/80s/P6/physical NOT_RUN preserved.",
+  "latest_log": "docs/devlog/20261010-211500-crypto-packet-native-hotspot-and-interrupted-session-audit.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
