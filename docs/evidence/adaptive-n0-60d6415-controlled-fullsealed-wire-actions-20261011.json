@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "scope": "N0_FIXED_OFF_CHACHA_CORE_SCOPED_ACTIONS_PASS_WITH_NATIVE_PREMAPPING_LIMIT",
+  "product_source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "actions": {
+    "same_seq_controlled_rto": {
+      "run_id": 38071266000,
+      "job_id": 114268987386,
+      "status": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071266000",
+      "directions": [
+        "c2s",
+        "s2c"
+      ],
+      "profiles": [
+        "normal-off",
+        "normal-fixed20:4",
+        "record-fixed20:20"
+      ],
+      "race_repetitions": 2,
+      "checks": "6 combinations×2 executions; full record ciphertext same Seq after actual RTO; new seal different",
+      "physical_underlay_pcap": false
+    },
+    "foundation": {
+      "run_id": 38071265930,
+      "status": "PASS",
+      "job_count": 7,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071265930"
+    },
+    "lifecycle": {
+      "run_id": 38071265929,
+      "status": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071265929"
+    },
+    "native_three": {
+      "source_sha": "80487e6175c16cd6d689b82fca5d1053167cc1fa",
+      "run_id": 38067388763,
+      "status": "PASS_SCOPED_NATIVE_ZERO_LOSS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38067388763"
+    },
+    "real_tls_inmemory_downlink_first": {
+      "source_sha": "a50accc45ff7925f4f7488640dad86e76bee1767",
+      "run_id": 38066837682,
+      "status": "PASS_TWO_RACE_REPETITIONS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38066837682"
+    }
+  },
+  "qualifications": [
+    "N0 protected V3 fixed/off+ChaCha on actual native 3 client server shared TUN",
+    "same Seq same entire ciphertext proven by controlled production Go runtime and full serial payload, not by packet capture under loss",
+    "native Linux bidirectional business after TPROXY mapping",
+    "in-memory S2C first business before C2S with actual TLS/FakeTCP/FEC"
+  ],
+  "native_unsolicited_pre_business_s2c_limit": "Original TPROXY receives no business-host reply mapping before any client-intercepted business traffic; cannot claim native host delivery of unsolicited remote business without manufacturing application flow state.",
+  "still_not_qualified": [
+    "native forced-repair full-length pcap on loss path",
+    "native unsolicited initial business delivery to TPROXY business host",
+    "N1 quality",
+    "N2 Normal auto",
+    "N3 AES",
+    "N4 native Windows TUN",
+    "N5 GUI",
+    "N6 integration P6",
+    "physical"
+  ],
+  "physical": "NOT_RUN",
+  "deployment": false,
+  "post_test_docs_commit_sha": "Containing commit, cannot self-reference"
+}

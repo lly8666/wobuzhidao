@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_NATIVE_THREE_PASS_CONTROLLED_SAME_SEQ_FULL_CIPHERTEXT_RACE_PENDING",
+    "phase": "N0_FIXED_OFF_V3_ACTIONS_SCOPED_PASS_N1_LOW_FREQUENCY_QUALITY_CODEC_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "80487e6175c16cd6d689b82fca5d1053167cc1fa",
-    "implementation": "PARTIAL_N0_PROTECTED_V3_FIXED_OFF_CHACHA",
-    "core": "PASS_80487E6_FOUNDATION_AND_REAL_THREE_CLIENT_NETNS_FUNCTIONAL_PLUS_A50ACCC_FOCUSED_RACE",
-    "ordinary_performance": "NOT_RUN_N0_SOURCE_80487E6",
+    "new_product_source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
+    "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
+    "core": "N0_ACTIONS_SCOPED_PASS_NATIVE_3_CLIENT_80487E6_AND_ACTUAL_TLS_RACE_A50ACCC_AND_SAMESEQ_RACE_60D6415",
+    "ordinary_performance": "NOT_RUN_N0_SOURCE_60D6415",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
-      "N0_admission": "IN_PROGRESS_NATIVE_THREE_PASS_N0_SAME_SEQ_CONTROLLED_RTO_RACE_PENDING_NATIVE_S2C_BEFORE_UPLINK_UNPROVEN",
-      "N1_quality": "NOT_STARTED",
+      "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
+      "N1_quality": "NOT_STARTED_NEXT_FEATURE",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -68,26 +68,16 @@
         "game-fixed-20:20-2-lanes"
       ],
       "source_scope": "single 8-second zero-loss 300ms each-way real Linux netns multi-client functional; no performance",
-      "native_first_s2c_before_any_client_business": "NOT_RUN",
-      "same_seq_full_wire_repair_proof": "NOT_RUN",
+      "native_first_s2c_before_any_client_business": "INMEMORY_REAL_TLS_FAKETCP_PASS_RUN_38066837682;UNSOLICITED_NATIVE_TPROXY_APPLICATION_RECEIVER_NEEDS_FIRST_FLOW_MAPPING_NOT_CLAIMED",
+      "same_seq_full_wire_repair_proof": "PASS_CONTROLLED_PRODUCTION_GO_RUNTIME_ACTUAL_RTO_C2S_S2C_OFF4_20_12_RACE_CASES_SOURCE_60D6415_RUN_38071266000_NOT_NATIVE_LOSS_PCAP",
       "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
-    },
-    "pending_candidate": {
-      "scope": "N0 one Go production-lane runtime controlled real RTO repair for full TLS-like ciphertext byte identity at same TCP Seq in client→server and server→client under parity off/4/20, plus freshness PN uniqueness",
-      "candidate_source_sha": "CONTAINING_COMMIT_SHA",
-      "actions": "PENDING",
-      "prior_native_three_source_sha": "80487e6175c16cd6d689b82fca5d1053167cc1fa",
-      "targeted_race": "PENDING",
-      "native_forced_repair_pcap": "NOT_RUN",
-      "native_s2c_before_client_business": "NOT_RUN",
-      "physical": "NOT_RUN"
     }
   },
-  "next_task": "N0: inspect new exact-SOURCE next-adaptive-n0-samewire Actions (-race count=2 six combinations) and foundation; any FAIL preserve it and fix. Scope only real Go datapath/transport controlled timer with full serialized TCP ciphertext payload, NOT physical 3-client loss wire capture. Native 3-client functional 80487e6 remains independently PASS. Then address native first S2C before client business if feasible or document TPROXY mapping limit; review remaining N0 gates before N1. No physical testing until N0–N6 and P6 Actions done.",
-  "latest_log": "docs/devlog/20261011-010100-adaptive-n0-sameseq-fullciphertext-directed-race.md",
-  "qualification_scope": "N0_PARTIAL_REAL_3_CLIENT_SAME_SERVER_PORT_AUTO_LEASE_V3_ACTUAL_CIPHER_AND_PARITY_PASS_NO_NATIVE_FIRST_S2C_OR_SAME_SEQ_WIRE",
-  "last_tested_source_sha": "80487e6175c16cd6d689b82fca5d1053167cc1fa",
-  "last_tested_scope": "native 3 isolated real Linux OpenWrt clients shared formal Linux server/TUN 8s 0.15Mbps each way 300ms netem 0 loss functional PASS; foundation PASS; in-memory first S2C/race prior a50accc PASS; performance not run",
+  "next_task": "N1 first implementation increment: define bounded <=128B V3 health-quality report codec with independent incarnation/generation and report sequence, explicit UNKNOWN/INSUFFICIENT/LATE/ESTIMATED versus honest loss accounting, no live emission and no N0 live-wire change until suite/race tests; then add <=2s lane-wise active-only publication, bounded receiver, maturity and honest quality snapshots without packet HOL or per-packet diagnostic JSON. N0 full native unsolicited S2C→TPROXY business-host reception is NOT claimed (mapping absent before first client business), keep as a limitation. All functionality tested in Actions before final physical.",
+  "latest_log": "docs/devlog/20261011-013000-n0-closure-scoped-pass-n1-next.md",
+  "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
+  "last_tested_source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
+  "last_tested_scope": "test-only SOURCE 60d6415 targeted 12 same Seq full sealed record RTO race + foundation Linux/Windows/lifecycle PASS; 80487e6 earlier exact real 9-netns 3-client single functional PASS; a50accc earlier first S2C before C2S in-memory actual TLS PASS; no N1-Auto-AES-TUN-Perf-P6",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -265,6 +255,34 @@
       "status": "PASS",
       "run_id": 38067388735,
       "cause": "All next-foundation jobs PASS for same 80487e6 source: Linux/Windows Go build/unit, P4 privileged and repository contract. No performance/Windows native Wintun/physical qualification."
+    },
+    {
+      "name": "next-adaptive-n0-samewire",
+      "source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071266000",
+      "scope": "N0_forced_same_seq_full_ciphertext_byte_identity_production_runtime_six_cases_two_race_repetitions",
+      "status": "PASS",
+      "run_id": 38071266000,
+      "cause": "PASS: 3 FEC configurations off/4/20 × genuine C2S/S2C production Go lane runtime (six) ×2 -race repetitions, with peer ACK suppressed and actual RTO Tick; TCP Seq and every ciphertext byte match, serialized payload matches; a new record differs by PN. Not native on-wire loss capture.",
+      "job_id": 114268987386
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071265929",
+      "scope": "N0_same_seq_code_source_lifecycle_regression",
+      "status": "PASS",
+      "run_id": 38071265929,
+      "cause": "PASS: lifecycle wire correctness and existing focused race and replacement regressions at exact test-only SOURCE; no new native WAN simulation."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071265930",
+      "scope": "N0_same_seq_code_source_foundation_regression",
+      "status": "PASS",
+      "run_id": 38071265930,
+      "cause": "PASS: all 7 required foundation jobs (repository contract, privileged OpenWrt and shared Linux TUN variants, kernel fallback, Linux and Windows Go tests/build). No Windows native Wintun physical qualification."
     }
   ],
   "required_read_set": [
