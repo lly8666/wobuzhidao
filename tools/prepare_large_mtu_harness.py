@@ -15,11 +15,15 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--output",required=True)
     p.add_argument("--workload",choices=["udp","tcp","mixed"],required=True)
-    p.add_argument("--loss",type=int,choices=[0,1,5,20,30,5205],required=True)
+    p.add_argument("--loss",type=int,choices=[0,1,5,10,20,30,5205],required=True)
     p.add_argument("--fec-experiment",action="store_true")
+    p.add_argument("--sweep-experiment",action="store_true")
     p.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
-    p.add_argument("--delay-ms",type=int,default=300,choices=[15,300])
+    p.add_argument("--delay-ms",type=int,default=300,choices=[15,50,100,150,300])
     x=p.parse_args()
+    if x.sweep_experiment and (not x.fec_experiment or x.workload!="udp"
+         or x.duration_s!=120 or x.loss not in (1,5,10) or x.delay_ms not in (50,100,150)):
+        raise ValueError("sweep opt-in is exactly UDP FEC-off 120s, loss1/5/10, delay50/100/150")
     original=Path("scripts/strict_weaknet_sample.sh").read_text()
     s=original
     def swap(old,new,n=1):
@@ -179,7 +183,7 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
     if x.fec_experiment:
         # Exact, opt-in copy of the existing FIVE-NETNS fullstack scenario;
         # default generator output and formal qualification remain unchanged.
-        if x.loss not in (0,1,5) or x.duration_s not in (15,120) or x.delay_ms not in (15,300):
+        if not x.sweep_experiment and (x.loss not in (0,1,5) or x.duration_s not in (15,120) or x.delay_ms not in (15,300)):
             raise ValueError("FEC case outside narrow experiment scope")
         swap('SFX="$"', 'SFX="${WBD_FEC_CASE_SFX:?}"')
         swap('delay 300ms', 'delay ${WBD_FEC_DELAY_MS}ms', 2)
@@ -217,6 +221,13 @@ PY_FEC_FLAGS
   echo "steal-softirq:"; grep '^cpu ' /proc/stat || true
 """)
 
+    if x.sweep_experiment:
+        swap('    normal:1:10) ;;',
+             '    normal:1:10|normal:1:20|normal:1:30|normal:1:50) ;;')
+        swap('workflow_rel = ".github/workflows/next-fec-policy-sequential.yml"',
+             'workflow_rel = ".github/workflows/next-fec-retrans-sweep.yml"')
+        swap('"tools/fec_policy_batch.py",',
+             '"tools/fec_policy_batch.py",\n    "tools/fec_retrans_sweep.py",\n    "tools/fec_wire_retrans_observer.py",')
     if x.fec_experiment:
         # Only line and status; never leak shell commands or credentials.
         s=s.replace("set -euo pipefail\n",
@@ -227,6 +238,6 @@ PY_FEC_FLAGS
         "original_sha256":hashlib.sha256(original.encode()).hexdigest(),
         "generated_sha256":hashlib.sha256(s.encode()).hexdigest(),
         "workload":x.workload,"loss":x.loss,"one_sample":not x.fec_experiment,
-        "fec_experiment":x.fec_experiment,"duration_s":x.duration_s,"delay_ms":x.delay_ms},indent=2))
+        "fec_experiment":x.fec_experiment,"sweep_experiment":x.sweep_experiment,"duration_s":x.duration_s,"delay_ms":x.delay_ms},indent=2))
 
 if __name__=="__main__":main()

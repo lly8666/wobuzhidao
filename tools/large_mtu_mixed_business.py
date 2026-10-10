@@ -434,6 +434,6 @@ if __name__=="__main__":
     p.add_argument("--source",required=True);p.add_argument("--helper",required=True)
     p.add_argument("--output",required=True)
     p.add_argument("--size-profile",choices=["ordinary","jumbo","boundary"],required=True)
-    p.add_argument("--rate-mbps",type=float,choices=[3.0,10.0],required=True)
+    p.add_argument("--rate-mbps",type=float,choices=[3.0,10.0,20.0,30.0,50.0],required=True)
     p.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
     run(p.parse_args())

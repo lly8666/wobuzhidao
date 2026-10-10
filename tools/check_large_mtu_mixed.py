@@ -227,17 +227,18 @@ def main():
     a=argparse.ArgumentParser()
     a.add_argument("--artifact-dir",required=True);a.add_argument("--source",required=True)
     a.add_argument("--helper",required=True);a.add_argument("--workload",choices=["udp","tcp","mixed"],required=True)
-    a.add_argument("--loss",type=int,choices=[0,1,5,20,30,5205],required=True)
+    a.add_argument("--loss",type=int,choices=[0,1,5,10,20,30,5205],required=True)
     a.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
-    a.add_argument("--delay-ms",type=int,default=300,choices=[15,300])
+    a.add_argument("--delay-ms",type=int,default=300,choices=[15,50,100,150,300])
     a.add_argument("--fec-parity",type=int,default=20,choices=[0,20])
     a.add_argument("--fec-experiment",action="store_true")
     a.add_argument("--seed",type=int,required=True);a.add_argument("--output",required=True)
-    a.add_argument("--target-mbps",type=float,choices=[3.0,10.0],required=True)
+    a.add_argument("--target-mbps",type=float,choices=[3.0,10.0,20.0,30.0,50.0],required=True)
     a.add_argument("--size-profile",choices=["ordinary","jumbo","boundary"],required=True)
     a.add_argument("--mode",choices=["normal","game"],required=True)
     a.add_argument("--lanes",type=int,choices=[1,2,3,4],required=True)
     a.add_argument("--diagnostic-mode",choices=["0","1"],required=True)
+    a.add_argument("--sweep-experiment",action="store_true")
     x=a.parse_args();root=Path(x.artifact_dir)
     issues=[];capture_receipts=[]
     try:
@@ -253,8 +254,12 @@ def main():
         if any(d["source_sha"]!=x.source or d["helper_sha"]!=x.helper or d["seed"]!=x.seed or d.get("size_profile")!=x.size_profile or d.get("configured_per_direction_mbps")!=x.target_mbps or d.get("duration_seconds")!=x.duration_s for d in (biz,target)):issues.append("PROCESS_IDENTITY")
         b=biz["counters"];t=target["counters"]
         if x.fec_experiment:
-            if (x.duration_s not in (15,120) or x.loss not in (0,1,5)
-                or x.delay_ms not in (15,300) or x.mode!="normal" or x.lanes!=1):
+            if not ((x.sweep_experiment and x.workload=="udp" and x.duration_s==120
+                      and x.loss in (1,5,10) and x.delay_ms in (50,100,150)
+                      and x.target_mbps in (10,20,30,50) and x.mode=="normal" and x.lanes==1 and x.fec_parity==0)
+                 or (not x.sweep_experiment and x.duration_s in (15,120)
+                     and x.loss in (0,1,5) and x.delay_ms in (15,300)
+                     and x.mode=="normal" and x.lanes==1)):
                 issues.append("INVALID_EXPERIMENT_TUPLE")
             flags=json.loads((root/"runtime-flags.json").read_text())
             for role in ("client","server"):

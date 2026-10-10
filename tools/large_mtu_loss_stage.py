@@ -37,12 +37,12 @@ def main():
     a = argparse.ArgumentParser()
     for key in ["namespace","c2s-dev","s2c-dev","tc-bin","output"]:
         a.add_argument("--"+key, required=True)
-    a.add_argument("--fixed-loss", type=int, choices=[0,1,5,20,30,5205], required=True)
+    a.add_argument("--fixed-loss", type=int, choices=[0,1,5,10,20,30,5205], required=True)
     a.add_argument("--start-ns", type=int, required=True)
     a.add_argument("--seed", type=int, required=True)
     a.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
     a.add_argument("--drain-s",type=int,default=3,choices=[3])
-    a.add_argument("--delay-ms",type=int,default=300,choices=[15,300])
+    a.add_argument("--delay-ms",type=int,default=300,choices=[15,50,100,150,300])
     for key in ["pre-loss","stress-loss","post-loss"]:
         a.add_argument("--"+key, type=float)
     x = a.parse_args()

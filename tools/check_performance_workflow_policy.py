@@ -174,6 +174,23 @@ if retrans.count("  one-fec-off-wire-retrans-forensic:\n")!=1 or retrans.count("
     errors.append("FEC retrans: exactly one real sample in one job")
 if "cancel-in-progress: false" not in retrans or 'test "$SAMPLE" = success' not in retrans:
     errors.append("FEC retrans: conservative no-parallel fail-closed gate")
+# Explicit user-authorized 36 tuples, not the older one-sample formal workflows.
+# One job, serial subprocess, branch+config-only push, no dispatcher or matrix.
+sweep = Path(".github/workflows/next-fec-retrans-sweep.yml").read_text()
+if 'branches: ["experiment/fec-policy-sequential-20261009"]' not in sweep:
+    errors.append("FEC sweep: exact isolated branch required")
+if sweep.count('      - ".github/fec-retrans-sweep.json"')!=1 or "workflow_dispatch:" in sweep:
+    errors.append("FEC sweep: config-only trigger required")
+if re.search(r"(?m)^\s+matrix:|^\s+pull_request:",sweep):
+    errors.append("FEC sweep: no matrix or pull request")
+if sweep.count("  one-job-thirty-six-serial-realpath:\n")!=1 or sweep.count("tools/fec_retrans_sweep.py --mode run")!=1:
+    errors.append("FEC sweep: precisely one serial execution job")
+if "cancel-in-progress: false" not in sweep or "timeout-minutes: 240" not in sweep:
+    errors.append("FEC sweep: bounded one-run scope")
+if 'test "$SAMPLE" = success' not in sweep or 'd["valid_cases"]==36' not in sweep:
+    errors.append("FEC sweep: fail-closed all 36 cases required")
+if "tools/perf_sample_guard.py claim" in sweep:
+    errors.append("FEC sweep: must not replace formal sample guard")
 if errors:
     raise SystemExit("\n".join(errors))
 print("WBD_PERF_WORKFLOW_POLICY_PASS")

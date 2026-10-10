@@ -46,7 +46,7 @@ def snapshot():
        "cpu_max":read("/sys/fs/cgroup/cpu.max"),
        "cpuset":read("/sys/fs/cgroup/cpuset.cpus.effective"),
        "cpu_psi":read("/proc/pressure/cpu"),"memory_psi":read("/proc/pressure/memory")}
-def make(case,root):
+def make(case,root,sweep=False):
     d=root/case["id"];d.mkdir(parents=True,exist_ok=False)
     if (root/"binaries").exists():
         for role in ("client","server"):
@@ -55,6 +55,7 @@ def make(case,root):
          "--output",str(d/"generated.sh"),"--workload",case["workload"],
          "--loss",str(case["loss"]),"--duration-s",str(case["duration_s"]),
          "--delay-ms",str(case["delay_ms"])]
+    if sweep:cmd.append("--sweep-experiment")
     subprocess.run(cmd,check=True,env={**os.environ,"WBD_EFF_DIAGNOSTIC":"0"})
     subprocess.run(["bash","-n",str(d/"generated.sh")],check=True)
     return d
@@ -120,16 +121,23 @@ kill -0 "$WIRE_AUDIT_PID"
     data["forensic_wire_counter_opt_in"]=True
     receipt.write_text(json.dumps(data,indent=2)+"\n")
 
-def one(case,root,helper,wire_audit=False):
-    d=make(case,root)
+def one(case,root,helper,wire_audit=False,sweep=False):
+    d=make(case,root,sweep=sweep)
     if wire_audit:
-        if (case["workload"],case["loss"],case["fec"],case["delay_ms"],case["duration_s"])!=("udp",5,"off",300,120):
+        if sweep:
+            allowed=(case["workload"]=="udp" and case["loss"] in (1,5,10)
+              and case["fec"]=="off" and case["parity"]==0
+              and case["delay_ms"] in (50,100,150) and case["duration_s"]==120
+              and case["rate_mbps"] in (10,20,30,50))
+        else:
+            allowed=(case["workload"],case["loss"],case["fec"],case["delay_ms"],case["duration_s"])==("udp",5,"off",300,120)
+        if not allowed:
             raise ValueError("wire counter authorized only for exact UDP1 FEC-off 300ms")
         add_wire_audit(d)
     env=os.environ.copy()
     env.update({"GITHUB_WORKSPACE":str(Path.cwd()),"WBD_STRICT_MODE":"normal",
       "WBD_STRICT_SCENARIO":"lossless","WBD_STRICT_SEED":str(case["seed"]),
-      "WBD_STRICT_RATE_MBPS":"10","WBD_STRICT_LANES":"1",
+      "WBD_STRICT_RATE_MBPS":str(case["rate_mbps"]),"WBD_STRICT_LANES":"1",
       "WBD_STRICT_FEC_PARITY":str(case["parity"]),
       "WBD_STRICT_FEC_SCREEN":"1" if case["parity"]==0 else "0",
       "WBD_STRICT_CPU_PROFILE":"0","WBD_STRICT_STATEFUL_GATE":"0",
@@ -164,10 +172,11 @@ def one(case,root,helper,wire_audit=False):
     cmd=[sys.executable,"tools/check_large_mtu_mixed.py","--fec-experiment",
        "--artifact-dir",str(d),"--source",SOURCE,"--helper",helper,
        "--workload",case["workload"],"--loss",str(case["loss"]),
-       "--seed",str(case["seed"]),"--target-mbps","10","--size-profile","ordinary",
+       "--seed",str(case["seed"]),"--target-mbps",str(case["rate_mbps"]),"--size-profile","ordinary",
        "--mode","normal","--lanes","1","--diagnostic-mode","0",
        "--duration-s",str(case["duration_s"]),"--delay-ms",str(case["delay_ms"]),"--fec-parity",str(case["parity"]),
        "--output",str(d/"summary.json")]
+    if sweep:cmd.append("--sweep-experiment")
     with (d/"analyzer-private.log").open("w") as log:
         arc=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT).returncode
     with (d/"ledger-private.log").open("w") as log:

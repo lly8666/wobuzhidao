@@ -28,7 +28,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--start-ns",type=int,required=True)
     p.add_argument("--duration-s",type=int,choices=(120,),required=True)
-    p.add_argument("--loss-percent",type=int,choices=(1,5),required=True)
+    p.add_argument("--loss-percent",type=int,choices=(1,5,10),required=True)
     p.add_argument("--output",required=True)
     x=p.parse_args()
     sel=selectors.DefaultSelector()
@@ -101,7 +101,7 @@ def main():
     result={"schema":"wbd-fec-retrans-wire-observation/v1","scope":"one_router_ingress_pre_netem_FakeTCP_TCP_IP_packets",
             "start_monotonic_ns":x.start_ns,"duration_s":x.duration_s,
             "theory_p":x.loss_percent/100,"theory_repeats_over_fresh_percent":100*(x.loss_percent/(100-x.loss_percent)),
-            "theory_repeat_fraction_all_data_percent":1.0,
+            "theory_repeat_fraction_all_data_percent":float(x.loss_percent),
             "capture_complete":all(row["capture_ok"] for row in rows.values()),
             "note":"Only data segments with identical flow/sequence/length and ciphertext are counted as retransmissions; no raw frames retained. ACK/control separately. NOT a product retransmission-counter proof; capture drops invalidate estimate.",
             "direction":rows}

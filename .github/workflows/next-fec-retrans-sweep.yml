@@ -1,0 +1,105 @@
+name: fec-off-retrans-36-serial
+run-name: fec-off-36-serial-${{ github.sha }}
+on:
+  push:
+    branches: ["experiment/fec-policy-sequential-20261009"]
+    paths:
+      - ".github/fec-retrans-sweep.json"
+permissions:
+  contents: read
+concurrency:
+  group: fec-policy-sequential-only-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  one-job-thirty-six-serial-realpath:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      ART: "${{ github.workspace }}/artifacts/fec-retrans-36"
+      PRODUCT_SOURCE: a2db258b436a41fdee98c6c53abec9bab6ce600f
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+      - name: Exact 36-case policy and static generator preflight
+        run: |
+          set -euo pipefail
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          python3 -m py_compile tools/fec_retrans_sweep.py tools/fec_policy_batch.py tools/fec_wire_retrans_observer.py tools/prepare_large_mtu_harness.py tools/large_mtu_mixed_business.py tools/large_mtu_loss_stage.py tools/check_large_mtu_mixed.py tools/efficiency_cost_ledger.py
+          python3 -m unittest discover -s tools -p 'test_fec_policy_adapter.py' -v
+          python3 -m unittest discover -s tools -p 'test_fec_retrans_sweep.py' -v
+          python3 tools/fec_retrans_sweep.py --mode verify --root "$ART"
+      - name: Install one real fullstack 5-netns runner dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl build-essential bison flex pkg-config libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+      - name: Frozen product once and deterministic seeded tc
+        run: |
+          set -euo pipefail
+          mkdir -p "$ART/binaries"
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+          test "$(git rev-parse "$PRODUCT_SOURCE^{commit}")" = "$PRODUCT_SOURCE"
+          git worktree add --detach "$RUNNER_TEMP/wbd-product" "$PRODUCT_SOURCE"
+          cd "$RUNNER_TEMP/wbd-product"
+          go build -trimpath -o "$ART/binaries/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/binaries/wbd-server" ./cmd/wbd-server
+          sha256sum "$ART/binaries/wbd-client" "$ART/binaries/wbd-server" > "$ART/product-binaries.sha256"
+      - name: Run 36 cases strictly sequentially; fresh owned cleanup every case
+        id: sample
+        continue-on-error: true
+        run: python3 tools/fec_retrans_sweep.py --mode run --root "$ART"
+      - name: Emergency remove only this job's bounded captures and secrets
+        if: always()
+        run: |
+          if test -d "$ART"; then
+            sudo find "$ART" -type f -name '*.pcap*' -delete
+            sudo find "$ART" -type f -name '*.pem' -delete
+            sudo chmod -R a+rX "$ART"
+          fi
+      - name: Upload sanitized aggregated and per-case numerical receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fec-retrans-36-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            ${{ env.ART }}/sweep-manifest.json
+            ${{ env.ART }}/product-binaries.sha256
+            ${{ env.ART }}/s*/sweep-row.json
+            ${{ env.ART }}/s*/case-receipt.json
+            ${{ env.ART }}/s*/summary.json
+            ${{ env.ART }}/s*/efficiency-ledger.json
+            ${{ env.ART }}/s*/retrans-wire.json
+            ${{ env.ART }}/s*/runtime-flags.json
+            ${{ env.ART }}/s*/generated.sh.receipt.json
+            ${{ env.ART }}/s*/emergency-capture-cleanup.json
+            ${{ env.ART }}/s*/sanitized-startup-errors.json
+      - name: Fail closed if any of 36 scoped observations invalid or unexecuted
+        if: always()
+        env:
+          SAMPLE: ${{ steps.sample.outcome }}
+        run: |
+          test "$SAMPLE" = success
+          test -s "$ART/sweep-manifest.json"
+          python3 - "$ART/sweep-manifest.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d["state"]=="ALL_36_VALID_OBSERVATIONS_NOT_PRODUCT_PASS"
+          assert d["valid_cases"]==36 and d["not_run_cases"]==0
+          assert len(d["cases"])==36
+          PY
