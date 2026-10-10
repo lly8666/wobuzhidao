@@ -141,3 +141,6 @@ CPU目标是**可重复的实际产品降低**，不预先承诺倍数。仅micr
 本轮交付应有代码、依赖许可、完整正确性/跨平台路径结果、同job新旧CSV+JSON/配对报告、SOURCE/helper/hash、普通性能与p99、内存上限、P6配套包和manifest。GitHub devlog/evidence/STATUS是唯一留痕系统。参数不变则不造GUI选项；新增内部build tag在本文和交接提示词登记，真正新增用户参数必须同步catalog/GUI。
 
 S2舍弃也可以有依据完成优化，但需明确实际交付后端及未获得的能力。历史11项RTT FAIL、Game4压力、TCP收尾、MTU/PMTU与80秒S2C故障不被一次SIMD好样本关闭。80秒问题保持OPEN_DEFERRED，优化验收后回原E7单独定位；physical仍NOT_RUN，新代码不得继承旧物理PASS。
+## 2026-10-10 执行中的后端选择（以 Actions 证据为限）
+
+- S1 多源恢复与partial复用单片SIMD，unsupported CPU/noasm/wbd_fec_scalar保证原GF标量。S2完整20源整块20:P自定义WBD矩阵融合在 x86 hosted 微基准 [38033888108](https://github.com/lly8666/wobuzhidao/actions/runs/38033888108) 中比span更快，P20的96/512/1400B中位数约快39.9%/39.9%/26.3%，因此promoted SOURCE 7fb98fab79834a351a1dbe04eebb207f66bea28b 默认 full=融合/partial=span；-tags=wbd_fec_span 可显式退回span。此为内核收益不是完整业务CPU/p99。当前realpath pilot曾因文件权限 INFRA_INVALID，Q/L/physical未验收。不得将旧候选 89fcb5e99ffc6ae63354ea6628d367ada72d6bed 的unit PASS归给新SOURCE。

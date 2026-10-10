@@ -204,7 +204,7 @@ if simd.count("tools/fec_simd_ab.py --mode execute --root")==2:
     pass  # preflight branch OR one actual run, never simultaneous
 else:
     errors.append("FEC SIMD: expect preflight and one actual execute only")
-if "a2db258b436a41fdee98c6c53abec9bab6ce600f" not in simd or "89fcb5e99ffc6ae63354ea6628d367ada72d6bed" not in simd:
+if "a2db258b436a41fdee98c6c53abec9bab6ce600f" not in simd or "7fb98fab79834a351a1dbe04eebb207f66bea28b" not in simd:
     errors.append("FEC SIMD: two independent immutable SOURCE identities required")
 
 if errors:

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S2_FUSED_DEFAULT_AFTER_MICRO_WAIT_CORE",
+    "phase": "FEC_SIMD_S3_NEW_B_FROZEN_STATIC_RECHECK",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,13 +3630,13 @@
       }
     },
     "fec_simd": {
-      "state": "S2_FUSED_DEFAULT_SOURCE_SUBMITTED_UNIT_PENDING",
+      "state": "S3_FUSED_B_EXACT_SOURCE_STATIC_RECHECK_OLD_PILOT_FAIL",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
       "branch_parent_sha": "543ac2cd2920e9f0fb59fdb38ee6aa3d9a65e56f",
       "baseline_product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
-      "candidate_product_source_sha": "89fcb5e99ffc6ae63354ea6628d367ada72d6bed",
+      "candidate_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
       "dependency": {
         "name": "github.com/klauspost/reedsolomon",
         "version": "v1.12.6",
@@ -3654,7 +3654,7 @@
         "s2_lifecycle": 38032963427,
         "s3": "NOT_RUN"
       },
-      "cpu_gain": "NOT_MEASURED_BIZ",
+      "cpu_gain": "NOT_MEASURED_REAL_BUSINESS",
       "physical": "NOT_RUN",
       "selected_route": "S1 SIMD span encoding/recovery; S2 custom-matrix single-worker fused full-block encoding; preserve active partial and measure before retaining a backend.",
       "same_runner_comparison": "Q1/Q2/Q3 L1/L2/L3 ABBA configured, pilot mandatory; NOT_RUN",
@@ -3675,35 +3675,23 @@
       "fused_tag": "wbd_fec_span disables fused; wbd_fec_scalar also disables",
       "native_arm64_core": "PASS_RUN_38032963434_SCOPED",
       "s3_preflight_run": 38033774948,
-      "s3_preflight": "PASS_NO_TRAFFIC",
+      "s3_preflight": "PASS_38033774948_OLD_B_STATIC_ONLY",
       "pilot": {
         "run_id": 38033888013,
-        "status": "FAIL_INFRA_INVALID_A_FIRST_LEG_B_NOT_RUN",
-        "class": "PermissionError",
-        "note": "pilot artifact 11662823944 has only A first leg, no manifest/runtime flags; no CPU evidence"
+        "artifact_id": 11662823944,
+        "classification": "FAIL_INFRA_INVALID_A_PERMISSIONERROR_B_NOT_RUN",
+        "preserved": true
       },
       "micro": {
         "run_id": 38033888108,
-        "status": "PASS_SCOPED_X86_KERNEL_ONLY",
-        "network_shard_p20_96_ns": {
-          "span": 6481,
-          "fused": 3896
-        },
-        "network_shard_p20_512_ns": {
-          "span": 10322,
-          "fused": 6208
-        },
-        "network_shard_p20_1400_ns": {
-          "span": 27105,
-          "fused": 19987
-        },
-        "real_business": "NOT_MEASURED",
-        "backend_native_ISA_profile": "NOT_RUN"
+        "candidate_source_sha": "89fcb5e99ffc6ae63354ea6628d367ada72d6bed",
+        "status": "PASS_PRE_PROMOTION_SPAN_VS_FUSED_KERNEL_ONLY",
+        "new_fused_default_micro": "REQUESTED_THIS_COMMIT"
       }
     }
   },
-  "next_task": "Immediately run core/lifecycle Actions for promoted default. Freeze this exact promoted product SOURCE in independent A/B harness, preserve failed old pilot receipt, fix owned artifact PermissionError via privilege-scoped ownership recovery and sanitized traceback before retry. Only then Q/L, ARM perf, S5 qualified P6.",
-  "latest_log": "docs/devlog/20261010-162000-fec-simd-s2-fused-default-on-micro.md",
+  "next_task": "Wait for native x86+ARM64+Windows unit/race core Actions of exact promoted SOURCE 7fb98... and new micro. Preflight exact source first. Retry pilot with isolated privileged case-dir chown and sanitized exception frames, only then Q120/L120. Keep initial FAIL.",
+  "latest_log": "docs/devlog/20261010-164000-fec-simd-s3-frozen-fused-b-and-artifact-owner.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

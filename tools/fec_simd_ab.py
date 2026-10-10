@@ -5,7 +5,7 @@ from pathlib import Path
 import fec_policy_batch as old
 
 A="a2db258b436a41fdee98c6c53abec9bab6ce600f"
-B="89fcb5e99ffc6ae63354ea6628d367ada72d6bed"
+B="7fb98fab79834a351a1dbe04eebb207f66bea28b"
 CONFIG=Path(".github/fec-simd-ab.json")
 PARAMS={
  "Q1":("normal",1,10,20,300,0,2261),
@@ -78,6 +78,12 @@ def run_case(c,root,helper):
    rc=subprocess.run(cmd,env=env,stdout=log,stderr=subprocess.STDOUT,
                      timeout=c["duration"]+160).returncode
  except (OSError,subprocess.TimeoutExpired) as e:error=type(e).__name__
+ # The audited fullstack subprocess is privileged and owns its receipts,
+ # pcaps and summary input files. Only chown this case's private artifact
+ # directory back to the GitHub runner after processes exit, so Python's
+ # parser/hash/cleanup cannot fail reading tcpdump's root-only captures.
+ subprocess.run(["sudo","chown","-R",str(os.getuid())+":"+str(os.getgid()),
+                 str(d)],check=True,timeout=60)
  analyzer=[sys.executable,"tools/check_large_mtu_mixed.py","--fec-experiment","--simd-ab",
      "--artifact-dir",str(d),"--source",c["source"],"--helper",helper,
      "--workload","mixed","--loss",str(c["loss"]),"--seed",str(c["seed"]),
@@ -115,6 +121,17 @@ def run_case(c,root,helper):
       "sample_exit":rc,"sample_error":error,"analyzer_exit":ac,
       "ledger_exit":lc,"classification":state,"issues":s.get("issues",[]),
       "owned_cleanup":owned,"evidence_sha256":evidence}
+ # Scrub log semantics to statuses; exclude all private log payloads.
+ markers=[]
+ p=d/"private-product.log"
+ if p.is_file():
+  import re
+  raw=p.read_text(errors="replace")
+  for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\d+) line=(\d+)",raw):
+   markers.append({"class":"SHELL_FAIL","exit_code":int(match.group(1)),"script_line":int(match.group(2))})
+  for word,label in (("Operation not permitted","NETNS_PERMISSION"),("invalid strict mode tuple","INVALID_MODE_TUPLE"),("sudo:","SUDO_REJECTED")):
+   if word in raw:markers.append({"class":label})
+ row["sanitized_shell_markers"]=markers
  (d/"case-receipt.json").write_text(json.dumps(row,indent=2)+"\n")
  return row
 
@@ -184,8 +201,13 @@ def main():
     print("ABBA_LEG_START",c["id"],c["context"],c["label"],flush=True)
     try:r=run_case(c,root,helper)
     except Exception as e:
+     import traceback
+     frames=traceback.extract_tb(e.__traceback__)[-7:]
+     # Frame name/line + exception type only; never stdout, raw argv, secrets.
+     loc=[{"file":Path(f.filename).name,"line":f.lineno,"function":f.name}
+          for f in frames]
      r={"case":c,"classification":"INFRA_INVALID","issues":["LEG_EXCEPTION"],
-        "exception_class":type(e).__name__}
+        "exception_class":type(e).__name__,"exception_frames":loc}
      d=root/c["id"];d.mkdir(parents=True,exist_ok=True)
      (d/"case-receipt.json").write_text(json.dumps(r,indent=2)+"\n")
     rows.append(r)
