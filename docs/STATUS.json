@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C2_NATIVE_ARM64_HOTSPOT_RECORDED_NO_NEW_PRODUCTION_CHANGE",
+    "phase": "C3_NATIVE_ARM64_POLY1305_PACKAGING_DIAGNOSTIC_PENDING_ACTIONS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4093,7 +4093,7 @@
       "baseline_basis": "FEC SIMD core/race native ARM pass 38032963434 and regular profile-off Q1 120s ABBA observed -10.923%; Q2 300s original 3/4 FAIL, only descriptive CPU -13.213%, not qualified",
       "implementation": {
         "header_mask": "REVERTED_TO_MATURE_XCRYPTO_V0_38_0_HEADER_MASK; CUSTOM_OPT_BACKEND_NOT_SHIPPED",
-        "arm64_poly1305": "CURRENT_GENERIC_CONFIRMED_SYNTHETIC_PROFILE_19P57_PERCENT_FLAT; NO_ACCELERATOR; NATIVE_REALPATH_HOTSPOT_NOT_RUN",
+        "arm64_poly1305": "GENERIC_BACKEND_UNCHANGED; TEST_ONLY_STREAMING_VS_CONTIGUOUS_COPY_VS_PREBUILT_BENCH_PENDING",
         "tcp_checksum": "PRODUCTION_UNCHANGED_NATIVE_ARM64_INDEPENDENT_U64_ORACLE_PASS; REALPATH_CPU_HOTSPOT_NOT_RUN",
         "sha_copy_locks": "NO_PRODUCTION_CHANGE; REALPATH_HOTSPOT_NOT_RUN",
         "x86_aead": "MATURE_XCRYPTO_ASSEMBLY_SOURCE_VERIFIED; DIRECT_RUNTIME_PATH_PROOF_NOT_RUN"
@@ -4133,7 +4133,8 @@
         "rollback_lifecycle": 38049393283,
         "native_hotspot_yaml_parse_fail": 38049682130,
         "native_arm64_hotspot": 38049793709,
-        "latest_foundation": 38049793592
+        "latest_foundation": 38049793592,
+        "poly1305_packaging_source": "PENDING_C3_DIAGNOSTIC_COMMIT"
       },
       "acceptance": {
         "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
@@ -4155,7 +4156,8 @@
         "weaknet_5205": "NOT_RUN_THIS_CYCLE",
         "game2_game4": "NOT_RUN_THIS_CYCLE",
         "confirm300": "NOT_RUN",
-        "three_runners": "NOT_RUN"
+        "three_runners": "NOT_RUN",
+        "poly1305_packaging": "NOT_RUN_ACTIONS_PENDING"
       },
       "inherited_failures": [
         "Q2 300s probe phase 3/4 original FAIL run38042928701",
@@ -4278,8 +4280,8 @@
       "evidence_native_hotspot": "docs/evidence/crypto-packet-arm64-native-hotspot-run38049793709.json"
     }
   },
-  "next_task": "Native ARM64 AES ChaCha/Poly1305 synthetic profile captured run38049793709: generic Poly1305 update 19.57% flat of AEAD synthetic workload, ChaCha VX 58.89%; no native fullstack evidence yet. Keep mature crypto; next perform Actions native ARM64 fullstack profile-off or profile-on separate diagnostic before backend change. Original headerMask B CPU +2.02% rejected and reverted, all core/foundation pass. TCP checksum oracle PASS no implementation. Weaknet Q2 original FAIL/Game4/TCP/80s/P6/physical NOT_RUN preserved.",
-  "latest_log": "docs/devlog/20261010-211500-crypto-packet-native-hotspot-and-interrupted-session-audit.md",
+  "next_task": "Run native ARM64 test-only Poly1305 streaming vs contiguous-with-copy vs prebuilt-upper-bound benchmark. Confirm packaging oracle, no production code change. Read real native measurements before deciding whether Poly1305 backend is worth prototyping; fullstack ARM64 profiling remains NOT_RUN. Prior headerMask -2.02% realpath rejected; all historical FAIL/NOT_RUN retained.",
+  "latest_log": "docs/devlog/20261010-222000-crypto-poly1305-packaging-native-diagnostic.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
