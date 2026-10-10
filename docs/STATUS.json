@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S4_Q_ABBA_REQUESTED_AFTER_120S_PILOT_PASS",
+    "phase": "FEC_SIMD_S4_Q120_ABBA_ACTIONS_RUNNING",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_REAL_BUSINESS_PILOT_PASS_SCOPED_S4_Q120_REQUESTED",
+      "state": "S3_Q1_PILOT_PASS_SCOPED_S4_Q120_ABBA_RUNNING",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3653,7 +3653,22 @@
         "s2_foundation": 38032963574,
         "s2_lifecycle": 38032963427,
         "s3": "PASS_SCOPED_120S_PILOT_RUN38038639170_A_B_VALID",
-        "s4": "Q120_REQUESTED_12_SERIAL_ABBA_3_CONTEXTS_NOT_YET_QUALIFIED",
+        "s4": {
+          "run_id": 38039151704,
+          "helper_sha": "5a3406fc249cbbfba28cd537cbc43f0110a2713e",
+          "state": "IN_PROGRESS_NO_MEASUREMENT_RESULT_YET",
+          "phase": "q120",
+          "mode": "ONE_JOB_SERIAL_ABBA",
+          "contexts": [
+            "Q1",
+            "Q2",
+            "Q3"
+          ],
+          "legs_requested": 12,
+          "legs_qualified": 0,
+          "b_source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+          "a_source": "a2db258b436a41fdee98c6c53abec9bab6ce600f"
+        },
         "s5": "NOT_RUN"
       },
       "cpu_gain": "PRELIMINARY_14P28_PERCENT_Q1_SINGLE_AB_ONLY_NOT_QUALIFIED",
@@ -3807,15 +3822,18 @@
       },
       "foundation_current": {
         "run_id": 38038639173,
-        "attempt1": "FAIL_LIFECYCLE_MATRIX_LANES3_TIMEOUT_3S",
-        "job_id": 114174308711,
-        "attempt2": "RERUN_REQUESTED_NOT_YET_CONCLUDED",
-        "notice": "Keep source-scoped FAIL; product SOURCE unchanged; no inherited PASS"
+        "first_attempt": "FAIL_LIFECYCLE_MATRIX_LANES3_TIMEOUT_3S",
+        "failed_job_id": 114174308711,
+        "rerun_attempt": 2,
+        "rerun_job_id": 114175473687,
+        "rerun_conclusion": "SUCCESS",
+        "qualifier": "SCOPED_RERUN_PASS_WITH_ORIGINAL_FAIL_RETAINED",
+        "notice": "Do not erase initial FAIL or claim absence of flakiness; no product SOURCE change"
       }
     }
   },
-  "next_task": "Review Q120 12-leg ABBA artifact/run after config nonce17; verify all 3 contexts Q1/Q2/Q3 4 legs each A-B-B-A same seed, actual netem and workloads, cpu/GiB, p99 including missing, drops, RSS/PSI, no less delivery. If any INVALID/FAIL stop and retain remaining NOT_RUN. Separately audit Foundation run38038639173 attempt2 after initial lanes3 test timeout; do not hide original fail. Do NOT advance to L until quality and repeatability gates satisfied; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-193000-fec-simd-q1-pilot-pass-and-q120-abba-trigger.md",
+  "next_task": "S4 Q120 is running in GitHub Actions run38039151704 helper SOURCE5a3406f: read exact final artifact before triggering L120/300s. Do not claim Q pass until all 12 A-B-B-A legs complete, quality/netem/cpu-GiB/RSS/p99/drops/cpu quota PSI comparable. S3 120s A/B pilot scoped PASS run38038639170, CPU gain single pair ~14.28% preliminary. Foundation run38038639173 first attempt lanes-3 FAIL, targeted rerun attempt2 success; keep both. L120, 300s, ARM native fullstack, P6 final pack, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-193500-fec-simd-q120-run-registered-foundation-retry.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

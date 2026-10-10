@@ -1,0 +1,6 @@
+# S4 Q120正式ABBA运行登记及Foundation首次FAIL/重试SUCCESS
+
+- 已在 `next/fec-simd-20261010` 以 helper `5a3406fc249cbbfba28cd537cbc43f0110a2713e` 的 config-only提交触发 [Actions 38039151704](https://github.com/lly8666/wobuzhidao/actions/runs/38039151704)，精确配置 `phase=q120,nonce17`。单个ubuntu-24.04 job依次Q1/Q2/Q3每组A→B→B→A，12×120s业务+3s drain、同Go1.23.12/seed/逻辑真实mixed/HTTP(S)/netem/hashes，A=`a2db258b436a41fdee98c6c53abec9bab6ce600f`、B=`7fb98fab79834a351a1dbe04eebb207f66bea28b`。截至本日志**仍IN_PROGRESS，0个正式leg可据完整artifact判PASS**。不能以绿色步骤或pilot代替完整比较。
+- 源冻结120s pilot [38038639170](https://github.com/lly8666/wobuzhidao/actions/runs/38038639170) 两段无损业务实际都VALID，首对B低约14.28% CPU-s/有效GiB是单AB观察，不是重复收益结论。完整收据 `docs/evidence/fec-simd-q1-pilot-38038639170-pass.json`。
+- 同一个helper上一轮 Foundation [38038639173](https://github.com/lly8666/wobuzhidao/actions/runs/38038639173) **attempt1 FAIL**，Ubuntu `TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-3` 在 `lifecycle_closure_test.go:248` 等待3s超时，job114174308711。针对该失败的原job重试 **attempt2 SUCCESS**，job114175473687；必须保留初次FAIL并说明重试才PASS，不能把此source写成“没有不稳定性”或用其替代真实Q性能资格。期间未改产品SOURCE。
+- Q若任一leg不完整/资源drop/注入不达标，维持FAIL/NOT_RUN，不跳过旧A不筛选幸存探针。Linux native ARM performance、L120、300s、P6发布配套与物理均NOT_RUN。E7约80秒下行继续OPEN_DEFERRED。
