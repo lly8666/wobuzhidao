@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_OLD_A_EXIT_SAFE_REASON_PREFLIGHT",
+    "phase": "FEC_SIMD_S3_LAST_DETAILED_A_STOP_DIAGNOSTIC_PILOT",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_OLD_A_EXIT_UNRESOLVED_SAFELY_REDACTED_ERROR_PREFLIGHT",
+      "state": "S3_OLD_A_UNRESOLVED_DIAGNOSTIC_ONLY",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3784,7 +3784,7 @@
           "reason": "STATIC_SYNTAX_ERROR_GENERATOR_240",
           "business": "NOT_RUN"
         },
-        "pilot": "REQUESTED_NONCE13_TYPED_PRODUCT_LOG",
+        "pilot": "REQUESTED_NONCE15_SCRUBBED_GO_FATAL_LINES",
         "latest_pilot": {
           "run_id": 38037784206,
           "artifact_id": 11664263694,
@@ -3802,12 +3802,18 @@
           "cpu": "NOT_MEASURED"
         },
         "new_finding": "Server emitted WBD_SERVER_STOPPED; joined fatal log includes connection and no-such-file terms. Distinguish runtime root error from teardown warning before changing FEC or quality gates.",
-        "next": "STATIC_PREFLIGHT_NONCE14_BOUNDED_REDACTED_LAST_FATAL_TEXT"
+        "next": "STATIC_PREFLIGHT_NONCE14_BOUNDED_REDACTED_LAST_FATAL_TEXT",
+        "safe_error_preflight": {
+          "run_id": 38038210129,
+          "helper_sha": "40ad22e37a3d0dbcb459c2425323f64684811714",
+          "conclusion": "SUCCESS",
+          "measurement": "NOT_RUN"
+        }
       }
     }
   },
-  "next_task": "After static preflight nonce14, run one targeted pilot with redacted fatal server.log lines (not raw logs) to distinguish runtime connection error from network teardown missing-file. If A remains invalid stop: do not fake A pass or start Q/L; S1/S2 core scoped PASS only.",
-  "latest_log": "docs/devlog/20261010-190000-fec-simd-old-a-server-error-token-findings.md",
+  "next_task": "Audit nonce15 15s Q1 A/B pilot artifact server sanitized fatal tail, private-log hash, complete receipt. If old A invalid, stop Q/L and diagnose specific source code; no more blind repetitions. Frozen SOURCE A/B unchanged; real CPU and p99 gain NOT_MEASURED; physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-190500-fec-simd-a-old-server-safe-error-pilot.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
