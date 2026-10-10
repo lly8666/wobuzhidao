@@ -1,0 +1,425 @@
+{
+  "schema": "wbd-fec-simd-q2observe300-audit/v1",
+  "identifiers": {
+    "repo": "lly8666/wobuzhidao",
+    "branch": "next/fec-simd-20261010",
+    "workflow_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38042928701",
+    "run_id": 38042928701,
+    "job_id": 114186617942,
+    "artifact_id": 11667730754,
+    "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38042928701/artifacts/11667730754",
+    "artifact_zip_sha256": "f86fbf388f287bce70314a8d6ec7f00a304473ac50ca3a35c6a3f53ba4d0d15a",
+    "measurement_helper_sha": "45b8e2a1d018630c70ead43aa9f7a506dd3f1417",
+    "old_source": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "new_source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+    "static_preflight_run": 38042849509
+  },
+  "protocol": {
+    "phase": "q2observe300",
+    "scope": "INDEPENDENT_DIAGNOSTIC_ALL_4_Q2_ABBA_LEGS",
+    "total_legs": 4,
+    "completed_legs": 4,
+    "not_run": 0,
+    "order": [
+      "A",
+      "B",
+      "B",
+      "A"
+    ],
+    "context": "Q2",
+    "mode": "normal",
+    "lanes": 1,
+    "fec": "20:20",
+    "one_way_delay_ms": 300,
+    "loss_percent_waveform": [
+      5,
+      20,
+      5
+    ],
+    "stage_duration_s": [
+      75,
+      150,
+      75
+    ],
+    "seed": 1844,
+    "duration_s_each_leg": 300,
+    "drain_s": 3,
+    "bidirectional_application_rate_mbps_each_direction": 10,
+    "workload": "mixed",
+    "transport": "real fullstack five isolated netns with original unchanged UDP,TCP,20 HTTP/HTTPS"
+  },
+  "result": {
+    "workflow_conclusion": "FAILURE",
+    "aggregate_classification": "FAIL_OR_NOT_RUN",
+    "original_quality_results": [
+      "FAIL",
+      "FAIL",
+      "VALID_OBSERVATION",
+      "FAIL"
+    ],
+    "all_four_stage_measurements_complete": true,
+    "all_four_sample_exit": 0,
+    "all_four_ledger_exit": 0,
+    "all_owned_cleanup_clean": true,
+    "all_tcp_hash_length_valid": true,
+    "all_http_https_20_of_20": true,
+    "all_local_packet_socket_and_link_drops_zero": true,
+    "all_strict_resource_errors_empty": true,
+    "strict_per_stage_probe_1pct_threshold": "UNCHANGED",
+    "quality_fail_retained": true,
+    "no_loss_relabeling": true
+  },
+  "legs": [
+    {
+      "id": "s01",
+      "label": "A",
+      "classification": "FAIL",
+      "issues": [
+        "5205_STAGE_PROBE_LOSS_OVER_1PCT_c2s_stress",
+        "5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress",
+        "5205_PROBE_TIMEOUT_OVER_1PCT_s2c"
+      ],
+      "cpu_s": 384.19,
+      "cpu_s_per_gib": 551.5490227501191,
+      "bytes": 747931470,
+      "probe_p99_returned_only_ms": {
+        "c2s": 641.290406,
+        "s2c": 639.079083
+      },
+      "probe_missing": {
+        "c2s": 10,
+        "s2c": 15
+      },
+      "udp_missing": {
+        "c2s": 1,
+        "s2c": 41
+      },
+      "stress_probe_missing": {
+        "c2s": 10,
+        "s2c": 14
+      },
+      "stress_udp_missing": {
+        "c2s": 1,
+        "s2c": 41
+      },
+      "max_hwm_mib": {
+        "client": 45.53125,
+        "server": 45.69921875
+      },
+      "psi_avg10_max": 35.75,
+      "netem_stress_percent": {
+        "c2s": 20.01600902129984,
+        "s2c": 20.04867166903265
+      }
+    },
+    {
+      "id": "s02",
+      "label": "B",
+      "classification": "FAIL",
+      "issues": [
+        "5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress"
+      ],
+      "cpu_s": 334.31,
+      "cpu_s_per_gib": 479.91822997335055,
+      "bytes": 747966230,
+      "probe_p99_returned_only_ms": {
+        "c2s": 635.131843,
+        "s2c": 637.598302
+      },
+      "probe_missing": {
+        "c2s": 5,
+        "s2c": 14
+      },
+      "udp_missing": {
+        "c2s": 2,
+        "s2c": 9
+      },
+      "stress_probe_missing": {
+        "c2s": 4,
+        "s2c": 12
+      },
+      "stress_udp_missing": {
+        "c2s": 1,
+        "s2c": 9
+      },
+      "max_hwm_mib": {
+        "client": 47.92578125,
+        "server": 46.42578125
+      },
+      "psi_avg10_max": 15.78,
+      "netem_stress_percent": {
+        "c2s": 20.015288640621055,
+        "s2c": 20.048925997403845
+      }
+    },
+    {
+      "id": "s03",
+      "label": "B",
+      "classification": "VALID_OBSERVATION",
+      "issues": [],
+      "cpu_s": 333.86,
+      "cpu_s_per_gib": 479.27108744459713,
+      "bytes": 747968018,
+      "probe_p99_returned_only_ms": {
+        "c2s": 637.687539,
+        "s2c": 635.731798
+      },
+      "probe_missing": {
+        "c2s": 5,
+        "s2c": 5
+      },
+      "udp_missing": {
+        "c2s": 3,
+        "s2c": 2
+      },
+      "stress_probe_missing": {
+        "c2s": 5,
+        "s2c": 5
+      },
+      "stress_udp_missing": {
+        "c2s": 3,
+        "s2c": 2
+      },
+      "max_hwm_mib": {
+        "client": 47.5390625,
+        "server": 48.19140625
+      },
+      "psi_avg10_max": 15.81,
+      "netem_stress_percent": {
+        "c2s": 20.015610030119525,
+        "s2c": 20.049677964419068
+      }
+    },
+    {
+      "id": "s04",
+      "label": "A",
+      "classification": "FAIL",
+      "issues": [
+        "5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress"
+      ],
+      "cpu_s": 385.69,
+      "cpu_s_per_gib": 553.6751294691245,
+      "bytes": 747968370,
+      "probe_p99_returned_only_ms": {
+        "c2s": 637.193005,
+        "s2c": 640.286495
+      },
+      "probe_missing": {
+        "c2s": 7,
+        "s2c": 11
+      },
+      "udp_missing": {
+        "c2s": 2,
+        "s2c": 1
+      },
+      "stress_probe_missing": {
+        "c2s": 7,
+        "s2c": 11
+      },
+      "stress_udp_missing": {
+        "c2s": 2,
+        "s2c": 1
+      },
+      "max_hwm_mib": {
+        "client": 45.03515625,
+        "server": 45.7890625
+      },
+      "psi_avg10_max": 17.72,
+      "netem_stress_percent": {
+        "c2s": 20.0151950025325,
+        "s2c": 20.049827501997896
+      }
+    }
+  ],
+  "loss_full_window_by_source_direction_medium": {
+    "A": {
+      "c2s": {
+        "udp": {
+          "sent": 691343,
+          "missing": 3,
+          "loss_pct": 0.00043393800183121837
+        },
+        "probe": {
+          "sent": 3000,
+          "missing": 17,
+          "loss_pct": 0.5666666666666667
+        }
+      },
+      "s2c": {
+        "udp": {
+          "sent": 691344,
+          "missing": 42,
+          "loss_pct": 0.006075123238214261
+        },
+        "probe": {
+          "sent": 2990,
+          "missing": 26,
+          "loss_pct": 0.8695652173913043
+        }
+      }
+    },
+    "B": {
+      "c2s": {
+        "udp": {
+          "sent": 691344,
+          "missing": 5,
+          "loss_pct": 0.0007232289569302692
+        },
+        "probe": {
+          "sent": 3000,
+          "missing": 10,
+          "loss_pct": 0.3333333333333333
+        }
+      },
+      "s2c": {
+        "udp": {
+          "sent": 691343,
+          "missing": 11,
+          "loss_pct": 0.0015911060067144674
+        },
+        "probe": {
+          "sent": 2990,
+          "missing": 19,
+          "loss_pct": 0.6354515050167224
+        }
+      }
+    }
+  },
+  "loss_stress_20pct_by_source_direction_medium": {
+    "A": {
+      "c2s": {
+        "udp": {
+          "sent": 345670,
+          "missing": 3,
+          "loss_pct": 0.0008678797697225678,
+          "missing_by_size": {
+            "96": 2,
+            "256": 1
+          }
+        },
+        "probe": {
+          "sent": 1500,
+          "missing": 17,
+          "loss_pct": 1.1333333333333333
+        }
+      },
+      "s2c": {
+        "udp": {
+          "sent": 345670,
+          "missing": 42,
+          "loss_pct": 0.012150316776115949,
+          "missing_by_size": {
+            "96": 1,
+            "256": 14,
+            "512": 10,
+            "1000": 5,
+            "1372": 10,
+            "4068": 2
+          }
+        },
+        "probe": {
+          "sent": 1500,
+          "missing": 25,
+          "loss_pct": 1.6666666666666667
+        }
+      }
+    },
+    "B": {
+      "c2s": {
+        "udp": {
+          "sent": 345671,
+          "missing": 4,
+          "loss_pct": 0.0011571696786829096,
+          "missing_by_size": {
+            "96": 3,
+            "256": 1
+          }
+        },
+        "probe": {
+          "sent": 1500,
+          "missing": 9,
+          "loss_pct": 0.6
+        }
+      },
+      "s2c": {
+        "udp": {
+          "sent": 345669,
+          "missing": 11,
+          "loss_pct": 0.003182235028307427,
+          "missing_by_size": {
+            "96": 11
+          }
+        },
+        "probe": {
+          "sent": 1500,
+          "missing": 17,
+          "loss_pct": 1.1333333333333333
+        }
+      }
+    }
+  },
+  "loss_full_window_combined_directions": {
+    "A": {
+      "udp": {
+        "sent": 1382687,
+        "missing": 45,
+        "loss_pct": 0.003254532659958472
+      },
+      "probe": {
+        "sent": 5990,
+        "missing": 43,
+        "loss_pct": 0.7178631051752922
+      }
+    },
+    "B": {
+      "udp": {
+        "sent": 1382687,
+        "missing": 16,
+        "loss_pct": 0.0011571671679852346
+      },
+      "probe": {
+        "sent": 5990,
+        "missing": 29,
+        "loss_pct": 0.48414023372287146
+      }
+    }
+  },
+  "performance_cost_observation": {
+    "A": {
+      "cpu_s_mean": 384.94,
+      "cpu_s_per_delivered_gib_mean": 552.6120761096217,
+      "delivered_bytes_mean": 747949920
+    },
+    "B": {
+      "cpu_s_mean": 334.085,
+      "cpu_s_per_delivered_gib_mean": 479.59465870897384,
+      "delivered_bytes_mean": 747967124
+    },
+    "b_vs_a_cpu_s_gib_reduction_pct": 13.213141832637666,
+    "qualification": "DIAGNOSTIC_ONLY_NOT_QUALIFIED_Q2_GAIN_3_OF_4_LEGS_FAIL"
+  },
+  "analysis": [
+    "All four real 300s legs ran; three original FAIL and one scoped VALID. Continuing across solely 5205 probe delivery quality FAIL did not change any original hard gate; workflow still FAIL.",
+    "Both A and B have observable stochastic residual loss under the same nominal 20pct outer packet erasure; no proof of weak-network quality PASS on all runs.",
+    "New B observed fewer overall app UDP missing datagrams (16 vs A45) and probe missing (29 vs A43) across pooled two legs per product, but more c2s UDP datagram losses (5 vs A3). Do not infer deterministic or repeated benefit from a one-runner four-leg sample.",
+    "Global probe missing rate pooled under 1pct for each product, but original stress phase >1pct separately at some legs. Never average away original phase FAIL.",
+    "A stress s2c UDP missing 42 included broad 256/512/1000/1372/4068 distribution, whereas B stress s2c missing11 all 96B; no proof SIMD alone caused this, no fitted causal model.",
+    "Potential CPU/GiB B reduction 13.213pct with near-identical submitted and delivered business, but product qualification is FALSE because three quality gate failures, plus host PSI variability and CPU quota not known.",
+    "Returned-only p99 ~635-641ms must be paired with exact missing probe rates. No returned p99 is ever called all-sent p99.",
+    "No local socket/raw/link drop, no TCP hash mismatch, HTTPS all 20/20 each, netem stress c2s about 20.015% s2c about 20.049% each run, 3s drain exact; no basis to call this infrastructure-invalid."
+  ],
+  "original_evidence_and_followup": {
+    "original_Q120_fail_run": 38039151704,
+    "historical_matched_single_A_fail_run": 38041440305,
+    "Q1_ABBA_CPU_gain_single_host_percent": 10.923,
+    "Q2_qualified": "FAIL",
+    "Q2_B_measured_under_observer": "YES_WITH_ONE_FAIL_ONE_PASS",
+    "Q3": "NOT_RUN",
+    "L120": "NOT_RUN",
+    "arm64_real_fullstack": "NOT_RUN",
+    "confirm300_all_Q": "NOT_RUN",
+    "P6": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "E7": "OPEN_DEFERRED"
+  }
+}

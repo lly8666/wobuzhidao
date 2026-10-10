@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_Q2_OBSERVE300_ALL_ABBA_ACTIONS_RUNNING",
+    "phase": "FEC_SIMD_S4_Q2_OBSERVE300_FULL_ABBA_AUDITED_THREE_ORIGINAL_FAILS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S4_Q1_ABBA_LOCAL_PASS_Q2_OLD_A_FAIL_FULL_300S_DIAGNOSTIC_ABBA_PENDING",
+      "state": "S4_Q1_SINGLE_HOST_ABBA_SCOPED_PASS_Q2_300S_ALL_FOUR_DIAGNOSTIC_MEASURED_THREE_REAL_QUALITY_FAIL",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3670,10 +3670,10 @@
         },
         "s5": "NOT_RUN"
       },
-      "cpu_gain": "Q1_SINGLE_HOST_ABBA_10P923_PERCENT_REDUCTION_ONLY_NOT_GLOBAL_Q2_B_NOT_RUN",
+      "cpu_gain": "Q1_SINGLE_HOST_ABBA_VALID_10P923_PERCENT; Q2_300S_DIAGNOSTIC_13P213_PERCENT_B_LOWER_COST_BUT_3_OF_4_QUALITY_FAIL_NOT_QUALIFIED",
       "physical": "NOT_RUN",
       "selected_route": "S1 SIMD span encoding/recovery; S2 custom-matrix single-worker fused full-block encoding; preserve active partial and measure before retaining a backend.",
-      "same_runner_comparison": "Q1 ONLY VALID SINGLE-RUN ABBA B CPU COST -10.923%; Q2 old A 20pct stress probe loss violates 1pct gate; remaining Q2/Q3 NOT_RUN; L120/300s NOT_RUN",
+      "same_runner_comparison": "Q1 120S ABBA VALID -10.923pct CPU/GiB; Q2 independent 300s A-B-B-A ran all four with 3 original probe quality FAIL, descriptive -13.213pct CPU/GiB B not qualified. Overall UDP loss A45/1382687 B16/1382687; probes A43/5990 B29/5990, phase stress still >1pct.",
       "preserve": "Immediate systematic; no cross-business HOL; all parity profiles and min(N,P); current32ms/3s lifecycle; ownership/late-first-arrival; immutable repair/generation/MTU and isolation.",
       "previous_task_preserved_as_history": {
         "working_branch": "experiment/fec-policy-sequential-20261009",
@@ -3902,7 +3902,7 @@
         "explanation": "VALID_OLD_A_300S_REAL_LOSS_QUALITY_FAIL_NO_B_MEASUREMENT"
       },
       "q2_loss_observation": {
-        "state": "ACTION_IN_PROGRESS_NO_MEASUREMENTS_YET",
+        "state": "COMPLETE_4_LEGS_3_FAIL_1_VALID",
         "phase": "q2observe300",
         "preflight_nonce": 20,
         "planned_measurement_nonce": 21,
@@ -3944,12 +3944,148 @@
         "previous_failures_preserved": [
           38039151704,
           38041440305
-        ]
+        ],
+        "job_id": 114186617942,
+        "artifact_id": 11667730754,
+        "workflow_conclusion": "failure",
+        "original_classifications": [
+          "FAIL",
+          "FAIL",
+          "VALID_OBSERVATION",
+          "FAIL"
+        ],
+        "all_four_measurable": true,
+        "all_four_legs_ran": true,
+        "not_run": 0,
+        "leg_failures": 3,
+        "leg_valid": 1,
+        "whole_window_combined_directions": {
+          "A": {
+            "udp": {
+              "sent": 1382687,
+              "missing": 45,
+              "loss_pct": 0.003254532659958472
+            },
+            "probe": {
+              "sent": 5990,
+              "missing": 43,
+              "loss_pct": 0.7178631051752922
+            }
+          },
+          "B": {
+            "udp": {
+              "sent": 1382687,
+              "missing": 16,
+              "loss_pct": 0.0011571671679852346
+            },
+            "probe": {
+              "sent": 5990,
+              "missing": 29,
+              "loss_pct": 0.48414023372287146
+            }
+          }
+        },
+        "stress_20pct": {
+          "A": {
+            "c2s": {
+              "udp": {
+                "sent": 345670,
+                "missing": 3,
+                "loss_pct": 0.0008678797697225678,
+                "missing_by_size": {
+                  "96": 2,
+                  "256": 1
+                }
+              },
+              "probe": {
+                "sent": 1500,
+                "missing": 17,
+                "loss_pct": 1.1333333333333333
+              }
+            },
+            "s2c": {
+              "udp": {
+                "sent": 345670,
+                "missing": 42,
+                "loss_pct": 0.012150316776115949,
+                "missing_by_size": {
+                  "96": 1,
+                  "256": 14,
+                  "512": 10,
+                  "1000": 5,
+                  "1372": 10,
+                  "4068": 2
+                }
+              },
+              "probe": {
+                "sent": 1500,
+                "missing": 25,
+                "loss_pct": 1.6666666666666667
+              }
+            }
+          },
+          "B": {
+            "c2s": {
+              "udp": {
+                "sent": 345671,
+                "missing": 4,
+                "loss_pct": 0.0011571696786829096,
+                "missing_by_size": {
+                  "96": 3,
+                  "256": 1
+                }
+              },
+              "probe": {
+                "sent": 1500,
+                "missing": 9,
+                "loss_pct": 0.6
+              }
+            },
+            "s2c": {
+              "udp": {
+                "sent": 345669,
+                "missing": 11,
+                "loss_pct": 0.003182235028307427,
+                "missing_by_size": {
+                  "96": 11
+                }
+              },
+              "probe": {
+                "sent": 1500,
+                "missing": 17,
+                "loss_pct": 1.1333333333333333
+              }
+            }
+          }
+        },
+        "aggregate_cpu_s_per_gib": {
+          "A": {
+            "cpu_s_mean": 384.94,
+            "cpu_s_per_delivered_gib_mean": 552.6120761096217,
+            "delivered_bytes_mean": 747949920
+          },
+          "B": {
+            "cpu_s_mean": 334.085,
+            "cpu_s_per_delivered_gib_mean": 479.59465870897384,
+            "delivered_bytes_mean": 747967124
+          },
+          "b_vs_a_cpu_s_gib_reduction_pct": 13.213141832637666,
+          "qualification": "DIAGNOSTIC_ONLY_NOT_QUALIFIED_Q2_GAIN_3_OF_4_LEGS_FAIL"
+        },
+        "binary_source_frozen": true,
+        "netem_actual_stress": "20.015%-20.050% each observed leg/direction",
+        "all_web_tcp_verified": true,
+        "all_raw_socket_link_drops_zero": true,
+        "cleanup": "CLEAN",
+        "audit": "docs/evidence/fec-simd-q2observe300-38042928701-complete-audit.json",
+        "original_q120_fail_retained": true,
+        "physical": "NOT_RUN",
+        "q2_full_qualification": "FAIL_NOT_REPAIRED_BY_POOLING"
       }
     }
   },
-  "next_task": "Read Actions run38042928701 helper45b8e2a1d018630c70ead43aa9f7a506dd3f1417 final artifact loss-overview.json + ab-manifest + s01..s04 case receipts, summary, ledger. Phase q2observe300 4x300s A-B-B-A identical Normal1/20:20/5-20-5 75/150/75 seed1844. Continue across original quality FAIL ONLY on allowlisted 5205 UDP/probe missing, stop on infra/integrity/resource/cleanup. Report all-window separate UDP/probe loss fractions and by stress phase, source/dir/size and original flags. If action still running, no finished outcomes claimed. Original Q120 FAIL and historic300 A FAIL preserved; native ARM/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-214000-fec-simd-q2-observe300-run-registered.md",
+  "next_task": "Q2 300s complete diagnostic Actions38042928701 audited: all four ran A FAIL/B FAIL/B VALID/A FAIL. Full-window combined both directions A app UDP45/1382687 vs B16/1382687, probe A43/5990 vs B29/5990; 20pct stress A c2s probe17/1500 s2c25/1500, B c2s9/1500 s2c17/1500; stage hard FAIL preserved. No socket/link drops, all TCP/HTTPS verified, cleanup clean. CPU-s per delivered GiB A552.612, B479.595 => descriptive B lower13.213%, NOT QUALIFIED because three quality FAIL and one runner. Next determine whether stress-stage probe reliability is acceptable spec, investigate 96B/partial parity and baseline variability without weakening original hard gate; don't claim global SIMD benefit or trigger formal Q3/L/300s without scoped decision. Q1 -10.923pct remains valid only single-runner lossless. ARM native realpath, P6, physical NOT_RUN, E7 OPEN_DEFERRED.",
+  "latest_log": "docs/devlog/20261010-221500-fec-simd-q2observe300-all-four-loss-audit.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
