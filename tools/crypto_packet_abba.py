@@ -278,7 +278,7 @@ def may_observe_next(phase,r):
 
 def loss_overview(root,cases,receipts):
  byid={r["case"]["id"]:r for r in receipts}
- out={"schema":"wbd-fec-simd-all-legs-loss/v1","quality_gates_unchanged":True,
+ out={"schema":"wbd-crypto-packet-all-legs-loss/v1","quality_gates_unchanged":True,
       "missing_is_never_zero":True,"leg_details":[],"aggregate_by_label_direction_medium_phase":{},
       "not_measurable":[]}
  total=out["aggregate_by_label_direction_medium_phase"]
@@ -380,10 +380,10 @@ def main():
  p.add_argument("--mode",choices=("verify","execute"),required=True)
  x=p.parse_args();phase=conf()["phase"]
  if os.environ.get("GITHUB_ACTIONS")=="true":
-  if os.environ.get("GITHUB_REF_NAME")!="next/fec-simd-20261010" or os.environ.get("GITHUB_EVENT_NAME")!="push":
+  if os.environ.get("GITHUB_REF_NAME")!="next/crypto-packet-efficiency-20261010" or os.environ.get("GITHUB_EVENT_NAME")!="push":
    raise ValueError("only exact config push in GitHub Actions allowed")
  if x.mode=="verify":
-  print("FEC_SIMD_AB_EXACT_PLAN",phase,A,B);return
+  print("CRYPTO_PACKET_ABBA_EXACT_PLAN",phase,A,B);return
  root=Path(x.root).resolve();root.mkdir(parents=True,exist_ok=True)
  helper=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
  cases=plan(phase)
@@ -400,7 +400,7 @@ def main():
    if word not in script:raise ValueError("historical static script missing "+word)
   observe=prepared(dict(plan("q2observe300")[0],id="observe-preflight"),root)
   if "--simd-ab" not in (observe/"generated.sh").read_text():raise ValueError("observe script missing")
-  print("FEC_SIMD_PREFLIGHT_STATIC_ONLY");return
+  print("CRYPTO_PACKET_PREFLIGHT_STATIC_ONLY");return
  for label in ("A","B"):
   for role in ("client","server"):
    if not (root/"binaries"/label/("wbd-"+role)).is_file():raise ValueError("binary not frozen")
@@ -429,6 +429,6 @@ def main():
     time.sleep(3)
   finally:
    result=aggregate(root,phase,cases,rows,helper)
- if not result:raise SystemExit("FEC_ABBA_FAIL_OR_NOT_RUN")
- print("FEC_ABBA_SCOPED_VALID_NOT_PHYSICAL",flush=True)
+ if not result:raise SystemExit("CRYPTO_PACKET_ABBA_FAIL_OR_NOT_RUN")
+ print("CRYPTO_PACKET_ABBA_SCOPED_VALID_NOT_PHYSICAL",flush=True)
 if __name__=="__main__":main()

@@ -1,0 +1,61 @@
+{
+  "schema": "wbd-crypto-packet-header-mask-c1-receipt/v1",
+  "source_sha": "b28c273f5ce7265157f2ee1e857906821c048532",
+  "baseline_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "actions_core": {
+    "run_id": 38047766394,
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38047766394",
+    "conclusion": "success",
+    "jobs": {
+      "linux_amd64": "success",
+      "windows_amd64": "success",
+      "linux_arm64_native": "success"
+    },
+    "coverage": "reference 20-round oracle, counter boundaries, short lengths, concurrent/race, noasm/purego, legacy unit, targeted fuzz"
+  },
+  "actions_lifecycle": {
+    "run_id": 38047766410,
+    "conclusion": "success"
+  },
+  "actions_foundation": {
+    "run_id": 38047766393,
+    "conclusion": "failure",
+    "reason": "new ABBA policy self-check rejected valid single job and strict shell; no product failure"
+  },
+  "micro_benchmark": {
+    "unit": "ns/op",
+    "repetitions": 3,
+    "amd64": {
+      "candidate": [
+        298.3,
+        273.2,
+        273.1
+      ],
+      "reference": [
+        122.7,
+        121.5,
+        121.4
+      ],
+      "median_ratio": 2.248559670781893
+    },
+    "arm64_native": {
+      "candidate": [
+        363.5,
+        363.6,
+        363.6
+      ],
+      "reference": [
+        243.9,
+        243.9,
+        244
+      ],
+      "median_ratio": 1.4907749077490775
+    },
+    "allocs_per_op": 0,
+    "bytes_per_op": 0,
+    "classification": "NEGATIVE_OPTIMIZATION_REJECT_INDEXED_POINTER_QUARTER_ROUNDS"
+  },
+  "next_action": "Register-local quarterRound candidate copied from BSD-3 licensed golang.org/x/crypto v0.38.0 scheduling, requires new Actions before retention. No full business performance claim.",
+  "physical": "NOT_RUN",
+  "q2_original_quality_fails": "PRESERVED"
+}

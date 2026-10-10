@@ -1,3 +1,7 @@
+// Copyright 2016 The Go Authors. All rights reserved.
+// Derived from golang.org/x/crypto/chacha20 v0.38.0 (BSD-3-Clause).
+// License: https://github.com/golang/crypto/blob/v0.38.0/LICENSE
+// The implementation retains RFC 8439's entire 20-round block function.
 package tlsrecord
 
 import (
@@ -5,75 +9,55 @@ import (
     "math/bits"
 )
 
-// headerMaskKey holds only immutable ChaCha key words. A Sealer/Opener owns
-// this value for its lifetime; records provide fresh independent sample state.
-// RFC 8439 section 2.3 (IETF ChaCha20) and x/crypto/chacha20 v0.38.0 are
-// the independent algorithm/reference provenance. No stream state is shared.
-// This portable scalar path intentionally makes NO ISA-acceleration claim.
-type headerMaskKey struct {
-    words [8]uint32
-}
+// headerMaskKey contains parsed immutable HP key words. Every invocation
+// below uses a fresh sample counter and nonce from its own record.
+type headerMaskKey struct { words [8]uint32 }
 
 func prepareHeaderMaskKey(key [32]byte) headerMaskKey {
     var h headerMaskKey
-    for i := 0; i < len(h.words); i++ {
-        h.words[i] = binary.LittleEndian.Uint32(key[i*4 : i*4+4])
-    }
+    for i:=0;i<8;i++ { h.words[i]=binary.LittleEndian.Uint32(key[4*i:4*i+4]) }
     return h
 }
 
-// chachaHeaderQuarter preserves all operations/rotations of RFC 8439.
-// Four column and four diagonal quarter-rounds form one double round.
-func chachaHeaderQuarter(x *[16]uint32, a, b, c, d int) {
-    x[a] += x[b]
-    x[d] = bits.RotateLeft32(x[d]^x[a], 16)
-    x[c] += x[d]
-    x[b] = bits.RotateLeft32(x[b]^x[c], 12)
-    x[a] += x[b]
-    x[d] = bits.RotateLeft32(x[d]^x[a], 8)
-    x[c] += x[d]
-    x[b] = bits.RotateLeft32(x[b]^x[c], 7)
+// Reuses the widely reviewed x/crypto scalar quarter-round scheduling,
+// with native Go locals instead of indexed pointer-to-array mutations.
+// The previous candidate's 8 indexed pointer quarter-round calls were slow
+// on both AMD64 and ARM64; this candidate is unqualified until Actions micro.
+func headerMaskQuarterRound(a,b,c,d uint32) (uint32,uint32,uint32,uint32) {
+    a+=b; d=bits.RotateLeft32(d^a,16)
+    c+=d; b=bits.RotateLeft32(b^c,12)
+    a+=b; d=bits.RotateLeft32(d^a,8)
+    c+=d; b=bits.RotateLeft32(b^c,7)
+    return a,b,c,d
 }
 
-func headerMaskPrepared(h headerMaskKey, ciphertext []byte) ([8]byte, error) {
-    if len(ciphertext) < 16 {
-        return [8]byte{}, ErrInvalidLength
+func headerMaskPrepared(h headerMaskKey, ciphertext []byte) ([8]byte,error) {
+    if len(ciphertext)<16 {return [8]byte{},ErrInvalidLength}
+    const c0,c1,c2,c3 uint32 = 0x61707865,0x3320646e,0x79622d32,0x6b206574
+    x0,x1,x2,x3:=c0,c1,c2,c3
+    x4,x5,x6,x7:=h.words[0],h.words[1],h.words[2],h.words[3]
+    x8,x9,x10,x11:=h.words[4],h.words[5],h.words[6],h.words[7]
+    x12:=binary.LittleEndian.Uint32(ciphertext[0:4])
+    x13:=binary.LittleEndian.Uint32(ciphertext[4:8])
+    x14:=binary.LittleEndian.Uint32(ciphertext[8:12])
+    x15:=binary.LittleEndian.Uint32(ciphertext[12:16])
+    for i:=0;i<10;i++ {
+        x0,x4,x8,x12=headerMaskQuarterRound(x0,x4,x8,x12)
+        x1,x5,x9,x13=headerMaskQuarterRound(x1,x5,x9,x13)
+        x2,x6,x10,x14=headerMaskQuarterRound(x2,x6,x10,x14)
+        x3,x7,x11,x15=headerMaskQuarterRound(x3,x7,x11,x15)
+        x0,x5,x10,x15=headerMaskQuarterRound(x0,x5,x10,x15)
+        x1,x6,x11,x12=headerMaskQuarterRound(x1,x6,x11,x12)
+        x2,x7,x8,x13=headerMaskQuarterRound(x2,x7,x8,x13)
+        x3,x4,x9,x14=headerMaskQuarterRound(x3,x4,x9,x14)
     }
-    // The sample is EXACTLY ciphertext[0:16], with little-endian counter
-    // and 96-bit nonce. Nonce/counter must not be retained across records.
-    var state = [16]uint32{
-        0x61707865, 0x3320646e, 0x79622d32, 0x6b206574,
-        h.words[0], h.words[1], h.words[2], h.words[3],
-        h.words[4], h.words[5], h.words[6], h.words[7],
-        binary.LittleEndian.Uint32(ciphertext[0:4]),
-        binary.LittleEndian.Uint32(ciphertext[4:8]),
-        binary.LittleEndian.Uint32(ciphertext[8:12]),
-        binary.LittleEndian.Uint32(ciphertext[12:16]),
-    }
-    x := state
-    // ChaCha20 means exactly 20 rounds, regardless of an 8-byte result.
-    for i := 0; i < 10; i++ {
-        chachaHeaderQuarter(&x, 0, 4, 8, 12)
-        chachaHeaderQuarter(&x, 1, 5, 9, 13)
-        chachaHeaderQuarter(&x, 2, 6, 10, 14)
-        chachaHeaderQuarter(&x, 3, 7, 11, 15)
-        chachaHeaderQuarter(&x, 0, 5, 10, 15)
-        chachaHeaderQuarter(&x, 1, 6, 11, 12)
-        chachaHeaderQuarter(&x, 2, 7, 8, 13)
-        chachaHeaderQuarter(&x, 3, 4, 9, 14)
-    }
-    // Only first two words of this exact one-block output are consumed.
+    // Only two output words are required; every round above is required.
     var mask [8]byte
-    binary.LittleEndian.PutUint32(mask[0:4], x[0]+state[0])
-    binary.LittleEndian.PutUint32(mask[4:8], x[1]+state[1])
-    return mask, nil
+    binary.LittleEndian.PutUint32(mask[:4],x0+c0)
+    binary.LittleEndian.PutUint32(mask[4:],x1+c1)
+    return mask,nil
 }
-
-// headerMask retains the original internal API for direct callers and
-// golden vectors; production Sealer/Opener cache parsed immutable key words.
-func headerMask(key [32]byte, ciphertext []byte) ([8]byte, error) {
-    if len(ciphertext) < 16 {
-        return [8]byte{}, ErrInvalidLength
-    }
-    return headerMaskPrepared(prepareHeaderMaskKey(key), ciphertext)
+func headerMask(key [32]byte,ciphertext []byte) ([8]byte,error) {
+    if len(ciphertext)<16 {return [8]byte{},ErrInvalidLength}
+    return headerMaskPrepared(prepareHeaderMaskKey(key),ciphertext)
 }
