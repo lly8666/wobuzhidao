@@ -38,6 +38,7 @@ type ExporterParams struct {
 	TunnelID         []byte
 	ClientLimit      uint16
 	ServerLimit      uint16
+	Policy           AdmissionPolicy
 }
 
 type ClientSession struct {
@@ -236,13 +237,18 @@ func deriveRecordKeys(exporter keyingMaterialExporter, params ExporterParams) (t
 	if exporter == nil {
 		return tlsrecord.KeyPair{}, errors.New("realityfront: nil TLS exporter")
 	}
-	contextHash, err := tlsrecord.ExporterContextHash(
-		params.Version,
-		params.IncarnationNonce,
-		params.TunnelID,
-		params.ClientLimit,
-		params.ServerLimit,
-	)
+	var contextHash [32]byte
+	var err error
+	if params.Version == RecordVersionV3 {
+		policy, e := params.Policy.Encode()
+		if e != nil { return tlsrecord.KeyPair{}, e }
+		contextHash, err = tlsrecord.ExporterContextHashV3(params.Version, params.IncarnationNonce,
+			params.TunnelID, params.ClientLimit, params.ServerLimit, policy[:])
+	} else {
+		contextHash, err = tlsrecord.ExporterContextHash(
+			params.Version, params.IncarnationNonce, params.TunnelID,
+			params.ClientLimit, params.ServerLimit)
+	}
 	if err != nil {
 		return tlsrecord.KeyPair{}, err
 	}
@@ -253,6 +259,9 @@ func deriveRecordKeys(exporter keyingMaterialExporter, params ExporterParams) (t
 	)
 	if err != nil {
 		return tlsrecord.KeyPair{}, err
+	}
+	if params.Version == RecordVersionV3 {
+		return tlsrecord.DeriveKeysV3(master, params.IncarnationNonce, params.Policy.Cipher)
 	}
 	return tlsrecord.DeriveKeys(master, params.IncarnationNonce)
 }

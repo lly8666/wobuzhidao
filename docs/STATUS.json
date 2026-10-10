@@ -9,18 +9,18 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_PLAN_READY_NOT_IMPLEMENTED",
+    "phase": "N0_V3_FIXED_OFF_CHACHA_CODE_PENDING_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": null,
-    "implementation": "NOT_STARTED",
+    "implementation": "PARTIAL_N0_UNVERIFIED",
     "core": "NOT_RUN_NEW_SOURCE",
     "ordinary_performance": "NOT_RUN_NEW_SOURCE",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
-      "N0_admission": "NOT_STARTED",
+      "N0_admission": "IN_PROGRESS_PROTOCOL_WIRING_UNVERIFIED",
       "N1_quality": "NOT_STARTED",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
@@ -48,15 +48,15 @@
     "performance_policy": "One SOURCE/config/seed/scenario and one measurement job per Action; no inherited serial exception.",
     "parameter_proposals": "Plan only; PARAMETERS currently lists actual implemented capability. Update all entrances when implemented."
   },
-  "next_task": "N0: audit admission/Tunnel policy and effective fixed FEC wiring; define protected V3 short capability block + canonical exporter binding, preserve old vectors, add per-client negotiation and exact request/reply tests in Actions. Start on this branch, one atomic devlog+STATUS commit; do not dispatch old SIMD Q2 or deploy machines.",
-  "latest_log": "docs/devlog/20261010-222000-adaptive-fec-aes-tun-plan.md",
-  "qualification_scope": "PLANNING_ONLY; NO_NEW_PRODUCT_PASS",
+  "next_task": "N0: inspect first pushed Actions source, repair any unit/race regressions; complete per-Tunnel policy conflict fencing across rotation, real-path first S2C/C2S verified FEC, explicit server allowlist. Only then unlock N1. Do not claim N0 PASS.",
+  "latest_log": "docs/devlog/20261010-223500-n0-v3-fixed-off-code.md",
+  "qualification_scope": "N0_PARTIAL_SOURCE_PENDING_ACTIONS_NO_NEW_PRODUCT_PASS",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "Historical parent scope only; see archived STATUS. Not current qualification.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
-    "N0 protected per-client admission contract"
+    "N0 V3 fixed/off ChaCha protected codec/exporter and per-lane handoff; ACTIONS pending"
   ],
   "actions": [],
   "required_read_set": [

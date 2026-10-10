@@ -53,10 +53,17 @@ type ClientLaneParams struct {
 // SYN-ACK peer MSS observation; receive MTU is bounded by the MSS that this WBD
 // client advertised on its SYN.
 func ClientLaneConfigFromAdmission(session *realityfront.ClientAdmissionSession, params ClientLaneParams) (LaneConfig, error) {
-	if session == nil || session.Negotiated.RecordVersion != realityfront.RecordVersionV2 {
+	if session == nil || (session.Negotiated.RecordVersion != realityfront.RecordVersionV2 && session.Negotiated.RecordVersion != realityfront.RecordVersionV3) {
 		return LaneConfig{}, ErrAdmissionHandoff
 	}
 	n := session.Negotiated
+	if n.RecordVersion == realityfront.RecordVersionV3 {
+		if err := n.Policy.SupportedNow(); err != nil { return LaneConfig{}, ErrAdmissionHandoff }
+		params.ParityShards = n.Policy.EffectiveParity()
+		var err error
+		params.FlushAfter, params.MaxBlocks, err = FixedFECRuntimeDefaults(params.ParityShards)
+		if err != nil { return LaneConfig{}, err }
+	}
 	peerMSS := params.PeerMSS
 	if !params.PeerMSSSet {
 		peerMSS = faketcp.DefaultIPv4PeerMSS
@@ -140,10 +147,17 @@ type ServerLaneParams struct {
 // the existing FakeTCP association without modifying P2 ownership. The server
 // sends under ClientLimit/S2C and receives under ServerLimit/C2S.
 func ServerLaneConfigFromAdmission(session *realityfront.ServerAdmissionSession, assoc *faketcp.ServerAssociation, params ServerLaneParams) (LaneConfig, error) {
-	if session == nil || assoc == nil || session.Negotiated.RecordVersion != realityfront.RecordVersionV2 {
+	if session == nil || assoc == nil || (session.Negotiated.RecordVersion != realityfront.RecordVersionV2 && session.Negotiated.RecordVersion != realityfront.RecordVersionV3) {
 		return LaneConfig{}, ErrAdmissionHandoff
 	}
 	n := session.Negotiated
+	if n.RecordVersion == realityfront.RecordVersionV3 {
+		if err := n.Policy.SupportedNow(); err != nil { return LaneConfig{}, ErrAdmissionHandoff }
+		params.ParityShards = n.Policy.EffectiveParity()
+		var err error
+		params.FlushAfter, params.MaxBlocks, err = FixedFECRuntimeDefaults(params.ParityShards)
+		if err != nil { return LaneConfig{}, err }
+	}
 	peer := assoc.PeerTCPProfile()
 	ipHeaderLen := faketcp.SteadyIPv4HeaderLen()
 	tcpHeaderLen := faketcp.SteadyDataTCPHeaderLen()

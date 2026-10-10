@@ -38,6 +38,15 @@ type KeyPair struct {
 // ExporterContextHash encodes the negotiated parameters exactly as WIRE_SPEC
 // specifies, then returns SHA-256(encoded_context) for TLS exporter use.
 func ExporterContextHash(version uint16, incarnationNonce [16]byte, tunnelID []byte, clientLimit, serverLimit uint16) ([32]byte, error) {
+	return exporterContextHash(version, incarnationNonce, tunnelID, clientLimit, serverLimit, nil)
+}
+
+// V3 adds the exact canonical policy to the exporter; V2 bytes are unchanged.
+func ExporterContextHashV3(version uint16, nonce [16]byte, tunnelID []byte, clientLimit, serverLimit uint16, policy []byte) ([32]byte, error) {
+	if version != 3 || len(policy) != 10 { return [32]byte{}, errors.New("tlsrecord: invalid V3 exporter policy") }
+	return exporterContextHash(version, nonce, tunnelID, clientLimit, serverLimit, policy)
+}
+func exporterContextHash(version uint16, incarnationNonce [16]byte, tunnelID []byte, clientLimit, serverLimit uint16, policy []byte) ([32]byte, error) {
 	if len(tunnelID) > 0xffff {
 		return [32]byte{}, ErrTunnelIDTooLong
 	}
@@ -54,7 +63,7 @@ func ExporterContextHash(version uint16, incarnationNonce [16]byte, tunnelID []b
 	raw = append(raw, two[:]...)
 	binary.BigEndian.PutUint16(two[:], serverLimit)
 	raw = append(raw, two[:]...)
-
+	raw = append(raw, policy...)
 	return sha256.Sum256(raw), nil
 }
 
@@ -86,4 +95,22 @@ func deriveDirection(master []byte, incarnationNonce [16]byte, info string) (Key
 	copy(out.IV[:], material[32:44])
 	copy(out.HPKey[:], material[44:76])
 	return out, nil
+}
+
+// V3 HKDF domain-separates suite and direction. AES-128 uses the first 16
+// bytes of the independently derived 32-byte AEAD key once N3 is enabled.
+func DeriveKeysV3(master []byte, nonce [16]byte, cipher uint8) (KeyPair, error) {
+    if len(master) != masterLen { return KeyPair{}, ErrInvalidMasterLength }
+    var suite string
+    switch cipher {
+    case 1: suite = "chacha20-poly1305"
+    case 2: suite = "aes-128-gcm"
+    case 3: suite = "aes-256-gcm"
+    default: return KeyPair{}, errors.New("tlsrecord: invalid V3 cipher")
+    }
+    c2s,err:=deriveDirection(master,nonce,"WBD-TLSLIKE-V3/"+suite+"/c2s")
+    if err!=nil{return KeyPair{},err}
+    s2c,err:=deriveDirection(master,nonce,"WBD-TLSLIKE-V3/"+suite+"/s2c")
+    if err!=nil{return KeyPair{},err}
+    return KeyPair{C2S:c2s,S2C:s2c},nil
 }

@@ -1,4 +1,21 @@
-> 当前分支新增 **V3提案，尚未实现**：见ADAPTIVE_NETWORK_PLAN第3..6节。下文是继承的V2实现规范，固定ChaCha/health9B等只描述旧wire，旧“不比较加密选项”不限制本轮用户授权。V3在实现时一次协商FEC/密码、绑定KDF、扩展受保护quality payload，业务31B固定开销保留；未知版本明确拒绝。新agent必须先写V3精确编码与向量，再改接线，不能偷偷改V2向量或把提案写成已生效。
+# Admission V3（N0 阶段性实现；仅 fixed/off+ChaCha 接入）
+
+V3 不向业务记录增加 mode/cipher 明文标记。受真实 TLS 保护的请求保留 WBAD/WBAL、15B 头、TunnelID/user/password、可选 WBAL 17B lease 扩展，头中 version=3，末尾附固定 10B 能力。成功应答保留 26B 头/TunnelID、可选 4B lease，尾部原样回显 10B 能力。无 JSON/可变能力长度；截断、未知版本、字节不一致都拒绝。V2 原有编码、向量不变。
+
+能力字节顺序：
+- 0 schema=1；1 transport=1 Normal/2 Game；2 desired_lanes=1 Normal/2..4 Game；
+- 3 fec_mode=0 off/1 fixed/2 auto/3 auto-aggressive；
+- 4 fixed_parity；5 initial；6 min；7 max；
+- 8 cipher=1 ChaCha20-Poly1305/2 AES128-GCM/3 AES256-GCM；9 quality=0/1。
+
+fixed parity 只能是 4/8/10/12/16/20，initial/min/max 必须为 0。off 的四个 parity 字段必须为 0。auto 只 Normal、fixed=0、initial=20、max=20、min=0/4/8/10/12/16/20。Game 不允许 auto。WBAL 的 desired_lanes 必须与能力字段一致。同一策略必须在第一条两向业务前绑定，不能等首个 FEC 包猜测。鉴权成功后才以策略建资源，错误组合失败不回显成功。
+
+V3 exporter context = SHA256(原 V2 上下文原始编码但 version=3，后紧接 10B canonical policy)；exporter label 仍为 `EXPORTER-WBD-TLSLIKE-V1`。HKDF-SHA256 用原 exporter master 32B/nonce salt，info 为 `WBD-TLSLIKE-V3/<suite>/c2s` 或 `.../s2c`，suite 为 chacha20-poly1305、aes-128-gcm、aes-256-gcm。输出 32B AEAD、12B IV、32B HP，AES128 未来用首 16B。动态档位不进入 KDF、不得重置 PN。
+
+**阶段性能力门**：目前 V3 只允许 fixed/off + ChaCha + quality=0，其他语法合法但返回 UNSUPPORTED；N2/N3/N1 运行代码成熟后才依次解锁。V2 保留历史夹具兼容，GUI/CLI 尚未启用 V3；per-Tunnel rotation 策略冲突、真实业务双向第一包及 Actions 尚未验收，N0 仍为 IN_PROGRESS。
+
+---
+
 
 # TLS-like Record — admission V2 / 既有 record 封装规范
 

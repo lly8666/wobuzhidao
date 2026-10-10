@@ -49,6 +49,7 @@ type AdmissionRequest struct {
 	ClientLimit    uint16
 	Username       string
 	Password       string
+	Policy         AdmissionPolicy
 }
 
 type AdmissionResult struct {
@@ -61,6 +62,7 @@ type AdmissionResult struct {
 	ClientLimit      uint16
 	ServerLimit      uint16
 	Keys             tlsrecord.KeyPair
+	Policy           AdmissionPolicy
 }
 
 func (r AdmissionResult) exporterParams() ExporterParams {
@@ -70,6 +72,7 @@ func (r AdmissionResult) exporterParams() ExporterParams {
 		TunnelID:         append([]byte(nil), r.TunnelID...),
 		ClientLimit:      r.ClientLimit,
 		ServerLimit:      r.ServerLimit,
+		Policy:           r.Policy,
 	}
 }
 
@@ -85,6 +88,8 @@ type ClientAdmissionConfig struct {
 	// LaneID is the protected Logical Tunnel lane identity. Zero keeps legacy
 	// single-lane callers source-compatible and is normalized to lane 1.
 	LaneID uint8
+	// Nonzero Schema opts into V3; zero preserves historical V2 callers.
+	Policy AdmissionPolicy
 }
 
 // ValidateClientAdmissionConfig validates the same protected request and TLS
@@ -93,9 +98,11 @@ func ValidateClientAdmissionConfig(cfg ClientAdmissionConfig) error {
 	if normalizeName(cfg.TLS.ServerName) == "" || len(cfg.TLS.RouteKey) < 16 {
 		return ErrAdmissionParams
 	}
+	version := RecordVersionV2
+	if cfg.Policy.Schema != 0 { version = RecordVersionV3 }
 	_, err := marshalAdmissionRequest(AdmissionRequest{
 		AutoLease: cfg.AutoLease, DesiredLanes: cfg.DesiredLanes, InstallationID: cfg.InstallationID,
-		RecordVersion: RecordVersionV2, LaneID: cfg.LaneID,
+		RecordVersion: version, LaneID: cfg.LaneID, Policy: cfg.Policy,
 		TunnelID: cfg.TunnelID, ClientLimit: cfg.ClientLimit,
 		Username: cfg.Username, Password: cfg.Password,
 	})
@@ -138,9 +145,11 @@ func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConf
 	if laneID == 0 {
 		laneID = 1
 	}
+	version := RecordVersionV2
+	if cfg.Policy.Schema != 0 { version = RecordVersionV3 }
 	req := AdmissionRequest{
 		AutoLease: cfg.AutoLease, DesiredLanes: cfg.DesiredLanes, InstallationID: append([]byte(nil), cfg.InstallationID...),
-		RecordVersion: RecordVersionV2,
+		RecordVersion: version, Policy: cfg.Policy,
 		LaneID:        laneID,
 		TunnelID:      append([]byte(nil), cfg.TunnelID...),
 		ClientLimit:   cfg.ClientLimit,
@@ -278,6 +287,12 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 		_ = writeAdmissionFailure(tlsConn, admissionAuthFail)
 		return nil, ErrAdmissionAuth
 	}
+	if req.RecordVersion == RecordVersionV3 {
+		if err := req.Policy.SupportedNow(); err != nil {
+			_ = writeAdmissionFailure(tlsConn, admissionParamFail)
+			return nil, err
+		}
+	}
 	var assigned string
 	if req.AutoLease {
 		if cfg.AllocateLease == nil {
@@ -309,6 +324,7 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 		Lease4:           assigned,
 		DesiredLanes:     req.DesiredLanes,
 		RecordVersion:    req.RecordVersion,
+		Policy:           req.Policy,
 		LaneID:           req.LaneID,
 		IncarnationNonce: nonce,
 		TunnelID:         append([]byte(nil), req.TunnelID...),
@@ -353,8 +369,17 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 }
 
 func marshalAdmissionRequest(req AdmissionRequest) ([]byte, error) {
-	if req.RecordVersion != RecordVersionV2 {
+	if req.RecordVersion != RecordVersionV2 && req.RecordVersion != RecordVersionV3 {
 		return nil, ErrAdmissionVersion
+	}
+	var policyWire [policyV3Len]byte
+	if req.RecordVersion == RecordVersionV3 {
+		var err error
+		policyWire, err = req.Policy.Encode()
+		if err != nil { return nil, err }
+		if req.DesiredLanes != 0 && req.DesiredLanes != req.Policy.DesiredLanes { return nil, ErrAdmissionParams }
+		if req.LaneID > req.Policy.DesiredLanes { return nil, ErrAdmissionParams }
+		if req.DesiredLanes == 0 { req.DesiredLanes = req.Policy.DesiredLanes }
 	}
 	if req.LaneID == 0 {
 		req.LaneID = 1
@@ -374,6 +399,7 @@ func marshalAdmissionRequest(req AdmissionRequest) ([]byte, error) {
 		}
 		extra = 17
 	}
+	if req.RecordVersion == RecordVersionV3 { extra += policyV3Len }
 	out := make([]byte, admissionRequestLen+len(req.TunnelID)+len(req.Username)+len(req.Password)+extra)
 	copy(out[:4], admissionMagic)
 	if req.AutoLease {
@@ -391,9 +417,14 @@ func marshalAdmissionRequest(req AdmissionRequest) ([]byte, error) {
 	copy(out[off:], req.Username)
 	off += len(req.Username)
 	copy(out[off:], req.Password)
+	end := len(out)
+	if req.RecordVersion == RecordVersionV3 {
+		end -= policyV3Len
+		copy(out[end:], policyWire[:])
+	}
 	if req.AutoLease {
-		copy(out[len(out)-17:], req.InstallationID)
-		out[len(out)-1] = req.DesiredLanes
+		copy(out[end-17:end-1], req.InstallationID)
+		out[end-1] = req.DesiredLanes
 	}
 	return out, nil
 }
@@ -409,7 +440,7 @@ func readAdmissionRequest(r io.Reader) (AdmissionRequest, error) {
 	}
 	out.AutoLease = string(hdr[:4]) == leaseAdmissionMagic
 	out.RecordVersion = binary.BigEndian.Uint16(hdr[4:6])
-	if out.RecordVersion != RecordVersionV2 {
+	if out.RecordVersion != RecordVersionV2 && out.RecordVersion != RecordVersionV3 {
 		return out, ErrAdmissionVersion
 	}
 	out.ClientLimit = binary.BigEndian.Uint16(hdr[6:8])
@@ -423,9 +454,8 @@ func readAdmissionRequest(r io.Reader) (AdmissionRequest, error) {
 		return out, ErrAdmissionParams
 	}
 	extra := 0
-	if out.AutoLease {
-		extra = 17
-	}
+	if out.AutoLease { extra = 17 }
+	if out.RecordVersion == RecordVersionV3 { extra += policyV3Len }
 	body := make([]byte, tunnelLen+userLen+passLen+extra)
 	if _, err := io.ReadFull(r, body); err != nil {
 		return out, err
@@ -436,12 +466,23 @@ func readAdmissionRequest(r io.Reader) (AdmissionRequest, error) {
 	out.Username = string(body[off : off+userLen])
 	off += userLen
 	out.Password = string(body[off : off+passLen])
+	end := len(body)
+	if out.RecordVersion == RecordVersionV3 {
+		end -= policyV3Len
+		policy, err := decodePolicyV3(body[end:])
+		if err != nil { return AdmissionRequest{}, err }
+		out.Policy = policy
+		out.DesiredLanes = policy.DesiredLanes
+		if out.LaneID > out.DesiredLanes { return AdmissionRequest{}, ErrAdmissionParams }
+	}
 	if out.AutoLease {
-		out.InstallationID = append([]byte(nil), body[len(body)-17:len(body)-1]...)
-		out.DesiredLanes = body[len(body)-1]
-		if !validAdmissionLaneID(out.DesiredLanes) || out.LaneID > out.DesiredLanes {
+		out.InstallationID = append([]byte(nil), body[end-17:end-1]...)
+		leaseLanes := body[end-1]
+		if !validAdmissionLaneID(leaseLanes) || out.LaneID > leaseLanes ||
+			(out.RecordVersion == RecordVersionV3 && leaseLanes != out.DesiredLanes) {
 			return AdmissionRequest{}, ErrAdmissionParams
 		}
+		out.DesiredLanes = leaseLanes
 	}
 	return out, nil
 }
@@ -450,7 +491,7 @@ func marshalAdmissionReply(result AdmissionResult) ([]byte, error) {
 	if result.LaneID == 0 {
 		result.LaneID = 1
 	}
-	if result.RecordVersion != RecordVersionV2 || !validAdmissionLaneID(result.LaneID) ||
+	if (result.RecordVersion != RecordVersionV2 && result.RecordVersion != RecordVersionV3) || !validAdmissionLaneID(result.LaneID) ||
 		!validRecordLimit(result.ClientLimit) || !validRecordLimit(result.ServerLimit) ||
 		len(result.TunnelID) != tunnelIDLen {
 		return nil, ErrAdmissionParams
@@ -465,6 +506,13 @@ func marshalAdmissionReply(result AdmissionResult) ([]byte, error) {
 		address = p.Addr()
 		extra = 4
 	}
+	var policyWire [policyV3Len]byte
+	if result.RecordVersion == RecordVersionV3 {
+		var err error
+		policyWire, err = result.Policy.Encode()
+		if err != nil || result.LaneID > result.Policy.DesiredLanes { return nil, ErrAdmissionParams }
+		extra += policyV3Len
+	}
 	out := make([]byte, admissionReplyLen+len(result.TunnelID)+extra)
 	out[0] = admissionOK
 	binary.BigEndian.PutUint16(out[1:3], result.RecordVersion)
@@ -474,9 +522,14 @@ func marshalAdmissionReply(result AdmissionResult) ([]byte, error) {
 	out[23] = result.LaneID
 	binary.BigEndian.PutUint16(out[24:26], uint16(len(result.TunnelID)))
 	copy(out[26:], result.TunnelID)
-	if extra != 0 {
+	end := len(out)
+	if result.RecordVersion == RecordVersionV3 {
+		end -= policyV3Len
+		copy(out[end:], policyWire[:])
+	}
+	if result.Lease4 != "" {
 		ip := address.As4()
-		copy(out[len(out)-4:], ip[:])
+		copy(out[end-4:end], ip[:])
 	}
 	return out, nil
 }
@@ -510,7 +563,7 @@ func readAdmissionReply(r io.Reader, req AdmissionRequest) (AdmissionResult, err
 	out.ServerLimit = binary.BigEndian.Uint16(rest[20:22])
 	out.LaneID = rest[22]
 	tunnelLen := int(binary.BigEndian.Uint16(rest[23:25]))
-	if out.RecordVersion != RecordVersionV2 || out.RecordVersion != req.RecordVersion ||
+	if (out.RecordVersion != RecordVersionV2 && out.RecordVersion != RecordVersionV3) || out.RecordVersion != req.RecordVersion ||
 		out.LaneID != req.LaneID || !validAdmissionLaneID(out.LaneID) ||
 		out.ClientLimit != req.ClientLimit || !validRecordLimit(out.ServerLimit) ||
 		tunnelLen != tunnelIDLen {
@@ -534,6 +587,14 @@ func readAdmissionReply(r io.Reader, req AdmissionRequest) (AdmissionResult, err
 			return AdmissionResult{}, ErrAdmissionParams
 		}
 		out.Lease4 = netip.PrefixFrom(addr, 32).String()
+	}
+	if out.RecordVersion == RecordVersionV3 {
+		var cap [policyV3Len]byte
+		if _, err := io.ReadFull(r, cap[:]); err != nil { return AdmissionResult{}, err }
+		p, err := decodePolicyV3(cap[:])
+		if err != nil || p != req.Policy { return AdmissionResult{}, ErrAdmissionParams }
+		if err := p.SupportedNow(); err != nil { return AdmissionResult{}, err }
+		out.Policy = p
 	}
 	return out, nil
 }
