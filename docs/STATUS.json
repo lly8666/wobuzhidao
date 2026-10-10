@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S4_Q2_HISTORICAL300_ABBA_ACTIONS_IN_PROGRESS",
+    "phase": "FEC_SIMD_S4_HISTORICAL300_Q2_OLD_A_STRESS_PROBE_REAL_FAIL",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S4_Q1_120S_SCOPED_PASS_Q2_120S_FAIL_HISTORICAL_Q2_300S_ABBA_RUNNING",
+      "state": "S4_Q1_SCOPED_ABBA_PASS_Q2_OLD_A_120S_FAIL_AND_MATCHED_300S_FAIL_B_Q2_NOT_RUN",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3670,7 +3670,7 @@
         },
         "s5": "NOT_RUN"
       },
-      "cpu_gain": "Q1_SINGLE_HOST_ABBA_10P923_PERCENT_REDUCTION_ONLY_NOT_GLOBAL",
+      "cpu_gain": "Q1_SINGLE_HOST_ABBA_10P923_PERCENT_REDUCTION_ONLY_NOT_GLOBAL_Q2_B_NOT_RUN",
       "physical": "NOT_RUN",
       "selected_route": "S1 SIMD span encoding/recovery; S2 custom-matrix single-worker fused full-block encoding; preserve active partial and measure before retaining a backend.",
       "same_runner_comparison": "Q1 ONLY VALID SINGLE-RUN ABBA B CPU COST -10.923%; Q2 old A 20pct stress probe loss violates 1pct gate; remaining Q2/Q3 NOT_RUN; L120/300s NOT_RUN",
@@ -3857,7 +3857,7 @@
         "current_B": "NOT_RUN"
       },
       "q2_historic300": {
-        "state": "IN_PROGRESS",
+        "state": "COMPLETED_OLD_A_REAL_S2C_STRESS_PROBE_FAIL_B_NOT_RUN",
         "phase": "q2historic300",
         "historical_actions": 37924613499,
         "old_q120_fail_run": 38039151704,
@@ -3878,7 +3878,7 @@
         ],
         "old_source": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
         "new_source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-        "classification": "SUPPLEMENTAL_NOT_RETROACTIVE_Q120_PASS",
+        "classification": "FAIL_OR_NOT_RUN",
         "real_business": "NOT_RUN",
         "preflight_run_id": 38041367927,
         "preflight_conclusion": "SUCCESS",
@@ -3888,12 +3888,23 @@
         "run_id": 38041440305,
         "job_id": 114182324124,
         "workflow_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38041440305",
-        "result_classification": "NOT_YET_AUDITED_DO_NOT_INFER_PASS"
+        "result_classification": "NOT_YET_AUDITED_DO_NOT_INFER_PASS",
+        "artifact_id": 11665698320,
+        "workflow_conclusion": "FAILURE",
+        "old_A": "FAIL_8_OF_750_STRESS_S2C_PROBES_MISSING",
+        "B": "NOT_RUN_BOTH",
+        "last_A": "NOT_RUN",
+        "leg_valid": 0,
+        "leg_fail": 1,
+        "leg_not_run": 3,
+        "diagnostic_evidence": "docs/evidence/fec-simd-q2historic300-run38041440305-audit.json",
+        "historical_300s_A_result": "PASS_RUN37924613499_SAME_SEED_SOURCE",
+        "explanation": "VALID_OLD_A_300S_REAL_LOSS_QUALITY_FAIL_NO_B_MEASUREMENT"
       }
     }
   },
-  "next_task": "Check dedicated historical Q2 300s ABBA Actions run38041440305 job114182324124 (helper6f8e49744a0fb4a4b9218d35db99671aaaf37543, phase q2historic300 seed1844 75/150/75s). Once completed fetch actual artifact, all four leg receipts or early-stop failed leg; preserve FAIL/NOT_RUN and compare only if all four valid. Distinguish separate supplemental Q2 from original run38039151704 120s A FAIL and Q2 B NOT_RUN. Do not claim official Q120 success or global SIMD gains. Physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-205000-fec-simd-q2historic300-actions-run-tracked.md",
+  "next_task": "Matched Q2 historic300 ABBA run38041440305 (helper6f8e49744a0fb4a4b9218d35db99671aaaf37543) failed in FIRST OLD A sample with 8/750 s2c stress probes missing >1pct threshold; c2s3/750; s2c stress UDP 12/172835 all 96B; actual netem20.015/20.048pct, TCP+HTTP verified, socket/links/owned cleanup all clean. Rest 3 legs B/B/A NOT_RUN. Original A same seed1844 300s run37924613499 PASS c2s4/750 s2c3/750; conclude fluctuating residual probe/96B loss; neither pure shorter window nor verified SIMD regression. Keep original Q120 A FAIL, and Q1 scoped 10.923pct CPU difference. Next evidence-driven investigation is per-size/96B FEC recovery and probe path with safe diagnostics, not another uninformative ABBA retry. Q2 B perf, L, ARM fullstack, full confirm300, P6 and physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-210500-fec-simd-q2historic300-old-a-probe-fail.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

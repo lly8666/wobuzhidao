@@ -1,0 +1,186 @@
+{
+  "schema": "wbd-fec-simd-q2historic300-run38041440305-audit/v1",
+  "src": {
+    "run_id": 38041440305,
+    "job_id": 114182324124,
+    "artifact_id": 11665698320,
+    "artifact_zip_sha256": "693cb5fff242726ead1fd186766c35a45f346ea086f64c5e62e276b19da77d41",
+    "workflow_conclusion": "FAILURE",
+    "helper_sha": "6f8e49744a0fb4a4b9218d35db99671aaaf37543",
+    "old_A_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "new_B_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+    "toolchain": "go1.23.12 GOAMD64=v1",
+    "old_A_client_binary_sha256": "303495af95d02f8644af6c3d49a45f5c9c093a3fd9e23b307e31dc1ef0079c67",
+    "old_A_server_binary_sha256": "4b165f41862f98cf502549f2db75eb5cf9801ea088bf6b922d8bc9d3c46af69a"
+  },
+  "protocol": {
+    "context": "Q2",
+    "mode": "normal",
+    "lanes": 1,
+    "workload": "mixed",
+    "fec": "20:20",
+    "one_way_delay_ms": 300,
+    "each_direction_mbps": 10,
+    "loss_stages_percent": [
+      5,
+      20,
+      5
+    ],
+    "stage_seconds": [
+      75,
+      150,
+      75
+    ],
+    "total_duration_s": 300,
+    "drain_s": 3,
+    "seed": 1844,
+    "leg_order": [
+      "A",
+      "B",
+      "B",
+      "A"
+    ],
+    "one_host_serial": true
+  },
+  "legs": [
+    {
+      "id": "s01",
+      "product": "A",
+      "classification": "FAIL",
+      "sample_exit": 0,
+      "analyzer_exit": 1,
+      "ledger_exit": 0,
+      "issues": [
+        "5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress"
+      ],
+      "clean": true
+    },
+    {
+      "id": "s02",
+      "product": "B",
+      "classification": "NOT_RUN"
+    },
+    {
+      "id": "s03",
+      "product": "B",
+      "classification": "NOT_RUN"
+    },
+    {
+      "id": "s04",
+      "product": "A",
+      "classification": "NOT_RUN"
+    }
+  ],
+  "old_A_measurement": {
+    "realized_netem_by_stage_percent": {
+      "pre": {
+        "c2s": 4.999577895635937,
+        "s2c": 5.027867067445877
+      },
+      "stress": {
+        "c2s": 20.015107575659385,
+        "s2c": 20.048361861789875
+      },
+      "post": {
+        "c2s": 5.0220309241298,
+        "s2c": 5.045637747427205
+      }
+    },
+    "stressed_phase": {
+      "c2s_probe": {
+        "sent": 750,
+        "received": 747,
+        "missing": 3,
+        "missing_pct": 0.4
+      },
+      "s2c_probe": {
+        "sent": 750,
+        "received": 742,
+        "missing": 8,
+        "missing_pct": 1.0666666666666667
+      },
+      "c2s_udp": {
+        "sent": 172835,
+        "missing": 0
+      },
+      "s2c_udp": {
+        "sent": 172835,
+        "missing": 12,
+        "missing_by_size_bytes": {
+          "96": 12
+        }
+      }
+    },
+    "whole_window": {
+      "c2s_probe_sent": 1500,
+      "c2s_probe_missing": 3,
+      "s2c_probe_sent": 1495,
+      "s2c_probe_missing": 8,
+      "c2s_udp_missing": 0,
+      "s2c_udp_missing": 12,
+      "delivered_bytes_both_directions": 747967506,
+      "verified_tcp_flows_each_direction": 304,
+      "tcp_hash_and_length_mismatch": 0,
+      "http_https_returned_and_verified": 20,
+      "https_cert_verified": 10,
+      "socket_drops": 0,
+      "link_drops": 0,
+      "product_cpu_seconds": 267.33,
+      "cpu_s_per_delivered_gib": 383.76453456511524,
+      "probe_returned_only_p99_ms": {
+        "c2s": 637.064271,
+        "s2c": 640.193888
+      },
+      "probe_missing_in_p99_qualification": true,
+      "client_process_hwm_mib": 45.453125,
+      "server_process_hwm_mib": 46.2578125,
+      "max_cpu_psi10_percent": 31.56,
+      "cgroup_cpu_quota": "UNKNOWN"
+    },
+    "cleanup": {
+      "original_leaked_pids": [],
+      "leftover_namespaces": [],
+      "clean": true
+    }
+  },
+  "historical_same_old_A": {
+    "run_id": 37924613499,
+    "seed": 1844,
+    "duration_s": 300,
+    "staged_seconds": [
+      75,
+      150,
+      75
+    ],
+    "decision": "PASS_SCOPED_ACTIONS",
+    "stress_c2s_probe": "4/750",
+    "stress_s2c_probe": "3/750",
+    "stress_udp_missing": {
+      "c2s": 7,
+      "s2c": 2
+    }
+  },
+  "interpretation": [
+    "Same frozen A product binary, same nominal duration, seed and 1pct per-stage quality hard gate do not guarantee identical per-run loss: packet order/timing and host conditions can alter independent random netem draws.",
+    "This is a genuine old-A 300s s2c probe 8/750=1.0667pct stress-phase fail, NOT an infrastructure or analysis mistake.",
+    "Do not infer the B weaknet quality or SIMD gain: B has zero Q2 legs.",
+    "Sample lengths are no longer the sole confounder; intermittent below/above-threshold old-A stress probe residual loss remains measurable.",
+    "No threshold, input load, business shape, or product source was adjusted."
+  ],
+  "retained": {
+    "original_Q120_run": 38039151704,
+    "original_Q120_A_status": "FAIL",
+    "Q1_120s": "ONE_HOST_ABBA_B_10P923_PERCENT_CPU_COST_REDUCTION",
+    "q2historic300": "FAIL_FIRST_A_THEN_3_NOT_RUN",
+    "Q2_B_current": "NOT_RUN",
+    "Q3": "NOT_RUN",
+    "L120": "NOT_RUN",
+    "arm_real_business": "NOT_RUN",
+    "general_confirm300": "NOT_RUN",
+    "P6": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "E7_80s": "OPEN_DEFERRED"
+  },
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38041440305",
+  "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38041440305/artifacts/11665698320"
+}
