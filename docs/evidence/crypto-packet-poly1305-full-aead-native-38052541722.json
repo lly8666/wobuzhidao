@@ -1,0 +1,87 @@
+{
+  "schema": "wbd-poly1305-packed-aead-native-screen/v1",
+  "branch": "next/crypto-packet-efficiency-20261010",
+  "source_sha": "ab4510e892db655201cbfc6755c57656ae11ce4f",
+  "product_A": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "current_record_blob_sha": "1181eee429a2a6025e5544078d3905dee1a54a48",
+  "production_code_changed": false,
+  "environment": {
+    "os": "linux",
+    "arch": "arm64",
+    "native_runner": "ubuntu-24.04-arm",
+    "toolchain": "go1.23.12",
+    "sample": "synthetic full AEAD Seal only, NOT real tunnel traffic"
+  },
+  "workflow": ".github/workflows/next-crypto-packet-core.yml",
+  "run_id": 38052541722,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38052541722",
+  "conclusion": "success",
+  "jobs": {
+    "linux_amd64": "success",
+    "windows_amd64": "success",
+    "linux_arm64_native": "success"
+  },
+  "foundation_run": 38052541804,
+  "foundation_conclusion": "success",
+  "lifecycle_run": 38052541801,
+  "lifecycle_conclusion": "success",
+  "artifact": {
+    "id": 11670116461,
+    "name": "native-arm64-crypto-hotspot",
+    "digest": "sha256:6e6756b3dc12e12941e761e1036765afa69c3238ee705acc18c75bdf27492be4",
+    "file_sha256": {
+      "poly1305-packed-aead-bench.txt": "e0d120fd4aaa93095b3b70eec184d4e534c54d6595fb8ced6186634374951eaa",
+      "poly1305-packaging-bench.txt": "18c1d47e97b9f281e86bc37de7870afe5a290f9fe0770481c80c98addd59bc3f"
+    }
+  },
+  "full_aead_seal_medians_ns": {
+    "64": [
+      353.7,
+      337.2
+    ],
+    "128": [
+      406.1,
+      389
+    ],
+    "256": [
+      707,
+      695.8
+    ],
+    "512": [
+      1022,
+      1019
+    ],
+    "1200": [
+      1734,
+      1743
+    ],
+    "1400": [
+      2041,
+      2045
+    ]
+  },
+  "full_aead_gain_pct": {
+    "64": 4.664970313825279,
+    "128": 4.210785520807692,
+    "256": 1.5841584158415856,
+    "512": 0.29354207436399493,
+    "1200": -0.519031141868509,
+    "1400": -0.19598236158746563
+  },
+  "allocations_per_op": 0,
+  "oracle": "PASS_DERIVED_ONE_TIME_POLYKEY_RFC8439_FULL_SEAL_EXACT_OUTPUT_AGAINST_X_CRYPTO_4_KEYS_ALL_LENGTHS_0_1_15_16_17_31_32_63_64_65_96_128_256_512_1200_1400_1460_AAD_0_1_13_16_17_32_REUSED_SCRATCH_AND_REFERENCE_OPEN_TAMPER_REJECT",
+  "production_decision": "REJECT_CONTIGUOUS_POLY_PACKAGING_AS_PRODUCTION_CURRENTLY: small 4.2-4.7% Seal-only speedups, 1200/1400 slower, requires new unaudited full AEAD, aliases/open not implemented; NO fullstack CPU claim",
+  "next_gate": "A true ARM64 Poly1305 assembly backend might warrant a separately audited trial only if native ARM64 business profile-on shows material Poly1305 hotspot. Buildtag/purego fallback, crypto test vectors, tag failure, alias, native/noasm/race/fuzz, source-scoped profile-off A-B-B-A 120s+300s, weaknet/Game quality required.",
+  "other_qualification": {
+    "native_arm64_realpath": "NOT_RUN",
+    "high_loss": "NOT_RUN_THIS_CYCLE",
+    "game2_game4": "NOT_RUN_THIS_CYCLE",
+    "confirm300": "NOT_RUN",
+    "independent_runners_3": "NOT_RUN",
+    "p6": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "historical_fec_q2": "FAIL_3_OF_4_ORIGINAL_LEGS",
+    "historical_e7_80s_downlink": "OPEN",
+    "previous_header_mask": "REVERTED_NEGATIVE_BUSINESS_GAIN_MINUS_2P01775_PERCENT"
+  }
+}

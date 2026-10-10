@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C4_NATIVE_ARM64_PACKED_AEAD_TEST_ONLY_PENDING_ACTIONS",
+    "phase": "C4_POLY1305_SYNTHETIC_SCREEN_COMPLETE_REJECT_PACKED_PRODUCTION_ROUTE",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4084,7 +4084,7 @@
       }
     },
     "crypto_packet_efficiency": {
-      "state": "HEADER_MASK_REVERTED_FULL_CORE_AND_FOUNDATION_PASS_NATIVE_ARM_SYNTHETIC_HOTSPOT_EVIDENCE_COLLECTED",
+      "state": "POLY1305_MAC_AND_AEAD_NATIVE_MICRO_PASS_PACKED_REJECT_PRODUCT_UNCHANGED",
       "plan": "docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md",
       "baseline_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
       "branch_start_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
@@ -4093,7 +4093,7 @@
       "baseline_basis": "FEC SIMD core/race native ARM pass 38032963434 and regular profile-off Q1 120s ABBA observed -10.923%; Q2 300s original 3/4 FAIL, only descriptive CPU -13.213%, not qualified",
       "implementation": {
         "header_mask": "REVERTED_TO_MATURE_XCRYPTO_V0_38_0_HEADER_MASK; CUSTOM_OPT_BACKEND_NOT_SHIPPED",
-        "arm64_poly1305": "PRODUCTION_GENERIC_UNCHANGED; MAC_PACKAGING_CONTIGUOUS_COPY_NATIVE_64B_31P74_PERCENT_FASTER_ONLY_MAC, 1400B_1P28_PERCENT; POC_COMPLETE_AEAD_BENCH_PENDING",
+        "arm64_poly1305": "GENERIC_ORIGINAL_PRODUCT; EXPERIMENT_ONLY_POLY1305_PACKED_AEAD_FULL_SEAL_MICRO_64B_4P67PCT_FASTER_1400B_0P20PCT_SLOWER_REJECT_AS_PRODUCTION_REWRITE; NO_NEW_ARM64_ASM",
         "tcp_checksum": "PRODUCTION_UNCHANGED_NATIVE_ARM64_INDEPENDENT_U64_ORACLE_PASS; REALPATH_CPU_HOTSPOT_NOT_RUN",
         "sha_copy_locks": "NO_PRODUCTION_CHANGE; REALPATH_HOTSPOT_NOT_RUN",
         "x86_aead": "MATURE_XCRYPTO_ASSEMBLY_SOURCE_VERIFIED; DIRECT_RUNTIME_PATH_PROOF_NOT_RUN"
@@ -4133,14 +4133,18 @@
         "rollback_lifecycle": 38049393283,
         "native_hotspot_yaml_parse_fail": 38049682130,
         "native_arm64_hotspot": 38049793709,
-        "latest_foundation": 38049793592,
+        "latest_foundation": 38052541804,
         "poly1305_packaging_source": "PENDING_FIXED_CI_RETRY",
         "poly1305_packaging_broken_yaml_run": 38052140743,
         "poly1305_packaging_native": 38052216364,
-        "poly1305_packaging_artifact": 11670300227
+        "poly1305_packaging_artifact": 11670300227,
+        "poly1305_packed_full_aead_native": 38052541722,
+        "poly1305_packed_full_aead_artifact": 11670116461,
+        "latest_core": 38052541722,
+        "latest_lifecycle": 38052541801
       },
       "acceptance": {
-        "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
+        "unit": "PASS_SOURCE_AB4510E_NATIVE_ARM64_LINUX_AMD64_WINDOWS_AMD64",
         "race": "PASS_SOURCE_37E1865_CORE",
         "native_arm64": "PASS_NATIVE_MICRO_ONLY",
         "normal1": "Q1_120S_0LOSS_FOUR_VALID_CANDIDATE_CPU_+2P02_PERCENT_REVERTED",
@@ -4149,10 +4153,10 @@
         "p6": "NOT_RUN",
         "physical": "NOT_RUN",
         "post_revert": "PASS_LINUX_AMD64_WINDOWS_AMD64_NATIVE_ARM64_CORE_FOUNDATION_LIFECYCLE",
-        "latest_unit": "PASS_CURRENT_SOURCE_LINUX_AMD64_WINDOWS_AMD64_NATIVE_ARM64",
-        "latest_race": "PASS_CURRENT_SOURCE_LINUX_AMD64_NATIVE_ARM64",
-        "latest_fuzz": "PASS_CURRENT_SOURCE_LINUX_AMD64",
-        "latest_foundation": "PASS_CURRENT_SOURCE",
+        "latest_unit": "PASS_SOURCE_AB4510E_LINUX_WINDOWS_NATIVE_ARM64",
+        "latest_race": "PASS_SOURCE_AB4510E_LINUX_NATIVE_ARM64",
+        "latest_fuzz": "PASS_SOURCE_AB4510E_LINUX_AMD64",
+        "latest_foundation": "PASS_SOURCE_AB4510E",
         "checksum_oracle": "PASS_NATIVE_ARM64",
         "native_aead_short_mtu_micro": "PASS_SYNTHETIC_BENCH_NOT_BUSINESS",
         "arm64_business": "NOT_RUN",
@@ -4160,7 +4164,8 @@
         "game2_game4": "NOT_RUN_THIS_CYCLE",
         "confirm300": "NOT_RUN",
         "three_runners": "NOT_RUN",
-        "poly1305_packaging": "PASS_NATIVE_ARM64_TEST_ONLY_64B_31P74_PERCENT_MAC_ONLY_1400B_1P28_PERCENT_MAC_ONLY"
+        "poly1305_packaging": "PASS_NATIVE_ARM64_TEST_ONLY_64B_31P74_PERCENT_MAC_ONLY_1400B_1P28_PERCENT_MAC_ONLY",
+        "poly1305_packed_aead": "PASS_NATIVE_ARM64_FULL_SEAL_GOLDEN_ORACLE_AND_TAMPER_REFERENCE_OPEN; MICRO_64B_4P67PCT_FASTER_1400B_0P20PCT_SLOWER; NO_PRODUCTION_CHANGE"
       },
       "inherited_failures": [
         "Q2 300s probe phase 3/4 original FAIL run38042928701",
@@ -4170,7 +4175,7 @@
         "80 second downlink OPEN_DEFERRED"
       ],
       "code_changed": true,
-      "metrics_claim": "NONE",
+      "metrics_claim": "NO_PRODUCT_CPU_GAIN; SYNTHETIC_SEAL_MICRO_ONLY",
       "helper_source_sha": "branch commits when measured; never HEAD aliases",
       "micro_v1": {
         "unit": "ns/op",
@@ -4283,8 +4288,8 @@
       "evidence_native_hotspot": "docs/evidence/crypto-packet-arm64-native-hotspot-run38049793709.json"
     }
   },
-  "next_task": "Actions run38052216364 native ARM64 mac packaging oracle PASS (all core Linux/Windows/ARM PASS); 64B stream 77.97 vs packed copy 53.22ns, 1400B 617.8 vs 609.9ns. Now test FULL AEAD test-only packed candidate vs x/crypto reference with exact authenticated output, nonces, AAD, scratch reuse, tampered Open, benchmark; no production change. If no material whole-AEAD benefit do not promote. Native fullstack/weaknet/3runner/P6/physical still NOT_RUN, prior Q2 FAIL unchanged.",
-  "latest_log": "docs/devlog/20261010-224500-crypto-poly1305-native-mac-screen-and-aead-test-poc.md",
+  "next_task": "Poly1305 experiment done native ARM64 Actions38052541722 (Linux/Windows/ARM64 core, foundation, lifecycle SUCCESS): test-only packed AEAD Seal reference golden/tamper PASS; ns/op ref->packed 64B 353.7->337.2 (4.665% faster), 128B 406.1->389 (4.211%), 256B 707->695.8 (1.584%), 512B 1022->1019 (0.294%), 1200B 1734->1743 (0.519% slower), 1400B 2041->2045 (0.196% slower). REJECT PACKED PRODUCT route due negligible/mixed AEAD gains and cryptographic API rewrite risk. No production crypto changed. Next if resuming optimization: native ARM64 fullstack realpath profile and source-scoped quality gate before investigating mature license-checked ARM64 Poly1305 assembly, not generic Go reimplementation. Q2 historical FAIL, Game4/TCP/80s, three runners/300s/P6/physical NOT_RUN remain.",
+  "latest_log": "docs/devlog/20261010-230000-crypto-poly1305-packed-aead-native-results-and-decision.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
