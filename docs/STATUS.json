@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S4_Q2_HISTORICAL300_ABBA_REQUESTED",
+    "phase": "FEC_SIMD_S4_Q2_HISTORICAL300_ABBA_ACTIONS_IN_PROGRESS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3857,7 +3857,7 @@
         "current_B": "NOT_RUN"
       },
       "q2_historic300": {
-        "state": "EXACT_ABBA_REQUESTED_NONCE19",
+        "state": "IN_PROGRESS",
         "phase": "q2historic300",
         "historical_actions": 37924613499,
         "old_q120_fail_run": 38039151704,
@@ -3881,15 +3881,19 @@
         "classification": "SUPPLEMENTAL_NOT_RETROACTIVE_Q120_PASS",
         "real_business": "NOT_RUN",
         "preflight_run_id": 38041367927,
-        "preflight_conclusion": "SUCCESS_STATIC_ONLY",
+        "preflight_conclusion": "SUCCESS",
         "measurement": "REQUESTED_NOT_YET_QUALIFIED",
-        "helper_source_sha": "THIS_CONFIG_COMMIT_EXACT_SHA",
-        "note": "Historical matched 300s seed1844 supplementary; keep Q120 stress probe FAIL unchanged."
+        "helper_source_sha": "6f8e49744a0fb4a4b9218d35db99671aaaf37543",
+        "note": "Historical matched 300s seed1844 supplementary; keep Q120 stress probe FAIL unchanged.",
+        "run_id": 38041440305,
+        "job_id": 114182324124,
+        "workflow_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38041440305",
+        "result_classification": "NOT_YET_AUDITED_DO_NOT_INFER_PASS"
       }
     }
   },
-  "next_task": "Read exact q2historic300 4-leg A-B-B-A Actions artifact from nonce19 (same runner 300s seed1844 75/150/75 20pct stress). Audit each strict analyzer/ledger/resource, duration/netem, CPU/GiB and p99 with missing. Do not treat it as original 120s Q2 requalification. Original Q120 run38039151704 A FAILED; Q2 B and Q3 NOT_RUN. If the first A or any subsequent leg FAILs, stop; no L/confirm300 based on it. S5 and physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-204500-fec-simd-q2-historic300-abba-launched.md",
+  "next_task": "Check dedicated historical Q2 300s ABBA Actions run38041440305 job114182324124 (helper6f8e49744a0fb4a4b9218d35db99671aaaf37543, phase q2historic300 seed1844 75/150/75s). Once completed fetch actual artifact, all four leg receipts or early-stop failed leg; preserve FAIL/NOT_RUN and compare only if all four valid. Distinguish separate supplemental Q2 from original run38039151704 120s A FAIL and Q2 B NOT_RUN. Do not claim official Q120 success or global SIMD gains. Physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-205000-fec-simd-q2historic300-actions-run-tracked.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
