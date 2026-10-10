@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_Q2_OBSERVE300_ALL_ABBA_LEGS_REQUESTED",
+    "phase": "FEC_SIMD_Q2_OBSERVE300_ALL_ABBA_ACTIONS_RUNNING",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3902,7 +3902,7 @@
         "explanation": "VALID_OLD_A_300S_REAL_LOSS_QUALITY_FAIL_NO_B_MEASUREMENT"
       },
       "q2_loss_observation": {
-        "state": "FULL_4_LEG_DIAGNOSTIC_REQUESTED",
+        "state": "ACTION_IN_PROGRESS_NO_MEASUREMENTS_YET",
         "phase": "q2observe300",
         "preflight_nonce": 20,
         "planned_measurement_nonce": 21,
@@ -3932,12 +3932,24 @@
         "trigger_nonce": 21,
         "trigger_helper_sha": "THIS_CONFIG_COMMIT_SHA",
         "quality_gate": "ORIGINAL_HARD_GATES_UNCHANGED_ALLOWLIST_CONTINUATION_ONLY",
-        "expected_report": "loss-overview.json"
+        "expected_report": "loss-overview.json",
+        "run_id": 38042928701,
+        "helper_sha": "45b8e2a1d018630c70ead43aa9f7a506dd3f1417",
+        "workflow_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38042928701",
+        "preflight_run": 38042849509,
+        "preflight_state": "PASS",
+        "planned_legs": 4,
+        "qualified_legs": "UNDETERMINED",
+        "loss_report": "PENDING_FULL_ACTION_ARTIFACT",
+        "previous_failures_preserved": [
+          38039151704,
+          38041440305
+        ]
       }
     }
   },
-  "next_task": "Run q2observe300 config nonce21 exact one runner 4x300s ABBA Q2 with historical seed1844. Read Actions final run and artifact including loss-overview.json and per-leg summary/case/ledger. It explicitly continues after original FAIL ONLY if sole 5205 UDP/probe loss threshold violated, all infra/resource/integrity/owned cleanup strict; FAIL never converted to PASS. Report actual full-window and stress-stage sent/missing rates by A/B and c2s/s2c, UDP vs probes separately including sizes, p99 missing. Original Q120 and historic300 FAIL retained. Q3/L/ARM physical still NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-213500-fec-simd-q2-full-observation-trigger.md",
+  "next_task": "Read Actions run38042928701 helper45b8e2a1d018630c70ead43aa9f7a506dd3f1417 final artifact loss-overview.json + ab-manifest + s01..s04 case receipts, summary, ledger. Phase q2observe300 4x300s A-B-B-A identical Normal1/20:20/5-20-5 75/150/75 seed1844. Continue across original quality FAIL ONLY on allowlisted 5205 UDP/probe missing, stop on infra/integrity/resource/cleanup. Report all-window separate UDP/probe loss fractions and by stress phase, source/dir/size and original flags. If action still running, no finished outcomes claimed. Original Q120 FAIL and historic300 A FAIL preserved; native ARM/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-214000-fec-simd-q2-observe300-run-registered.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
