@@ -1,0 +1,84 @@
+{
+  "schema": "wbd-fec-simd-s3-pilot-failure-evidence/v1",
+  "date_utc": "2026-10-10",
+  "branch": "next/fec-simd-20261010",
+  "helper_sha": "ce8f58673a271258dba8e714c9055d95e0c40e01",
+  "workflow_run_id": 38036729414,
+  "job_id": 114168592208,
+  "artifact_id": 11663593875,
+  "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38036729414/artifacts/11663593875",
+  "workflow_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38036729414",
+  "test": {
+    "phase": "pilot",
+    "context": "Q1",
+    "mode": "normal",
+    "lanes": 1,
+    "workload": "mixed",
+    "fec": "20:20",
+    "loss_percent": 0,
+    "delay_oneway_ms": 300,
+    "logical_rate_each_direction_mbps": 10,
+    "seed": 2261,
+    "duration_s": 15,
+    "intended_drain_s": 3,
+    "toolchain": "go1.23.12 linux/amd64",
+    "order": [
+      "A",
+      "B"
+    ]
+  },
+  "A": {
+    "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "binary_sha256": {
+      "client": "303495af95d02f8644af6c3d49a45f5c9c093a3fd9e23b307e31dc1ef0079c67",
+      "server": "4b165f41862f98cf502549f2db75eb5cf9801ea088bf6b922d8bc9d3c46af69a"
+    },
+    "classification": "INFRA_INVALID",
+    "script_exit": 1,
+    "analyzer_exit": 1,
+    "ledger_exit": 1,
+    "first_failure_class": "PRODUCT_SERVER_EARLY_EXIT",
+    "manifest_exists": false,
+    "biz_exists": true,
+    "target_exists": true,
+    "stage_events_exists": true,
+    "runtime_flags_exists": true,
+    "product_log_bytes": {
+      "client": 352,
+      "server": 490
+    },
+    "server_log_content": "NOT_UPLOADED_PRIVATE",
+    "original_leaked_pids": 1,
+    "sudo_fallback_count": 1,
+    "clean": false,
+    "real_business_qualification": "INVALID_NOT_COUNTED"
+  },
+  "B": {
+    "source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+    "binary_sha256": {
+      "client": "d4192a43733bffa581069e80a0ff406a5b4a71d48be5953bc05fc32ada0bdb2e",
+      "server": "80150437d6465eaa6b9c903dab020d889a3af9983d47f77d8106758583293204"
+    },
+    "classification": "NOT_RUN",
+    "binary_build_receipt": "FROZEN_SHA_ONLY_NO_REAL_BUSINESS"
+  },
+  "valid_pairs": 0,
+  "performance": {
+    "cpu_s_per_verified_delivered_gib": "NOT_MEASURED",
+    "rss_comparison": "NOT_MEASURED",
+    "p99": "NOT_MEASURED",
+    "probe_timeout": "NOT_MEASURED",
+    "socket_raw_drops": "NOT_COLLECTED_VALID_PAIR",
+    "effective_delivery": "NOT_MEASURED"
+  },
+  "runner": {
+    "nproc": 4,
+    "cpuset": "0-3",
+    "cpu_cgroup_max": "UNKNOWN",
+    "cpu_psi_some_avg10_before": 22.1,
+    "capacity_classification": "NOT_DETERMINABLE_FROM_INVALID_RUN"
+  },
+  "native_arm64_performance": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "stopped_reason": "REPEATED_A_INVALID_NO_Q_L_TRIGGER"
+}

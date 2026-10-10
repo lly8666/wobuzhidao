@@ -1,0 +1,52 @@
+{
+  "schema": "wbd-fec-simd-micro-scoped-v1",
+  "run_id": 38034516259,
+  "artifact_id": 11663274788,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38034516259/artifacts/11663274788",
+  "source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "toolchain": "go1.23.12 linux/amd64",
+  "cpu": "AMD EPYC 7763 64-Core Processor",
+  "cpu_cgroup_quota": "UNKNOWN",
+  "sampling": "median of three ns/op per case from default-fused.txt and scalar.txt",
+  "workload": "full 20-data-shard encoder microbenchmark; NOT real TUN/TCP business",
+  "p20": [
+    {
+      "shard_bytes": 96,
+      "span_ns": 3861,
+      "fused_ns": 3880,
+      "scalar_ns": 63134
+    },
+    {
+      "shard_bytes": 256,
+      "span_ns": 4791,
+      "fused_ns": 4770,
+      "scalar_ns": 169585
+    },
+    {
+      "shard_bytes": 512,
+      "span_ns": 6144,
+      "fused_ns": 6173,
+      "scalar_ns": 337207
+    },
+    {
+      "shard_bytes": 1000,
+      "span_ns": 13739,
+      "fused_ns": 13845,
+      "scalar_ns": 657355
+    },
+    {
+      "shard_bytes": 1400,
+      "span_ns": 19739,
+      "fused_ns": 19655,
+      "scalar_ns": 917278
+    }
+  ],
+  "takeaway": "Span SIMD micro wins decisively over scalar, fused vs span at p20 network shard sizes nearly tied and sometimes negative; no verified product gain or p99 result.",
+  "quality_limitations": [
+    "single CPU host micro",
+    "no full real-business delivery denominator",
+    "no socket drops/p99",
+    "no ARM native performance",
+    "default-fused same product candidate source only"
+  ]
+}
