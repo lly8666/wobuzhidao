@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C0_FROZEN_BASELINE_GOVERNANCE_STATIC_PREFLIGHT",
+    "phase": "C1_HEADER_MASK_ONE_BLOCK_CANDIDATE_AWAIT_ACTIONS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4084,7 +4084,7 @@
       }
     },
     "crypto_packet_efficiency": {
-      "state": "BASELINE_FROZEN_GOVERNANCE_COMMITTED_TESTS_NOT_RUN",
+      "state": "HEADER_MASK_CANDIDATE_ACTIONS_PENDING",
       "plan": "docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md",
       "baseline_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
       "branch_start_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
@@ -4092,7 +4092,7 @@
       "branch": "next/crypto-packet-efficiency-20261010",
       "baseline_basis": "FEC SIMD core/race native ARM pass 38032963434 and regular profile-off Q1 120s ABBA observed -10.923%; Q2 300s original 3/4 FAIL, only descriptive CPU -13.213%, not qualified",
       "implementation": {
-        "header_mask": "NOT_STARTED",
+        "header_mask": "SCALAR_FULL_20_ROUNDS_IMMUTABLE_PREPARED_KEY_CANDIDATE_NOT_YET_VALIDATED",
         "arm64_poly1305": "NEEDS_NATIVE_HOTSPOT",
         "tcp_checksum": "NEEDS_PROFILE",
         "sha_copy_locks": "NEEDS_PROFILE",
@@ -4122,13 +4122,13 @@
         "RTT/MTU/PMTU open qualification",
         "80 second downlink OPEN_DEFERRED"
       ],
-      "code_changed": false,
+      "code_changed": true,
       "metrics_claim": "NONE",
       "helper_source_sha": "branch commits when measured; never HEAD aliases"
     }
   },
-  "next_task": "C1 implement and golden-test 20-round one-block ChaCha headerMask with immutable parsed key; enforce source-local core/race and micro in Actions before profile-off same-host 120s ABBA; preserve all inherited Q2 original FAIL and physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-230000-crypto-packet-baseline-and-guard.md",
+  "next_task": "Inspect crypto packet core + foundation Actions for golden/race/native/fallback results; only if PASS run separate micro and ordinary profile-off paired ABBA (A frozen 7fb98... vs exact candidate commit), record both quality+CPU and revert negative candidate.",
+  "latest_log": "docs/devlog/20261010-231000-crypto-header-mask-scalar-candidate.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
