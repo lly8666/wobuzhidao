@@ -1,0 +1,6 @@
+{
+  "schema": "wbd-fec-simd-micro/v1",
+  "candidate_source_sha": "89fcb5e99ffc6ae63354ea6628d367ada72d6bed",
+  "phase": "network_spans",
+  "nonce": 1
+}

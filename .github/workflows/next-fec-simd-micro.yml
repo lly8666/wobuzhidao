@@ -1,0 +1,51 @@
+name: next-fec-simd-micro
+on:
+  push:
+    branches: ["next/fec-simd-20261010"]
+    paths:
+      - ".github/fec-simd-micro.json"
+permissions: {contents: read}
+concurrency:
+  group: fec-simd-micro-exact-branch
+  cancel-in-progress: false
+jobs:
+  one-micro-cpu-sample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact micro scope and immutable FEC code versus B
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          d=json.load(open(".github/fec-simd-micro.json"))
+          assert d=={"schema":"wbd-fec-simd-micro/v1","candidate_source_sha":"89fcb5e99ffc6ae63354ea6628d367ada72d6bed","phase":"network_spans","nonce":1}
+          PY
+          git diff --quiet 89fcb5e99ffc6ae63354ea6628d367ada72d6bed HEAD -- internal/fec internal/linkdata go.mod go.sum
+          mkdir -p artifacts/fec-simd-micro
+          go version > artifacts/fec-simd-micro/go-version.txt
+          uname -a > artifacts/fec-simd-micro/uname.txt
+          cat /sys/fs/cgroup/cpu.max > artifacts/fec-simd-micro/cgroup-cpu-max.txt || true
+          cat /proc/pressure/cpu > artifacts/fec-simd-micro/cpu-psi.txt || true
+          grep -m1 'model name' /proc/cpuinfo > artifacts/fec-simd-micro/cpu-model.txt || true
+      - name: Same-host 3-repetition scalar versus SIMD for network shard sizes
+        run: |
+          set -euo pipefail
+          ART=artifacts/fec-simd-micro
+          go test ./internal/fec -run '^$' -bench '^BenchmarkFEC(MulNetworkSpans|FullBlockSpanVsFused)' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/auto-vs-fused.txt"
+          go test -tags=wbd_fec_scalar ./internal/fec -run '^$' -bench '^BenchmarkFEC(MulNetworkSpans|FullBlockSpanVsFused)' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/scalar.txt"
+          go test -tags=wbd_fec_fused ./internal/fec -run '^$' -bench '^BenchmarkFECFullBlockSpanVsFused' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/forced-fused.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fec-simd-micro-evidence
+          retention-days: 30
+          if-no-files-found: error
+          path: artifacts/fec-simd-micro

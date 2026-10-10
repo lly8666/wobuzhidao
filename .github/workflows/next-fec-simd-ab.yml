@@ -49,6 +49,7 @@ jobs:
           mkdir -p "$ART/binaries/A" "$ART/binaries/B"
           bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
           echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+          export WBD_STRICT_TC="$RUNNER_TEMP/wbd-tc"
           a=a2db258b436a41fdee98c6c53abec9bab6ce600f
           b=89fcb5e99ffc6ae63354ea6628d367ada72d6bed
           for label in A B; do
