@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C1_ABBA_PREFLIGHT_FAIL_SELECTOR_DISCOVERED_THIN_ADAPTER_COMMITTED",
+    "phase": "C1_THIN_ADAPTER_STATIC_PREFLIGHT_RETRY_CONFIG_ONLY",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4185,7 +4185,7 @@
           "B",
           "A"
         ],
-        "phase_preflight": "FAILED_38048292234_THIN_ADAPTER_RETRY_NEEDED",
+        "phase_preflight": "RETRY_REQUESTED_3",
         "phase_q1screen120": "NOT_RUN",
         "config_nonce": 2
       },
@@ -4235,8 +4235,8 @@
       }
     }
   },
-  "next_task": "Rerun exact preflight with ONLY config/status/devlog after thin selector adapter; no business until preflight PASS. Do not change old FEC generator or selectors.",
-  "latest_log": "docs/devlog/20261010-235500-crypto-static-selector-adapter.md",
+  "next_task": "Assess second static preflight on exact A/B and pinned helper; ONLY if PASS, authorize q1screen120 serial four-leg real business (A-B-B-A). Preserve both preflight failures.",
+  "latest_log": "docs/devlog/20261010-235900-crypto-thin-adapter-preflight-retry.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
