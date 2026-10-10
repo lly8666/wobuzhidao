@@ -3254,7 +3254,7 @@
       "batch_a_duration_per_case_s": 120,
       "product_defaults_changed": false,
       "test_adapter_implemented": true,
-      "actions": "PILOT_PASS_37949699339;_BATCH_A_SCOPED_SUCCESS_37952897144;B_300MS_TRIGGER_PENDING_ACTIONS;B_FIRST_STATIC_FAIL_37958978378_NO_TRAFFIC;B_STATIC_HOTFIX_RETRIGGER_PENDING;B_REALPATH_FAIL_37959180188_4_VALID_1_INTEGRITY_STOP_7_NOT_RUN;ONE_FEC_OFF_300MS_RETRANS_AUDIT_CONFIG_PUSH_PENDING;RETRANS_REAL_300MS_VALID_37999822837_RETRY_0P523_C2S_0P591_S2C;FEC_OFF_300MS_5PCT_SINGLE_WIRE_RETRANS_CONFIG_PUSH_PENDING;FEC_OFF_300MS_5PCT_WIRE_RETRANS_VALID_38019925294;FEC_OFF_DELAY_LOSS_RATE_36_CASE_SINGLE_JOB_TRIGGER_PENDING",
+      "actions": "PILOT_PASS_37949699339;_BATCH_A_SCOPED_SUCCESS_37952897144;B_300MS_TRIGGER_PENDING_ACTIONS;B_FIRST_STATIC_FAIL_37958978378_NO_TRAFFIC;B_STATIC_HOTFIX_RETRIGGER_PENDING;B_REALPATH_FAIL_37959180188_4_VALID_1_INTEGRITY_STOP_7_NOT_RUN;ONE_FEC_OFF_300MS_RETRANS_AUDIT_CONFIG_PUSH_PENDING;RETRANS_REAL_300MS_VALID_37999822837_RETRY_0P523_C2S_0P591_S2C;FEC_OFF_300MS_5PCT_SINGLE_WIRE_RETRANS_CONFIG_PUSH_PENDING;FEC_OFF_300MS_5PCT_WIRE_RETRANS_VALID_38019925294;FEC_OFF_DELAY_LOSS_RATE_36_CASE_SINGLE_JOB_TRIGGER_PENDING;FEC_OFF_36_SERIAL_ALL_VALID_38021635895",
       "cpu_gain": "A_SIX_SAME_JOB_OFF_LOWER_BUT_LOSS_TAIL;B_UDP0_OFF_LOWER_31P22PCT_PSI_CONFOUNDED;B_UDP1_NOT_COMPARABLE;NO_PRODUCT_GAIN_CLAIM",
       "previous_latest_log": "docs/devlog/20261009-e1-uniform32-sparse15ms-formal-fullstack-5334-5334-pass.md",
       "mainline_next_task_preserved": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes.",
@@ -3502,7 +3502,7 @@
         "audit_evidence": "docs/evidence/fec-off-300ms-5pct-retrans-38019925294.json"
       },
       "retrans_delay_loss_rate_sweep": {
-        "state": "ACTIONS_TRIGGER_PENDING_NO_RESULTS",
+        "state": "ALL_36_VALID_OBSERVATIONS_NOT_PRODUCT_QUALIFICATION",
         "authorized_by": "USER_2026_10_10",
         "branch": "experiment/fec-policy-sequential-20261009",
         "workload": "UDP_ORDINARY_ONLY_FEC_OFF",
@@ -3532,10 +3532,10 @@
         "repair_budget_changed": false,
         "workflow": ".github/workflows/next-fec-retrans-sweep.yml",
         "trigger": ".github/fec-retrans-sweep.json",
-        "run_id": null,
-        "artifact_id": null,
-        "valid_cases": 0,
-        "not_run": 36,
+        "run_id": 38021635895,
+        "artifact_id": 11660861035,
+        "valid_cases": 36,
+        "not_run": 0,
         "conditions": "ONE_ACTIONS_ONE_JOB_STRICT_36_SERIAL_SEPARATE_NETNS_AND_RESTART_EACH_CASE",
         "metrics": [
           "outer_tcp_first_and_repeat_packet_payload_ip_bytes_each_direction",
@@ -3551,12 +3551,87 @@
         "hardware": "GITHUB_HOSTED_NOT_PHYSICAL_QUALIFICATION",
         "previous_1pct_run_id": 37999822837,
         "previous_5pct_run_id": 38019925294,
-        "next": "AUDIT_LIVE_ACTIONS_RESULTS_AND_COMMIT_SEPARATE_DEVLOG_AND_STATUS"
+        "next": "AUDIT_LIVE_ACTIONS_RESULTS_AND_COMMIT_SEPARATE_DEVLOG_AND_STATUS",
+        "job_id": 114123695438,
+        "artifact_sha256": "cac4afede5e563b1882df86a9f11dd00d5139e079cd40dea53fe0c9ba95f8b0c",
+        "helper_sha": "7ad35deabfcd1da8973d9b7da0f4c31dcf0b5255",
+        "completed_cases": 36,
+        "data_capture_72_directions_zero_observer_drops": true,
+        "all_36_actual_submitted_rates_at_least_99pct_nominal": true,
+        "all_36_source_flags_cleanup_ok": true,
+        "udp_business_zero_missing": false,
+        "outer_retrans_percent_ranges_by_loss": {
+          "pct1": [
+            0.628112,
+            0.955047
+          ],
+          "pct5": [
+            2.041782,
+            3.456346
+          ],
+          "pct10": [
+            2.90975,
+            4.678006
+          ]
+        },
+        "avg_retrans_vs_ideal_by_loss": [
+          {
+            "loss_pct": 1,
+            "mean_retrans_over_fresh_payload_pct": 0.804,
+            "ideal_geometric_pct": 1.010101,
+            "observed_fraction_of_ideal_pct": 79.6
+          },
+          {
+            "loss_pct": 5,
+            "mean_retrans_over_fresh_payload_pct": 2.981,
+            "ideal_geometric_pct": 5.263158,
+            "observed_fraction_of_ideal_pct": 56.6
+          },
+          {
+            "loss_pct": 10,
+            "mean_retrans_over_fresh_payload_pct": 3.568,
+            "ideal_geometric_pct": 11.111111,
+            "observed_fraction_of_ideal_pct": 32.1
+          }
+        ],
+        "cpu_total_product_seconds_range": [
+          50.57,
+          192.88
+        ],
+        "hwm_client_mib_range": [
+          27.855,
+          36.762
+        ],
+        "hwm_server_mib_range": [
+          28.25,
+          35.215
+        ],
+        "host_cpu_model": "AMD EPYC 9V45 96-Core Processor",
+        "runner_logical_cpus": 4,
+        "cpu_cgroup_quota": "UNKNOWN",
+        "max_cpu_psi_some_avg10": 41.9,
+        "actual_netem_loss_observed_pct_range": [
+          0.963584,
+          10.075876
+        ],
+        "capture_coverage_observed_ratio_range": [
+          1.000283,
+          1.001261
+        ],
+        "business_udp_missing_pct_range": [
+          0.55,
+          11.18
+        ],
+        "probe_sent_each_case": 1195,
+        "audit_log": "docs/devlog/20261010-133500-fec-off-36-serial-retrans-cpu-rss-valid-observations-audit.md",
+        "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38021635895/artifacts/11660861035",
+        "scope_note": "ONE_RUN_ONE_JOB_36_SERIAL_120S_PER_CASE;VALID_SCOPED_REAL_OBSERVATIONS_WITH_RESIDUAL_LOSS_NOT_QUALIFICATION",
+        "previous_1pct_300ms_and_5pct_300ms_evidence_preserved": true
       }
     }
   },
-  "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes. 独立FEC A批run37952897144同job已完成12/12真实VALID_OBSERVATION；六对off CPU较低但1% UDP丢失和probe p99变差；outer wire NOT_COLLECTED，物理NOT_RUN。FEC独立B批300ms run37959180188 FAIL: 前4段UDP VALID，1% FEC-off丢3257/352560、11/1195探针无返回，FEC20:20零业务缺包；第5段0% TCP-off 4长流每方向缺最终接收核验、仅7.955Mbps，原分析FAIL、runner INTEGRITY_STOP；剩7段NOT_RUN。完整payload损坏未被证明但完整性验收失败，需先定位TCP背压/收尾，禁止放宽判定或盲目B重跑；C 5%、20:4、默认策略调整暂停。详见docs/devlog/20261010-014000-fec-policy-batch-b-300ms-stopped-tcp-incomplete.md；外层wire字节和物理资格未采集/未运行。主线E1与Game4/E7历史不变。 用户2026-10-10新要求300ms/1% FEC-off重传真实线上比例相对理论对照；单段外层入站包头计数观察已分支受限触发，必须查看 Actions 产物核对捕获零drop和qdisc覆盖率，否则保持NOT_COLLECTED。4096为shadow记录容量不是严格发送窗口，fresh/5信用、3s修复期限保持不变。 现有单段真实run37999822837 Actions SUCCESS、零捕获丢包且净业务分析VALID，外层实测重发payload/首发为上行0.523%、下行0.591%，理论1.0101%，分别少48.2%/41.5%；但4096是否到上限仍未观测，不能下根因结论。审计 docs/devlog/20261010-070000-fec-off-300ms-1pct-outer-retrans-audit.md；后续若要归因先做隔离的低开销运行态transport counters取证，保持产品不变，勿直接扩大缓冲。 用户2026-10-10授权新增单点300ms单向、双向5%丢包、FEC-off UDP外层重传比例测试；独立config-only push触发一个Actions样本，实测尚未到达，需核对捕获零drop和5%实际netem；理论几何重发/首发=5.26316%，不是产品承诺。保持A/B审计、1%证据、E1/Game4/E7与物理NOT_RUN，禁止擅自运行C整批。 用户单点5%对照 run38019925294 Actions成功且外层取证有效，重发/首发 payload c2s 2.025900%、s2c 2.008653%、理想5.263158%，合计仅理论38.33%；数据属于外层路由入口不是物理NIC。UDP业务仍缺18988/352560，探针60/1195不返回；原始observer存在单个未参与计算的1.0%陈旧理论说明字段，已在审计更正而未掩盖。证据见docs/devlog/20261010-113000-fec-off-300ms-5pct-outer-retrans-audit.md；不授权C整批/产品变更。 用户授权FEC-off UDP 36工况:单向延迟50/100/150ms、双向1/5/10%丢包、双向各10/20/30/50Mbps，必须在单一Actions job依次执行且每段120s业务+3s drain；CPU-s,峰值RSS/HWM,真实注入比例,外层数据重传比例与qdisc/压力需逐行核验。新独立配置触发，数据尚无；出现未达速/观察丢包要保留INVALID及NOT_RUN，不改default/repair/4096，禁止物理PASS。详见docs/devlog/20261010-113500-fec-off-36-serial-retrans-cpu-mem-sweep-trigger.md。",
-  "latest_log": "docs/devlog/20261010-113500-fec-off-36-serial-retrans-cpu-mem-sweep-trigger.md",
+  "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes. 独立FEC A批run37952897144同job已完成12/12真实VALID_OBSERVATION；六对off CPU较低但1% UDP丢失和probe p99变差；outer wire NOT_COLLECTED，物理NOT_RUN。FEC独立B批300ms run37959180188 FAIL: 前4段UDP VALID，1% FEC-off丢3257/352560、11/1195探针无返回，FEC20:20零业务缺包；第5段0% TCP-off 4长流每方向缺最终接收核验、仅7.955Mbps，原分析FAIL、runner INTEGRITY_STOP；剩7段NOT_RUN。完整payload损坏未被证明但完整性验收失败，需先定位TCP背压/收尾，禁止放宽判定或盲目B重跑；C 5%、20:4、默认策略调整暂停。详见docs/devlog/20261010-014000-fec-policy-batch-b-300ms-stopped-tcp-incomplete.md；外层wire字节和物理资格未采集/未运行。主线E1与Game4/E7历史不变。 用户2026-10-10新要求300ms/1% FEC-off重传真实线上比例相对理论对照；单段外层入站包头计数观察已分支受限触发，必须查看 Actions 产物核对捕获零drop和qdisc覆盖率，否则保持NOT_COLLECTED。4096为shadow记录容量不是严格发送窗口，fresh/5信用、3s修复期限保持不变。 现有单段真实run37999822837 Actions SUCCESS、零捕获丢包且净业务分析VALID，外层实测重发payload/首发为上行0.523%、下行0.591%，理论1.0101%，分别少48.2%/41.5%；但4096是否到上限仍未观测，不能下根因结论。审计 docs/devlog/20261010-070000-fec-off-300ms-1pct-outer-retrans-audit.md；后续若要归因先做隔离的低开销运行态transport counters取证，保持产品不变，勿直接扩大缓冲。 用户2026-10-10授权新增单点300ms单向、双向5%丢包、FEC-off UDP外层重传比例测试；独立config-only push触发一个Actions样本，实测尚未到达，需核对捕获零drop和5%实际netem；理论几何重发/首发=5.26316%，不是产品承诺。保持A/B审计、1%证据、E1/Game4/E7与物理NOT_RUN，禁止擅自运行C整批。 用户单点5%对照 run38019925294 Actions成功且外层取证有效，重发/首发 payload c2s 2.025900%、s2c 2.008653%、理想5.263158%，合计仅理论38.33%；数据属于外层路由入口不是物理NIC。UDP业务仍缺18988/352560，探针60/1195不返回；原始observer存在单个未参与计算的1.0%陈旧理论说明字段，已在审计更正而未掩盖。证据见docs/devlog/20261010-113000-fec-off-300ms-5pct-outer-retrans-audit.md；不授权C整批/产品变更。 用户授权FEC-off UDP 36工况:单向延迟50/100/150ms、双向1/5/10%丢包、双向各10/20/30/50Mbps，必须在单一Actions job依次执行且每段120s业务+3s drain；CPU-s,峰值RSS/HWM,真实注入比例,外层数据重传比例与qdisc/压力需逐行核验。新独立配置触发，数据尚无；出现未达速/观察丢包要保留INVALID及NOT_RUN，不改default/repair/4096，禁止物理PASS。详见docs/devlog/20261010-113500-fec-off-36-serial-retrans-cpu-mem-sweep-trigger.md。 36工况run38021635895已SUCCESS，完整真实观察36/36、双向原发重传72方向、CPU-s与RSS/HWM有效、72方向observer丢包=0，全部发送速率≥目标99%；每工况1195探针，业务未保证零丢包。1/5/10%三组平均重传比分别0.804/2.981/3.568%，低于理想1.010/5.263/11.111；CPU两个产品进程合计50.57至192.88 CPU-s，HWM客户端27.86至36.76MiB、服务端28.25至35.21MiB，但CPU压力PSI可达41.9且cgroup配额未知，谨慎解释。完整数值zip artifact11660861035、审计docs/devlog/20261010-133500-fec-off-36-serial-retrans-cpu-rss-valid-observations-audit.md，物理/NIC未认证。自动监控已停用，勿重复跑。",
+  "latest_log": "docs/devlog/20261010-133500-fec-off-36-serial-retrans-cpu-rss-valid-observations-audit.md",
   "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
