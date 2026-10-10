@@ -1,0 +1,7 @@
+# FEC SIMD S3旧A崩溃根因：单流TCP拨号拒绝被升级为整个server错误；120秒Q1 pilot对照
+
+- [Actions 38038274750](https://github.com/lly8666/wobuzhidao/actions/runs/38038274750) / [artifact11664931347](https://github.com/lly8666/wobuzhidao/actions/runs/38038274750/artifacts/11664931347) A=`a2db258b436a41fdee98c6c53abec9bab6ce600f`，B=`7fb98fab79834a351a1dbe04eebb207f66bea28b`。A pilot15s 旧服务端早退 `INFRA_INVALID`，B `NOT_RUN`。脱敏产品日志明确 **`runtimeentry: published lane 1/<redacted> segment: dial tcp4 <ip>: connect: connection refused`**，无panic，有server stopped；真实payload无有效完整manifest，不能当正常业务/性能结果。
+- 精确调用链：冻结A `internal/platformflow/tcp.go` 的 `TCPServer.handleOpen` 在拨号拒绝时直接return错误；`platformflow.Service.HandleServicePacket` 向上返回；`runtimeentry.LifecycleServer.handleSegment` 将已发布lane错误包装为 fatal；`server.Run` 退出。**单条TCP目标未监听不应自动归为整个FEC错误**，但此处暂不更改旧A产品以维持基线可比性。
+- 根因仍有一个未证实的起因：15s/300ms单向Q1 smoke串行发送20 HTTP(S)，且target在15+3秒后结束。末尾若有迟到TCP open会面对已关闭目标；正常120s Q1每个请求间隔6s，末次请求在114s、目标止于123s，比15s烟测有更多就绪/响应余量。不能直接认定全部错误来自HTTP/哪一个端口，已脱敏。
+- **验证设计**：只将 `tools/fec_simd_ab.py` 的 `phase=pilot` 业务时长从15改为120s，完整A→B，和正式Q1一模一样的真实 mixed/Normal1/20:20/300ms/loss0/10Mbps/seed2261、20个HTTP(S)和真实双向TCP/UDP，仍严格**3s drain**、不降负载、不降低quality条件、不修改正式Q/L的ABBA/工具链/任一产品源码，新增unit验证120s case。提交 `.github/fec-simd-ab.json` nonce16触发。
+- 若120s A仍FAIL，要保留它和后续B NOT_RUN，并将原因归为已有baseline TCP服务fatal/真实背压，不能关门、绕过A或宣称SIMD改善。历史Game4、300ms TCP-off、80s S2C状态不变；S4/S5/P6/physical NOT_RUN、CPU-s/有效GiB与p99收益未获证明。

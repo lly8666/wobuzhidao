@@ -15,6 +15,8 @@ class TestABBA(unittest.TestCase):
  def test_pilot(self):
   self.assertEqual([c["label"] for c in ab.plan("pilot")],["A","B"])
   self.assertNotEqual(ab.A,ab.B)
+  self.assertEqual([c["duration"] for c in ab.plan("pilot")],[120,120])
+  self.assertEqual([c["context"] for c in ab.plan("pilot")],["Q1","Q1"])
  def test_privileged_owned_child_is_not_silently_accepted(self):
   from unittest.mock import patch
   from types import SimpleNamespace

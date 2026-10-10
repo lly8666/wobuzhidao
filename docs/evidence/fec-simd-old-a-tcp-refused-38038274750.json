@@ -1,0 +1,32 @@
+{
+  "schema": "wbd-fec-simd-old-a-tcp-open-fatal/v1",
+  "run_id": 38038274750,
+  "helper_sha": "27f0182c4be1e9b9eac6375a149086417bde767d",
+  "artifact_id": 11664931347,
+  "source_A": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "source_B": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "A_state": "INFRA_INVALID",
+  "B_state": "NOT_RUN",
+  "server_error": "runtimeentry: published lane 1/<redacted> segment: dial tcp4 <ip>: connect: connection refused",
+  "log_hash": "5264c6c57f41347b84dec4037f287fcbdcdf87d5edc30753a940ba8dd6a3c5d0",
+  "source_code_path": "platformflow.TCPServer.handleOpen: dial -> error; service.HandleServicePacket returns error; runtimeentry.LifecycleServer.handleSegment wraps lane error; server.Run returns fatal",
+  "recognized_but_not_proven": "pilot duration and HTTP serialized request timing can cause late target closes; actual refused destination intentionally redacted",
+  "new_pilot_duration_s": 120,
+  "old_pilot_duration_s": 15,
+  "unchanged": [
+    "20 verified HTTP(S)",
+    "mixed UDP/TCP load",
+    "300ms one-way delay",
+    "0% loss",
+    "Normal1 20:20",
+    "seed2261",
+    "10Mbps per direction",
+    "drain=3",
+    "quality hard gates",
+    "A and B exact sources"
+  ],
+  "status": "NO_VALID_BUSINESS_PAIRS",
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38038274750",
+  "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38038274750/artifacts/11664931347",
+  "physical": "NOT_RUN"
+}

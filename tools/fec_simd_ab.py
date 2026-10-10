@@ -19,7 +19,10 @@ def plan(phase):
  groups={"preflight":("Q1","Q2","Q3","L1","L2","L3"),"pilot":("Q1",),
          "q120":("Q1","Q2","Q3"),"l120":("L1","L2","L3"),
          "confirm300":("Q1","Q2","Q3")}[phase]
- n=15 if phase=="pilot" else 300 if phase=="confirm300" else 120
+ # Pilot Q1 must exercise all 20 serial HTTP/HTTPS requests over 300ms RTT;
+ # 15s + fixed 3s drain can close targets before their final TCP opens.
+ # Use the same 120s real workload as Q1 without relaxing any validity gate.
+ n=300 if phase=="confirm300" else 120
  result=[]
  for context in groups:
   mode,lanes,rate,parity,delay,loss,seed=PARAMS[context]
