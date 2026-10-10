@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_BOUNDED_256_DATA_PN_TX_POST_EMIT_RX_AUTH_ACTIONS_RACE_AND_NATIVE_SCOPED_PASS_PAIRED_WINDOW_NOT_IMPLEMENTED",
+    "phase": "N1_AUTHENTICATED_PEER_TX_VS_LOCAL_RX_STABLE_3S_PAIRED_ESTIMATOR_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "427a43f2582e4df9891a4ed4384f913bd5dc226d",
+    "new_product_source_sha": "CONTAINING_COMMIT_SHA",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N0_SCOPED_ACTIONS_PASS_N1_V3_LIVE_2S_CONTROL_AND_256_DATA_PN_TX_RX_SCOPED_ACTIONS_PASS_WAN_LOSS_ESTIMATOR_PENDING",
     "ordinary_performance": "NOT_RUN_N1_SOURCE_6220A3B",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_LIVE_2S_V3_QUALITY_AND_BOUNDED_DATA_PN_TX_RX_SCOPED_RACE_NATIVE_FOUNDATION_PASS_PAIRED_WATERMARK_AND_MATURE_ESTIMATE_NOT_IMPLEMENTED",
+      "N1_quality": "IN_PROGRESS_RECEIVER_LOCAL_PEER_TX_CONTROL_PN_WATERMARK_AND_3S_MATURE_PAIR_CANDIDATE_TEST_PENDING_NO_WIRE_ESTIMATE_NO_N2_AUTO",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -80,10 +80,19 @@
       "n1_bounded_pn_native_3client_run": 38075731983,
       "n1_bounded_pn_foundation_run": 38075732117,
       "n1_bounded_pn_scope": "256 PN span actual KindLINK post Emit successful/failed and authenticated RX first unique/late/duplicate (not health), local separate TX/RX windows, V3 2s quality still only INSUFFICIENT, no physical WAN loss estimate or aligned peer watermarks"
+    },
+    "pending_candidate": {
+      "scope": "N1 receiver-local peer TX 104B report+authenticated enclosing health PN as watermark, pair receiver-local 256 PN DATA first-unique, three second same-window maturity; only ESTIMATED local read API when sufficiently sampled, always explicit INSUFFICIENT on transmitted 104B/N2",
+      "source_sha": "CONTAINING_COMMIT_SHA",
+      "actions": "PENDING",
+      "native_three": "PENDING",
+      "estimated_wire_feedback": "NOT_ENABLED",
+      "N2_auto": "NOT_ENABLED",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "N1 next: design direction-correct authenticated peer TX watermark and local RX KindLINK 256 PN window pairing. Account for successful emit local drops, health/control skipped PN, FEC parity, data clock/age, first/last visibility, 3s reorder maturity, insufficient tail, bounded capacity, late data and generation replacement; no adjacent outbound/inbound PN space conflation, no per-business locks or timers. Publish ESTIMATED only after complete aligned positive sample otherwise UNKNOWN/INSUFFICIENT/CAPACITY. Test under dropped/reordered/duplicate/fail/batch partial/sameSeq/isolated 3-client, Go -race and privileged Actions; no N2 auto until N1. Final physical only after all N0–N6 features and P6 Actions.",
-  "latest_log": "docs/devlog/20261011-071500-n1-bounded-data-pn-window-actions-pass.md",
+  "next_task": "Check exact-source next-adaptive-n1-codec -race count2 pure paired estimator and authenticated 20-DATA-one-tail-omitted/repair 3s; lifecycle, Linux/Windows foundation, 9-netns 3 native clients. Preserve FAIL and correct in new SHA. If scoped PASS, design bounded reciprocal on-wire echo of receiver paired estimate without confusing independent local TX/RX PN spaces or claiming actual raw WAN loss; maintain N2 HOLD until N1 complete. Physical tests only after all N0–N6 features and P6.",
+  "latest_log": "docs/devlog/20261011-080000-n1-paired-peer-watermark-receiver-local-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "427a43f2582e4df9891a4ed4384f913bd5dc226d",
   "last_tested_scope": "427a43f focused Go -race count2, lifecycle, Linux+Windows foundation, real 9-netns 3-client functional all PASS scoped; earlier 1d5e N1/lifecycle/foundation test assertion FAIL preserved, next paired authenticated mature window not implemented, N2–N6/physical NOT_RUN",
@@ -558,6 +567,15 @@
       "scope": "N1_BOUNDED_PN_LINUX_WINDOWS_PRIVILEGED_BASELINE",
       "status": "PASS",
       "cause": "PASS: every required foundation job including Linux+Windows active Go tests, repository-contract and privileged TUN/OpenWrt; P5/P6 skipped by configured policy, not secretly accepted."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "705c4e25e70ada35bfd5b8d81f10b287f78b3c5d",
+      "run_id": 38076002716,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38076002716",
+      "scope": "N1_BOUND_256_DATA_PN_WINDOW_DOC_ONLY_RECEIPT_FOUNDATION",
+      "status": "PASS",
+      "cause": "Docs-only 705c4e2 foundation all jobs PASS; not new paired-estimator code evidence."
     }
   ],
   "required_read_set": [

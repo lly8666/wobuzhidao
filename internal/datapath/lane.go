@@ -82,6 +82,9 @@ type InboundResult struct {
 	Authenticated uint64
 	Health        []HealthMessage
 	Quality       []QualityHealthReport
+	// QualityControlPN parallels Quality: authenticated sender-side seal PN
+	// of the KindHealth marker, not a receiver-local or LINK record PN.
+	QualityControlPN []uint64
 	Datagrams     [][]byte
 	RecordErrors  []error
 	PathErrors    []error
@@ -575,6 +578,7 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
                 }
                 out.Authenticated++
                 out.Quality = append(out.Quality, quality)
+                out.QualityControlPN = append(out.QualityControlPN, decoded.PN)
                 out.Health = append(out.Health, HealthMessage{PN: decoded.PN, IdleFor: quality.IdleFor})
                 continue
             }

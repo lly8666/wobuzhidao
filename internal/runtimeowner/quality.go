@@ -17,6 +17,7 @@ type qualityState struct {
     reportSeq uint64
     mailbox *datapath.QualityFeedbackMailbox
     tx qualityTXWindow // guarded by existing laneTransport.mu
+    pair qualityPairCandidate // authenticated peer TX window + control record PN
     received uint64
     rejected uint64
     sent uint64
@@ -122,11 +123,14 @@ func (t *laneTransport) tickQuality(now time.Time) (err error) {
 func (t *laneTransport) observeQualityLocked(result datapath.InboundResult, now time.Time) {
     mailbox:=t.quality.mailbox
     if !t.quality.enabled || mailbox==nil {return}
-    for _,report:=range result.Quality {
+    for i,report:=range result.Quality {
         if err:=mailbox.AcceptDecoded(t.ref,report,now);err!=nil {
             t.quality.rejected++
         }else {
             t.quality.received++
+            if i<len(result.QualityControlPN) {
+                t.quality.pair.accept(report,result.QualityControlPN[i],now)
+            }
         }
     }
 }

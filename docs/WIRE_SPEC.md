@@ -365,3 +365,52 @@ TxSuccess` as WAN loss, and never treat `RxUnique=0` in this report as a
 0%-loss observation. N2 automatic FEC is still NOT_ENABLED and physical
 loss measurements have NOT_RUN. SOURCE-specific Go race and privileged
 Actions are required before this candidate may be qualified.
+
+## 2026-10-11 N1 authenticated peer-TX watermark / receiver-local estimate candidate
+
+**No wire-format change:** V3 authenticated `KindHealth` body remains 104
+bytes, version 2, plus the legacy 9-byte health format. Its enclosing TLS
+record PN is already authenticated by the same lane decoder. On receipt, the
+runtime now retains this marker PN alongside the accepted sender-reported
+`WindowFirstPN`, `WindowLastPN`, `TxSuccess`, `LocalDrops` and source
+generation/nonce/monotonic report sequence. A received v2 record's seal PN
+must be **strictly after** that sender window's last DATA PN. This marker is
+NOT a receiver outbound PN and is NOT counted as KindLINK.
+
+A new **receiver-local, read-only** `QualityInboundEstimate(ref,now)`
+can pair the authenticated peer's latest outbound DATA PN envelope with the
+receiver's own authenticated KindLINK window *in the matching C2S or S2C
+direction*. It computes the number of first-unique received DATA PNs
+inside that exact peer interval (including FEC parity DATA records). It
+never subtracts raw PN gaps or counts KindHealth as DATA. A stable sender
+window (same PN bounds, successful TX count, local drops and capacity flags)
+must have been authenticated at least **3 seconds** ago; newer reports with
+the identical window may refresh its last-seen timestamp without resetting
+the initial observation time. This covers a limited reordering/RTO horizon
+without creating a separate periodic goroutine.
+
+The estimator refuses an ESTIMATED result if its marker is missing or
+`markerPN <= WindowLastPN`, the interval spans over 256 PNs, receiver
+retention is insufficient, either side reports capacity pressure, sender
+DATA age is unknown or over 10s, the report is over 10s stale, at least
+16 post-Emit successful sender DATA and eight authenticated receiver DATA
+have not been observed, receive count exceeds sender successful sends or
+the sender window is still moving. UNKNOWN/INSUFFICIENT/CAPACITY/STALE are
+never treated as **zero loss**. Once qualified it returns
+`EstimatedMissing=TxSuccess-RxUnique` and
+`EstimatedFraction=EstimatedMissing/TxSuccess` with state ESTIMATED.
+This is **estimated first-unique arrival deficit** after bounded maturity,
+NOT physical WAN drops, an exact loss-burst measurement, a total network
+capture or a promised end-to-end application delivery rate. Later repaired
+bytes can change the estimate. Subsample confidence and maximum missing
+burst are *not* inferred from sparse PN gaps.
+
+**No closed-loop auto-control yet:** this is a local receiver API only.
+`QualityFeedback` and transmitted v2 reports retain their explicit
+INSUFFICIENT status and never set LossEstimated/EstimatedMissing from this
+local paired calculation. The opposite direction has a distinct peer
+generation/nonce, independent PN ledger and observation window. Publishing
+bidirectional verified feedback into an extended authenticated exchange
+is a *later* N1 task; N2 adaptive FEC must HOLD. New-source focused
+`-race` tests and exact-source native network Actions are required before
+the code can be called qualified.

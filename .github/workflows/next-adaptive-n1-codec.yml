@@ -11,10 +11,13 @@ on:
       - "internal/datapath/quality_health_live.go"
       - "internal/datapath/lane.go"
       - "internal/datapath/quality_pn_window.go"
+      - "internal/datapath/quality_pair_range.go"
       - "internal/datapath/quality_pn_window_test.go"
       - "internal/tlsrecord/decoder.go"
       - "internal/runtimeowner/quality.go"
       - "internal/runtimeowner/quality_window.go"
+      - "internal/runtimeowner/quality_pair.go"
+      - "internal/runtimeowner/quality_pair_test.go"
       - "internal/runtimeowner/quality_window_test.go"
       - "internal/runtimeowner/send_batch.go"
       - "internal/runtimeowner/quality_live_test.go"
@@ -57,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           go test ./internal/datapath ./internal/tlsrecord -count=1 -timeout=90s
-      - name: Actual V3 protected control on production runtime (two directions, bounded 2s, dormant, legacy V2) under race
+      - name: Actual V3 protected control, paired mature receiver evidence and 2s active-lane checks under race
         shell: bash
         run: |
           set -euo pipefail

@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "kind": "N1_AUTHENTICATED_PEER_TX_MARKER_PAIR_RECEIVER_LOCAL_CANDIDATE_ACTIONS_PENDING",
+  "parent_sha": "705c4e25e70ada35bfd5b8d81f10b287f78b3c5d",
+  "source_sha": "CONTAINING_COMMIT_SHA",
+  "prior_foundation_docs_only": {
+    "run": 38076002716,
+    "status": "PASS"
+  },
+  "wire": {
+    "v3_health_v2_body_bytes": 104,
+    "wire_version": 2,
+    "format_changed": false,
+    "legacy_health_9b": true,
+    "marker": "enclosing authenticated KindHealth packet number strictly greater than peer outbound DATA window last PN"
+  },
+  "scope": {
+    "sender": "peer authenticated 256 PN post Emit KindLINK success and local drops",
+    "receiver": "own authenticated first-unique KindLINK in peer matching PN interval",
+    "maturity": "stable matched window >=3 seconds",
+    "min_sender_success": 16,
+    "min_receiver_unique": 8,
+    "stale_after_seconds": 10,
+    "age_check": "peer sender DATA age <=10s and known",
+    "capacity": ">=256 PN span or retention limited => CAPACITY",
+    "state": "receiver-local ESTIMATED first arrival deficit only after all checks; otherwise UNKNOWN/INSUFFICIENT/CAPACITY/STALE",
+    "estimated_formula": "(peerTxSuccess-ownRxUnique)/peerTxSuccess",
+    "N2_controller_flag": "UNCHANGED_INSUFFICIENT_NOT_ENABLED",
+    "packet_timers": "NONE_ADDED",
+    "business_hot_path": "NO_NEW_LOCK_ALLOCATION_OR_SCAN",
+    "auth": "same TLS record key nonce/ref and peer generation+seq mailbox"
+  },
+  "tests": {
+    "pure": "maturity, report sequence with stable PN, marker missing, stale, insuff/capacity",
+    "actual": "two roles, original encrypted KindHealth, 20 local outbound DATA, omit one tail and RTOs, advance 3s, expected estimated 1/20 local only",
+    "focused_race": "PENDING",
+    "linux_windows_foundation": "PENDING",
+    "privileged_native_three": "PENDING"
+  },
+  "physical": "NOT_RUN",
+  "deploy": false
+}
