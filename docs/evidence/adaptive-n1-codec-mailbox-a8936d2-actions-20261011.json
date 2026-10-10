@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "kind": "N1_CODEC_MAILBOX_SCOPED_RACE_PASS",
+  "source_sha": "a8936d20f623959892906dfe1443d3e495fec62f",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "actions": {
+    "dedicated": {
+      "run_id": 38072534318,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38072534318",
+      "job_id": 114272746735,
+      "status": "PASS",
+      "tests": [
+        "TestN1QualityHealthV3IndependentWireVector",
+        "TestN1QualityHealthV3StrictMalformedAndUnknown",
+        "TestN1QualityHealthV3UnknownAndEncodeRestrictions",
+        "TestN1QualityFeedbackMailboxGenerationNonceAndReplay",
+        "TestN1QualityFeedbackMailboxStaleInsufficientCapacityUnknown",
+        "TestN1QualityFeedbackMailboxConcurrentLatestBounded"
+      ],
+      "run_count_per_test": 2,
+      "race": true,
+      "legacy_health_regression": true
+    },
+    "prior_source": {
+      "sha": "f2d72e107f13f78213acb3bf237571291d6e8cd4",
+      "focus_run": 38072317135,
+      "status": "PASS_CODEC_FOCUS_ONLY_MAILBOX_ORDINARY",
+      "foundation_run": 38072317142,
+      "foundation_status": "PASS",
+      "lifecycle_run": 38072317125,
+      "lifecycle_status": "PASS"
+    },
+    "current_foundation": {
+      "run_id": 38072534234,
+      "status_at_receipt": "IN_PROGRESS_CHECK_FINAL_RESULT"
+    }
+  },
+  "scope": "nonlive 104B KindHealth V3 reserved encoding and O(1) one latest authenticated-lane report gate; no live sender/receiver",
+  "states": [
+    "estimated only valid estimated window",
+    "unknown",
+    "insufficient",
+    "capacity",
+    "stale"
+  ],
+  "fencing": [
+    "lane ID",
+    "generation",
+    "16B incarnation nonce",
+    "monotonically increasing report sequence"
+  ],
+  "not_claimed": [
+    "live two-second quality feedback",
+    "sender success watermark/WAN physical loss estimation",
+    "automatic FEC",
+    "native Windows Wintun",
+    "performance/P6",
+    "physical"
+  ],
+  "physical": "NOT_RUN",
+  "auto_deploy": false,
+  "documents_commit": "containing SHA"
+}

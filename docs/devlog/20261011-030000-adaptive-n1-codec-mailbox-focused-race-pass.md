@@ -1,0 +1,17 @@
+# N1 reserved quality codec + bounded latest mailbox: targeted -race PASS, no live wire
+
+## Exact-source Actions receipts
+- Working branch `next/adaptive-fec-aes-tun-20261010`.
+- Exact last code/workflow SOURCE **`a8936d20f623959892906dfe1443d3e495fec62f`**; containing commit of this receipt is docs-only.
+- [next-adaptive-n1-codec #38072534318](https://github.com/lly8666/wobuzhidao/actions/runs/38072534318): **PASS**, job **114272746735**. Raw log independently confirms targeted `go test -race ... -run '^TestN1Quality(HealthV3|Feedback)' -count=2` actually ran both the 104-byte strict literal wire/vector/malformed tests **and** all 3 `TestN1QualityFeedbackMailbox*` tests twice. The mailbox cases include generation+nonce fencing, duplicate/older seq rejection, snapshot preservation, stale/UNKNOWN/capacity/insufficient classification and 128 out-of-order concurrent reports. Legacy v1 health and `internal/tlsrecord` ordinary regressions PASS.
+- Exact preceding **`f2d72e107f13f78213acb3bf237571291d6e8cd4`** [next-adaptive-n1-codec #38072317135](https://github.com/lly8666/wobuzhidao/actions/runs/38072317135): **PASS but limited scope**: its `-race` selector ran codec only; mailbox tests ran only ordinary package regression. [next-foundation #38072317142](https://github.com/lly8666/wobuzhidao/actions/runs/38072317142) PASS, [next-lifecycle #38072317125](https://github.com/lly8666/wobuzhidao/actions/runs/38072317125) PASS. Do NOT rewrite those receipts as a mailbox targeted race.
+- [next-foundation on new SOURCE #38072534234](https://github.com/lly8666/wobuzhidao/actions/runs/38072534234) was **IN_PROGRESS at log drafting**; verify final conclusion independently. Do not automatically inherit a previous SOURCE result.
+
+## Implemented scope, strict limitation
+- New reserved `QualityHealthV3` encoder/decoder, 104B protected KindHealth *v2 plaintext* fixed vector, strict versions/flags/ranges/nonce/generation and UNKNOWN handling, <=128B budget.
+- New per-authoritative-lane `QualityFeedbackMailbox`: no unbounded queue or goroutine, O(1) latest report only, reportSeq monotonic, lane ID+generation+incarnation nonce fence, staleness `max(10s, caller provided bound)`, honest HOLD for UNKNOWN/INSUFFICIENT/CAPACITY/STALE. Caller must already authenticate/decrypt; mailbox alone is **not** admission.
+- **Not live**: existing N0 9B health wire continues unchanged; there is no periodic N1 control message, no V3 quality reader/sender wiring, no successful sender PN watermark alignment, no genuine WAN loss estimator and **no Normal auto FEC enabled**. N1 remains IN_PROGRESS. Neither code nor tests were run on user machines or outside Actions.
+- N0 fixed/off+ChaCha scoped Actions remain PASS for their exact sources, no new performance evidence. N2–N6, native Windows Wintun, GUI and P6 remain unimplemented. One final physical-machine test phase only after ALL functions and GitHub Actions/P6 are complete.
+
+## Handoff
+Next N1 atom: connect active-only 2s protected quality feedback in true lifecycle/runtime lane; preserve legacy 9B v1, no FEC for control, no wake from DORMANT, no data hot-path blocking and no per-business diagnostic/ReadMemStats; checked nonce+generation+reportSeq; one newest queued pending; truthful estimating vs unknown; 2-direction independence; Actions unit/race and privileged before next phase. Record any failures and new exact SOURCE in sole STATUS.
