@@ -61,4 +61,17 @@ class TestABBA(unittest.TestCase):
   self.assertEqual(result,[{"class":"SHELL_FAIL","exit_code":1,"script_line":245},
                            {"class":"PRODUCT_SERVER_EARLY_EXIT"}])
   self.assertNotIn("qsecret",repr(result))
+
+ def test_bounded_product_log_discards_secrets(self):
+  from unittest.mock import patch
+  from tempfile import TemporaryDirectory
+  with TemporaryDirectory() as folder:
+   p=Path(folder)/"server.log"
+   p.write_text("2026/10/10 server stopped network closed socket password=qsecret route-key=0123456789abcdef\n")
+   diag=ab.bounded_product_exit_evidence(p)
+   self.assertTrue(diag["present"])
+   self.assertEqual(diag["line_count"],1)
+   self.assertNotIn("qsecret",repr(diag))
+   self.assertNotIn("0123456789abcdef",repr(diag))
+   self.assertIn("server stopped network closed socket",diag["last_error_vocabulary"][0])
 if __name__=="__main__":unittest.main()

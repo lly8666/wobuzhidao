@@ -73,6 +73,38 @@ def shell_failure_classes(raw):
   if word in raw:markers.append({"class":label})
  return markers[-16:]
 
+
+def bounded_product_exit_evidence(path):
+ # No raw product logs in artifacts. Preserve only fixed error vocabulary,
+ # per-file sizes and SHA; unknown/private words cannot pass the vocabulary.
+ import re
+ known=set("""fatal error panic runtime server stopped cleanup network
+   read write send receive packet route routing tun raw socket syscalls
+   netns netlink file descriptor permission denied operation permitted
+   timeout deadline context canceled cancelled close closed closing
+   connection reset broken pipe EOF eof network unreachable unavailable
+   device exists invalid argument no such missing cannot failed fail
+   bad unexpected short length mtu malformed overflow buffer generation
+   unknown tunnel lease authentication unauthenticated transport address
+   already in use not qualified systemd notify ready recvfrom sendmmsg
+   recvmmsg queue full exhausted shutdown checksum resource too many
+   threads memory signal killed segmentation fault index out of range
+   concurrent map writes WBD_SERVER_STOPPED WBD_RAW_RCVBUF
+   cleanup=owned-only""".lower().split())
+ try:raw=path.read_bytes()
+ except OSError:return {"present":False}
+ import hashlib
+ lines=raw.decode("utf-8","replace").splitlines()
+ groups=[]
+ for line in lines[-12:]:
+  words=re.findall(r"[A-Za-z][A-Za-z_]*",line.lower())
+  kept=[w for w in words if w in known]
+  if kept:groups.append(" ".join(kept[:32]))
+ return {"present":True,"byte_size":len(raw),"sha256":hashlib.sha256(raw).hexdigest(),
+         "line_count":len(lines),"last_error_vocabulary":groups[-6:],
+         "panic_present":any("panic:" in s or "fatal error:" in s for s in lines),
+         "server_stopped_present":any("WBD_SERVER_STOPPED" in s for s in lines)}
+
 def run_case(c,root,helper):
  d=prepared(c,root)
  env={**os.environ,"GITHUB_WORKSPACE":str(Path.cwd()),
@@ -128,7 +160,9 @@ def run_case(c,root,helper):
     "receipt_files_present":{name:(d/name).is_file() for name in
         ("manifest.json","biz.json","target.json","stage-events.jsonl","runtime-flags.json")},
     "product_log_bytes":{role:(d/(role+".log")).stat().st_size
-       if (d/(role+".log")).is_file() else None for role in ("client","server")}
+       if (d/(role+".log")).is_file() else None for role in ("client","server")},
+    "product_exit_evidence":{role:bounded_product_exit_evidence(d/(role+".log"))
+        for role in ("client","server")}
     },indent=2)+"\n")
  owned=simd_owned(d,old.namespace_suffix(c["id"]))
  s=j(d,"summary.json");l=j(d,"efficiency-ledger.json");flags=j(d,"runtime-flags.json")

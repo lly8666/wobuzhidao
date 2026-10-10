@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_BLOCKED_A_BASELINE_SERVER_EARLY_EXIT",
+    "phase": "FEC_SIMD_S3_SERVER_EXIT_CAUSE_PREFLIGHT",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_BLOCKED_A_INFRA_INVALID_SERVER_EARLY_EXIT_B_NOT_RUN_S4_S5_NOT_RUN",
+      "state": "S3_CAUSE_DIAGNOSTIC_HELPER_STATIC_PENDING",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3764,11 +3764,20 @@
         "helper_sha": "985418c053e768f66fe74eb0e17de708412b8cd2",
         "conclusion": "SUCCESS",
         "scope": "STATIC_ONLY_NO_REALPATH_NO_CPU"
+      },
+      "s3_root_cause_investigation": {
+        "scope": "STRICT_DIAGNOSTIC_ONLY_OLD_A_SERVER_EXIT",
+        "previous_run": 38036729414,
+        "previous_artifact": 11663593875,
+        "reason": "A server early exit; private product log 490 bytes withheld; no product log cause exposed",
+        "new_helper": "status-only exit code and fixed vocabulary; no raw logs",
+        "preflight": "REQUESTED_NONCE11",
+        "real_measurement": "NOT_RUN"
       }
     }
   },
-  "next_task": "S3 BLOCKED (do not trigger q120/l120/confirm300): old A=a2db258b... repeatedly has PRODUCT_SERVER_EARLY_EXIT in true 15s Q1 300ms lossless realpath pilot, manifest missing, B=NOT_RUN; refer run38036729414 artifact11663593875 and new devlog. Need distinct bounded server-exit root-cause evidence/valid old A baseline before fair ABBA, not a third blind rerun or weaker quality gate. User's ~80s downlink E7 remains separately OPEN_DEFERRED until optimization stage permits; do not assume same cause. S1/S2 scoped Actions PASS only, kernel micro not full CPU gain; ARM native core PASS not ARM performance; P6 paired release/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-171600-fec-simd-s3-blocked-old-a-server-exit.md",
+  "next_task": "Read scoped SIMD static preflight nonce11 Actions; if success, config-only pilot nonce12 with exactly the same A/B business/source (diagnostic only), inspect server exit-code and fixed whitelist vocabulary. Do not launch Q/L while A remains INVALID; no CPU/p99 gain claim.",
+  "latest_log": "docs/devlog/20261010-183000-fec-simd-a-server-exit-cause-probe-preflight.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
