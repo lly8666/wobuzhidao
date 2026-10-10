@@ -32,9 +32,6 @@ jobs:
           go build ./...
           GOOS=linux GOARCH=arm GOARM=7 go build ./internal/tlsrecord ./internal/faketcp
           GOOS=linux GOARCH=arm64 go build ./...
-      - name: Short packet micro - not business qualification
-        run: |
-          go test ./internal/tlsrecord ./internal/faketcp -run '^$' -bench 'Benchmark(HeaderMask|TCPChecksum)' -benchtime=200ms -count=3 -cpu=1
   windows-amd64:
     runs-on: windows-2022
     timeout-minutes: 25
@@ -64,4 +61,22 @@ jobs:
           go test -race ./internal/tlsrecord ./internal/faketcp -count=1
           go test -tags=purego ./internal/tlsrecord ./internal/faketcp -count=1
           go test -tags=noasm ./internal/tlsrecord ./internal/faketcp -count=1
-          go test ./internal/tlsrecord -run '^$' -bench 'BenchmarkHeaderMask' -benchtime=200ms -count=3 -cpu=1
+          mkdir -p artifacts/native-arm64-crypto
+          go test ./internal/tlsrecord -run '^
+ -bench '^BenchmarkNativeAEADShortMTUHotspot
+ -benchtime=350ms -count=1 -cpu=1 -cpuprofile=artifacts/native-arm64-crypto/cpu.pprof > artifacts/native-arm64-crypto/aead-bench.txt
+          go tool pprof -top -nodecount=50 artifacts/native-arm64-crypto/cpu.pprof > artifacts/native-arm64-crypto/aead-profile-top.txt
+          go test ./internal/faketcp -run '^TestTCPChecksumIndependentOracleExtended
+ -bench '^BenchmarkTCPChecksumCurrent
+ -benchtime=200ms -count=3 -cpu=1 > artifacts/native-arm64-crypto/checksum-bench.txt
+          uname -a > artifacts/native-arm64-crypto/uname.txt
+          go version > artifacts/native-arm64-crypto/go-version.txt
+          sha256sum artifacts/native-arm64-crypto/* > artifacts/native-arm64-crypto/SHA256SUMS
+      - name: Upload bounded synthetic native crypto hotspot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-arm64-crypto-hotspot
+          path: artifacts/native-arm64-crypto/*
+          retention-days: 30
+          if-no-files-found: warn

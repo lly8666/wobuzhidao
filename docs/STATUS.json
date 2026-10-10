@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C1_REALPATH_Q1_CPU_NEGATIVE_ROLLBACK_PENDING_CORE_ACTIONS",
+    "phase": "C2_NATIVE_ARM64_AEAD_AND_TCP_CHECKSUM_HOTSPOT_ACTIONS_PENDING",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4084,7 +4084,7 @@
       }
     },
     "crypto_packet_efficiency": {
-      "state": "C1_CHACHA_V2_MICRO_WIN_REALPATH_CPU_NEGATIVE_REVERTED",
+      "state": "HEADER_MASK_ROLLED_BACK_CORE_FOUNDATION_LIFECYCLE_PASS_NATIVE_PROFILE_PENDING",
       "plan": "docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md",
       "baseline_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
       "branch_start_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
@@ -4093,8 +4093,8 @@
       "baseline_basis": "FEC SIMD core/race native ARM pass 38032963434 and regular profile-off Q1 120s ABBA observed -10.923%; Q2 300s original 3/4 FAIL, only descriptive CPU -13.213%, not qualified",
       "implementation": {
         "header_mask": "REVERTED_TO_MATURE_XCRYPTO_V0_38_0_HEADER_MASK; CUSTOM_OPT_BACKEND_NOT_SHIPPED",
-        "arm64_poly1305": "NEEDS_NATIVE_HOTSPOT",
-        "tcp_checksum": "NEEDS_PROFILE",
+        "arm64_poly1305": "SOURCE_CONFIRMS_GENERIC; NATIVE_SYNTHETIC_HOTSPOT_TEST_SUBMITTED_PROFILE_PENDING",
+        "tcp_checksum": "UNCHANGED; INDEPENDENT_ORACLE_AND_SHORT_MTU_BENCH_ACTIONS_PENDING",
         "sha_copy_locks": "NEEDS_PROFILE",
         "x86_aead": "EXISTING_ASSEMBLY_TO_VERIFY"
       },
@@ -4127,7 +4127,10 @@
           "measurement": "NOT_RUN"
         },
         "q1_business_abba": 38048567640,
-        "q1_business_artifact": 11668389415
+        "q1_business_artifact": 11668389415,
+        "rollback_core": 38049393333,
+        "rollback_foundation": 38049393295,
+        "rollback_lifecycle": 38049393283
       },
       "acceptance": {
         "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
@@ -4137,7 +4140,8 @@
         "game2": "NOT_RUN",
         "game4": "NOT_RUN",
         "p6": "NOT_RUN",
-        "physical": "NOT_RUN"
+        "physical": "NOT_RUN",
+        "post_revert": "PASS_LINUX_AMD64_WINDOWS_AMD64_NATIVE_ARM64_CORE_FOUNDATION_LIFECYCLE"
       },
       "inherited_failures": [
         "Q2 300s probe phase 3/4 original FAIL run38042928701",
@@ -4255,11 +4259,12 @@
         "cpu_s_mean_B": 67.245,
         "decisions": "REVERT_CANDIDATE_DUE_TO_2P0178_PERCENT_MORE_CPU_PER_VERIFIED_GIB; MICRO_BENCHMARK_WIN_NOT_BIZ_GAIN"
       },
-      "rollback_pending_actions": true
+      "rollback_pending_actions": false,
+      "evidence_arm64_native_profile": "ACTION_PENDING"
     }
   },
-  "next_task": "First obtain post-revert full core/race Actions PASS. Treat custom headerMask implementation as rejected for realpath (+2.01775% CPU/GiB despite microbench win). Next native ARM Poly1305 hotspot + checksum profile evidence before any implementation, or mark NOT_RUN. Do not trigger weaknet matrix on rejected candidate; preserve original FEC Q2 FAIL, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-204200-crypto-q1-realpath-abba-negative-revert.md",
+  "next_task": "Collect native ARM64 AEAD short/MTU pprof, Poly1305 fraction vs ChaCha and current TCP checksum by size, separate from profile-off business. Only if proven meaningful native fullpath hotspot plan mature licensed assembly; otherwise defer/NO_BOTTLENECK. No new product CPU claim; original Q1 realpath optimized B negative and reverted.",
+  "latest_log": "docs/devlog/20261010-205000-arm64-poly-checksum-native-hotspot-probe.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
