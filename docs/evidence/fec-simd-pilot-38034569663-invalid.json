@@ -1,0 +1,39 @@
+{
+  "schema": "wbd-fec-simd-pilot-failure-audit/v1",
+  "at_utc": "2026-10-10T07:35:00Z",
+  "working_branch": "next/fec-simd-20261010",
+  "helper_sha": "817913a8ae880bb94b153001a18844f8c457113e",
+  "run_id": 38034569663,
+  "job_id": 114162231837,
+  "artifact_id": 11662419753,
+  "A": {
+    "source": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "client_sha256": "303495af95d02f8644af6c3d49a45f5c9c093a3fd9e23b307e31dc1ef0079c67",
+    "server_sha256": "4b165f41862f98cf502549f2db75eb5cf9801ea088bf6b922d8bc9d3c46af69a",
+    "status": "INFRA_INVALID",
+    "exception": "PermissionError",
+    "exception_callstack": [
+      "fec_simd_ab.py:run_case",
+      "fec_policy_batch.py:owned"
+    ],
+    "analyzer": "INVALID FileNotFoundError manifest.json"
+  },
+  "B": {
+    "source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+    "client_sha256": "d4192a43733bffa581069e80a0ff406a5b4a71d48be5953bc05fc32ada0bdb2e",
+    "server_sha256": "80150437d6465eaa6b9c903dab020d889a3af9983d47f77d8106758583293204",
+    "status": "NOT_RUN"
+  },
+  "did_not_observe": [
+    "valid full business A",
+    "valid full business B",
+    "CPU_s_per_delivered_GiB",
+    "p99",
+    "performance comparison"
+  ],
+  "physical": "NOT_RUN",
+  "sources": {
+    "workflow_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38034569663",
+    "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38034569663/artifacts/11662419753"
+  }
+}

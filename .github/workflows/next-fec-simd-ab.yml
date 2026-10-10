@@ -100,3 +100,4 @@ jobs:
             artifacts/fec-simd-ab/pilot-*/case-receipt.json
             artifacts/fec-simd-ab/pilot-*/summary.json
             artifacts/fec-simd-ab/pilot-*/efficiency-ledger.json
+            artifacts/fec-simd-ab/pilot-*/sanitized-startup.json

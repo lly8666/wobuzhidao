@@ -102,7 +102,24 @@ def run_case(c,root,helper):
   captures.append({"file":p.name,"sha256":old.filehash(p),"bytes":p.stat().st_size})
   p.unlink()
  (d/"capture-cleanup.json").write_text(json.dumps(captures,indent=2)+"\n")
- owned=old.owned(d,old.namespace_suffix(c["id"]))
+ markers=[]
+ p=d/"private-product.log"
+ if p.is_file():
+  import re
+  raw=p.read_text(errors="replace")
+  for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\\d+) line=(\\d+)",raw):
+   markers.append({"class":"SHELL_FAIL","exit_code":int(match.group(1)),
+                   "script_line":int(match.group(2))})
+  for word,label in (("Operation not permitted","NETNS_PERMISSION"),
+                     ("invalid strict mode tuple","INVALID_MODE_TUPLE"),
+                     ("No such file or directory","FILE_NOT_FOUND"),
+                     ("sudo:","SUDO_REJECTED")):
+   if word in raw:markers.append({"class":label})
+ (d/"sanitized-startup.json").write_text(json.dumps({
+    "private_log_sha256":old.filehash(p) if p.is_file() else None,
+    "private_log_bytes":p.stat().st_size if p.is_file() else 0,
+    "sample_exit":rc,"sample_error":error,"markers":markers[-16:]},indent=2)+"\\n")
+ owned=simd_owned(d,old.namespace_suffix(c["id"]))
  s=j(d,"summary.json");l=j(d,"efficiency-ledger.json");flags=j(d,"runtime-flags.json")
  state=s.get("classification","INFRA_INVALID")
  if any("CORRUPT" in str(issue) or "HASH_MISMATCH" in str(issue) for issue in s.get("issues",[])):
@@ -121,19 +138,46 @@ def run_case(c,root,helper):
       "sample_exit":rc,"sample_error":error,"analyzer_exit":ac,
       "ledger_exit":lc,"classification":state,"issues":s.get("issues",[]),
       "owned_cleanup":owned,"evidence_sha256":evidence}
- # Scrub log semantics to statuses; exclude all private log payloads.
- markers=[]
- p=d/"private-product.log"
- if p.is_file():
-  import re
-  raw=p.read_text(errors="replace")
-  for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\d+) line=(\d+)",raw):
-   markers.append({"class":"SHELL_FAIL","exit_code":int(match.group(1)),"script_line":int(match.group(2))})
-  for word,label in (("Operation not permitted","NETNS_PERMISSION"),("invalid strict mode tuple","INVALID_MODE_TUPLE"),("sudo:","SUDO_REJECTED")):
-   if word in raw:markers.append({"class":label})
  row["sanitized_shell_markers"]=markers
  (d/"case-receipt.json").write_text(json.dumps(row,indent=2)+"\n")
  return row
+
+def simd_owned(d,suffix):
+ # Preserve the old fixture's strict pre-cleanup leak accounting, while
+ # allowing this new SIMD pilot to terminate scoped root-owned netns children.
+ # Never signal an unrelated PID: recheck the precise case path immediately
+ # before attempting a signal, and never treat a cleaned leak as a PASS.
+ import re, signal
+ ps=subprocess.run(["ps","-eo","pid=,args="],check=True,text=True,capture_output=True).stdout
+ pids=[]
+ for line in ps.splitlines():
+  m=re.match(r"\\s*(\\d+)\\s+(.*)",line)
+  if m and str(d)+"/" in m[2] and "fec_simd_ab.py" not in m[2] and "fec_policy_batch.py" not in m[2]:
+   pids.append(int(m[1]))
+ fallbacks=0;failures=[]
+ for pid in pids:
+  p=subprocess.run(["ps","-p",str(pid),"-o","args="],text=True,capture_output=True)
+  if p.returncode!=0:continue
+  if str(d)+"/" not in p.stdout:
+   failures.append(pid);continue
+  try:os.kill(pid,signal.SIGTERM)
+  except ProcessLookupError:continue
+  except PermissionError:
+   # GitHub Actions runner owns the test, but product/netns processes run as root.
+   # Use noninteractive sudo only for the already-scoped PID, never a process group.
+   sent=subprocess.run(["sudo","-n","kill","-TERM","--",str(pid)],
+                       text=True,capture_output=True)
+   fallbacks+=1
+   if sent.returncode!=0:
+    again=subprocess.run(["ps","-p",str(pid),"-o","args="],text=True,capture_output=True)
+    if again.returncode==0 and str(d)+"/" in again.stdout:failures.append(pid)
+ if pids:time.sleep(2)
+ ns=subprocess.run(["sudo","ip","netns","list"],check=True,text=True,capture_output=True).stdout
+ leaked_ns=[n+"-"+suffix for n in ("wbiz","wcli","wrtr","wsrv","wtgt")
+            if re.search(r"(?m)^"+re.escape(n+"-"+suffix)+r"(?:\\s|$)",ns)]
+ return {"original_leaked_pids":pids,"sudo_fallback_count":fallbacks,
+         "cleanup_signal_failures":failures,"leftover_namespaces":leaked_ns,
+         "clean":not pids and not leaked_ns and not failures}
 
 def aggregate(root,phase,cases,receipts,helper):
  found={r["case"]["id"]:r for r in receipts}
