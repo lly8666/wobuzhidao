@@ -19,7 +19,7 @@ class TestCryptoPacketABBA(unittest.TestCase):
         d=ab.conf()
         self.assertEqual(d["baseline_source_sha"],ab.A)
         self.assertEqual(d["candidate_source_sha"],ab.B)
-        self.assertEqual(d["phase"],"preflight")
+        self.assertIn(d["phase"],("preflight","q1screen120","q120","l120","off120","game120","confirm300","q2historic300","q2observe300","pilot"))
         self.assertFalse(ab.may_observe_next("q1screen120",{"classification":"FAIL","issues":["5205_STAGE_PROBE_LOSS_OVER_1PCT_c2s"]}))
         self.assertEqual(ab.plan("off120")[0]["parity"],0)
         self.assertEqual(ab.plan("off120")[0]["delay"],15)

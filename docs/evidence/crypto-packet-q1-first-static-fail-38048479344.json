@@ -1,0 +1,18 @@
+{
+  "schema": "wbd-crypto-packet-first-q1-attempt/v1",
+  "run_id": 38048479344,
+  "job_id": 114202679537,
+  "helper_sha": "3de3e229c94234cdd53926ee608be185b2d75e76",
+  "A": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "B": "37e18653b0d08f4a1d932b6fd67fe081e84bda78",
+  "conclusion": "failure",
+  "guard": "PASS",
+  "stage": "Validate exact scope and do not relax legacy samples",
+  "unit_failure": "test_gates_and_legacy_immutability asserts phase preflight despite exact approved q1screen120",
+  "binaries": "NOT_BUILT",
+  "business": "NOT_RUN",
+  "cpu": "NOT_RUN",
+  "quality": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "corrective": "unit permits all validated static phases, no weakening product correctness"
+}
