@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_NEW_B_FROZEN_STATIC_RECHECK",
+    "phase": "FEC_SIMD_MICRO_YAML_CORRECTED_ACTIONS_PENDING",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3687,11 +3687,16 @@
         "candidate_source_sha": "89fcb5e99ffc6ae63354ea6628d367ada72d6bed",
         "status": "PASS_PRE_PROMOTION_SPAN_VS_FUSED_KERNEL_ONLY",
         "new_fused_default_micro": "REQUESTED_THIS_COMMIT"
+      },
+      "micro_latest": {
+        "run_id": 38034440396,
+        "state": "FAIL_WORKFLOW_YAML_PARSE_NO_JOBS",
+        "next": "corrected micro workflow config nonce3 requested"
       }
     }
   },
-  "next_task": "Wait for native x86+ARM64+Windows unit/race core Actions of exact promoted SOURCE 7fb98... and new micro. Preflight exact source first. Retry pilot with isolated privileged case-dir chown and sanitized exception frames, only then Q120/L120. Keep initial FAIL.",
-  "latest_log": "docs/devlog/20261010-164000-fec-simd-s3-frozen-fused-b-and-artifact-owner.md",
+  "next_task": "Recheck corrected micro Actions; S2 fused-default core run38034338215 and lifecycle38034338226 PASS; foundation pending. Source-exact S3 preflight run38034441046 verify, then retry A/B pilot only after permission fix. Preserve malformed-yaml failure run.",
+  "latest_log": "docs/devlog/20261010-170000-fec-simd-micro-yaml-parse-fix.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

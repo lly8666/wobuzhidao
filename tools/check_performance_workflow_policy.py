@@ -207,6 +207,14 @@ else:
 if "a2db258b436a41fdee98c6c53abec9bab6ce600f" not in simd or "7fb98fab79834a351a1dbe04eebb207f66bea28b" not in simd:
     errors.append("FEC SIMD: two independent immutable SOURCE identities required")
 
+micro = Path(".github/workflows/next-fec-simd-micro.yml").read_text()
+if micro.count("  one-micro-cpu-sample:\n")!=1 or micro.count("      - uses: actions/upload-artifact@v4")!=1:
+    errors.append("FEC SIMD micro: invalid YAML layout/fanout")
+if re.search(r"(?m)^ -bench|^\s*go test .* -run '\^\s*$",micro):
+    errors.append("FEC SIMD micro: suspicious concatenated benchmark command")
+if "wbd_fec_span" not in micro or "wbd_fec_scalar" not in micro:
+    errors.append("FEC SIMD micro: independent fallback attribution missing")
+
 if errors:
     raise SystemExit("\n".join(errors))
 print("WBD_PERF_WORKFLOW_POLICY_PASS")

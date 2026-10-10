@@ -26,7 +26,7 @@ jobs:
           python3 - <<'PY'
           import json
           d=json.load(open(".github/fec-simd-micro.json"))
-          assert d=={"schema":"wbd-fec-simd-micro/v1","candidate_source_sha":"7fb98fab79834a351a1dbe04eebb207f66bea28b","phase":"network_spans","nonce":2}
+          assert d=={"schema":"wbd-fec-simd-micro/v1","candidate_source_sha":"7fb98fab79834a351a1dbe04eebb207f66bea28b","phase":"network_spans","nonce":3}
           PY
           git diff --quiet 7fb98fab79834a351a1dbe04eebb207f66bea28b HEAD -- internal/fec internal/linkdata go.mod go.sum
           mkdir -p artifacts/fec-simd-micro
@@ -40,26 +40,8 @@ jobs:
           set -euo pipefail
           ART=artifacts/fec-simd-micro
           go test ./internal/fec -run '^$' -bench '^BenchmarkFEC(MulNetworkSpans|FullBlockSpanVsFused)' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/default-fused.txt"
-          go test -tags=wbd_fec_span ./internal/fec -run '^
-          go test -tags=wbd_fec_fused ./internal/fec -run '^$' -bench '^BenchmarkFECFullBlockSpanVsFused' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/forced-fused.txt"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: fec-simd-micro-evidence
-          retention-days: 30
-          if-no-files-found: error
-          path: artifacts/fec-simd-micro
- -bench '^BenchmarkFEC(MulNetworkSpans|FullBlockSpanVsFused)' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/explicit-span-optout.txt"
-          go test -tags=wbd_fec_scalar ./internal/fec -run '^
-          go test -tags=wbd_fec_fused ./internal/fec -run '^$' -bench '^BenchmarkFECFullBlockSpanVsFused' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/forced-fused.txt"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: fec-simd-micro-evidence
-          retention-days: 30
-          if-no-files-found: error
-          path: artifacts/fec-simd-micro
- -bench '^BenchmarkFEC(MulNetworkSpans|FullBlockSpanVsFused)' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/scalar.txt"
+          go test -tags=wbd_fec_span ./internal/fec -run '^$' -bench '^BenchmarkFEC(MulNetworkSpans|FullBlockSpanVsFused)' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/explicit-span-optout.txt"
+          go test -tags=wbd_fec_scalar ./internal/fec -run '^$' -bench '^BenchmarkFEC(MulNetworkSpans|FullBlockSpanVsFused)' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/scalar.txt"
           go test -tags=wbd_fec_fused ./internal/fec -run '^$' -bench '^BenchmarkFECFullBlockSpanVsFused' -benchtime=250ms -count=3 -cpu 1 | tee "$ART/forced-fused.txt"
       - uses: actions/upload-artifact@v4
         if: always()
