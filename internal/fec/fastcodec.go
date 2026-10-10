@@ -1,6 +1,10 @@
 package fec
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/klauspost/reedsolomon"
+)
 
 // FastReedSolomon20x20 is the transport-oriented 20+20 codec used by the WBD
 // packet block layer. It keeps the same systematic generator and wire format as
@@ -30,7 +34,27 @@ func NewFastReedSolomon20x20() *FastReedSolomon20x20 {
 	return &FastReedSolomon20x20{generator: buildGenerator()}
 }
 
+// lowLevel is immutable: v1.12.6 WithOptions does not persist options.
+// Never call the library's non-vector fallback here: on unsupported CPUs it
+// can lazily allocate a large coefficient-specific two-byte lookup table.
+var lowLevel reedsolomon.LowLevel
+
+// xorMul is shared by active parity encoding and missing-data recovery.
+// Inputs and outputs are owned, same-length buffers; no partial overlap.
 func xorMul(out, in []byte, coef byte) {
+	if coef == 0 {
+		return
+	}
+	if fecSIMDEnabled && len(in) >= 32 {
+		lowLevel.GalMulSliceXor(coef, in, out)
+		return
+	}
+	xorMulScalar(out, in, coef)
+}
+
+// Keep the prior 64KiB-table implementation for short spans, unsupported
+// platforms/build tags, reference tests and measured fallback attribution.
+func xorMulScalar(out, in []byte, coef byte) {
 	if coef == 0 {
 		return
 	}

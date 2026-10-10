@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_PLAN_READY_IMPLEMENTATION_NOT_STARTED",
+    "phase": "FEC_SIMD_S1_CODE_SUBMITTED_ACTIONS_PENDING",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -20,7 +20,7 @@
       "mtu_functional_parent": "c480ccef30962358b33da936d9ba19def6061f70",
       "integration_SOURCE_SHA": "bf11fbfbe64d518e7ba189d51bfb4512df4df733"
     },
-    "optimization_implemented": false,
+    "optimization_implemented": true,
     "integration_core": "PASS_SOURCE_BF11FBF",
     "ordinary_performance": "NOT_RUN_FEC_SIMD_CANDIDATE",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "PLANNED_NOT_RUN",
+      "state": "S1_CODE_SUBMITTED_ACTIONS_PENDING",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3642,11 +3642,11 @@
         "version": "v1.12.6",
         "tag_sha": "4916c9cd17081aa4f43f36639502e86f5787b40e",
         "license": "MIT",
-        "added_to_product": false
+        "added_to_product": true
       },
       "user_authorization": "2026-10-10: performance first; WBD FEC internals may be substantially rewritten; bounded memory allowed; same Actions single-job sequential old/new comparison authorized for this task only.",
-      "implementation": "NOT_STARTED",
-      "actions": "NOT_RUN",
+      "implementation": "S1_SIMD_SPAN_AND_SCALAR_FALLBACK_SUBMITTED_UNVALIDATED",
+      "actions": "NOT_RUN_THIS_SOURCE",
       "cpu_gain": "NOT_MEASURED",
       "physical": "NOT_RUN",
       "selected_route": "S1 SIMD span encoding/recovery; S2 custom-matrix single-worker fused full-block encoding; preserve active partial and measure before retaining a backend.",
@@ -3666,8 +3666,8 @@
       "qualification_notice": "Existing parent-source PASS/FAIL and historical fields remain source-scoped; none qualify a future SIMD candidate."
     }
   },
-  "next_task": "FEC SIMD S0/S1: read docs/FEC_SIMD_OPTIMIZATION_PLAN.md; freeze A=a2db258b436a41fdee98c6c53abec9bab6ce600f and helper parent543ac2cd; implement pinned v1.12.6 SIMD encoding/recovery with correct scalar fallback and byte-identical golden tests. Then S2 fused custom-matrix full-block engine and S3/S4 same Actions one-job serial ABBA real-business comparison. User permits FEC internal redesign, prioritizes delivery/p99/CPU; no local builds/tests. No inherited candidate PASS, no old E1 task restart, E7 80s S2C remains deferred and physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-143500-fec-simd-selection-plan-and-handoff.md",
+  "next_task": "S1: inspect GitHub Actions foundation (Linux amd64/Windows amd64 unit/build, Linux race) and run native ARM64 plus wbd_fec_scalar/noasm targeted tests; pin exact candidate SOURCE only after verified. Then S2 custom-matrix fused encoding with full/partial wire oracle, S3-S5 paired real-business Actions. Historical FAIL and physical NOT_RUN remain.",
+  "latest_log": "docs/devlog/20261010-150100-fec-simd-s1-span-fallback.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

@@ -5,6 +5,8 @@ go 1.23.0
 toolchain go1.23.12
 
 require (
+	github.com/klauspost/cpuid/v2 v2.3.0
+	github.com/klauspost/reedsolomon v1.12.6
 	github.com/refraction-networking/utls v1.6.5
 	golang.org/x/crypto v0.38.0
 	golang.org/x/net v0.23.0
