@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_STATIC_DIAG_GENERATOR_ROLLBACK",
+    "phase": "FEC_SIMD_S3_CAUSE_TARGETED_PILOT",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_BOUNDED_PRODUCT_LOG_CLASSIFICATION_PREFLIGHT_PENDING",
+      "state": "S3_CAUSE_PILOT_A_OLD_SERVER_EARLY_EXIT_NOT_YET_RESOLVED",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3771,19 +3771,25 @@
         "previous_artifact": 11663593875,
         "reason": "A server early exit; private product log 490 bytes withheld; no product log cause exposed",
         "new_helper": "status-only exit code and fixed vocabulary; no raw logs",
-        "preflight": "RETRY_NONCE12_AFTER_PYTHON_SYNTAX_FAIL",
+        "preflight": {
+          "run_id": 38037734330,
+          "conclusion": "SUCCESS",
+          "helper_sha": "8c5d529c5c440c86d6c3c639d9cc75bc3ecab36c",
+          "scope": "STATIC_ONLY"
+        },
         "real_measurement": "NOT_RUN",
         "static_fail": {
           "run_id": 38037629871,
           "helper_sha": "7ecc2ba742de6f1a0e8005617fb03895a935dd2d",
           "reason": "STATIC_SYNTAX_ERROR_GENERATOR_240",
           "business": "NOT_RUN"
-        }
+        },
+        "pilot": "REQUESTED_NONCE13_TYPED_PRODUCT_LOG"
       }
     }
   },
-  "next_task": "Review SIMD static preflight nonce12 (only bounded server.log vocabulary analysis retained, no generated-script mutation). If PASS trigger diagnostic pilot nonce13 with same A/B; if A invalid again use sanitized vocabulary as evidence; do not Q/L or infer CPU/p99 gain.",
-  "latest_log": "docs/devlog/20261010-184000-fec-simd-generator-rollback-static-retry.md",
+  "next_task": "Inspect Actions run for pilot nonce13; A old server may early exit: compare fixed vocabulary, panic/stop and log hashes to root cause; B is NOT_RUN unless real pilot proceeds. Do not Q/L without valid A/B. Keep quality gates and no CPU gains absent ABBA.",
+  "latest_log": "docs/devlog/20261010-184500-fec-simd-server-exit-classifier-pilot.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
