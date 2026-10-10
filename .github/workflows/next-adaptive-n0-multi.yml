@@ -6,6 +6,12 @@ on:
       - ".github/workflows/next-adaptive-n0-multi.yml"
       - "tools/adaptive_n0_multi_realpath.py"
       - "tools/adaptive_n0_multi_check.py"
+      - "internal/datapath/quality_health_live.go"
+      - "internal/datapath/lane.go"
+      - "internal/runtimeowner/quality.go"
+      - "internal/runtimeowner/health.go"
+      - "internal/runtimeowner/runtime.go"
+      - "internal/runtimeentry/lifecycle.go"
 permissions:
   contents: read
 concurrency:

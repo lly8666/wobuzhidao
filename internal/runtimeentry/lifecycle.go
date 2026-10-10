@@ -880,6 +880,14 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		laneState.close()
 		return logicaltunnel.LaneRef{}, err
 	}
+	// N1 quality is opt-in only after a fully authenticated V3 handoff.
+    // It never changes a V2 lane or creates a per-business timer.
+    if session.Negotiated.RecordVersion == realityfront.RecordVersionV3 {
+        if err := c.rt.ConfigureQualityV3(snapshot.Ref, session.Negotiated.IncarnationNonce); err != nil {
+            laneState.close()
+            return logicaltunnel.LaneRef{}, err
+        }
+    }
 	c.mu.Lock()
 	laneState.ref = snapshot.Ref
 	laneState.attached = true
@@ -1682,6 +1690,12 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 		s.dropAdmission(flow)
 		return
 	}
+    if result.Admission.Negotiated.RecordVersion == realityfront.RecordVersionV3 {
+        if err := group.rt.ConfigureQualityV3(snapshot.Ref, result.Admission.Negotiated.IncarnationNonce); err != nil {
+            s.dropAdmission(flow)
+            return
+        }
+    }
 	// Admission is serialized by admitMu until policy publication. Identity,
 	// algorithm and fixed profile cannot silently change for this TunnelID.
 	s.mu.Lock()

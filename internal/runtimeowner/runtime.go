@@ -289,6 +289,7 @@ type TransportStats struct {
 
 type laneTransport struct {
 	health   healthState
+	quality  qualityState
 	pressure receivePressure
 	mu       sync.Mutex
 
@@ -1671,6 +1672,9 @@ func (r *Runtime) Tick(now time.Time) error {
 				continue
 			}
 			if err := lane.transport.tickHealth(now); err != nil {
+				errs = append(errs, err)
+			}
+			if err := lane.transport.tickQuality(now); err != nil {
 				errs = append(errs, err)
 			}
 			records, err := r.owner.TickLane(lane.ref, now)

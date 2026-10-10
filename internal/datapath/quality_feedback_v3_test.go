@@ -136,3 +136,28 @@ func TestN1QualityFeedbackMailboxConcurrentLatestBounded(t *testing.T) {
         t.Fatalf("malformed report polluted latest: %+v state=%d",got,state)
     }
 }
+
+func TestN1QualityFeedbackMailboxPeerGenerationMayDifferFromLocal(t *testing.T) {
+    m:=qualityHealthVector()
+    local:=logicaltunnel.LaneRef{ID:2,Generation:99}
+    gate,err:=NewQualityFeedbackMailbox(local,m.IncarnationNonce)
+    if err!=nil {t.Fatal(err)}
+    t0:=time.Unix(1000,0)
+    first,err:=EncodeQualityHealthV3(m)
+    if err!=nil {t.Fatal(err)}
+    if err:=gate.Accept(local,first[:],t0);err!=nil{
+        t.Fatalf("independent peer generation must be accepted: %v",err)
+    }
+    changed:=m;changed.ReportSeq++;changed.Generation++
+    wrong,err:=EncodeQualityHealthV3(changed)
+    if err!=nil {t.Fatal(err)}
+    if err:=gate.Accept(local,wrong[:],t0.Add(time.Second));!errors.Is(err,ErrQualityFeedbackIdentity){
+        t.Fatalf("same nonce changed peer generation accepted: %v",err)
+    }
+    next:=m;next.ReportSeq++
+    ok,err:=EncodeQualityHealthV3(next)
+    if err!=nil {t.Fatal(err)}
+    if err:=gate.Accept(local,ok[:],t0.Add(2*time.Second));err!=nil {
+        t.Fatalf("peer generation pinned but valid new seq rejected: %v",err)
+    }
+}

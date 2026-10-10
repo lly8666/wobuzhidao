@@ -8,6 +8,13 @@ on:
       - "internal/datapath/quality_health_v3_test.go"
       - "internal/datapath/quality_feedback_v3.go"
       - "internal/datapath/quality_feedback_v3_test.go"
+      - "internal/datapath/quality_health_live.go"
+      - "internal/datapath/lane.go"
+      - "internal/runtimeowner/quality.go"
+      - "internal/runtimeowner/quality_live_test.go"
+      - "internal/runtimeowner/health.go"
+      - "internal/runtimeowner/runtime.go"
+      - "internal/runtimeentry/lifecycle.go"
       - "docs/WIRE_SPEC.md"
 permissions:
   contents: read
@@ -44,3 +51,9 @@ jobs:
         run: |
           set -euo pipefail
           go test ./internal/datapath ./internal/tlsrecord -count=1 -timeout=90s
+      - name: Actual V3 protected control on production runtime (two directions, bounded 2s, dormant, legacy V2) under race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./internal/runtimeowner \
+            -run '^TestN1QualityV3' -count=2 -timeout=90s -v

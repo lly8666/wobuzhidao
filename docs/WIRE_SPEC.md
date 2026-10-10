@@ -282,3 +282,38 @@ latest pending report, no passive timeout wake, no data/FEC batching, no
 per-business wall-clock diagnostic, and no additional global locks. The
 independent test vector in `internal/datapath/quality_health_v3_test.go`
 pins these 104 bytes before any live wire enablement.
+
+## 2026-10-11 N1 quality v2 live transport candidate (Actions pending)
+
+The previously **reserved** 104-byte encrypted Health v2 format is now
+provisionally wired **only after authenticated admission V3** in
+`runtimeentry`. V2 and older admissions continue the legacy 9-byte health
+v1 strict parser and never advertise or send quality reports. A V3 lane
+continues to accept legacy health v1 from the peer and, once admitted, also
+accepts 104-byte health v2. Both variants consume a fresh independent-record
+PN (same protected KindHealth); neither enters LINK/FEC or allocates business
+flow. Existing 15s liveness v1 is not removed. Extra v2 reports use the
+existing 100ms runtime maintenance tick, at most one per **2s per ACTIVE
+authoritative lane/direction**, no new per-lane goroutine, no DORMANT wake.
+The first report may send on the first eligible tick after admission.
+
+The nonce in each v2 report comes from the protected TLS/exporter lane
+admission; the report's `Generation` is the **sender-local** lane generation
+counter. These counters may differ between client and server; after
+authenticating the record, the receiver checks its own current local lane
+reference, the shared admission nonce, pins the first sender generation for
+this incarnation and rejects any subsequent peer-generation change or
+non-increasing report sequence. Rotation replaces the mailbox. No
+unauthenticated report may establish an owner or lease.
+
+**This first live increment intentionally reports INSUFFICIENT with an
+invalid data window, unknown age (0xffff), optional transport SRTT
+(also UNKNOWN if unavailable), and zeroed unqualified window counters.
+It does not estimate physical loss**: sender-success DATA watermarks and
+mature receiver DATA windows still need N1 instrumentation; a metric absent
+from a report is UNKNOWN/INSUFFICIENT, not 0% loss. N2 auto FEC must HOLD.
+Qualification requires new exact-SOURCE Actions (focused Go race, baseline
+Linux/Windows and true nine-netns three-client real Linux paths); until
+passing, this is a CANDIDATE only. The earlier paragraph describing the
+format as reserved is historical for the prior codec-only source, not the
+status of this subsequent live-transport candidate.

@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_104B_CODEC_AND_ONE_LATEST_MAILBOX_ACTIONS_RACE_PASS_LIVE_FEEDBACK_NEXT",
+    "phase": "N1_LIVE_V3_2S_QUALITY_CONTROL_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -21,7 +21,7 @@
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_CODECS_AND_MAILBOX_SCOPED_RACE_PASS_ACTIVE_2S_QUALITY_FEEDBACK_NOT_ENABLED",
+      "N1_quality": "IN_PROGRESS_V3_ACTIVE_2S_HEALTH_QUALITY_SEND_RECEIVE_CANDIDATE_NO_VALID_LOSS_ESTIMATE_ACTIONS_PENDING",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -71,10 +71,20 @@
       "native_first_s2c_before_any_client_business": "INMEMORY_REAL_TLS_FAKETCP_PASS_RUN_38066837682;UNSOLICITED_NATIVE_TPROXY_APPLICATION_RECEIVER_NEEDS_FIRST_FLOW_MAPPING_NOT_CLAIMED",
       "same_seq_full_wire_repair_proof": "PASS_CONTROLLED_PRODUCTION_GO_RUNTIME_ACTUAL_RTO_C2S_S2C_OFF4_20_12_RACE_CASES_SOURCE_60D6415_RUN_38071266000_NOT_NATIVE_LOSS_PCAP",
       "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
+    },
+    "pending_candidate": {
+      "scope": "N1 real V3 opt-in encrypted 104-byte health reports from ACTIVE lanes ~2s; actual authenticated receive and one-latest mailbox with independent peer generation; legacy V1 9-byte strict unchanged; all loss estimates INSUFFICIENT pending aligned bounded counters",
+      "source_sha": "CONTAINING_COMMIT_SHA",
+      "actions": "PENDING",
+      "real_native_3_client": "PENDING",
+      "focused_race": "PENDING",
+      "real_WAN_loss_estimation": "NOT_ENABLED",
+      "n2_auto": "NOT_ENABLED",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "N1 live next: connect authenticated KindHealth V3 v2 <=104B (legacy 9B remains) after complete admission, only ACTIVE lane, max 1 report about each 2s per direction with one latest pending and no packet HOL/diagnostic JSONL; match reportSeq+generation+nonce to actual current lane, unit/race and privileged Actions. Add bounded honest PN/ACK/watermark-based ESTIMATED vs UNKNOWN quality and age, independent C2S/S2C feedback, no per-business lock/timer; do not enable N2 auto before N1 passes. N0 scoped and a8936d2 codec/mailbox PASS. Final physical only after all N0–N6 Actions and P6.",
-  "latest_log": "docs/devlog/20261011-030000-adaptive-n1-codec-mailbox-focused-race-pass.md",
+  "next_task": "N1: read exact-source next-adaptive-n1-codec focused race on live encrypted 104B health send/receive, peer generation mismatch, dormant and V2 strict. Check next-foundation Linux/Windows and actual 9-netns next-adaptive-n0-multi. Preserve FAIL, fix only in new SHA. Once live control proven, instrument bounded mature DATA sender-success watermark and receiver unique/late/duplicates + FEC recovered, independently per-direction without per-packet locks/record fields, only label ESTIMATED when aligned and validated else UNKNOWN; no N2 auto before N1. User physical test only after all N0–N6 Actions/P6.",
+  "latest_log": "docs/devlog/20261011-034000-n1-live-v3-quality-insufficient-control-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "a8936d20f623959892906dfe1443d3e495fec62f",
   "last_tested_scope": "N1 104-byte protected health quality codec literal vector and one latest report mailbox -race 2x PASS; source a8936d2 workflow+docs-only over f2d72e implementation. Foundation for a8936d2 still in progress at receipt time; previous f2d72e foundation PASS.",
@@ -348,6 +358,15 @@
       "scope": "N1_104B_codec_and_latest_one_report_mailbox_focused_race_two_repetitions",
       "status": "PASS",
       "cause": "Verified raw -race logs show both independent vector TestN1QualityHealthV3* and TestN1QualityFeedbackMailboxGenerationNonceAndReplay/StaleInsufficientCapacityUnknown/ConcurrentLatestBounded each twice, all PASS; legacy health v1 and tlsrecord package regression PASS. No live feedback emission/receiver yet."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "0eef13769e0bd79c7b73e45c03c1fa7fb04381e7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38072774324",
+      "run_id": 38072774324,
+      "scope": "N1_CODEC_MAILBOX_DOCS_RECEIPT_FOUNDATION",
+      "status": "PASS",
+      "cause": "Docs-only receipt source completed the foundation regression successfully; no live sender/receiver test for new source."
     }
   ],
   "required_read_set": [

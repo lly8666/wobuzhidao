@@ -23,6 +23,7 @@ func (t *laneTransport) observeHealthLocked(result datapath.InboundResult, now t
 		t.stats.AuthenticatedRecords += result.Authenticated
 		t.stats.LastAuthenticated = now
 	}
+	t.observeQualityLocked(result, now)
 	for _, h := range result.Health {
 		if t.health.haveHint && h.PN <= t.health.hintPN {
 			continue

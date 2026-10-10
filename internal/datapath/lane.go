@@ -81,6 +81,7 @@ type WireRecord struct {
 type InboundResult struct {
 	Authenticated uint64
 	Health        []HealthMessage
+	Quality       []QualityHealthReport
 	Datagrams     [][]byte
 	RecordErrors  []error
 	PathErrors    []error
@@ -140,6 +141,7 @@ type Lane struct {
 
 	stats         LaneStats
 	timingEnabled atomic.Bool
+	qualityHealthV3 atomic.Bool // enabled only after authenticated V3 admission
 	// closed is read under either direction's lock and written only while
 	// holding both. Stats and Close always acquire mu before rxMu; ordinary
 	// operations acquire one direction only. Configuration/budgets are immutable.
@@ -556,6 +558,22 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
 		}
 		l.stats.InboundRecords++
 		if decoded.Kind == tlsrecord.KindHealth {
+            // The non-live N1 codec becomes accepted only after the lane has
+            // completed protected V3 admission and opted into quality health.
+            // V1/V2 and any unqualified lane retain strict 9-byte parsing.
+            if l.qualityHealthV3.Load() && len(decoded.Payload) == QualityHealthV3Size &&
+                decoded.Payload[0] == QualityHealthV3Version {
+                quality, err := DecodeQualityHealthV3(decoded.Payload)
+                if err != nil {
+                    out.RecordErrors = append(out.RecordErrors, err)
+                    l.stats.RecordErrors++
+                    continue
+                }
+                out.Authenticated++
+                out.Quality = append(out.Quality, quality)
+                out.Health = append(out.Health, HealthMessage{PN: decoded.PN, IdleFor: quality.IdleFor})
+                continue
+            }
 			health, err := parseHealth(decoded.PN, decoded.Payload)
 			if err != nil {
 				out.RecordErrors = append(out.RecordErrors, err)

@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "kind": "N1_PARTIAL_ACTUAL_AUTHENTICATED_QUALITY_CONTROL_ACTIONS_PENDING",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_head": "0eef13769e0bd79c7b73e45c03c1fa7fb04381e7",
+  "candidate_sha": "containing_commit",
+  "latest_verified_source": {
+    "sha": "a8936d20f623959892906dfe1443d3e495fec62f",
+    "focus_race_run": 38072534318,
+    "status": "PASS"
+  },
+  "scope": {
+    "only_authenticated_admission_V3": true,
+    "legacy_v1_9B_unchanged": true,
+    "health_v2_body_bytes": 104,
+    "encrypted_kind": "tlsrecord.KindHealth",
+    "frequency": "at most 1 report per 2 seconds on active authoritative lane per direction",
+    "no_extra_goroutine": true,
+    "no_per_business_work": true,
+    "control_not_fec_or_link": true,
+    "local_generation_independent_of_peer": true,
+    "nonce_pinned_from_admission": true,
+    "peer_report_sequence_monotonic": true,
+    "dormant_no_send": true,
+    "auto_fec": false,
+    "estimated_outer_loss": false,
+    "initial_quality_status": "INSUFFICIENT_WITH_UNKNOWN_AGE_OPTIONAL_SRTT",
+    "receiver_one_latest": true
+  },
+  "requires_actions": [
+    "next-adaptive-n1-codec focused runtime and mailbox race two repetitions",
+    "next-foundation Linux/Windows tests",
+    "next-lifecycle",
+    "next-adaptive-n0-multi real nine Linux netns three clients shared port"
+  ],
+  "actions": "PENDING",
+  "native_performance": "NOT_RUN",
+  "real_wan_loss_estimation": "NOT_IMPLEMENTED",
+  "native_windows_tun": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "deployment": false
+}

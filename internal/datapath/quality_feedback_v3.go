@@ -38,6 +38,7 @@ type QualityFeedbackMailbox struct {
     nonce [16]byte
     accepted bool
     lastSeq uint64
+    peerGeneration uint64 // independent of this endpoint's local LaneRef.Generation
     report QualityHealthReport
     received time.Time
 }
@@ -60,14 +61,19 @@ func (m *QualityFeedbackMailbox) Accept(ref logicaltunnel.LaneRef, plaintext []b
     if err != nil { return err }
     m.mu.Lock()
     defer m.mu.Unlock()
-    if ref != m.ref || report.Generation != m.ref.Generation ||
-        report.IncarnationNonce != m.nonce {
+    // Peers maintain independent local LaneRef.Generation counters: their
+    // numeric generations need not be equal. Pin the authenticated sender's
+    // generation on the FIRST report and reject later changes on that nonce.
+    // ref matches our local incarnation; nonce binds both peers by admission.
+    if ref != m.ref || report.IncarnationNonce != m.nonce ||
+        (m.accepted && report.Generation != m.peerGeneration) {
         return ErrQualityFeedbackIdentity
     }
     if m.accepted && (report.ReportSeq <= m.lastSeq || now.Before(m.received)) {
         return ErrQualityFeedbackReplay
     }
     m.accepted = true
+    m.peerGeneration = report.Generation
     m.lastSeq = report.ReportSeq
     m.report = report
     m.received = now
