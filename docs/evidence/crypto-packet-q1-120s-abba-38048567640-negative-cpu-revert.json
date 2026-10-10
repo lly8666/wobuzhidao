@@ -1,0 +1,211 @@
+{
+  "schema": "wbd-crypto-packet-q1-120s-abba/v1",
+  "branch": "next/crypto-packet-efficiency-20261010",
+  "source_a": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "source_b": "37e18653b0d08f4a1d932b6fd67fe081e84bda78",
+  "helper_sha": "faafeeb6eedc0f8df2c64f51286b31705ad5e328",
+  "workflow": "next-crypto-packet-abba",
+  "run_id": 38048567640,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38048567640",
+  "conclusion": "success",
+  "job_scope": "SINGLE_MEASUREMENT_JOB_SERIAL_ABBA",
+  "artifact": {
+    "id": 11668389415,
+    "name": "crypto-packet-abba-receipts",
+    "digest": "sha256:383aecffad46bc470caf5e364715b586705ebcab06cb472d129c87ecd4588e50"
+  },
+  "toolchain": "go1.23.12 linux/amd64 GOAMD64=v1; profile-off both",
+  "binary_sha256": {
+    "A": {
+      "client": "d4192a43733bffa581069e80a0ff406a5b4a71d48be5953bc05fc32ada0bdb2e",
+      "server": "80150437d6465eaa6b9c903dab020d889a3af9983d47f77d8106758583293204"
+    },
+    "B": {
+      "client": "02d0e56ad402d5391f549436fb7f94012af5afe3575298a326890db33edbafef",
+      "server": "3b42fb471051fb3b3ef34aa1c10e4d935ccea69a11f9e431933852ba3a002749"
+    }
+  },
+  "scenario": {
+    "name": "Q1_Normal1_lossless",
+    "per_direction_logical_mbps": 10,
+    "mode": "normal",
+    "lanes": 1,
+    "fec": "20:20",
+    "one_way_delay_ms": 300,
+    "netem_loss_pct": 0,
+    "duration_s": 120,
+    "drain_s": 3,
+    "seed": 2261,
+    "workload": "mixed_fullstack_off"
+  },
+  "classification": {
+    "all_four": "VALID_OBSERVATION",
+    "comparable": true,
+    "quality": "PASS_SCOPE",
+    "cpu_optimization": "FAIL_NEGATIVE_OPTIMIZATION",
+    "physical": "NOT_RUN"
+  },
+  "paired": {
+    "cpu_s_per_effective_gib_A": 236.5388433920831,
+    "cpu_s_per_effective_gib_B": 241.31160621862438,
+    "negative_gain_B_vs_A_pct": -2.0177501327466985,
+    "delivered_bytes_per_leg_A": 299213826,
+    "delivered_bytes_per_leg_B": 299213826,
+    "submitted_bytes_per_leg": 299328546,
+    "cpu_s_mean_A": 65.915,
+    "cpu_s_mean_B": 67.245,
+    "decisions": "REVERT_CANDIDATE_DUE_TO_2P0178_PERCENT_MORE_CPU_PER_VERIFIED_GIB; MICRO_BENCHMARK_WIN_NOT_BIZ_GAIN"
+  },
+  "runner": {
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "logical_cpus": 4,
+    "cgroup_quota_cores": null,
+    "runner_count": 1,
+    "steal_max_pct": 0,
+    "psi_some_10s_max_percent_per_leg": [
+      24.15,
+      6.64,
+      6.62,
+      6.67
+    ],
+    "qualifier": "single runner; additional two independent hosts and 300s not run; no crosshost claim"
+  },
+  "legs": [
+    {
+      "case": "s01",
+      "label": "A",
+      "classification": "VALID_OBSERVATION",
+      "issues": [],
+      "cpu_s": 66.46,
+      "client_cpu_s": 33.38,
+      "server_cpu_s": 33.08,
+      "cpu_s_effective_gib": 238.49459958792147,
+      "probe_unreturned": {
+        "c2s": 0,
+        "s2c": 0
+      },
+      "probe_returned_only_p99_ms": {
+        "c2s": 603.034256,
+        "s2c": 603.115321
+      },
+      "rss_hwm_mib": {
+        "client": 43.78125,
+        "server": 44.18359375
+      },
+      "outer_attempted_packets": {
+        "c2s": 1017121,
+        "s2c": 1020685
+      },
+      "summary_sha256": "9a8c99692e31624e166dabd79cb2d9f353920a35010e4253034e4a8efafcf154",
+      "ledger_sha256": "eab37a8c276502d16bb229da14ebf16daa0e3e960466fd0dd5439d36dc2e669f"
+    },
+    {
+      "case": "s02",
+      "label": "B",
+      "classification": "VALID_OBSERVATION",
+      "issues": [],
+      "cpu_s": 67.73,
+      "client_cpu_s": 34.04,
+      "server_cpu_s": 33.69,
+      "cpu_s_effective_gib": 243.05204980574658,
+      "probe_unreturned": {
+        "c2s": 0,
+        "s2c": 0
+      },
+      "probe_returned_only_p99_ms": {
+        "c2s": 604.204617,
+        "s2c": 604.359105
+      },
+      "rss_hwm_mib": {
+        "client": 42.921875,
+        "server": 43.86328125
+      },
+      "outer_attempted_packets": {
+        "c2s": 1015930,
+        "s2c": 1016372
+      },
+      "summary_sha256": "b7af65e2369dfb4b938c4fd7b8a17bf9d06b68202967419426d340764fc2bc9b",
+      "ledger_sha256": "db7a26316a4f89883777ad5c17e102921892d84ce564e3cd3847fa9e934604d1"
+    },
+    {
+      "case": "s03",
+      "label": "B",
+      "classification": "VALID_OBSERVATION",
+      "issues": [],
+      "cpu_s": 66.76,
+      "client_cpu_s": 33.55,
+      "server_cpu_s": 33.21,
+      "cpu_s_effective_gib": 239.57116263150218,
+      "probe_unreturned": {
+        "c2s": 0,
+        "s2c": 0
+      },
+      "probe_returned_only_p99_ms": {
+        "c2s": 604.66681,
+        "s2c": 605.419249
+      },
+      "rss_hwm_mib": {
+        "client": 43.23046875,
+        "server": 43.71484375
+      },
+      "outer_attempted_packets": {
+        "c2s": 1021309,
+        "s2c": 1021673
+      },
+      "summary_sha256": "48dce74ea97ebe4e8422b570ab18656bf6b71943db91975dfe52f4d9a51aada0",
+      "ledger_sha256": "dbda3211fef466c1dce19422ab0eb751570a80610ecd29bf190a3e5bdd3c274e"
+    },
+    {
+      "case": "s04",
+      "label": "A",
+      "classification": "VALID_OBSERVATION",
+      "issues": [],
+      "cpu_s": 65.37,
+      "client_cpu_s": 32.86,
+      "server_cpu_s": 32.51,
+      "cpu_s_effective_gib": 234.58308719624475,
+      "probe_unreturned": {
+        "c2s": 0,
+        "s2c": 0
+      },
+      "probe_returned_only_p99_ms": {
+        "c2s": 604.259147,
+        "s2c": 604.336493
+      },
+      "rss_hwm_mib": {
+        "client": 43.27734375,
+        "server": 43.80078125
+      },
+      "outer_attempted_packets": {
+        "c2s": 1016624,
+        "s2c": 1018893
+      },
+      "summary_sha256": "13ee681c015c6ef3009e08eae944e527757987216eb5912fb60a3bf597f688d6",
+      "ledger_sha256": "1620c754c251e0ef3d26048621af38707230eeed81783b5ecb528eea4257be67"
+    }
+  ],
+  "all_leg_invariants": {
+    "tcp_content_hash": "PASS_ALL_LEGS",
+    "http_https": "PASS_ALL_LEGS",
+    "udp_delivery": "PASS_ALL_LEGS",
+    "probe_unreturned": 0,
+    "raw_socket_interface_drops": 0,
+    "actual_netem_dropped": 0,
+    "owned_cleanup": "CLEAN_ALL_LEGS",
+    "integrity_issues": 0
+  },
+  "limitations": {
+    "max_delivery_gap": "SEE_SCOPE_ARTIFACT_SUMMARY_NOT_RECHECKED",
+    "separate_three_hosts": "NOT_RUN",
+    "confirm300": "NOT_RUN",
+    "fec_off_15ms": "NOT_RUN",
+    "game2_game4": "NOT_RUN",
+    "weaknet_5205": "NOT_RUN_THIS_TASK",
+    "native_arm64_business": "NOT_RUN",
+    "profile_on_separate": "NOT_RUN",
+    "P6": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "historical_FEC_Q2_quality": "FAIL_3_OF_4_PRESERVED",
+    "Game4_TCP_MTU_PMTU_E7": "OPEN"
+  }
+}

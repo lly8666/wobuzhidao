@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C1_Q1_120S_ABBA_RETRY_CONFIG_ONLY",
+    "phase": "C1_REALPATH_Q1_CPU_NEGATIVE_ROLLBACK_PENDING_CORE_ACTIONS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4084,7 +4084,7 @@
       }
     },
     "crypto_packet_efficiency": {
-      "state": "HEADER_MASK_V2_ALL_CORE_PASS_MICRO_WIN_NEEDS_BUSINESS_ABBA",
+      "state": "C1_CHACHA_V2_MICRO_WIN_REALPATH_CPU_NEGATIVE_REVERTED",
       "plan": "docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md",
       "baseline_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
       "branch_start_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
@@ -4092,7 +4092,7 @@
       "branch": "next/crypto-packet-efficiency-20261010",
       "baseline_basis": "FEC SIMD core/race native ARM pass 38032963434 and regular profile-off Q1 120s ABBA observed -10.923%; Q2 300s original 3/4 FAIL, only descriptive CPU -13.213%, not qualified",
       "implementation": {
-        "header_mask": "V1_INDEXED_POINTER_REJECTED_SLOWER; V2_REGISTER_LOCALS_WITH_BSD_XCRYPTO_QUARTER_ROUND_ACTIONS_PENDING",
+        "header_mask": "REVERTED_TO_MATURE_XCRYPTO_V0_38_0_HEADER_MASK; CUSTOM_OPT_BACKEND_NOT_SHIPPED",
         "arm64_poly1305": "NEEDS_NATIVE_HOTSPOT",
         "tcp_checksum": "NEEDS_PROFILE",
         "sha_copy_locks": "NEEDS_PROFILE",
@@ -4125,13 +4125,15 @@
           "scope": "STATIC_ONLY",
           "reason": "new own unit expected preflight when phase q1screen120; fixture test error",
           "measurement": "NOT_RUN"
-        }
+        },
+        "q1_business_abba": 38048567640,
+        "q1_business_artifact": 11668389415
       },
       "acceptance": {
         "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
         "race": "PASS_SOURCE_37E1865_CORE",
-        "native_arm64": "PASS_NATIVE_CORE_MICRO_NOT_REALPATH",
-        "normal1": "NOT_RUN_THIS_BRANCH",
+        "native_arm64": "PASS_NATIVE_MICRO_ONLY",
+        "normal1": "Q1_120S_0LOSS_4_VALID_CPU_OPTIMIZATION_FAIL_ROLLBACK",
         "game2": "NOT_RUN",
         "game4": "NOT_RUN",
         "p6": "NOT_RUN",
@@ -4194,7 +4196,7 @@
           "A"
         ],
         "phase_preflight": "PASS_RUN_38048430938_STATIC_ONLY",
-        "phase_q1screen120": "RETRY_WITH_CORRECTED_HELPER_UNIT",
+        "phase_q1screen120": "COMPLETE_RUN_38048567640_4_VALID_NEGATIVE_CPU_GAIN",
         "config_nonce": 2
       },
       "native_arm64_v2_micro": {
@@ -4240,11 +4242,24 @@
         },
         "allocs_per_op": 0,
         "bytes_per_op": 0
-      }
+      },
+      "evidence_q1": "docs/evidence/crypto-packet-q1-120s-abba-38048567640-negative-cpu-revert.json",
+      "negative_cpu_result": {
+        "cpu_s_per_effective_gib_A": 236.5388433920831,
+        "cpu_s_per_effective_gib_B": 241.31160621862438,
+        "negative_gain_B_vs_A_pct": -2.0177501327466985,
+        "delivered_bytes_per_leg_A": 299213826,
+        "delivered_bytes_per_leg_B": 299213826,
+        "submitted_bytes_per_leg": 299328546,
+        "cpu_s_mean_A": 65.915,
+        "cpu_s_mean_B": 67.245,
+        "decisions": "REVERT_CANDIDATE_DUE_TO_2P0178_PERCENT_MORE_CPU_PER_VERIFIED_GIB; MICRO_BENCHMARK_WIN_NOT_BIZ_GAIN"
+      },
+      "rollback_pending_actions": true
     }
   },
-  "next_task": "Observe serial q1screen120 strict real-business A-B-B-A 120s on Actions, only profile-off valid legs qualify; previous static failure run38048479344 remained.",
-  "latest_log": "docs/devlog/20261011-001500-crypto-q1-120s-phase-aware-unit-retry.md",
+  "next_task": "First obtain post-revert full core/race Actions PASS. Treat custom headerMask implementation as rejected for realpath (+2.01775% CPU/GiB despite microbench win). Next native ARM Poly1305 hotspot + checksum profile evidence before any implementation, or mark NOT_RUN. Do not trigger weaknet matrix on rejected candidate; preserve original FEC Q2 FAIL, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-204200-crypto-q1-realpath-abba-negative-revert.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

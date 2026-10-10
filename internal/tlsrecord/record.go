@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 
+	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
@@ -41,7 +42,6 @@ var (
 )
 
 type Sealer struct {
-	hp        headerMaskKey
 	keys      Keys
 	aead      cipher.AEAD
 	maxBody   int
@@ -60,7 +60,6 @@ type SealerStats struct {
 }
 
 type Opener struct {
-	hp      headerMaskKey
 	keys    Keys
 	aead    cipher.AEAD
 	maxBody int
@@ -85,7 +84,7 @@ func newSealerAtPN(keys Keys, maxWire int, nextPN uint64) (*Sealer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Sealer{hp: prepareHeaderMaskKey(keys.HPKey), keys: keys, aead: aead, maxBody: maxBody, nextPN: nextPN}, nil
+	return &Sealer{keys: keys, aead: aead, maxBody: maxBody, nextPN: nextPN}, nil
 }
 
 func NewOpener(keys Keys, maxWire int) (*Opener, error) {
@@ -97,7 +96,7 @@ func NewOpener(keys Keys, maxWire int) (*Opener, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Opener{hp: prepareHeaderMaskKey(keys.HPKey), keys: keys, aead: aead, maxBody: maxBody}, nil
+	return &Opener{keys: keys, aead: aead, maxBody: maxBody}, nil
 }
 
 // Seal reserves exactly one new PN before encoding and preserves the V1
@@ -135,7 +134,7 @@ func (s *Sealer) seal(payload []byte, padding int, explicitPadding bool, kind by
 			s.stats.RequestedPaddingBytes += uint64(padding)
 		}
 	}
-	wire, err := sealRecordPrepared(s.keys, s.hp, s.aead, s.maxBody, pn, kind, payload, padding)
+	wire, err := sealRecord(s.keys, s.aead, s.maxBody, pn, kind, payload, padding)
 	if err != nil {
 		s.stats.Failed++
 		return nil, pn, err
@@ -168,7 +167,7 @@ func (o *Opener) OpenRecord(wire []byte) (Record, error) {
 	}
 
 	ciphertext := wire[OuterHeaderLen+ProtectedPNLen:]
-	mask, err := headerMaskPrepared(o.hp, ciphertext)
+	mask, err := headerMask(o.keys.HPKey, ciphertext)
 	if err != nil {
 		return Record{}, ErrInvalidLength
 	}
@@ -222,10 +221,6 @@ func effectiveBodyLimit(maxWire int) (int, error) {
 }
 
 func sealRecord(keys Keys, aead cipher.AEAD, maxBody int, pn uint64, kind byte, payload []byte, padding int) ([]byte, error) {
-	return sealRecordPrepared(keys, prepareHeaderMaskKey(keys.HPKey), aead, maxBody, pn, kind, payload, padding)
-}
-
-func sealRecordPrepared(keys Keys, hp headerMaskKey, aead cipher.AEAD, maxBody int, pn uint64, kind byte, payload []byte, padding int) ([]byte, error) {
 	if padding < 0 {
 		return nil, ErrInvalidPadding
 	}
@@ -264,7 +259,7 @@ func sealRecordPrepared(keys Keys, hp headerMaskKey, aead cipher.AEAD, maxBody i
 	wire = aead.Seal(wire[:prefix], nonce[:], plain, aad[:])
 	ciphertext := wire[prefix:]
 
-	mask, err := headerMaskPrepared(hp, ciphertext)
+	mask, err := headerMask(keys.HPKey, ciphertext)
 	if err != nil {
 		return nil, err
 	}
@@ -288,3 +283,18 @@ func recordNonce(iv [12]byte, pn uint64) [12]byte {
 	return nonce
 }
 
+func headerMask(key [32]byte, ciphertext []byte) ([8]byte, error) {
+	if len(ciphertext) < 16 {
+		return [8]byte{}, ErrInvalidLength
+	}
+	counter := binary.LittleEndian.Uint32(ciphertext[0:4])
+	stream, err := chacha20.NewUnauthenticatedCipher(key[:], ciphertext[4:16])
+	if err != nil {
+		return [8]byte{}, err
+	}
+	stream.SetCounter(counter)
+	var mask [8]byte
+	var zeros [8]byte
+	stream.XORKeyStream(mask[:], zeros[:])
+	return mask, nil
+}
