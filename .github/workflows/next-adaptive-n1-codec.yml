@@ -38,7 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           go test -race ./internal/datapath \
-            -run '^TestN1QualityHealthV3' -count=2 -timeout=90s -v
+            -run '^TestN1Quality(HealthV3|Feedback)' -count=2 -timeout=90s -v
       - name: Legacy health v1 and plaintext record regression
         shell: bash
         run: |

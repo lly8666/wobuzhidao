@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "kind": "N1_ACTION_SCOPE_CORRECTION",
+  "previous_source": "f2d72e107f13f78213acb3bf237571291d6e8cd4",
+  "previous_action": {
+    "run_id": 38072317135,
+    "status": "PASS",
+    "job_id": 114272099513,
+    "scope": "CODEC_TARGETED_RACE_ONLY_MAILBOX_ORDINARY_PACKAGE_TEST"
+  },
+  "error": "-race -run selector ^TestN1QualityHealthV3 excluded TestN1QualityFeedbackMailbox tests; previous PASS must not be represented as mailbox race PASS",
+  "fix": "-run ^TestN1Quality(HealthV3|Feedback) -count=2 -race",
+  "new_source": "commit_containing_receipt",
+  "action": "PENDING",
+  "live_quality_feedback": "NOT_ENABLED",
+  "physical": "NOT_RUN",
+  "deployment": false
+}

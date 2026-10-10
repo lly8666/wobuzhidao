@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_RESERVED_CODEC_PASS_LATEST_ONLY_FEEDBACK_MAILBOX_ACTIONS_PENDING",
+    "phase": "N1_MAILBOX_RACE_WORKFLOW_SELECTOR_CORRECTION_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -21,7 +21,7 @@
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_104B_CODEC_RACE_PASS_MAILBOX_GENERATION_REPLAY_GATE_PENDING_NOT_LIVE",
+      "N1_quality": "IN_PROGRESS_CODEC_PASS_MAILBOX_ORDINARY_UNIT_PASS_DEDICATED_RACE_NOT_YET_RUN",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -73,17 +73,15 @@
       "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
     },
     "pending_candidate": {
-      "scope": "N1 new per-authoritative-lane one-latest bounded quality-feedback mailbox (reportSeq strict monotonic, incumbent generation and nonce, stale/capacity/insuff/UNKNOWN gates, concurrent out-of-order reports) - pure receiver gate only, no active wire",
+      "scope": "Correct N1 targeted -race Go test selector to cover both codec and mailbox tests twice",
       "source_sha": "CONTAINING_COMMIT_SHA",
-      "actions": "PENDING",
-      "codec_on_wire": "NOT_ENABLED",
-      "periodic_sender": "NOT_ENABLED",
-      "receiver_in_runtime": "NOT_ENABLED",
+      "action": "PENDING",
+      "previous_focus": "CODEC_ONLY",
       "physical": "NOT_RUN"
     }
   },
-  "next_task": "N1: inspect focused next-adaptive-n1-codec -race for new bounded mailbox and foundation/lifecycle on source commit. Preserve any failures and fix. After PASS integrate real active V3 lane-only <=2s sender+receiver on authenticated KindHealth (legacy v1 remains; refuse V2/unknown), incarnation/report sequence replay fence, O(1) bounded matured counters and HONEST ESTIMATED/UNKNOWN, never per business scan/JSONL/wake, no HOL; run regression/actions. N0 scoped real 3-client and sameSeq remains PASS. No physical before all N0-N6 Actions/P6.",
-  "latest_log": "docs/devlog/20261011-022000-adaptive-n1-guarded-latest-report-mailbox.md",
+  "next_task": "N1: run corrected dedicated race workflow on mailbox generation/nonce/replay/stale/concurrency tests as well as codec; original f2d72e workflow succeeded but targeted race covered codec only. Then integrate active-only 2s V3 protected health feedback, with no legacy V2 change. Physical testing after N6 only.",
+  "latest_log": "docs/devlog/20261011-024500-n1-mailbox-focused-race-selector-fix.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "ac27395d94064c58d3020f6f1b759b7a8f1a54c7",
   "last_tested_scope": "N1 strict 104-byte versioned protected KindHealth reserved codec tests -race twice PASS on ac27395 + foundation/lifecycle; no live quality feedback",
@@ -320,6 +318,24 @@
       "status": "PASS",
       "run_id": 38071987724,
       "cause": "PASS: all required Linux/Windows Go and privileged network baseline jobs; no live feedback/auto AES or physical."
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "source_sha": "f2d72e107f13f78213acb3bf237571291d6e8cd4",
+      "run_id": 38072317135,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38072317135",
+      "scope": "N1 codec race only; new mailbox ordinary unit only",
+      "status": "PASS",
+      "cause": "Go -race selector matched TestN1QualityHealthV3 only; mailbox cases ran in non-race package regression. Corrected selector needed before mailbox race can qualify."
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "f2d72e107f13f78213acb3bf237571291d6e8cd4",
+      "run_id": 38072317125,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38072317125",
+      "scope": "N1 mailbox existing lifecycle regressions",
+      "status": "PASS",
+      "cause": "Existing lifecycle/regression PASS; mailbox-specific concurrency race still untested."
     }
   ],
   "required_read_set": [
