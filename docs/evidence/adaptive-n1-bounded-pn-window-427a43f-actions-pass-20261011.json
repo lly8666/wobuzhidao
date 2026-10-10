@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "kind": "N1_BOUNDED_256_PN_DATA_TX_RX_WINDOW_ACTIONS_SCOPED_PASS_NO_WAN_ESTIMATE",
+  "new_code_source_sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+  "exact_tested_source_sha": "427a43f2582e4df9891a4ed4384f913bd5dc226d",
+  "corrected_scope": "Test-only correction delivering complete 2s tick FakeTCP emissions including sameSeq RTO, code unchanged",
+  "actions": {
+    "focused_n1": {
+      "run": 38075731969,
+      "job": 114282178919,
+      "status": "PASS",
+      "race_count": 2,
+      "assertions": [
+        "bounded 256 PN authenticated KindLINK receiver unique late duplicates",
+        "control KindHealth replay excluded",
+        "near UINT64MAX PN no overflow and age saturation",
+        "post FakeTCP Emit successful DATA and local failed Emit counted separately",
+        "exact authenticated V3 quality sender watermark WindowValid|Insufficient, no estimated physical loss"
+      ]
+    },
+    "lifecycle": {
+      "run": 38075732012,
+      "status": "PASS"
+    },
+    "foundation": {
+      "run": 38075732117,
+      "status": "PASS",
+      "scope": "Linux/Windows Go, privileged Linux/OpenWrt/TUN, other required jobs; P5/P6 policy skipped NOT_RUN"
+    },
+    "native_multi": {
+      "run": 38075731983,
+      "job": 114282179085,
+      "status": "PASS",
+      "artifact_id": 11678825220,
+      "artifact_sha256": "5c34a8e96d40cfe0421296fac2d1f1153c47cd5a3dd1496a2a8a46eafcf5fa45",
+      "scope": "true nine-netns native Linux 3 client and one shared server/TUN 443, 300ms each way, 8s 0% configured loss; Normal off Normal fixed20:4 Game2 fixed20:20",
+      "per_client_direction": {
+        "sent": 297,
+        "received_first_unique": 297,
+        "sent_business_bytes": 150480,
+        "first_unique_business_bytes": 150480
+      },
+      "validation_problems": []
+    }
+  },
+  "prior_first_candidate": {
+    "sha": "1d5e9f591624c021a7ef717e91f924cce4e5b5fd",
+    "failed_actions": [
+      38075490771,
+      38075490780,
+      38075490767
+    ],
+    "failed_root_cause": "test assumed newest v2 report was last FakeTCP segment after Tick, but sameSeq repair occurs after new control; exact source failures preserved",
+    "scoped_pass_runs": [
+      38075490773,
+      38075490784
+    ]
+  },
+  "verified_limits": {
+    "one_late_2s_control": true,
+    "actual_tx_success": "only post-Emit fresh KindLINK",
+    "local_drop": "not WAN loss",
+    "receiver_unique": "authenticated KindLINK only with crypto dedup",
+    "window_span": 256,
+    "per_record_new_lock": false,
+    "per_record_new_goroutine": false,
+    "send_receive_PN_paired": false,
+    "external_loss_estimated": false,
+    "quality": "INSUFFICIENT_OR_CAPACITY",
+    "N2_auto": "NOT_ENABLED",
+    "physical": "NOT_RUN",
+    "P6": "NOT_RUN",
+    "windows_native_TUN": "NOT_RUN"
+  },
+  "next": "Mature matching remote sender success PN watermark with this endpoint receiver unique, track first and last PN visibility/tail, local control skipped, reorder 3s, capacity and confidence; prove estimated vs unknown, then consider N2 after N1 scoped Actions."
+}
