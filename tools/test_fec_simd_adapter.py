@@ -55,4 +55,10 @@ class TestABBA(unittest.TestCase):
   killed.assert_not_called()
   self.assertEqual(result["cleanup_signal_failures"],[89])
   self.assertFalse(result["clean"])
+ def test_startup_private_error_only_yields_categories(self):
+  private="WBD_STRICT_SERVER_EARLY_EXIT pid=12345\npassword=qsecret\nFEC_EXPERIMENT_SHELL_FAIL code=1 line=245\n"
+  result=ab.shell_failure_classes(private)
+  self.assertEqual(result,[{"class":"SHELL_FAIL","exit_code":1,"script_line":245},
+                           {"class":"PRODUCT_SERVER_EARLY_EXIT"}])
+  self.assertNotIn("qsecret",repr(result))
 if __name__=="__main__":unittest.main()

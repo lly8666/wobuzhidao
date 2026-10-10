@@ -1,0 +1,34 @@
+{
+  "schema": "wbd-fec-simd-pilot-audit/v1",
+  "branch": "next/fec-simd-20261010",
+  "source_helper": "c56fb966fdc3afda25a4083452962a89bd9a311b",
+  "run_id": 38036026445,
+  "job_id": 114166502080,
+  "artifact_id": 11664042401,
+  "config": "pilot nonce6",
+  "source_A": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "source_B": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "A": {
+    "classification": "INFRA_INVALID",
+    "sample_exit": 1,
+    "sample_error": null,
+    "analyzer_exit": 1,
+    "ledger_exit": 1,
+    "original_leaked_pids": 1,
+    "sudo_fallback_count": 1,
+    "clean": false,
+    "private_log_bytes": 38,
+    "private_log_sha256": "ea4bf5b1e32bdf73e781c50d3fb9f235e893c7e9feda95498c26aa3a0f107f67",
+    "manifest_present": false,
+    "summary": "INVALID_MISSING_MANIFEST",
+    "early_exit_role": "UNKNOWN_PENDING_DIAGNOSTIC"
+  },
+  "B": {
+    "classification": "NOT_RUN"
+  },
+  "cpu_s_per_verified_GiB": "NOT_MEASURED",
+  "p99": "NOT_MEASURED",
+  "physical": "NOT_RUN",
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38036026445",
+  "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38036026445/artifacts/11664042401"
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_PILOT_HELPER_REGEX_CORRECTION_REQUESTED",
+    "phase": "FEC_SIMD_S3_BASELINE_A_EARLY_EXIT_DIAGNOSTIC_ONLY",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_PILOT_NOT_VALIDATED_STATIC_REGEX_FIX",
+      "state": "S3_PILOT_INFRA_INVALID_A_REPEATED_B_NOT_RUN",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3704,17 +3704,22 @@
         "lifecycle": 38034338226,
         "status": "PASS_SCOPED"
       },
-      "pilot_retry": "SCOPED_REGEX_ESCAPE_FIX_CONFIG_NONCE6_REQUESTED",
+      "pilot_retry": "NONCE7_ONLY_DIAGNOSTIC_CLIENT_SERVER_EARLY_EXIT_CLASS_AND_RECEIPT_PRESENCE",
       "pilot_latest": {
-        "run_id": 38034569663,
-        "job_id": 114162231837,
-        "artifact_id": 11662419753,
-        "helper_sha": "817913a8ae880bb94b153001a18844f8c457113e",
-        "baseline_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
-        "candidate_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-        "state": "FAIL_INFRA_INVALID_A_PERMISSIONERROR_MANIFEST_MISSING_B_NOT_RUN",
-        "product_cpu_gain": "NOT_MEASURED",
-        "evidence": "docs/evidence/fec-simd-pilot-38034569663-invalid.json"
+        "run_id": 38036026445,
+        "job_id": 114166502080,
+        "artifact_id": 11664042401,
+        "helper_sha": "c56fb966fdc3afda25a4083452962a89bd9a311b",
+        "A": "INFRA_INVALID_SCRIPT_EXIT1_NO_MANIFEST",
+        "B": "NOT_RUN",
+        "sample_exit": 1,
+        "private_log_bytes": 38,
+        "product_early_exit": "SUSPECTED_NOT_CONFIRMED",
+        "original_leaked_root_pids": 1,
+        "strict_clean": false,
+        "analyzer": "INVALID_MISSING_MANIFEST",
+        "cpu_gain": "NOT_MEASURED",
+        "evidence": "docs/evidence/fec-simd-pilot-38036026445-invalid.json"
       },
       "pilot_retry_static_failure": {
         "run_id": 38035939435,
@@ -3726,8 +3731,8 @@
       }
     }
   },
-  "next_task": "Review new nonce6 Actions 15s Q1 A/B pilot receipt (NOT a 120s performance qualification). Previous nonce5 run38035939435 failed static regex tests; no real leg was run. If current pilot produces incomplete manifest or not VALID_OBSERVATION, keep B NOT_RUN, audit uploaded sanitized-startup and do not trigger Q/L. CPU gain and physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-175000-fec-simd-s3-static-test-regex-correction.md",
+  "next_task": "Read nonce7 exact A pilot sanitized-startup and case receipt. Two prior pilots produced A shell exit 1 / missing manifest, B NOT_RUN; do NOT enter Q/L or relax lossless/p99/integrity. If A still invalid diagnose CLIENT/SERVER early exit reason and compare helper/business duration, stop blind repeats. CPU gain unmeasured; E7 ~80s downlink remains OPEN_DEFERRED, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-180500-fec-simd-s3-exact-early-exit-sanitized-diagnostic.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
