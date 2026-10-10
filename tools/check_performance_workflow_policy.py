@@ -226,7 +226,7 @@ if re.search(r"(?m)^\s+matrix:|^\s+pull_request:", packet):
     errors.append("Crypto packet ABBA: no fanout/PR")
 if packet.count("  one-crypto-packet-serial-abba:") != 1 or packet.count("tools/crypto_packet_abba.py --mode execute") != 2:
     errors.append("Crypto packet ABBA: one job and exact serial runner")
-if "cancel-in-progress: false" not in packet or "tools/perf_sample_guard.py claim" in packet:
+if "cancel-in-progress: false" not in packet or "tools/perf_sample_guard.py claim" in packet or "WBD_CRYPTO_PACKET_CONFIG_ONLY_GUARD_PASS" not in packet:
     errors.append("Crypto packet ABBA: concurrency and existing guard must remain isolated")
 if "set -euo pipefail" not in packet or "continue-on-error: true" in packet:
     errors.append("Crypto packet ABBA: strict shell propagation required")

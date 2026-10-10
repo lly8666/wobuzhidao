@@ -1,0 +1,55 @@
+{
+  "schema": "wbd-crypto-packet-header-mask-v2/v1",
+  "source_sha": "37e18653b0d08f4a1d932b6fd67fe081e84bda78",
+  "reference_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "actions_run_id": 38048046999,
+  "actions_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38048046999",
+  "conclusion": "success",
+  "linux_amd64": "PASS",
+  "windows_amd64": "PASS",
+  "linux_arm64_native": "PASS",
+  "targeted_tests": [
+    "rand-reference-chacha20",
+    "counter-max",
+    "short-input",
+    "concurrent-race",
+    "purego",
+    "noasm",
+    "all Go packages linux",
+    "windows native",
+    "ARM64 native"
+  ],
+  "microbench": {
+    "amd64": {
+      "prepared_ns": [
+        119.6,
+        120.2,
+        118.6
+      ],
+      "old_stream_ns": [
+        140.5,
+        140.8,
+        140.9
+      ],
+      "median_gain_pct": 15.056818181818187
+    },
+    "arm64_native": {
+      "prepared_ns": [
+        107.4,
+        107.5,
+        107.5
+      ],
+      "old_stream_ns": [
+        243.7,
+        244,
+        243.9
+      ],
+      "median_gain_pct": 55.924559245592455
+    },
+    "allocs_per_op": 0,
+    "bytes_per_op": 0
+  },
+  "qualifier": "MICRO_ONLY_CANDIDATE_NO_PROFILE_OFF_REALPATH_A_B_YET",
+  "proven_isa_path": "PURE_PORTABLE_GO_SCALAR_NOT_SPECIFIC_SIMD",
+  "physical": "NOT_RUN"
+}

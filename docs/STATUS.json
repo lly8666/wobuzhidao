@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C1_HEADER_MASK_V2_NATIVE_MICRO_PROMISING_ABBA_HELPER_FROZEN",
+    "phase": "C1_V2_FULL_CROSS_PLATFORM_CORE_PASS_ABBA_PREFLIGHT_PENDING",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4084,7 +4084,7 @@
       }
     },
     "crypto_packet_efficiency": {
-      "state": "HEADER_MASK_V2_NATIVE_ARM_MICRO_BENCH_PASS_OTHER_CORE_PENDING",
+      "state": "HEADER_MASK_V2_ALL_CORE_PASS_MICRO_WIN_NEEDS_BUSINESS_ABBA",
       "plan": "docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md",
       "baseline_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
       "branch_start_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
@@ -4109,12 +4109,13 @@
         "foundation_v1_fail": 38047766393,
         "abba_preflight_v0_fail": 38047650016,
         "core_v2": 38048046999,
-        "foundation_v2_selfcheck_fail": 38048047017
+        "foundation_v2_selfcheck_fail": 38048047017,
+        "v2_full_core": 38048046999
       },
       "acceptance": {
-        "unit": "NOT_RUN",
-        "race": "NOT_RUN",
-        "native_arm64": "NOT_RUN_THIS_BRANCH",
+        "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
+        "race": "PASS_SOURCE_37E1865_CORE",
+        "native_arm64": "PASS_NATIVE_CORE_MICRO_NOT_REALPATH",
         "normal1": "NOT_RUN_THIS_BRANCH",
         "game2": "NOT_RUN",
         "game4": "NOT_RUN",
@@ -4192,11 +4193,42 @@
           243.9
         ],
         "state": "PASS_MICRO_ONLY_NO_BIZ_GAIN"
+      },
+      "evidence_v2": "docs/evidence/crypto-packet-header-mask-v2-core-micro-38048046999.json",
+      "micro_v2": {
+        "amd64": {
+          "prepared_ns": [
+            119.6,
+            120.2,
+            118.6
+          ],
+          "old_stream_ns": [
+            140.5,
+            140.8,
+            140.9
+          ],
+          "median_gain_pct": 15.056818181818187
+        },
+        "arm64_native": {
+          "prepared_ns": [
+            107.4,
+            107.5,
+            107.5
+          ],
+          "old_stream_ns": [
+            243.7,
+            244,
+            243.9
+          ],
+          "median_gain_pct": 55.924559245592455
+        },
+        "allocs_per_op": 0,
+        "bytes_per_op": 0
       }
     }
   },
-  "next_task": "Q1screen ABBA static preflight config-only push after exact helper update; validate all four paired same-runner workload legs 120s/3s; native ARM64 V2 micro 107.5 vs 243.9 ns only, not realpath CPU. Preserve prior foundation policy FAIL.",
-  "latest_log": "docs/devlog/20261010-233000-crypto-exact-abba-frozen-b-config-guard.md",
+  "next_task": "Trigger config-only preflight Actions, then Q1 Normal1 lossless 120s+3s ABBA; do not claim CPU gain from micro. V2 pass on native ARM64 and AMD64/Windows core. Preserve FEC Q2 stage original FAIL.",
+  "latest_log": "docs/devlog/20261010-234000-header-mask-v2-micro-pass-and-preflight-guard-tiny-fix.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

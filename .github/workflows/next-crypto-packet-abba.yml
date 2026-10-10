@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import subprocess
-          rows=[line.split("\\t",1) for line in subprocess.check_output(["git","diff","--name-status","HEAD^","HEAD"],text=True).splitlines()]
+          rows=[line.split(chr(9),1) for line in subprocess.check_output(["git","diff","--name-status","HEAD^","HEAD"],text=True).splitlines()]
           changes={path:kind for kind,path in rows}
           assert len(changes)==3, changes
           assert changes.get(".github/crypto-packet-abba.json")=="M", changes
