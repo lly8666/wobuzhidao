@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "CRYPTO_PACKET_EFFICIENCY",
-    "phase": "C3_NATIVE_ARM64_POLY1305_PACKAGING_DIAGNOSTIC_PENDING_ACTIONS",
+    "phase": "C3_NATIVE_ARM64_POLY1305_WORKFLOW_REPAIRED_PENDING_ACTIONS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4134,7 +4134,8 @@
         "native_hotspot_yaml_parse_fail": 38049682130,
         "native_arm64_hotspot": 38049793709,
         "latest_foundation": 38049793592,
-        "poly1305_packaging_source": "PENDING_C3_DIAGNOSTIC_COMMIT"
+        "poly1305_packaging_source": "PENDING_FIXED_CI_RETRY",
+        "poly1305_packaging_broken_yaml_run": 38052140743
       },
       "acceptance": {
         "unit": "PASS_SOURCE_37E1865_CORE_ALL_THREE_OS",
@@ -4157,7 +4158,7 @@
         "game2_game4": "NOT_RUN_THIS_CYCLE",
         "confirm300": "NOT_RUN",
         "three_runners": "NOT_RUN",
-        "poly1305_packaging": "NOT_RUN_ACTIONS_PENDING"
+        "poly1305_packaging": "NOT_RUN_BROKEN_YAML_THEN_FIXED_NO_PERF_RESULT"
       },
       "inherited_failures": [
         "Q2 300s probe phase 3/4 original FAIL run38042928701",
@@ -4280,8 +4281,8 @@
       "evidence_native_hotspot": "docs/evidence/crypto-packet-arm64-native-hotspot-run38049793709.json"
     }
   },
-  "next_task": "Run native ARM64 test-only Poly1305 streaming vs contiguous-with-copy vs prebuilt-upper-bound benchmark. Confirm packaging oracle, no production code change. Read real native measurements before deciding whether Poly1305 backend is worth prototyping; fullstack ARM64 profiling remains NOT_RUN. Prior headerMask -2.02% realpath rejected; all historical FAIL/NOT_RUN retained.",
-  "latest_log": "docs/devlog/20261010-222000-crypto-poly1305-packaging-native-diagnostic.md",
+  "next_task": "Workflow malformed after JS String.replace expanded regex $' suffix into inserted YAML: Actions run38052140743 FAIL_PARSE_NO_JOBS, no test or benchmark. Restored exact known-good workflow from 6d0d871, appended a new Poly1305 diagnostic command using function-return replace. Await actual native ARM64 unit and benchmark; production remains unchanged. Existing qualification statuses unchanged.",
+  "latest_log": "docs/devlog/20261010-223000-crypto-poly1305-workflow-generator-fix.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
