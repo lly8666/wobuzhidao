@@ -53,11 +53,11 @@ func TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation(t *testing.T) {
             Lane:datapath.ServerLaneParams{ConnectionMTU:1500,
                 TxIPv4HeaderLen:20,TxTCPHeaderLen:20,RxIPv4HeaderLen:20,RxTCPHeaderLen:20,
                 ParityShards:0}, // deliberately not the mixed requested profiles
-        },DesiredLanes:4,
+        },DesiredLanes:4,KeepaliveInterval:time.Second,
     })
     if err!=nil{t.Fatal(err)}
     defer server.Close()
-    ctx,cancel:=context.WithTimeout(context.Background(),16*time.Second)
+    ctx,cancel:=context.WithTimeout(context.Background(),25*time.Second)
     defer cancel()
     done:=make(chan error,1)
     go func(){done<-server.Run(ctx)}()
@@ -85,7 +85,7 @@ func TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation(t *testing.T) {
                 Lease:logicaltunnel.Lease{Account:"mix",InstallationID:inst,
                     Config:logicaltunnel.TunnelConfig{TunnelID:tunnelID,Address4:"0.0.0.0/32",
                         Routes4:[]string{"0.0.0.0/0"}}},
-                DesiredLanes:tc.lanes,MaxFlows:128,
+                DesiredLanes:tc.lanes,MaxFlows:128,KeepaliveInterval:time.Second,
                 OpenLane:func(_ uint8,inc uint64)(SegmentIO,faketcp.ClientFlow,error){
                     port,err:=RotatingSourcePort(uint16(40000+i*4096),inc)
                     if err!=nil{return SegmentIO{},faketcp.ClientFlow{},err}
@@ -133,11 +133,26 @@ func TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation(t *testing.T) {
         server.mu.Unlock()
         if tunnel==nil||policy!=policies[i]{t.Fatalf("server V3 client %d policy=%+v want=%+v",i,policy,policies[i])}
 
-        up:=ipv4Packet(addr.As4(),[4]byte{8,8,8,8},17)
-        if err:=c.SendPacket(ctx,up,time.Now());err!=nil{t.Fatal(err)}
-        if got:=writer.waitPacket(t,3*time.Second);string(got)!=string(up){t.Fatal("first upstream crossed or altered")}
-
-        waitLifecycle(t,3*time.Second,func()bool{return server.TunnelQualified(lease.Config.TunnelID)})
+        // A transport heartbeat may qualify the authenticated lane, but no
+        // client business has been sent. S2C must arrive as first business.
+        waitLifecycle(t,5*time.Second,func()bool{return server.TunnelQualified(lease.Config.TunnelID)})
+        clientObserved:=c.DiagnosticSnapshot(time.Now())
+        serverObserved,ok:=server.TunnelDiagnosticSnapshot(lease.Config.TunnelID,time.Now())
+        if !ok {t.Fatal("server diagnostic missing for active tunnel")}
+        for name,actual:=range map[string]TunnelDiagnostic{"client":clientObserved,"server":serverObserved} {
+            if actual.RecordVersion!=realityfront.RecordVersionV3 || actual.AdmissionPolicy==nil || *actual.AdmissionPolicy!=policies[i] {
+                t.Fatalf("%s client %d actual negotiated V3 = (%d,%+v), want %+v",name,i,actual.RecordVersion,actual.AdmissionPolicy,policies[i])
+            }
+            if actual.Lease4!=lease.Config.Address4 {
+                t.Fatalf("%s client %d lease mismatch got %s want %s",name,i,actual.Lease4,lease.Config.Address4)
+            }
+            if len(actual.Lanes)!=cases[i].lanes {t.Fatalf("%s client %d lanes=%d",name,i,len(actual.Lanes))}
+            for _,lane:=range actual.Lanes {
+                if lane.ParityShards!=cases[i].parity {
+                    t.Fatalf("%s client %d actual parity=%d want=%d",name,i,lane.ParityShards,cases[i].parity)
+                }
+            }
+        }
         down:=ipv4Packet([4]byte{8,8,8,8},addr.As4(),17)
         if err:=server.RoutePacket(down,time.Now());err!=nil{t.Fatal(err)}
         select{
@@ -145,6 +160,10 @@ func TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation(t *testing.T) {
             if string(got)!=string(down){t.Fatal("first downstream crossed or altered")}
         case <-time.After(3*time.Second):t.Fatal("first downstream timeout")
         }
+        // Uplink starts only after independent S2C was delivered.
+        up:=ipv4Packet(addr.As4(),[4]byte{8,8,8,8},17)
+        if err:=c.SendPacket(ctx,up,time.Now());err!=nil{t.Fatal(err)}
+        if got:=writer.waitPacket(t,3*time.Second);string(got)!=string(up){t.Fatal("first upstream crossed or altered")}
     }
     // The authenticated FEC policy must remain frozen through generation
     // replacement; old/new S2C can first-deliver independently.

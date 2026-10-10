@@ -9,18 +9,18 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_V3_FIXED_OFF_SINGLE_REALPATH_FUNCTIONAL_PASS_MORE_REQUIRED",
+    "phase": "N0_V3_ACTUAL_NEGOTIATED_DIAGNOSTICS_FIRST_S2C_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "b52ed0edad655baaed0411c594f85fe3d82bb79a",
     "implementation": "PARTIAL_N0_PROTECTED_V3_FIXED_OFF_CHACHA",
-    "core": "PASS_FOUNDATION_AND_N0_SINGLE_REALPATH_FUNCTIONAL_B52ED0E",
+    "core": "PREVIOUS_VERIFIED_B52ED0E_FOUNDATION_AND_SINGLE_REALPATH_PASS_NEW_SOURCE_ACTIONS_PENDING",
     "ordinary_performance": "NOT_RUN_N0_SOURCE_B52ED0E",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
-      "N0_admission": "IN_PROGRESS_SINGLE_REALPATH_FUNCTIONAL_PASS_3_CLIENT_NATIVE_PENDING",
+      "N0_admission": "IN_PROGRESS_DIAGNOSTIC_AND_FIRST_S2C_ACTIONS_PENDING_NATIVE_3_CLIENT_STILL_REQUIRED",
       "N1_quality": "NOT_STARTED",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
@@ -56,10 +56,18 @@
       "unsupported_in_actions": "Record UNSUPPORTED/NOT_RUN and defer explicit native device checks to final physical acceptance; do not claim Linux/mock verifies Windows Wintun.",
       "legacy_failure_policy": "Do not rewrite historical FAIL, do not inherit prior SOURCE qualifications.",
       "owner": "User explicit instruction 2026-10-10"
+    },
+    "pending_candidate": {
+      "scope": "N0 in-memory 3-client V3 actual negotiated policy/record version/active lane parity, exact first S2C before client business",
+      "sha": "CONTAINING_COMMIT_SHA",
+      "actions": "PENDING",
+      "native_3_clients": "NOT_RUN",
+      "actual_tls_cipher": "NOT_OBSERVED",
+      "same_seq_same_wire": "NOT_REQUALIFIED"
     }
   },
-  "next_task": "N0: add one bounded functional Actions scenario with 3 concurrent isolated real netns client processes (Normal off, Normal20:4, Game fixed20:20) + distinct leases and same server port, and exact first S2C before any client business if possible; instrument independent actual negotiated suite/profile/actual TLS cipher and same-Seq same-wire. Keep source-specific controlled lossless b52 PASS scoped to one client. Only after these N0 checks and race gate proceed N1 quality. New mandatory sequencing: complete feature Actions before next step; do not run or deploy to physical machines until N0-N6, integration Actions and same-source P6 are all finished; coordinate one final physical acceptance through original chat.",
-  "latest_log": "docs/devlog/20261010-234500-actions-first-final-physical-policy.md",
+  "next_task": "N0: examine foundation/lifecycle Actions on the code commit that includes negotiated-V3 runtime diagnostics and exact first S2C-before-client-business three-client functional test; fix observed FAIL without rewriting evidence. Then create one concurrent 3-isolated-real-netns-client same-server-port functional Actions case (Normal off, Normal20:4, Game20:20, distinct auto leases) plus actual TLS cipher/same-Seq same-wire evidence; do not mark N0 complete before these and race gate. Preserve b52ed0e one-client controlled PASS scope. Actions-first, final-only physical acceptance remains mandatory.",
+  "latest_log": "docs/devlog/20261010-235900-adaptive-n0-negotiated-observability-s2c-first.md",
   "qualification_scope": "N0_PARTIAL_SINGLE_REALPATH_PASS_NO_N0_WIDE_ACCEPTANCE",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "Historical parent scope only; see archived STATUS. Not current qualification.",

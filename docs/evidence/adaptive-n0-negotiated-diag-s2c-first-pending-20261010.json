@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "type": "n0_functional_code_candidate_pending_actions",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_sha": "f664631ea30bb292316a5e2be3a32b51ee5a1581",
+  "candidate_source_sha": "containing_git_commit_sha",
+  "previous_validated_product_sha": "b52ed0edad655baaed0411c594f85fe3d82bb79a",
+  "stage": "N0_IN_PROGRESS",
+  "changes": [
+    "authenticated client negotiation record version & public policy in opt-in snapshots",
+    "server negotiated V3 policy in opt-in diagnostic snapshot",
+    "in-memory three distinct clients check effective parity and exact S2C business before any client upstream business"
+  ],
+  "actions_status": "PENDING",
+  "unit_tests": "PENDING",
+  "race": "PENDING",
+  "three_concurrent_native_netns_clients": "NOT_RUN",
+  "actual_tls_cipher": "NOT_OBSERVED",
+  "windows_wintun": "NOT_RUN",
+  "performance": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "deployment": false,
+  "limitations": [
+    "not a native three-client physical netns test",
+    "heartbeats permitted before first S2C business",
+    "in-memory packet writer is not Windows TUN",
+    "record cipher enum is not TLS handshake suite",
+    "earlier SOURCE pass does not qualify this change"
+  ]
+}

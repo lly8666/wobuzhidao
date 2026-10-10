@@ -369,6 +369,10 @@ type TunnelClient struct {
 	retryDelay     time.Duration
 	lifecycleStats LifecycleStats
 	pipeline       clientPipelineTiming
+	// Published only after a successful authenticated V3 lane attach.
+	// The diagnostic snapshot reads these under c.mu, not from CLI flags.
+	negotiatedRecordVersion uint16
+	negotiatedPolicy realityfront.AdmissionPolicy
 
 	runCtx context.Context
 	cancel context.CancelFunc
@@ -898,6 +902,8 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 			oldRef: replacing, freshRef: snapshot.Ref, old: old, promotedAt: time.Now(),
 		}
 	}
+	c.negotiatedRecordVersion = session.Negotiated.RecordVersion
+	c.negotiatedPolicy = session.Negotiated.Policy
 	c.mu.Unlock()
 	return snapshot.Ref, nil
 }

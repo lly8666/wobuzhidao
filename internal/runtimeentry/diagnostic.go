@@ -7,6 +7,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/platformflow"
+	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeowner"
 )
 
@@ -36,6 +37,10 @@ type TunnelDiagnostic struct {
 	ClientPipeline *ClientPipelineDiagnostic         `json:"client_pipeline,omitempty"`
 	ServerUDP      *platformflow.UDPServerDiagnostic `json:"server_udp,omitempty"`
 	Lease4         string                            `json:"lease4,omitempty"`
+	// Actual authenticated admission, not the requested CLI setting; optional
+	// diagnostic only. Never include identity credentials or exporter material.
+	RecordVersion  uint16                            `json:"record_version,omitempty"`
+	AdmissionPolicy *realityfront.AdmissionPolicy     `json:"admission_policy,omitempty"`
 	TunnelID       logicaltunnel.TunnelID            `json:"tunnel_id"`
 	Owner          datapath.TunnelOwnerStats         `json:"owner"`
 	Lanes          []LaneDiagnostic                  `json:"lanes"`
@@ -78,6 +83,13 @@ func (c *TunnelClient) DiagnosticSnapshot(now time.Time) TunnelDiagnostic {
 		return TunnelDiagnostic{}
 	}
 	out := diagnosticSnapshot(c.owner, c.rt, now)
+	c.mu.Lock()
+	out.RecordVersion = c.negotiatedRecordVersion
+	if c.negotiatedRecordVersion == realityfront.RecordVersionV3 {
+		policy := c.negotiatedPolicy
+		out.AdmissionPolicy = &policy
+	}
+	c.mu.Unlock()
 	if c.cfg.ObserveTiming {
 		pipeline := c.pipeline.snapshot()
 		out.ClientPipeline = &pipeline
@@ -104,12 +116,22 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 	s.mu.Lock()
 	group := s.byTunnel[id]
 	preAttachDrops := s.preAttachDrops
+	var recordVersion uint16
+	var policy realityfront.AdmissionPolicy
+	if group != nil {
+		recordVersion = group.admissionVersion
+		policy = group.admissionPolicy
+	}
 	s.mu.Unlock()
 	if group == nil {
 		return TunnelDiagnostic{}, false
 	}
 	out := diagnosticSnapshot(group.owner, group.rt, now)
 	out.PreAttachDrops = preAttachDrops
+	out.RecordVersion = recordVersion
+	if recordVersion == realityfront.RecordVersionV3 {
+		out.AdmissionPolicy = &policy
+	}
 	if s.cfg.ObserveTiming {
 		pipeline := s.pipeline.snapshot(true)
 		out.ServerPipeline = &pipeline
