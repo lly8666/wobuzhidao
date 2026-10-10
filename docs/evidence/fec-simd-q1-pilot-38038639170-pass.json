@@ -1,0 +1,105 @@
+{
+  "schema": "wbd-fec-simd-q1-120s-pilot/v1",
+  "run_id": 38038639170,
+  "job_id": 114174283899,
+  "artifact_id": 11664667576,
+  "helper_sha": "3baa88551a50987a35b3110e692382fa1becdbb5",
+  "A_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+  "B_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "toolchain": "go1.23.12 GOAMD64=v1",
+  "configuration": {
+    "phase": "pilot",
+    "sample": "Q1",
+    "workload": "mixed",
+    "lanes": 1,
+    "mode": "normal",
+    "fec": "20:20",
+    "loss_percent": 0,
+    "one_way_delay_ms": 300,
+    "logical_mbps_each_direction": 10,
+    "seed": 2261,
+    "duration_s": 120,
+    "drain_s": 3,
+    "order": [
+      "A",
+      "B"
+    ],
+    "independent_netns_and_processes": true
+  },
+  "same_binary_hashes_as_previously_recorded": {
+    "A": {
+      "client": "303495af95d02f8644af6c3d49a45f5c9c093a3fd9e23b307e31dc1ef0079c67",
+      "server": "4b165f41862f98cf502549f2db75eb5cf9801ea088bf6b922d8bc9d3c46af69a"
+    },
+    "B": {
+      "client": "d4192a43733bffa581069e80a0ff406a5b4a71d48be5953bc05fc32ada0bdb2e",
+      "server": "80150437d6465eaa6b9c903dab020d889a3af9983d47f77d8106758583293204"
+    }
+  },
+  "legs": {
+    "A": {
+      "status": "VALID_OBSERVATION",
+      "client_cpu_s": 71.16,
+      "server_cpu_s": 71.27,
+      "total_cpu_s": 142.43,
+      "cpu_s_per_verified_delivered_GiB": 511.1162476573526,
+      "verified_delivery_bytes": 299213826,
+      "udp_missing": 0,
+      "probe_missing": 0,
+      "returned_probe_p99_ms": {
+        "c2s": 609.024054,
+        "s2c": 609.22249
+      },
+      "http_https_verified": 20,
+      "server_HWM_MiB": 41.32421875,
+      "client_HWM_MiB": 40.90234375,
+      "max_psi10_cpu_percent": 15.83,
+      "raw_socket_drops": 0,
+      "netem_drops": 0,
+      "leg_clean": true,
+      "active_sender_gap_max_ms": {
+        "c2s": 30,
+        "s2c": 10
+      }
+    },
+    "B": {
+      "status": "VALID_OBSERVATION",
+      "client_cpu_s": 61.19,
+      "server_cpu_s": 60.9,
+      "total_cpu_s": 122.09,
+      "cpu_s_per_verified_delivered_GiB": 438.12527330257797,
+      "verified_delivery_bytes": 299213826,
+      "udp_missing": 0,
+      "probe_missing": 0,
+      "returned_probe_p99_ms": {
+        "c2s": 609.527564,
+        "s2c": 610.856769
+      },
+      "http_https_verified": 20,
+      "server_HWM_MiB": 43.28125,
+      "client_HWM_MiB": 41.67578125,
+      "max_psi10_cpu_percent": 36.36,
+      "raw_socket_drops": 0,
+      "netem_drops": 0,
+      "leg_clean": true,
+      "active_sender_gap_max_ms": {
+        "c2s": 10,
+        "s2c": 10
+      }
+    }
+  },
+  "cpu_gain_B_vs_A_single_AB": 0.14280699290879728,
+  "limitations": [
+    "SINGLE_AB_NOT_ABBA",
+    "runner_cpu_quota_unknown",
+    "PSI different between legs",
+    "no proof of cross-runner or native ARM real workload",
+    "not a 300s confirmation",
+    "lossless scenario only",
+    "Foundation run38038639173 initial lanes3 timeout failure kept"
+  ],
+  "result": "PASS_SCOPED_REALPATH_PILOT_NOT_PERFORMANCE_QUALIFIED",
+  "physical": "NOT_RUN",
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38038639170",
+  "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38038639170/artifacts/11664667576"
+}

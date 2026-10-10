@@ -1,0 +1,8 @@
+# S3 120s真实Q1 A→B pilot 通过；按严格门启动S4 Q12-leg ABBA
+
+- 准确产品SOURCE：A `a2db258b436a41fdee98c6c53abec9bab6ce600f`、B `7fb98fab79834a351a1dbe04eebb207f66bea28b`，Go1.23.12；helper `3baa88551a50987a35b3110e692382fa1becdbb5`。新 [Actions 38038639170](https://github.com/lly8666/wobuzhidao/actions/runs/38038639170) / [artifact11664667576](https://github.com/lly8666/wobuzhidao/actions/runs/38038639170/artifacts/11664667576)：A与B的120s真实Q1 mixed/Normal1/FEC20:20/300ms/loss0/10Mbps双向/seed2261依次 `VALID_OBSERVATION`，无错误、严格owned cleanup、净交付双方各299213826 bytes、UDP缺失0、独立probe缺失0、20 HTTP(S)证书+正文校验均通过，qdisc/netns/socket/raw/link drops全0。
+- 单A旧CPU client71.16+server71.27=142.43s，CPU-s/有效交付GiB511.116；B client61.19+server60.90=122.09s，438.125s/GiB，**本单AB对B低14.28%**。业务相同但不是ABBA，也没有重复3runner，不能称性能认证或全场景收益。
+- 资源：峰HWM A client40.90/server41.32 MiB，B client41.68/server43.28 MiB；CPU PSI avg10最大A15.83% vs B36.36%，cgroup CPU quota未采集。探针双向 p99 A 609.024/609.222ms、B 609.528/610.857ms，均无timeout；C2S active 10ms bucket最长gap A30ms、B10ms仅供诊断，非HOL根因断言。旧15s旧A TCP dial refused事实保留，120s不复现不能证明单一具体端口。
+- 同源helper Foundation [38038639173](https://github.com/lly8666/wobuzhidao/actions/runs/38038639173) 第一轮Ubuntu测试 `TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-3` 3s状态超时，**FAIL保留**；已请求该单job再跑，第二轮未据结果作PASS断言。产品B原native core/foundation/lifecycle绿灯仍只源限定。
+- 因S3真实pilot有效，改独立配置 `.github/fec-simd-ab.json` 为 `phase=q120,nonce17` 触发单job Q1/Q2/Q3各A→B→B→A四段，保留全部真实业务/20 HTTP(S)/3s drain/netem/CPU/完整性审核，不与旧sample policy混淆。若A或B有FAIL、缺包/未返探针、主机drop或CPU不可比，必须保留FAIL/NOT_RUN，不能把少干活包装成收益。L、native ARM真实业务、300s与P6后续依证据推进。
+- 内部FEC产品源码、gf矩阵、build tag/wire、认证、fixed ciphertext、generation、MTU以及历史Game4/300ms TCP-off/80秒E7 OPEN均不变；physical NOT_RUN。

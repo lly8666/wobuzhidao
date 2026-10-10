@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_Q1_120S_VALIDITY_PILOT_AFTER_A_TCP_REFUSED",
+    "phase": "FEC_SIMD_S4_Q_ABBA_REQUESTED_AFTER_120S_PILOT_PASS",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_A_EARLY_EXIT_IDENTIFIED_TCP_REFUSED_PREPARE_120S_PILOT",
+      "state": "S3_REAL_BUSINESS_PILOT_PASS_SCOPED_S4_Q120_REQUESTED",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3652,14 +3652,14 @@
         "s2_core": 38032963434,
         "s2_foundation": 38032963574,
         "s2_lifecycle": 38032963427,
-        "s3": "FAIL_PREVIOUS_15S_A_TCP_REFUSED_NEW_120S_PILOT_REQUESTED",
-        "s4": "NOT_RUN",
+        "s3": "PASS_SCOPED_120S_PILOT_RUN38038639170_A_B_VALID",
+        "s4": "Q120_REQUESTED_12_SERIAL_ABBA_3_CONTEXTS_NOT_YET_QUALIFIED",
         "s5": "NOT_RUN"
       },
-      "cpu_gain": "NOT_MEASURED_REAL_BUSINESS",
+      "cpu_gain": "PRELIMINARY_14P28_PERCENT_Q1_SINGLE_AB_ONLY_NOT_QUALIFIED",
       "physical": "NOT_RUN",
       "selected_route": "S1 SIMD span encoding/recovery; S2 custom-matrix single-worker fused full-block encoding; preserve active partial and measure before retaining a backend.",
-      "same_runner_comparison": "Q1/Q2/Q3 L1/L2/L3 ABBA configured, pilot mandatory; NOT_RUN",
+      "same_runner_comparison": "Q120 EXACT ABBA REQUESTED, L120/300s still NOT_RUN",
       "preserve": "Immediate systematic; no cross-business HOL; all parity profiles and min(N,P); current32ms/3s lifecycle; ownership/late-first-arrival; immutable repair/generation/MTU and isolation.",
       "previous_task_preserved_as_history": {
         "working_branch": "experiment/fec-policy-sequential-20261009",
@@ -3708,33 +3708,21 @@
       },
       "pilot_retry": "STOP_REPEATED_A_FAILURE_REQUIRE_NEW_ROOT_CAUSE_NOT_BLIND_RETRY",
       "pilot_latest": {
-        "run_id": 38036729414,
-        "job_id": 114168592208,
-        "artifact_id": 11663593875,
-        "helper_sha": "ce8f58673a271258dba8e714c9055d95e0c40e01",
+        "run_id": 38038639170,
+        "artifact_id": 11664667576,
+        "helper_sha": "3baa88551a50987a35b3110e692382fa1becdbb5",
         "baseline_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
         "candidate_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-        "state": "FAIL_INFRA_INVALID_OLD_A_SERVER_EARLY_EXIT",
-        "A": "INFRA_INVALID",
-        "B": "NOT_RUN",
-        "server_early_exit_confirmed": true,
-        "sample_exit": 1,
-        "analyzer_exit": 1,
-        "ledger_exit": 1,
-        "receipt_files_present": {
-          "manifest": false,
-          "biz": true,
-          "target": true,
-          "stage_events": true,
-          "runtime_flags": true
-        },
-        "before_cpu_psi_avg10_percent": 22.1,
-        "after_cpu_psi_avg10_percent": 0,
-        "original_root_owned_leak_pids": 1,
-        "cleanup_strict_clean": false,
-        "binary_hashes": "docs/evidence/fec-simd-pilot-38036729414-server-exit.json",
-        "measured_business_cpu_gain": "NOT_MEASURED",
-        "measured_p99": "NOT_MEASURED"
+        "state": "PASS_SCOPED_TWO_120S_LEGS",
+        "A": "VALID_OBSERVATION",
+        "B": "VALID_OBSERVATION",
+        "probes_missing_both": 0,
+        "udp_missing_both": 0,
+        "tcp_hash_mismatch_both": 0,
+        "web_verified_each": 20,
+        "first_single_pair_cpu_gain_fraction": 0.142807,
+        "abi_cpu_gain_verified": "NOT_YET_ABBA",
+        "evidence": "docs/evidence/fec-simd-q1-pilot-38038639170-pass.json"
       },
       "pilot_retry_static_failure": {
         "run_id": 38035939435,
@@ -3804,12 +3792,30 @@
           "measurement": "NOT_RUN"
         },
         "hypothesis": "15s+3s Q1 pilot might close target/HTTP listeners during 20 serialized HTTP/HTTPS and ongoing TCP; tests show refused outbound TCP open escalates through TCPServer.handleOpen to server.Run. Exact port redacted. Do not assume cause definitively without 120s test.",
-        "mitigation": "S3 pilot (only) uses 120s steady window, same as Q1 ABBA; retains all HTTP/TCP/UDP, 3s drain, same seed/delay/loss/budget/quality. A/B still immutable."
+        "mitigation": "S3 pilot (only) uses 120s steady window, same as Q1 ABBA; retains all HTTP/TCP/UDP, 3s drain, same seed/delay/loss/budget/quality. A/B still immutable.",
+        "full_120s_pilot": {
+          "run_id": 38038639170,
+          "artifact_id": 11664667576,
+          "helper_sha": "3baa88551a50987a35b3110e692382fa1becdbb5",
+          "A": "VALID_OBSERVATION",
+          "B": "VALID_OBSERVATION",
+          "cause_conclusion": "SHORT_15S_OLD_A_TCP_REFUSED_NO_LONGER_REPRODUCED_AT_120S; SPECIFIC_REJECTED_PORT_UNKNOWN",
+          "cpu_gain_single_AB": 0.142807,
+          "qualifier": "PILOT_ONLY_NOT_ABBA",
+          "evidence": "docs/evidence/fec-simd-q1-pilot-38038639170-pass.json"
+        }
+      },
+      "foundation_current": {
+        "run_id": 38038639173,
+        "attempt1": "FAIL_LIFECYCLE_MATRIX_LANES3_TIMEOUT_3S",
+        "job_id": 114174308711,
+        "attempt2": "RERUN_REQUESTED_NOT_YET_CONCLUDED",
+        "notice": "Keep source-scoped FAIL; product SOURCE unchanged; no inherited PASS"
       }
     }
   },
-  "next_task": "Audit GitHub Actions pilot nonce16, A→B 120s Q1 mixed/0loss/300ms/Normal1/20:20, all 20 HTTP(S), exact total and verified receipt, 3s drain. If A fails classify it; if A/B both valid, only then config-only q120. No CPU/p99 gain until ABBA; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261010-191000-fec-simd-120s-q1-pilot-full-business-correction.md",
+  "next_task": "Review Q120 12-leg ABBA artifact/run after config nonce17; verify all 3 contexts Q1/Q2/Q3 4 legs each A-B-B-A same seed, actual netem and workloads, cpu/GiB, p99 including missing, drops, RSS/PSI, no less delivery. If any INVALID/FAIL stop and retain remaining NOT_RUN. Separately audit Foundation run38038639173 attempt2 after initial lanes3 test timeout; do not hide original fail. Do NOT advance to L until quality and repeatability gates satisfied; physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-193000-fec-simd-q1-pilot-pass-and-q120-abba-trigger.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
