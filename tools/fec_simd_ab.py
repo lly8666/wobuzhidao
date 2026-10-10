@@ -56,6 +56,23 @@ def j(d,name):
  try:return json.loads((d/name).read_text())
  except (OSError,ValueError):return {}
 
+
+def shell_failure_classes(raw):
+ # Fixed status vocabulary, never return passwords, stderr lines or PIDs.
+ import re
+ markers=[]
+ for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\d+) line=(\d+)",raw):
+  markers.append({"class":"SHELL_FAIL","exit_code":int(match.group(1)),
+                  "script_line":int(match.group(2))})
+ for match in re.finditer(r"WBD_STRICT_(CLIENT|SERVER)_EARLY_EXIT pid=\d+",raw):
+  markers.append({"class":"PRODUCT_"+match.group(1)+"_EARLY_EXIT"})
+ for word,label in (("Operation not permitted","NETNS_PERMISSION"),
+                    ("invalid strict mode tuple","INVALID_MODE_TUPLE"),
+                    ("No such file or directory","FILE_NOT_FOUND"),
+                    ("sudo:","SUDO_REJECTED")):
+  if word in raw:markers.append({"class":label})
+ return markers[-16:]
+
 def run_case(c,root,helper):
  d=prepared(c,root)
  env={**os.environ,"GITHUB_WORKSPACE":str(Path.cwd()),
@@ -102,21 +119,8 @@ def run_case(c,root,helper):
   captures.append({"file":p.name,"sha256":old.filehash(p),"bytes":p.stat().st_size})
   p.unlink()
  (d/"capture-cleanup.json").write_text(json.dumps(captures,indent=2)+"\n")
- markers=[]
  p=d/"private-product.log"
- if p.is_file():
-  import re
-  raw=p.read_text(errors="replace")
-  for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\d+) line=(\d+)",raw):
-   markers.append({"class":"SHELL_FAIL","exit_code":int(match.group(1)),
-                   "script_line":int(match.group(2))})
-  for match in re.finditer(r"WBD_STRICT_(CLIENT|SERVER)_EARLY_EXIT pid=\d+",raw):
-   markers.append({"class":"PRODUCT_"+match.group(1)+"_EARLY_EXIT"})
-  for word,label in (("Operation not permitted","NETNS_PERMISSION"),
-                     ("invalid strict mode tuple","INVALID_MODE_TUPLE"),
-                     ("No such file or directory","FILE_NOT_FOUND"),
-                     ("sudo:","SUDO_REJECTED")):
-   if word in raw:markers.append({"class":label})
+ markers=shell_failure_classes(p.read_text(errors="replace") if p.is_file() else "")
  (d/"sanitized-startup.json").write_text(json.dumps({
     "private_log_sha256":old.filehash(p) if p.is_file() else None,
     "private_log_bytes":p.stat().st_size if p.is_file() else 0,

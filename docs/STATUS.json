@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_STATIC_PREFLIGHT_AFTER_DIAGNOSTIC_REBASE",
+    "phase": "FEC_SIMD_S3_PREFLIGHT_HELPER_PARSER_FIX",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_PILOT_BLOCKED_DIAGNOSTIC_SYNTAX_CORRECTED_PREFLIGHT",
+      "state": "S3_HELPER_DIAGNOSTIC_UNIT_FAILURE_PRE_FLIGHT_NOT_REAL_BUSINESS",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3736,11 +3736,18 @@
         "reason": "PYTHON_SYNTAX_ERROR_SCRIPT_CORRUPTED_BY_HELPER_EDIT",
         "business": "NOT_RUN",
         "artifact": "NOT_RUN"
+      },
+      "static_preflight_latest": {
+        "run_id": 38036589511,
+        "job_id": 114168175372,
+        "sha": "c0919b839fdc6d2a0c29edd782a536ea18d79bae",
+        "classification": "FAIL_UNIT_TEST_UNDEFINED_HELPER",
+        "real_business": "NOT_RUN"
       }
     }
   },
-  "next_task": "Review exact SIMD preflight nonce8 Actions static and negative unit results; no real A/B load in preflight. If pass, config-only switch back to pilot nonce9 without changing source; on pilot capture early exit client/server, source identity, receipt presence. Do not Q/L until A/B real business is valid.",
-  "latest_log": "docs/devlog/20261010-181000-fec-simd-diagnostic-rebase-static-preflight.md",
+  "next_task": "Verify exact next preflight (config phase preflight nonce9) after shared shell_failure_classes refactor. If static PASS, config-only trigger pilot nonce10 with identical A/B SOURCE, fixed 15s Q1, and inspect sanitized result. Do not Q/L on an A INFRA_INVALID or unexpected p99/CPU; physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-181500-fec-simd-s3-refactor-parser-preflight.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
