@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "source_sha": "b52ed0edad655baaed0411c594f85fe3d82bb79a",
+  "workflow": "next-adaptive-n0-realpath",
+  "run_id": 38064016024,
+  "job_id": 114247879050,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38064016024",
+  "artifact_id": 11673829774,
+  "conclusion": "PASS_N0_SINGLE_REALPATH_FIXED_ONLY",
+  "execution": "one functional measurement job, one sample guard, formal Go binaries in 5 Linux netns",
+  "config": {
+    "fec_client": "20:4 V3 protected fixed",
+    "server_global_fec": "20:20 deliberately different",
+    "record_cipher": "chacha20-poly1305",
+    "transport": "Normal",
+    "client_lanes": 1,
+    "mtu": 1400,
+    "one_way_delay_ms": 300,
+    "loss_percent": 0,
+    "duration_s": 8,
+    "drain_s": 10,
+    "rate_mbps_each_direction": 0.5
+  },
+  "delivered": {
+    "c2s": {
+      "sent_packets": 987,
+      "unique_delivered_packets": 987,
+      "sent_bytes": 500080,
+      "delivered_bytes": 500080,
+      "corrupt": 0,
+      "duplicates": 0,
+      "send_lag_p99_ns": 130263
+    },
+    "s2c": {
+      "sent_packets": 987,
+      "unique_delivered_packets": 987,
+      "sent_bytes": 500080,
+      "delivered_bytes": 500080,
+      "corrupt": 0,
+      "duplicates": 0,
+      "send_lag_p99_ns": 122815
+    }
+  },
+  "outer": {
+    "c2s": {
+      "fresh_payload_bytes": 1548866,
+      "repair_bytes": 0
+    },
+    "s2c": {
+      "fresh_payload_bytes": 1562639,
+      "repair_bytes": 0
+    },
+    "capture_kernel_drops": 0
+  },
+  "probe": {
+    "sent": 8,
+    "received": 8,
+    "returned_only_rtt_p99_ns": 600636366
+  },
+  "inferred_effective_policy": "client and server V3 codepath and first bidirectional delivery with deliberately mismatched server old global parity; encrypted policy not independently decoded",
+  "pcap": {
+    "uploaded": false,
+    "hashes": {
+      "c2s_pre": "7e91cf2054d5bf180fbf6cbad38bd41fd2cf8bbb18c27e27b742f47f74898dc1",
+      "c2s_post": "5ab178b4149d3a59dbf456e09cc9f036fc3ce97b1b5a5db89825cb255719c1a0",
+      "s2c_pre": "1cc59308e648b6e890c51c4c6643c77b5c162655a66dd9556742e52d30e85cbb",
+      "s2c_post": "919f452fa828ed8384d8c157cd4c9a18c2c6ad58c27968c47dd999e9ec3b6bf0"
+    }
+  },
+  "prior_failure": {
+    "source_sha": "5f0ebeb9c964bdeff5e8d6cef282885eeb34ba44",
+    "run_id": 38063769207,
+    "result": "FAIL",
+    "cause": "407B S2C repair triggered unnecessary zero-retrans hard gate; preserved independently, not edited"
+  },
+  "limitations": [
+    "N0 as a whole incomplete",
+    "one client, 3 simultaneous real process clients not tested",
+    "Windows real native TUN/direct not tested",
+    "AES/quality/auto not implemented",
+    "fixed lossless short functional, not p99/CPU/bandwidth performance acceptance",
+    "actual TLS/decoy cipher not separately instrumented",
+    "capacity metrics not qualified",
+    "deferred historical 80s S2C symptoms remain open"
+  ]
+}

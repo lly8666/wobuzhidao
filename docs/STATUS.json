@@ -9,18 +9,18 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_V3_REALPATH_FIXED4_FUNCTIONAL_RULE_CORRECTION_PENDING_ACTIONS",
+    "phase": "N0_V3_FIXED_OFF_SINGLE_REALPATH_FUNCTIONAL_PASS_MORE_REQUIRED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": null,
-    "implementation": "PARTIAL_N0_REAL_NETNS_DELIVERED_ALL_REPAIR_BYTES_OBSERVED",
-    "core": "PRIOR_SOURCE_5F0_FOUNDATION_PENDING_REALPATH_FUNCTIONAL_FAIL",
-    "ordinary_performance": "NOT_RUN_NEW_SOURCE",
+    "new_product_source_sha": "b52ed0edad655baaed0411c594f85fe3d82bb79a",
+    "implementation": "PARTIAL_N0_PROTECTED_V3_FIXED_OFF_CHACHA",
+    "core": "PASS_FOUNDATION_AND_N0_SINGLE_REALPATH_FUNCTIONAL_B52ED0E",
+    "ordinary_performance": "NOT_RUN_N0_SOURCE_B52ED0E",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
-      "N0_admission": "IN_PROGRESS_REAL_NETNS_FUNCTIONAL_VALIDATOR_CORRECTION",
+      "N0_admission": "IN_PROGRESS_SINGLE_REALPATH_FUNCTIONAL_PASS_3_CLIENT_NATIVE_PENDING",
       "N1_quality": "NOT_STARTED",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
@@ -48,9 +48,9 @@
     "performance_policy": "One SOURCE/config/seed/scenario and one measurement job per Action; no inherited serial exception.",
     "parameter_proposals": "Plan only; PARAMETERS currently lists actual implemented capability. Update all entrances when implemented."
   },
-  "next_task": "N0: inspect re-run one-sample five-netns fixed20:4 client/server20:20 Actions exact SOURCE; if PASS record functional-only scope. Keep 407B S2C repair in evidence, verify same-Seq same-wire separately; build real three concurrent netns clients and independently captured actual effective policy/cipher before N0 closure. Do not conflate functional PASS with performance.",
-  "latest_log": "docs/devlog/20261010-233600-adaptive-n0-realpath-repair-boundary.md",
-  "qualification_scope": "N0_PARTIAL_FIRST_V3_REALPATH_FAIL_REPAIR_NONZERO_DELIVERY_COMPLETE",
+  "next_task": "N0: add one bounded functional Actions scenario with 3 concurrent isolated real netns client processes (Normal off, Normal20:4, Game fixed20:20) + distinct leases and same server port, and exact first S2C before any client business if possible; instrument independent actual negotiated suite/profile/actual TLS cipher and same-Seq same-wire. Keep source-specific controlled lossless b52 PASS scoped to one client. Only after these N0 checks and race gate proceed N1 quality.",
+  "latest_log": "docs/devlog/20261010-234200-adaptive-n0-realpath-scoped-pass.md",
+  "qualification_scope": "N0_PARTIAL_SINGLE_REALPATH_PASS_NO_N0_WIDE_ACCEPTANCE",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "Historical parent scope only; see archived STATUS. Not current qualification.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
@@ -135,6 +135,26 @@
       "status": "FAIL",
       "run_id": 38063769207,
       "cause": "Validator demanded zero outer repair at 300ms one-way; actual 407B S2C repair despite 987/987 first unique both directions, 0 capture kernel drops, 8/8 RTT probes, process alive. Original FAIL preserved; next SOURCE explicitly reports repair separately."
+    },
+    {
+      "name": "next-adaptive-n0-realpath",
+      "source_sha": "b52ed0edad655baaed0411c594f85fe3d82bb79a",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38064016024",
+      "scope": "N0_one_client_realpath_functional",
+      "status": "PASS",
+      "run_id": 38064016024,
+      "job_id": 114247879050,
+      "artifact_id": 11673829774,
+      "cause": "Fixed20:4 V3 client/server global20:20; first unique C2S/S2C 987/987 and 500080/500080 each, 8/8 RTT probes, netem 300ms each direction, capture drops 0; 8s lossless single client only."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "b52ed0edad655baaed0411c594f85fe3d82bb79a",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38064015992",
+      "scope": "foundation_regression",
+      "status": "PASS",
+      "run_id": 38064015992,
+      "cause": "All Linux/Windows go tests/build and existing P2/P4 privileged functional jobs PASS, repository contract PASS, performance and native Wintun direct NOT_RUN."
     }
   ],
   "required_read_set": [
