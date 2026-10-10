@@ -18,5 +18,5 @@ class PacketParserContract(unittest.TestCase):
     def test_only_fixed_300ms_off_udp_probe(self):
         x=exact()
         self.assertEqual((x["id"],x["workload"],x["loss"],x["fec"],x["delay_ms"],x["seed"]),
-            ("s04","udp",1,"off",300,1910))
+            ("s04","udp",5,"off",300,1910))
 if __name__=="__main__":unittest.main()

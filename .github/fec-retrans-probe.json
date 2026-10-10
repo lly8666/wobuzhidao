@@ -1,6 +1,6 @@
 {
   "schema": "wbd-fec-retrans-probe/v1",
   "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
-  "phase": "single_300ms_1pct_fec_off_udp",
-  "nonce": 1
+  "phase": "single_300ms_5pct_fec_off_udp",
+  "nonce": 2
 }

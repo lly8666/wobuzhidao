@@ -103,7 +103,7 @@ def add_wire_audit(d):
     start='printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"'
     replace(start,start+'''
 # Experimental router ingress packet header counter; zero raw packet retention.
-ip netns exec "$RTR" python3 "$GITHUB_WORKSPACE/tools/fec_wire_retrans_observer.py" --start-ns "$START_NS" --duration-s 120 --output "$ART/retrans-wire.json" > "$ART/retrans-wire-private.log" 2>&1 &
+ip netns exec "$RTR" python3 "$GITHUB_WORKSPACE/tools/fec_wire_retrans_observer.py" --start-ns "$START_NS" --duration-s 120 --loss-percent "$WBD_LARGE_LOSS" --output "$ART/retrans-wire.json" > "$ART/retrans-wire-private.log" 2>&1 &
 WIRE_AUDIT_PID="$!"
 sleep 0.25
 kill -0 "$WIRE_AUDIT_PID"
@@ -123,7 +123,7 @@ kill -0 "$WIRE_AUDIT_PID"
 def one(case,root,helper,wire_audit=False):
     d=make(case,root)
     if wire_audit:
-        if (case["workload"],case["loss"],case["fec"],case["delay_ms"],case["duration_s"])!=("udp",1,"off",300,120):
+        if (case["workload"],case["loss"],case["fec"],case["delay_ms"],case["duration_s"])!=("udp",5,"off",300,120):
             raise ValueError("wire counter authorized only for exact UDP1 FEC-off 300ms")
         add_wire_audit(d)
     env=os.environ.copy()

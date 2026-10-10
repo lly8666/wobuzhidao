@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One and only real 300ms/1%/FEC-off UDP outer-wire retransmission audit."""
+"""Exactly one authorized 300ms/5% FEC-off real UDP retransmission audit."""
 import argparse, json, os, subprocess
 from pathlib import Path
 from fec_policy_batch import BRANCH, SOURCE, cases, filehash, one
@@ -8,12 +8,12 @@ CONFIG=Path(".github/fec-retrans-probe.json")
 def exact():
     config=json.loads(CONFIG.read_text())
     wanted={"schema":"wbd-fec-retrans-probe/v1","source_sha":SOURCE,
-        "phase":"single_300ms_1pct_fec_off_udp","nonce":1}
+        "phase":"single_300ms_5pct_fec_off_udp","nonce":2}
     if config!=wanted:raise ValueError("not an authorized exact one-case retransmission audit")
-    c=cases("B")[3]
+    c=dict(cases("B")[3],loss=5)
     if (c["id"],c["workload"],c["loss"],c["fec"],c["parity"],
         c["duration_s"],c["drain_s"],c["delay_ms"],c["rate_mbps"],c["seed"],c["lanes"])!=(
-        "s04","udp",1,"off",0,120,3,300,10,1910,1):
+        "s04","udp",5,"off",0,120,3,300,10,1910,1):
         raise ValueError("wrong exact cohort case")
     return c
 
@@ -34,6 +34,10 @@ def run(root):
         summary=j("summary.json")
         ledger=j("efficiency-ledger.json")
         observed={}
+        p_loss=.05
+        ideal_factor=p_loss/(1-p_loss)
+        if wire.get("theory_p")!=p_loss or abs(wire.get("theory_repeats_over_fresh_percent",0)-100*ideal_factor)>1e-9:
+            raise ValueError("observer theory does not match actual 5 percent loss")
         for direction,info in wire["direction"].items():
             attempt=summary["netem_realized"][direction]["attempted"]
             packet_count=info["tcp_outer_packets"]
@@ -52,14 +56,14 @@ def run(root):
                 "retrans_percent_of_all_data_payload":info["repeat_fraction_data_payload_percent"],
                 "retrans_percent_of_data_ip_bytes":info["repeat_fraction_data_ip_bytes_percent"],
                 "kernel_observer_drops":info["kernel_packet_socket_drops"],
-                "theory_needed_retrans_payload_bytes_geometric":info["fresh_data_payload_bytes"]*(.01/.99),
-                "actual_as_fraction_of_geometric_theory":info["repeat_data_payload_bytes"]/(info["fresh_data_payload_bytes"]*(.01/.99)) if info["fresh_data_payload_bytes"] else None}
+                "theory_needed_retrans_payload_bytes_geometric":info["fresh_data_payload_bytes"]*ideal_factor,
+                "actual_as_fraction_of_geometric_theory":info["repeat_data_payload_bytes"]/(info["fresh_data_payload_bytes"]*ideal_factor) if info["fresh_data_payload_bytes"] else None}
         ok=bool(result["classification"]=="VALID_OBSERVATION" and result["sample_exit"]==0
              and result["owned_cleanup"]["clean"] and wire["capture_complete"]
              and all(.95 <= v["packet_capture_coverage_vs_qdisc"] <= 1.06 for v in observed.values())
              and all(v["kernel_observer_drops"]==0 for v in observed.values()))
         report={"schema":"wbd-fec-retrans-probe-result/v1",
-           "scope":"single_real_business_300ms_one_way_udp_1pct_both_directions_fec_off",
+           "scope":"single_real_business_300ms_one_way_udp_5pct_both_directions_fec_off",
            "source_sha":SOURCE,"helper_sha":helper,"case":c,
            "classification":"VALID_WIRE_OBSERVATION_NOT_PRODUCT_QUALIFICATION" if ok else "INVALID_OR_BUSINESS_FAIL",
            "sample_classification":result["classification"],
@@ -72,7 +76,7 @@ def run(root):
            "business_udp_by_size":{k:v["udp_by_size"] for k,v in summary["direction"].items()},
            "cpu_comparison":"NOT_COMPARABLE_SINGLE_FORENSIC_SAMPLE",
            "actual_runtime_shadow_peak":"NOT_COLLECTED_PROFILE_OFF",
-           "theory_assumption":"Independent per-transmission loss p=.01; ideal sender detects all erasures, retries indefinitely. Repeat over fresh = p/(1-p) = 1.010101%; repeat fraction of total transmissions = 1%. Does not represent exact required policy behavior or ACK/control bandwidth.",
+           "theory_assumption":"Independent per-transmission loss p=.05; ideal sender detects all erasures, retries indefinitely. Repeat over fresh = p/(1-p) = 5.263158%; repeat fraction of all data transmissions = 5%. This ideal is NOT mandated by bounded product repair and does not include ACK/control overhead.",
            "observation":observed,
            "limitations":["outer ingress AF_PACKET classification by same sequence+payload length+ciphertext", 
              "post-netem loss and control packets excluded from retrans share denominator", 

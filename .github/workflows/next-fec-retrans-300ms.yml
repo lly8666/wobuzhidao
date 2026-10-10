@@ -58,7 +58,7 @@ jobs:
           go build -trimpath -o "$ART/binaries/wbd-client" ./cmd/wbd-client
           go build -trimpath -o "$ART/binaries/wbd-server" ./cmd/wbd-server
           sha256sum "$ART/binaries/wbd-client" "$ART/binaries/wbd-server" > "$ART/product-binaries.sha256"
-      - name: ONE 120s real UDP1 FEC-off 300ms outer replay observation
+      - name: ONE 120s real UDP5 FEC-off 300ms outer replay observation
         id: sample
         continue-on-error: true
         run: python3 tools/fec_retrans_probe.py --mode run --root "$ART"
