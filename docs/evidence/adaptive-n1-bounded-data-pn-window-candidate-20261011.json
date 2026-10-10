@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_source_sha": "0cda5d7ee0e99078603bb39a7bcf8cb2ed7ce333",
+  "candidate_source_sha": "CONTAINING_COMMIT_SHA",
+  "kind": "N1_TX_EMIT_RX_AUTH_DATA_ONLY_BOUNDED_PN_WINDOW_ACTIONS_PENDING",
+  "counter_scope": {
+    "tx": "KindLINK successfully/failed post Emit and partial EmitBatch only, not health or re-TCP",
+    "rx": "authenticated first-unique KindLINK; late and duplicate counted within bounded record PN window, no health",
+    "window_capacity_pns": 256,
+    "hot_path": "existing TX/RX mutex, O(1) no alloc per record; snapshot O(256) each 2s",
+    "local_drop": "failed local first Emit not WAN",
+    "age": "since most recent successfully emitted DATA within PN span; UNKNOWN 0xffff",
+    "capacity": "late beyond PN span marks LIMITED",
+    "external_sender_receive_pair": "NOT_ALIGNED",
+    "flags": "WINDOW_VALID|INSUFFICIENT if sender DATA exists; otherwise INSUFFICIENT; never LOSS_ESTIMATED",
+    "estimated_outer_loss": "NOT_REPORTED",
+    "fec_recovered": "NOT_REPORTED",
+    "state": "N1_IN_PROGRESS"
+  },
+  "prior_actions": {
+    "n1_focus_run_id": 38073999026,
+    "status": "PASS",
+    "native_three_run_id": 38074203293,
+    "latest_docs_foundation_run_id": 38074506024
+  },
+  "required_new_source_actions": [
+    "next-adaptive-n1-codec -race count2",
+    "next-foundation Linux/Windows and privilege",
+    "next-lifecycle",
+    "next-adaptive-n0-multi real 9-netns three clients",
+    "next-adaptive-n0-samewire",
+    "next-adaptive-n0-negotiated"
+  ],
+  "actions": "PENDING",
+  "native_3clients": "PENDING",
+  "physical": "NOT_RUN",
+  "n2_auto": "NOT_ENABLED",
+  "deployment": false
+}

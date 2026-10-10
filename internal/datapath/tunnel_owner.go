@@ -425,6 +425,21 @@ func (o *TunnelOwner) SetLaneTimingDiagnostics(ref logicaltunnel.LaneRef, enable
 	return nil
 }
 
+// QualityReceiveWindow is an ACTIVE-only, O(256) snapshot, never an
+// unauthenticated packet or peer-provided estimate. All hot receive updates
+// happen within the lane's existing RX mutex.
+func (o *TunnelOwner) QualityReceiveWindow(ref logicaltunnel.LaneRef, now time.Time) (QualityReceiveWindow, error) {
+	if o == nil { return QualityReceiveWindow{}, ErrTunnelOwnerClosed }
+	o.mu.Lock()
+	if o.closed {o.mu.Unlock();return QualityReceiveWindow{},ErrTunnelOwnerClosed}
+	binding, ok := o.active[ref.ID]
+	if !ok {o.mu.Unlock();return QualityReceiveWindow{},ErrLaneUnavailable}
+	if binding.ref!=ref {current:=binding.ref;o.mu.Unlock();return QualityReceiveWindow{},staleGeneration(ref,current)}
+	lane:=binding.lane
+	o.mu.Unlock()
+	return lane.QualityReceiveWindow(now),nil
+}
+
 // InboundPayload accepts the active incarnation or an explicitly retained
 // receive-only retiring incarnation. Promotion fences fresh outbound work, not
 // authenticated records already in flight. Explicit retirement ends reception.

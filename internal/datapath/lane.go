@@ -142,6 +142,7 @@ type Lane struct {
 	stats         LaneStats
 	timingEnabled atomic.Bool
 	qualityHealthV3 atomic.Bool // enabled only after authenticated V3 admission
+	qualityRX qualityRXWindow // rxMu; KindLINK-only PN evidence
 	// closed is read under either direction's lock and written only while
 	// holding both. Stats and Close always acquire mu before rxMu; ordinary
 	// operations acquire one direction only. Configuration/budgets are immutable.
@@ -552,6 +553,9 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
 	var out InboundResult
 	for _, decoded := range l.decoder.OpenPayload(payload) {
 		if decoded.Err != nil {
+			if l.qualityHealthV3.Load() && decoded.Kind == tlsrecord.KindLINK && errors.Is(decoded.Err, tlsrecord.ErrDuplicate) {
+				l.qualityRX.observe(decoded.PN, true, now)
+			}
 			out.RecordErrors = append(out.RecordErrors, decoded.Err)
 			l.stats.RecordErrors++
 			continue
@@ -585,6 +589,9 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
 			continue
 		}
 		out.Authenticated++
+		if l.qualityHealthV3.Load() && decoded.Kind == tlsrecord.KindLINK {
+			l.qualityRX.observe(decoded.PN, false, now)
+		}
 		packets, err := l.rxPath.Decode(decoded.Payload, now)
 		for _, packet := range packets {
 			// FECPath.Decode already transfers owned LINK output; its borrowed

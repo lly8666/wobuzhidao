@@ -25,6 +25,9 @@ func (t *laneTransport) sendReadyBatch(records []datapath.WireRecord, now time.T
 		}
 		f, err := t.prepareFresh(record, now)
 		if err != nil {
+			t.mu.Lock()
+			if t.quality.enabled {t.quality.tx.note(record.PN,false,now)}
+			t.mu.Unlock()
 			// No unsent backup may survive and be retransmitted as fresh data.
 			for _, held := range ready[:n] { t.completeFresh(held, err) }
 			return err

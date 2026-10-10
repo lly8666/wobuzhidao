@@ -72,7 +72,9 @@ func (d *Decoder) OpenPayload(payload []byte) []DecodeResult {
 		duplicate, evicted, late := d.recent.observe(record.PN)
 		if duplicate {
 			d.stats.Duplicates++
-			out = append(out, DecodeResult{PN: record.PN, Err: ErrDuplicate})
+			// The kind was independently authenticated before replay filtering.
+			// N1 may count duplicate LINK but must exclude duplicate Health.
+			out = append(out, DecodeResult{Kind: record.Kind, PN: record.PN, Err: ErrDuplicate})
 			continue
 		}
 		if evicted {

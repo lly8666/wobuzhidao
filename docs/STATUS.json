@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_LIVE_V3_2S_PROTECTED_HEALTH_SCOPED_RACE_AND_NATIVE_3_CLIENT_PASS_QUALITY_ESTIMATOR_PENDING",
+    "phase": "N1_BOUNDED_DATA_TX_RX_PN_WINDOWS_AWAITING_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
+    "new_product_source_sha": "CONTAINING_COMMIT_SHA",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N0_SCOPED_PASS_N1_ACTUAL_PROTECTED_QUALITY_RUNTIME_RACE_860FC3C_NATIVE_3_CLIENT_6220A3B_PASS",
     "ordinary_performance": "NOT_RUN_N1_SOURCE_6220A3B",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_LIVE_2S_CONTROL_SCOPED_GO_RACE_AND_REAL_3CLIENT_PASS_ESTIMATED_OUTER_LOSS_NOT_IMPLEMENTED",
+      "N1_quality": "IN_PROGRESS_V3_2S_CONTROL_SCOPED_RACE_NATIVE_PASS_BOUNDED_DATA_PN_TX_RX_WINDOW_CANDIDATE_ACTIONS_PENDING_MATURE_PAIRED_ESTIMATOR_NOT_DONE",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -75,10 +75,20 @@
       "n1_live_quality_race_run": 38073999026,
       "n1_live_quality_native_multi_run": 38074203293,
       "n1_quality_live_scope": "V3 post-admission encrypted 104B KindHealth active 2s, per-lane peer nonce/generation/seq replay gate with INSUFFICIENT/no claimed WAN loss; verified in Go race and protected 9-netns 3 native client business"
+    },
+    "pending_candidate": {
+      "name": "N1 bounded DATA-PN accounting after protected 2s V3 quality control",
+      "source_sha": "CONTAINING_COMMIT_SHA",
+      "actions": "PENDING",
+      "native_9_netns_3_client": "PENDING",
+      "changes": "256-PN data-only post-Emit successes/failures incl partial batches and no FakeTCP retransmit double count; authenticated KindLINK received first-unique/late/duplicate excluding health using lane rxMu; actual 104B sender success watermark flags WindowValid|Insufficient, never LossEstimated; explicit receiver-local snapshot unpaired with sender",
+      "risk": "May fail compile or tests; record exact Actions failures then fix in new source. No aligned peer window or mature loss estimate",
+      "physical": "NOT_RUN",
+      "n2_auto": "NOT_ENABLED"
     }
   },
-  "next_task": "N1: implement low-overhead bounded DATA-only sender success and receiver unique/late/duplicate counters with first-unique record PN maturity and local failures, separate C2S/S2C, distinguish control PN holes and missing-tail UNKNOWN, only publish ESTIMATED with corresponding sender-watermark/valid confidence else INSUFFICIENT; no hot-path history scan, no new packet metadata, feedback max once/2s active only. Test deterministic dropped/reordered/late/PN skip/stale/generation/32-bit wrap and privilege path in Actions. No N2 auto before N1 complete. All functions Actions before final coordinated physical.",
-  "latest_log": "docs/devlog/20261011-050000-n1-live-2s-actions-race-native-scoped-pass.md",
+  "next_task": "Read new GitHub Actions exact SOURCE: dedicated next-adaptive-n1-codec Go -race count2 for bounded PN ledger, real Emit failures/control and authenticated RX, existing legacy; foundation Linux/Windows, lifecycle, 9-netns native 3-client same port, samewire. Preserve failed jobs with exact root causes; fix by new SHA if required. After PASS design authenticated paired sender watermark vs peer receiver 256 PN maturity with tail, control exclusions and aligned windows to estimate loss; HONEST UNKNOWN until strong evidence. N2 auto must remain OFF; final physical phase only after N0..N6/P6.",
+  "latest_log": "docs/devlog/20261011-063000-n1-bounded-tx-rx-data-pn-window-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "6220a3b8c39347628de9650bce7b9548a6b3fbdf",
   "last_tested_scope": "6220a3b exact next-foundation + real 9-netns 3 native Linux clients first-unique business PASS, 860fc3c exact N1 2s protected quality runtime focused race and lifecycle PASS; quality estimator and N2..N6/performance/physical still NOT_RUN",
@@ -463,6 +473,15 @@
       "scope": "N1_LIVE_QUALITY_NATIVE_ENVELOPE_FOUNDATION_REGRESSION",
       "status": "PASS",
       "cause": "All next-foundation jobs PASS on exact same SHA as 9-netns native 3-client functional PASS, including Linux/Windows Go, privileged OpenWrt/Linux TUN, kernel fallback and repository authority."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "0cda5d7ee0e99078603bb39a7bcf8cb2ed7ce333",
+      "run_id": 38074506024,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38074506024",
+      "scope": "N1_2S_QUALITY_DOC_ONLY_RECEIPT_FOUNDATION",
+      "status": "PASS",
+      "cause": "Post-receipt docs-only commit 0cda5d7 completed foundation PASS; does not add quality estimation evidence."
     }
   ],
   "required_read_set": [

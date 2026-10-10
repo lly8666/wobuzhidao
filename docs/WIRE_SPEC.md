@@ -317,3 +317,51 @@ Linux/Windows and true nine-netns three-client real Linux paths); until
 passing, this is a CANDIDATE only. The earlier paragraph describing the
 format as reserved is historical for the prior codec-only source, not the
 status of this subsequent live-transport candidate.
+
+## 2026-10-11 N1 bounded DATA PN window candidate — not paired-loss estimation
+
+The **existing 104-byte V3 KindHealth v2 wire format is unchanged** by this
+source. The sender can now fill its outbound-window fields using actual
+post-`Emit`/successful `EmitBatch` results from one 256-PN bounded KindLINK
+history. `WindowFirstPN..WindowLastPN` is a *PN-coordinate* envelope, not a
+number of transmitted records: there may be interleaved KindHealth, a failed
+seal, and a locally failed send. `TxSuccess` counts distinct successful
+fresh KindLINK record completions **within that envelope**; `LocalDrops`
+counts locally rejected/failed fresh KindLINK completions inside the same
+envelope. FakeTCP retransmission at its original Seq is not a fresh packet
+and does not generate another KindLINK PN or fresh completed emission.
+Both FEC systematic *and parity* records are KindLINK: count sealed
+outer DATA records, not application datagrams or pre-FEC source packets.
+
+If any fresh DATA success exists, the report has `WindowValid |
+Insufficient`, real `TxSuccess` and recent `LocalDrops`. If no eligible
+success has occurred it remains `Insufficient` without a valid window and
+UNKNOWN data age. `AgeMillis` is the time since the most recent successful
+local DATA emit in this PN window (clamped to 65534ms), **not** end-to-end
+one-way latency. Last-seen SRTT remains transport RTT, not p99 delay.
+Out-of-window delayed completion sets `CapacityLimited`; samples that
+cannot fit must not silently be counted as if the entire PN span were known.
+
+In parallel, `Lane.QualityReceiveWindow(now)` and runtime's active-only
+`QualityReceiveWindow(ref, now)` expose a receiver-**local** 256-PN
+diagnostic view: authenticated KindLINK first-unique, late first-unique and
+duplicate replay counts under the existing rxMu. Authenticated duplicate
+Health records do not increment duplicate DATA. Very late records beyond
+this bounded PN span mark `CapacityLimited`. The AEAD decoder remains
+the authority for cryptographic authenticity/duplicate suppression; this
+small counter is not a second replay filter. Neither query is called per
+business packet by the controller.
+
+**The sender DATA PN space is independent from the receiver's own outbound
+DATA PN space**. Accordingly the v2 outgoing report's `RxUnique`,
+`RxLate`, `RxDuplicate`, `FECRecovered`, `EstimatedMissing` and
+`PeakMissingBurst` remain zero in this increment: the report
+`WindowFirstPN..LastPN` refers to its outbound direction, not the
+opposite-direction local RX window. A future authenticated paired-watermark
+exchange must select matching sender/receiver windows, allow sufficient
+reordering maturity and tail visibility, then explicitly qualify a bound
+estimate or leave it UNKNOWN/INSUFFICIENT. Never calculate `last-first+1 -
+TxSuccess` as WAN loss, and never treat `RxUnique=0` in this report as a
+0%-loss observation. N2 automatic FEC is still NOT_ENABLED and physical
+loss measurements have NOT_RUN. SOURCE-specific Go race and privileged
+Actions are required before this candidate may be qualified.

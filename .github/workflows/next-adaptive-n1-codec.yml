@@ -10,7 +10,13 @@ on:
       - "internal/datapath/quality_feedback_v3_test.go"
       - "internal/datapath/quality_health_live.go"
       - "internal/datapath/lane.go"
+      - "internal/datapath/quality_pn_window.go"
+      - "internal/datapath/quality_pn_window_test.go"
+      - "internal/tlsrecord/decoder.go"
       - "internal/runtimeowner/quality.go"
+      - "internal/runtimeowner/quality_window.go"
+      - "internal/runtimeowner/quality_window_test.go"
+      - "internal/runtimeowner/send_batch.go"
       - "internal/runtimeowner/quality_live_test.go"
       - "internal/runtimeowner/health.go"
       - "internal/runtimeowner/runtime.go"
@@ -39,13 +45,13 @@ jobs:
           set -euo pipefail
           python3 tools/check_repository.py
           python3 tools/check_performance_workflow_policy.py
-          echo "SOURCE=$GITHUB_SHA; N1 pure 104-byte codec, no live emission or loss qualification" >> "$GITHUB_STEP_SUMMARY"
+          echo "SOURCE=$GITHUB_SHA; N1 live 104-byte control and bounded DATA PN ledgers; no paired WAN loss qualification" >> "$GITHUB_STEP_SUMMARY"
       - name: Independent quality codec and one-latest feedback mailbox/race fences
         shell: bash
         run: |
           set -euo pipefail
           go test -race ./internal/datapath \
-            -run '^TestN1Quality(HealthV3|Feedback)' -count=2 -timeout=90s -v
+            -run '^TestN1Quality(HealthV3|Feedback|ReceivePN)' -count=2 -timeout=90s -v
       - name: Legacy health v1 and plaintext record regression
         shell: bash
         run: |

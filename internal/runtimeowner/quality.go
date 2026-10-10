@@ -16,6 +16,7 @@ type qualityState struct {
     nextSend time.Time
     reportSeq uint64
     mailbox *datapath.QualityFeedbackMailbox
+    tx qualityTXWindow // guarded by existing laneTransport.mu
     received uint64
     rejected uint64
     sent uint64
@@ -73,6 +74,7 @@ func (t *laneTransport) tickQuality(now time.Time) (err error) {
     nonce:=t.quality.nonce
     idleSource:=t.health.idleSource
     srtt:=t.srtt
+    txWindow:=t.quality.tx.snapshot(now) // only once/2s, not hot packet path
     t.mu.Unlock()
 
     idle:=time.Duration(0)
@@ -88,6 +90,19 @@ func (t *laneTransport) tickQuality(now time.Time) (err error) {
         Generation:t.ref.Generation,
         AgeMillis:0xffff, RTTMillis:0xffff,
     }
+    // DATA-only PN window describes actual post-Emit successful fresh
+    // records and local failures, not gaps between PNs (which may be control
+    // or failed seals). The peer's matching receive window is not yet
+    // aligned, so LossEstimated is NEVER set in this N1 increment.
+    if txWindow.Success>0 {
+        report.Flags|=datapath.QualityFlagWindowValid
+        report.WindowFirstPN=txWindow.FirstPN
+        report.WindowLastPN=txWindow.LastPN
+        report.TxSuccess=txWindow.Success
+        report.AgeMillis=txWindow.AgeMillis
+    }
+    report.LocalDrops=txWindow.LocalDrops
+    if txWindow.CapacityLimited { report.Flags|=datapath.QualityFlagCapacityLimited }
     // SRTT is only a transport estimate, not application p99. Until the
     // matured sender/receiver DATA watermarks are aligned, *never* set the
     // window-valid/estimated-loss flags or emit an apparent zero WAN loss.

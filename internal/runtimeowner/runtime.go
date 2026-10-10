@@ -429,6 +429,8 @@ type preparedFresh struct {
 	seg     faketcp.Segment
 	pending *pendingRecord
 	control bool
+	pn      uint64 // sealed record PN, not FakeTCP Seq
+	at      time.Time
 }
 
 // prepareFresh preserves the existing shadow-backup and sequence policy.
@@ -504,12 +506,15 @@ func (t *laneTransport) prepareFresh(record datapath.WireRecord, now time.Time) 
 		t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
 	}
 	t.mu.Unlock()
-	return preparedFresh{seg: seg, pending: p, control: record.Control}, nil
+	return preparedFresh{seg: seg, pending: p, control: record.Control, pn: record.PN, at: now}, nil
 }
 
 func (t *laneTransport) completeFresh(f preparedFresh, err error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	if t.quality.enabled && !f.control {
+		t.quality.tx.note(f.pn, err == nil, f.at)
+	}
 	if err != nil {
 		t.stats.FreshEmitFailures++
 		if f.pending != nil && t.pending[f.seg.Seq] == f.pending {
@@ -534,6 +539,11 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 		}
 		f, err := t.prepareFresh(record, now)
 		if err != nil {
+			if !record.Control {
+				t.mu.Lock()
+				if t.quality.enabled { t.quality.tx.note(record.PN, false, now) }
+				t.mu.Unlock()
+			}
 			return err
 		}
 		err = t.cfg.Emit(f.seg)
