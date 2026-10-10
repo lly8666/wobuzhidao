@@ -56,23 +56,6 @@ def j(d,name):
  try:return json.loads((d/name).read_text())
  except (OSError,ValueError):return {}
 
-
-def shell_failure_classes(raw):
- # Return status classes and numeric shell locations, never raw log or PID.
- import re
- markers=[]
- for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\d+) line=(\d+)",raw):
-  markers.append({"class":"SHELL_FAIL","exit_code":int(match.group(1)),
-                  "script_line":int(match.group(2))})
- for match in re.finditer(r"WBD_STRICT_(CLIENT|SERVER)_EARLY_EXIT pid=\d+",raw):
-  markers.append({"class":"PRODUCT_"+match.group(1)+"_EARLY_EXIT"})
- for word,label in (("Operation not permitted","NETNS_PERMISSION"),
-                    ("invalid strict mode tuple","INVALID_MODE_TUPLE"),
-                    ("No such file or directory","FILE_NOT_FOUND"),
-                    ("sudo:","SUDO_REJECTED")):
-  if word in raw:markers.append({"class":label})
- return markers[-16:]
-
 def run_case(c,root,helper):
  d=prepared(c,root)
  env={**os.environ,"GITHUB_WORKSPACE":str(Path.cwd()),
@@ -104,9 +87,18 @@ def run_case(c,root,helper):
  analyzer=[sys.executable,"tools/check_large_mtu_mixed.py","--fec-experiment","--simd-ab",
      "--artifact-dir",str(d),"--source",c["source"],"--helper",helper,
      "--workload","mixed","--loss",str(c["loss"]),"--seed",str(c["seed"]),
-     "--target-mbps",str(c["rate"]),"--size-profile","ordi p=d/"private-product.log"
- markers=shell_failure_classes(p.read_text(errors="replace") if p.is_file() else "")
-d.glob("*.pcap*"):
+     "--target-mbps",str(c["rate"]),"--size-profile","ordinary",
+     "--mode",c["mode"],"--lanes",str(c["lanes"]),"--diagnostic-mode","0",
+     "--duration-s",str(c["duration"]),"--delay-ms",str(c["delay"]),
+     "--fec-parity",str(c["parity"]),"--output",str(d/"summary.json")]
+ with (d/"private-analyzer.log").open("w") as log:
+  ac=subprocess.run(analyzer,stdout=log,stderr=subprocess.STDOUT).returncode
+ with (d/"private-ledger.log").open("w") as log:
+  lc=subprocess.run([sys.executable,"tools/efficiency_cost_ledger.py",
+        "--artifact-dir",str(d),"--output",str(d/"efficiency-ledger.json")],
+        stdout=log,stderr=subprocess.STDOUT).returncode
+ captures=[]
+ for p in d.glob("*.pcap*"):
   captures.append({"file":p.name,"sha256":old.filehash(p),"bytes":p.stat().st_size})
   p.unlink()
  (d/"capture-cleanup.json").write_text(json.dumps(captures,indent=2)+"\n")
@@ -118,6 +110,8 @@ d.glob("*.pcap*"):
   for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\d+) line=(\d+)",raw):
    markers.append({"class":"SHELL_FAIL","exit_code":int(match.group(1)),
                    "script_line":int(match.group(2))})
+  for match in re.finditer(r"WBD_STRICT_(CLIENT|SERVER)_EARLY_EXIT pid=\d+",raw):
+   markers.append({"class":"PRODUCT_"+match.group(1)+"_EARLY_EXIT"})
   for word,label in (("Operation not permitted","NETNS_PERMISSION"),
                      ("invalid strict mode tuple","INVALID_MODE_TUPLE"),
                      ("No such file or directory","FILE_NOT_FOUND"),
@@ -126,10 +120,9 @@ d.glob("*.pcap*"):
  (d/"sanitized-startup.json").write_text(json.dumps({
     "private_log_sha256":old.filehash(p) if p.is_file() else None,
     "private_log_bytes":p.stat().st_size if p.is_file() else 0,
-    "sample_exit":rc,"sample_error":error,"markers":markers,
-    "receipts_present":{name:(d/name).is_file() for name in
-       ("manifest.json","runtime-flags.json","biz.json","target.json",
-        "stage-events.jsonl","client.log","server.log")},
+    "sample_exit":rc,"sample_error":error,"markers":markers[-16:],
+    "receipt_files_present":{name:(d/name).is_file() for name in
+        ("manifest.json","biz.json","target.json","stage-events.jsonl","runtime-flags.json")},
     "product_log_bytes":{role:(d/(role+".log")).stat().st_size
        if (d/(role+".log")).is_file() else None for role in ("client","server")}
     },indent=2)+"\n")
