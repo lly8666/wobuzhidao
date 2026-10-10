@@ -40,6 +40,9 @@ type TunnelDiagnostic struct {
 	// Actual authenticated admission, not the requested CLI setting; optional
 	// diagnostic only. Never include identity credentials or exporter material.
 	RecordVersion  uint16                            `json:"record_version,omitempty"`
+	// Observed TLS1.3 suite on authenticated handshake. Distinct from the
+	// protected record AEAD policy; this does not claim borrowed-site alignment.
+	TLSCipherSuite uint16                            `json:"tls_cipher_suite,omitempty"`
 	AdmissionPolicy *realityfront.AdmissionPolicy     `json:"admission_policy,omitempty"`
 	TunnelID       logicaltunnel.TunnelID            `json:"tunnel_id"`
 	Owner          datapath.TunnelOwnerStats         `json:"owner"`
@@ -85,6 +88,7 @@ func (c *TunnelClient) DiagnosticSnapshot(now time.Time) TunnelDiagnostic {
 	out := diagnosticSnapshot(c.owner, c.rt, now)
 	c.mu.Lock()
 	out.RecordVersion = c.negotiatedRecordVersion
+	out.TLSCipherSuite = c.negotiatedTLSCipherSuite
 	if c.negotiatedRecordVersion == realityfront.RecordVersionV3 {
 		policy := c.negotiatedPolicy
 		out.AdmissionPolicy = &policy
@@ -117,10 +121,12 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 	group := s.byTunnel[id]
 	preAttachDrops := s.preAttachDrops
 	var recordVersion uint16
+	var tlsCipherSuite uint16
 	var policy realityfront.AdmissionPolicy
 	if group != nil {
 		recordVersion = group.admissionVersion
 		policy = group.admissionPolicy
+		tlsCipherSuite = group.tlsCipherSuite
 	}
 	s.mu.Unlock()
 	if group == nil {
@@ -129,6 +135,7 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 	out := diagnosticSnapshot(group.owner, group.rt, now)
 	out.PreAttachDrops = preAttachDrops
 	out.RecordVersion = recordVersion
+	out.TLSCipherSuite = tlsCipherSuite
 	if recordVersion == realityfront.RecordVersionV3 {
 		out.AdmissionPolicy = &policy
 	}

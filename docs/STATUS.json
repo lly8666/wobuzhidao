@@ -9,18 +9,18 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_V3_ACTUAL_NEGOTIATED_DIAGNOSTICS_FIRST_S2C_ACTIONS_PENDING",
+    "phase": "N0_INMEMORY_FIRST_S2C_V3_OBSERVABILITY_PASS_ACTUAL_TLS_SUITE_RACE_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "b52ed0edad655baaed0411c594f85fe3d82bb79a",
+    "new_product_source_sha": "0124cc43f8b1cd2ac669e3cc40bf1d325f43b6e1",
     "implementation": "PARTIAL_N0_PROTECTED_V3_FIXED_OFF_CHACHA",
-    "core": "PREVIOUS_VERIFIED_B52ED0E_FOUNDATION_AND_SINGLE_REALPATH_PASS_NEW_SOURCE_ACTIONS_PENDING",
+    "core": "PASS_FOUNDATION_LIFECYCLE_0124CC4_SCOPED_N0_FIRST_S2C_TEST_ONE_REALPATH_B52ED0E",
     "ordinary_performance": "NOT_RUN_N0_SOURCE_B52ED0E",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
-      "N0_admission": "IN_PROGRESS_DIAGNOSTIC_AND_FIRST_S2C_ACTIONS_PENDING_NATIVE_3_CLIENT_STILL_REQUIRED",
+      "N0_admission": "IN_PROGRESS_INMEMORY_NEGOTIATED_POLICY_AND_FIRST_S2C_PASS_ACTUAL_TLS_SUITE_FOCUSED_RACE_PENDING_3_NATIVE_PENDING",
       "N1_quality": "NOT_STARTED",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
@@ -58,19 +58,19 @@
       "owner": "User explicit instruction 2026-10-10"
     },
     "pending_candidate": {
-      "scope": "N0 in-memory 3-client V3 actual negotiated policy/record version/active lane parity, exact first S2C before client business",
+      "scope": "local-only actual TLS handshake CipherSuite observed at both endpoints; immutable record AEAD choice separately; dedicated Go race test with three authenticated in-memory client installations and first S2C before client business",
       "sha": "CONTAINING_COMMIT_SHA",
       "actions": "PENDING",
-      "native_3_clients": "NOT_RUN",
-      "actual_tls_cipher": "NOT_OBSERVED",
-      "same_seq_same_wire": "NOT_REQUALIFIED"
+      "native_three_clients": "NOT_RUN",
+      "native_windows_tun": "NOT_RUN",
+      "performance": "NOT_RUN"
     }
   },
-  "next_task": "N0: examine foundation/lifecycle Actions on the code commit that includes negotiated-V3 runtime diagnostics and exact first S2C-before-client-business three-client functional test; fix observed FAIL without rewriting evidence. Then create one concurrent 3-isolated-real-netns-client same-server-port functional Actions case (Normal off, Normal20:4, Game20:20, distinct auto leases) plus actual TLS cipher/same-Seq same-wire evidence; do not mark N0 complete before these and race gate. Preserve b52ed0e one-client controlled PASS scope. Actions-first, final-only physical acceptance remains mandatory.",
-  "latest_log": "docs/devlog/20261010-235900-adaptive-n0-negotiated-observability-s2c-first.md",
+  "next_task": "N0: check new-source next-adaptive-n0-negotiated focused 3-client first-downlink Actions race and foundation/lifecycle checks; any FAIL -> fix and recheck exact new SHA, preserve FAIL. Then add one functional Actions sample with 3 CONCURRENT separate real Linux netns client processes on same server port + same account distinct installations/auto leases, profiles Normal off/20:4 and Game2 20:20, verify independent negotiated record/outer TLS suite and actual parity in both client and shared-server diagnostics; add native same-Seq same-wire. N0 remains IN_PROGRESS until native, race and isolation passes; N1 later. No physical test until all N0..N6, Actions and P6 finish.",
+  "latest_log": "docs/devlog/20261011-000500-adaptive-n0-actual-tls-suite-action-race.md",
   "qualification_scope": "N0_PARTIAL_SINGLE_REALPATH_PASS_NO_N0_WIDE_ACCEPTANCE",
-  "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
-  "last_tested_scope": "Historical parent scope only; see archived STATUS. Not current qualification.",
+  "last_tested_source_sha": "0124cc43f8b1cd2ac669e3cc40bf1d325f43b6e1",
+  "last_tested_scope": "0124cc4 foundation + lifecycle scoped deterministic 3-client actual protected V3 policy and first S2C business; separate older b52ed0e 1-client native netns realpath PASS; not native 3-client, focused N0 race, TLS suite, or performance",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -173,6 +173,24 @@
       "status": "PASS",
       "run_id": 38064015992,
       "cause": "All Linux/Windows go tests/build and existing P2/P4 privileged functional jobs PASS, repository contract PASS, performance and native Wintun direct NOT_RUN."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "0124cc43f8b1cd2ac669e3cc40bf1d325f43b6e1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38066319972",
+      "scope": "N0_actual_negotiated_policy_and_first_S2C_foundation",
+      "status": "PASS",
+      "run_id": 38066319972,
+      "cause": "All foundation jobs PASS on exact 0124cc4, including Go unit with in-memory 3-client downlink-before-business, Linux/Windows builds, P4 privileged and repo authority; not race of focused N0 test."
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "0124cc43f8b1cd2ac669e3cc40bf1d325f43b6e1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38066320007",
+      "scope": "N0_actual_negotiated_policy_and_first_S2C_lifecycle",
+      "status": "PASS",
+      "run_id": 38066320007,
+      "cause": "Lifecycle/wire unit, existing focused lifecycle race, and replacement regression PASS. Dedicated TestV3 three-client -race is NOT yet run, so new focused workflow is required."
     }
   ],
   "required_read_set": [

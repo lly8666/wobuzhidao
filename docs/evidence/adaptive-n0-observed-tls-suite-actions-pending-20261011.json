@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "kind": "N0_pending_actual_tls_suite_focused_race",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_sha": "0124cc43f8b1cd2ac669e3cc40bf1d325f43b6e1",
+  "tested_parent_source": {
+    "foundation": {
+      "run_id": 38066319972,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38066319972",
+      "status": "PASS"
+    },
+    "lifecycle": {
+      "run_id": 38066320007,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38066320007",
+      "status": "PASS"
+    }
+  },
+  "candidate_source": "commit_containing_evidence",
+  "actions_status": "PENDING",
+  "feature_scope": "local-only actual TLS CipherSuite from authenticated client uTLS / server tls state; distinguish from V3 record policy cipher; verify independently on same-account 3 in-memory clients S2C first + focused race",
+  "limitations": [
+    "NOT_RUN three simultaneous real Linux namespace client binaries",
+    "NOT_RUN AES or Normal auto",
+    "NOT_RUN actual physical Windows Wintun direct",
+    "NOT_RUN performance and P6",
+    "NOT_RUN any physical host acceptance"
+  ],
+  "physical": "NOT_RUN",
+  "deploy": false
+}

@@ -373,6 +373,7 @@ type TunnelClient struct {
 	// The diagnostic snapshot reads these under c.mu, not from CLI flags.
 	negotiatedRecordVersion uint16
 	negotiatedPolicy realityfront.AdmissionPolicy
+	negotiatedTLSCipherSuite uint16
 
 	runCtx context.Context
 	cancel context.CancelFunc
@@ -904,6 +905,7 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 	}
 	c.negotiatedRecordVersion = session.Negotiated.RecordVersion
 	c.negotiatedPolicy = session.Negotiated.Policy
+	c.negotiatedTLSCipherSuite = session.Negotiated.TLSCipherSuite
 	c.mu.Unlock()
 	return snapshot.Ref, nil
 }
@@ -1192,6 +1194,8 @@ type serverLifecycleTunnel struct {
 	// change V3 policy/cipher/FEC across lane addition or rotation.
 	admissionVersion uint16
 	admissionPolicy realityfront.AdmissionPolicy
+	// Actual TLS handshake suite observed at latest successful lane admission.
+	tlsCipherSuite uint16
 	desired     int
 	id          logicaltunnel.TunnelID
 	leaseAddr   netip.Addr
@@ -1683,6 +1687,7 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 	s.mu.Lock()
 	group.admissionVersion = result.Admission.Negotiated.RecordVersion
 	group.admissionPolicy = result.Admission.Negotiated.Policy
+	group.tlsCipherSuite = result.Admission.Negotiated.TLSCipherSuite
 	s.mu.Unlock()
 	steadyQualified := len(result.Admission.EarlyRecords) != 0
 	fresh := &serverLifecycleLane{

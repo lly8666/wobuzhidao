@@ -1,0 +1,44 @@
+name: next-adaptive-n0-negotiated
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n0-negotiated.yml"
+      - "internal/realityfront/admission.go"
+      - "internal/runtimeentry/diagnostic.go"
+      - "internal/runtimeentry/lifecycle.go"
+      - "internal/runtimeentry/adaptive_v3_mix_test.go"
+permissions:
+  contents: read
+concurrency:
+  group: next-adaptive-n0-negotiated-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  actual-admission-first-s2c-three-clients-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE and repository authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          echo "SOURCE_SHA=$GITHUB_SHA; N0 3-client in-memory functional race ONLY" >> "$GITHUB_STEP_SUMMARY"
+      - name: V3 first downlink, three-client negotiated policy and TLS suite race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./internal/runtimeentry \
+            -run '^TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation$' \
+            -count=2 -timeout=90s -v
+      - name: V3 malformed policy and admission regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./internal/realityfront ./internal/tlsrecord -count=1

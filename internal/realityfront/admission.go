@@ -63,6 +63,9 @@ type AdmissionResult struct {
 	ServerLimit      uint16
 	Keys             tlsrecord.KeyPair
 	Policy           AdmissionPolicy
+	// Observed outer TLS handshake cipher on this endpoint. Local-only runtime
+	// metadata: excluded from admission wire encoding and exporter policy.
+	TLSCipherSuite uint16
 }
 
 func (r AdmissionResult) exporterParams() ExporterParams {
@@ -210,6 +213,7 @@ func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConf
 		return nil, err
 	}
 	result.Keys = keys
+	result.TLSCipherSuite = state.CipherSuite
 	success = true
 	// Successful admission transfers the underlying association to the
 	// TLS-like data plane. Do not return the uTLS writer: Close, KeyUpdate-like
@@ -353,6 +357,7 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 		return nil, err
 	}
 	result.Keys = keys
+	result.TLSCipherSuite = state.CipherSuite
 
 	boundary, err := assoc.PrepareTransition(int(cfg.ServerLimit))
 	if err != nil {

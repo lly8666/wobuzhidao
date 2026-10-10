@@ -143,6 +143,9 @@ func TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation(t *testing.T) {
             if actual.RecordVersion!=realityfront.RecordVersionV3 || actual.AdmissionPolicy==nil || *actual.AdmissionPolicy!=policies[i] {
                 t.Fatalf("%s client %d actual negotiated V3 = (%d,%+v), want %+v",name,i,actual.RecordVersion,actual.AdmissionPolicy,policies[i])
             }
+            if actual.TLSCipherSuite==0 || actual.TLSCipherSuite!=clientObserved.TLSCipherSuite {
+                t.Fatalf("%s client %d actual TLS suite=0x%04x, client suite=0x%04x",name,i,actual.TLSCipherSuite,clientObserved.TLSCipherSuite)
+            }
             if actual.Lease4!=lease.Config.Address4 {
                 t.Fatalf("%s client %d lease mismatch got %s want %s",name,i,actual.Lease4,lease.Config.Address4)
             }
