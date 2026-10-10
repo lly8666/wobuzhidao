@@ -1,0 +1,29 @@
+{
+  "schema": "wbd-fec-simd-upstream-selection/v1",
+  "state": "SOURCE_RESEARCH_ONLY_IMPLEMENTATION_NOT_STARTED",
+  "as_of": "2026-10-10",
+  "dependency": "github.com/klauspost/reedsolomon",
+  "version": "v1.12.6",
+  "tag_sha": "4916c9cd17081aa4f43f36639502e86f5787b40e",
+  "license": "MIT",
+  "go_minimum": "1.23",
+  "wbd_toolchain": "1.23.12",
+  "source_links": [
+    "https://github.com/klauspost/reedsolomon/blob/v1.12.6/go.mod",
+    "https://github.com/klauspost/reedsolomon/blob/v1.12.6/mulslice.go",
+    "https://github.com/klauspost/reedsolomon/blob/v1.12.6/galois_amd64.go",
+    "https://github.com/klauspost/reedsolomon/blob/v1.12.6/galois_arm64.go",
+    "https://github.com/klauspost/reedsolomon/blob/v1.12.6/reedsolomon.go"
+  ],
+  "audited_risks": [
+    "LowLevel.WithOptions does not assign local options in this version",
+    "LowLevel x86 single-span path is not the whole-codec GFNI/AVX512 path",
+    "Unsupported CPU/builds must retain WBD scalar fallback to avoid lazy large16-bit tables",
+    "Default generator differs; custom matrix or low-level operation needed for byte compatibility",
+    "Whole-codec generated path can allocate dynamic plans; measure real small-shard CPU and p99",
+    "FastBlockEncoder concrete-type inactive-zero exemption must survive backend replacement"
+  ],
+  "candidate_performance": "NOT_MEASURED",
+  "arm_native_execution": "NOT_RUN_THIS_TASK",
+  "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md"
+}

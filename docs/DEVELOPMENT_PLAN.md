@@ -1,6 +1,10 @@
 # WBD NEXT 当前开发方案
 
-实时任务来自STATUS.json。本轮CPU与真实业务效率优化的完整实现顺序和测试细节在[PERFORMANCE_EFFICIENCY_PLAN](PERFORMANCE_EFFICIENCY_PLAN.md)，必须按E0..E7逐步执行。本文只保留长期架构及当前已决定的行为；历程和旧任务见[AGENT_CONTINUITY](AGENT_CONTINUITY.md)及只读历史快照，不重复叠加“当前任务”。
+## 2026-10-10 FEC SIMD优化任务覆盖
+
+当前独立工作分支`next/fec-simd-20261010`，方案[FEC_SIMD_OPTIMIZATION_PLAN](FEC_SIMD_OPTIMIZATION_PLAN.md)，接手[模板](templates/FEC_SIMD_AGENT_PROMPT.md)，实时任务只看STATUS.active_work.fec_simd/next_task。用户明确性能第一、自有FEC内部允许大改；原来“不换codec”、禁止新旧对比/串行多测的限制对本项由新方案窄例外覆盖，不影响其它任务。单个Actions测量job新旧ABBA串行；核心功能可多job，未测不算通过。保留已验source快路、active partial、32ms/3s生命周期/late first arrival、无HOL和原硬门。原E1与旧FEC-off实验仅历史，80秒S2C仍优化后处理。
+
+实时任务来自STATUS.json。本轮CPU与真实业务效率优化的完整实现顺序和测试细节在[PERFORMANCE_EFFICIENCY_PLAN](PERFORMANCE_EFFICIENCY_PLAN.md)，原优化路线为E0..E7；本分支当前FEC_SIMD按新方案S0..S5执行，不恢复旧E1任务。本文只保留长期架构及当前已决定的行为；历程和旧任务见[AGENT_CONTINUITY](AGENT_CONTINUITY.md)及只读历史快照，不重复叠加“当前任务”。
 
 ## 1. 形态和模块边界
 
@@ -24,7 +28,7 @@ TUN基于稳定配置，不能随某一lane MSS频繁改变；更小的实际pee
 
 ## 4. FEC和Game
 
-保留off、20:4/8/10/12/16/20固定集合与现有FEC v1。实际partial parity=min(k,R)，不把R/20当所有业务的实际冗余。20:20已有256/512/最大source三长度组和有效k/r计算，source立即出；首源8ms是到期条件，正式100ms tick并不保证8ms发出。E1修到期执行，不改wire/档位，不凑包等待。
+保留off、20:4/8/10/12/16/20固定集合与现有FEC v1。实际partial parity=min(k,R)，不把R/20当所有业务的实际冗余。20:20已有256/512/最大source三长度组和有效k/r计算，source立即出；旧阶段8ms/tick问题是历史；当前A=a2db的默认partial为统一32ms且已有deadline调度。以源码/STATUS为准，不把旧8ms文字当新任务。FEC_SIMD不混改32ms/档位，不凑包等待。
 
 Normal1、Game2..4，PacketID首有效竞速去重，FEC不跨lane。最多4权威/10物理incarnation，A→A+B→B验证后切换，candidate失败保留A，所有回调带generation。不能按复制字节虚增逻辑goodput。
 

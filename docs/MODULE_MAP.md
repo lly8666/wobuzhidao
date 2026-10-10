@@ -72,3 +72,7 @@ openwrtclient/managed_linux.go仅封装正式Linux客户端启动/退出的names
 2026-10-07 Lane双向锁待验候选：lane.go TX mu管FEC编码/sealer/PN/outbound及padding；rxMu管解码/reassembly/Expire/InboundTransition。Stats/Close仅双锁路径，顺序TX→RX，closed写持双锁。health.go保持TX序号空间，handoff.go只切RX互斥。三个定向并发测试在lane_direction_lock_test.go，尚需本SOURCE Actions/race/性能证明，不继承6e诊断门。
 
 2026-10-07 Lane方向锁 exact-source Actions结论：`internal/datapath/lane.go` 的TX `mu` 与RX `rxMu` 分工在SOURCE `3a594a34191159bd7224f35ba9117cdf6f239c69` 完成scoped Actions资格。Health继续走TX PN空间，InboundTransition/Expire走RX，Stats/Close固定TX→RX；没有新增参数、wire、FEC档位、期限、repair、4096或generation语义变化。Foundation的Windows/Linux unit/build、Linux race/fuzz和新方向锁并发测试均PASS；生命周期/网络/Normal/Game/P6证据见 `docs/evidence/lane-duplex-3a594a3-qualification-20261007.json`。候选状态 `ACTIONS_READY_FOR_PHYSICAL`，历史284ms根因仍OPEN，物理机NOT_RUN。
+
+## 2026-10-10 新外部GF/SIMD后端（仅计划）
+
+选klauspost/reedsolomon v1.12.6 MIT；本提交未加入依赖/代码。允许重写internal/fec codec内部/active能力接口；继续现有linkdata分片、systematic、size-class、32ms/3s和退役/去重/MTU接线。S1标量兼容与SIMD乘加，S2自定义矩阵整块融合；不恢复DTLS，不搬old运行拓扑。细节见FEC_SIMD_OPTIMIZATION_PLAN。REUSE_LEDGER只登记old提取且有仓库契约，不把外部依赖伪填old路径；新依赖在go.mod/go.sum、许可与本方案/开发日志登记，实际提取old才更新原ledger。

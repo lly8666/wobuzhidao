@@ -1,5 +1,9 @@
 # CPU 与真实业务效率优化执行方案
 
+## 2026-10-10 FEC SIMD优化任务覆盖
+
+当前独立工作分支`next/fec-simd-20261010`，方案[FEC_SIMD_OPTIMIZATION_PLAN](FEC_SIMD_OPTIMIZATION_PLAN.md)，接手[模板](templates/FEC_SIMD_AGENT_PROMPT.md)，实时任务只看STATUS.active_work.fec_simd/next_task。用户明确性能第一、自有FEC内部允许大改；原来“不换codec”、禁止新旧对比/串行多测的限制对本项由新方案窄例外覆盖，不影响其它任务。单个Actions测量job新旧ABBA串行；核心功能可多job，未测不算通过。保留已验source快路、active partial、32ms/3s生命周期/late first arrival、无HOL和原硬门。原E1与旧FEC-off实验仅历史，80秒S2C仍优化后处理。
+
 本文件是本优化分支的执行方案，进度仍只有 STATUS.json；不是第二套进度系统。用户2026-10-08授权：先优化CPU/真实交付效率，可适当增加有界内存；MTU沿用其他agent已开发的自动预算，一起压力验收；约80秒下行中断保留OPEN，优化结束后再处理。不得因此宣布全产品通过。
 
 ## 1. 目标、基线与不改的边界
@@ -23,7 +27,7 @@
 |E2|按所有权减少重复分配/复制、复用有界工作区|无ownership/别名/race回归；payload保存到真实最后使用者；alloc/业务MiB及CPU可解释下降，p99不恶化|
 |E3|提高已就绪IO批量利用率与收发公平性|真实平均batch、单包回退、syscall/有效MiB改善；小包不等凑包；部分发送/关闭/generation硬门通过|
 |E4|降低ACK、shadow索引、修复选择与淘汰固定成本|fresh不门控、缓存满仍前进；无重复全量扫描；同Seq同wire；旧备份放弃不让接收方等洞|
-|E5|优化剩余FEC/LINK/record热点和多lane固定成本|仅对E0及更新profile证明的热点工作；不换codec、不改变档位wire；实际partial/复制/包数开销下降|
+|E5|优化剩余FEC/LINK/record热点和多lane固定成本|仅对E0及更新profile证明的热点工作；本轮FEC_SIMD可改codec内部（见新方案）；默认不改档位wire；实际partial/复制/包数开销下降|
 |E6|冻结组合版本，真实混合弱网、容量、配置、生命周期及长测|同源完整结果矩阵、开放失败、P6 manifest/hash与能力边界齐全；明确下一项是延后的下行中断|
 |E7|优化后回到80秒下行断点及剩余迟到，之后物理复验|单独定位并修复，独立资格；未关闭前不标PHYSICAL_PASS/RELEASE_QUALIFIED|
 

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
-  "working_branch": "experiment/fec-policy-sequential-20261009",
+  "working_branch": "next/fec-simd-20261010",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "updated_at": "2026-10-10",
-  "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch.",
+  "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
-    "name": "PERFORMANCE_EFFICIENCY",
-    "phase": "E1_UNIFORM32_REAL_FULLSTACK_15MS_SPARSE_NORMAL1_LOSSLESS_PASS_CPU_UNPROVEN",
-    "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
+    "name": "FEC_SIMD_PERFORMANCE",
+    "phase": "FEC_SIMD_PLAN_READY_IMPLEMENTATION_NOT_STARTED",
+    "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
     "candidate_lineage": {
@@ -20,9 +20,9 @@
       "mtu_functional_parent": "c480ccef30962358b33da936d9ba19def6061f70",
       "integration_SOURCE_SHA": "bf11fbfbe64d518e7ba189d51bfb4512df4df733"
     },
-    "optimization_implemented": true,
+    "optimization_implemented": false,
     "integration_core": "PASS_SOURCE_BF11FBF",
-    "ordinary_performance": "PROFILE_OFF_GAME4_5205_ONE_SCOPED_PASS_PROFILE_OFF_GAME4_LOSSLESS_SOCKET_DROP_FAIL_PROFILE_ON_0LOSS_SCOPED_PASS_NO_CPU_GAIN",
+    "ordinary_performance": "NOT_RUN_FEC_SIMD_CANDIDATE",
     "physical": "NOT_RUN_NEW_SOURCE",
     "e0_audit": {
       "state": "AUDIT_ONLY",
@@ -3628,11 +3628,47 @@
         "scope_note": "ONE_RUN_ONE_JOB_36_SERIAL_120S_PER_CASE;VALID_SCOPED_REAL_OBSERVATIONS_WITH_RESIDUAL_LOSS_NOT_QUALIFICATION",
         "previous_1pct_300ms_and_5pct_300ms_evidence_preserved": true
       }
+    },
+    "fec_simd": {
+      "state": "PLANNED_NOT_RUN",
+      "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
+      "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
+      "working_branch": "next/fec-simd-20261010",
+      "branch_parent_sha": "543ac2cd2920e9f0fb59fdb38ee6aa3d9a65e56f",
+      "baseline_product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+      "candidate_product_source_sha": null,
+      "dependency": {
+        "name": "github.com/klauspost/reedsolomon",
+        "version": "v1.12.6",
+        "tag_sha": "4916c9cd17081aa4f43f36639502e86f5787b40e",
+        "license": "MIT",
+        "added_to_product": false
+      },
+      "user_authorization": "2026-10-10: performance first; WBD FEC internals may be substantially rewritten; bounded memory allowed; same Actions single-job sequential old/new comparison authorized for this task only.",
+      "implementation": "NOT_STARTED",
+      "actions": "NOT_RUN",
+      "cpu_gain": "NOT_MEASURED",
+      "physical": "NOT_RUN",
+      "selected_route": "S1 SIMD span encoding/recovery; S2 custom-matrix single-worker fused full-block encoding; preserve active partial and measure before retaining a backend.",
+      "same_runner_comparison": "One measurement job; exact A/B SOURCE and helper; serial ABBA legs; no parallel load; same toolchain/config/seed; isolated fresh processes/netns.",
+      "preserve": "Immediate systematic; no cross-business HOL; all parity profiles and min(N,P); current32ms/3s lifecycle; ownership/late-first-arrival; immutable repair/generation/MTU and isolation.",
+      "previous_task_preserved_as_history": {
+        "working_branch": "experiment/fec-policy-sequential-20261009",
+        "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes. 独立FEC A批run37952897144同job已完成12/12真实VALID_OBSERVATION；六对off CPU较低但1% UDP丢失和probe p99变差；outer wire NOT_COLLECTED，物理NOT_RUN。FEC独立B批300ms run37959180188 FAIL: 前4段UDP VALID，1% FEC-off丢3257/352560、11/1195探针无返回，FEC20:20零业务缺包；第5段0% TCP-off 4长流每方向缺最终接收核验、仅7.955Mbps，原分析FAIL、runner INTEGRITY_STOP；剩7段NOT_RUN。完整payload损坏未被证明但完整性验收失败，需先定位TCP背压/收尾，禁止放宽判定或盲目B重跑；C 5%、20:4、默认策略调整暂停。详见docs/devlog/20261010-014000-fec-policy-batch-b-300ms-stopped-tcp-incomplete.md；外层wire字节和物理资格未采集/未运行。主线E1与Game4/E7历史不变。 用户2026-10-10新要求300ms/1% FEC-off重传真实线上比例相对理论对照；单段外层入站包头计数观察已分支受限触发，必须查看 Actions 产物核对捕获零drop和qdisc覆盖率，否则保持NOT_COLLECTED。4096为shadow记录容量不是严格发送窗口，fresh/5信用、3s修复期限保持不变。 现有单段真实run37999822837 Actions SUCCESS、零捕获丢包且净业务分析VALID，外层实测重发payload/首发为上行0.523%、下行0.591%，理论1.0101%，分别少48.2%/41.5%；但4096是否到上限仍未观测，不能下根因结论。审计 docs/devlog/20261010-070000-fec-off-300ms-1pct-outer-retrans-audit.md；后续若要归因先做隔离的低开销运行态transport counters取证，保持产品不变，勿直接扩大缓冲。 用户2026-10-10授权新增单点300ms单向、双向5%丢包、FEC-off UDP外层重传比例测试；独立config-only push触发一个Actions样本，实测尚未到达，需核对捕获零drop和5%实际netem；理论几何重发/首发=5.26316%，不是产品承诺。保持A/B审计、1%证据、E1/Game4/E7与物理NOT_RUN，禁止擅自运行C整批。 用户单点5%对照 run38019925294 Actions成功且外层取证有效，重发/首发 payload c2s 2.025900%、s2c 2.008653%、理想5.263158%，合计仅理论38.33%；数据属于外层路由入口不是物理NIC。UDP业务仍缺18988/352560，探针60/1195不返回；原始observer存在单个未参与计算的1.0%陈旧理论说明字段，已在审计更正而未掩盖。证据见docs/devlog/20261010-113000-fec-off-300ms-5pct-outer-retrans-audit.md；不授权C整批/产品变更。 用户授权FEC-off UDP 36工况:单向延迟50/100/150ms、双向1/5/10%丢包、双向各10/20/30/50Mbps，必须在单一Actions job依次执行且每段120s业务+3s drain；CPU-s,峰值RSS/HWM,真实注入比例,外层数据重传比例与qdisc/压力需逐行核验。新独立配置触发，数据尚无；出现未达速/观察丢包要保留INVALID及NOT_RUN，不改default/repair/4096，禁止物理PASS。详见docs/devlog/20261010-113500-fec-off-36-serial-retrans-cpu-mem-sweep-trigger.md。 36工况run38021635895已SUCCESS，完整真实观察36/36、双向原发重传72方向、CPU-s与RSS/HWM有效、72方向observer丢包=0，全部发送速率≥目标99%；每工况1195探针，业务未保证零丢包。1/5/10%三组平均重传比分别0.804/2.981/3.568%，低于理想1.010/5.263/11.111；CPU两个产品进程合计50.57至192.88 CPU-s，HWM客户端27.86至36.76MiB、服务端28.25至35.21MiB，但CPU压力PSI可达41.9且cgroup配额未知，谨慎解释。完整数值zip artifact11660861035、审计docs/devlog/20261010-133500-fec-off-36-serial-retrans-cpu-rss-valid-observations-audit.md，物理/NIC未认证。自动监控已停用，勿重复跑。",
+        "latest_log": "docs/devlog/20261010-133500-fec-off-36-serial-retrans-cpu-rss-valid-observations-audit.md",
+        "active_name": "PERFORMANCE_EFFICIENCY",
+        "active_phase": "E1_UNIFORM32_REAL_FULLSTACK_15MS_SPARSE_NORMAL1_LOSSLESS_PASS_CPU_UNPROVEN",
+        "plan": "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
+        "optimization_implemented": true,
+        "ordinary_performance": "PROFILE_OFF_GAME4_5205_ONE_SCOPED_PASS_PROFILE_OFF_GAME4_LOSSLESS_SOCKET_DROP_FAIL_PROFILE_ON_0LOSS_SCOPED_PASS_NO_CPU_GAIN",
+        "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED"
+      },
+      "qualification_notice": "Existing parent-source PASS/FAIL and historical fields remain source-scoped; none qualify a future SIMD candidate."
     }
   },
-  "next_task": "E1 lowRTT normal1/FEC20:20/32ms real15ms one-way sparse45ms fullstack lossless now PASS source a2db258... action37937452545 with 0 missing and p99 size receipts, full Foundation37937452458 SUCCESS. Do not re-run this healthy sample. Next smallest justified gate (separate one source/seed/job Action): true fullstack one known SOURCE shard erasure under real 15ms netem with independent later 96B packet, verify repair once and unaffected source first-arrival without HOL; if safe source shard identity or external wire evidence unavailable, mark OPEN not forge an erasure by ordinary loss percentage. Already 32ms SOURCE Normal1+Game2 lossless/5205 four 300s scoped PASS; CPU gain UNPROVEN, not proven bandwidth reduction (20:20 parity bytes unchanged). If no measured E1 CPU hot spot after guards, SKIP further microoptimizations and move next established maintenance/FEC hotpath. Original EPYC9V45 Game4 OFF socket client33/server86 and ON client42 official FAIL remains, E7 ~80s downlink deferred, physical NOT_RUN, no product/buffer/queue changes. 独立FEC A批run37952897144同job已完成12/12真实VALID_OBSERVATION；六对off CPU较低但1% UDP丢失和probe p99变差；outer wire NOT_COLLECTED，物理NOT_RUN。FEC独立B批300ms run37959180188 FAIL: 前4段UDP VALID，1% FEC-off丢3257/352560、11/1195探针无返回，FEC20:20零业务缺包；第5段0% TCP-off 4长流每方向缺最终接收核验、仅7.955Mbps，原分析FAIL、runner INTEGRITY_STOP；剩7段NOT_RUN。完整payload损坏未被证明但完整性验收失败，需先定位TCP背压/收尾，禁止放宽判定或盲目B重跑；C 5%、20:4、默认策略调整暂停。详见docs/devlog/20261010-014000-fec-policy-batch-b-300ms-stopped-tcp-incomplete.md；外层wire字节和物理资格未采集/未运行。主线E1与Game4/E7历史不变。 用户2026-10-10新要求300ms/1% FEC-off重传真实线上比例相对理论对照；单段外层入站包头计数观察已分支受限触发，必须查看 Actions 产物核对捕获零drop和qdisc覆盖率，否则保持NOT_COLLECTED。4096为shadow记录容量不是严格发送窗口，fresh/5信用、3s修复期限保持不变。 现有单段真实run37999822837 Actions SUCCESS、零捕获丢包且净业务分析VALID，外层实测重发payload/首发为上行0.523%、下行0.591%，理论1.0101%，分别少48.2%/41.5%；但4096是否到上限仍未观测，不能下根因结论。审计 docs/devlog/20261010-070000-fec-off-300ms-1pct-outer-retrans-audit.md；后续若要归因先做隔离的低开销运行态transport counters取证，保持产品不变，勿直接扩大缓冲。 用户2026-10-10授权新增单点300ms单向、双向5%丢包、FEC-off UDP外层重传比例测试；独立config-only push触发一个Actions样本，实测尚未到达，需核对捕获零drop和5%实际netem；理论几何重发/首发=5.26316%，不是产品承诺。保持A/B审计、1%证据、E1/Game4/E7与物理NOT_RUN，禁止擅自运行C整批。 用户单点5%对照 run38019925294 Actions成功且外层取证有效，重发/首发 payload c2s 2.025900%、s2c 2.008653%、理想5.263158%，合计仅理论38.33%；数据属于外层路由入口不是物理NIC。UDP业务仍缺18988/352560，探针60/1195不返回；原始observer存在单个未参与计算的1.0%陈旧理论说明字段，已在审计更正而未掩盖。证据见docs/devlog/20261010-113000-fec-off-300ms-5pct-outer-retrans-audit.md；不授权C整批/产品变更。 用户授权FEC-off UDP 36工况:单向延迟50/100/150ms、双向1/5/10%丢包、双向各10/20/30/50Mbps，必须在单一Actions job依次执行且每段120s业务+3s drain；CPU-s,峰值RSS/HWM,真实注入比例,外层数据重传比例与qdisc/压力需逐行核验。新独立配置触发，数据尚无；出现未达速/观察丢包要保留INVALID及NOT_RUN，不改default/repair/4096，禁止物理PASS。详见docs/devlog/20261010-113500-fec-off-36-serial-retrans-cpu-mem-sweep-trigger.md。 36工况run38021635895已SUCCESS，完整真实观察36/36、双向原发重传72方向、CPU-s与RSS/HWM有效、72方向observer丢包=0，全部发送速率≥目标99%；每工况1195探针，业务未保证零丢包。1/5/10%三组平均重传比分别0.804/2.981/3.568%，低于理想1.010/5.263/11.111；CPU两个产品进程合计50.57至192.88 CPU-s，HWM客户端27.86至36.76MiB、服务端28.25至35.21MiB，但CPU压力PSI可达41.9且cgroup配额未知，谨慎解释。完整数值zip artifact11660861035、审计docs/devlog/20261010-133500-fec-off-36-serial-retrans-cpu-rss-valid-observations-audit.md，物理/NIC未认证。自动监控已停用，勿重复跑。",
-  "latest_log": "docs/devlog/20261010-133500-fec-off-36-serial-retrans-cpu-rss-valid-observations-audit.md",
-  "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED",
+  "next_task": "FEC SIMD S0/S1: read docs/FEC_SIMD_OPTIMIZATION_PLAN.md; freeze A=a2db258b436a41fdee98c6c53abec9bab6ce600f and helper parent543ac2cd; implement pinned v1.12.6 SIMD encoding/recovery with correct scalar fallback and byte-identical golden tests. Then S2 fused custom-matrix full-block engine and S3/S4 same Actions one-job serial ABBA real-business comparison. User permits FEC internal redesign, prioritizes delivery/p99/CPU; no local builds/tests. No inherited candidate PASS, no old E1 task restart, E7 80s S2C remains deferred and physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-143500-fec-simd-selection-plan-and-handoff.md",
+  "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
   "physical_status": "PARTIAL",
@@ -3774,6 +3810,7 @@
   "required_read_set": [
     "AGENTS.md",
     "PROJECT_CHARTER.md",
+    "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "docs/AGENT_CONTINUITY.md",
     "docs/PERFORMANCE_EFFICIENCY_PLAN.md",
     "docs/DEVELOPMENT_PLAN.md",
@@ -3783,7 +3820,8 @@
     "docs/PARAMETERS.json",
     "docs/PARAMETERS.md",
     "docs/REALPATH_TEST_FIXTURE_GUIDE.md",
-    "docs/FEC_POLICY_EXPERIMENT.md"
+    "docs/FEC_POLICY_EXPERIMENT.md",
+    "docs/templates/FEC_SIMD_AGENT_PROMPT.md"
   ],
   "history_index": {
     "full_prior_status": "docs/history/20261008-before-efficiency-status.json",

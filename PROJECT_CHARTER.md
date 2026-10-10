@@ -1,5 +1,12 @@
 # WBD NEXT 项目主旨（长期约束）
 
+
+## 2026-10-10 FEC性能优先重构与同runner比较授权
+
+用户明确一切以性能第一、WBD自有FEC内部可以大改。立即systematic/首次交付、低p99/无跨业务HOL、较小CPU与带宽/突发稳定优先；有界内存可以换CPU，原完整性/账号地址隔离/同Seq同wire/generation/MTU/资源有界仍保留。仅本任务允许内部codec/矩阵实现/布局/缓存重构；当前实现方案见docs/FEC_SIMD_OPTIMIZATION_PLAN.md，默认保留wire以隔离优化变量，不机械维护慢内部架构。
+
+本轮用户明确要求最终同一个Actions比较新旧：仅next/fec-simd-20261010的FEC_SIMD方案，单测量job、串行隔离ABBA、相同输入和两精确SOURCE。此前禁止新旧比较/codec替换/同run串行的旧文字对本项由此覆盖，其它验收规则不放宽。低级SIMD及整块融合必须按真实交付/CPU/p99验收，历史失败不被抹去。
+
 ## 1. 产品目标
 
 为 Windows、Linux/OpenWrt 与 Linux 服务端提供弱网可用的包/数据报隧道。外层尽量表现为正常 TCP/TLS，业务保持乱序首次到达立即交付。性能、延迟、状态有界优先；安全等级不是额外复杂化的目标，但基本账户隔离、地址归属、完整性及凭据保密不能取消。

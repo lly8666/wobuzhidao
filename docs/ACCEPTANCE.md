@@ -1,5 +1,9 @@
 # Actions 验收契约
 
+## 2026-10-10 FEC SIMD优化任务覆盖
+
+当前独立工作分支`next/fec-simd-20261010`，方案[FEC_SIMD_OPTIMIZATION_PLAN](FEC_SIMD_OPTIMIZATION_PLAN.md)，接手[模板](templates/FEC_SIMD_AGENT_PROMPT.md)，实时任务只看STATUS.active_work.fec_simd/next_task。用户明确性能第一、自有FEC内部允许大改；原来“不换codec”、禁止新旧对比/串行多测的限制对本项由新方案窄例外覆盖，不影响其它任务。单个Actions测量job新旧ABBA串行；核心功能可多job，未测不算通过。保留已验source快路、active partial、32ms/3s生命周期/late first arrival、无HOL和原硬门。原E1与旧FEC-off实验仅历史，80秒S2C仍优化后处理。
+
 当前任务只看STATUS.json；本轮实施及每步验收见PERFORMANCE_EFFICIENCY_PLAN.md。历史验收事实保留原evidence/devlog，不从旧SOURCE继承新资格。整理前全文见history/20261008-before-efficiency-acceptance.md。
 
 所有开发构建/Go/unit/race/fuzz/功能/性能在Actions。每性能run严格一条样本、一个测量job，普通功能可多job，aggregate只读。profile默认off，诊断另run。源/助手/配置/seed、runner资源与实际网络注入可核验，CI绿不等于端到端PASS。

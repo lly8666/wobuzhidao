@@ -1,6 +1,13 @@
 # WBD NEXT：每位agent的唯一开发入口
 
-本优化工作分支：next/performance-efficiency-20261008。项目规范主线仍为next/tlslike-dataplane，STATUS.branch按仓库契约表示规范主线，STATUS.working_branch表示实际工作分支。未经用户要求不向主线merge或push。
+本优化工作分支：next/fec-simd-20261010。项目规范主线仍为next/tlslike-dataplane，STATUS.branch按仓库契约表示规范主线，STATUS.working_branch表示实际工作分支。未经用户要求不向主线merge或push。
+
+
+## 2026-10-10 本分支当前任务：FEC SIMD（旧任务不自动继续）
+
+本分支实际工作线是`next/fec-simd-20261010`。当前任务以STATUS.active_work.fec_simd与[FEC_SIMD_OPTIMIZATION_PLAN](docs/FEC_SIMD_OPTIMIZATION_PLAN.md)为准，接手模板见[提示词](docs/templates/FEC_SIMD_AGENT_PROMPT.md)。用户明确性能第一、允许大改FEC内部；保留立即交付/无HOL/有界生命周期和原完整性等硬门，不把旧codec/循环结构当不可变约束。原PERFORMANCE计划的“不换codec”对本任务不适用，旧E1下一步只作历史。
+
+本项用户明确授权一个Actions单测量job顺序新旧ABBA，与FEC_POLICY旧串行例外分别限定；无matrix/并行负载，逐leg精确SOURCE/hash/config/seed/receipt与隔离。其它性能仍一run一条。新workflow名称/branch/config精确受限，不全局放宽策略。源码开发和测试只在Actions，本提交只方案，无SIMD/CPU/物理PASS。
 
 ## 先读这些，再动手
 

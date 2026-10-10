@@ -1,5 +1,9 @@
 # 稳态修复与真实路径弱网资格（2026-09-21）
 
+## 2026-10-10 FEC SIMD优化任务覆盖
+
+当前独立工作分支`next/fec-simd-20261010`，方案[FEC_SIMD_OPTIMIZATION_PLAN](FEC_SIMD_OPTIMIZATION_PLAN.md)，接手[模板](templates/FEC_SIMD_AGENT_PROMPT.md)，实时任务只看STATUS.active_work.fec_simd/next_task。用户明确性能第一、自有FEC内部允许大改；原来“不换codec”、禁止新旧对比/串行多测的限制对本项由新方案窄例外覆盖，不影响其它任务。单个Actions测量job新旧ABBA串行；核心功能可多job，未测不算通过。保留已验source快路、active partial、32ms/3s生命周期/late first arrival、无HOL和原硬门。原E1与旧FEC-off实验仅历史，80秒S2C仍优化后处理。
+
 **当前执行入口：第10节（用户最新丢包容忍与单run单样本要求），第9节保留诊断证据。2026-09-23用户已解除性能主线HOLD，授权全新主线agent继续修复。历史HOLD不再阻塞此项工作。**
 
 本文是 DEVELOPMENT_PLAN / ACCEPTANCE 引用的专项执行规范，不是第二套状态或交接。用户新增要求使 P4 稳态传输与 P5 性能资格重新打开；历史通过证据保留，但不能覆盖新增门槛。生产代码修复后 P6 必须按最终同 SHA 重新打包，P7 仍 NOT_RUN。

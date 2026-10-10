@@ -1,5 +1,9 @@
 # 新agent接手：主旨、历程与防退化
 
+## 2026-10-10 FEC SIMD优化任务覆盖
+
+当前独立工作分支`next/fec-simd-20261010`，方案[FEC_SIMD_OPTIMIZATION_PLAN](FEC_SIMD_OPTIMIZATION_PLAN.md)，接手[模板](templates/FEC_SIMD_AGENT_PROMPT.md)，实时任务只看STATUS.active_work.fec_simd/next_task。用户明确性能第一、自有FEC内部允许大改；原来“不换codec”、禁止新旧对比/串行多测的限制对本项由新方案窄例外覆盖，不影响其它任务。单个Actions测量job新旧ABBA串行；核心功能可多job，未测不算通过。保留已验source快路、active partial、32ms/3s生命周期/late first arrival、无HOL和原硬门。原E1与旧FEC-off实验仅历史，80秒S2C仍优化后处理。
+
 这是导航和历史解释，当前任务只看STATUS.json；不增加第二个进度系统。第一次接手先读AGENTS、PROJECT_CHARTER、STATUS顶层active_work/latest_log，再读本轮方案。不要从历史日志saved_next_task、老日期段或CI绿灯推导现在应该做什么。
 
 ## 永久目标

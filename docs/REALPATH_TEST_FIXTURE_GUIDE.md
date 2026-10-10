@@ -1,5 +1,13 @@
 # 真实业务测试夹具：功能、入口与复用边界
 
+## 2026-10-10 helper能力更新与SIMD新旧比较
+
+下面c149564快照是历史，不代表本分支能力。当前继承helper提交543ac2cd2920e9f0fb59fdb38ee6aa3d9a65e56f，已有prepare_large_mtu_harness.py --fec-experiment、--duration-s 15/120/300及--delay-ms 15/50/100/150/300；业务/采样/分母支持对应串行实验。旧36工况run38021635895是FEC-off UDP有效观察，不是新SIMD资格。核每个adapter真实支持的loss/stage，不从可选参数推定5205已完成适配。
+
+现有tools/fec_policy_batch.py固定SOURCE=a2db和experiment/fec-policy-sequential-20261009，只跑单SOURCE off/on，不能直接启动SIMD两SOURCE比较。新任务另建tools/fec_simd_ab.py与精确branch/config受限单job workflow，复用原拓扑/业务/helpers/资源与清理，逐legSOURCE与binary/hash/receipt。旧第4节“当前不能直接运行”仅描述旧c149快照；新能力以上述代码与最新STATUS为准。
+
+最新用户明确允许本项同Actions串行ABBA两SOURCE。开发与测试路线、上下游配置/CPU/真实交付/p99、ARM native、120s screen/300s确认见[FEC_SIMD_OPTIMIZATION_PLAN](FEC_SIMD_OPTIMIZATION_PLAN.md)。300ms TCP-off收尾失败和Game4容量FAIL保留，不能用省CPU关闭它们。
+
 适用工作分支 `next/performance-efficiency-20261008`。这是使用说明，不是第二套STATUS。核验快照：helper HEAD `c149564c5514f13c8b6f75d70d41d5e9d521656c`，产品SOURCE `a2db258b436a41fdee98c6c53abec9bab6ce600f`。最新源码/路径变动先重新读STATUS、对应工具和manifest，不复制历史PASS。
 
 ## 1. 夹具实际测什么
