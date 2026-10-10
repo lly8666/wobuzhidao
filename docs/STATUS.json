@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_MICRO_YAML_CORRECTED_ACTIONS_PENDING",
+    "phase": "FEC_SIMD_S3_RETRY_EXACT_FUSED_B_REALBUSINESS_PILOT",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_FUSED_B_EXACT_SOURCE_STATIC_RECHECK_OLD_PILOT_FAIL",
+      "state": "S3_CROSSPLATFORM_CORE_PASS_PILOT_RETRY_REQUESTED",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3675,7 +3675,11 @@
       "fused_tag": "wbd_fec_span disables fused; wbd_fec_scalar also disables",
       "native_arm64_core": "PASS_RUN_38032963434_SCOPED",
       "s3_preflight_run": 38033774948,
-      "s3_preflight": "PASS_38033774948_OLD_B_STATIC_ONLY",
+      "s3_preflight": {
+        "source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+        "run": 38034441046,
+        "status": "PASS_STATIC_ONLY"
+      },
       "pilot": {
         "run_id": 38033888013,
         "artifact_id": 11662823944,
@@ -3692,11 +3696,19 @@
         "run_id": 38034440396,
         "state": "FAIL_WORKFLOW_YAML_PARSE_NO_JOBS",
         "next": "corrected micro workflow config nonce3 requested"
-      }
+      },
+      "fused_default_native_unit": {
+        "source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+        "core": 38034338215,
+        "foundation": 38034338220,
+        "lifecycle": 38034338226,
+        "status": "PASS_SCOPED"
+      },
+      "pilot_retry": "REQUESTED_THIS_COMMIT"
     }
   },
-  "next_task": "Recheck corrected micro Actions; S2 fused-default core run38034338215 and lifecycle38034338226 PASS; foundation pending. Source-exact S3 preflight run38034441046 verify, then retry A/B pilot only after permission fix. Preserve malformed-yaml failure run.",
-  "latest_log": "docs/devlog/20261010-170000-fec-simd-micro-yaml-parse-fix.md",
+  "next_task": "Read fresh A/B pilot artifact first; if INVALID do not start Q/L. If complete verified, config-only phase=q120 nonce+1. Micro new-B YAML-run pending; all real CPU benefit NOT_MEASURED until fair paired result.",
+  "latest_log": "docs/devlog/20261010-171000-fec-simd-fused-b-pilot-retry.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
