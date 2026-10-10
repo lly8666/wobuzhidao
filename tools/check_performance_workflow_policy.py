@@ -191,6 +191,22 @@ if 'test "$SAMPLE" = success' not in sweep or 'd["valid_cases"]==36' not in swee
     errors.append("FEC sweep: fail-closed all 36 cases required")
 if "tools/perf_sample_guard.py claim" in sweep:
     errors.append("FEC sweep: must not replace formal sample guard")
+
+# Only this exact FEC SIMD experiment has user-authorized same-job serial ABBA.
+simd = Path(".github/workflows/next-fec-simd-ab.yml").read_text()
+if 'branches: ["next/fec-simd-20261010"]' not in simd or simd.count('      - ".github/fec-simd-ab.json"')!=1:
+    errors.append("FEC SIMD: exact branch/config push missing")
+if "workflow_dispatch:" in simd or re.search(r"(?m)^\s+matrix:|^\s+pull_request:",simd):
+    errors.append("FEC SIMD: no dispatch, matrix or PR")
+if simd.count("  one-fec-simd-serial-abba:\n")!=1 or "cancel-in-progress: false" not in simd:
+    errors.append("FEC SIMD: single serial job and concurrency gate required")
+if simd.count("tools/fec_simd_ab.py --mode execute --root")==2:
+    pass  # preflight branch OR one actual run, never simultaneous
+else:
+    errors.append("FEC SIMD: expect preflight and one actual execute only")
+if "a2db258b436a41fdee98c6c53abec9bab6ce600f" not in simd or "89fcb5e99ffc6ae63354ea6628d367ada72d6bed" not in simd:
+    errors.append("FEC SIMD: two independent immutable SOURCE identities required")
+
 if errors:
     raise SystemExit("\n".join(errors))
 print("WBD_PERF_WORKFLOW_POLICY_PASS")

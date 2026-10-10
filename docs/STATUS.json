@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_SCOPED_WAVEFORM_ADAPTER_SUBMITTED",
+    "phase": "FEC_SIMD_S3_ABBA_PREFLIGHT_SUBMITTED",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,13 +3630,13 @@
       }
     },
     "fec_simd": {
-      "state": "S3_ADAPTER_S2_NATIVE_ACTIONS_PASS_PILOT_NOT_RUN",
+      "state": "S3_SCOPED_ABBA_STATIC_PREFLIGHT_PENDING",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
       "branch_parent_sha": "543ac2cd2920e9f0fb59fdb38ee6aa3d9a65e56f",
       "baseline_product_source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
-      "candidate_product_source_sha": null,
+      "candidate_product_source_sha": "89fcb5e99ffc6ae63354ea6628d367ada72d6bed",
       "dependency": {
         "name": "github.com/klauspost/reedsolomon",
         "version": "v1.12.6",
@@ -3657,7 +3657,7 @@
       "cpu_gain": "NOT_MEASURED",
       "physical": "NOT_RUN",
       "selected_route": "S1 SIMD span encoding/recovery; S2 custom-matrix single-worker fused full-block encoding; preserve active partial and measure before retaining a backend.",
-      "same_runner_comparison": "One measurement job; exact A/B SOURCE and helper; serial ABBA legs; no parallel load; same toolchain/config/seed; isolated fresh processes/netns.",
+      "same_runner_comparison": "Q1/Q2/Q3 L1/L2/L3 ABBA configured, pilot mandatory; NOT_RUN",
       "preserve": "Immediate systematic; no cross-business HOL; all parity profiles and min(N,P); current32ms/3s lifecycle; ownership/late-first-arrival; immutable repair/generation/MTU and isolation.",
       "previous_task_preserved_as_history": {
         "working_branch": "experiment/fec-policy-sequential-20261009",
@@ -3676,8 +3676,8 @@
       "native_arm64_core": "PASS_RUN_38032963434_SCOPED"
     }
   },
-  "next_task": "S3 implement fresh A/B exact-SOURCE runner, strict policy and config-only workflow, pilot first; qdisc 120s 30/60/30 stages and sender-attributed delivery; micro before fused promotion. ARM core success not ARM performance gain.",
-  "latest_log": "docs/devlog/20261010-152500-fec-simd-s3-scoped-120s-adapter.md",
+  "next_task": "Check exact S3 Actions preflight result and artifacts. If preflight PASS, config-only pilot 15s A/B before Q120; do not claim 120s performance or P6 without Actions.",
+  "latest_log": "docs/devlog/20261010-155500-fec-simd-s3-abba-preflight.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

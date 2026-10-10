@@ -266,7 +266,7 @@ def main():
                   or (x.sweep_experiment and x.workload=="udp" and x.duration_s==120
                       and x.loss in (1,5,10) and x.delay_ms in (50,100,150)
                       and x.target_mbps in (10,20,30,50) and x.mode=="normal" and x.lanes==1 and x.fec_parity==0)
-                 or (not x.sweep_experiment and x.duration_s in (15,120)
+                 or (not x.simd_ab and not x.sweep_experiment and x.duration_s in (15,120)
                      and x.loss in (0,1,5) and x.delay_ms in (15,300)
                      and x.mode=="normal" and x.lanes==1)):
                 issues.append("INVALID_EXPERIMENT_TUPLE")

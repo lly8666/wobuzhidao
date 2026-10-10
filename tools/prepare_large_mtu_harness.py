@@ -231,7 +231,7 @@ PY_FEC_FLAGS
         swap('workflow_rel = ".github/workflows/next-fec-policy-sequential.yml"',
              'workflow_rel = ".github/workflows/next-fec-simd-ab.yml"')
         swap('"tools/fec_policy_batch.py",',
-             '"tools/fec_policy_batch.py",\\n    "tools/fec_simd_ab.py",')
+             '"tools/fec_policy_batch.py",\n    "tools/fec_simd_ab.py",')
         swap('--drain-s 3 --output', '--drain-s 3 --simd-ab --output')
         swap('[[0,75,5],[75,225,20],[225,300,5]]',
              '[[0,int(os.environ["WBD_FEC_DURATION_S"])//4,5],'
