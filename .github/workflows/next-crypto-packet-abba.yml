@@ -1,0 +1,104 @@
+name: next-crypto-packet-abba
+on:
+  push:
+    branches: ["next/crypto-packet-efficiency-20261010"]
+    paths:
+      - ".github/crypto-packet-abba.json"
+permissions: {contents: read}
+concurrency:
+  group: crypto-packet-serial-exact-branch
+  cancel-in-progress: false
+jobs:
+  one-crypto-packet-serial-abba:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Validate exact scope and do not relax legacy samples
+        run: |
+          set -euo pipefail
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          python3 -m py_compile tools/crypto_packet_abba.py tools/fec_policy_batch.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_loss_stage.py tools/large_mtu_mixed_business.py
+          python3 -m unittest discover -s tools -p 'test_fec_simd_adapter.py' -v
+          python3 tools/crypto_packet_abba.py --mode verify --root artifacts/crypto-packet-abba
+      - name: Static preflight or frozen binaries
+        run: |
+          set -euo pipefail
+          phase=$(python3 -c 'import json;print(json.load(open(".github/crypto-packet-abba.json"))["phase"])')
+          ART="$GITHUB_WORKSPACE/artifacts/crypto-packet-abba"
+          if test "$phase" = preflight; then
+            python3 tools/crypto_packet_abba.py --mode execute --root "$ART"
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl build-essential bison flex pkg-config libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+          mkdir -p "$ART/binaries/A" "$ART/binaries/B"
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+          export WBD_STRICT_TC="$RUNNER_TEMP/wbd-tc"
+          a=7fb98fab79834a351a1dbe04eebb207f66bea28b
+          b=7fb98fab79834a351a1dbe04eebb207f66bea28b
+          for label in A B; do
+            if test "$label" = A; then src="$a"; else src="$b"; fi
+            test "$(git rev-parse "$src^{commit}")" = "$src"
+            git worktree add --detach "$RUNNER_TEMP/wbd-$label" "$src"
+            cd "$RUNNER_TEMP/wbd-$label"
+            test "$(git rev-parse HEAD)" = "$src"
+            printf '%s\n' "$src" > "$ART/binaries/$label/SOURCE_SHA"
+            for role in client server; do
+              GOAMD64=v1 go build -trimpath -o "$ART/binaries/$label/wbd-$role" "./cmd/wbd-$role"
+              go version -m "$ART/binaries/$label/wbd-$role" > "$ART/binaries/$label/$role-build-metadata.txt"
+            done
+            (cd "$ART/binaries/$label" && sha256sum wbd-client wbd-server) > "$ART/binaries/$label/binary-sha256.txt"
+            cd "$GITHUB_WORKSPACE"
+          done
+          go version > "$ART/go-version.txt"
+          uname -a > "$ART/uname.txt"
+          python3 tools/crypto_packet_abba.py --mode execute --root "$ART"
+      - name: Scrub owned raw captures and credentials
+        if: always()
+        run: |
+          if test -d artifacts/crypto-packet-abba; then
+            sudo find artifacts/crypto-packet-abba -type f -name '*.pcap*' -delete
+            sudo find artifacts/crypto-packet-abba -type f -name '*.pem' -delete
+            sudo chmod -R a+rX artifacts/crypto-packet-abba
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: crypto-packet-abba-receipts
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            artifacts/crypto-packet-abba/ab-manifest.json
+            artifacts/crypto-packet-abba/loss-overview.json
+            artifacts/crypto-packet-abba/go-version.txt
+            artifacts/crypto-packet-abba/uname.txt
+            artifacts/crypto-packet-abba/binaries/*/SOURCE_SHA
+            artifacts/crypto-packet-abba/binaries/*/binary-sha256.txt
+            artifacts/crypto-packet-abba/binaries/*/*-build-metadata.txt
+            artifacts/crypto-packet-abba/s*/case-receipt.json
+            artifacts/crypto-packet-abba/s*/summary.json
+            artifacts/crypto-packet-abba/s*/efficiency-ledger.json
+            artifacts/crypto-packet-abba/s*/manifest.json
+            artifacts/crypto-packet-abba/s*/runtime-flags.json
+            artifacts/crypto-packet-abba/s*/generated.sh.receipt.json
+            artifacts/crypto-packet-abba/s*/capture-cleanup.json
+            artifacts/crypto-packet-abba/pilot-*/case-receipt.json
+            artifacts/crypto-packet-abba/pilot-*/summary.json
+            artifacts/crypto-packet-abba/pilot-*/efficiency-ledger.json
+            artifacts/crypto-packet-abba/pilot-*/sanitized-startup.json

@@ -1,5 +1,9 @@
 # WBD NEXT 项目主旨（长期约束）
 
+## 2026-10-10 独立crypto/packet优化补充授权
+
+在 `next/crypto-packet-efficiency-20261010` 以冻结FEC SOURCE `7fb98fab79834a351a1dbe04eebb207f66bea28b` 为本轮A。B逐个原子改动，本任务唯一例外允许同一个Actions单测量job A→B→B→A 串行隔离（仅精确分支/配置/workflow）；原FEC分支和其它一run一条规则不变。首先包号ChaCha20 headerMask(严格20轮/单块8字节输出)，再按native热点决定ARM64 Poly1305，其后TCP Internet checksum，再按热点决定SHA256/copy/alloc/锁内；x86正文保持成熟AEAD。不改变算法、密钥/nonce、record、FEC政策、MTU、认证、fixed wire重传、ownership或重传预算。真实性能优先，同等交付率/完整性/无HOL为硬门；现有弱网probe FAIL、Game4、TCP-off收尾、80秒中断、physical NOT_RUN 不得洗白。详见 docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md。
+
 
 ## 2026-10-10 FEC性能优先重构与同runner比较授权
 

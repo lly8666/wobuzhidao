@@ -1,5 +1,11 @@
 # WBD NEXT：每位agent的唯一开发入口
 
+## 2026-10-10 独立crypto/packet计算与资源优化工作线
+
+当前工作分支 `next/crypto-packet-efficiency-20261010`；冻结产品基线 `7fb98fab79834a351a1dbe04eebb207f66bea28b`；从已审计helper/document提交 `6861c2c94cc6250f51dcc1104b84a42e8526881b` 创建独立分支（两SHA产品代码相同；28个后续提交只改helper/文档/workflow）。本轮只改本分支，不触碰FEC agent分支。唯一实时STATUS.active_work.crypto_packet_efficiency和 docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md 优先于以下FEC历史章节。旧工作分支声明视为保留历史。
+
+新同runner串行A→B→B→A测量仅允许 `.github/workflows/next-crypto-packet-abba.yml` 在本分支 `.github/crypto-packet-abba.json` 单独变更时触发，不能改变旧FEC实验固定source或调其它负载。core/race/fuzz原子优化在Actions，120s+3s筛查、300s关键确认；运行失败保留FAIL/NOT_RUN，不默认合格。维护现有协议/FEC全部参数和fail状态。实时性能CPU需普通profile-off正式业务，ARM crossbuild不算native。
+
 本优化工作分支：next/fec-simd-20261010。项目规范主线仍为next/tlslike-dataplane，STATUS.branch按仓库契约表示规范主线，STATUS.working_branch表示实际工作分支。未经用户要求不向主线merge或push。
 
 

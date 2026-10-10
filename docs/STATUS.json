@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
-  "working_branch": "next/fec-simd-20261010",
+  "working_branch": "next/crypto-packet-efficiency-20261010",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "updated_at": "2026-10-10",
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
-    "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S4_Q2_OBSERVE300_FULL_ABBA_AUDITED_THREE_ORIGINAL_FAILS",
+    "name": "CRYPTO_PACKET_EFFICIENCY",
+    "phase": "C0_FROZEN_BASELINE_GOVERNANCE_STATIC_PREFLIGHT",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -4082,10 +4082,53 @@
         "physical": "NOT_RUN",
         "q2_full_qualification": "FAIL_NOT_REPAIRED_BY_POOLING"
       }
+    },
+    "crypto_packet_efficiency": {
+      "state": "BASELINE_FROZEN_GOVERNANCE_COMMITTED_TESTS_NOT_RUN",
+      "plan": "docs/CRYPTO_PACKET_EFFICIENCY_PLAN.md",
+      "baseline_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+      "branch_start_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
+      "inherited_helper_sha": "6861c2c94cc6250f51dcc1104b84a42e8526881b",
+      "branch": "next/crypto-packet-efficiency-20261010",
+      "baseline_basis": "FEC SIMD core/race native ARM pass 38032963434 and regular profile-off Q1 120s ABBA observed -10.923%; Q2 300s original 3/4 FAIL, only descriptive CPU -13.213%, not qualified",
+      "implementation": {
+        "header_mask": "NOT_STARTED",
+        "arm64_poly1305": "NEEDS_NATIVE_HOTSPOT",
+        "tcp_checksum": "NEEDS_PROFILE",
+        "sha_copy_locks": "NEEDS_PROFILE",
+        "x86_aead": "EXISTING_ASSEMBLY_TO_VERIFY"
+      },
+      "actions": {
+        "baseline_core": 38032963434,
+        "baseline_q1": 38039151704,
+        "baseline_q2": 38042928701,
+        "current_core": null,
+        "current_abba": null
+      },
+      "acceptance": {
+        "unit": "NOT_RUN",
+        "race": "NOT_RUN",
+        "native_arm64": "NOT_RUN_THIS_BRANCH",
+        "normal1": "NOT_RUN_THIS_BRANCH",
+        "game2": "NOT_RUN",
+        "game4": "NOT_RUN",
+        "p6": "NOT_RUN",
+        "physical": "NOT_RUN"
+      },
+      "inherited_failures": [
+        "Q2 300s probe phase 3/4 original FAIL run38042928701",
+        "FEC-off 300ms TCP close/hash FAIL",
+        "Game4 stressed historical FAIL/source-scoped",
+        "RTT/MTU/PMTU open qualification",
+        "80 second downlink OPEN_DEFERRED"
+      ],
+      "code_changed": false,
+      "metrics_claim": "NONE",
+      "helper_source_sha": "branch commits when measured; never HEAD aliases"
     }
   },
-  "next_task": "Q2 300s complete diagnostic Actions38042928701 audited: all four ran A FAIL/B FAIL/B VALID/A FAIL. Full-window combined both directions A app UDP45/1382687 vs B16/1382687, probe A43/5990 vs B29/5990; 20pct stress A c2s probe17/1500 s2c25/1500, B c2s9/1500 s2c17/1500; stage hard FAIL preserved. No socket/link drops, all TCP/HTTPS verified, cleanup clean. CPU-s per delivered GiB A552.612, B479.595 => descriptive B lower13.213%, NOT QUALIFIED because three quality FAIL and one runner. Next determine whether stress-stage probe reliability is acceptable spec, investigate 96B/partial parity and baseline variability without weakening original hard gate; don't claim global SIMD benefit or trigger formal Q3/L/300s without scoped decision. Q1 -10.923pct remains valid only single-runner lossless. ARM native realpath, P6, physical NOT_RUN, E7 OPEN_DEFERRED.",
-  "latest_log": "docs/devlog/20261010-221500-fec-simd-q2observe300-all-four-loss-audit.md",
+  "next_task": "C1 implement and golden-test 20-round one-block ChaCha headerMask with immutable parsed key; enforce source-local core/race and micro in Actions before profile-off same-host 120s ABBA; preserve all inherited Q2 original FAIL and physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-230000-crypto-packet-baseline-and-guard.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

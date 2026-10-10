@@ -218,3 +218,18 @@ if "wbd_fec_span" not in micro or "wbd_fec_scalar" not in micro:
 if errors:
     raise SystemExit("\n".join(errors))
 print("WBD_PERF_WORKFLOW_POLICY_PASS")
+
+# Exact 2026-10-10 crypto/packet ABBA exception. Never alter legacy guards.
+packet = Path(".github/workflows/next-crypto-packet-abba.yml").read_text()
+if 'branches: ["next/crypto-packet-efficiency-20261010"]' not in packet:
+    errors.append("Crypto packet ABBA: wrong exact working branch")
+if packet.count('      - ".github/crypto-packet-abba.json"') != 1 or "workflow_dispatch:" in packet:
+    errors.append("Crypto packet ABBA: exact config-only trigger mandatory")
+if re.search(r"(?m)^\\s+matrix:|^\\s+pull_request:", packet):
+    errors.append("Crypto packet ABBA: no fanout/PR")
+if packet.count("  one-crypto-packet-serial-abba:\\n") != 1 or packet.count("tools/crypto_packet_abba.py --mode execute") != 1:
+    errors.append("Crypto packet ABBA: one job and exact serial runner")
+if "cancel-in-progress: false" not in packet or "tools/perf_sample_guard.py claim" in packet:
+    errors.append("Crypto packet ABBA: concurrency and existing guard must remain isolated")
+if 'test "$BATCH" = success' not in packet:
+    errors.append("Crypto packet ABBA: failed qualification must propagate")
