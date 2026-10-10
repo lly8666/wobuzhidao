@@ -23,6 +23,20 @@ jobs:
         with:
           go-version: "1.23.12"
           cache: false
+      - name: Exact three-file config-only intent; never mix source edits with measurement trigger
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import subprocess
+          rows=[line.split("\\t",1) for line in subprocess.check_output(["git","diff","--name-status","HEAD^","HEAD"],text=True).splitlines()]
+          changes={path:kind for kind,path in rows}
+          assert len(changes)==3, changes
+          assert changes.get(".github/crypto-packet-abba.json")=="M", changes
+          assert changes.get("docs/STATUS.json")=="M", changes
+          logs=[name for name in changes if name.startswith("docs/devlog/") and name.endswith(".md") and changes[name]=="A"]
+          assert len(logs)==1, changes
+          print("WBD_CRYPTO_PACKET_CONFIG_ONLY_GUARD_PASS",logs[0])
+          PY
       - name: Validate exact scope and do not relax legacy samples
         run: |
           set -euo pipefail
@@ -30,6 +44,7 @@ jobs:
           python3 tools/check_performance_workflow_policy.py
           python3 -m py_compile tools/crypto_packet_abba.py tools/fec_policy_batch.py tools/prepare_large_mtu_harness.py tools/check_large_mtu_mixed.py tools/large_mtu_loss_stage.py tools/large_mtu_mixed_business.py
           python3 -m unittest discover -s tools -p 'test_fec_simd_adapter.py' -v
+          python3 -m unittest discover -s tools -p 'test_crypto_packet_abba.py' -v
           python3 tools/crypto_packet_abba.py --mode verify --root artifacts/crypto-packet-abba
       - name: Static preflight or frozen binaries
         run: |
@@ -51,7 +66,7 @@ jobs:
           echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
           export WBD_STRICT_TC="$RUNNER_TEMP/wbd-tc"
           a=7fb98fab79834a351a1dbe04eebb207f66bea28b
-          b=7fb98fab79834a351a1dbe04eebb207f66bea28b
+          b=37e18653b0d08f4a1d932b6fd67fe081e84bda78
           for label in A B; do
             if test "$label" = A; then src="$a"; else src="$b"; fi
             test "$(git rev-parse "$src^{commit}")" = "$src"

@@ -5,7 +5,7 @@ from pathlib import Path
 import fec_policy_batch as old
 
 A="7fb98fab79834a351a1dbe04eebb207f66bea28b"
-B="7fb98fab79834a351a1dbe04eebb207f66bea28b"
+B="37e18653b0d08f4a1d932b6fd67fe081e84bda78"
 CONFIG=Path(".github/crypto-packet-abba.json")
 PARAMS={
  "Q1":("normal",1,10,20,300,0,2261),
@@ -21,7 +21,7 @@ PARAMS={
  "L3":("normal",1,10,0,15,0,2266),
 }
 def plan(phase):
- groups={"preflight":("Q1","Q2","Q3","L1","L2","L3"),"pilot":("Q1",),
+ groups={"preflight":("Q1","Q2","Q3","L1","L2","L3"),"pilot":("Q1",),"q1screen120":("Q1",),
          "q120":("Q1","Q2","Q3"),"l120":("L1","L2","L3"),
          "off120":("OFF0","OFF1"),"game120":("G2","G4","G4LOSS"),
          "confirm300":("Q1","Q2","Q3"),"q2historic300":("Q2",),"q2observe300":("Q2",)}[phase]
@@ -46,7 +46,7 @@ def conf():
  if d != {"schema":"wbd-crypto-packet-abba/v1","phase":d.get("phase"),
           "baseline_source_sha":A,"candidate_source_sha":B,"nonce":d.get("nonce")}:
   raise ValueError("unapproved source or config keys")
- if d["phase"] not in ("preflight","pilot","q120","l120","off120","game120","confirm300","q2historic300","q2observe300") or type(d["nonce"])!=int or d["nonce"]<1:
+ if d["phase"] not in ("preflight","pilot","q1screen120","q120","l120","off120","game120","confirm300","q2historic300","q2observe300") or type(d["nonce"])!=int or d["nonce"]<1:
   raise ValueError("unapproved phase")
  return d
 
@@ -337,7 +337,7 @@ def aggregate(root,phase,cases,receipts,helper):
  found={r["case"]["id"]:r for r in receipts}
  states=[{"case":c,"status":found[c["id"]]["classification"] if c["id"] in found else "NOT_RUN"} for c in cases]
  pairs=[]
- if phase in ("q120","l120","confirm300","q2historic300","q2observe300"):
+ if phase in ("q1screen120","q120","l120","off120","game120","confirm300","q2historic300","q2observe300"):
   for i in range(0,len(cases),4):
    group=cases[i:i+4];v=[]
    for c in group:
