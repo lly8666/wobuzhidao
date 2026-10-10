@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "kind": "N1_SECOND_NON_LIVE_INCREMENT_PENDING",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_sha": "ac27395d94064c58d3020f6f1b759b7a8f1a54c7",
+  "parent_actions": {
+    "codec": {
+      "run_id": 38071987769,
+      "job_id": 114271108396,
+      "status": "PASS",
+      "repetitions": 2
+    },
+    "lifecycle": {
+      "run_id": 38071987697,
+      "status": "PASS"
+    },
+    "foundation": {
+      "run_id": 38071987724,
+      "status": "PASS"
+    }
+  },
+  "candidate_source_sha": "containing_commit",
+  "feature": "bounded one-latest quality mailbox on authenticated lane incarnation, strict V3 payload decoder and report replay fencing",
+  "race_tests": [
+    "same generation and 16-byte nonce",
+    "report Seq strict increase and old generation replay",
+    "unknown/capacity/insufficient/stale aged samples",
+    "no partial snapshot mutation after failed decode",
+    "128 concurrent report arrivals one last winner"
+  ],
+  "actions": "PENDING",
+  "live_v3_health_quality_emitter": false,
+  "live_v3_health_quality_receiver": false,
+  "n2_auto": false,
+  "performance": false,
+  "physical": "NOT_RUN",
+  "deployment": false
+}

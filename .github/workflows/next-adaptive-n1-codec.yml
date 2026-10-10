@@ -6,6 +6,8 @@ on:
       - ".github/workflows/next-adaptive-n1-codec.yml"
       - "internal/datapath/quality_health_v3.go"
       - "internal/datapath/quality_health_v3_test.go"
+      - "internal/datapath/quality_feedback_v3.go"
+      - "internal/datapath/quality_feedback_v3_test.go"
       - "docs/WIRE_SPEC.md"
 permissions:
   contents: read
@@ -31,7 +33,7 @@ jobs:
           python3 tools/check_repository.py
           python3 tools/check_performance_workflow_policy.py
           echo "SOURCE=$GITHUB_SHA; N1 pure 104-byte codec, no live emission or loss qualification" >> "$GITHUB_STEP_SUMMARY"
-      - name: Independent fixed vector and malformed/unknown decoder under race
+      - name: Independent quality codec and one-latest feedback mailbox/race fences
         shell: bash
         run: |
           set -euo pipefail

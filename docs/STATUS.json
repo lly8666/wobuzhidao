@@ -9,19 +9,19 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_RESERVED_104B_HEALTH_QUALITY_CODEC_ACTIONS_PENDING",
+    "phase": "N1_RESERVED_CODEC_PASS_LATEST_ONLY_FEEDBACK_MAILBOX_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
+    "new_product_source_sha": "ac27395d94064c58d3020f6f1b759b7a8f1a54c7",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "N0_ACTIONS_SCOPED_PASS_NATIVE_3_CLIENT_80487E6_AND_ACTUAL_TLS_RACE_A50ACCC_AND_SAMESEQ_RACE_60D6415",
+    "core": "PASS_N0_SCOPED_AND_N1_RESERVED_104B_CODEC_ACTIONS_AC27395_NONLIVE",
     "ordinary_performance": "NOT_RUN_N0_SOURCE_60D6415",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_RESERVED_ENCRYPTED_HEALTH_V2_CODEC_ONLY_NOT_LIVE_ACTIONS_PENDING",
+      "N1_quality": "IN_PROGRESS_104B_CODEC_RACE_PASS_MAILBOX_GENERATION_REPLAY_GATE_PENDING_NOT_LIVE",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -73,20 +73,20 @@
       "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
     },
     "pending_candidate": {
-      "scope": "N1 first codec-only increment: reserved encrypted-health v2 104 byte strict validator and literal independent wire vector, incarnation/generation/report sequence, UNKNOWN/stale/capacity semantics. Live emission/reader integration NOT ENABLED.",
+      "scope": "N1 new per-authoritative-lane one-latest bounded quality-feedback mailbox (reportSeq strict monotonic, incumbent generation and nonce, stale/capacity/insuff/UNKNOWN gates, concurrent out-of-order reports) - pure receiver gate only, no active wire",
       "source_sha": "CONTAINING_COMMIT_SHA",
       "actions": "PENDING",
-      "receiver": "NOT_ENABLED",
-      "sender": "NOT_ENABLED",
-      "two_second_ticker": "NOT_ENABLED",
+      "codec_on_wire": "NOT_ENABLED",
+      "periodic_sender": "NOT_ENABLED",
+      "receiver_in_runtime": "NOT_ENABLED",
       "physical": "NOT_RUN"
     }
   },
-  "next_task": "N1: verify next-adaptive-n1-codec -race fixed vector/malformed and existing health v1 Actions for exact SOURCE; if failure, preserve raw failed run and fix. Then implement low-overhead 2s active-lane only quality report publication/reception on admission V3 with generation+incarnation+reportSeq fencing, no FEC, no per-data-packet overhead, no HOL, honest sender watermarks/UNKNOWN for unmeasurable WAN loss; test stale/reordered/repeated/dormant and no silent V2 enablement in Actions. N0 scoped core PASS unchanged. All N0–N6 feature Actions before final physical.",
-  "latest_log": "docs/devlog/20261011-020000-adaptive-n1-reserved-health-quality-codec.md",
+  "next_task": "N1: inspect focused next-adaptive-n1-codec -race for new bounded mailbox and foundation/lifecycle on source commit. Preserve any failures and fix. After PASS integrate real active V3 lane-only <=2s sender+receiver on authenticated KindHealth (legacy v1 remains; refuse V2/unknown), incarnation/report sequence replay fence, O(1) bounded matured counters and HONEST ESTIMATED/UNKNOWN, never per business scan/JSONL/wake, no HOL; run regression/actions. N0 scoped real 3-client and sameSeq remains PASS. No physical before all N0-N6 Actions/P6.",
+  "latest_log": "docs/devlog/20261011-022000-adaptive-n1-guarded-latest-report-mailbox.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "60d6415c782e81b0b6ea3aa7772d390b2c788efb",
-  "last_tested_scope": "test-only SOURCE 60d6415 targeted 12 same Seq full sealed record RTO race + foundation Linux/Windows/lifecycle PASS; 80487e6 earlier exact real 9-netns 3-client single functional PASS; a50accc earlier first S2C before C2S in-memory actual TLS PASS; no N1-Auto-AES-TUN-Perf-P6",
+  "last_tested_source_sha": "ac27395d94064c58d3020f6f1b759b7a8f1a54c7",
+  "last_tested_scope": "N1 strict 104-byte versioned protected KindHealth reserved codec tests -race twice PASS on ac27395 + foundation/lifecycle; no live quality feedback",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -292,6 +292,34 @@
       "status": "PASS",
       "run_id": 38071265930,
       "cause": "PASS: all 7 required foundation jobs (repository contract, privileged OpenWrt and shared Linux TUN variants, kernel fallback, Linux and Windows Go tests/build). No Windows native Wintun physical qualification."
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "source_sha": "ac27395d94064c58d3020f6f1b759b7a8f1a54c7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071987769",
+      "scope": "N1_RESERVED_104B_QUALITY_CODEC_RACE_AND_MALFORMED_VECTOR",
+      "status": "PASS",
+      "run_id": 38071987769,
+      "cause": "PASS: independent literal 104B fixture, strict invalid version/length/flags/nonce/generation/PN, UNKNOWN/capacity/stale semantics, legacy health v1 rejection. -race count=2; non-live codec only.",
+      "job_id": 114271108396
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "ac27395d94064c58d3020f6f1b759b7a8f1a54c7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071987697",
+      "scope": "N1_RESERVED_CODEC_LIFECYCLE_REGRESSION",
+      "status": "PASS",
+      "run_id": 38071987697,
+      "cause": "PASS: all existing lifecycle and focused race checks on exact codec SOURCE; no real feedback emission."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "ac27395d94064c58d3020f6f1b759b7a8f1a54c7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38071987724",
+      "scope": "N1_RESERVED_CODEC_FOUNDATION_REGRESSION",
+      "status": "PASS",
+      "run_id": 38071987724,
+      "cause": "PASS: all required Linux/Windows Go and privileged network baseline jobs; no live feedback/auto AES or physical."
     }
   ],
   "required_read_set": [
