@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_PILOT_MICRO_ACTIONS_REQUESTED",
+    "phase": "FEC_SIMD_S2_FUSED_DEFAULT_AFTER_MICRO_WAIT_CORE",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_PREFLIGHT_PASS_PILOT_REQUESTED",
+      "state": "S2_FUSED_DEFAULT_SOURCE_SUBMITTED_UNIT_PENDING",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3654,7 +3654,7 @@
         "s2_lifecycle": 38032963427,
         "s3": "NOT_RUN"
       },
-      "cpu_gain": "NOT_MEASURED",
+      "cpu_gain": "NOT_MEASURED_BIZ",
       "physical": "NOT_RUN",
       "selected_route": "S1 SIMD span encoding/recovery; S2 custom-matrix single-worker fused full-block encoding; preserve active partial and measure before retaining a backend.",
       "same_runner_comparison": "Q1/Q2/Q3 L1/L2/L3 ABBA configured, pilot mandatory; NOT_RUN",
@@ -3671,17 +3671,39 @@
         "qualification_scope": "oneparse aa931d candidate: game4 staged5205, game4 lossless, game2 lossless, normal1 lossless, normal1 staged5205 and game2 staged5205 have source-local single-action scoped success (consult protectors); Game2 staged S2C one UDP missing under stress; no host-agnostic gain, no confirmed physical deployment, low RTT sparse not run, old ba8ed1 EPYC9V45 socket-drop FAIL kept as historical source failure, E7 OPEN_DEFERRED"
       },
       "qualification_notice": "Existing parent-source PASS/FAIL and historical fields remain source-scoped; none qualify a future SIMD candidate.",
-      "fused_default": false,
-      "fused_tag": "wbd_fec_fused",
+      "fused_default": true,
+      "fused_tag": "wbd_fec_span disables fused; wbd_fec_scalar also disables",
       "native_arm64_core": "PASS_RUN_38032963434_SCOPED",
       "s3_preflight_run": 38033774948,
       "s3_preflight": "PASS_NO_TRAFFIC",
-      "pilot": "NOT_RUN_AT_SUBMISSION",
-      "micro": "NOT_RUN_AT_SUBMISSION"
+      "pilot": {
+        "run_id": 38033888013,
+        "status": "FAIL_INFRA_INVALID_A_FIRST_LEG_B_NOT_RUN",
+        "class": "PermissionError",
+        "note": "pilot artifact 11662823944 has only A first leg, no manifest/runtime flags; no CPU evidence"
+      },
+      "micro": {
+        "run_id": 38033888108,
+        "status": "PASS_SCOPED_X86_KERNEL_ONLY",
+        "network_shard_p20_96_ns": {
+          "span": 6481,
+          "fused": 3896
+        },
+        "network_shard_p20_512_ns": {
+          "span": 10322,
+          "fused": 6208
+        },
+        "network_shard_p20_1400_ns": {
+          "span": 27105,
+          "fused": 19987
+        },
+        "real_business": "NOT_MEASURED",
+        "backend_native_ISA_profile": "NOT_RUN"
+      }
     }
   },
-  "next_task": "Inspect two exact Actions runs: pilot 15s A/B actual business and micro same runner network-size SIMD/scalar. Do not start Q120 until pilot valid; fix if pilot fails. Scalar/Fused production defaults remain unchanged.",
-  "latest_log": "docs/devlog/20261010-160200-fec-simd-pilot-and-micro.md",
+  "next_task": "Immediately run core/lifecycle Actions for promoted default. Freeze this exact promoted product SOURCE in independent A/B harness, preserve failed old pilot receipt, fix owned artifact PermissionError via privilege-scoped ownership recovery and sanitized traceback before retry. Only then Q/L, ARM perf, S5 qualified P6.",
+  "latest_log": "docs/devlog/20261010-162000-fec-simd-s2-fused-default-on-micro.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

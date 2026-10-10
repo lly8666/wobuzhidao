@@ -1,6 +1,7 @@
-//go:build !wbd_fec_fused || wbd_fec_scalar
+//go:build wbd_fec_span || wbd_fec_scalar
 
 package fec
 
-// Production stays on the validated active span path until paired evidence.
+// Explicit safety regression mode: original active-source SIMD spans or
+// scalar lookup. Never allow unknown hosts to invoke native instructions.
 const fecFusedEnabled = false

@@ -1,7 +1,8 @@
-//go:build wbd_fec_fused && !wbd_fec_scalar
+//go:build !wbd_fec_span && !wbd_fec_scalar
 
 package fec
 
-// Experimental backend selection used only to collect matched Actions proof.
-// Promotion to default requires parity/ownership/CPU/p99 and loss gates.
+// Full 20-source blocks use the measured faster custom generator-matrix
+// fused backend on CPUs with native SIMD capability. Partial 1..19 source
+// groups remain active-only span encoded. wbd_fec_span is the safe opt-out.
 const fecFusedEnabled = true

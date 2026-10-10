@@ -86,9 +86,9 @@ func (r *FastReedSolomon20x20) EncodeActive(shards [][]byte, dataCount, parityCo
 	if err != nil {
 		return err
 	}
-	// The fused backend is deliberately opt-in until same-runner micro and
-	// real-business CPU/p99 measurements justify making it the default.
-	// Partial blocks ALWAYS use the active-only span backend.
+	// Full 20-source blocks use native SIMD fused custom-matrix parity;
+	// 1..19 active-source partials ALWAYS use the original span backend.
+	// wbd_fec_span is the controlled opt-out for any real-business regression.
 	if dataCount == DataShards && fecFusedEnabled && fecSIMDEnabled {
 		return r.encodeFullFused(shards, parityCount)
 	}
