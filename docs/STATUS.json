@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_UNIFIED_IDLE_QUALITY_CONTROL_EVENT_SCHEDULER_PADDED_KINDHEALTH_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N1_UNIFIED_CONTROL_PADDING_FIRST_GO_RACE_NATIVE_PASS_OLD_40BYTE_HEALTH_TEST_FAIL_FIX_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -21,7 +21,7 @@
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_AUTH_ECHO_SCOPED_PASS_CONTROL_UNIFIED_KEEPALIVE_EVENT_DRIVEN_PADDED_9_104_128_CANDIDATE_ACTIONS_PENDING",
+      "N1_quality": "IN_PROGRESS_UNIFIED_CONTROL_EVENT_TRIGGERS_PADDED_9_104_128_FOCUSED_RACE_AND_NATIVE_PASS_FIRST_LIFECYCLE_FOUNDATION_FAIL_LEGACY_FIXED_WIRE_TEST",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -94,18 +94,26 @@
       "n1_echo_scope": "V3 exact 128B AEAD KindHealth echoes receiver estimate referencing earlier source reportSeq+nonce+generation+last DATA PN, per-incarnation 16 successfully emitted report history and <=10s source, actual 20 postEmit vs 19 authenticated firstUnique 3s matured returned to original sender; N2 disabled. V2 104B and legacy 9B maintained; 9-netns 3 clients only configured zero loss business functional."
     },
     "pending_candidate": {
-      "scope": "Runtime.Tick single arbiter: successful quality/128B echo IdleFor also meets normal health; no two same tick; event-triggered TX watermark and matured echo, no old idle report flood; failed Emit 1s retry backoff not successful health; control-only randomized encrypted zero padding 9/104/128 strictly bounded by direction pathmtu RecordWireMTU, no business/startup/FEC changes; keepalive success jitter ±10%",
-      "source_sha": "CONTAINING_COMMIT_SHA",
-      "actions": "PENDING",
-      "fullstack_perf_matrix": "NOT_RUN",
-      "ipv6_outer": "NOT_RUN",
-      "cli_padding_knobs": "NOT_WIRED_INTERNAL_TRANSPORT_CONFIG_ONLY",
+      "scope": "Only alter outdated legacy regression to assert exactly 1 health KindHealth, wire >=40 within true derived pathmtu headroom rather than exact fixed 40B, same authenticated IdleFor and no FEC/business. Product code unchanged. Preserve previous FAIL and rerun all Actions under corrective SHA.",
+      "first_source_sha": "6482c184d980028f002440e87b281a78b092ccfe",
+      "new_source_sha": "CONTAINING_COMMIT_SHA",
+      "first_source_actions": {
+        "n1_race": "PASS",
+        "samewire": "PASS",
+        "native_three": "PASS",
+        "lifecycle": "FAIL",
+        "foundation": "FAIL"
+      },
+      "failed_root_cause": "health_test.go:62 assumed unpadded 9B health ciphertext fixed 40B and rejected now legal encrypted zero padding",
+      "correction": "TEST_ONLY",
+      "user_cli_switch": "INTERNAL_TRANSPORT_CONFIG_ONLY_NOT_CLI",
+      "performance_matrix": "NOT_RUN",
       "physical": "NOT_RUN",
       "n2_auto": "NOT_ENABLED"
     }
   },
-  "next_task": "Read exact source N1 focused -race x2 9/104/128 padded health strict decode tamper, explicit0/max headroom and on-wire bounded record, control merged keepalive actual IdleFor, idle report suppression, failure backoff and stored ciphertext original Seq; inspect next-foundation Linux/Windows and actual 9-netns native 3 clients. Keep FAIL exact SHA, fix in new commit. After unit/race & native functional, wire internal padding switch/max through official CLI/JSON and generated PARAMETERS.json using tools/parameter_catalog.py in Actions, then separately run specified single SOURCE/config/scenario fullstack matched baseline and candidate, including 10Mbps Normal off/20:20, Game4 3Mbps each direction, 0/1/5/20% phases, idle/sparse/oneway, 300ms vs low RTT and MTU bounds. Unrun scenarios remain NOT_RUN and capacity limited distinct. N2 auto remains OFF until N1 qualification; physical final only after N0–N6 and P6.",
-  "latest_log": "docs/devlog/20261011-113000-n1-unified-event-control-padding-first-candidate.md",
+  "next_task": "Rerun N1 control-focused race, lifecycle, Linux/Windows foundation and real nine-netns 3-client source after health_test corrected to bounded variable length. Verify 9B strict decoded IdleFor, forced idle and no FEC amplification, original Seq entire padded ciphertext. Then wire user CLI/config field through generated parameter catalog, perf comparison as separate source/config/condition Actions. N1 overall pending impaired feedback + full matrix, N2 off, final physical after N0–N6/P6.",
+  "latest_log": "docs/devlog/20261011-121500-n1-control-padding-first-actions-fixed40-test-fail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
   "last_tested_scope": "4f0cf78 N1 128B strict codec and actual authenticated echoed feedback -race count2, lifecycle, samewire six cases, Linux/Windows foundation and 9-netns three formal native clients all scoped PASS; genuine impaired netem loss confidence/burst/late/overflow and reciprocal multi-lane soak not tested; N2-N6/P6 and physical NOT_RUN",
@@ -697,6 +705,51 @@
       "scope": "N1_CORRELATED_128B_ECHO_DOCS_ONLY_RECEIPT_FOUNDATION",
       "status": "PASS",
       "cause": "Docs-only 6d7381f receipt foundation PASS; no source evidence for control scheduling/padding optimization."
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "source_sha": "6482c184d980028f002440e87b281a78b092ccfe",
+      "run_id": 38081234762,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081234762",
+      "scope": "N1_CONTROL_UNIFY_PADDING_FIRST_SOURCE_ACTIONS",
+      "status": "PASS",
+      "cause": "two-repetition Go -race new 9/104/128 KindHealth padded strict/tamper/bounds, merged health IdleFor, idle suppression, controlled failure/backoff, prior quality echo tests; exact SOURCE 6482c18"
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "6482c184d980028f002440e87b281a78b092ccfe",
+      "run_id": 38081234695,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081234695",
+      "scope": "N1_CONTROL_UNIFY_PADDING_FIRST_SOURCE_ACTIONS",
+      "status": "FAIL",
+      "cause": "legacy health_test.go:62 requires wire exactly 40B for 9B health; new legal encrypted zero padding makes record longer though one record remains, false fixed-wire assumption"
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "source_sha": "6482c184d980028f002440e87b281a78b092ccfe",
+      "run_id": 38081234694,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081234694",
+      "scope": "N1_CONTROL_UNIFY_PADDING_FIRST_SOURCE_ACTIONS",
+      "status": "PASS",
+      "cause": "real 9-netns three official native Linux clients share server/TUN port443, each of six directions 297/297 first-unique packets 150480/150480B; validator problems []. Artifact 11680891094 sha256:02f849ab479bd6ad34ebfbd1dcbbe9cd840315441991244750714111af826689; zero-loss sample not performance"
+    },
+    {
+      "name": "next-adaptive-n0-samewire",
+      "source_sha": "6482c184d980028f002440e87b281a78b092ccfe",
+      "run_id": 38081234730,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081234730",
+      "scope": "N1_CONTROL_UNIFY_PADDING_FIRST_SOURCE_ACTIONS",
+      "status": "PASS",
+      "cause": "six per-profile/direction original FakeTCP Seq exact full encrypted ciphertext repair Go race regression"
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "6482c184d980028f002440e87b281a78b092ccfe",
+      "run_id": 38081234724,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38081234724",
+      "scope": "N1_CONTROL_UNIFY_PADDING_FIRST_SOURCE_ACTIONS",
+      "status": "FAIL",
+      "cause": "active-go-tests on ubuntu and windows fail same legacy fixed 40B health ciphertext length assertion; unaffected repository/privileged jobs do not make entire foundation PASS"
     }
   ],
   "required_read_set": [

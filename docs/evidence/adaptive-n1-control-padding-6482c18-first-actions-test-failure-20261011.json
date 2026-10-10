@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_sha": "6482c184d980028f002440e87b281a78b092ccfe",
+  "kind": "N1_CONTROL_PADDING_FIRST_ACTIONS_FAILURE_OLD_FIXED_WIRE_TEST",
+  "actions": [
+    {
+      "name": "next-adaptive-n1-codec",
+      "run": 38081234762,
+      "status": "PASS",
+      "scope": "Go race two repetitions 9B/104B/128B zero encrypted padding and merged quality/idle/suppression/failure tests"
+    },
+    {
+      "name": "next-adaptive-n0-samewire",
+      "run": 38081234730,
+      "status": "PASS"
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "run": 38081234694,
+      "status": "PASS",
+      "artifact_id": 11680891094,
+      "artifact_sha256": "02f849ab479bd6ad34ebfbd1dcbbe9cd840315441991244750714111af826689",
+      "each_six_directions": "297/297 packets 150480/150480 bytes first unique",
+      "checker_problems": []
+    },
+    {
+      "name": "next-lifecycle",
+      "run": 38081234695,
+      "status": "FAIL",
+      "cause": "health_test.go:62 expects fixed ciphertext 40 bytes, invalid after encrypted control zero padding"
+    },
+    {
+      "name": "next-foundation",
+      "run": 38081234724,
+      "status": "FAIL",
+      "cause": "same old health wire fixed 40B Go assertion, Linux/Windows active Go tests"
+    }
+  ],
+  "correction": {
+    "source_sha": "CONTAINING_COMMIT_SHA",
+    "scope": "test-only variable ciphertext length bounded by derived actual pathmtu ControlHeadroom; preserve one health/nonFEC/peerIdle/stale/blackhole/replay assertions"
+  },
+  "user_cli_padding_switch": "NOT_WIRED",
+  "ipv6_outer": "NOT_RUN",
+  "fullstack_matched_perf": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "n2_auto": "NOT_ENABLED"
+}

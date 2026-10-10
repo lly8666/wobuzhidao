@@ -58,8 +58,11 @@ func TestHealthAuthenticatedIndependentOfFECAndBusiness(t *testing.T) {
 		if e := cr.Tick(now); e != nil {
 			t.Fatal(e)
 		}
-		if len(wires) != 1 || len(wires[0].Payload) != 40 {
-			t.Fatalf("health amplified by FEC: parity=%d wires=%d", parity, len(wires))
+		headroom, headErr := co.ControlHeadroom(cs.Ref, 9)
+		if headErr != nil {t.Fatal(headErr)}
+		if len(wires) != 1 || len(wires[0].Payload) < 40 ||
+			len(wires[0].Payload) > 40+headroom {
+			t.Fatalf("health control must stay one non-FEC record inside MTU: parity=%d wires=%d headroom=%d", parity, len(wires), headroom)
 		}
 		if e := sr.HandleSegment(ss.Ref, wires[0], now); e != nil {
 			t.Fatal(e)
