@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "state": "DEPLOYED_READY_FOR_USER_CONNECT",
+  "scope": "AUTHORIZED_PHYSICAL_USER_TRIAL_BASIC_SMOKE_ONLY",
+  "qualification_branch": "qualification/fec-simd-user-trial-20261010",
+  "package_run": 38052310882,
+  "packages": [
+    {
+      "target": "linux-arm64",
+      "artifact_id": 11670305385,
+      "archive_sha256": "a5f94a321c7705c727544662b99caad91b112beb20607f8004e41faf551b3d73",
+      "manifest_sha256": "39b33c575e6b4f2df3096ff7483d5568b54b07d635973706981644bfd90cbac7",
+      "files_verified": 10
+    },
+    {
+      "target": "windows-amd64",
+      "artifact_id": 11669674745,
+      "archive_sha256": "67bdcce78a83a292d5b070b4502f74f961d27509cf51afe0d32e49e2aacae736",
+      "manifest_sha256": "f81f9e1198342e1c044b1a6e7ccea6e5264f1dc199c0a5e295d5ea0c3946bacd",
+      "files_verified": 13
+    }
+  ],
+  "configuration": {
+    "mode": "Normal",
+    "lanes": 1,
+    "fec": "20:20",
+    "server_name": "www.cisco.com",
+    "decoy": "www.cisco.com:443",
+    "rotate_min": "5m",
+    "rotate_max": "10m",
+    "idle_dormant": "2m",
+    "route_mode": "bypass-lan",
+    "dns_hijack": true,
+    "dns4": [
+      "1.1.1.1",
+      "8.8.8.8"
+    ],
+    "ipv6": "BLOCK",
+    "keepalive_interval": "15s",
+    "dead_after": "90s",
+    "tls_startup_padding": false,
+    "diagnostic_jsonl": "OFF",
+    "outer_mtu": 1400,
+    "observed_inner_mtu": 1273
+  },
+  "checks": {
+    "windows_and_linux_arm_source_exact": true,
+    "archive_manifest_all_file_size_hash_matches": true,
+    "native_config_validation": true,
+    "server_systemd_active": true,
+    "windows_ready": true,
+    "external_https_server_egress": true,
+    "external_https_elapsed_ms": 554,
+    "dns_resolution_success": true,
+    "lan_route_physical": true,
+    "internet_route_tunnel": true,
+    "dns_both_nameservers_installed": true,
+    "ipv6_owned_block_rules_installed": 2,
+    "ordinary_https_cisco_fallback_http": 200,
+    "gui_running_in_interactive_session": true,
+    "graceful_cleanup": {
+      "State": "STOPPED",
+      "Ready": true,
+      "Reason": "requested_stop",
+      "ExitCode": 0,
+      "NetworkStateRemaining": false,
+      "OwnedNRPTRemaining": 0,
+      "OwnedFirewallRemaining": 0,
+      "ElapsedSeconds": 109.7
+    }
+  },
+  "raw_receive_buffer": {
+    "requested_bytes": 524288,
+    "effective_bytes": 1048576,
+    "same_socket_privileged_fallback": true,
+    "global_sysctl_changed": false
+  },
+  "rollback": {
+    "previous_product_source": "b4ea061178a6e09b7e7c8587d72b4b8535492567",
+    "linux_binary_and_config_backup_retained": true,
+    "windows_previous_bundle_retained": true
+  },
+  "not_run": [
+    "five_minute_full_physical_suite",
+    "performance_capacity_or_p99_benchmark",
+    "rotation_5_to_10_minute_runtime_observation",
+    "payload_idle_2_minute_and_rewake_runtime_observation",
+    "DNS_failure_injection_or_backup_failover",
+    "MTU_large_datagram_weaknet_stress"
+  ],
+  "known_open": [
+    "Q2 ordinary probe quality FAILs remain OPEN",
+    "historical approximately 80s S2C interruption remains OPEN_DEFERRED",
+    "historical Game4 capacity limitations remain OPEN"
+  ],
+  "updated_at": "2026-10-10T12:42:21.358685+00:00"
+}

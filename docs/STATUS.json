@@ -5,7 +5,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-10-10",
+  "updated_at": "2026-10-10T12:42:21.358685+00:00",
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
@@ -4081,11 +4081,22 @@
         "original_q120_fail_retained": true,
         "physical": "NOT_RUN",
         "q2_full_qualification": "FAIL_NOT_REPAIRED_BY_POOLING"
+      },
+      "user_trial": {
+        "state": "DEPLOYED_READY_FOR_USER_CONNECT",
+        "source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+        "qualification_branch": "qualification/fec-simd-user-trial-20261010",
+        "package_run": 38052310882,
+        "evidence": "docs/evidence/fec-simd-7fb98fab-user-trial-20261010.json",
+        "latest_log": "docs/devlog/20261010-204100-fec-simd-physical-user-trial.md",
+        "physical_full_qualification": "NOT_RUN",
+        "previous_fec_qualification_latest_log": "docs/devlog/20261010-221500-fec-simd-q2observe300-all-four-loss-audit.md",
+        "user_connect_required": true
       }
     }
   },
   "next_task": "Q2 300s complete diagnostic Actions38042928701 audited: all four ran A FAIL/B FAIL/B VALID/A FAIL. Full-window combined both directions A app UDP45/1382687 vs B16/1382687, probe A43/5990 vs B29/5990; 20pct stress A c2s probe17/1500 s2c25/1500, B c2s9/1500 s2c17/1500; stage hard FAIL preserved. No socket/link drops, all TCP/HTTPS verified, cleanup clean. CPU-s per delivered GiB A552.612, B479.595 => descriptive B lower13.213%, NOT QUALIFIED because three quality FAIL and one runner. Next determine whether stress-stage probe reliability is acceptable spec, investigate 96B/partial parity and baseline variability without weakening original hard gate; don't claim global SIMD benefit or trigger formal Q3/L/300s without scoped decision. Q1 -10.923pct remains valid only single-runner lossless. ARM native realpath, P6, physical NOT_RUN, E7 OPEN_DEFERRED.",
-  "latest_log": "docs/devlog/20261010-221500-fec-simd-q2observe300-all-four-loss-audit.md",
+  "latest_log": "docs/devlog/20261010-204100-fec-simd-physical-user-trial.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",
