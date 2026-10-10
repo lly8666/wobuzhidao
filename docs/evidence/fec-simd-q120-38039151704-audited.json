@@ -1,0 +1,294 @@
+{
+  "schema": "wbd-fec-simd-q120-partial-abba-audited/v1",
+  "source": {
+    "repository": "lly8666/wobuzhidao",
+    "branch": "next/fec-simd-20261010",
+    "working_head_before_audit": "575f4318be52545b4b4b5d04e9ca1348297325a3",
+    "old_A": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "new_B": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+    "measurement_helper_sha": "5a3406fc249cbbfba28cd537cbc43f0110a2713e"
+  },
+  "actions": {
+    "run_id": 38039151704,
+    "job_id": 114175752331,
+    "conclusion": "FAIL",
+    "artifact_id": 11665571189,
+    "artifact_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38039151704/artifacts/11665571189",
+    "workflow_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38039151704",
+    "downloaded_archive_sha256": "46c80b718c2a389e9de21a267570d0b3346f6a5a2dae7936e317ee6dedc52170"
+  },
+  "protocol": {
+    "phase": "q120",
+    "order_per_context": [
+      "A",
+      "B",
+      "B",
+      "A"
+    ],
+    "single_job_serial": true,
+    "workload": "mixed",
+    "duration_business_s": 120,
+    "drain_s": 3,
+    "context_count": 3,
+    "legs_planned": 12,
+    "legs_started": 5,
+    "legs_valid": 4,
+    "legs_fail": 1,
+    "legs_not_run": 7,
+    "toolchain": "go1.23.12 GOAMD64=v1",
+    "binary_hashes": {
+      "A": {
+        "client": "303495af95d02f8644af6c3d49a45f5c9c093a3fd9e23b307e31dc1ef0079c67",
+        "server": "4b165f41862f98cf502549f2db75eb5cf9801ea088bf6b922d8bc9d3c46af69a"
+      },
+      "B": {
+        "client": "d4192a43733bffa581069e80a0ff406a5b4a71d48be5953bc05fc32ada0bdb2e",
+        "server": "80150437d6465eaa6b9c903dab020d889a3af9983d47f77d8106758583293204"
+      }
+    }
+  },
+  "q1": {
+    "state": "VALID_OBSERVATION_SINGLE_RUN_ABBA_NOT_CROSS_RUNNER",
+    "settings": {
+      "mode": "normal",
+      "lanes": 1,
+      "parity": "20:20",
+      "one_way_delay_ms": 300,
+      "loss_percent": 0,
+      "rate_mbps_each_direction": 10,
+      "seed": 2261
+    },
+    "leg_order": [
+      "A",
+      "B",
+      "B",
+      "A"
+    ],
+    "legs": [
+      {
+        "id": "s01",
+        "source": "A",
+        "total_cpu_s": 100.12,
+        "cpu_s_per_verified_gib": 359.2849730776813,
+        "delivered_bytes": 299213826,
+        "probe_missing_c2s": 0,
+        "probe_missing_s2c": 0,
+        "probe_p99_ms": {
+          "c2s": 603.432215,
+          "s2c": 603.670281
+        },
+        "rss_hwm_mib": {
+          "client": 40.79296875,
+          "server": 41.6640625
+        },
+        "cpu_psi_some_avg10_max_percent": 9,
+        "classification": "VALID_OBSERVATION"
+      },
+      {
+        "id": "s02",
+        "source": "B",
+        "total_cpu_s": 89.17,
+        "cpu_s_per_verified_gib": 319.990421986984,
+        "delivered_bytes": 299213826,
+        "probe_missing_c2s": 0,
+        "probe_missing_s2c": 0,
+        "probe_p99_ms": {
+          "c2s": 602.868815,
+          "s2c": 603.475745
+        },
+        "rss_hwm_mib": {
+          "client": 41.515625,
+          "server": 43.9921875
+        },
+        "cpu_psi_some_avg10_max_percent": 34.96,
+        "classification": "VALID_OBSERVATION"
+      },
+      {
+        "id": "s03",
+        "source": "B",
+        "total_cpu_s": 90.32,
+        "cpu_s_per_verified_gib": 324.1172469873768,
+        "delivered_bytes": 299213826,
+        "probe_missing_c2s": 0,
+        "probe_missing_s2c": 0,
+        "probe_p99_ms": {
+          "c2s": 604.102803,
+          "s2c": 603.669861
+        },
+        "rss_hwm_mib": {
+          "client": 43.38671875,
+          "server": 44.0390625
+        },
+        "cpu_psi_some_avg10_max_percent": 8.38,
+        "classification": "VALID_OBSERVATION"
+      },
+      {
+        "id": "s04",
+        "source": "A",
+        "total_cpu_s": 101.38,
+        "cpu_s_per_verified_gib": 363.80653786072037,
+        "delivered_bytes": 299213826,
+        "probe_missing_c2s": 0,
+        "probe_missing_s2c": 0,
+        "probe_p99_ms": {
+          "c2s": 604.540668,
+          "s2c": 604.689255
+        },
+        "rss_hwm_mib": {
+          "client": 40.78125,
+          "server": 41.4921875
+        },
+        "cpu_psi_some_avg10_max_percent": 9.05,
+        "classification": "VALID_OBSERVATION"
+      }
+    ],
+    "cpu_s_per_verified_gib_A_mean": 361.5457554692008,
+    "cpu_s_per_verified_gib_B_mean": 322.05383448718044,
+    "cpu_gain_B_fraction": 0.10923076923076913,
+    "mean_total_cpu_s_A": 100.75,
+    "mean_total_cpu_s_B": 89.745,
+    "comparable_delivered_bytes_per_leg": 299213826,
+    "all_probe_timeout_count": 0,
+    "all_udp_missing_count": 0,
+    "all_tcp_hash_length_mismatch_count": 0,
+    "all_http_https_verified_20_of_20": true,
+    "all_raw_socket_link_drops_zero": true,
+    "all_owned_cleanup_clean": true,
+    "all_netem_0pct": true,
+    "host_cpu_quota": "UNKNOWN",
+    "replication": "ONE_HOST_ONE_ABBA_ONLY",
+    "full_window_wire_ip_bytes": "NOT_AVAILABLE",
+    "p99_qualification_note": "no missing probes in these Q1 legs; no p99 warning vs A >=10ms or >=5pct"
+  },
+  "q2": {
+    "state": "FAIL_QUALITY_OLD_A_STRESS_PROBE_LOSS",
+    "settings": {
+      "mode": "normal",
+      "lanes": 1,
+      "parity": "20:20",
+      "one_way_delay_ms": 300,
+      "loss_waveform_percent": [
+        5,
+        20,
+        5
+      ],
+      "rate_mbps_each_direction": 10,
+      "seed": 2262
+    },
+    "leg_id": "s05",
+    "source": "A",
+    "sample_exit": 0,
+    "analyzer_exit": 1,
+    "ledger_exit": 0,
+    "classification": "FAIL",
+    "issues": [
+      "5205_STAGE_PROBE_LOSS_OVER_1PCT_c2s_stress",
+      "5205_STAGE_PROBE_LOSS_OVER_1PCT_s2c_stress"
+    ],
+    "phase_attribution": "actual sender monotonic timestamps, not arrival stage",
+    "stress": {
+      "duration_s": 60,
+      "c2s": {
+        "probe_sent": 300,
+        "probe_returned": 296,
+        "probe_missing": 4,
+        "missing_percent": 1.3333333333333335,
+        "udp_sent": 69104,
+        "udp_missing": 1,
+        "netem_realized_percent": 19.978496971936867
+      },
+      "s2c": {
+        "probe_sent": 300,
+        "probe_returned": 295,
+        "probe_missing": 5,
+        "missing_percent": 1.6666666666666667,
+        "udp_sent": 69104,
+        "udp_missing": 1,
+        "netem_realized_percent": 20.02102023828542
+      }
+    },
+    "whole_120s": {
+      "probe_missing_c2s": 4,
+      "probe_sent_c2s": 600,
+      "probe_missing_s2c": 5,
+      "probe_sent_s2c": 595,
+      "verified_delivered_bytes": 299213474,
+      "total_cpu_s": 110.34,
+      "cpu_s_per_verified_gib": 395.9603532431832,
+      "probe_returned_only_p99_ms": {
+        "c2s": 632.991501,
+        "s2c": 634.3635
+      },
+      "maximum_active_sender_gap_ms": {
+        "c2s": 30,
+        "s2c": 20
+      },
+      "tcp_mismatch_count": 0,
+      "http_https_verified_20_of_20": true,
+      "raw_socket_link_drops_zero": true,
+      "owned_cleanup_clean": true,
+      "cpu_psi_some_avg10_max_percent": 10.67,
+      "cpu_quota": "UNKNOWN"
+    },
+    "why_not_infra_invalid": "generator and real netem complete; actual sender-side stress probe outcomes exceed established 1pct threshold, no socket drop reported",
+    "do_not_weaken": [
+      "stress 1pct probe missing gate",
+      "all-sent p99 denominator",
+      "verified delivery and UDP missing",
+      "loss waveform"
+    ]
+  },
+  "q2_remaining": [
+    {
+      "id": "s06",
+      "source": "B",
+      "state": "NOT_RUN"
+    },
+    {
+      "id": "s07",
+      "source": "B",
+      "state": "NOT_RUN"
+    },
+    {
+      "id": "s08",
+      "source": "A",
+      "state": "NOT_RUN"
+    }
+  ],
+  "q3_all": [
+    {
+      "id": "s09",
+      "source": "A",
+      "state": "NOT_RUN"
+    },
+    {
+      "id": "s10",
+      "source": "B",
+      "state": "NOT_RUN"
+    },
+    {
+      "id": "s11",
+      "source": "B",
+      "state": "NOT_RUN"
+    },
+    {
+      "id": "s12",
+      "source": "A",
+      "state": "NOT_RUN"
+    }
+  ],
+  "qualification": {
+    "q1": "PASS_SINGLE_HOST_ABBA_OBSERVATION_ONLY",
+    "q2": "FAIL_OLD_BASELINE_A",
+    "q3": "NOT_RUN",
+    "q120": "FAIL_OR_NOT_RUN",
+    "l120": "NOT_RUN",
+    "confirm300": "NOT_RUN",
+    "arm64_real_business_performance": "NOT_RUN",
+    "p6_release_bundle": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "global_cpu_gain": "NOT_QUALIFIED",
+    "historical_failures_preserved": true,
+    "root_task": "Do not continue Q3/L or compare candidate weaknet to baseline until strict old-A quality gate issue is understood; do not treat missing as zero"
+  }
+}
