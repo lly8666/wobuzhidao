@@ -60,6 +60,8 @@ def addr(text):
 class Totals:
     def __init__(self, start, duration_s=300):
         self.duration_ns=duration_s*1_000_000_000
+        self.stage_pre_ns=self.duration_ns//4
+        self.stage_stress_ns=3*self.duration_ns//4
         self.lock=threading.Lock()
         self.start=start
         self.d={"offered_bytes":0,"sent_bytes":0,"received_bytes":0,"send_errors":0,
@@ -95,8 +97,8 @@ class Totals:
         """Called only while holding Totals.lock."""
         offset=sent_ns-self.start
         phase=("outside" if offset < 0 or offset >= self.duration_ns else
-               "pre" if offset < 75_000_000_000 else
-               "stress" if offset < 225_000_000_000 else "post")
+               "pre" if offset < self.stage_pre_ns else
+               "stress" if offset < self.stage_stress_ns else "post")
         row=self.d[metric].setdefault(phase,{"count":0,"by_size":{},
                  "over_1s":0,"over_3s":0,"max_delay_ns":0})
         row["count"]+=1

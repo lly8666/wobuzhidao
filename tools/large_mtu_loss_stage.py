@@ -38,6 +38,7 @@ def main():
     for key in ["namespace","c2s-dev","s2c-dev","tc-bin","output"]:
         a.add_argument("--"+key, required=True)
     a.add_argument("--fixed-loss", type=int, choices=[0,1,5,10,20,30,5205], required=True)
+    a.add_argument("--simd-ab", action="store_true")
     a.add_argument("--start-ns", type=int, required=True)
     a.add_argument("--seed", type=int, required=True)
     a.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
@@ -47,10 +48,11 @@ def main():
         a.add_argument("--"+key, type=float)
     x = a.parse_args()
     waveform = x.fixed_loss == 5205
-    if waveform and (x.duration_s!=300 or x.delay_ms!=300):
-        raise ValueError('5205 formal stage must remain 300s/300ms')
-    # 5205 is 5%->20%->5% across exactly one 300-second business run.
-    phases = [("pre",0,5),("stress",75,20),("post",225,5)] if waveform else [
+    if waveform and not (x.delay_ms==300 and (x.duration_s==300 or (x.simd_ab and x.duration_s==120))):
+        raise ValueError('5205: 300s formal or explicitly-scoped 120s SIMD AB only')
+    pre_end=x.duration_s//4
+    stress_end=3*x.duration_s//4
+    phases = [("pre",0,5),("stress",pre_end,20),("post",stress_end,5)] if waveform else [
         ("fixed",0,x.fixed_loss)]
     Path(x.output).parent.mkdir(parents=True, exist_ok=True)
     with open(x.output, "w", buffering=1) as f:

@@ -18,12 +18,18 @@ def main():
     p.add_argument("--loss",type=int,choices=[0,1,5,10,20,30,5205],required=True)
     p.add_argument("--fec-experiment",action="store_true")
     p.add_argument("--sweep-experiment",action="store_true")
+    p.add_argument("--simd-ab",action="store_true")
     p.add_argument("--duration-s",type=int,default=300,choices=[15,120,300])
     p.add_argument("--delay-ms",type=int,default=300,choices=[15,50,100,150,300])
     x=p.parse_args()
     if x.sweep_experiment and (not x.fec_experiment or x.workload!="udp"
          or x.duration_s!=120 or x.loss not in (1,5,10) or x.delay_ms not in (50,100,150)):
         raise ValueError("sweep opt-in is exactly UDP FEC-off 120s, loss1/5/10, delay50/100/150")
+    if x.simd_ab and (not x.fec_experiment or x.sweep_experiment or x.workload!="mixed"
+         or x.loss not in (0,1,5205) or x.duration_s not in (15,120,300)
+         or x.delay_ms not in (15,300)
+         or (x.loss==5205 and (x.duration_s==15 or x.delay_ms!=300))):
+        raise ValueError("SIMD AB supports only exact Q/L mixed tuples")
     original=Path("scripts/strict_weaknet_sample.sh").read_text()
     s=original
     def swap(old,new,n=1):
@@ -183,7 +189,7 @@ if [[ -n "$WEB_TGT_PID" ]]; then wait "$WEB_TGT_PID"; WEB_TGT_PID=""; fi''')
     if x.fec_experiment:
         # Exact, opt-in copy of the existing FIVE-NETNS fullstack scenario;
         # default generator output and formal qualification remain unchanged.
-        if not x.sweep_experiment and (x.loss not in (0,1,5) or x.duration_s not in (15,120) or x.delay_ms not in (15,300)):
+        if not (x.sweep_experiment or x.simd_ab) and (x.loss not in (0,1,5) or x.duration_s not in (15,120) or x.delay_ms not in (15,300)):
             raise ValueError("FEC case outside narrow experiment scope")
         swap('SFX="$"', 'SFX="${WBD_FEC_CASE_SFX:?}"')
         swap('delay 300ms', 'delay ${WBD_FEC_DELAY_MS}ms', 2)
@@ -221,6 +227,16 @@ PY_FEC_FLAGS
   echo "steal-softirq:"; grep '^cpu ' /proc/stat || true
 """)
 
+    if x.simd_ab:
+        swap('workflow_rel = ".github/workflows/next-fec-policy-sequential.yml"',
+             'workflow_rel = ".github/workflows/next-fec-simd-ab.yml"')
+        swap('"tools/fec_policy_batch.py",',
+             '"tools/fec_policy_batch.py",\\n    "tools/fec_simd_ab.py",')
+        swap('--drain-s 3 --output', '--drain-s 3 --simd-ab --output')
+        swap('[[0,75,5],[75,225,20],[225,300,5]]',
+             '[[0,int(os.environ["WBD_FEC_DURATION_S"])//4,5],'
+             '[int(os.environ["WBD_FEC_DURATION_S"])//4,3*int(os.environ["WBD_FEC_DURATION_S"])//4,20],'
+             '[3*int(os.environ["WBD_FEC_DURATION_S"])//4,int(os.environ["WBD_FEC_DURATION_S"]),5]]')
     if x.sweep_experiment:
         swap('    normal:1:10) ;;',
              '    normal:1:10|normal:1:20|normal:1:30|normal:1:50) ;;')
