@@ -23,9 +23,9 @@ class TestABBA(unittest.TestCase):
   def fake_run(argv,**kwargs):
    calls.append(argv)
    if argv[:3]==["ps","-eo","pid=,args="]:
-    return SimpleNamespace(returncode=0,stdout=" 88 sudo bash /tmp/wbd-simd-case/generated.sh\\n")
+    return SimpleNamespace(returncode=0,stdout=" 88 sudo bash /tmp/wbd-simd-case/generated.sh\n")
    if argv[:2]==["ps","-p"]:
-    return SimpleNamespace(returncode=0,stdout="sudo bash /tmp/wbd-simd-case/generated.sh\\n")
+    return SimpleNamespace(returncode=0,stdout="sudo bash /tmp/wbd-simd-case/generated.sh\n")
    if argv[:3]==["sudo","ip","netns"]:
     return SimpleNamespace(returncode=0,stdout="")
    if argv[:4]==["sudo","-n","kill","-TERM"]:
@@ -44,9 +44,9 @@ class TestABBA(unittest.TestCase):
   case=Path("/tmp/wbd-simd-case")
   def fake_run(argv,**kwargs):
    if argv[:3]==["ps","-eo","pid=,args="]:
-    return SimpleNamespace(returncode=0,stdout=" 89 sudo bash /tmp/wbd-simd-case/generated.sh\\n")
+    return SimpleNamespace(returncode=0,stdout=" 89 sudo bash /tmp/wbd-simd-case/generated.sh\n")
    if argv[:2]==["ps","-p"]:
-    return SimpleNamespace(returncode=0,stdout="unrelated-process\\n")
+    return SimpleNamespace(returncode=0,stdout="unrelated-process\n")
    if argv[:3]==["sudo","ip","netns"]:
     return SimpleNamespace(returncode=0,stdout="")
    raise AssertionError(argv)

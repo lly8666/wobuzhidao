@@ -9,7 +9,7 @@
   "authority_notice": "Current task is active_work/next_task/latest_log. History snapshots, completed and old Actions are source-scoped evidence, never executable instructions or current qualification. branch is canonical project line; working_branch is actual work branch. Current branch FEC SIMD task is active_work.fec_simd; other retained active_work sections describe source-scoped historical work, not future SIMD qualification.",
   "active_work": {
     "name": "FEC_SIMD_PERFORMANCE",
-    "phase": "FEC_SIMD_S3_PILOT_INFRA_FAILURE_SCOPED_CLEANUP_FIX_REQUESTED",
+    "phase": "FEC_SIMD_S3_PILOT_HELPER_REGEX_CORRECTION_REQUESTED",
     "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
     "continuity": "docs/AGENT_CONTINUITY.md",
     "user_priority": "Real business first arrival, low p99/no cross-flow HOL, burst stability, lower CPU/bandwidth; bounded extra memory allowed; integrity/account/address/generation/same-wire/MTU remain hard.",
@@ -3630,7 +3630,7 @@
       }
     },
     "fec_simd": {
-      "state": "S3_PILOT_INFRA_INVALID_RETRY_SCOPED_HELPER_ONLY",
+      "state": "S3_PILOT_NOT_VALIDATED_STATIC_REGEX_FIX",
       "plan": "docs/FEC_SIMD_OPTIMIZATION_PLAN.md",
       "prompt": "docs/templates/FEC_SIMD_AGENT_PROMPT.md",
       "working_branch": "next/fec-simd-20261010",
@@ -3704,7 +3704,7 @@
         "lifecycle": 38034338226,
         "status": "PASS_SCOPED"
       },
-      "pilot_retry": "HELPER_SCOPED_CLEANUP_AND_SANITIZED_FAILURE_MARKERS_RETRY_NONCE5_REQUESTED",
+      "pilot_retry": "SCOPED_REGEX_ESCAPE_FIX_CONFIG_NONCE6_REQUESTED",
       "pilot_latest": {
         "run_id": 38034569663,
         "job_id": 114162231837,
@@ -3715,11 +3715,19 @@
         "state": "FAIL_INFRA_INVALID_A_PERMISSIONERROR_MANIFEST_MISSING_B_NOT_RUN",
         "product_cpu_gain": "NOT_MEASURED",
         "evidence": "docs/evidence/fec-simd-pilot-38034569663-invalid.json"
+      },
+      "pilot_retry_static_failure": {
+        "run_id": 38035939435,
+        "job_id": 114166248653,
+        "source": "47cad48637541345c86ff2a11397810c98c688a7",
+        "status": "FAIL_UNIT_TEST_REGEX_ESCAPE",
+        "static_only": true,
+        "pilot_measurement": "NOT_RUN"
       }
     }
   },
-  "next_task": "Inspect GitHub Actions exact SIMD pilot nonce5 receipt before any Q/L: A and B must both produce manifest, runtime-flags, actual full-stack mixed delivery, and valid analyzer/ledger; preserve INFRA_INVALID/FAIL and NOT_RUN if not. Check sanitized startup script-line/status, root-only leaked PID cleanup. If valid functional pilot, advance config-only q120; micro is kernel-only, no real-product CPU gain yet. Do not alter candidate B SOURCE, old A, 80s E7 or physical.",
-  "latest_log": "docs/devlog/20261010-174500-fec-simd-s3-pilot-owned-cleanup-diagnostics.md",
+  "next_task": "Review new nonce6 Actions 15s Q1 A/B pilot receipt (NOT a 120s performance qualification). Previous nonce5 run38035939435 failed static regex tests; no real leg was run. If current pilot produces incomplete manifest or not VALID_OBSERVATION, keep B NOT_RUN, audit uploaded sanitized-startup and do not trigger Q/L. CPU gain and physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261010-175000-fec-simd-s3-static-test-regex-correction.md",
   "qualification_scope": "FEC SIMD plan only. Candidate implementation NOT_STARTED, ordinary new/old comparison NOT_RUN, CPU gain NOT_MEASURED, physical NOT_RUN. Retained historical qualifications/failures belong to their explicit prior SOURCE, not a future candidate.",
   "last_tested_source_sha": "aa931d5822a5378c48bf0763216f0446a5af8683",
   "last_tested_scope": "oneparse aa931d: Game2 mixed 300s stage 5-20-5 seed1842 mode=game lanes=2 configured profileOFF Action37898379013 PASS_SCOPED_ACTIONS issues=[]; s2c stress one 4068B UDP missing; probes/TCP/HTTP complete; AF_PACKET skmem.d0 both; EPYC7763 host, CPU gain UNPROVEN; old ba8ed1 EPYC9V45 OFF Game4 packet socket d33/d86 FAIL historically retained",

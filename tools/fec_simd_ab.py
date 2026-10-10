@@ -107,7 +107,7 @@ def run_case(c,root,helper):
  if p.is_file():
   import re
   raw=p.read_text(errors="replace")
-  for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\\d+) line=(\\d+)",raw):
+  for match in re.finditer(r"FEC_EXPERIMENT_SHELL_FAIL code=(\d+) line=(\d+)",raw):
    markers.append({"class":"SHELL_FAIL","exit_code":int(match.group(1)),
                    "script_line":int(match.group(2))})
   for word,label in (("Operation not permitted","NETNS_PERMISSION"),
@@ -118,7 +118,7 @@ def run_case(c,root,helper):
  (d/"sanitized-startup.json").write_text(json.dumps({
     "private_log_sha256":old.filehash(p) if p.is_file() else None,
     "private_log_bytes":p.stat().st_size if p.is_file() else 0,
-    "sample_exit":rc,"sample_error":error,"markers":markers[-16:]},indent=2)+"\\n")
+    "sample_exit":rc,"sample_error":error,"markers":markers[-16:]},indent=2)+"\n")
  owned=simd_owned(d,old.namespace_suffix(c["id"]))
  s=j(d,"summary.json");l=j(d,"efficiency-ledger.json");flags=j(d,"runtime-flags.json")
  state=s.get("classification","INFRA_INVALID")
@@ -151,7 +151,7 @@ def simd_owned(d,suffix):
  ps=subprocess.run(["ps","-eo","pid=,args="],check=True,text=True,capture_output=True).stdout
  pids=[]
  for line in ps.splitlines():
-  m=re.match(r"\\s*(\\d+)\\s+(.*)",line)
+  m=re.match(r"\s*(\d+)\s+(.*)",line)
   if m and str(d)+"/" in m[2] and "fec_simd_ab.py" not in m[2] and "fec_policy_batch.py" not in m[2]:
    pids.append(int(m[1]))
  fallbacks=0;failures=[]
@@ -174,7 +174,7 @@ def simd_owned(d,suffix):
  if pids:time.sleep(2)
  ns=subprocess.run(["sudo","ip","netns","list"],check=True,text=True,capture_output=True).stdout
  leaked_ns=[n+"-"+suffix for n in ("wbiz","wcli","wrtr","wsrv","wtgt")
-            if re.search(r"(?m)^"+re.escape(n+"-"+suffix)+r"(?:\\s|$)",ns)]
+            if re.search(r"(?m)^"+re.escape(n+"-"+suffix)+r"(?:\s|$)",ns)]
  return {"original_leaked_pids":pids,"sudo_fallback_count":fallbacks,
          "cleanup_signal_failures":failures,"leftover_namespaces":leaked_ns,
          "clean":not pids and not leaked_ns and not failures}
