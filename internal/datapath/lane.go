@@ -78,6 +78,13 @@ type WireRecord struct {
 	Wire         []byte
 }
 
+// QualityEchoInbound indexes the same authenticated quality control in
+// InboundResult.Quality. No echo exists on legacy or 104-byte health.
+type QualityEchoInbound struct {
+    Index int
+    Echo QualityEchoV4
+}
+
 type InboundResult struct {
 	Authenticated uint64
 	Health        []HealthMessage
@@ -85,6 +92,7 @@ type InboundResult struct {
 	// QualityControlPN parallels Quality: authenticated sender-side seal PN
 	// of the KindHealth marker, not a receiver-local or LINK record PN.
 	QualityControlPN []uint64
+	QualityEcho []QualityEchoInbound
 	Datagrams     [][]byte
 	RecordErrors  []error
 	PathErrors    []error
@@ -568,6 +576,22 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
             // The non-live N1 codec becomes accepted only after the lane has
             // completed protected V3 admission and opted into quality health.
             // V1/V2 and any unqualified lane retain strict 9-byte parsing.
+            if l.qualityHealthV3.Load() && len(decoded.Payload)==QualityEchoV4Size &&
+                decoded.Payload[0]==QualityEchoV4Version {
+                quality,err:=DecodeQualityEchoV4(decoded.Payload)
+                if err!=nil {
+                    out.RecordErrors=append(out.RecordErrors,err)
+                    l.stats.RecordErrors++
+                    continue
+                }
+                index:=len(out.Quality)
+                out.Authenticated++
+                out.Quality=append(out.Quality,quality.Report)
+                out.QualityControlPN=append(out.QualityControlPN,decoded.PN)
+                out.QualityEcho=append(out.QualityEcho,QualityEchoInbound{Index:index,Echo:quality})
+                out.Health=append(out.Health,HealthMessage{PN:decoded.PN,IdleFor:quality.Report.IdleFor})
+                continue
+            }
             if l.qualityHealthV3.Load() && len(decoded.Payload) == QualityHealthV3Size &&
                 decoded.Payload[0] == QualityHealthV3Version {
                 quality, err := DecodeQualityHealthV3(decoded.Payload)

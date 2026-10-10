@@ -414,3 +414,73 @@ bidirectional verified feedback into an extended authenticated exchange
 is a *later* N1 task; N2 adaptive FEC must HOLD. New-source focused
 `-race` tests and exact-source native network Actions are required before
 the code can be called qualified.
+
+## 2026-10-11 N1 128-byte correlated reciprocal quality echo (candidate)
+
+V3 protected admission quality now proposes a **second, strict health
+plaintext version** (`KindHealth` version 3, exactly **128 bytes**),
+alongside the previously qualified original **104-byte version 2** and
+legacy 9-byte health v1. The total body remains at or below the 128-byte
+control requirement; no new LINK/UDP/app header or FEC data and no extra
+per-lane goroutine. Each eligible 100ms maintenance Tick still emits
+**at most one new quality control record per two seconds per ACTIVE lane**:
+send 104-byte v2 if no authenticated peer report is available, otherwise
+send one 128-byte v3 to carry this endpoint's normal outgoing TX summary
+**and** separately correlated receiver-local observation of the peer's
+opposite-direction TX. Existing v2 strict parser continues to reject v3;
+v2/v1 negotiated connections never opt into either N1 quality format.
+
+V3 echo byte layout (big-endian integers, AEAD encrypted/authenticated):
+
+| Byte offsets | Meaning |
+| --- | --- |
+| 0 | Version 3; original v2 uses 2 |
+| 1–67 | Original v2 header/flags, idle, reportSeq, shared 16B admission nonce, **this sender's** local generation, sender TX DATA PN first/last and post-Emit TxSuccess |
+| 68–75 | **Echoed peer RX** first-unique KindLINK count in the *peer's own outbound TX* PN window referenced below (uint64) |
+| 76–79 | Echoed first-unique late DATA count (uint32) |
+| 80–83 | Echoed replayed DATA record count (uint32) |
+| 84–95 | Original v2 FECRecovered (currently 0), LocalDrops, this sender's DATA age and RTT; semantics unchanged |
+| 96–99 | Echoed *estimated first-arrival missing* (uint32, **not raw WAN loss**) |
+| 100–101 | Original v2 peak-burst field (currently 0); never guessed from PN gaps |
+| 102 | **Independent echo state**: 1 ESTIMATED, 2 INSUFFICIENT, 3 CAPACITY, 4 STALE |
+| 103 | Reserved, must equal 0 |
+| 104–111 | Original **peer sender** quality reportSeq being echoed (uint64, nonzero) |
+| 112–119 | Original peer sender local generation being echoed (uint64, nonzero) |
+| 120–127 | Original peer sender's DATA WindowLastPN being echoed (uint64) |
+
+Fields in bytes 0–67 and 84–95 must describe the reporting endpoint's
+**own** TX direction. Fields 68–83, 96–99, 102 and 104–127 describe
+the other direction, and cannot be interpreted as counts in the same
+PN interval as bytes 44–59. The shared admission nonce in bytes 20–35
+binds both directions to the same authenticated lane incarnation, while
+the two generation numbers may differ because endpoints own separate
+local generation counters. The source reportSeq + source local generation
++ original source DATA lastPN exactly locate a recent source control
+report independently of current TX counters.
+
+Receiver of a v3 echo first performs the normal per-direction AEAD
+KindHealth authentication, **strictly** decodes 128B and checks the peer's
+own generation/nonce and strictly increasing reportSeq via the existing
+one-latest mailbox. Then it looks up the referenced source report in a
+**16-entry per-incarnation history of successfully emitted quality
+reports**, matching its *own* local generation, shared nonce,
+source reportSeq and DATA lastPN; history entries older than 10 seconds
+are rejected. An ESTIMATED echo additionally requires the stored
+source's actual post-Emit successful DATA count >=16, no capacity flag,
+receiver unique >=8, unique <= sender success, and exactly
+`EstimatedMissing = stored TxSuccess - echoed RxUnique`. Thus neither
+unreferenced peer numbers nor any local control-PN gap can become a
+loss estimate. Unknown / insufficient / capacity / stale echoes carry
+**zero** quoted RX counts and are never treated as 0% loss.
+
+A sender can now read `Runtime.QualityEchoFeedback` to see the
+last *authenticated and source-correlated* returned state and fraction;
+it expires to STALE after 10 seconds. The regular
+`Runtime.QualityFeedback` still describes the **remote endpoint's
+outgoing TX** and remains INSUFFICIENT. No N2 FEC auto logic consumes
+the new read API in this candidate, even when it is ESTIMATED.
+The existing 3s stability gate/256-PN bound and local first-arrival
+estimation still apply at the receiver: it is not directly measured WAN
+packet loss, a network pcap or an application-level completion metric.
+Candidate requires exact-source Actions Go race, old admission/repair,
+Linux+Windows and real nine-netns three-client functional checks.

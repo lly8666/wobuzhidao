@@ -12,11 +12,16 @@ on:
       - "internal/datapath/lane.go"
       - "internal/datapath/quality_pn_window.go"
       - "internal/datapath/quality_pair_range.go"
+      - "internal/datapath/quality_echo_v4.go"
+      - "internal/datapath/quality_echo_v4_test.go"
+      - "internal/datapath/quality_health_echo_live.go"
       - "internal/datapath/quality_pn_window_test.go"
       - "internal/tlsrecord/decoder.go"
       - "internal/runtimeowner/quality.go"
       - "internal/runtimeowner/quality_window.go"
       - "internal/runtimeowner/quality_pair.go"
+      - "internal/runtimeowner/quality_echo_live.go"
+      - "internal/runtimeowner/quality_echo_live_test.go"
       - "internal/runtimeowner/quality_pair_test.go"
       - "internal/runtimeowner/quality_window_test.go"
       - "internal/runtimeowner/send_batch.go"
@@ -54,13 +59,13 @@ jobs:
         run: |
           set -euo pipefail
           go test -race ./internal/datapath \
-            -run '^TestN1Quality(HealthV3|Feedback|ReceivePN)' -count=2 -timeout=90s -v
+            -run '^TestN1Quality(HealthV3|Feedback|ReceivePN|EchoV4)' -count=2 -timeout=90s -v
       - name: Legacy health v1 and plaintext record regression
         shell: bash
         run: |
           set -euo pipefail
           go test ./internal/datapath ./internal/tlsrecord -count=1 -timeout=90s
-      - name: Actual V3 protected control, paired mature receiver evidence and 2s active-lane checks under race
+      - name: Actual V3 encrypted control, 128B correlated echo return, source history replay fences under race
         shell: bash
         run: |
           set -euo pipefail

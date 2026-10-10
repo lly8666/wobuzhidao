@@ -18,6 +18,8 @@ type qualityState struct {
     mailbox *datapath.QualityFeedbackMailbox
     tx qualityTXWindow // guarded by existing laneTransport.mu
     pair qualityPairCandidate // authenticated peer TX window + control record PN
+    sentSources [qualitySentHistoryCapacity]qualitySentSource
+    returned qualityReturnedEcho
     received uint64
     rejected uint64
     sent uint64
@@ -76,6 +78,7 @@ func (t *laneTransport) tickQuality(now time.Time) (err error) {
     idleSource:=t.health.idleSource
     srtt:=t.srtt
     txWindow:=t.quality.tx.snapshot(now) // only once/2s, not hot packet path
+    pair:=t.quality.pair // one immutable auth-gated remote report copy
     t.mu.Unlock()
 
     idle:=time.Duration(0)
@@ -110,12 +113,40 @@ func (t *laneTransport) tickQuality(now time.Time) (err error) {
     if srtt>0 && srtt/time.Millisecond<0xffff {
         report.RTTMillis=uint16(srtt/time.Millisecond)
     }
-    rec,err:=t.owner.QualityHealthRecord(t.ref,report)
+    // One control record per 2s slot, regardless of whether it also
+    // carries independently scoped receiver evidence for the peer. Never
+    // publish a same-direction PN difference as a physical WAN loss.
+    var rec datapath.WireRecord
+    if pair.accepted {
+        rx,queryErr:=t.owner.QualityReceiveRange(t.ref,pair.report.WindowFirstPN,pair.report.WindowLastPN,now)
+        if queryErr==nil {
+            local:=evaluateQualityPair(pair,rx,now)
+            echo:=datapath.QualityEchoV4{
+                Report:report,
+                State:local.State,
+                SourceReportSeq:pair.report.ReportSeq,
+                SourceGeneration:pair.report.Generation,
+                SourceLastPN:pair.report.WindowLastPN,
+            }
+            if local.State==datapath.QualityFeedbackEstimated {
+                echo.ReceiverUnique=local.ReceiverUnique
+                echo.ReceiverLate=local.ReceiverLate
+                echo.ReceiverDuplicate=local.ReceiverDuplicate
+                echo.EstimatedMissing=uint32(local.EstimatedMissing)
+            }
+            rec,err=t.owner.QualityHealthEchoRecord(t.ref,echo)
+        }else{
+            rec,err=t.owner.QualityHealthRecord(t.ref,report)
+        }
+    }else{
+        rec,err=t.owner.QualityHealthRecord(t.ref,report)
+    }
     if err!=nil{return err}
     if err=t.owner.ValidateGeneration(t.ref);err!=nil{return err}
     if err=t.send([]datapath.WireRecord{rec},now);err!=nil{return err}
     t.mu.Lock()
     t.quality.sent++
+    t.quality.recordSentSource(report,now)
     t.mu.Unlock()
     return nil
 }
@@ -130,6 +161,14 @@ func (t *laneTransport) observeQualityLocked(result datapath.InboundResult, now 
             t.quality.received++
             if i<len(result.QualityControlPN) {
                 t.quality.pair.accept(report,result.QualityControlPN[i],now)
+            }
+            for _,candidate:=range result.QualityEcho {
+                if candidate.Index==i {
+                    if !t.quality.acceptReturnedEcho(candidate.Echo,now,t.ref.Generation) {
+                        t.quality.rejected++
+                    }
+                    break
+                }
             }
         }
     }

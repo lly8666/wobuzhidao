@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "kind": "N1_V3_AUTHENTICATED_128B_ECHO_CLOSED_RETURN_CANDIDATE",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_source_sha": "6b67a8f986d0caaca8f0e1981a5531f002382051",
+  "source_sha": "CONTAINING_COMMIT_SHA",
+  "prior_local_pair_source": "d8c16d4b3a26cb9ce64a2af34220a026dcac2e35",
+  "prior_actions_pass": [
+    38077202207,
+    38077202273,
+    38077202147,
+    38077202208,
+    38077202155
+  ],
+  "payload": {
+    "kind": "tlsrecord.KindHealth independent AEAD",
+    "version": 3,
+    "plaintext_bytes": 128,
+    "retains_legacy_9B_and_104B": true,
+    "each_active_direction": "one new 104B or 128B quality control per >=2s; not two",
+    "source_correlation": [
+      "16B shared authenticated nonce",
+      "8B source quality reportSeq",
+      "8B original source local generation",
+      "8B source DATA WindowLastPN"
+    ],
+    "separate_PN_directions": true,
+    "echo_state_separate_from_outbound_tx_flags": true,
+    "unqualified_echo_counters": "zero/UNKNOWN, never measured zero physical loss",
+    "source_history": 16,
+    "source_max_age_seconds": 10,
+    "local_estimate_stability_seconds": 3,
+    "max_RX_PN_span": 256,
+    "required_min_sender_DATA": 16,
+    "required_min_receiver_unique": 8
+  },
+  "tests": {
+    "new_strict_codec": "PENDING_ACTIONS",
+    "actual_encrypted_20_tx_19_rx_correlated_return": "PENDING_ACTIONS",
+    "tampered_nonce_generation_seq_lastPN_estimatedcount_age": "PENDING_ACTIONS",
+    "race_count": 2,
+    "real_9_netns_native_three": "PENDING_ACTIONS",
+    "linux_windows_foundation": "PENDING_ACTIONS",
+    "samewire": "PENDING_ACTIONS",
+    "lifecycle": "PENDING_ACTIONS"
+  },
+  "physical": "NOT_RUN",
+  "N2_auto": "NOT_ENABLED",
+  "N3_AES": "NOT_STARTED",
+  "N4_Wintun": "NOT_STARTED",
+  "N5_GUI": "NOT_STARTED",
+  "N6_P6": "NOT_STARTED",
+  "deployment": false
+}
