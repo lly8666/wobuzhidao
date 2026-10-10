@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "kind": "N0_action_functional_sample_pending",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_sha": "a50accc45ff7925f4f7488640dad86e76bee1767",
+  "candidate_source_sha": "containing_commit",
+  "scenario": {
+    "type": "functional_only",
+    "runner": "ubuntu-24.04",
+    "real_netns": 9,
+    "business_namespaces": 3,
+    "client_processes": 3,
+    "server_processes": 1,
+    "shared_tun": true,
+    "server_port": 443,
+    "auto_lease": true,
+    "same_account_distinct_installations": true,
+    "profiles": [
+      "Normal:off",
+      "Normal:20:4",
+      "Game2:20:20"
+    ],
+    "client_mbps_each_way": 0.15,
+    "duration_s": 8,
+    "netem_delay_ms_each_way": 300,
+    "netem_loss_percent": 0,
+    "drain_s": 10
+  },
+  "new_files": [
+    "tools/adaptive_n0_multi_realpath.py",
+    "tools/adaptive_n0_multi_check.py",
+    ".github/workflows/next-adaptive-n0-multi.yml"
+  ],
+  "checks": [
+    "exact derived template anchors",
+    "source and binary SHA",
+    "all three client+server processes alive after drain",
+    "per-client bidirectional first unique packets+bytes/corruption/local failures",
+    "autolease disjointness and shared server multi-Tunnel snapshots",
+    "effective client+server protected V3 policy/lane parity",
+    "actual TLS handshake CipherSuite both endpoints",
+    "real underlay SYN/300ms netem/pkt-capture drops",
+    "hash and delete bounded raw pcaps"
+  ],
+  "actions": "PENDING",
+  "previous_tested_source": {
+    "sha": "a50accc45ff7925f4f7488640dad86e76bee1767",
+    "focused_race_run": 38066837682,
+    "focused_race": "PASS",
+    "foundation_run": 38066837699,
+    "foundation": "PASS"
+  },
+  "known_missing": [
+    "native S2C before any business",
+    "native full same-Seq same-wire proof",
+    "AES/auto/N1..N6",
+    "native Windows TUN",
+    "performance/P6"
+  ],
+  "physical": "NOT_RUN",
+  "deploy": false
+}

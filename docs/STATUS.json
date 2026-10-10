@@ -9,18 +9,18 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_ACTUAL_TLS_OBSERVABILITY_SCOPED_LIFECYCLE_PASS_FOCUSED_WORKFLOW_FIX_PENDING",
+    "phase": "N0_TLS_SUITE_AND_FIRST_S2C_DETERMINISTIC_RACE_PASS_NATIVE_THREE_CANDIDATE_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "0124cc43f8b1cd2ac669e3cc40bf1d325f43b6e1",
+    "new_product_source_sha": "a50accc45ff7925f4f7488640dad86e76bee1767",
     "implementation": "PARTIAL_N0_PROTECTED_V3_FIXED_OFF_CHACHA",
-    "core": "PASS_FOUNDATION_LIFECYCLE_0124CC4_SCOPED_N0_FIRST_S2C_TEST_ONE_REALPATH_B52ED0E",
+    "core": "PASS_N0_INMEMORY_3_CLIENT_FIRST_S2C_ACTUAL_TLS_SUITE_RACE_A50ACCC_ONE_REALPATH_B52ED0E",
     "ordinary_performance": "NOT_RUN_N0_SOURCE_B52ED0E",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
-      "N0_admission": "IN_PROGRESS_TLS_SUITE_OBSERVER_LIFECYCLE_PASS_RACE_GATE_SHALLOW_CHECKOUT_FAILED_UNTESTED_NATIVE_3_CLIENT_PENDING",
+      "N0_admission": "IN_PROGRESS_3_CLIENT_INMEMORY_FIRST_S2C_AND_ACTUAL_SUITE_RACE_PASS_NATIVE_3_REAL_CLIENT_ACTIONS_PENDING",
       "N1_quality": "NOT_STARTED",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
@@ -58,21 +58,22 @@
       "owner": "User explicit instruction 2026-10-10"
     },
     "pending_candidate": {
-      "scope": "N0 actual TLS CipherSuite vs authenticated V3 record policy + three-client first S2C Go race",
-      "previous_sha": "62e66ddddc53e6cee6459578b7db353913419a33",
-      "failure": "FAIL_HARNESS_SHALLOW_CHECKOUT_PRE_GO",
-      "fixed_workflow": "fetch-depth:0",
-      "candidate_source_sha": "CONTAINING_COMMIT_SHA",
-      "action": "PENDING",
-      "native_3_clients": "NOT_RUN",
+      "scope": "N0 one 9-Linux-netns real 3-client same-server-port/TUN functional sample, per-client effective authenticated V3 policy/actual TLS cipher/active parity and distinct auto lease; 300ms each-direction 0 loss 8s concurrent duplex",
+      "source_sha": "CONTAINING_COMMIT_SHA",
+      "actions": "PENDING",
+      "measurement_jobs": 0,
+      "native_first_S2C_before_business": "NOT_YET_PROVED_ON_REAL_NETNS",
+      "same_seq_same_wire_native": "NOT_RUN",
+      "performance": "NOT_RUN",
+      "windows_native": "NOT_RUN",
       "physical": "NOT_RUN"
     }
   },
-  "next_task": "N0: wait for corrected next-adaptive-n0-negotiated Actions on new exact SHA (fix checkout fetch-depth:0). Preserve 62e66 focused FAIL as harness pre-test failure; if suite focused race FAIL, inspect log and fix. After success finish 3 simultaneous native netns client business/lease/profile/cipher/first S2C and same-wire check; only then consider N0 qualification/N1. Previous b52 single realpath PASS remains scoped; no physical until all N0–N6 Actions/P6.",
-  "latest_log": "docs/devlog/20261011-001500-adaptive-n0-focused-race-shallow-checkout-fix.md",
-  "qualification_scope": "N0_PARTIAL_SINGLE_REALPATH_PASS_NO_N0_WIDE_ACCEPTANCE",
-  "last_tested_source_sha": "0124cc43f8b1cd2ac669e3cc40bf1d325f43b6e1",
-  "last_tested_scope": "0124cc4 foundation + lifecycle scoped deterministic 3-client actual protected V3 policy and first S2C business; separate older b52ed0e 1-client native netns realpath PASS; not native 3-client, focused N0 race, TLS suite, or performance",
+  "next_task": "N0: inspect exact SOURCE next-adaptive-n0-multi one-sample 9-netns functional Action (3 real native client processes same shared Linux server port, Normal off, Normal20:4, Game2 20:20 with distinct automatic leases). Validate source-derived script anchors, real lossless two-way first unique payload, 300ms qdisc/captures, actual independent V3 policy and TLS cipher/active lane parity snapshots; preserve all runner/harness/functional FAIL, correct as needed. Actual native first S2C before business and same-Seq same-wire full ciphertext still separate N0 gates. Do not advance N1 or run physical until all N0–N6 Actions/P6 done.",
+  "latest_log": "docs/devlog/20261011-002900-adaptive-n0-three-real-client-actions-candidate.md",
+  "qualification_scope": "N0_PARTIAL_INMEMORY_3CLIENT_FIRST_S2C_RACE_PASS_AND_OLDER_SINGLE_REALPATH_PASS_NATIVE_3CLIENT_PENDING",
+  "last_tested_source_sha": "a50accc45ff7925f4f7488640dad86e76bee1767",
+  "last_tested_scope": "a50accc foundation PASS plus exact focused -race double PASS, in-memory three authenticated clients real TLS/FakeTCP code; separate one-client native realpath b52 PASS only",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -212,6 +213,24 @@
       "status": "PASS",
       "run_id": 38066640027,
       "cause": "Lifecycle/wire unit + existing focused lifecycle race PASS with actual TLS suite metadata compiled; new targeted test not run because separate workflow failed authority gate."
+    },
+    {
+      "name": "next-adaptive-n0-negotiated",
+      "source_sha": "a50accc45ff7925f4f7488640dad86e76bee1767",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38066837682",
+      "scope": "N0_3_client_in_memory_V3_actual_tls_suite_first_S2C_targeted_race",
+      "status": "PASS",
+      "run_id": 38066837682,
+      "cause": "Focused Go -race -count=2 for TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation PASS twice; malformed admission and independent-record tests PASS. 3 real native netns clients still NOT_RUN."
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "a50accc45ff7925f4f7488640dad86e76bee1767",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38066837699",
+      "scope": "N0_tls_suite_foundation_regression",
+      "status": "PASS",
+      "run_id": 38066837699,
+      "cause": "All foundation jobs PASS on a50accc, including Linux/Windows builds, Go suite, P4 privileged and repository contract; not actual three-client native harness."
     }
   ],
   "required_read_set": [
