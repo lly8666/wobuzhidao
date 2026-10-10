@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N0_REAL_THREE_CLIENTS_FUNCTIONAL_PASS_FIRST_S2C_NATIVE_AND_SAME_WIRE_CHECKS_REMAIN",
+    "phase": "N0_NATIVE_THREE_PASS_CONTROLLED_SAME_SEQ_FULL_CIPHERTEXT_RACE_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -20,7 +20,7 @@
     "ordinary_performance": "NOT_RUN_N0_SOURCE_80487E6",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
-      "N0_admission": "IN_PROGRESS_NATIVE_THREE_CONCURRENT_REAL_NETNS_PASS_SCOPED_NATIVE_FIRST_S2C_AND_SAME_SEQ_SAME_WIRE_PENDING",
+      "N0_admission": "IN_PROGRESS_NATIVE_THREE_PASS_N0_SAME_SEQ_CONTROLLED_RTO_RACE_PENDING_NATIVE_S2C_BEFORE_UPLINK_UNPROVEN",
       "N1_quality": "NOT_STARTED",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
@@ -71,10 +71,20 @@
       "native_first_s2c_before_any_client_business": "NOT_RUN",
       "same_seq_full_wire_repair_proof": "NOT_RUN",
       "tls_decoy_algorithm_alignment": "NOT_CLAIMED"
+    },
+    "pending_candidate": {
+      "scope": "N0 one Go production-lane runtime controlled real RTO repair for full TLS-like ciphertext byte identity at same TCP Seq in client→server and server→client under parity off/4/20, plus freshness PN uniqueness",
+      "candidate_source_sha": "CONTAINING_COMMIT_SHA",
+      "actions": "PENDING",
+      "prior_native_three_source_sha": "80487e6175c16cd6d689b82fca5d1053167cc1fa",
+      "targeted_race": "PENDING",
+      "native_forced_repair_pcap": "NOT_RUN",
+      "native_s2c_before_client_business": "NOT_RUN",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "N0 remaining: prove same-Seq retransmission uses byte-identical full ciphertext wire under controlled repair (current 96-byte snaplen is insufficient), validate native server-initiated first S2C before client business if implementable without manufacturing app mapping; otherwise document precise limitation and independent in-memory first-S2C proof; strengthen native 3-client teardown/race and V3 malformed/downgrade if needed. Keep exact 80487e6 3-native PASS scoped; N1 only after N0 gates, and all features/Actions before final coordinated physical.",
-  "latest_log": "docs/devlog/20261011-004500-adaptive-n0-3native-scoped-actions-pass.md",
+  "next_task": "N0: inspect new exact-SOURCE next-adaptive-n0-samewire Actions (-race count=2 six combinations) and foundation; any FAIL preserve it and fix. Scope only real Go datapath/transport controlled timer with full serialized TCP ciphertext payload, NOT physical 3-client loss wire capture. Native 3-client functional 80487e6 remains independently PASS. Then address native first S2C before client business if feasible or document TPROXY mapping limit; review remaining N0 gates before N1. No physical testing until N0–N6 and P6 Actions done.",
+  "latest_log": "docs/devlog/20261011-010100-adaptive-n0-sameseq-fullciphertext-directed-race.md",
   "qualification_scope": "N0_PARTIAL_REAL_3_CLIENT_SAME_SERVER_PORT_AUTO_LEASE_V3_ACTUAL_CIPHER_AND_PARITY_PASS_NO_NATIVE_FIRST_S2C_OR_SAME_SEQ_WIRE",
   "last_tested_source_sha": "80487e6175c16cd6d689b82fca5d1053167cc1fa",
   "last_tested_scope": "native 3 isolated real Linux OpenWrt clients shared formal Linux server/TUN 8s 0.15Mbps each way 300ms netem 0 loss functional PASS; foundation PASS; in-memory first S2C/race prior a50accc PASS; performance not run",

@@ -1,0 +1,48 @@
+name: next-adaptive-n0-samewire
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n0-samewire.yml"
+      - "internal/runtimeowner/adaptive_n0_same_seq_wire_test.go"
+      - "internal/runtimeowner/runtime.go"
+      - "internal/datapath/lane.go"
+      - "internal/tlsrecord/record.go"
+permissions:
+  contents: read
+concurrency:
+  group: next-adaptive-n0-samewire-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  controlled-repair-ciphertext-six-cases:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Enforce repository authority and workflow single-sample rules
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          echo "SOURCE=$GITHUB_SHA; N0 directed real production runtime repair, NOT native physical-netns loss or performance" >> "$GITHUB_STEP_SUMMARY"
+      - name: Full TLS-like ciphertext record same-Seq controlled RTO in 6 cases under Go race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./internal/runtimeowner \
+            -run '^TestN0SameSeqFullSealedWireOnForcedRepair$' \
+            -count=2 -timeout=90s -v
+      - name: Existing real runtime no-HOL gap, SACK and retry regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./internal/runtimeowner \
+            -run 'TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence|TestLaneTransportTickKeepsDueRepairWhenGapForgivenessAlsoDue|TestLaneTransportTickCountsFailedRepairWithoutPretendingItWasSent|TestSteadySelectiveACKRetiresPayloadAndFastRepairsHole' \
+            -count=1 -timeout=90s

@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "kind": "N0_code_path_full_sealed_ciphertext_same_Seq_directed_test_candidate",
+  "parent_head": "b97637ce2adbfcd1849e18685d5352ed0c62bba5",
+  "candidate_source_sha": "commit_containing_receipt",
+  "existing_validated_source_sha": "80487e6175c16cd6d689b82fca5d1053167cc1fa",
+  "previous_native_three_clients": {
+    "run": 38067388763,
+    "status": "PASS_SCOPED",
+    "observed_repair_payload_bytes": 0
+  },
+  "profiles": [
+    "normal-off",
+    "fixed20:4",
+    "fixed20:20"
+  ],
+  "directions": [
+    "c2s",
+    "s2c"
+  ],
+  "controlled_loss": "peer ACK intentionally withheld, real transport timer driven",
+  "ciphertext_match": "all TLS-like record bytes length+sha256+exact bytes same TCP Seq plus serialized FakeTCP packet data; new record must advance PN",
+  "unit_race": "PENDING",
+  "job": "next-adaptive-n0-samewire",
+  "native_full_ciphertext_pcap_repair": "NOT_RUN",
+  "native_first_s2c_before_any_client_business": "NOT_RUN",
+  "no_fec_aes_auto_windows_tun_perf_or_physical_claim": true,
+  "actions_first_physical_last": true,
+  "physical": "NOT_RUN"
+}
