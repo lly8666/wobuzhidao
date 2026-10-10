@@ -1,0 +1,108 @@
+{
+  "schema": "wbd-fec-simd-q2-same-product-historical-5205-contrast/v1",
+  "historical_300s": {
+    "run_id": 37924613499,
+    "artifact_id": 11613134297,
+    "helper_sha": "e8a4ec860a6107fd7fffdcdce0fb852d58ee30f4",
+    "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "original_decision": "PASS_SCOPED_ACTIONS",
+    "duration_s": 300,
+    "stage_s": [
+      75,
+      150,
+      75
+    ],
+    "seed": 1844,
+    "stress": {
+      "c2s": {
+        "probe_missing": 4,
+        "probe_sent": 750,
+        "udp_missing": 7,
+        "udp_sent": 172836,
+        "realized_netem_percent": 20.017087642613372
+      },
+      "s2c": {
+        "probe_missing": 3,
+        "probe_sent": 750,
+        "udp_missing": 2,
+        "udp_sent": 172835,
+        "realized_netem_percent": 20.04822139770584
+      }
+    },
+    "web_verified": 20,
+    "socket_drop": 0,
+    "zip_sha256": "eb60a8e5a1526f3f31c6b011dd428859e665d5f9521c0c35c33c046f623ad1fe"
+  },
+  "current_120s": {
+    "run_id": 38039151704,
+    "artifact_id": 11665571189,
+    "helper_sha": "5a3406fc249cbbfba28cd537cbc43f0110a2713e",
+    "source_sha": "a2db258b436a41fdee98c6c53abec9bab6ce600f",
+    "original_decision": "FAIL_5205_STAGE_PROBE_LOSS_OVER_1PCT_BOTH_STRESS",
+    "duration_s": 120,
+    "stage_s": [
+      30,
+      60,
+      30
+    ],
+    "seed": 2262,
+    "stress": {
+      "c2s": {
+        "probe_missing": 4,
+        "probe_sent": 300,
+        "udp_missing": 1,
+        "udp_sent": 69104,
+        "udp_missing_size": 256,
+        "realized_netem_percent": 19.978496971936867
+      },
+      "s2c": {
+        "probe_missing": 5,
+        "probe_sent": 300,
+        "udp_missing": 1,
+        "udp_sent": 69104,
+        "udp_missing_size": 96,
+        "realized_netem_percent": 20.02102023828542
+      }
+    },
+    "web_verified": 20,
+    "socket_drop": 0,
+    "zip_sha256": "46c80b718c2a389e9de21a267570d0b3346f6a5a2dae7936e317ee6dedc52170"
+  },
+  "same_old_A_binary_sha256": {
+    "client": "303495af95d02f8644af6c3d49a45f5c9c093a3fd9e23b307e31dc1ef0079c67",
+    "server": "4b165f41862f98cf502549f2db75eb5cf9801ea088bf6b922d8bc9d3c46af69a"
+  },
+  "invariants": [
+    "same product source and exact old A client/server binary hashes",
+    "Normal1 1 lane",
+    "FEC20:20",
+    "mixed UDP/TCP/HTTP/HTTPS 10Mbps/direction",
+    "one-way 300ms, two-way independently randomized 5%,20%,5% netem",
+    "3s impairment drain",
+    "same check_large_mtu_mixed.py 1% per-stage probe loss predicate"
+  ],
+  "differences": [
+    "duration 300s vs 120s, stages 75/150/75 vs 30/60/30",
+    "seed1844 vs seed2262 changes tc netem random loss sequence",
+    "different Actions hosted runner sample",
+    "analyzer helper evolved for 120s but predicate identical"
+  ],
+  "stage_probe_gate": {
+    "code": "if probe[\"missing\"]>max(1,probe[\"sent\"]*0.01): issue(\"5205_STAGE_PROBE_LOSS_OVER_1PCT\")",
+    "historical_max_missing_pass": 7,
+    "current_max_missing_pass": 3,
+    "current_c2s_excess_count": 1,
+    "current_s2c_excess_count": 2
+  },
+  "interpretation": "Original 120s stress probe quality FAIL is valid. 300s historical PASS included residual losses and is not proof of 100% delivery. Neither result alone establishes baseline product regression; the new SIMD B was not run under Q2.",
+  "remaining_status": {
+    "Q1": "VALID_SINGLE_RUN_ABBA",
+    "Q2_A": "FAIL_CURRENT_120S",
+    "Q2_B": "NOT_RUN",
+    "Q3": "NOT_RUN",
+    "L120": "NOT_RUN",
+    "ARM_real_performance": "NOT_RUN",
+    "physical": "NOT_RUN"
+  },
+  "followup": "Only a separately labeled matched 300s same-seed A-B-B-A on one runner (or bounded per-size FEC diagnostic) can disentangle sample settings; retain current 120s FAIL regardless. No blind q120 rerun."
+}
