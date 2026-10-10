@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "kind": "N1_AUTHENTICATED_V3_128B_ECHO_RETURN_CORRELATED_SOURCE_SCOPED_ACTIONS_PASS",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "tested_product_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+  "actions": {
+    "n1_focused": {
+      "run_id": 38078435333,
+      "job_id": 114290182725,
+      "status": "PASS",
+      "go_race_count": 2,
+      "checks": [
+        "Strict new 128B v3 encrypted KindHealth echo version/offset/reserved and unknown/reject vector",
+        "Real 2-role AEAD + FakeTCP original sender 20 LINK success and peer 19 first unique with one omitted tail and sameSeq repair; 3s mature receiver estimate; 128B reverse encrypted echo delivered to initial sender and matched source history =>1/20 estimated deficit",
+        "Every corrupted reference and unsuitable count rejected: nonce, local source generation, reportSeq, DATA lastPN, recipient count > sender, synthetic missing, source>10s, retired generation",
+        "Original v2 health and old 9B coexist, N2 auto not invoked"
+      ]
+    },
+    "lifecycle": {
+      "run_id": 38078435330,
+      "status": "PASS"
+    },
+    "samewire": {
+      "run_id": 38078435326,
+      "status": "PASS"
+    },
+    "foundation": {
+      "run_id": 38078435386,
+      "status": "PASS",
+      "qualifier": "Linux/Windows active Go, privileged Linux shared TUN/OpenWrt and required jobs; performance/P5/P6 policy-skipped NOT_RUN"
+    },
+    "native_three": {
+      "run_id": 38078435343,
+      "job_id": 114290183047,
+      "status": "PASS",
+      "artifact_id": 11678698264,
+      "artifact_sha256": "6b3773412f4b4a75b854bcd1352697c998f8952bb5fd87482da82295b84fbcb6",
+      "nine_linux_network_namespaces": true,
+      "client_count": 3,
+      "shared_server_port": 443,
+      "profiles": [
+        "Normal off",
+        "Normal fixed20:4",
+        "Game2 fixed20:20"
+      ],
+      "each_direction": {
+        "sent_packets": 297,
+        "first_unique_received": 297,
+        "sent_bytes": 150480,
+        "first_unique_bytes": 150480
+      },
+      "checker_problems": []
+    }
+  },
+  "wire": {
+    "plaintext_version": 3,
+    "body_bytes": 128,
+    "kind": "AEAD KindHealth",
+    "other_versions_unchanged": [
+      {
+        "version": 2,
+        "body_bytes": 104
+      },
+      {
+        "version": 1,
+        "body_bytes": 9
+      }
+    ],
+    "per_active_lane_max_one_per_two_seconds": true,
+    "shared_admission_nonce": true,
+    "separate_direction_PN_spaces": true,
+    "source_echo_fields": [
+      "reportSeq",
+      "original source local generation",
+      "original source DATA lastPN"
+    ],
+    "history_entries": 16,
+    "history_max_age_seconds": 10,
+    "receiver_local_maturity_seconds": 3,
+    "source_success_min": 16,
+    "receiver_unique_min": 8,
+    "estimated_is": "first arrival deficit of authenticated KindLINK, not measured WAN physical loss",
+    "unqualified_status": "INSUFFICIENT/CAPACITY/STALE no misleading zero",
+    "n2_auto": "NOT_ENABLED"
+  },
+  "unqualified": {
+    "controlled_impaired_native_loss_feedback": "NOT_RUN",
+    "raw_wan_loss_measurement": "NOT_RUN",
+    "mixed_old_V3_echo_capability": "NOT_RUN",
+    "multi_lane_echo_soak": "NOT_RUN",
+    "P6": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "deployment": false,
+    "N2_N6": "NOT_STARTED"
+  },
+  "prior_failures_preserved": [
+    "af74c18 source method compile failure",
+    "1d5e9f5 first candidate test expected last tick segment despite sameSeq repair"
+  ],
+  "next": "N1 controlled 0/1/5% impairment feedback validation with late, capacity, age, buffer expiration, rotation and true multi-lane isolation; N2 HOLD"
+}
