@@ -233,66 +233,6 @@ PY_FEC_FLAGS
         swap('"tools/fec_policy_batch.py",',
              '"tools/fec_policy_batch.py",\n    "tools/fec_simd_ab.py",')
         swap('--drain-s 3 --output', '--drain-s 3 --simd-ab --output')
-
-        # SIMD-only, failed-case diagnostic: the old product's child process
-        # wait status (never PID/argv/credentials). Do not affect old fixtures.
-        for role in ("SERVER","CLIENT"):
-            marker='  echo "WBD_STRICT_'+role+'_EARLY_EXIT pid=
-        swap('[[0,75,5],[75,225,20],[225,300,5]]',
-             '[[0,int(os.environ["WBD_FEC_DURATION_S"])//4,5],'
-             '[int(os.environ["WBD_FEC_DURATION_S"])//4,3*int(os.environ["WBD_FEC_DURATION_S"])//4,20],'
-             '[3*int(os.environ["WBD_FEC_DURATION_S"])//4,int(os.environ["WBD_FEC_DURATION_S"]),5]]')
-    if x.sweep_experiment:
-        swap('    normal:1:10) ;;',
-             '    normal:1:10|normal:1:20|normal:1:30|normal:1:50) ;;')
-        swap('workflow_rel = ".github/workflows/next-fec-policy-sequential.yml"',
-             'workflow_rel = ".github/workflows/next-fec-retrans-sweep.yml"')
-        swap('"tools/fec_policy_batch.py",',
-             '"tools/fec_policy_batch.py",\n    "tools/fec_retrans_sweep.py",\n    "tools/fec_wire_retrans_observer.py",')
-    if x.fec_experiment:
-        # Only line and status; never leak shell commands or credentials.
-        s=s.replace("set -euo pipefail\n",
-            "set -eEuo pipefail\ntrap 'printf \"FEC_EXPERIMENT_SHELL_FAIL code=%s line=%s\\n\" \"$?\" \"$LINENO\" >&2' ERR\n",1)
-    Path(x.output).write_text(s)
-    Path(x.output+".receipt.json").write_text(json.dumps({
-        "schema":"wbd-large-mtu-harness-template/v1",
-        "original_sha256":hashlib.sha256(original.encode()).hexdigest(),
-        "generated_sha256":hashlib.sha256(s.encode()).hexdigest(),
-        "workload":x.workload,"loss":x.loss,"one_sample":not x.fec_experiment,
-        "fec_experiment":x.fec_experiment,"sweep_experiment":x.sweep_experiment,"duration_s":x.duration_s,"delay_ms":x.delay_ms},indent=2))
-
-if __name__=="__main__":main()
-+role+'_PID" >&2'
-            replacement=('  exit_code=0\n'
-                         '  wait "
-        swap('[[0,75,5],[75,225,20],[225,300,5]]',
-             '[[0,int(os.environ["WBD_FEC_DURATION_S"])//4,5],'
-             '[int(os.environ["WBD_FEC_DURATION_S"])//4,3*int(os.environ["WBD_FEC_DURATION_S"])//4,20],'
-             '[3*int(os.environ["WBD_FEC_DURATION_S"])//4,int(os.environ["WBD_FEC_DURATION_S"]),5]]')
-    if x.sweep_experiment:
-        swap('    normal:1:10) ;;',
-             '    normal:1:10|normal:1:20|normal:1:30|normal:1:50) ;;')
-        swap('workflow_rel = ".github/workflows/next-fec-policy-sequential.yml"',
-             'workflow_rel = ".github/workflows/next-fec-retrans-sweep.yml"')
-        swap('"tools/fec_policy_batch.py",',
-             '"tools/fec_policy_batch.py",\n    "tools/fec_retrans_sweep.py",\n    "tools/fec_wire_retrans_observer.py",')
-    if x.fec_experiment:
-        # Only line and status; never leak shell commands or credentials.
-        s=s.replace("set -euo pipefail\n",
-            "set -eEuo pipefail\ntrap 'printf \"FEC_EXPERIMENT_SHELL_FAIL code=%s line=%s\\n\" \"$?\" \"$LINENO\" >&2' ERR\n",1)
-    Path(x.output).write_text(s)
-    Path(x.output+".receipt.json").write_text(json.dumps({
-        "schema":"wbd-large-mtu-harness-template/v1",
-        "original_sha256":hashlib.sha256(original.encode()).hexdigest(),
-        "generated_sha256":hashlib.sha256(s.encode()).hexdigest(),
-        "workload":x.workload,"loss":x.loss,"one_sample":not x.fec_experiment,
-        "fec_experiment":x.fec_experiment,"sweep_experiment":x.sweep_experiment,"duration_s":x.duration_s,"delay_ms":x.delay_ms},indent=2))
-
-if __name__=="__main__":main()
-+role+'_PID" >/dev/null 2>&1 || exit_code=$?\n'
-                         '  echo "WBD_FEC_'+role+'_EXIT_CODE=$exit_code" >&2\n'
-                         +marker)
-            swap(marker,replacement)
         swap('[[0,75,5],[75,225,20],[225,300,5]]',
              '[[0,int(os.environ["WBD_FEC_DURATION_S"])//4,5],'
              '[int(os.environ["WBD_FEC_DURATION_S"])//4,3*int(os.environ["WBD_FEC_DURATION_S"])//4,20],'
