@@ -1182,6 +1182,10 @@ type serverLifecycleLane struct {
 }
 
 type serverLifecycleTunnel struct {
+	// Set only after a fully bound lane under admitMu. Same TunnelID may not
+	// change V3 policy/cipher/FEC across lane addition or rotation.
+	admissionVersion uint16
+	admissionPolicy realityfront.AdmissionPolicy
 	desired     int
 	id          logicaltunnel.TunnelID
 	leaseAddr   netip.Addr
@@ -1668,6 +1672,12 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 		s.dropAdmission(flow)
 		return
 	}
+	// Admission is serialized by admitMu until policy publication. Identity,
+	// algorithm and fixed profile cannot silently change for this TunnelID.
+	s.mu.Lock()
+	group.admissionVersion = result.Admission.Negotiated.RecordVersion
+	group.admissionPolicy = result.Admission.Negotiated.Policy
+	s.mu.Unlock()
 	steadyQualified := len(result.Admission.EarlyRecords) != 0
 	fresh := &serverLifecycleLane{
 		flow: flow, assoc: assoc, ref: snapshot.Ref,
@@ -1753,11 +1763,17 @@ func (s *LifecycleServer) validateAdmissionRequest(req realityfront.AdmissionReq
 		s.mu.Unlock()
 		return ErrLeaseMismatch
 	}
+	if group.admissionVersion != 0 &&
+		(group.admissionVersion != req.RecordVersion ||
+		(req.RecordVersion == realityfront.RecordVersionV3 && group.admissionPolicy != req.Policy)) {
+		s.mu.Unlock()
+		return ErrLifecycleLaneState
+	}
 	if hasRetiringLane(group, req.LaneID) {
 		s.mu.Unlock()
 		return ErrLifecycleBusy
 	}
-	changedMode := req.AutoLease && int(req.DesiredLanes) != group.desired
+	changedMode := (req.AutoLease || req.RecordVersion == realityfront.RecordVersionV3) && int(req.DesiredLanes) != group.desired
 	s.mu.Unlock()
 	if changedMode {
 		// A newly configured client may change Normal/Game only after the old

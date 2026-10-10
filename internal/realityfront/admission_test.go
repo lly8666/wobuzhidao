@@ -149,7 +149,7 @@ func TestProtectedAdmissionAuthenticationFailureDoesNotPrepareTransition(t *test
 func TestAdmissionUnknownRecordVersionIsExplicitlyRejected(t *testing.T) {
 	wire := make([]byte, admissionRequestLen)
 	copy(wire[:4], admissionMagic)
-	binary.BigEndian.PutUint16(wire[4:6], RecordVersionV2+1)
+	binary.BigEndian.PutUint16(wire[4:6], RecordVersionV3+1)
 	binary.BigEndian.PutUint16(wire[6:8], 1500)
 	binary.BigEndian.PutUint16(wire[8:10], 1)
 	binary.BigEndian.PutUint16(wire[10:12], 1)

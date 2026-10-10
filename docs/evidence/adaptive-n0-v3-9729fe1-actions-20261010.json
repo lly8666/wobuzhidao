@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_sha": "9729fe1d3e34d2a0cb85772e2ef5ef5868bff70d",
+  "observation": "GitHub Actions first V3 increment",
+  "runs": [
+    {
+      "name": "next-foundation",
+      "run_id": 38060813844,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38060813844",
+      "conclusion": "FAIL",
+      "failed_jobs": [
+        {
+          "id": 114238557014,
+          "name": "active-go-tests (ubuntu-24.04)"
+        },
+        {
+          "id": 114238557087,
+          "name": "active-go-tests (windows-2022)"
+        }
+      ],
+      "success_job_names": [
+        "repository-contract",
+        "p4-openwrt-tproxy-privileged",
+        "p4-linux-shared-tun-privileged (iptables)",
+        "p4-linux-shared-tun-privileged (nft)",
+        "p2-kernel-fallback"
+      ],
+      "failing_test": "TestAdmissionUnknownRecordVersionIsExplicitlyRejected",
+      "observed_error": "ErrAdmissionParams for synthetic incomplete version 3; old test expected ErrAdmissionVersion (V2+1)"
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38060813846,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38060813846",
+      "conclusion": "FAIL",
+      "failed_jobs": [
+        {
+          "id": 114238524678,
+          "name": "core"
+        }
+      ],
+      "failing_test": "TestAdmissionUnknownRecordVersionIsExplicitlyRejected"
+    }
+  ],
+  "capacity_preflight": "NOT_MEASURED",
+  "live_injection_and_drops": "NOT_MEASURED",
+  "full_product_qualification": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "new_source_rerun": "PENDING",
+  "limitation": "All builds and tests on Actions only; no source performance or native Windows TUN/direct qualification. Historical FAIL preserved."
+}
