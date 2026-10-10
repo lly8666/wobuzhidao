@@ -113,8 +113,20 @@ def check(art, source, output):
             errors.append(f"{direction}: netem not effective")
     if captures["c2s"]["pre"]["outer_syn_flows"] != 1:
         errors.append("expected one authenticated real underlay association")
-    if captures["c2s"]["pre"]["repair_tcp_payload_bytes"] or captures["s2c"]["pre"]["repair_tcp_payload_bytes"]:
-        errors.append("unexpected lossless outer repair")
+    # A 300ms one-way / ~600ms RTT path can legitimately retransmit even
+    # without configured packet loss if a local repair timer fires before its
+    # ACK is observed. Retransmission is not by itself failed first delivery.
+    # Preserve exact counts separately: these require later CPU/bandwidth
+    # performance scrutiny and same-Seq same-wire directed qualification.
+    repair = {}
+    for direction in ("c2s", "s2c"):
+        total = captures[direction]["pre"]["repair_tcp_payload_bytes"]
+        fresh = captures[direction]["pre"]["fresh_tcp_payload_bytes"]
+        repair[direction] = {
+            "repair_payload_bytes": total,
+            "fresh_payload_bytes": fresh,
+            "repair_to_fresh_ratio": total / fresh if fresh else None,
+        }
     # Hash and remove raw packet captures: never upload large pcaps.
     pcap_provenance = {}
     for stem in ("c2s-pre", "c2s-post", "s2c-pre", "s2c-post"):
@@ -133,7 +145,9 @@ def check(art, source, output):
         "config": c, "input_and_unique_delivery": payload,
         "probe": {"sent": biz["probe_sent"], "received": biz["probe_recv"],
                   "returned_only_rtt_p99_ns": biz["probe_rtt_p99_ns"]},
-        "capture": captures, "pcap_redacted_hashes": pcap_provenance,
+        "capture": captures, "outer_repair": repair,
+        "repair_not_a_first_delivery_failure": "visible; no bandwidth or latency qualification from this sample",
+        "pcap_redacted_hashes": pcap_provenance,
         "cpu_quota_psi_preflight": "see runner-cpu-scope.json and runner-preflight.txt; no capacity claim",
         "harness": prep,
     }

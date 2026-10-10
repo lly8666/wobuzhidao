@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "source_sha": "5f0ebeb9c964bdeff5e8d6cef282885eeb34ba44",
+  "workflow": "next-adaptive-n0-realpath",
+  "run_id": 38063769207,
+  "job_id": 114247157088,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38063769207",
+  "artifact_id": 11673604768,
+  "conclusion": "FAIL",
+  "failed_gate": "functional validator rejected any nonzero outer retransmission even in controlled 300ms one-way 0 loss",
+  "build": "PASS",
+  "sample": "PASS",
+  "validator": "FAIL",
+  "config": {
+    "client_v3_fec": "20:4",
+    "server_config_parity": "20:20",
+    "cipher": "chacha20-poly1305",
+    "loss": 0,
+    "one_way_delay_ms": 300,
+    "client_lanes": 1
+  },
+  "first_unique": {
+    "c2s": {
+      "sent_packets": 987,
+      "received_packets": 987,
+      "sent_bytes": 500080,
+      "received_bytes": 500080,
+      "corrupt": 0,
+      "duplicate": 0,
+      "send_lag_p99_ns": 130743
+    },
+    "s2c": {
+      "sent_packets": 987,
+      "received_packets": 987,
+      "sent_bytes": 500080,
+      "received_bytes": 500080,
+      "corrupt": 0,
+      "duplicate": 0,
+      "send_lag_p99_ns": 122203
+    }
+  },
+  "outer": {
+    "c2s": {
+      "fresh_payload_bytes": 1548866,
+      "retransmitted_payload_bytes": 0,
+      "netem_median_delay_ns": 300022000
+    },
+    "s2c": {
+      "fresh_payload_bytes": 1562639,
+      "retransmitted_payload_bytes": 407,
+      "retransmitted_to_fresh_ratio": 0.0002604568297604245,
+      "netem_median_delay_ns": 300021000
+    }
+  },
+  "probe": {
+    "sent": 8,
+    "received": 8,
+    "returned_only_rtt_p99_ns": 600577289
+  },
+  "tcpdump_drop_c2s_pre_post": 0,
+  "tcpdump_drop_s2c_pre_post": 0,
+  "interpretation": "Functional payload complete. Nonzero repair remains performance anomaly, not rewritten as zero or historical PASS.",
+  "native_three_clients": "NOT_RUN",
+  "performance": "NOT_RUN",
+  "windows_tun": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "raw_pcap_uploaded": false
+}
