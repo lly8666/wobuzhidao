@@ -26,6 +26,8 @@ on:
       - "internal/runtimeowner/quality_echo_live.go"
       - "internal/runtimeowner/control_policy.go"
       - "internal/runtimeowner/control_policy_test.go"
+      - "internal/runtimeentry/diagnostic.go"
+      - "internal/runtimeentry/diagnostic_control_test.go"
       - "internal/runtimeowner/health_test.go"
       - "internal/runtimeowner/quality_echo_live_test.go"
       - "internal/runtimeowner/quality_pair_test.go"
@@ -76,6 +78,12 @@ jobs:
         run: |
           set -euo pipefail
           go test -race ./internal/runtimeowner -run '^TestN1Control' -count=2 -timeout=90s -v
+      - name: Bounded control histogram in optional diagnostic JSON under race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./internal/runtimeentry \
+            -run '^TestN1ControlDiagnostic' -count=2 -timeout=90s -v
       - name: Legacy health v1 and plaintext record regression
         shell: bash
         run: |

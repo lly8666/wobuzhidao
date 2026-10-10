@@ -524,3 +524,23 @@ change, NOT a claim of indistinguishability, standards-conformant HTTPS
 behavior, physical WAN loss measurement, N2 automatic FEC activation or
 performance qualification. All new SOURCE Actions remain PENDING until
 their actual results are recorded.
+
+
+## 2026-10-11 N1 bounded control observation schema (pending Actions)
+
+A successful KindHealth Emit adds one sample to the sender-local
+8-bucket encrypted **record** length histogram with upper edges
+64/128/256/512/768/1024/1280 bytes (last bucket over 1280), one
+successful-to-successful interval sample with edges
+500/1000/1500/2000/2500/3500/5000ms (last bucket over 5000)
+except for the first successfully emitted control, and the sum of
+encrypted control record bytes. No raw record bytes, IP/TCP payload,
+destination fields, fixed nonce, credential or full pcap is persisted
+by this instrumentation. Emit failure does not increment a successful
+record or reset its time; no new timer, FEC, LINK or per-DATA operation
+is added. The optional diagnostic `lanes[].control` exposes
+`control_length_bins`, `control_gap_bins`, `control_wire_bytes`
+and reason/merge/padding aggregate counters only after an explicitly
+enabled existing diagnostic-jsonl path. These are *record* bytes
+excluding outer IP/TCP headers. No per-run frequency or
+indistinguishability claim without source-matched actual tests.

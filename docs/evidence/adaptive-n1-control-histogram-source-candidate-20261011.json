@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "kind": "N1_BOUNDED_CONTROL_RECORD_LENGTH_SUCCESS_GAP_DIAGNOSTIC_CANDIDATE",
+  "parent_source": "60a17eff5819c81984c5cb7e482823e140c4e9cd",
+  "new_source": "CONTAINING_COMMIT_SHA",
+  "prior_exact_source_actions": {
+    "foundation": 38082018643,
+    "lifecycle": 38082018767,
+    "negotiated": 38082018676,
+    "native_three": 38082018630,
+    "n1_focused": 38082018813,
+    "all_status": "PASS_PRIOR_CODE_ONLY"
+  },
+  "new_code": {
+    "runtimeowner": "one 8-bin length and 8-bin interval count only after successful encrypted KindHealth fresh Emit, plus total wire record bytes",
+    "runtimeentry": "only existing opt-in diagnostic-jsonl ACTIVE lane control snapshots",
+    "length_edges_bytes": [
+      64,
+      128,
+      256,
+      512,
+      768,
+      1024,
+      1280
+    ],
+    "gap_edges_ms": [
+      500,
+      1000,
+      1500,
+      2000,
+      2500,
+      3500,
+      5000
+    ],
+    "payload_or_credentials": "NEVER_COLLECTED",
+    "counter_overhead": "O(1) per successful control only; no business hot-path scanning"
+  },
+  "new_action_status": "PENDING",
+  "n1_auto_fec": "NOT_ENABLED",
+  "physical": "NOT_RUN",
+  "perf_matrix": {
+    "normal10mbps_off": "NOT_RUN",
+    "normal10mbps_fec2020": "NOT_RUN",
+    "game4_3mbps_each": "NOT_RUN",
+    "idle_sparse_oneway_burst": "NOT_RUN",
+    "dynamic_0_1_5_20_recovery": "NOT_RUN",
+    "low_RTT_300ms": "NOT_RUN",
+    "safe_small_MTU_options": "NOT_RUN",
+    "outer_ipv6": "NOT_RUN",
+    "matched_baseline_comparison": "NOT_RUN",
+    "runner_cpu_quota_busy_PSI": "NOT_MEASURED",
+    "fullstack_first_delivery_goodput_p99_HOL": "NOT_MEASURED"
+  },
+  "workflow_note": "Existing next-strict-weaknet.yml supports manual workflow_dispatch one source/config/scenario, but installed remote GitHub tools lack a dispatch mutation; never assert a run was initiated."
+}

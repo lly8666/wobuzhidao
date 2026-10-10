@@ -163,3 +163,10 @@ Linux 客户端和服务端统一参数 `raw-recv-buffer` 表示传给 `SO_RCVBU
 | `--control-padding-max` / `"control-padding-max"` | 0 | 0..16384 | 0 使用方向性 MTU/record/MSS 真实剩余预算，正值另外限制每条控制最多填充字节数；实际应用仍裁剪到安全余量。 |
 
 与 `tls-startup-padding` 独立，未引入业务逐包填充/请求队列/后台假流量。配置校验发生在 CLI/configfile 加载后、任何正式设备启动前，越界启动失败。底层 `runtimeowner.TransportConfig` 默认开且上限 0 的行为不变。先核实新 SOURCE 的参数目录 gate、Linux/Windows 编译、原 9-netns 正式三客户端与 N1 race 再称之为正式用户开关已验收；之前“内部字段未接 CLI”仅说明旧源码状态，不适用于此次候选来源。
+
+
+## N1 控制分布有界诊断字段（2026-10-11）
+
+正式 `control-padding`（默认 true）和 `control-padding-max`（默认 0，0=真实方向安全余量，1..16384 配置上限）已经由 `60a17eff5819c81984c5cb7e482823e140c4e9cd` 的 [foundation #38082018643](https://github.com/lly8666/wobuzhidao/actions/runs/38082018643)、[lifecycle #38082018767](https://github.com/lly8666/wobuzhidao/actions/runs/38082018767)及[三客户端 #38082018630](https://github.com/lly8666/wobuzhidao/actions/runs/38082018630)在 Linux/Windows CLI+同名 JSON 目录与既有正式业务路径上 scoped PASS。上方旧版“仅内部未接 CLI”段是旧 SOURCE 历史，不是现行参数状态。
+
+当显式开启现有 `diagnostic-jsonl` 时，本候选只新增 `lanes[].control.control_length_bins`、`control_gap_bins` 两个 8 桶数组，`control_wire_bytes`、padding/合并发送/抑制/失败计数；不新增 CLI 选项、不改变磁盘默认关闭的安全边界。密文 record 长度桶 (<=64/128/256/512/768/1024/1280/>1280B)，成功发送间隔桶 (<=500ms/1s/1.5s/2s/2.5s/3.5s/5s/>5s)，只有成功控制 Emit 才增长。实际 JSON 结构资格需新 SOURCE Go race 和官方 Actions。它是有限统计，不是 TCP/IP 包长也不是 HTTPS 伪装证明。

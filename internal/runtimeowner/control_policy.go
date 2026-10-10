@@ -13,19 +13,41 @@ import (
 // ControlStats is bounded per ACTIVE incarnation, collected only when an
 // actual control decision is due. No per-business packet log or goroutine.
 type ControlStats struct {
- QualityNewWindow uint64
- QualityEchoChange uint64
- QualityStatusChange uint64
- QualityRefreshDeadline uint64
- QualityBootstrap uint64
- SuppressedNoNewObservation uint64
- MergedHealth uint64
- HealthEmitted uint64
- QualityEmitted uint64
- EmissionFailures uint64
- PaddingBytes uint64
- PaddingBudgetSkips uint64
- FeedbackAgeMillis uint64 // read-only last computed qualified age
+ QualityNewWindow uint64 `json:"quality_new_window"`
+ QualityEchoChange uint64 `json:"quality_echo_change"`
+ QualityStatusChange uint64 `json:"quality_status_change"`
+ QualityRefreshDeadline uint64 `json:"quality_refresh_deadline"`
+ QualityBootstrap uint64 `json:"quality_bootstrap"`
+ SuppressedNoNewObservation uint64 `json:"suppressed_no_new_observation"`
+ MergedHealth uint64 `json:"merged_health"`
+ HealthEmitted uint64 `json:"health_emitted"`
+ QualityEmitted uint64 `json:"quality_emitted"`
+ EmissionFailures uint64 `json:"emission_failures"`
+ PaddingBytes uint64 `json:"padding_bytes"`
+ PaddingBudgetSkips uint64 `json:"padding_budget_skips"`
+ FeedbackAgeMillis uint64 `json:"feedback_age_millis"` // read-only last computed qualified age
+ // Bounded per-direction encrypted TLS-like record length and successful
+ // control-to-control interval histograms. No raw packet body or pcap.
+ ControlWireBytes uint64 `json:"control_wire_bytes"`
+ ControlLengthBins [8]uint64 `json:"control_length_bins"`
+ ControlGapBins [8]uint64 `json:"control_gap_bins"`
+ lastControlAt time.Time
+}
+
+func controlLengthBucket(bytes int) int {
+ for i,limit:=range [...]int{64,128,256,512,768,1024,1280} {
+  if bytes<=limit{return i}
+ }
+ return 7
+}
+
+func controlGapBucket(delay time.Duration) int {
+ for i,limit:=range [...]time.Duration{
+  500*time.Millisecond,time.Second,1500*time.Millisecond,2*time.Second,
+  2500*time.Millisecond,3500*time.Millisecond,5*time.Second} {
+  if delay<=limit{return i}
+ }
+ return 7
 }
 
 func controlRandomInt(n int64) int64 {
@@ -83,6 +105,12 @@ func (t *laneTransport) noteControlSuccess(now time.Time, record datapath.WireRe
  t.mu.Lock()
  defer t.mu.Unlock()
  t.control.PaddingBytes+=uint64(record.PaddingBytes)
+ t.control.ControlWireBytes+=uint64(len(record.Wire))
+ t.control.ControlLengthBins[controlLengthBucket(len(record.Wire))]++
+ if !t.control.lastControlAt.IsZero() && !now.Before(t.control.lastControlAt) {
+  t.control.ControlGapBins[controlGapBucket(now.Sub(t.control.lastControlAt))]++
+ }
+ t.control.lastControlAt=now
  if quality {
   t.control.QualityEmitted++
   if t.health.interval>0 {

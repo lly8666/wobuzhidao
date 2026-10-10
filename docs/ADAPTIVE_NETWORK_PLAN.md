@@ -255,3 +255,10 @@ KindHealth 单独增加 encrypted zero padding，复用 tlsrecord.inner_type 后
 ## N1 控制 padding 参数接线候选（2026-10-11）
 
 在先前已通过 SOURCE `2dafe7c` 的合并保活、控制-only AEAD zero padding、事件驱动限频基础上，此**独立源码候选**把 `control-padding` / `control-padding-max` 接入 Linux/Windows client、Linux server 的唯一 CLI/JSON 配置源，经 `TunnelClientConfig` / `LifecycleServerConfig` 原样传递到现有每 lane `TransportConfig`，不额外重开框架。内建默认 true/0、显式 false 关闭、上限0..16384且实际长度仍受真正外层方向 pathmtu 限制。命令行值覆盖 JSON，CLI 初始参数语义与 `docs/PARAMETERS.json` 的官方生成器完全一致。该接口代码及参数目录在新 SOURCE 的 Linux/Windows 构建/参数合约 Actions 之前仍为候选，不得记为 PASS。独立 fullstack 性能/外观基线场景仍 NOT_RUN。
+
+
+## N1 有界控制外观观测（2026-10-11，新 SOURCE 候选）
+
+在已经用 GitHub Actions 验证的控制事件化/保活合并和正式 `control-padding` / `control-padding-max` 参数基础上，直接复用每个 ACTIVE lane 的成功发送计数，添加控制加密 record 本体长度直方图 8 桶（<=64、128、256、512、768、1024、1280、>1280 字节）、相邻成功控制发送时间差直方图 8 桶（<=0.5、1、1.5、2、2.5、3.5、5、>5 秒）、加密 record 总字节、随机填充量、预算跳过和触发/抑制原因。纯常量次计数，只有成功控制段写入，失败 Emit 不算成功报文或刷新间隔；只记 record 密文字节，不计 IP/TCP 头部，不记录正文/密钥/对端身份/大 pcap。独立内存计数通过 `Runtime.ControlStats` 可读；现有用户手动开启 `diagnostic-jsonl` 时写入 `TunnelDiagnostic.lanes[].control`，数组字段名 `control_length_bins` / `control_gap_bins`。旧协商/休眠 lane 没有虚构的 current control 状态；GUI 只读缓存不触发新报文。
+
+这一项只建立**有限观测接口**，不等同于已经采样任何真实线速的长度/间隔分布，也不证明 HTTPS 外观或不可识别。真实 10Mbps/3Mbps/弱网性能与协议外观的独立 Actions 比较仍 NOT_RUN。采用仓库已审计的单 SOURCE/单工况 workflow_dispatch `next-strict-weaknet.yml`：性能 Action 不设置自动 push trigger、不使用 matrix；当前 GitHub 插件只允许查询运行结果而没有调度这类 dispatch 的写动作，因而不能将计划运行标 PASS。对比时保留 4f0cf78(优化前) 与未来候选 SOURCE，按同一配置/runner 级别独立运行，记录 CPU 型号、quota/PSI、注入达标、业务首交付、goodput、p99、长零交付、控制总字节及直方图。低 RTT、完整 IPv6 外层和独立 MTU 场景没有证据一律 NOT_RUN。

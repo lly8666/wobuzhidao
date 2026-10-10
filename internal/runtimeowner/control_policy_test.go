@@ -46,6 +46,11 @@ func TestN1ControlMergedQualitySatisfiesHealthIdleSuppressesRepeatsAndBoundsPadd
  if stats.QualityEmitted!=1||stats.HealthEmitted!=0||stats.MergedHealth!=1 {
   t.Fatalf("bootstrap must merge two deadlines, stats=%+v",stats)
  }
+ lengthCount:=uint64(0)
+ for _,n:=range stats.ControlLengthBins{lengthCount+=n}
+ if lengthCount!=1 || stats.ControlWireBytes!=uint64(len(out[0].Payload)) {
+  t.Fatalf("one bounded wire size receipt required: %+v",stats)
+ }
  for _,seconds:=range []int{2,4,6,8,10,12}{
   if err:=c.Tick(t0.Add(time.Duration(seconds)*time.Second));err!=nil{t.Fatal(err)}
  }
@@ -60,6 +65,14 @@ func TestN1ControlMergedQualitySatisfiesHealthIdleSuppressesRepeatsAndBoundsPadd
  stats,_=c.ControlStats(cr.Ref)
  if stats.QualityEmitted!=1||stats.HealthEmitted!=1 {
   t.Fatalf("idle quality not suppressed or timed health absent: %+v",stats)
+ }
+ lengthCount=0
+ gapCount:=uint64(0)
+ for _,n:=range stats.ControlLengthBins{lengthCount+=n}
+ for _,n:=range stats.ControlGapBins{gapCount+=n}
+ if lengthCount!=2||gapCount!=1 ||
+  stats.ControlWireBytes!=uint64(len(out[0].Payload)+len(out[1].Payload)) {
+  t.Fatalf("control-only length/gap histogram must be bounded and consistent: %+v",stats)
  }
  // Force idle remains mandatory and bypasses timing jitter.
  c.AdvertiseIdle(t0.Add(18*time.Second))

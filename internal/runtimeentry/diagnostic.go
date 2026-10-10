@@ -16,6 +16,7 @@ type LaneDiagnostic struct {
 	ParityShards int                         `json:"parity_shards"`
 	Lane         datapath.LaneStats          `json:"lane"`
 	Transport    runtimeowner.TransportStats `json:"transport"`
+	Control      *runtimeowner.ControlStats `json:"control,omitempty"`
 }
 
 type LifecycleConfigDiagnostic struct {
@@ -65,8 +66,12 @@ func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, n
 		if !laneOK || !transportOK {
 			continue
 		}
+		var ctrl *runtimeowner.ControlStats
+		if snapshot, ok := rt.ControlStats(lane.Ref); ok {
+			ctrl = &snapshot
+		}
 		out.Lanes = append(out.Lanes, LaneDiagnostic{
-			Ref: lane.Ref, ParityShards: lane.ParityShards, Lane: laneStats, Transport: transportStats,
+			Ref: lane.Ref, ParityShards: lane.ParityShards, Lane: laneStats, Transport: transportStats, Control: ctrl,
 		})
 	}
 	for _, lane := range owner.RetiringLanes() {
