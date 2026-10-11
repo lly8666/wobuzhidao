@@ -299,3 +299,9 @@ N1按用户明确收缩后的范围停止继续实验，记`SCOPED_COMPLETE`而�
 ### 2026-10-11 GitHub Actions N2 首轮定向失败记录
 
 `47b94777` GitHub foundation `38120812356` 的 Linux 单元 `TestHighPhysicalLossEscalatesButOverloadFreezes` 因**测试对512门槛的假设错误**失败：在解除capacity前，自上次降档之后已有远大于512条互不重叠有效source DATA PN，因此收到下一份真实恶化后应立即升级（快升规则），无需从刚出现恶化的窗口重计512。保留这次FAIL，测试改为“解除capacity时升级一次，之后仅256条新DATA不能按同一趋势重复决策”。这不改变产品逻辑或算法参数，下一精确SOURCE Actions 再核。
+
+### 2026-10-11 N2 决策核心 Actions 定向结果
+
+首次SOURCE `47b94777` 的 foundation `38120812356` 因 **单元测试错误地重置累计512门槛** FAIL，完整失败不删除；仅修正测试的 SOURCE `25f67474869c107c68f228a5f86b9923a3563f8d` GitHub [foundation `38120920936`](https://github.com/lly8666/wobuzhidao/actions/runs/38120920936) **启用的7项全部 PASS**，覆盖Linux/Windows go test/build、Linux race、网络基础和仓库规则；[lifecycle `38120920958`](https://github.com/lly8666/wobuzhidao/actions/runs/38120920958) PASS。该轮没有任何性能样本或物理机试跑，也没有动态产品 FEC 行为。精确观察及限制见 `docs/evidence/adaptive-n2-guarded-controller-actions-20261011.json`。
+
+下一步只补真实首次发送线路缺失的保守可验证证据、实际partial k分布及安全的block-boundary live切档；默认auto在 `SupportedNow` 仍被拒绝，不能从本轮7项基础检查推断N2完整完成，更不能使用N1修复后0%缺失降档。

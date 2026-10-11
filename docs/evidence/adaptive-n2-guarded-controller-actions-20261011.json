@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "updated_at": "2026-10-11",
+  "milestone": "N2_PURE_DECISION_CORE_SCOPED_ACTIONS_PASS_NO_LIVE_WIRING",
+  "source_sha": "25f67474869c107c68f228a5f86b9923a3563f8d",
+  "parent_source": "47b94777b91f4834854d7bfc049a130eda17d913",
+  "actions": {
+    "initial_failure": {
+      "run_id": 38120812356,
+      "conclusion": "failure",
+      "unit": "TestHighPhysicalLossEscalatesButOverloadFreezes",
+      "cause": "test assertion incorrectly resets 512 accumulated after upstream pressure; implementation fast raised correctly",
+      "status": "PRESERVED_HISTORICAL_FAIL"
+    },
+    "verified_foundation": {
+      "run_id": 38120920936,
+      "conclusion": "success",
+      "enabled_jobs": [
+        "repository-contract",
+        "active-go-tests (ubuntu-24.04)",
+        "active-go-tests (windows-2022)",
+        "p2-kernel-fallback",
+        "p4-openwrt-tproxy-privileged",
+        "p4-linux-shared-tun-privileged (iptables)",
+        "p4-linux-shared-tun-privileged (nft)"
+      ],
+      "other_extended_jobs": "SKIPPED_NOT_RUN"
+    },
+    "lifecycle": {
+      "run_id": 38120920958,
+      "conclusion": "success"
+    }
+  },
+  "core": {
+    "files": [
+      "internal/adaptivefec/controller.go",
+      "internal/adaptivefec/controller_test.go"
+    ],
+    "models": [
+      "off",
+      "20:4",
+      "20:8",
+      "20:10",
+      "20:12",
+      "20:16",
+      "20:20"
+    ],
+    "mode": [
+      "auto",
+      "aggressive"
+    ],
+    "initial": 20,
+    "max": 20,
+    "minimum_default": 4,
+    "optional_off": true,
+    "sample_min_qualified_data_records": 512,
+    "fast_ewma_seconds": 2,
+    "slow_ewma_seconds": 15,
+    "down_stability_seconds": 30,
+    "off_down_stability_seconds": 60,
+    "down_cooldown_seconds": 10,
+    "confidence": "Wilson95pct plus 0.05pct residual margin",
+    "guards": [
+      "postrepair echo never supports automatic step",
+      "unknown/capacity/stale/replay/generation mismatch hold",
+      "unverified k hold",
+      "normal only"
+    ]
+  },
+  "hard_nonclaims": {
+    "admission_auto": "UNSUPPORTED_NOW",
+    "production_auto_switch": "NOT_IMPLEMENTED",
+    "rx_multidynamic_fec": "NOT_IMPLEMENTED",
+    "first_attempt_plr": "NOT_IMPLEMENTED_OR_QUALIFIED",
+    "mixed_partial_k_data": "NOT_IMPLEMENTED",
+    "performance": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "N3_N6": "NOT_STARTED",
+    "N1_historical_results": "UNCHANGED",
+    "N1_receiver_estimate": "AFTER_REPAIR_NOT_TRUE_PHYSICAL_FIRST_ATTEMPT"
+  }
+}
