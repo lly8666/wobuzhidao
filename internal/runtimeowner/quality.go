@@ -17,7 +17,9 @@ type qualityState struct {
     reportSeq uint64
     mailbox *datapath.QualityFeedbackMailbox
     tx qualityTXWindow // guarded by existing laneTransport.mu
-    pair qualityPairCandidate // authenticated peer TX window + control record PN
+    pair qualityPairCandidate // most recent, not maturity timer
+    pending [datapath.QualityTrackedReceiveCapacity]qualityPairCandidate
+    lastMatureEchoSeq uint64
     sentSources [qualitySentHistoryCapacity]qualitySentSource
     returned qualityReturnedEcho
     received uint64
@@ -76,6 +78,9 @@ func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
  }
  tx:=t.quality.tx.snapshot(now)
  pair:=t.quality.pair
+ maturePair,matureReady:=t.quality.maturePair(now,t.quality.lastMatureEchoSeq,false)
+ echoPair:=pair
+ if matureReady {echoPair=maturePair}
  // Copy only the scalar decision state, not the 16-report authenticated
  // source history or mailbox pointer on every eligible maintenance Tick.
  // No new business hot-path work, allocation, or lock is introduced.
@@ -90,10 +95,13 @@ func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
  idleSource:=t.health.idleSource
  t.mu.Unlock()
  var estimate QualityInboundEstimate
- if pair.accepted {
-  rx,queryErr:=t.owner.QualityReceiveRange(t.ref,pair.report.WindowFirstPN,pair.report.WindowLastPN,now)
+ if echoPair.accepted {
+  var rx datapath.QualityReceiveRange
+  var queryErr error
+  if matureReady {rx,queryErr=t.owner.QualityTrackedReceiveRange(t.ref,echoPair.report.ReportSeq,now)
+  }else{rx,queryErr=t.owner.QualityReceiveRange(t.ref,echoPair.report.WindowFirstPN,echoPair.report.WindowLastPN,now)}
   if queryErr!=nil{return false,queryErr}
-  estimate=evaluateQualityPair(pair,rx,now)
+  estimate=evaluateQualityPair(echoPair,rx,now)
  }
  // A peer's growing *report sequence alone* is not new evidence. Compare
  // the true sender DATA window and our independently paired receiver state.
@@ -104,14 +112,14 @@ func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
   tx.CapacityLimited!=lastWindow.CapacityLimited)
  sourceChanged:=pair.accepted&&(pair.report.WindowLastPN!=lastEchoSourcePN||
   pair.report.TxSuccess!=lastEchoSourceTx)
- echoChanged:=pair.accepted&&(estimate.State!=lastEchoState||
+ echoChanged:=echoPair.accepted&&(estimate.State!=lastEchoState||
   estimate.EstimatedMissing!=lastEchoMissing)
  // Stable busy-lane values may need a bounded freshness update, but a
  // genuinely idle source's stale PN window must NOT become a new sample.
  busy:=tx.Success>0&&tx.AgeMillis!=0xffff&&tx.AgeMillis<3000
  deadline:=busy&&!lastSentAt.IsZero()&&now.Sub(lastSentAt)>=3500*time.Millisecond
  bootstrap:=sentCount==0
- if !bootstrap&&!freshTX&&!sourceChanged&&!echoChanged&&!deadline {
+ if !bootstrap&&!freshTX&&!sourceChanged&&!echoChanged&&!matureReady&&!deadline {
   t.mu.Lock()
   t.control.SuppressedNoNewObservation++
   t.quality.nextSend=now.Add(500*time.Millisecond)
@@ -154,12 +162,12 @@ func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
  if tx.CapacityLimited{report.Flags|=datapath.QualityFlagCapacityLimited}
  if srtt>0&&srtt/time.Millisecond<0xffff{report.RTTMillis=uint16(srtt/time.Millisecond)}
  var plain []byte
- if pair.accepted {
+ if echoPair.accepted {
   echo:=datapath.QualityEchoV4{
    Report:report,State:estimate.State,
-   SourceReportSeq:pair.report.ReportSeq,
-   SourceGeneration:pair.report.Generation,
-   SourceLastPN:pair.report.WindowLastPN,
+   SourceReportSeq:echoPair.report.ReportSeq,
+   SourceGeneration:echoPair.report.Generation,
+   SourceLastPN:echoPair.report.WindowLastPN,
   }
   if estimate.State==datapath.QualityFeedbackEstimated {
    echo.ReceiverUnique=estimate.ReceiverUnique
@@ -190,10 +198,11 @@ func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
  t.quality.lastSentAt=now
  t.quality.lastSentWindow=tx
  t.quality.lastEchoState=estimate.State
- if pair.accepted {
-  t.quality.lastEchoSourcePN=pair.report.WindowLastPN
-  t.quality.lastEchoSourceTx=pair.report.TxSuccess
+ if echoPair.accepted {
+  t.quality.lastEchoSourcePN=echoPair.report.WindowLastPN
+  t.quality.lastEchoSourceTx=echoPair.report.TxSuccess
  }
+ if matureReady {t.quality.lastMatureEchoSeq=echoPair.report.ReportSeq}
  t.quality.lastEchoMissing=estimate.EstimatedMissing
  t.quality.nextSend=now.Add(delay)
  if estimate.Age>0{t.control.FeedbackAgeMillis=uint64(estimate.Age/time.Millisecond)}
@@ -210,7 +219,15 @@ func (t *laneTransport) observeQualityLocked(result datapath.InboundResult, now 
         }else {
             t.quality.received++
             if i<len(result.QualityControlPN) {
-                t.quality.pair.accept(report,result.QualityControlPN[i],now)
+                marker:=result.QualityControlPN[i]
+                t.quality.pair.accept(report,marker,now)
+                if report.Flags&datapath.QualityFlagWindowValid!=0 {
+                    var closed qualityPairCandidate
+                    closed.accept(report,marker,now)
+                    // Authenticated control association only, no LINK gate.
+                    _=t.owner.QualityTrackReceiveRange(t.ref,report.ReportSeq,report.WindowFirstPN,report.WindowLastPN,now)
+                    t.quality.pending[report.ReportSeq%datapath.QualityTrackedReceiveCapacity]=closed
+                }
             }
             for _,candidate:=range result.QualityEcho {
                 if candidate.Index==i {

@@ -35,6 +35,8 @@ type qualityRXWindow struct {
     haveHigh bool
     lastAt time.Time
     outside bool
+    outsideAtHigh uint64
+    tracked [QualityTrackedReceiveCapacity]qualityTrackedReceive
 }
 
 func (w *qualityRXWindow) observe(pn uint64, duplicate bool, now time.Time) {
@@ -45,14 +47,18 @@ func (w *qualityRXWindow) observe(pn uint64, duplicate bool, now time.Time) {
     // Guard underflow at PN=0 and overflow near MaxUint64.
     if w.high>=pn && w.high-pn>=QualityPNWindowCapacity {
         w.outside=true
+        w.outsideAtHigh=w.high
+        w.observeTracked(pn,duplicate,now)
         return
     }
     slot:=&w.slots[pn%QualityPNWindowCapacity]
     if duplicate {
+        w.observeTracked(pn,duplicate,now)
         if slot.used && slot.pn==pn && slot.duplicates<^uint32(0) {
             slot.duplicates++
         } else {
             w.outside=true // replay beyond our 256-PN diagnostic horizon
+            w.outsideAtHigh=w.high
         }
         return
     }
@@ -60,6 +66,7 @@ func (w *qualityRXWindow) observe(pn uint64, duplicate bool, now time.Time) {
         // Decoder replay cache normally prevents this; never double-count.
         return
     }
+    w.observeTracked(pn,false,now)
     *slot=qualityRXSlot{pn:pn,used:true,late:pn<w.high}
     w.lastAt=now
 }
@@ -73,7 +80,7 @@ func (w *qualityRXWindow) snapshot(now time.Time) QualityReceiveWindow {
     if w.high>=QualityPNWindowCapacity-1 {
         s.FirstPN=w.high-(QualityPNWindowCapacity-1)
     }
-    s.CapacityLimited=w.outside
+    s.CapacityLimited=w.outside && w.outsideAtHigh==w.high
     for i:=range w.slots {
         v:=w.slots[i]
         if !v.used || v.pn<s.FirstPN || v.pn>s.LastPN {continue}

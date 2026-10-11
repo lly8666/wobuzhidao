@@ -93,6 +93,19 @@ func evaluateQualityPair(c qualityPairCandidate, rx datapath.QualityReceiveRange
  return out
 }
 
+// Closed authenticated reports age independently of the latest mailbox.
+func (q *qualityState) maturePair(now time.Time,after uint64,newest bool) (qualityPairCandidate,bool) {
+ var chosen qualityPairCandidate
+ found:=false
+ for _,c:=range q.pending {
+  if !c.accepted||c.report.ReportSeq<=after||now.Before(c.firstSeen)||
+   now.Before(c.firstSeen.Add(QualityPairReorderHorizon))||
+   !now.Before(c.lastSeen.Add(qualityPairStaleAfter)) {continue}
+  if !found||(newest&&c.report.ReportSeq>chosen.report.ReportSeq)||
+   (!newest&&c.report.ReportSeq<chosen.report.ReportSeq) {chosen=c;found=true}
+ }
+ return chosen,found
+}
 func (r *Runtime) QualityInboundEstimate(ref logicaltunnel.LaneRef, now time.Time) (QualityInboundEstimate,bool) {
  if r==nil {return QualityInboundEstimate{},false}
  r.mu.Lock()
@@ -103,10 +116,15 @@ func (r *Runtime) QualityInboundEstimate(ref logicaltunnel.LaneRef, now time.Tim
  lane.mu.Lock()
  enabled:=lane.quality.enabled
  c:=lane.quality.pair
+ tracked:=false
+ if pending,ok:=lane.quality.maturePair(now,0,true);ok {c=pending;tracked=true}
  lane.mu.Unlock()
  if !enabled {return QualityInboundEstimate{},false}
  if !c.accepted {return QualityInboundEstimate{State:datapath.QualityFeedbackUnknown},true}
- rx,err:=r.owner.QualityReceiveRange(ref,c.report.WindowFirstPN,c.report.WindowLastPN,now)
+ var rx datapath.QualityReceiveRange
+ var err error
+ if tracked {rx,err=r.owner.QualityTrackedReceiveRange(ref,c.report.ReportSeq,now)
+ }else{rx,err=r.owner.QualityReceiveRange(ref,c.report.WindowFirstPN,c.report.WindowLastPN,now)}
  if err!=nil {return QualityInboundEstimate{},false}
  return evaluateQualityPair(c,rx,now),true
 }

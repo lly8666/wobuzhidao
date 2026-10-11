@@ -31,6 +31,7 @@ type qualityTXWindow struct {
     haveHigh bool
     lastSuccessAt time.Time
     outside bool
+    outsideAtHigh uint64
 }
 
 // note runs inside laneTransport.mu upon FakeTCP Emit / EmitBatch completion.
@@ -43,6 +44,7 @@ func (w *qualityTXWindow) note(pn uint64, success bool, now time.Time) {
     }
     if w.high>=pn && w.high-pn>=datapath.QualityPNWindowCapacity {
         w.outside=true
+        w.outsideAtHigh=w.high
         return
     }
     slot:=&w.slots[pn%datapath.QualityPNWindowCapacity]
@@ -56,7 +58,7 @@ func (w *qualityTXWindow) note(pn uint64, success bool, now time.Time) {
 }
 
 func (w *qualityTXWindow) snapshot(now time.Time) QualityTransmitWindow {
-    s:=QualityTransmitWindow{AgeMillis:0xffff,CapacityLimited:w.outside}
+    s:=QualityTransmitWindow{AgeMillis:0xffff,CapacityLimited:w.outside && w.outsideAtHigh==w.high}
     if !w.haveHigh {return s}
     s.HasAttempts=true
     s.LastPN=w.high

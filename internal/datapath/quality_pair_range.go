@@ -33,7 +33,7 @@ func (w *qualityRXWindow) rangeLocked(first, last uint64, now time.Time) Quality
         return result
     }
     result.RangeRetained=true
-    result.CapacityLimited=w.outside
+    result.CapacityLimited=w.outside && w.outsideAtHigh==w.high
     for i:=range w.slots {
         slot:=w.slots[i]
         if !slot.used || slot.pn<first || slot.pn>last {continue}

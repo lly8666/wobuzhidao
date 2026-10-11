@@ -11,6 +11,8 @@ on:
       - "internal/datapath/quality_health_live.go"
       - "internal/datapath/lane.go"
       - "internal/datapath/quality_pn_window.go"
+      - "internal/datapath/quality_track_range.go"
+      - "internal/datapath/quality_tracked_range_test.go"
       - "internal/datapath/quality_pair_range.go"
       - "internal/datapath/quality_echo_v4.go"
       - "internal/datapath/quality_echo_v4_test.go"
