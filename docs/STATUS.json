@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_STEADY_1PCT_5PCT_EIGHT_ACTIONS_EVIDENCE_AND_SCOPED_INPUT_GUARD_PASS",
+    "phase": "N1_AUTO_MTU_DEFAULT_FIXTURE_CORRECTED_TWO_SINGLE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -21,7 +21,7 @@
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_9_104_128_AUTH_CONTROL_MERGE_EVENT_PADDING_OFFICIAL_CLI_BOUNDED_DIAG_PLUS_FRESH_WATERMARK_NO_ECHO_PINGPONG_RACE_LINUX_WINDOWS_NATIVE_PASS_FULLSTACK_PERF_AND_IMPAIRED_FEEDBACK_PENDING",
+      "N1_quality": "SCOPED_CORE_ACTIONS_PASS_DEFAULT_AUTO_MTU_FEC_OFF_FLAT5_CANDIDATE_BASELINE_PENDING_INPUT_IS_POST_REPAIR_DEFICIT_NOT_PHYSICAL_FIRST_PLR_N2_HOLD",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -239,8 +239,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N1 has eight independent flat1/flat5 real strict sample receipts on frozen helper26e7315, fixed20 four PASS_SCREEN and off four MEASURED_NOT_QUALIFIED, original flat5 old PERFORMANCE_FAIL intact. New future-only injector guard analyzer/helper d2fc9e7 validated Actions38114320700 10/10 and foundation38114320712 Linux/Windows enabled jobs PASS. Next prioritize authentic one-way asymmetric up/down under loss, sparse/long idle, low RTT, small legal MTU, lost report/tail lost/repaired-before-maturity/rotation qualification; do not confuse postrepair estimated deficit with physical first-attempt PLR. N2 auto still OFF, N3-6 not begun, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n1-flat-injector-guard-ten-tests-and-foundation-pass.md",
+  "next_task": "User-directed N1 fast closure: remove both strict helper 1250/1300 record limits, use product 0=auto under outer MTU1400, run precisely two independently dispatched 120s off-flat5 Normal1 seed601 candidate1c64e4e vs baseline4f0cf781 Actions via one-case relay (attempts 1 and 2, never concurrent). Preserve legacy 1250/1300 artifacts and FAIL; after receipts update N1 SCOPED COMPLETE only, keep true first-transmission physical PLR gating N2 and 80sec S2C, late probe, untested scenarios open. N2–N6 NOT_STARTED; physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n1-auto-mtu-fixture-realign-two-source-plan.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "last_tested_scope": "Latest N1 product1c64e4e protected 180/640PN race & native functional PASS; fixed20 normal/Game lossless/5205 prior8 PASS_SCREEN; dedicated Normal flat1/flat5 8 strict native 120s Actions: fixed20 4 PASS_SCREEN, off 4 MEASURED_NOT_QUALIFIED; old flat5 2 PERFORMANCE_FAIL preserved. No real first-send PLR oracle or N2 auto, N3-6/physical NOT_RUN.",

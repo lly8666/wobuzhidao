@@ -190,14 +190,18 @@ TUNNEL_ID="00112233445566778899aabbccddeeff"
 INSTALLATION_ID="11223344556677889900aabbccddeeff"
 ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 
+## Exercise real product auto-MTU/admission defaults: do NOT override either
+# direction-specific record-limit. Both CLIs default to 0=auto, derived from
+# --mtu, actual peer MSS and negotiated receive limits. Historical 1250/1300
+# asymmetric-cap screens remain immutable artifacts, not default-MTU evidence.
 SERVER_CPU=""; CLIENT_CPU=""; if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then SERVER_CPU="$ART/server.cpu"; CLIENT_CPU="$ART/client.cpu"; fi
 export WBD_QUALIFICATION_CONTENTION_PROFILE="${WBD_STRICT_CPU_PROFILE:-0}"
 export WBD_QUALIFICATION_CLIENT_STAGE_TIMING="${WBD_STRICT_CPU_PROFILE:-0}"
-ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
+ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
 SERVER_PID="$!"
 
 sleep 1
-ip netns exec "$CLI" env WBD_QUALIFICATION_CPU_PROFILE="$CLIENT_CPU" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass --client-record-limit 1300 --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --tproxy-port 12345 --mark 66   --route-table 1066 --rule-priority 1066   --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s   > "$ART/client.log" 2>&1 &
+ip netns exec "$CLI" env WBD_QUALIFICATION_CPU_PROFILE="$CLIENT_CPU" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass --mtu 1400   --fec-parity "$FEC_PARITY" --lanes "$LANES" --tproxy-port 12345 --mark 66   --route-table 1066 --rule-priority 1066   --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s   > "$ART/client.log" 2>&1 &
 CLIENT_PID="$!"
 
 sleep 5
@@ -346,6 +350,8 @@ manifest = {
         "lanes": lanes, "application_mbps_each_direction": rate,
         "generator_stats": "bounded-v1-exact-dedupe",
         "fec": "off" if fec_parity == 0 else "20:" + str(fec_parity), "fec_parity": fec_parity, "profile_screen": fec_screen, "padding": "off", "mtu": 1400,
+        "client_record_limit_cli": "omitted_auto", "server_record_limit_cli": "omitted_auto",
+        "record_limit_source": "product_default_zero_derived_from_outer_mtu_and_peer_mss",
         "one_way_delay_ms": 300, "duration_s": 120, "stages_s": [30, 60, 30],
         "drain_s": 10, "qdisc_limit_packets": 200000,
         "hidden_bandwidth_limit": False,

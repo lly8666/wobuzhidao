@@ -269,3 +269,14 @@ KindHealth 单独增加 encrypted zero padding，复用 tlsrecord.inner_type 后
 ## 2026-10-11 固定20:20 N1保护门样本（已执行）
 
 最新产品 SOURCE `1c64e4e5` 对比基线 `4f0cf781`，固定夹具HEAD `43bb7326` seed601：Normal1 每向10Mbps与Game4逻辑每向3Mbps，20:20固定档，lossless与5205，共8条严格独立120s Actions的profile-screen CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE全PASS。详细run、runner、首次唯一交付、wire、CPU和digest见 `docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json`。Game4 CPU比较跨不同型号，不判优化；Normal 5205同CPU仅一组不判显著差异。当前可信只到scoped screen：旧off FAIL保留，新off-v2实测两条仍MEASURED_NOT_QUALIFIED；专用1%/5%、单向、稀疏、低RTT、小MTU、完整formal20、N2-N6及物理依旧未资格化。N1测量信号是修复后估计缺失而非物理首发PLR，不因此启用自动FEC。
+
+
+## N1 默认自动 MTU 夹具纠偏及精简收尾（2026-10-11，用户确认）
+
+严格五 netns 弱网夹具此前在双方 `--mtu 1400` 之外额外指定 `--server-record-limit 1250`（C2S）和 `--client-record-limit 1300`（S2C）。这两个非默认、方向不同的接收上限使 FEC off 的 1228B 内层业务报文在 C2S 必须两片、S2C 却一片，解释了旧样本异常的上行/下行业务丢包差异；**这不是产品自动 MTU 推导失败的证据**。正式 CLI 默认 record-limit=0，实际 `ResolveConfiguredRecordWireLimit` 以外层 1400B 减实际 IPv4/TCP 头预算，结合真实 MSS/协商上限继续限流；共享服务端 TUN 在 off 时仍以最大 FEC 头作保守预算。原始八条旧夹具 Actions 和历史 PASS/FAIL/MEASURED 均不可修改或追认成 auto-MTU 资格。
+
+新的 `scripts/strict_weaknet_sample.sh` 删除**两个** record-limit 参数，只保留外层 `--mtu 1400` 和原性能/校验门；manifest 显式标注 `client_record_limit_cli=omitted_auto`、`server_record_limit_cli=omitted_auto`。不要删除产品支持手动协商上限的能力；显式不对称记录上限留作与默认行为严格区分的独立专题，本轮不测。
+
+用户要求不扩大测试面：只用现有单测量 Actions relay 和 `next-strict-weaknet.yml`，同夹具/seed601、Normal1 每方向10Mbps、300ms 单向、`flat5` 稳定5%/5%双向、FEC off，独立各跑一次 product `1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438` 与基线 `4f0cf7814dea0a04a0dc69863ae1e56412e0da9f`，不并行、不更改 SOURCE、不额外扩展 1%、20%、Game、低 RTT 等。两个独立样本核外层实际丢包、默认 record/TUN 预算、业务包/字节缺失、首交付/p99/探针 missing、长零交付、CPU 与 runner、wire/queue，保留 original analyzer reference 与 off-weaknet-v2 的非资格化语义。跨 CPU 不能声称提速，单样本不能代表完整性能资格。
+
+**N1 限定范围收尾**：受保护双向质量报告、256 PN 有界成熟窗口、3s 成熟/128B 回声、真实9-netns三客户端零损伤功能、Linux/Windows编译与 -race、5205/flat1/flat5有损观察均已有之前精确 Actions 证据。对本轮只需完成自动 MTU 两源独立对比，然后按证据记 `N1_SCOPED_COMPLETE`、未验场景 `NOT_RUN`；它**不等于**完整线路首发 PLR 或 N2 自动 FEC 输入已经可信。当前统计是认证记录修复后剩余缺口，不能将其0%当线路 p=0，更不能据此自动降档/off。N2 后续必须独立处理这个输入门，仍保持 N2=NOT_STARTED；延迟尾部、80s S2C、极端尾丢和真实 Windows/物理均保留 OPEN/NOT_RUN。本轮不添加无关实验，不改生产传输/修复/FEC 算法。

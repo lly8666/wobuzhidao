@@ -38,14 +38,13 @@ jobs:
           assert re.fullmatch(r"[0-9a-f]{40}",d["candidate_sha"])
           assert d["baseline_sha"]!=d["candidate_sha"]
           cs=d["cases"]
-          assert len(cs)==8
+          assert len(cs)==2
           seen=set()
           for c in cs:
               assert set(c)=={"role","product_source_sha","qualification_kind","fec_parity","mode","scenario","seed","rate_mbps","lanes","cpu_profile","stateful_middlebox","wan_neighbors"}
               assert c["qualification_kind"]=="fec-profile-screen"
               assert (c["mode"],c["scenario"],c["fec_parity"],c["rate_mbps"],c["lanes"]) in {
-                ("normal","flat1","0","10","1"),("normal","flat1","20","10","1"),
-                ("normal","flat5","0","10","1"),("normal","flat5","20","10","1")}
+                ("normal","flat5","0","10","1")}
               assert c["seed"]=="601" and c["wan_neighbors"]=="dynamic"
               assert c["cpu_profile"] is False and c["stateful_middlebox"] is False
               assert c["role"] in {"baseline","candidate"}
@@ -53,10 +52,10 @@ jobs:
               tag=(c["role"],c["mode"],c["scenario"],c["fec_parity"])
               assert tag not in seen
               seen.add(tag)
-          assert len(seen)==8
+          assert len(seen)==2
           index=int(os.environ["GITHUB_RUN_ATTEMPT"])-1
           if not 0<=index<len(cs):
-              raise SystemExit("All 8 dedicated-flatloss attempt slots exhausted: no new performance sample dispatched")
+              raise SystemExit("N1 two-case auto-MTU baseline comparison exhausted: no extra sample dispatched")
           c=cs[index]
           with open(os.environ["GITHUB_ENV"],"a") as f:
               for k,n in {"product_source_sha":"CASE_SOURCE","qualification_kind":"CASE_KIND","fec_parity":"CASE_PARITY","mode":"CASE_MODE","scenario":"CASE_SCENARIO","seed":"CASE_SEED","rate_mbps":"CASE_RATE","lanes":"CASE_LANES"}.items():
@@ -64,6 +63,10 @@ jobs:
           print("ONE_CASE_ONLY",index+1,"of",len(cs),c,"HARNESS_SHA",os.environ["GITHUB_SHA"])
           PY
           python3 tools/check_performance_workflow_policy.py
+          if grep -E -- '--(client|server)-record-limit' scripts/strict_weaknet_sample.sh | grep -v '^#'; then
+            echo 'FAIL: default auto-MTU strict fixture must not force directional record caps' >&2
+            exit 1
+          fi
       - name: Prevent parallel strict samples and dispatch exactly one
         shell: bash
         env:

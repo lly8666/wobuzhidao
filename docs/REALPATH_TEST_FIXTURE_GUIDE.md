@@ -1,3 +1,7 @@
+## 2026-10-11 N1 默认自动 MTU 纠偏（当前分支有效）
+
+严格真实路径夹具 `scripts/strict_weaknet_sample.sh` 现在**不再**强制 `--server-record-limit 1250` / `--client-record-limit 1300`；只固定实际外层 `--mtu 1400`，两端正式 CLI record limit 均用默认0=auto，仍由方向协商、peer MSS 和外层预算限制。旧 strict 样本在 1250/1300 特例下产生的单方向 1228B 分片，不能外推成默认产品不对称缺陷；旧原始报告不追改。用户要求仅用 flat5/off/Normal1/seed601，旧baseline与当前N1 source各一个严格单样本 Actions 快速核实，后续停止 N1 测试扩张。详细源和限制见 ADAPTIVE_NETWORK_PLAN 最新段、唯一 STATUS.json。
+
 ## 当前分支使用说明
 
 next/adaptive-fec-aes-tun-20261010每性能Action一条，不继承下文历史FEC串行ABBA例外。下面旧文件地图仍可复用，实际能力核源码。先按ADAPTIVE_NETWORK_PLAN第9节建立新的branch/config受限single adapter，V3协商/effective cipher/FEC变化/质量反馈必须有receipt，旧分析器及历史FAIL不得改写。Linux TPROXY五netns不是Windows TUN/direct性能证据，真实Wintun/system栈功能另列WindowsActions；unsupported明确交后续物理。
