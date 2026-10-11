@@ -1,0 +1,381 @@
+{
+  "schema": "wbd-repro80-cold10/v1",
+  "product_source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "result": "PASS_SCOPED_COLD_80S_NOT_REPRODUCED",
+  "scope": "Both deployed processes restarted before first formal-client lane, same active.json, SYSTEM qualification controller instead of GUI owner; two unchanged 300s sparse sequential native UDP probe legs, no product restart between. Not a sustained10Mbps, nativeTCP, or concurrent noHOL qualification.",
+  "cold_restart": {
+    "before": {
+      "ClientPID": 5472,
+      "GUIPID": 4932,
+      "ActiveHash": "1D4B9D823984B088B2E260D11074568DD1ED49DB63169DF4CE5A5F5FD8ADAB1B",
+      "Version": "wbd-client version=next-rc-7fb98fab7983 source_sha=7fb98fab79834a351a1dbe04eebb207f66bea28b go=go1.23.12 os=windows arch=amd64"
+    },
+    "stopped": {
+      "ClientGone": true,
+      "NetworkStateRemaining": false,
+      "ActiveHash": "1D4B9D823984B088B2E260D11074568DD1ED49DB63169DF4CE5A5F5FD8ADAB1B"
+    },
+    "server": {
+      "before_pid": 503846,
+      "pid": 504234,
+      "hash": "96606eb445ab8d93e8c288ce15355e8701608cf33bb236756ea12a29a661e316",
+      "version": "wbd-server version=next-rc-7fb98fab7983 source_sha=7fb98fab79834a351a1dbe04eebb207f66bea28b go=go1.23.12 os=linux arch=arm64"
+    },
+    "state": "BOTH_COLD_CLIENT_NOT_STARTED"
+  },
+  "active_config_sha256": "1D4B9D823984B088B2E260D11074568DD1ED49DB63169DF4CE5A5F5FD8ADAB1B",
+  "client_new_pid": 4856,
+  "server_new_pid": 504234,
+  "inner_mtu": 1273,
+  "product_config_changed": false,
+  "requested_business_seconds": 600,
+  "actual_business_seconds": 600.1128008000001,
+  "leg_pause_ms": 10339.682373046875,
+  "leg_drain_seconds": [
+    3.0579106999999794,
+    3.073505099999977
+  ],
+  "sent_success": 3755,
+  "target_received_unique": 3755,
+  "client_received_unique": 3755,
+  "missing_total": 0,
+  "late_gt_1s": 0,
+  "p99_ms": 101.831,
+  "max_ms": 541.251,
+  "client_cpu_seconds": 17.0,
+  "server_cpu_seconds_observation": 9.45,
+  "first80": {
+    "sent": 502,
+    "received": 502,
+    "missing_sequences": [],
+    "p99_ms": 101.972,
+    "max_ms": 123.85,
+    "first_request_sent_offset_ms": 48.814899999999994,
+    "first_request_rtt_ms": 63.557199999999995
+  },
+  "server_raw_drop_initial": 0,
+  "server_raw_drop_max": 0,
+  "server_raw_buffer_bytes": [
+    1048576
+  ],
+  "linux_observer_dropped": 2957,
+  "windows_observer_dropped_max": 0,
+  "new_syn_flows": {
+    "C2S/40000": {
+      "elapsed_seconds": 12.447,
+      "syn": 1
+    },
+    "S2C/40000": {
+      "elapsed_seconds": 12.447,
+      "syn": 1
+    },
+    "C2S/40001": {
+      "elapsed_seconds": 316.833,
+      "syn": 1
+    },
+    "S2C/40001": {
+      "elapsed_seconds": 316.833,
+      "syn": 1
+    }
+  },
+  "cases": [
+    {
+      "udp_payload": 96,
+      "df": false,
+      "Attempts": 2729,
+      "Sent": 2729,
+      "ReceivedExact": 2729,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": 67.323,
+      "max_ms": 123.481
+    },
+    {
+      "udp_payload": 8972,
+      "df": false,
+      "Attempts": 342,
+      "Sent": 342,
+      "ReceivedExact": 342,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": 93.743,
+      "max_ms": 153.217
+    },
+    {
+      "udp_payload": 8972,
+      "df": true,
+      "Attempts": 341,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 341,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": null,
+      "max_ms": null
+    },
+    {
+      "udp_payload": 8973,
+      "df": false,
+      "Attempts": 342,
+      "Sent": 342,
+      "ReceivedExact": 342,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": 94.51,
+      "max_ms": 541.251
+    },
+    {
+      "udp_payload": 8973,
+      "df": true,
+      "Attempts": 341,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 341,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": null,
+      "max_ms": null
+    },
+    {
+      "udp_payload": 65507,
+      "df": false,
+      "Attempts": 342,
+      "Sent": 342,
+      "ReceivedExact": 342,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": 105.154,
+      "max_ms": 123.85
+    },
+    {
+      "udp_payload": 65507,
+      "df": true,
+      "Attempts": 340,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 340,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": null,
+      "max_ms": null
+    },
+    {
+      "udp_payload": 65508,
+      "df": false,
+      "Attempts": 341,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 341,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": null,
+      "max_ms": null
+    },
+    {
+      "udp_payload": 65508,
+      "df": true,
+      "Attempts": 340,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 340,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "p99_ms": null,
+      "max_ms": null
+    }
+  ],
+  "legs": [
+    {
+      "actual_seconds": 300.1053177,
+      "sent_success": 1876,
+      "target_received_unique": 1876,
+      "client_received_unique": 1876,
+      "missing_total": 0,
+      "late_gt_1s": 0,
+      "p99_ms": 102.03,
+      "max_ms": 541.251,
+      "missing_events": [],
+      "leg": 1
+    },
+    {
+      "actual_seconds": 300.0074831,
+      "sent_success": 1879,
+      "target_received_unique": 1879,
+      "client_received_unique": 1879,
+      "missing_total": 0,
+      "late_gt_1s": 0,
+      "p99_ms": 101.509,
+      "max_ms": 108.739,
+      "missing_events": [],
+      "leg": 2
+    }
+  ],
+  "original_b4_failure": "OPEN_NOT_RECLASSIFIED",
+  "source_counters": "NOT_OBSERVED; current product diagnostics kept off",
+  "raw_pcap_written": false,
+  "prior_harness_attempt": {
+    "name": "repro80-cold10-20261011T020158Z",
+    "result": "HARNESS_FAILED_BEFORE_BUSINESS",
+    "reason": "Find-NetRoute transient network-unreachable during GUI startup was treated as fatal; wrapper now retries. Not product FAIL or PASS."
+  },
+  "business_payload_mbps_per_direction": 0.383962,
+  "probe_start_after_tun_route_ready_ms": 6339.43,
+  "linux_business_observer_dropped": 2558,
+  "linux_business_observed_seconds": 660.0091137671843,
+  "linux_prefix_observed_seconds": 660.0112463338301,
+  "windows_observed_seconds": 659.4356296,
+  "cold_first_syn_observed": true,
+  "slowest_response": {
+    "Sequence": 1842,
+    "UDPPayload": 8973,
+    "SentUnixMS": 1791684793308,
+    "ReceivedUnixMS": 1791684793849,
+    "RTTMS": 541.2506000000121
+  },
+  "artifact_hashes": {
+    "actual-active-config.json": {
+      "size": 367,
+      "sha256": "d80e790b26e4408c01fe63d21db7d8ac904776aea76efbf1efbb05dc85101080"
+    },
+    "cleanup-check.json": {
+      "size": 755,
+      "sha256": "2002fb4f8b1c8a660af07b0ab68878d5555159c95fe32c1cdecfe63f8f0d1041"
+    },
+    "client-start.json": {
+      "size": 179,
+      "sha256": "95d9977460c45de21b186a2072083eef0b6d23e834fc14886447655495657f3f"
+    },
+    "linux-business-headers.jsonl": {
+      "size": 459705,
+      "sha256": "67515194571455ae3ea0ee17f63e500387caf1bb995fba2ec3d7ac963c30ef18"
+    },
+    "linux-headers.jsonl": {
+      "size": 447440,
+      "sha256": "cf8be14f695c994bc9d89b95c6d6b38def60ebbaa44616452dded66461b17433"
+    },
+    "load.log": {
+      "size": 32,
+      "sha256": "fc625abcf9be94a16cefaf41aacf2f8ef5d8a0c40ac04ea07dc40e037264ff86"
+    },
+    "preflight.json": {
+      "size": 2229,
+      "sha256": "a23b62e7c7af0489be70006fa3531fb86a5ff9f55fa88e4578cc18978df50ee9"
+    },
+    "receipt.json": {
+      "size": 241,
+      "sha256": "375d099cd817ef54c8c95c0451248b7db665268afab8f75d62779f5cd8e070c0"
+    },
+    "resources.json": {
+      "size": 778621,
+      "sha256": "499f08332d49bdf578fe041324e918dfd1cf7b132859b4a2fa1e00e98ec97dfc"
+    },
+    "result-1.json": {
+      "size": 1167607,
+      "sha256": "7c98e15d0409da7f76419bc01fbb653f7475b3c72f84d6a71532cce08c0536d8"
+    },
+    "result-2.json": {
+      "size": 1168767,
+      "sha256": "82f8955072881b8891b49beed6de1dd0b52d5c6993b6c6b2f654433522d957ab"
+    },
+    "session-controller.ps1": {
+      "size": 5423,
+      "sha256": "36952cf9fcbd4d6ca04b4852673766c13ae0eb2b68588fdb1c74cf7a0143087d"
+    },
+    "target-1.json": {
+      "size": 377458,
+      "sha256": "6a540e79411b9ed2166fb1c0b602e94059f8fa8f6d29bd2f08cfb5c95fba45b3"
+    },
+    "target-1.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "target-2.json": {
+      "size": 378103,
+      "sha256": "770bb3343e7367d1150878b0b0c63a395f2bd2eb437d4d96068a4c4d45b4c86a"
+    },
+    "target-2.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "windows-headers.jsonl": {
+      "size": 360849,
+      "sha256": "3971cdecf1135925010eae379bc12661985254fcd0cb9ca4bfe6ef375de491fd"
+    },
+    "windows-observer.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "helper_source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "helper_source_exact_files_verified": true,
+  "active_configuration": {
+    "Hash": "1D4B9D823984B088B2E260D11074568DD1ED49DB63169DF4CE5A5F5FD8ADAB1B",
+    "lanes": 1,
+    "fec-parity": 20,
+    "mtu": 1400,
+    "route-mode": "all",
+    "rotate-min": "5m",
+    "rotate-max": "10m",
+    "idle-dormant": "2m",
+    "keepalive-interval": "15s",
+    "diagnostic-jsonl": ""
+  },
+  "cleanup": {
+    "windows": {
+      "ActiveConfigHash": "1D4B9D823984B088B2E260D11074568DD1ED49DB63169DF4CE5A5F5FD8ADAB1B",
+      "TemporaryCompilationFilesRemoved": true,
+      "OwnedRawPcapCount": 0,
+      "GUIEntryRestored": true,
+      "Connected": false
+    },
+    "arm": {
+      "owned_helper_pids": [],
+      "temporary_target_address_present": false,
+      "server_active": "active",
+      "server_pid": 504234,
+      "server_config_hash": "96606eb445ab8d93e8c288ce15355e8701608cf33bb236756ea12a29a661e316",
+      "raw_pcap_count": 0
+    },
+    "controller_final": {
+      "State": "STOPPED",
+      "Ready": true,
+      "Reason": "requested_stop",
+      "ExitCode": 0,
+      "NetworkStateRemaining": false,
+      "OwnedNRPTRemaining": 0,
+      "OwnedFirewallRemaining": 0,
+      "ElapsedSeconds": 722
+    }
+  },
+  "current_adaptive_source": "NOT_QUALIFIED_BY_THIS_SAMPLE",
+  "prior_harness_attempts": [
+    {
+      "name": "repro80-cold10-20261011T020158Z",
+      "result": "HARNESS_FAILED_BEFORE_BUSINESS",
+      "reason": "Uncaught transient Find-NetRoute network-unreachable; no business measurement."
+    },
+    {
+      "name": "repro80-cold10-20261011T020431Z",
+      "result": "NOT_RUN_USER_CONNECT_WAIT_EXPIRED",
+      "reason": "GUI click arrived after preparation timeout; no business measurement."
+    },
+    {
+      "name": "repro80-cold10-20261011T020734Z",
+      "result": "NOT_RUN_PREFLIGHT_REJECTED_ACTIVE_CLIENT",
+      "reason": "Late GUI connection already active; no new cold sample claimed."
+    }
+  ]
+}
