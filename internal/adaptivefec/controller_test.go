@@ -138,9 +138,14 @@ func boundedSource(i int, start time.Time, k int, lower, upper uint32) Input {
     s.FirstAttemptLost=lower
     s.FirstAttemptLostMax=upper
     s.ShardK=0 // cannot fall back to the single-full-block model
-    // For 256 systematic source records use a real integral group count.
-    s.ClosedGroups[2][k]=uint16(256/k)
-    if 256%k!=0 {s.ClosedGroups[2][1]=uint16(256%k)}
+    // Physical sender PNs include BOTH k systematic and r=min(k,20)
+    // parity first-emits. A 256-PN window cannot contain 128 k=2/r=2
+    // groups (512 PNs); that old synthetic claim was not a real source.
+    groups:=256/(2*k)
+    s.ClosedGroups[2][k]=uint16(groups)
+    s.ClosedR[k]=uint16(groups)
+    s.ParityRecords=uint32(groups*k)
+    s.CroppedRecords=uint32(256-2*groups*k)
     return s
 }
 
@@ -162,12 +167,12 @@ func TestBoundedOverlapMissingCoverageAndWideIntervalsHold(t *testing.T) {
     start:=time.Unix(50000,0)
     c:=controller(t,Auto,4)
     s:=boundedSource(1,start,2,0,0)
-    s.ClosedGroups[0][2]=1 // 258 >256; source group proof cannot match
+    s.ClosedGroups[0][2]=1 // source/parity group counts now conflict
     if d:=c.Step(s.At,s);d.Reason!=HoldShape {t.Fatal(d)}
     s=boundedSource(1,start,2,0,20)
     if d:=c.Step(s.At,s);d.Reason!=HoldWideBound {t.Fatal(d)}
     s.FirstAttemptLostMax=0
-    if d:=c.Step(s.At,s);d.Reason!=HoldSampleCount || d.ShapeRecords!=256 || d.ShapeBlocks!=128 {t.Fatal(d)}
+    if d:=c.Step(s.At,s);d.Reason!=HoldSampleCount || d.ShapeRecords!=128 || d.ShapeBlocks!=64 {t.Fatal(d)}
     if d:=c.Step(s.At,s);d.Reason!=HoldReplay || d.AcceptedRecords!=256 {t.Fatal(d)}
     overlapping:=boundedSource(2,start,2,0,0)
     overlapping.FirstPN=s.LastPN
@@ -213,4 +218,65 @@ func TestBoundedCapacityAgeGenerationAndConfidenceAreFinite(t *testing.T) {
     if d:=c.Step(bad.At,bad);d.Reason!=HoldReplay {t.Fatal(d)}
     bad.Generation=5
     if d:=c.Step(bad.At.Add(11*time.Second),bad);d.Reason!=HoldStale {t.Fatal(d)}
+}
+
+
+// A real full 20:20 block costs 40 separate successful LINK PNs. A 256-PN
+// feedback cohort cannot always consist entirely of complete 40-PN groups:
+// 6 complete blocks cost 240 records; the remaining 16 are partial edges.
+// Those 16 are priced as unprotected, never as perfect full 20:20 blocks.
+func TestN2CroppedReal20To20CohortsEventuallyLowerAndRaise(t *testing.T) {
+	start:=time.Unix(80000,0)
+	c:=controller(t,Auto,4)
+	d0:=boundedSource(1,start,20,0,0)
+	if d0.CroppedRecords!=16 || d0.ParityRecords!=120 || d0.ClosedGroups[2][20]!=6 {
+		t.Fatalf("not a physical 256-PN k/r cohort %+v",d0)
+	}
+	bad:=d0
+	bad.ParityRecords--
+	if d:=c.Step(bad.At,bad);d.Reason!=HoldShape {t.Fatalf("missing parity admitted %+v",d)}
+	bad=d0
+	bad.InvalidRecords=1
+	if d:=c.Step(bad.At,bad);d.Reason!=HoldShape {t.Fatalf("invalid PN trusted %+v",d)}
+	d:=c.Step(d0.At,d0)
+	if d.Reason!=HoldSampleCount||d.ShapeRecords!=120||d.ShapeBlocks!=6||
+		d.CroppedRecords!=16||d.OffRecords!=0 {t.Fatalf("trimmed group not priced %+v",d)}
+	changed:=false
+	for i:=2;i<=90;i++ {
+		s:=boundedSource(i,start,20,0,0)
+		decision:=c.Step(s.At,s)
+		if decision.Ordinary<20 {changed=true}
+	}
+	if !changed||c.ordinary!=4 {t.Fatalf("healthy partial-edge cohort never lowered %d",c.ordinary)}
+	raised:=false
+	for i:=91;i<=96;i++ {
+		s:=boundedSource(i,start,20,45,46)
+		d:=c.Step(s.At,s)
+		if d.Reason==Raise&&d.Ordinary>4 {raised=true;break}
+	}
+	if !raised {t.Fatal("confident damaged physical PN cohort could not raise")}
+}
+
+func TestN2BoundedMixIncludesActualOffAndPartialEdges(t *testing.T) {
+	start:=time.Unix(90000,0)
+	c:=controller(t,Aggressive,0)
+	s:=boundedSource(1,start,20,0,0)
+	s.ClosedGroups=[3][DataShards+1]uint16{}
+	s.ClosedR=[DataShards+1]uint16{}
+	s.ClosedGroups[2][20]=3 // 60 systematic
+	s.ClosedGroups[0][4]=1 // 4 systematic
+	s.ClosedR[20]=3
+	s.ClosedR[4]=1
+	s.ParityRecords=64
+	s.OffRecords=64
+	s.CroppedRecords=64
+	if d:=c.Step(s.At,s);d.Reason!=HoldSampleCount||d.ShapeRecords!=64||
+		d.ShapeBlocks!=4||d.OffRecords!=64||d.CroppedRecords!=64 {
+		t.Fatalf("mixed off/20:R/cropped source rejected %+v",d)
+	}
+	// Parity and systematic are distinct unique source PNs. Replayed or
+	// overlapping returned echoes cannot spend the remaining 256 again.
+	if d:=c.Step(s.At,s);d.Reason!=HoldReplay||d.AcceptedRecords!=256 {
+		t.Fatalf("same report counted twice %+v",d)
+	}
 }

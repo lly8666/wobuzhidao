@@ -16,6 +16,10 @@ const (
     // before it contributes control samples. Five percentage points is a
     // confidence/identifiability gate, NOT a target line loss or a tuning knob.
     MaxQualifiedBoundWidth = 0.05
+    // At most half of an independently authenticated 256-PN cohort may
+    // consist of physically observed but edge-cropped FEC groups. Such
+    // records are priced as NO FEC protection, not assumed k=20.
+    MaxCroppedShare = 0.5
     confidenceHistory = 32 // bounded independent source windows, not lifetime counts
     ResidualTarget = 0.001
     decreaseMargin = 0.0005
@@ -85,6 +89,11 @@ type Input struct {
     // k source records, not r parity records. Source/parity LINK PN windows
     // cannot be silently equated to these counts.
     ClosedGroups [3][DataShards+1]uint16
+    // ALL successfully first-emitted KindLINK PNs are in Sent. This
+    // includes FEC parity and FEC-off, not just k systematic shards.
+    // ClosedR is the count of actually complete blocks by r=min(k,R).
+    ClosedR [DataShards+1]uint16
+    ParityRecords, OffRecords, CroppedRecords, InvalidRecords uint32
     At time.Time
     RTT time.Duration
     // A sender/receiver FEC block-shape witness is needed to price partial
@@ -120,6 +129,7 @@ type Decision struct {
     BoundWidth float64
     ShapeRecords uint64
     ShapeBlocks uint64
+    OffRecords, CroppedRecords uint64
 }
 
 type Controller struct {
@@ -137,10 +147,12 @@ type Controller struct {
     shapeTotals [3][DataShards+1]uint64
     mixedEvidence bool
     boundWidth float64
+    offTotal,croppedTotal uint64
 }
 
 type controlSample struct {
     sent, upperLost uint32
+    off,cropped uint32
     groups [3][DataShards+1]uint16
 }
 
@@ -162,7 +174,8 @@ func (c *Controller) current(reason Reason) Decision {
         ConfidenceUpper:wilsonUpper(c.confidentLost,c.confidentSent),
         AcceptedRecords:c.sinceDecision,
         BoundWidth:c.boundWidth,
-        ShapeRecords:c.shapeRecords(), ShapeBlocks:c.shapeBlocks()}
+        ShapeRecords:c.shapeRecords(), ShapeBlocks:c.shapeBlocks(),
+        OffRecords:c.offTotal, CroppedRecords:c.croppedTotal}
 }
 
 // ResidualReference is an independent IID Reed-Solomon model, never a real
@@ -238,6 +251,34 @@ func requiredMixedProfile(groups [3][DataShards+1]uint64,p float64,min,max int) 
     return max
 }
 
+// Edge groups have real emitted PN coverage but no authoritative whole
+// k/r in THIS report. Price each conservatively like an unprotected source
+// rather than treating it as either a perfect full block or zero traffic.
+// Counts of parity from complete groups are NEVER counted as business sources.
+func mixedResidualWithEdges(groups [3][DataShards+1]uint64,off,cropped uint64,parity int,p float64) float64 {
+	var systematic uint64
+	var weighted float64
+	for _,class:=range groups {
+		for k:=1;k<=DataShards;k++ {
+			n:=class[k]
+			if n==0 {continue}
+			systematic+=uint64(k)*n
+			weighted+=float64(k)*float64(n)*ResidualReference(k,parity,p)
+		}
+	}
+	unknown:=off+cropped
+	if systematic+unknown==0 {return math.NaN()}
+	return (weighted+float64(unknown)*p)/float64(systematic+unknown)
+}
+
+func requiredProfileWithEdges(groups [3][DataShards+1]uint64,off,cropped uint64,p float64,min,max int) int {
+	for _,v:=range profiles {
+		if v<min||v>max {continue}
+		if mixedResidualWithEdges(groups,off,cropped,v,p)<=ResidualTarget {return v}
+	}
+	return max
+}
+
 func (c *Controller) shapeRecords() uint64 {
     if !c.mixedEvidence {return 0}
     var n uint64
@@ -263,6 +304,8 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
         old:=c.history[c.historyPos]
         c.confidentSent-=uint64(old.sent)
         c.confidentLost-=uint64(old.upperLost)
+        c.offTotal-=uint64(old.off)
+        c.croppedTotal-=uint64(old.cropped)
         for class:=range c.shapeTotals {
             for k:=1;k<=DataShards;k++ {
                 c.shapeTotals[class][k]-=uint64(old.groups[class][k])
@@ -270,11 +313,19 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
         }
     } else {c.historyCount++}
     item:=controlSample{sent:s.Sent,upperLost:upper}
-    if bounded {item.groups=s.ClosedGroups}
+    if bounded {
+        item.groups=s.ClosedGroups
+        item.off=s.OffRecords
+        item.cropped=s.CroppedRecords
+    }
     c.history[c.historyPos]=item
     c.historyPos=(c.historyPos+1)%len(c.history)
     c.confidentSent+=uint64(s.Sent)
     c.confidentLost+=uint64(upper)
+    if bounded {
+        c.offTotal+=uint64(s.OffRecords)
+        c.croppedTotal+=uint64(s.CroppedRecords)
+    }
     if bounded {
         for class:=range c.shapeTotals {
             for k:=1;k<=DataShards;k++ {
@@ -311,15 +362,32 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
         if upper<s.FirstAttemptLost || upper>s.Sent {
             return c.current(HoldStale)
         }
-        var shapeSourceRecords uint64
-        for _, class:=range s.ClosedGroups {
+        var shapeSourceRecords,wholeGroups,wholeRGroups,wholeParity uint64
+        for _,class:=range s.ClosedGroups {
             for k:=1;k<=DataShards;k++ {
-                shapeSourceRecords+=uint64(k)*uint64(class[k])
+                n:=uint64(class[k])
+                shapeSourceRecords+=uint64(k)*n
+                wholeGroups+=n
             }
         }
-        // Never approximate source-group coverage from just a block-count
-        // histogram, FEC parity PNs, or the most recent partial group.
-        if shapeSourceRecords!=uint64(s.Sent) {return c.current(HoldShape)}
+        for r:=1;r<=DataShards;r++ {
+            n:=uint64(s.ClosedR[r])
+            wholeRGroups+=n
+            wholeParity+=uint64(r)*n
+        }
+        // All KindLINK first-success records share one 256-PN window,
+        // including parity and off. Match actual r=min(k,R) closure count.
+        // A closed block with k sources has AT LEAST one parity and at most
+        // k; no "full k=20" approximation can fill a cropped edge.
+        if s.InvalidRecords!=0 ||
+           wholeRGroups!=wholeGroups ||
+           wholeParity!=uint64(s.ParityRecords) ||
+           wholeParity>shapeSourceRecords ||
+           shapeSourceRecords+wholeParity+uint64(s.OffRecords)+uint64(s.CroppedRecords)!=uint64(s.Sent) ||
+           (shapeSourceRecords+s.OffRecords)==0 ||
+           float64(s.CroppedRecords)/float64(s.Sent)>MaxCroppedShare {
+            return c.current(HoldShape)
+        }
         if float64(upper-s.FirstAttemptLost)/float64(s.Sent)>MaxQualifiedBoundWidth {
             return c.current(HoldWideBound)
         }
@@ -344,7 +412,7 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     if c.sinceDecision<MinDecisionRecords {return c.current(HoldSampleCount)}
     upTarget:=0
     if bounded {
-        upTarget=requiredMixedProfile(c.shapeTotals,math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
+        upTarget=requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
     } else {
         upTarget=requiredProfile(int(s.ShardK),math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
     }
@@ -366,8 +434,8 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     }
     confidence:=wilsonUpper(c.confidentLost,c.confidentSent)
     if bounded {
-        if weightedResidual(c.shapeTotals,prior,confidence)>decreaseMargin ||
-           requiredMixedProfile(c.shapeTotals,c.slow,c.cfg.MinParity,c.cfg.MaxParity)>prior {
+        if mixedResidualWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,prior,confidence)>decreaseMargin ||
+           requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,c.slow,c.cfg.MinParity,c.cfg.MaxParity)>prior {
             return c.current(HoldStable)
         }
     } else if ResidualReference(int(s.ShardK),prior,confidence)>decreaseMargin ||

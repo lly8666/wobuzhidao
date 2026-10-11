@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_AEAD_LANE_TEST_ONLY_SWITCH_CORRECTED_SCOPED_ACTIONS_PASS_PRODUCTION_ADMISSION_UNSUPPORTED",
+    "phase": "N2_TRUSTED_PHYSICAL_256PN_MIXED_K_R_PARTIAL_EDGES_CONTROLLER_SOURCE_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_QUALIFIED_TEST_ONLY_MIXED_20R_RX_BOUNDED_SWITCH_OLD_32MS_OFF_ON_AEAD_LANE_GITHUB_ACTIONS_PASS_SOURCE_3FDC705_AUTO_ADMISSION_NOT_WIRED",
+      "N2_normal_auto": "IN_PROGRESS_TEST_ONLY_AEAD_LANE_SCOPED_PASS_CONTROL_PHYSICAL_PARITY_PN_CROPPED_SHAPE_WILSON_SOURCE_CANDIDATE_ACTIONS_PENDING_PRODUCTION_AUTO_UNSUPPORTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -308,6 +308,14 @@
         ],
         "production_admission": "UNSUPPORTED",
         "physical": "NOT_RUN"
+      },
+      "n2_source_cohort_normalization_candidate": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "parent_doc_sha": "83a72260d176e89ec8140c936eeda2a958debbf9",
+        "model": "all KindLINK PN include parity; complete k/r groups priced source-weighted; known cropped edge group counted as unprotected; invalid/localdrop/overload/stale/overlap/wide bound HOLD",
+        "production_auto": "UNSUPPORTED",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -339,8 +347,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 NEXT HARD BLOCKER: controller bounded sample currently asserts sum(closed k systematic)==quality Sent, but quality Sent counts both systematic AND parity KindLINK first-emits. With 256-PN 20:20 group samples the 40-PN geometry also implies cropped edge groups; requiring 100% closed group coverage can permanently HOLD even on healthy line. Fix source-correlated systematic+parity/off/cropped-edge accounting with conservative UNKNOWN gates, age, local drops, interval width, nonoverlap, 512 physical samples and trustworthy mixed partial min(k,R). Assert healthy traffic can eventually lower and genuine damage raise, aggressive ordinary+1. No post-repair residual used as first PLR. Then wire ONLY protected V3 Normal per-client policy, directional feedback, shared decoder and switch under actual runtime; keep fixed/Game untouched. Test Actions per SOURCE, next N2 one scenario/config/run. N3-6 NOT_STARTED, physical NOT_RUN, historical off p99/missing & 80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-aead-lane-switch-corrected-scoped-actions-pass.md",
+  "next_task": "N2 source-normalized parity-PN and partial-edge controller candidate: check exact new Actions foundation/lifecycle/N1 codec/Linux multi; if failures fix and preserve original FAIL. New runtimeowner QualityAdaptiveCandidate read-only maps authenticated first-attempt conservative bound + true source local SourceShape (all first-success parity/off/cropped/invalid). Controller requires complete k/r source+parity accounting, Wilson bound/512 disjoint PN, <=50% known-cropped conservative; synthetic 256-PN 20:20 genuine whole+cut evidence can lower and raise. DO NOT enable auto until qualified under realistic normal patterns incl timeout/wide interval/feedback loss and per-client directional production+admission and realpath. N3-N6/physical NOT_RUN, old p99/missing and 80s OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-real-256pn-parity-cropped-source-control-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "3fdc70543ee11a9af27fbbe0502ce9c2f929d5ab",
   "last_tested_scope": "AEAD Lane N2 explicit TEST-ONLY new-block off/on 20R old 32ms parity, first arrival/no HOL; foundation 7 enabled PASS Linux/Windows Go/race scoped, lifecycle PASS. P5/P6 SKIPPED. No N2 live/perf/physical.",

@@ -1,6 +1,7 @@
 package runtimeowner
 
 import (
+	"math/bits"
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/fec"
 )
@@ -17,6 +18,13 @@ type QualitySourceShape struct {
 	Off uint32
 	Attributed uint32
 	Unknown uint32
+	// Valid FEC shards in a group cut by the 256-PN source-window boundary
+	// or not yet closed at report time. They are NOT known k, so the future
+	// controller must price them conservatively, never as lossless samples.
+	Cropped uint32
+	// Unattributed records without a trustworthy group identity. Any such
+	// record disqualifies the whole source-shape control sample.
+	Invalid uint32
 	FullBlocks uint16
 	PartialBlocks uint16
 	// Shard-size bins classify CLOSED block maximum shard lengths in bytes:
@@ -91,14 +99,20 @@ func (w *qualityTXWindow) sourceShape(m datapath.QualityHealthReport) QualitySou
 	}
 	if valid!=uint32(m.TxSuccess) {return out}
 	for _,g:=range groups {
-		if g.invalid || !g.closed {continue}
+		if g.invalid {continue}
+		groupRecords:=uint32(bits.OnesCount32(g.sourceMask)+bits.OnesCount32(g.parityMask))
+		if !g.closed {
+			out.Cropped+=groupRecords
+			continue
+		}
 		k:=int(g.k)
 		r:=k
 		if r>int(g.configured) {r=int(g.configured)}
 		if g.sourceMask!=(uint32(1)<<k)-1 ||
 			g.parityMask!=(uint32(1)<<r)-1 {
-			// Both incomplete source and cropped parity windows stay
-			// unidentified; never infer an unseen final shard arrived.
+			// Never invent a full group from missing endpoints. The
+			// records we DID send are known, but this k/r mixture is not.
+			out.Cropped+=groupRecords
 			continue
 		}
 		out.Systematic+=uint32(k)
@@ -110,11 +124,19 @@ func (w *qualityTXWindow) sourceShape(m datapath.QualityHealthReport) QualitySou
 	out.Attributed=out.Systematic+out.Parity+out.Off
 	if out.Attributed<=out.Sent {
 		out.Unknown=out.Sent-out.Attributed
+		if out.Cropped<=out.Unknown {
+			out.Invalid=out.Unknown-out.Cropped
+		} else {
+			// Duplicate shard identity or impossible accounting is unsafe.
+			out.Invalid=out.Unknown
+		}
 		out.Complete=out.Unknown==0
 	} else {
 		// Unreachable for sound metadata, but never qualify corrupt shape.
 		out.Attributed=0
 		out.Unknown=out.Sent
+		out.Invalid=out.Sent
+		out.Cropped=0
 	}
 	return out
 }
