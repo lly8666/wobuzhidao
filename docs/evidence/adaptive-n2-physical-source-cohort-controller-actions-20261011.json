@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "9def27abfa128250297a29b878c12baf8db7a526",
+  "result": "SCOPED_PASS_READ_ONLY_CONTROLLER_INPUT_AUTO_UNSUPPORTED",
+  "foundation": {
+    "run_id": 38129705520,
+    "enabled_jobs_pass": 7,
+    "enabled_job_ids": [
+      114441310263,
+      114441334920,
+      114441334936,
+      114441334941,
+      114441334953,
+      114441334955,
+      114441335002
+    ],
+    "extended_p5_p6": "SKIPPED",
+    "artifact_id": 11698472831,
+    "artifact_sha256": "f663a5a4b6a71864c853046f218425e07a038728f77da55fd94a7b41ed32ccee"
+  },
+  "lifecycle": {
+    "run_id": 38129705523,
+    "job_id": 114441299494,
+    "result": "PASS"
+  },
+  "historical_first_source_fail": {
+    "source_sha": "b38d1b88271973b1c8d292b27103665dc8b975dc",
+    "run_id": 38129599448,
+    "job_id": 114441016511,
+    "reason": "uint64+uint32 compile mismatch",
+    "preserved": true
+  },
+  "scope": "genuine 256-PN windows with k/r/parity/off/cropped-edge accounting, read-only trusted source adapter, no actual production auto/weaknet",
+  "n2_perf": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "n3_n6": "NOT_STARTED"
+}

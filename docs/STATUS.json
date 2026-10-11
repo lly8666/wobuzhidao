@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_PHYSICAL_LINK_PN_COHORT_UINT_TYPE_FIX_ACTIONS_PENDING",
+    "phase": "N2_REAL_256PN_COHORT_CONTROLLER_SCOPED_PASS_PRODUCTION_AUTO_UNSUPPORTED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "3fdc70543ee11a9af27fbbe0502ce9c2f929d5ab",
+    "new_product_source_sha": "9def27abfa128250297a29b878c12baf8db7a526",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_FIRST_ATTEMPT_BOUND_MIXED_PARTIAL_PROVENANCE_SHARED_RX_AND_TEST_ONLY_AEAD_LANE_SWITCH_SCOPED_PASS_NO_PRODUCTION_AUTO",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_TEST_ONLY_AEAD_LANE_SCOPED_PASS_CONTROL_PHYSICAL_PARITY_PN_CROPPED_SHAPE_WILSON_SOURCE_CANDIDATE_ACTIONS_PENDING_PRODUCTION_AUTO_UNSUPPORTED",
+      "N2_normal_auto": "IN_PROGRESS_SOURCE_PN_PARITY_OFF_CROPPED_READONLY_SCOPED_PASS_AND_TEST_ONLY_AEAD_SWITCH_SCOPED_PASS_PRODUCTION_AUTO_UNSUPPORTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -310,15 +310,12 @@
         "physical": "NOT_RUN"
       },
       "n2_source_cohort_normalization_candidate": {
-        "status": "FIRST_SOURCE_ACTIONS_FAIL_CORRECTION_PENDING",
-        "failed_source_sha": "b38d1b88271973b1c8d292b27103665dc8b975dc",
-        "failed_foundation_run": 38129599448,
-        "failed_linux_job": 114441016511,
-        "failed_lifecycle_run": 38129599400,
-        "root_cause": "controller.go:387 uint64 shapeSourceRecords + uint32 OffRecords mixed integer types; compile fails before tests",
-        "corrected_source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "auto_live": false,
-        "physical": "NOT_RUN"
+        "status": "SCOPED_PASS_NOT_LIVE",
+        "source_sha": "9def27abfa128250297a29b878c12baf8db7a526",
+        "foundation_run": 38129705520,
+        "lifecycle_run": 38129705523,
+        "artifact_id": 11698472831,
+        "original_red_run": 38129599448
       }
     },
     "fec_off_weaknet_v2": {
@@ -350,11 +347,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 source cohort parity/cropped fix: source b38d1b8 foundation38129599448 Linux unit job114441016511 build FAIL at controller.go:387 uint64+uint32. Fixed only uint64(s.OffRecords) in next SOURCE, no algorithm change. Inspect exact new foundation/lifecycle Go Linux/Windows/race and correct tests if further red. Continue trusted 256 PN on/parity/off/cropped sample qualification, never post-repair PLR as first attempt; auto unsupported, N3-N6 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-parity-source-cohort-uint-correction.md",
+  "next_task": "N2 continue: production V3 Normal-only source-direction controller and protected per-client admission remain UNSUPPORTED. Latest read-only source k/r/parity/off/cropped input scoped PASS SOURCE 9def27a foundation38129705520 lifecycle38129705523; test natural source cohorts, feedback/idle/generation and switch before realpath single-case Actions. N3-N6 NOT_STARTED, physical NOT_RUN; historical 2.73s probe p99/missing and 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-physical-256pn-parity-cropped-source-scoped-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "3fdc70543ee11a9af27fbbe0502ce9c2f929d5ab",
-  "last_tested_scope": "AEAD Lane N2 explicit TEST-ONLY new-block off/on 20R old 32ms parity, first arrival/no HOL; foundation 7 enabled PASS Linux/Windows Go/race scoped, lifecycle PASS. P5/P6 SKIPPED. No N2 live/perf/physical.",
+  "last_tested_source_sha": "9def27abfa128250297a29b878c12baf8db7a526",
+  "last_tested_scope": "N2 real physical 256 PN source k/r/parity/off/cropped read-only input Foundation 7 enabled PASS + Lifecycle PASS. No live auto/admission, N2 realpath or physical.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
