@@ -23,10 +23,16 @@ func n2AEADDeliver(t *testing.T,dst *Lane,records []WireRecord,at time.Time) [][
 }
 
 func TestN2ActualAEADOffOnNewProfileAndOldDelayedFirstDelivery(t *testing.T) {
-	client,err:=NewN2AdaptiveLaneForTests(pairConfig(RoleClient,20))
+	clientConfig:=pairConfig(RoleClient,20)
+	serverConfig:=pairConfig(RoleServer,20)
+	// pairConfig intentionally uses 8ms for older codec tests. This N2
+	// production-default lifetime test explicitly promises 32ms.
+	clientConfig.FlushAfter=32*time.Millisecond
+	serverConfig.FlushAfter=32*time.Millisecond
+	client,err:=NewN2AdaptiveLaneForTests(clientConfig)
 	if err!=nil {t.Fatal(err)}
 	defer client.Close()
-	server,err:=NewN2AdaptiveLaneForTests(pairConfig(RoleServer,20))
+	server,err:=NewN2AdaptiveLaneForTests(serverConfig)
 	if err!=nil {t.Fatal(err)}
 	defer server.Close()
 	t0:=time.Unix(10000,0)

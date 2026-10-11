@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_AEAD_LANE_MIXED_PATH_TEST_ONLY_OPT_IN_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N2_AEAD_LANE_32MS_TEST_FIXTURE_CORRECTED_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -289,10 +289,18 @@
         "physical": "NOT_RUN"
       },
       "n2_aead_lane_candidate": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "status": "FIRST_SOURCE_ACTIONS_FAIL_TEST_ORACLE_CORRECTION_PENDING",
+        "failed_source_sha": "6dbc0c5076536feaea06ad0dcaa15f888acc1d2a",
+        "failed_actions": {
+          "foundation": 38128830210,
+          "lifecycle": 38128830205,
+          "n1_codec": 38128830308,
+          "n0_samewire_success": 38128830349,
+          "n0_native_three_success": 38128830179
+        },
+        "failure": "N2 lane default test reused legacy pairConfig FlushAfter=8ms but asserted no due parity at 31ms as if 32ms; two valid parity packets emitted at 8ms. Test-only change sets both adaptive test lane configs to 32ms.",
+        "fixed_source_sha": "CURRENT_COMMIT_HEAD_PENDING",
         "production_admission": "NOT_WIRED",
-        "auto_live": "UNSUPPORTED",
         "physical": "NOT_RUN"
       }
     },
@@ -325,8 +333,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 AEAD-backed Lane opt-in candidate: inspect new SOURCE Foundation/Lifecycle and triggered N1 codec/N0 native Actions; fix red without local Go. Prior opt-in linkdata source f28d5b5 foundation38128428615/lifecycle38128428619 PASS (NOT production). Next source cohort correct LINK parity PN denominator vs actual closed k/r, overlap/stale/unknown HOLD and demonstrate real normal up/down; then protected per-client V3 auto/admission and direction, all single measurement Actions cases. Game fixed, N3-N6 not started, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-aead-lane-explicit-test-path-candidate.md",
+  "next_task": "N2 AEAD lane explicit 32ms test correction: original SOURCE 6dbc0c5 next-foundation38128830210 FAIL/Linux+Windows, lifecycle38128830205 FAIL, N1codec38128830308 FAIL all due same synthetic test using pairConfig 8ms but expecting 32ms. N0 samewire38128830349 and native3client38128830179 PASS. Corrected test explicitly 32ms, no product change; inspect next exact SOURCE Actions before PASS. Then source-shape cohorts and directional protected normal policy; N3-N6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n2-lane-32ms-test-fixture-correction.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
   "last_tested_scope": "N2 sourced FEC meta+shape read-only: foundation 7/7 enabled PASS, lifecycle, N1 codec/race, N0 same-wire, 3-client hosted Linux functional; no N2 auto/weaknet/perf nor physical.",
