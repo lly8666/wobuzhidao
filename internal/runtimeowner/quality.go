@@ -76,7 +76,16 @@ func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
  }
  tx:=t.quality.tx.snapshot(now)
  pair:=t.quality.pair
- last:=t.quality
+ // Copy only the scalar decision state, not the 16-report authenticated
+ // source history or mailbox pointer on every eligible maintenance Tick.
+ // No new business hot-path work, allocation, or lock is introduced.
+ lastWindow:=t.quality.lastSentWindow
+ lastSentAt:=t.quality.lastSentAt
+ lastEchoState:=t.quality.lastEchoState
+ lastEchoSourcePN:=t.quality.lastEchoSourcePN
+ lastEchoSourceTx:=t.quality.lastEchoSourceTx
+ lastEchoMissing:=t.quality.lastEchoMissing
+ sentCount:=t.quality.sent
  srtt:=t.srtt
  idleSource:=t.health.idleSource
  t.mu.Unlock()
@@ -89,19 +98,19 @@ func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
  // A peer's growing *report sequence alone* is not new evidence. Compare
  // the true sender DATA window and our independently paired receiver state.
  // Stable values without new observations are not repeatedly stamped fresh.
- freshTX:=tx.HasAttempts&&(tx.LastPN!=last.lastSentWindow.LastPN||
-  tx.Success!=last.lastSentWindow.Success||
-  tx.LocalDrops!=last.lastSentWindow.LocalDrops||
-  tx.CapacityLimited!=last.lastSentWindow.CapacityLimited)
- sourceChanged:=pair.accepted&&(pair.report.WindowLastPN!=last.lastEchoSourcePN||
-  pair.report.TxSuccess!=last.lastEchoSourceTx)
- echoChanged:=pair.accepted&&(estimate.State!=last.lastEchoState||
-  estimate.EstimatedMissing!=last.lastEchoMissing)
+ freshTX:=tx.HasAttempts&&(tx.LastPN!=lastWindow.LastPN||
+  tx.Success!=lastWindow.Success||
+  tx.LocalDrops!=lastWindow.LocalDrops||
+  tx.CapacityLimited!=lastWindow.CapacityLimited)
+ sourceChanged:=pair.accepted&&(pair.report.WindowLastPN!=lastEchoSourcePN||
+  pair.report.TxSuccess!=lastEchoSourceTx)
+ echoChanged:=pair.accepted&&(estimate.State!=lastEchoState||
+  estimate.EstimatedMissing!=lastEchoMissing)
  // Stable busy-lane values may need a bounded freshness update, but a
  // genuinely idle source's stale PN window must NOT become a new sample.
  busy:=tx.Success>0&&tx.AgeMillis!=0xffff&&tx.AgeMillis<3000
- deadline:=busy&&!last.lastSentAt.IsZero()&&now.Sub(last.lastSentAt)>=3500*time.Millisecond
- bootstrap:=last.sent==0
+ deadline:=busy&&!lastSentAt.IsZero()&&now.Sub(lastSentAt)>=3500*time.Millisecond
+ bootstrap:=sentCount==0
  if !bootstrap&&!freshTX&&!sourceChanged&&!echoChanged&&!deadline {
   t.mu.Lock()
   t.control.SuppressedNoNewObservation++

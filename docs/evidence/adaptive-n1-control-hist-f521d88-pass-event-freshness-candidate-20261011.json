@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "kind": "N1_BOUNDED_CONTROL_HISTOGRAM_PASS_EVENT_FRESHNESS_SCALAR_OPT_CANDIDATE",
+  "qualified_product_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+  "new_product_sha": "CONTAINING_COMMIT_SHA",
+  "histogram_actions": {
+    "focused_n1": {
+      "run": 38082719251,
+      "job": 114302777126,
+      "status": "PASS",
+      "race_count": 2,
+      "checks": [
+        "8 bins protected KindHealth ciphertext record lengths and 8 bins successful control send gaps",
+        "no private body, nonce, per-message timestamps in optional diagnostic-jsonl",
+        "strict versioned 9B/104B/128B padding+auth, correlated quality echo"
+      ]
+    },
+    "lifecycle": {
+      "run": 38082719235,
+      "status": "PASS"
+    },
+    "foundation": {
+      "run": 38082719241,
+      "status": "PASS",
+      "includes": "Linux/Windows active Go and privileged Linux TUN/OpenWrt; P5/P6 skipped not tested"
+    },
+    "v3_negotiated": {
+      "run": 38082719264,
+      "status": "PASS"
+    },
+    "formal_native_three": {
+      "run": 38082719291,
+      "job": 114302776880,
+      "status": "PASS",
+      "artifact_id": 11681261535,
+      "sha256": "5272592d1de376a1247b51d7e54ab21f728fa08b4538c25b79a3c58235866c3c",
+      "client_count": 3,
+      "linux_netns": 9,
+      "each_direction": {
+        "sent_packets": 297,
+        "received_first_unique": 297,
+        "first_unique_bytes": 150480
+      },
+      "validation_problems": []
+    }
+  },
+  "new_candidate": {
+    "goal": "avoid 16-report source-history copy every eligible control tick, explicitly race-test new KindLINK PN watermark despite stable quality numeric state, avoid echo-seq-only ping-pong",
+    "go_race_count": 2,
+    "go_race": "PENDING",
+    "foundation": "PENDING",
+    "native_three": "PENDING",
+    "no_business_hotpath_change": true
+  },
+  "not_run": {
+    "strict_perf_single_scenario": true,
+    "matched_baseline_source": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+    "normal_10mbps_off_and_fixed20": true,
+    "game4_3mbps_eachway": true,
+    "weaknet_0_1_5_20_recovery": true,
+    "idle_sparse_oneway": true,
+    "low_and_300ms": true,
+    "smaller_mtu_tcp_options": true,
+    "ipv6_outer": true,
+    "physical": true
+  },
+  "auto_fec": "OFF"
+}

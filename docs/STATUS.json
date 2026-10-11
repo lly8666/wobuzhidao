@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_MERGED_EVENT_CONTROL_PADDED_9_104_128_CLI_JSON_PASS_BOUNDED_LENGTH_GAP_DIAGNOSTIC_PENDING_ACTIONS",
+    "phase": "N1_CONTROL_HISTOGRAM_SCOPED_ACTIONS_PASS_FRESH_SAMPLE_AND_ECHO_PINGPONG_RACE_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -21,7 +21,7 @@
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
-      "N1_quality": "IN_PROGRESS_MERGED_AUTH_IDLE_QUALITY_EVENT_SCHEDULER_CONTROL_PADDING_OFFICIAL_LINUX_WINDOWS_SERVER_CLI_SCOPED_ACTIONS_PASS_HISTOGRAM_ACTIONS_PENDING",
+      "N1_quality": "IN_PROGRESS_MERGED_HEALTH_QUALITY_JITTER_PADDED_9_104_128_CLI_JSON_HISTOGRAM_SOURCE_F521D88_ACTIONS_PASS_NEW_CONTROL_FRESHNESS_TEST_PENDING",
       "N2_normal_auto": "NOT_STARTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
@@ -94,24 +94,32 @@
       "n1_echo_scope": "V3 exact 128B AEAD KindHealth echoes receiver estimate referencing earlier source reportSeq+nonce+generation+last DATA PN, per-incarnation 16 successfully emitted report history and <=10s source, actual 20 postEmit vs 19 authenticated firstUnique 3s matured returned to original sender; N2 disabled. V2 104B and legacy 9B maintained; 9-netns 3 clients only configured zero loss business functional.",
       "n1_control_padding_cli_source_sha": "60a17eff5819c81984c5cb7e482823e140c4e9cd",
       "n1_control_padding_cli_foundation_run": 38082018643,
-      "n1_control_padding_cli_native_run": 38082018630
+      "n1_control_padding_cli_native_run": 38082018630,
+      "n1_control_histogram_source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+      "n1_control_histogram_focused_run": 38082719251,
+      "n1_control_histogram_foundation_run": 38082719241,
+      "n1_control_histogram_native_three_run": 38082719291,
+      "n1_control_histogram_scope": "bounded one-incarnation control-only encrypted record length bins 8, successful inter-control gap bins 8, total wire bytes; optional existing diagnostic-jsonl, strict no payload/nonce, Go race twice and native 3client PASS; not WAN appearance/perf qualified"
     },
     "pending_candidate": {
-      "name": "Bounded encrypted KindHealth per incarnation 8-bin control record length, 8-bin successful control gap, total control wirebytes, existing diagnostic-jsonl control field",
+      "name": "N1 control candidate constant-size decision snapshot + actual protected fresh DATA PN watermark and no echo reportSeq pingpong two-regression races",
       "source_sha": "CONTAINING_COMMIT_SHA",
-      "actions": "PENDING",
-      "histogram_meaning": "record-only encrypted body+header, not IP/TCP outer bytes",
-      "source_matched_fullstack_perf": "NOT_RUN",
-      "ipv6_outer": "NOT_RUN",
-      "n2_auto": "NOT_ENABLED",
+      "parent_qualified_source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+      "required": "Go race two repetitions focused; lifecycle; Linux Windows foundation; native three-client source-specific functional",
+      "actual_actions": "PENDING",
+      "performance_baseline_fixed": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "manual_performance_dispatch": "AVAILABLE_WORKFLOW_BUT_NO_CONNECTED_DISPATCH_ACTION",
+      "requested_perf_scenarios": "NOT_RUN",
+      "outer_ipv6": "NOT_RUN",
+      "n2_auto": "OFF",
       "physical": "NOT_RUN"
     }
   },
-  "next_task": "Verify bounded hist source N1 focused -race x2, runtimeentry diagnostic JSON test, lifecycle and Linux/Windows foundation and 9-netns 3-client regression. Then run one SOURCE/config/scenario per manually dispatchable next-strict-weaknet workflow for baseline 4f0cf78 and optimization candidate, Normal 10Mbps off/20:20, Game4 3Mbps FEC20, idle sparse and dynamic 0/1/5/20, low/300ms, small MTU/available IPv6. If dispatch unavailable mark NOT_RUN rather than pretend. No local tests, no N2 auto, no deployment/physical until all N0-N6/P6.",
-  "latest_log": "docs/devlog/20261011-141000-n1-control-length-gap-bounded-diagnostic-candidate.md",
+  "next_task": "Qualify fresh-N1 control optimization source: new real protected off-profile 20 DATA+1 later DATA fixed quality STATE but newer DATA PN/reportSeq, reject stale no-business report; two real lanes exchanging echo seq-only never ping-pong at 4/6/8s. Run N1 -race count2, lifecycle, Linux/Windows foundation, 9-netns three-client ACTIONS. Any FAIL preserve exact source logs and repair. Then prepare one SOURCE/config/scenario manual next-strict-weaknet dispatch baseline vs optimized with strictly comparable CPU/quota/PSI/first-unique, HOL/p99 control histogram. Do not claim any fullstack perf run without dispatch; N2 auto OFF, N3-N6/P6 NOT_STARTED, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-145000-n1-histogram-qualified-freshness-race-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
-  "last_tested_scope": "4f0cf78 N1 128B strict codec and actual authenticated echoed feedback -race count2, lifecycle, samewire six cases, Linux/Windows foundation and 9-netns three formal native clients all scoped PASS; genuine impaired netem loss confidence/burst/late/overflow and reciprocal multi-lane soak not tested; N2-N6/P6 and physical NOT_RUN",
+  "last_tested_source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+  "last_tested_scope": "f521d88 bounded authenticated control record length/gap stats & diagnostic JSON tests Go race count2, lifecycle, Linux/Windows privileged foundation, V3 negotiation and 9-netns 3 official native Linux clients scoped PASS; performance/appearance matched baseline 4f0cf78 vs candidate, impaired native, outer IPv6, physical NOT_RUN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -822,6 +830,51 @@
       "scope": "N1_OFFICIAL_CLI_JSON_CONTROL_PADDING_QUALIFIED",
       "status": "PASS",
       "cause": "strict padded health/event-trigger N1 -race2"
+    },
+    {
+      "name": "next-adaptive-n1-codec",
+      "source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+      "run_id": 38082719251,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38082719251",
+      "scope": "N1_CONTROL_HISTOGRAM_DIAG_JSON_RACE_2X",
+      "status": "PASS",
+      "cause": "PASS: job 114302777126, twice Go -race new bounded per-incarnation control ciphertext length/gap histograms and diagnostic JSON no private body/nonce/timestamps; original 9/104/128 padding, source-correlated N1 echo race remain passing"
+    },
+    {
+      "name": "next-lifecycle",
+      "source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+      "run_id": 38082719235,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38082719235",
+      "scope": "N1_CONTROL_HISTOGRAM_LIFECYCLE",
+      "status": "PASS",
+      "cause": "PASS: exact histogram source f521d88 core lifecycle and wire"
+    },
+    {
+      "name": "next-foundation",
+      "source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+      "run_id": 38082719241,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38082719241",
+      "scope": "N1_CONTROL_HISTOGRAM_LINUX_WINDOWS_PRIVILEGED",
+      "status": "PASS",
+      "cause": "PASS: exact f521d88 all required Linux/Windows active Go, repository and privileged Linux TUN/OpenWrt; P5/P6 policy-skipped NOT_RUN"
+    },
+    {
+      "name": "next-adaptive-n0-multi",
+      "source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+      "run_id": 38082719291,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38082719291",
+      "scope": "N1_CONTROL_HISTOGRAM_NATIVE_9_NETNS_3_CLIENTS",
+      "status": "PASS",
+      "cause": "PASS: job 114302776880 9 actual Linux netns 3 formal native clients 6 directions 297/297 first unique 150480/150480B each, problems []; artifact 11681261535 sha256 5272592d1de376a1247b51d7e54ab21f728fa08b4538c25b79a3c58235866c3c, zero configured loss functional not performance"
+    },
+    {
+      "name": "next-adaptive-n0-negotiated",
+      "source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+      "run_id": 38082719264,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38082719264",
+      "scope": "N1_CONTROL_HISTOGRAM_V3_NATIVE_ADMISSION",
+      "status": "PASS",
+      "cause": "PASS: exact f521d88 authentic V3 first S2C scoped, three-client protected control"
     }
   ],
   "required_read_set": [

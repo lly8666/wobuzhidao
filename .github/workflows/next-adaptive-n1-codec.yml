@@ -26,6 +26,7 @@ on:
       - "internal/runtimeowner/quality_echo_live.go"
       - "internal/runtimeowner/control_policy.go"
       - "internal/runtimeowner/control_policy_test.go"
+      - "internal/runtimeowner/control_freshness_test.go"
       - "internal/runtimeentry/diagnostic.go"
       - "internal/runtimeentry/diagnostic_control_test.go"
       - "internal/runtimeowner/health_test.go"
