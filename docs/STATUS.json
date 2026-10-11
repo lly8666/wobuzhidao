@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_FIRST_PRODUCTION_AUTO_REALPATH_DEFAULT_MTU_FUNCTIONAL_SCOPED_PASS_MORE_PERFORMANCE_NOT_RUN",
+    "phase": "N2_LIVE_TX_PARITY_CONTROLLER_REASON_DIAGNOSTIC_INSTRUMENTATION_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_TRUE_PROTECTED_AUTO_PRODUCT_PRODUCTION_FIRST_REALPATH_FUNCTIONAL_SCOPED_PASS_AWAIT_10MBPS_WAVEFORM_AND_DIRECTION_CPU_P99",
+      "N2_normal_auto": "IN_PROGRESS_PRODUCTION_NORMAL_AUTO_REALPATH_DEFAULT_MTU_FUNCTIONAL_PASS_ADD_BOUNDED_LIVE_TX_R_AND_CONTROL_DECISION_DIAGNOSTICS_FOR_WAVEFORM",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -468,6 +468,12 @@
         "foundation_run": 38140465767,
         "foundation_artifact_sha256": "2e56d2710f68eb8dd5a8b8ac2a25a67ec50b2c04969028de67bdc7b89a3c4021",
         "physical": "NOT_RUN"
+      },
+      "n2_live_grade_diagnostics": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT",
+        "scope": "opt-in sampled live ActualTxParity, per-incarnation reason, source seq/gen, sample confidence and true switch/busy counters, no packet hotpath",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -499,8 +505,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 auto REAL production end-to-end first smoke SOURCE 071a7d54 scoped PASS foundation38140465767 realpath38140465871; now do one SOURCE/config/seed/scenario/measurement job for Normal auto 10Mbps each direction with correctly stable 0→1→5→20→5→0 injected waveform, actual controller parity/hold traces, first unique p99 missing/CPU bytes/drop queue and helper/analyzer/CPU scope. Reuse default program auto MTU 0 cap. Need aggressive equivalent, lowRTT/300ms independent and asymmetric uplink/downlink/idle feedback cutoff mixed TCP UDP/Game4 fixed gates. Distinguish measured insufficient vs FAIL vs not-run. N3-6 not started, physical NOT_RUN; old default off 2.73s probe p99/missing and 80s initial S2C interruption OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-production-auto-default-mtu-realpath-single-functional-pass.md",
+  "next_task": "Check exact new SOURCE Foundation/Lifecycle Actions for opt-in N2 current actual TX parity and controller reason telemetry. If red fix. Then build one 10Mbps EACH DIRECTION full protected Normal auto waveform 0→1→5→20→5→0 case with predeclared stable periods; one source/config/seed/job, use default 0=auto record caps, check per-epoch actual client/server TX R and Hold reason from bounded diag JSONL, p99/missing/first unique/CPU/goodput/OS queue and runner capacity. Need aggressive separate sample, asymmetric directions, low RTT and 300ms, sparse/idle/burst, feedback blackout, TCP/UDP mixed and Game4 fixed. N3-6 not started, physical NOT_RUN, off p99~2.73s missing and S2C initial ~80s OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-actual-directional-grade-control-reason-diagnostics-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "071a7d54ccead7f5b773b561466b2da75f6fe548",
   "last_tested_scope": "N2 Normal production auto real 5-netns one client default record auto cap0, 300ms one-way both, lossless 8s 0.5Mbps each; 987/987 first unique each, probe 8/8 p99 602.7ms; zero capture drops, Foundation7 PASS. Functional only, not 10Mbps adaptive waveform/CPU/p99 qual.",

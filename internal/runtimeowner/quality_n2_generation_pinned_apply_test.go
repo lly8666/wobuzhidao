@@ -68,6 +68,16 @@ func TestN2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock(t *testing.T) 
 		t.Fatalf("existing Tick did not apply active TX profile %+v %v",st.TxPath,ok)
 	}
 	if tport.n2PendingSignal.Load() {t.Fatal("Tick kept consumed proposal armed")}
+	// The opt-in diagnostic snapshot must distinguish original negotiated
+	// max20 from the actual new-block TX profile 4 and preserve why a
+	// controller decided to change. No stats emission on fresh hot path.
+	if ctrl,ok:=r.ControlStats(snap.Ref);!ok||
+		!ctrl.N2ControllerEnabled || ctrl.N2DecisionReason!=string(adaptivefec.Lower) ||
+		ctrl.N2Ordinary!=4||ctrl.N2AdvisedParity!=4 ||
+		ctrl.N2CommittedSwitches!=1 || ctrl.N2Pending {
+		t.Fatalf("N2 source/control diagnostic mismatch %+v %v",ctrl,ok)
+	}
+
 	next,err:=lane.Outbound([]byte("new-after-advice"),at.Add(2*time.Millisecond))
 	if err!=nil||len(next)!=1||next[0].FEC.ConfiguredParity!=4||
 		next[0].FEC.BlockID==old[0].FEC.BlockID {

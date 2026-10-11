@@ -1,10 +1,12 @@
 package runtimeowner
 
 import (
+	"errors"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/adaptivefec"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/linkdata"
 )
 
 // ApplyN2ProposalForTests consumes one fresh authenticated local-TX proposal.
@@ -64,6 +66,11 @@ func (r *Runtime) ApplyN2ProposalForTests(ref logicaltunnel.LaneRef,now time.Tim
 		return false,nil
 	}
 	err=r.owner.CommitN2ActiveParityForTests(ref,prepared)
+	if err==nil {
+		t.control.N2CommittedSwitches++
+	}else if errors.Is(err,linkdata.ErrAdaptiveSwitchBusy) {
+		t.control.N2BusyHolds++
+	}
 	t.mu.Unlock()
 	r.outboundMu.RUnlock()
 	if err!=nil{return false,err}

@@ -26,6 +26,24 @@ type ControlStats struct {
  PaddingBytes uint64 `json:"padding_bytes"`
  PaddingBudgetSkips uint64 `json:"padding_budget_skips"`
  FeedbackAgeMillis uint64 `json:"feedback_age_millis"` // previous age, not necessarily qualified
+ // N2 local-TX diagnostics only; this struct is read solely by opt-in
+ // low-frequency diagnostic-jsonl snapshots, never the business hot path.
+ N2ControllerEnabled bool `json:"n2_controller_enabled,omitempty"`
+ N2DecisionReason string `json:"n2_decision_reason,omitempty"`
+ N2Ordinary int `json:"n2_ordinary,omitempty"`
+ N2AdvisedParity int `json:"n2_advised_parity,omitempty"`
+ N2DecisionVersion uint64 `json:"n2_decision_version,omitempty"`
+ N2SourceReportSeq uint64 `json:"n2_source_report_seq,omitempty"`
+ N2SourceGeneration uint64 `json:"n2_source_generation,omitempty"`
+ N2DecisionAtUnixNS int64 `json:"n2_decision_at_unix_ns,omitempty"`
+ N2Pending bool `json:"n2_proposal_pending,omitempty"`
+ N2BoundWidth float64 `json:"n2_first_loss_bound_width,omitempty"`
+ N2ConfidenceUpper float64 `json:"n2_confidence_upper,omitempty"`
+ N2AcceptedRecords uint64 `json:"n2_accepted_records,omitempty"`
+ N2ShapeRecords uint64 `json:"n2_shape_records,omitempty"`
+ N2CommittedSwitches uint64 `json:"n2_committed_switches,omitempty"`
+ N2BusyHolds uint64 `json:"n2_busy_holds,omitempty"`
+
  // Scalar control-only outcomes after successful authenticated mature echo Emit.
  // Existing diagnostic-jsonl snapshots read these at low frequency only.
  MatureEchoEstimated uint64 `json:"mature_echo_estimated"`
@@ -168,6 +186,26 @@ func (r *Runtime) ControlStats(ref logicaltunnel.LaneRef) (ControlStats,bool) {
  if !active||lane==nil{return ControlStats{},false}
  lane.mu.Lock()
  v:=lane.control
+ if lane.quality.n2!=nil {
+  q:=lane.quality
+  v.N2ControllerEnabled=true
+  if q.n2HasDecision {
+   v.N2DecisionReason=string(q.n2Last.Reason)
+   v.N2Ordinary=q.n2Last.Ordinary
+   v.N2AdvisedParity=q.n2Last.Applied
+   v.N2DecisionVersion=q.n2DecisionVersion
+   v.N2DecisionAtUnixNS=q.n2DecisionAt.UnixNano()
+   v.N2Pending=q.n2Pending
+   v.N2BoundWidth=q.n2Last.BoundWidth
+   v.N2ConfidenceUpper=q.n2Last.ConfidenceUpper
+   v.N2AcceptedRecords=q.n2Last.AcceptedRecords
+   v.N2ShapeRecords=q.n2Last.ShapeRecords
+   if q.returned.valid {
+    v.N2SourceReportSeq=q.returned.report.SourceReportSeq
+    v.N2SourceGeneration=q.returned.report.SourceGeneration
+   }
+  }
+ }
  lane.mu.Unlock()
  return v,true
 }

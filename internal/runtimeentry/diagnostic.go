@@ -13,7 +13,8 @@ import (
 
 type LaneDiagnostic struct {
 	Ref          logicaltunnel.LaneRef       `json:"ref"`
-	ParityShards int                         `json:"parity_shards"`
+	ParityShards int                         `json:"parity_shards"` // initial negotiated envelope
+	ActualTxParity int                     `json:"actual_tx_parity"` // current NEW block profile, can be off (0)
 	Lane         datapath.LaneStats          `json:"lane"`
 	Transport    runtimeowner.TransportStats `json:"transport"`
 	Control      *runtimeowner.ControlStats `json:"control,omitempty"`
@@ -71,7 +72,7 @@ func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, n
 			ctrl = &snapshot
 		}
 		out.Lanes = append(out.Lanes, LaneDiagnostic{
-			Ref: lane.Ref, ParityShards: lane.ParityShards, Lane: laneStats, Transport: transportStats, Control: ctrl,
+			Ref: lane.Ref, ParityShards: lane.ParityShards, ActualTxParity: laneStats.TxPath.ParityShards, Lane: laneStats, Transport: transportStats, Control: ctrl,
 		})
 	}
 	for _, lane := range owner.RetiringLanes() {
@@ -79,7 +80,7 @@ func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, n
 		transportStats, transportOK := rt.TransportStatsAt(lane.Ref, now)
 		if laneOK && transportOK {
 			out.RetiringLanes = append(out.RetiringLanes, LaneDiagnostic{
-				Ref: lane.Ref, ParityShards: lane.ParityShards, Lane: laneStats, Transport: transportStats,
+				Ref: lane.Ref, ParityShards: lane.ParityShards, ActualTxParity: laneStats.TxPath.ParityShards, Lane: laneStats, Transport: transportStats,
 			})
 		}
 	}
