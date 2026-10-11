@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_sha": "f28d5b537086e60dac2568389ca6fe3f857c0962",
+  "status": "SCOPED_ACTIONS_PASS_NOT_PRODUCTION_LANE",
+  "foundation": {
+    "run_id": 38128428615,
+    "conclusion": "success",
+    "artifact_id": 11698086284,
+    "artifact_sha256": "206da519935080bdf94e41544d5a62533263e72497d72a637188fdb108cba47a"
+  },
+  "lifecycle": {
+    "run_id": 38128428619,
+    "conclusion": "success"
+  },
+  "scope": "N2 opt-in linkdata path: all parity/off, old partial absolute deadline, no fresh HOL, one shared decoder, WF collision strict dispatch, bounded drain. Foundation includes Linux/Windows, unit/race, privileged scoped checks; NOT dynamic AEAD Lane/production admission.",
+  "not_run": [
+    "V3 auto admission",
+    "live per-direction controller",
+    "N2 10Mbps weaknet",
+    "N3-N6",
+    "physical"
+  ],
+  "historical_fail": [
+    38125145784,
+    38126250217
+  ]
+}

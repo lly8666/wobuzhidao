@@ -160,6 +160,7 @@ type Lane struct {
 	decoder *tlsrecord.Decoder
 	txPath  *linkdata.FECPath
 	rxPath  *linkdata.FECPath
+	adaptiveN2Test bool
 	// A single buffered owner signal is emitted only when a first/earlier
 	// partial-FEC deadline is created. Nonblocking: never delay fresh data.
 	fecDeadlineWake chan<- struct{}
@@ -175,6 +176,17 @@ type Lane struct {
 }
 
 func NewLane(cfg LaneConfig) (*Lane, error) {
+	return newLaneWithN2TestPath(cfg,false)
+}
+
+// NewN2AdaptiveLaneForTests tests authenticated mixed on/off LINK paths.
+// Production admission continues to construct fixed NewLane instances.
+func NewN2AdaptiveLaneForTests(cfg LaneConfig) (*Lane, error) {
+	if cfg.ParityShards != fec.ParityShards {return nil,ErrConfigMismatch}
+	return newLaneWithN2TestPath(cfg,true)
+}
+
+func newLaneWithN2TestPath(cfg LaneConfig, adaptive bool) (*Lane, error) {
 	txLimit, rxLimit, txKeys, rxKeys, err := directionParams(cfg)
 	if err != nil {
 		return nil, err
@@ -207,7 +219,9 @@ func NewLane(cfg LaneConfig) (*Lane, error) {
 			ErrConfigMismatch, txBudget.ParityShards, rxBudget.ParityShards, cfg.ParityShards)
 	}
 
-	txPath, err := linkdata.NewFECPath(linkdata.FECPathConfig{
+	txPathCtor:=linkdata.NewFECPath
+	if adaptive {txPathCtor=linkdata.NewAdaptiveFECPath}
+	txPath, err := txPathCtor(linkdata.FECPathConfig{
 		SourceMTU:    txBudget.LinkFrameMTU,
 		ParityShards: cfg.ParityShards,
 		FlushAfter:   cfg.FlushAfter,
@@ -216,7 +230,9 @@ func NewLane(cfg LaneConfig) (*Lane, error) {
 	if err != nil {
 		return nil, err
 	}
-	rxPath, err := linkdata.NewFECPath(linkdata.FECPathConfig{
+	rxPathCtor:=linkdata.NewFECPath
+	if adaptive {rxPathCtor=linkdata.NewAdaptiveFECPath}
+	rxPath, err := rxPathCtor(linkdata.FECPathConfig{
 		SourceMTU:    rxBudget.LinkFrameMTU,
 		ParityShards: cfg.ParityShards,
 		FlushAfter:   cfg.FlushAfter,
@@ -243,6 +259,7 @@ func NewLane(cfg LaneConfig) (*Lane, error) {
 		decoder:  decoder,
 		txPath:   txPath,
 		rxPath:   rxPath,
+		adaptiveN2Test: adaptive,
 	}, nil
 }
 
@@ -350,6 +367,17 @@ func (l *Lane) outbound(packet []byte, now time.Time, selector paddingSelector) 
 // NextFlushDeadline is read under the TX mutex, and never waits for RX.
 // A retired/closed generation reports no pending outbound work. The caller
 // must still fence the lane generation when actually flushing/issuing wire.
+// SwitchN2ParityForTests applies a new parity to NEW blocks only. The
+// explicit opt-in constructor is not reachable from production admission.
+func (l *Lane) SwitchN2ParityForTests(parity int) error {
+	if l==nil {return ErrLaneClosed}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.closed {return ErrLaneClosed}
+	if !l.adaptiveN2Test {return linkdata.ErrAdaptiveSwitchUnavailable}
+	return l.txPath.SwitchParity(parity)
+}
+
 func (l *Lane) NextFlushDeadline() time.Time {
 	if l == nil {
 		return time.Time{}
@@ -450,10 +478,13 @@ func (l *Lane) sealLocked(datagrams [][]byte, selector paddingSelector) ([]WireR
 			return nil, err
 		}
 		source := true
-		if l.cfg.ParityShards != 0 {
-			// This is owned encoder output; the v1 source/parity index is
-			// fixed and does not require reparsing the whole FEC header.
-			source = len(datagram) >= fec.HeaderSize && datagram[8] < fec.DataShards
+		if l.adaptiveN2Test {
+			// Old parity can flush AFTER the active profile has gone off.
+			if len(datagram)>=2 && datagram[0]=='W' && datagram[1]=='F' {
+				source=len(datagram)>=fec.HeaderSize && datagram[8]<fec.DataShards
+			}
+		} else if l.cfg.ParityShards!=0 {
+			source=len(datagram)>=fec.HeaderSize && datagram[8]<fec.DataShards
 		}
 		selection, err := selector(headroom, source)
 		if err != nil {
@@ -515,7 +546,8 @@ func (l *Lane) sealLocked(datagrams [][]byte, selector paddingSelector) ([]WireR
 			selections[i].finish = nil
 		}
 		metadata := FECRecordMeta{Known: true}
-		if l.cfg.ParityShards != 0 {
+		if (l.adaptiveN2Test && len(datagram)>=2 && datagram[0]=='W' && datagram[1]=='F') ||
+			(!l.adaptiveN2Test && l.cfg.ParityShards!=0) {
 			// Owned v1 shard bytes are still available BEFORE encryption. This
 			// local witness does not decrypt a record or alter the wire.
 			if len(datagram) < fec.HeaderSize {
