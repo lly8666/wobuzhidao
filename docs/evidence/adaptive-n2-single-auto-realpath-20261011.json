@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "source_sha": "071a7d54ccead7f5b773b561466b2da75f6fe548",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "classification": "SCOPED_FUNCTIONAL_PASS_NOT_N2_PERFORMANCE_QUALIFIED",
+  "workflow": {
+    "id": 38140465871,
+    "job": 114473116290,
+    "conclusion": "success",
+    "artifact_id": 11703280988,
+    "artifact_sha256": "34fe2a8719c12a319001af609592d44e0b2cf4d384e4b5cb0cb3f151f9c615d5"
+  },
+  "foundation": {
+    "id": 38140465767,
+    "conclusion": "success",
+    "enabled_job_ids": [
+      114473115743,
+      114473156866,
+      114473156889,
+      114473156890,
+      114473156945,
+      114473156949,
+      114473156966
+    ],
+    "artifact_id": 11703410511,
+    "sha256": "2e56d2710f68eb8dd5a8b8ac2a25a67ec50b2c04969028de67bdc7b89a3c4021"
+  },
+  "harness": {
+    "script": "scripts/realpath_calibration.sh",
+    "script_sha256": "3f18f70de2610f0185bb1309822486b1276e2ebdfca7725fe92f7ccbb37575a3",
+    "generated_script_sha256": "fe8b14e9e2f6927c7e06df86296bc0295c89de1c88f1278bec7f36a9deed6ac5",
+    "adapter": "tools/adaptive_n2_realpath.py",
+    "source_shipped": "same source as helper",
+    "outer_mtu": 1400,
+    "client_record_cap": 0,
+    "server_record_cap": 0,
+    "mode": "Normal1 auto min4 initial20 max20",
+    "cipher": "ChaCha",
+    "rate_each_direction_mbps": 0.5,
+    "duration_seconds": 8,
+    "loss_percent": 0,
+    "one_way_delay_ms": 300,
+    "seeds": [
+      2026092201,
+      2026092202
+    ]
+  },
+  "measured": {
+    "c2s": {
+      "sent": 987,
+      "first_unique": 987,
+      "bytes": 500080,
+      "send_failures": 0,
+      "recv_corrupt": 0,
+      "duplicates": 0,
+      "send_lag_p99_ns": 162850,
+      "outer_fresh_payload_bytes": 1340649,
+      "outer_repair_payload_bytes": 1351
+    },
+    "s2c": {
+      "sent": 987,
+      "first_unique": 987,
+      "bytes": 500080,
+      "send_failures": 0,
+      "recv_corrupt": 0,
+      "duplicates": 0,
+      "send_lag_p99_ns": 219826,
+      "outer_fresh_payload_bytes": 1317382,
+      "outer_repair_payload_bytes": 0
+    },
+    "returned_probe_sent": 8,
+    "returned_probe_received": 8,
+    "returned_probe_p99_ns": 602697641,
+    "netem_median_one_way_ns": 300029000,
+    "capture_kernel_drops": {
+      "c2s-pre": 0,
+      "c2s-post": 0,
+      "s2c-pre": 0,
+      "s2c-post": 0
+    }
+  },
+  "pcap_sha256": {
+    "c2s-post": "2b4fd805679ba50001bbf12b197da2919f9e9ef9d7d3ee82676f8dfecc01567b",
+    "c2s-pre": "32cae69581809ad3acb7b43650d3d4c0b068ff25d0c38d443bd5bb30309d217e",
+    "s2c-post": "53036da8ef4f46a4d24cf1c2ca4ed7a3cf1d6e9407a3f42e64091a557d86e0d1",
+    "s2c-pre": "792b22b43dcebc41fbbea01d67035bc8feac40074d561a7b58d7f09553711c06"
+  },
+  "pcap_deleted": true,
+  "unqualified": [
+    "N2 actual control R over 0→1→5→20→5→0",
+    "full 10Mbps first unique bidirectional CPU/p99",
+    "asymmetric loss/feedback blackout/idle/rotation",
+    "mixed TCP UDP and MTU boundary",
+    "Game4 3Mbps",
+    "N3-N6",
+    "physical"
+  ]
+}

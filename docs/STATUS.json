@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_PRODUCTION_AUTO_REALPATH_DEFAULT_MTU_300MS_SINGLE_FUNCTIONAL_ACTIONS_PENDING",
+    "phase": "N2_FIRST_PRODUCTION_AUTO_REALPATH_DEFAULT_MTU_FUNCTIONAL_SCOPED_PASS_MORE_PERFORMANCE_NOT_RUN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "061cf3c79e96c6d2bbd5d6c6a07da73561b7091d",
+    "new_product_source_sha": "071a7d54ccead7f5b773b561466b2da75f6fe548",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_VERIFIED_NATURAL_COHORT_JOINT_KR_AND_PROTECTED_TX_ECHO_PROPOSAL_NO_LIVE_PARITY_SWITCH",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_PRODUCTION_V3_NORMAL_AUTO_CLI_PER_CLIENT_CONTROLLER_FUNCTIONAL_SCOPED_PASS_TRUE_FIVE_NETNS_AUTO_MTU_SINGLE_FUNCTIONAL_SAMPLE_ACTIONS_PENDING_NOT_10MBPS_WAVEFORM",
+      "N2_normal_auto": "IN_PROGRESS_TRUE_PROTECTED_AUTO_PRODUCT_PRODUCTION_FIRST_REALPATH_FUNCTIONAL_SCOPED_PASS_AWAIT_10MBPS_WAVEFORM_AND_DIRECTION_CPU_P99",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -459,17 +459,14 @@
         "physical": "NOT_RUN"
       },
       "n2_first_auto_realpath": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "scope": "one auto min4 Normal V3 per-client 0.5Mbps each direction 300ms one-way lossless 8s single seed real TPROXY+TUN+FakeTCP default record cap 0, initial admission/first delivery only",
-        "not_qualified": [
-          "10Mbps",
-          "waveforms",
-          "per-direction actual profile trajectory",
-          "CPU normalized goodput",
-          "long p99",
-          "sparse/burst/feedback interruption"
-        ],
+        "status": "SCOPED_FUNCTIONAL_PASS_NOT_PERFORMANCE",
+        "source_sha": "071a7d54ccead7f5b773b561466b2da75f6fe548",
+        "run": 38140465871,
+        "job": 114473116290,
+        "artifact_id": 11703280988,
+        "artifact_sha256": "34fe2a8719c12a319001af609592d44e0b2cf4d384e4b5cb0cb3f151f9c615d5",
+        "foundation_run": 38140465767,
+        "foundation_artifact_sha256": "2e56d2710f68eb8dd5a8b8ac2a25a67ec50b2c04969028de67bdc7b89a3c4021",
         "physical": "NOT_RUN"
       }
     },
@@ -502,11 +499,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check exact SOURCE Actions for new one-case Normal auto real socket TPROXY+TUN default actual auto MTU 300ms delay 0.5Mbps bidirectional 8s. New workflow next-adaptive-n2-auto-realpath.yml must collect 1 SOURCE/config/seed/job, hash/delete pcap, capture first unique and probe p99/drops/CPU runner preflight; mark functional only if PASS and diagnose any FAIL. Then introduce separate one-condition 10Mbps N2 impairment waveform 0→1→5→20→5→0 with stable periods and actual control trajectory; single SOURCE/config/seed/workload per action, not 120s multi-matrix. Auto/aggressive, low RTT/300ms, sparse/burst/asymmetric/mixed, Game4 fixed3Mbps gates still required. N3-N6 NOT_STARTED, physical NOT_RUN; default-off p99 2.73s missing and ~80s S2C interruption OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-first-production-auto-realpath-single-source-functional-candidate.md",
+  "next_task": "N2 auto REAL production end-to-end first smoke SOURCE 071a7d54 scoped PASS foundation38140465767 realpath38140465871; now do one SOURCE/config/seed/scenario/measurement job for Normal auto 10Mbps each direction with correctly stable 0→1→5→20→5→0 injected waveform, actual controller parity/hold traces, first unique p99 missing/CPU bytes/drop queue and helper/analyzer/CPU scope. Reuse default program auto MTU 0 cap. Need aggressive equivalent, lowRTT/300ms independent and asymmetric uplink/downlink/idle feedback cutoff mixed TCP UDP/Game4 fixed gates. Distinguish measured insufficient vs FAIL vs not-run. N3-6 not started, physical NOT_RUN; old default off 2.73s probe p99/missing and 80s initial S2C interruption OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-production-auto-default-mtu-realpath-single-functional-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "061cf3c79e96c6d2bbd5d6c6a07da73561b7091d",
-  "last_tested_scope": "N2 production Normal V3 auto/aggressive admission and CLI+JSON catalog Foundation 7 jobs, Lifecycle, N1 codec race, N0 negotiated 3-client and N0 native 3-client Actions PASS; NOT N2 10Mbps/auto waveform.",
+  "last_tested_source_sha": "071a7d54ccead7f5b773b561466b2da75f6fe548",
+  "last_tested_scope": "N2 Normal production auto real 5-netns one client default record auto cap0, 300ms one-way both, lossless 8s 0.5Mbps each; 987/987 first unique each, probe 8/8 p99 602.7ms; zero capture drops, Foundation7 PASS. Functional only, not 10Mbps adaptive waveform/CPU/p99 qual.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
