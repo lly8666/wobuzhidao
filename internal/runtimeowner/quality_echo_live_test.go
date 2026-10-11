@@ -111,6 +111,14 @@ func TestN1QualityV3ActualEchoReturnedSenderCorrelatedAndN2Hold(t *testing.T) {
         own.Flags&datapath.QualityFlagLossEstimated!=0 || own.EstimatedMissing!=0 {
         t.Fatalf("N2 hold / own outbound field pollution: %+v state=%v",own,state)
     }
+    // N2 read-only FIRST-ATTEMPT upper bound: tail missing after maturity,
+    // no selected repair ever sent, so the interval collapses to [1,1].
+    bound,boundEnabled:=client.QualityFirstAttemptBound(cr.Ref,start.Add(6*time.Second))
+    if !boundEnabled || !bound.Complete || bound.State!=datapath.QualityFeedbackEstimated ||
+        bound.Sent!=20 || bound.MinFirstLost!=1 || bound.MaxFirstLost!=1 ||
+        bound.DistinctRepaired!=0 || bound.UpperFraction!=0.05 {
+        t.Fatalf("invalid first-attempt bound from real returned echo %+v enabled=%v",bound,boundEnabled)
+    }
     old,_:=client.QualityEchoFeedback(cr.Ref,start.Add(17*time.Second))
     if old.State!=datapath.QualityFeedbackStale {
         t.Fatalf("echo without fresh source must go STALE, not 0%% loss: %+v",old)

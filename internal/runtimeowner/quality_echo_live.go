@@ -13,6 +13,11 @@ const qualityEchoStaleAfter=10*time.Second
 type qualitySentSource struct {
     report datapath.QualityHealthReport
     sent time.Time
+    // 256-PN span: O(1) bit per distinct successful source record
+    // retried at least once, before or after this report was emitted.
+    repairMask [4]uint64
+    repaired uint32
+    repairCoverage bool
 }
 type qualityReturnedEcho struct {
     report datapath.QualityEchoV4
@@ -35,7 +40,7 @@ type QualityEchoFeedback struct {
 }
 
 func (q *qualityState) recordSentSource(m datapath.QualityHealthReport,now time.Time) {
-    q.sentSources[m.ReportSeq%qualitySentHistoryCapacity]=qualitySentSource{report:m,sent:now}
+    q.sentSources[m.ReportSeq%qualitySentHistoryCapacity]=q.captureSentSourceRepairCoverage(m,now)
 }
 
 // Called with laneTransport.mu held AFTER the authenticated, strictly

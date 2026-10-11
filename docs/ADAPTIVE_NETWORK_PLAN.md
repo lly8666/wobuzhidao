@@ -305,3 +305,8 @@ N1按用户明确收缩后的范围停止继续实验，记`SCOPED_COMPLETE`而�
 首次SOURCE `47b94777` 的 foundation `38120812356` 因 **单元测试错误地重置累计512门槛** FAIL，完整失败不删除；仅修正测试的 SOURCE `25f67474869c107c68f228a5f86b9923a3563f8d` GitHub [foundation `38120920936`](https://github.com/lly8666/wobuzhidao/actions/runs/38120920936) **启用的7项全部 PASS**，覆盖Linux/Windows go test/build、Linux race、网络基础和仓库规则；[lifecycle `38120920958`](https://github.com/lly8666/wobuzhidao/actions/runs/38120920958) PASS。该轮没有任何性能样本或物理机试跑，也没有动态产品 FEC 行为。精确观察及限制见 `docs/evidence/adaptive-n2-guarded-controller-actions-20261011.json`。
 
 下一步只补真实首次发送线路缺失的保守可验证证据、实际partial k分布及安全的block-boundary live切档；默认auto在 `SupportedNow` 仍被拒绝，不能从本轮7项基础检查推断N2完整完成，更不能使用N1修复后0%缺失降档。
+
+
+## N2 认证发包首发损失上界（2026-10-11，候选待 Actions 核验）
+
+真实线路的首次发送与后续有限repair复用同Seq/同密文，接收端无法看包本身区分。N1成熟后最终缺失只是首发丢包的**下界**，不是准确值。本次 N2 增量不改变 wire、不额外发送控制，也不降低现有保护；在sender已保留的16份source report和256 DATA PN滚动槽中，以 PN 将“曾经修复过此新鲜加密DATA record”记为每source一bit。凡预备emit（含reserve）只在实际选中并形成repair segment后、Socket Emit之前记，避免peer已经收到而Sender还没登记；失败emit也计为可能修复，最多使上界变宽。对照对端128B认证回声的成熟 `ReceiverUnique`，得到 `MatureMissing <= FirstAttemptLoss <= MatureMissing+DistinctRepaired`，且上界不超过`TxSuccess`。同一PN重试多次只计一次。端点nonce/generation、序列和sender report窗口已由原N1代码检查；新增只读`QualityFirstAttemptBound`必须source-repair位图完整、record ring覆盖且localdrops=0，否则INSUFFICIENT，不可退化成0%。来源报告过期、16窗口换代或receiver CAPACITY/STale一样不能发布精确值。后续必须核实真实first attempt成功/修复路径覆盖和混合partial k分布，且本上界即使宽到100%也如实HOLD/维持高保护，不能强制拿其数值替代真实PLR。该阶段仍不启用V3 auto或FEC TX切档，GitHub Actions结果未返回前仅为源码候选；没有physical资格。

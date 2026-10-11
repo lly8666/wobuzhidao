@@ -23,6 +23,7 @@ type qualityTXSlot struct {
     pn uint64
     used bool
     success bool
+    repaired bool // At least one local same-wire repair attempt, including failed emits.
 }
 
 type qualityTXWindow struct {

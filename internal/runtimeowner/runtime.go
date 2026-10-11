@@ -115,6 +115,7 @@ func (c *TransportConfig) normalize() error {
 }
 
 type pendingRecord struct {
+	pn                  uint64 // Original sealed KindLINK PN, unchanged on same-wire repair.
 	control             bool
 	seq                 uint32
 	end                 uint32
@@ -494,7 +495,7 @@ func (t *laneTransport) prepareFresh(record datapath.WireRecord, now time.Time) 
 	var p *pendingRecord
 	if backed {
 		p = &pendingRecord{
-			control: record.Control, seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
+			pn: record.PN, control: record.Control, seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
 			payload: wire, firstSent: now, lastSent: now,
 		}
 		t.pending[seq] = p

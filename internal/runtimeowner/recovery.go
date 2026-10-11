@@ -149,6 +149,11 @@ func (t *laneTransport) emitSelectedReserveRepair(sel *selectedRepair, now time.
 	current := n.record
 	sel.seg = t.outboundSegmentFlags(current.seq, t.recvNext, current.flags, current.payload)
 	t.stats.RepairAttempts++
+	if t.quality.enabled && !sel.record.control && sel.record.flags&faketcp.FlagFIN==0 {
+		// Count BEFORE invoking Emit: a peer can receive the repair before
+		// Emit returns, so counting on success could understate first loss.
+		t.quality.noteRepairAttempt(sel.record.pn)
+	}
 	t.mu.Unlock()
 
 	err := t.cfg.Emit(sel.seg)
@@ -206,6 +211,11 @@ func (t *laneTransport) emitSelectedRepair(sel *selectedRepair, now time.Time) e
 		current.seq, t.recvNext, current.flags, current.payload,
 	)
 	t.stats.RepairAttempts++
+	if t.quality.enabled && !sel.record.control && sel.record.flags&faketcp.FlagFIN==0 {
+		// Count BEFORE invoking Emit: a peer can receive the repair before
+		// Emit returns, so counting on success could understate first loss.
+		t.quality.noteRepairAttempt(sel.record.pn)
+	}
 	t.mu.Unlock()
 
 	err := t.cfg.Emit(sel.seg)

@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_GUARDED_AUTO_DECISION_CORE_SCOPED_ACTIONS_PASS_LIVE_PLR_AND_SWITCH_NOT_WIRED",
+    "phase": "N2_BOUNDED_FIRST_ATTEMPT_UPPER_BOUND_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_NORMAL_AUTO_AGGRESSIVE_DECISION_CORE_ACTIONS_LINUX_WINDOWS_RACE_LIFECYCLE_PASS_AUTH_FIRST_ATTEMPT_INPUT_AND_MIXED_K_PROFILE_SWITCH_PENDING_NO_LIVE_AUTO",
+      "N2_normal_auto": "IN_PROGRESS_GUARDED_CORE_ACTIONS_PASS_N2_AUTH_SOURCE_SCOPED_REPAIR_ATTEMPT_BITMAP_AND_CONSERVATIVE_FIRST_ATTEMPT_UPPER_BOUND_CANDIDATE_UNVERIFIED_IN_ACTIONS_AUTO_ADMISSION_OFF",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -262,8 +262,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 decision-only controller SOURCE25f6747 Actions foundation38120920936 ALL_ENABLED_PASS (repository contract, Linux+Windows go test/build, Linux race, netns core paths) and lifecycle38120920958 PASS. Retain first source47b9477 foundation38120812356 failed incorrect test expectation as historical. Next targeted N2 step: implement trustworthy authenticated/paired FIRST-TRANSMISSION physical-loss witness or explicitly conservative qualified upper bound (DATA records, source PN, repair distinction, tail losses and sample coverage), real partial-k distribution. Then guarded admission enablement and block-boundary TX profile / legacy RX in-flight dynamic parity after Actions focused tests. Until source/shape qualified auto UnsupportedNow; do not use N1 postrepair deficit to step down. Do not redo N1 off baseline, don't launch broad performance matrix or physical.",
-  "latest_log": "docs/devlog/20261011-n2-guarded-controller-foundation-pass-next-source-proof.md",
+  "next_task": "N2 next staged feature candidate: source-correlated repair-attempt bitmap for up to16 authenticated quality reports, 256 DATA PN/report, source coverage strict, bound mature residual <= original first losses <= residual+distinct repaired; repair counter BEFORE Emit including reserves; no wire change, no actual auto switching. Run exact GitHub Actions unit/race/3-client/foundation, patch only concrete failures. Then prove bound quality against delayed repair/drops and mixed partial k distribution; N1 residual alone still unusable. No N2 live auto until trusted input and full TX/RX profile rotation contracts.",
+  "latest_log": "docs/devlog/20261011-n2-auth-first-attempt-upper-bound-source-window-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "last_tested_scope": "Latest N1 product1c64e4e protected 180/640PN race & native functional PASS; fixed20 normal/Game lossless/5205 prior8 PASS_SCREEN; dedicated Normal flat1/flat5 8 strict native 120s Actions: fixed20 4 PASS_SCREEN, off 4 MEASURED_NOT_QUALIFIED; old flat5 2 PERFORMANCE_FAIL preserved. No real first-send PLR oracle or N2 auto, N3-6/physical NOT_RUN.",
