@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "title": "N1 one-pair native FEC-off flat5 default auto MTU comparison",
+  "updated_at": "2026-10-11",
+  "working_branch": "next/adaptive-fec-aes-tun-20261010",
+  "status": "TWO_INDEPENDENT_ACTIONS_COLLECTED_SCOPED_N1_CLOSE_NOT_FULL_PERFORMANCE_QUALIFICATION",
+  "correction_commit": "83f040db49ee6588ecc647d436431057563d3d24",
+  "correction": "Strict fixture removed both 1250/1300 hand-set record caps; outer MTU1400 remains; both CLI record-limit options omitted -> official auto=0, negotiated per-direction real peer MSS/outer ceiling; unchanged product binary sources.",
+  "test_contract": {
+    "fixture_sha": "83f040db49ee6588ecc647d436431057563d3d24",
+    "environment": "ubuntu-24.04 native 5 netns OpenWrt/Linux TPROXY+FakeTCP+shared TUN+real UDP sockets, randomized tc netem",
+    "mode": "normal",
+    "lanes": 1,
+    "app_rate_mbps_each_direction": 10,
+    "outer_mtu": 1400,
+    "delay_ms_one_way": 300,
+    "scenario": "flat5",
+    "stages_s": [
+      30,
+      60,
+      30
+    ],
+    "loss_configured_each_direction_percent": 5,
+    "seed": 601,
+    "performance_jobs_per_action": 1,
+    "source_per_action": 1,
+    "profile_screen": true,
+    "fec_parity": 0,
+    "diagnostic_cpu_profile": false,
+    "record_limits": {
+      "client": "omitted_auto",
+      "server": "omitted_auto"
+    },
+    "runner_model_both": "AMD EPYC 7763 64-Core Processor",
+    "runner_logical_cpus_both": 4
+  },
+  "samples": [
+    {
+      "role": "candidate",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "run_id": 38119299941,
+      "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38119299941",
+      "job_id": 114410529289,
+      "artifact_id": 11694772028,
+      "artifact_digest": "sha256:866a100bf5021cf3f765fd24c4ab873129bbc4c5d966ab5672ca68c284d83f49",
+      "legacy": "PASS_SCREEN",
+      "off_v2": "MEASURED_NOT_QUALIFIED",
+      "ci": "failure_intentional_off_v2_not_qualified",
+      "hard_gates": {
+        "capture": "PASS",
+        "correctness": "PASS",
+        "environment": "PASS",
+        "input": "PASS",
+        "legacy_performance": "PASS"
+      },
+      "stage_stress": {
+        "c2s": {
+          "injected_percent": 4.949961717495444,
+          "business_packet_loss_percent": 2.8264922852433325,
+          "business_byte_loss_percent": 2.840356607239238,
+          "timely_goodput_mbps": 9.7079936
+        },
+        "s2c": {
+          "injected_percent": 4.978713459799429,
+          "business_packet_loss_percent": 2.756235306833842,
+          "business_byte_loss_percent": 2.7375728265113035,
+          "timely_goodput_mbps": 9.724923733333332
+        }
+      },
+      "observed_lane_counts": {
+        "client": {
+          "outbound_datagrams": 296234,
+          "outbound_records": 296234
+        },
+        "server": {
+          "outbound_datagrams": 296172,
+          "outbound_records": 296172
+        }
+      },
+      "longest_zero_delivery_seconds": {
+        "biz": 0,
+        "target": 0
+      },
+      "probe": {
+        "sent": 120,
+        "missing": 5,
+        "returned_only_p99_ms": 2726
+      },
+      "cpu_seconds": {
+        "client": 60.23,
+        "server": 60.4
+      },
+      "cpu_seconds_per_delivered_gib": 444.31,
+      "outer_ip_per_app_raw_input": {
+        "c2s": 1.4391300666666667,
+        "s2c": 1.4411663662572651
+      }
+    },
+    {
+      "role": "baseline",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "run_id": 38119560143,
+      "run_url": "https://github.com/lly8666/wobuzhidao/actions/runs/38119560143",
+      "job_id": 114411292342,
+      "artifact_id": 11694772353,
+      "artifact_digest": "sha256:37b9d492a41b7f9b9f5fa6a8aa99351f161d256ce8f865ddd64e92cce7be9d98",
+      "legacy": "PASS_SCREEN",
+      "off_v2": "MEASURED_NOT_QUALIFIED",
+      "ci": "failure_intentional_off_v2_not_qualified",
+      "hard_gates": {
+        "capture": "PASS",
+        "correctness": "PASS",
+        "environment": "PASS",
+        "input": "PASS",
+        "legacy_performance": "PASS"
+      },
+      "stage_stress": {
+        "c2s": {
+          "injected_percent": 4.9515,
+          "business_packet_loss_percent": 2.7137,
+          "business_byte_loss_percent": 2.679,
+          "timely_goodput_mbps": 9.7228
+        },
+        "s2c": {
+          "injected_percent": 4.9792,
+          "business_packet_loss_percent": 2.8015,
+          "business_byte_loss_percent": 2.8251,
+          "timely_goodput_mbps": 9.7176
+        }
+      },
+      "observed_lane_counts": {
+        "client": {
+          "outbound_datagrams": 296234,
+          "outbound_records": 296234
+        },
+        "server": {
+          "outbound_datagrams": 296170,
+          "outbound_records": 296170
+        }
+      },
+      "longest_zero_delivery_seconds": {
+        "biz": 0,
+        "target": 0
+      },
+      "probe": {
+        "sent": 120,
+        "missing": 8,
+        "returned_only_p99_ms": 2722
+      },
+      "cpu_seconds": {
+        "client": 59.53,
+        "server": 60
+      },
+      "cpu_seconds_per_delivered_gib": 440.13,
+      "outer_ip_per_app_raw_input": {
+        "c2s": 1.4398785533333334,
+        "s2c": 1.4402678666666666
+      }
+    }
+  ],
+  "comparison": {
+    "new_auto_mtu_candidate_asymmetry_pp": 0.0702569784094905,
+    "new_auto_mtu_baseline_asymmetry_pp": 0.0878,
+    "old_manual_1250_1300_candidate_flat5_asymmetry_pp": 1.831,
+    "old_manual_1250_1300_baseline_flat5_asymmetry_pp": 1.958,
+    "old_manual_receipts": [
+      38112088217,
+      38113877309
+    ],
+    "old_manual_results_unmodified": true,
+    "new_auto_mtu_one_record_per_datagram_both_directions_both_sources": true,
+    "conclusion": "Asymmetric manual record-limit fixture was main explanation for prior C2S excess LINK fragmentation and business loss difference; removal removes extra C2S fragmentation and large direction asymmetry on same both sources; random residual normal off losses remain.",
+    "cpu_comparison": "Same runner model but only one sample per source; +about0.9% aggregate CPU in candidate not validated significant regression or improvement.",
+    "uncertainty": "No physical first-attempt WAN PLR oracle, no different platform/RTT/tail-loss stress, no full formal20 or physical qualification."
+  },
+  "actions_foundation": {
+    "analysis_run_id": 38119292712,
+    "analysis_conclusion": "success",
+    "relay_run_id": 38119292716,
+    "relay_attempts": 2,
+    "relay_conclusion": "success",
+    "foundation_run_id": 38119292717,
+    "foundation_conclusion": "success",
+    "p5_p6_optional": "skipped_not_run"
+  },
+  "boundaries": {
+    "N1": "SCOPED_COMPLETE_RECEIVER_FEEDBACK_INFRASTRUCTURE_PLUS_NATIVE_IMPAIRED_SAMPLES",
+    "N2": "NOT_STARTED_TRUE_PHYSICAL_FIRST_TRANSMISSION_LOSS_NOT_QUALIFIED_AUTOMATIC_FEC_MUST_HOLD",
+    "N3_to_N6": "NOT_STARTED",
+    "physical": "NOT_RUN",
+    "legacy_failures": "PRESERVED",
+    "known_open": [
+      "multi-second returned probe p99 and missing still real",
+      "about 80sec S2C historic interruption unresolved",
+      "unverified lost tail/feedback, sparse, low RTT, MTU576 or asymmetric path, rotating lane and physical native platform"
+    ],
+    "n1_estimate": "authenticated post-repair deficit, not original first-attempt outer packet loss; cannot drive N2 auto downgrade/off"
+  }
+}

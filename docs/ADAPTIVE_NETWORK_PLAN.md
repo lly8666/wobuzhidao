@@ -280,3 +280,9 @@ KindHealth 单独增加 encrypted zero padding，复用 tlsrecord.inner_type 后
 用户要求不扩大测试面：只用现有单测量 Actions relay 和 `next-strict-weaknet.yml`，同夹具/seed601、Normal1 每方向10Mbps、300ms 单向、`flat5` 稳定5%/5%双向、FEC off，独立各跑一次 product `1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438` 与基线 `4f0cf7814dea0a04a0dc69863ae1e56412e0da9f`，不并行、不更改 SOURCE、不额外扩展 1%、20%、Game、低 RTT 等。两个独立样本核外层实际丢包、默认 record/TUN 预算、业务包/字节缺失、首交付/p99/探针 missing、长零交付、CPU 与 runner、wire/queue，保留 original analyzer reference 与 off-weaknet-v2 的非资格化语义。跨 CPU 不能声称提速，单样本不能代表完整性能资格。
 
 **N1 限定范围收尾**：受保护双向质量报告、256 PN 有界成熟窗口、3s 成熟/128B 回声、真实9-netns三客户端零损伤功能、Linux/Windows编译与 -race、5205/flat1/flat5有损观察均已有之前精确 Actions 证据。对本轮只需完成自动 MTU 两源独立对比，然后按证据记 `N1_SCOPED_COMPLETE`、未验场景 `NOT_RUN`；它**不等于**完整线路首发 PLR 或 N2 自动 FEC 输入已经可信。当前统计是认证记录修复后剩余缺口，不能将其0%当线路 p=0，更不能据此自动降档/off。N2 后续必须独立处理这个输入门，仍保持 N2=NOT_STARTED；延迟尾部、80s S2C、极端尾丢和真实 Windows/物理均保留 OPEN/NOT_RUN。本轮不添加无关实验，不改生产传输/修复/FEC 算法。
+
+## 2026-10-11 N1 最小默认自动 MTU A/B 的已实测结案
+
+实施提交 `83f040db49ee6588ecc647d436431057563d3d24` 同时删除严格夹具的 `1250/1300` 方向限制并预声明两条不可并行样本。Actions候选 `38119299941` 与旧基线 `38119560143`，固定source分别 `1c64e4e` / `4f0cf781`，双方外层 MTU1400 与 record-cap默认0=auto，flat5双向固定5%、300ms单向、60s stress、Normal1 10Mbps/方向 seed601。同型号AMD EPYC7763。真实净损伤均接近5%；业务上/下失包：候选2.8265%/2.7562%（差0.0703pp），旧基线2.7137%/2.8015%（差0.0878pp）。双方lane计数均确认 datagram:record=1:1，旧手工1250/1300夹具上行额外分片完全消失；新样本两端全部CAPTURE/CORRECTNESS/INPUT/ENVIRONMENT以及legacy PERF各PASS，off-v2均MEASURED_NOT_QUALIFIED，无整秒断流。多秒probe尾部仍OPEN，不因返还p99只有返回者而忽略missing。原旧线样本/FAIL不可重判。精确artifact、SHA和指标见 `docs/evidence/adaptive-n1-auto-mtu-fec-off-flat5-pair-20261011.json`。
+
+N1按用户明确收缩后的范围停止继续实验，记`SCOPED_COMPLETE`而非`FULL_QUALIFIED`；N2的**真首发外层PLR**数据输入未完成，N1现有post-repair估计不能代替，N2自动模式保持未启动/等待独立验证。其它N3～N6、形式化20/物理和80s S2C保持原未验/OPEN。
