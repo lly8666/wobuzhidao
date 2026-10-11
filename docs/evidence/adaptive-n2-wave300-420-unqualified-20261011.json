@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "source_sha": "1f5340c1ad5e3308ec56066209078a485e0d329d",
+  "date": "2026-10-11",
+  "classification": "MEASURED_NOT_QUALIFIED_CONTROLLER_WAVEFORM",
+  "run": 38148158367,
+  "job": 114495767283,
+  "artifact_id": 11705906206,
+  "artifact_sha256": "b31eb7e9134cf1e24ef9d291e0f1a286739ff4fe5975938ada160145a0cd6dfe",
+  "foundation_run": 38148158380,
+  "foundation_enabled_pass": 7,
+  "foundation_artifact_sha256": "2269cc5a94528e7f7885e25184278071899b4f815c4703548cf3a41ec52514b4",
+  "conditions": {
+    "seconds": 420,
+    "drain_s": 10,
+    "stages": [
+      [
+        "clean0",
+        0,
+        60
+      ],
+      [
+        "loss1",
+        1,
+        60
+      ],
+      [
+        "loss5",
+        5,
+        60
+      ],
+      [
+        "loss20",
+        20,
+        60
+      ],
+      [
+        "recover5",
+        5,
+        60
+      ],
+      [
+        "recover0",
+        0,
+        120
+      ]
+    ],
+    "mbps_each_direction": 10,
+    "one_way_ms": 300,
+    "outer_mtu": 1400,
+    "record_cap_c2s": 0,
+    "record_cap_s2c": 0,
+    "mode": "Normal auto min4 initial/max20",
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ],
+    "netem_requested_seed": 601,
+    "netem_seed_applied": false,
+    "netem_rng": "KERNEL_RANDOM_UNSEEDED_TC_OPTION_UNSUPPORTED"
+  },
+  "first_unique": {
+    "c2s": {
+      "sent": 1036185,
+      "received": 1036185,
+      "bytes": 525000400
+    },
+    "s2c": {
+      "sent": 1036185,
+      "received": 1036185,
+      "bytes": 525000400
+    },
+    "capture_kernel_drops": 0
+  },
+  "control": {
+    "c2s": {
+      "grades": [
+        20
+      ],
+      "commits": 0,
+      "recovery120_last_window_upper": 189,
+      "recovery120_last_window_sent": 8192,
+      "recovery120_last_fast": 0.00002707641055863138,
+      "recovery120_last_slow": 0.00026687110497262625
+    },
+    "s2c": {
+      "grades": [
+        16,
+        20
+      ],
+      "commits": 2,
+      "recovery120_last_window_upper": 50,
+      "recovery120_last_window_sent": 8192,
+      "recovery120_last_fast": 1.9018308872600964e-28,
+      "recovery120_last_slow": 0.000017474462080193
+    }
+  },
+  "helper": {
+    "derived_script_sha256": "03d3599c072759a7809fd97caf392e0df2b6140344a91153025e33223c3ae458",
+    "stage_file_sha256": "29431e6af6b138fd0563c289e9ac37e1debda047f8097e29d1b01ca48740788b",
+    "analyzer_sha256": "70cb4397c43606787c9325e7f9c2d2b62e68c6f542a0e3e13f1e8f9a9f70d95c"
+  },
+  "limits": [
+    "Workflow success is not N2 waveform qualification",
+    "actual netem seed unavailable, kernel RNG unseeded",
+    "C2S never downshifted; neither end downshifted during recovery",
+    "diagnostic ON not CPU comparison",
+    "N3-N6 and physical NOT_RUN"
+  ]
+}

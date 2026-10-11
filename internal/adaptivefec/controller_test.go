@@ -347,3 +347,69 @@ func TestN2BoundedRecoveryDiagnosticHistoryDoesNotConsumeHolds(t *testing.T) {
         t.Fatalf("capacity sample mutated accepted confidence history: %+v",held)
     }
 }
+
+
+func TestN2LastQualifiedDowngradeBlockersExplainRealRecoveryWithoutTuning(t *testing.T) {
+	start:=time.Unix(172000,0)
+	ctl:=controller(t,Auto,4)
+	first:=boundedSource(1,start,20,0,0)
+	initial:=ctl.Step(first.At,first)
+	if initial.Reason!=HoldSampleCount || initial.LowerAssessedSeq!=1 ||
+		initial.LowerGate!="WAIT_SAMPLES" {t.Fatalf("first sample %+v",initial)}
+	second:=boundedSource(2,start,20,0,0)
+	early:=ctl.Step(second.At,second)
+	if early.Reason!=HoldStable || !early.LowerWaitingStable ||
+		early.LowerGate!="WAIT_STABLE" || early.LowerCandidate!=16 {
+		t.Fatalf("stable 30s gate not explained %+v",early)
+	}
+	for i:=3;i<=38;i++ {
+		s:=boundedSource(i,start,20,0,0)
+		_ = ctl.Step(s.At,s)
+	}
+	if ctl.ordinary>=20 {t.Fatal("normal clean line did not lower at all")}
+	// A genuinely damaged source makes immediate raise possible. Preserve
+	// the exact original controller code's quick-up/slow-down behavior.
+	s:=boundedSource(39,start,20,52,52)
+	d:=ctl.Step(s.At,s)
+	if d.Reason!=Raise || d.Ordinary!=20 || d.LowerGate!="RAISED" {
+		t.Fatalf("high physical first-attempt damage did not raise %+v",d)
+	}
+	s=boundedSource(40,start,20,52,52)
+	d=ctl.Step(s.At,s)
+	if d.Reason!=HoldSampleCount || d.LowerGate!="WAIT_SAMPLES" {
+		t.Fatalf("post raise fresh 512 quota changed %+v",d)
+	}
+	// Keep the last 32 independent source windows genuinely damaged. The
+	// confidence-based HOLD must persist after 30 seconds even though the
+	// same protected application is live and emitting.
+	for i:=41;i<=83;i++ {
+		s=boundedSource(i,start,20,52,52)
+		d=ctl.Step(s.At,s)
+	}
+	if d.Reason!=HoldStable || d.LowerGate!="CONFIDENCE_RESIDUAL" ||
+		!d.LowerConfidenceBlocked || !d.LowerSlowBlocked ||
+		d.LowerWaitingStable || d.LowerConfidenceResidual<=decreaseMargin ||
+		d.LowerCandidate!=16 || d.LowerAssessedSeq!=83 {
+		t.Fatalf("qualified high-loss stability details %+v",d)
+	}
+	last:=d
+	if dup:=ctl.Step(s.At.Add(time.Second),s);dup.Reason!=HoldReplay ||
+		dup.LowerAssessedSeq!=last.LowerAssessedSeq ||
+		dup.LowerGate!=last.LowerGate ||
+		dup.ConfidenceSent!=last.ConfidenceSent {
+		t.Fatalf("replayed source rewrote downgrade assessment %+v",dup)
+	}
+	// Refill the EXACT bounded 32-window history with truly clean,
+	// authenticated, non-overlapping cohorts, never by lowering limits.
+	lowered:=false
+	for i:=84;i<=156;i++ {
+		clean:=boundedSource(i,start,20,0,0)
+		d=ctl.Step(clean.At,clean)
+		if d.Reason==Lower {lowered=true;break}
+	}
+	if !lowered || d.LowerGate!="LOWERED" ||
+		d.LowerConfidenceBlocked || d.LowerSlowBlocked ||
+		d.LowerWaitingStable || d.LowerAssessedSeq==0 {
+		t.Fatalf("clean trusted recovery stuck or diagnostics disagreed %+v",d)
+	}
+}

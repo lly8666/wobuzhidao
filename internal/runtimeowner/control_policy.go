@@ -79,6 +79,16 @@ type ControlStats struct {
  N2LastQualifiedUnixNS int64 `json:"n2_last_qualified_unix_ns,omitempty"`
  N2LastChangeUnixNS int64 `json:"n2_last_change_unix_ns,omitempty"`
  N2LastLowerUnixNS int64 `json:"n2_last_lower_unix_ns,omitempty"`
+ // Read-only breakdown for the LAST QUALIFIED source. A newer invalid
+ // report never overwrites its sequence; neither means a new loss=0 sample.
+ N2LowerAssessedSourceSeq uint64 `json:"n2_lower_assessed_source_seq,omitempty"`
+ N2LowerCandidate int `json:"n2_lower_candidate,omitempty"`
+ N2LowerGate string `json:"n2_lower_gate,omitempty"`
+ N2LowerConfidenceResidual float64 `json:"n2_lower_confidence_residual,omitempty"`
+ N2LowerSlowRequired int `json:"n2_lower_slow_required,omitempty"`
+ N2LowerWaitingStable bool `json:"n2_lower_waiting_stable,omitempty"`
+ N2LowerConfidenceBlocked bool `json:"n2_lower_confidence_blocked,omitempty"`
+ N2LowerSlowBlocked bool `json:"n2_lower_slow_blocked,omitempty"`
  N2AcceptedRecords uint64 `json:"n2_accepted_records,omitempty"`
  N2ShapeRecords uint64 `json:"n2_shape_records,omitempty"`
  N2CommittedSwitches uint64 `json:"n2_committed_switches,omitempty"`
@@ -241,6 +251,14 @@ func (r *Runtime) ControlStats(ref logicaltunnel.LaneRef) (ControlStats,bool) {
    v.N2ConfidenceUpper=q.n2Last.ConfidenceUpper
    v.N2FastEWMA=q.n2Last.Fast
    v.N2SlowEWMA=q.n2Last.Slow
+   v.N2LowerAssessedSourceSeq=q.n2Last.LowerAssessedSeq
+   v.N2LowerCandidate=q.n2Last.LowerCandidate
+   v.N2LowerGate=q.n2Last.LowerGate
+   v.N2LowerConfidenceResidual=q.n2Last.LowerConfidenceResidual
+   v.N2LowerSlowRequired=q.n2Last.LowerSlowRequired
+   v.N2LowerWaitingStable=q.n2Last.LowerWaitingStable
+   v.N2LowerConfidenceBlocked=q.n2Last.LowerConfidenceBlocked
+   v.N2LowerSlowBlocked=q.n2Last.LowerSlowBlocked
    v.N2ConfidenceSent=q.n2Last.ConfidenceSent
    v.N2ConfidenceLost=q.n2Last.ConfidenceLost
    v.N2ConfidenceHistoryWindows=q.n2Last.ConfidenceHistoryWindows

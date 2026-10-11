@@ -9,20 +9,20 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_300MS_WAVE420_RECOVERY120S_SINGLE_CASE_ACTIONS_PENDING",
+    "phase": "N2_WAVE420_MEASURED_NOT_QUALIFIED_DOWNGRADE_GATE_DIAGNOSTICS_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "72de548929284a95680e7f70ccf1c32da6cf319b",
+    "new_product_source_sha": "1f5340c1ad5e3308ec56066209078a485e0d329d",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "N2_VERIFIED_NATURAL_COHORT_JOINT_KR_AND_PROTECTED_TX_ECHO_PROPOSAL_NO_LIVE_PARITY_SWITCH",
+    "core": "N2_NORMAL_AUTO_PRODUCTION_CONNECTED; 300MS_WAVE420_MEASURED_NOT_QUALIFIED_BOTH_DIRECTIONS_RECOVERY",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_WAVE360_MEASURED_NOT_QUALIFIED_QUALIFIED_CONTROL_CONFIDENCE_HISTORY_DIAG_PASS_NOW_420S_120S_FINAL_RECOVERY_ACTIONS_PENDING",
+      "N2_normal_auto": "IN_PROGRESS_300MS_420S_WAVE_FIRST_UNIQUE_PASS_C2S_NO_SWITCH_S2C_EARLY_LOWER_RAISE_BUT_NO_RECOVERY_LOWER",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -602,6 +602,26 @@
         "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
         "scope": "one Normal auto 10Mbps each, 300ms each, 0→1→5→20→5 stages60s + final0 clean120s =420s, bounded controller accepted-history fast/slow/confidence/actual grade diagnostics, default record auto caps0",
         "physical": "NOT_RUN"
+      },
+      "n2_wave300_420": {
+        "status": "MEASURED_NOT_QUALIFIED_CONTROLLER_WAVEFORM",
+        "source_sha": "1f5340c1ad5e3308ec56066209078a485e0d329d",
+        "run": 38148158367,
+        "job": 114495767283,
+        "artifact_id": 11705906206,
+        "artifact_sha256": "b31eb7e9134cf1e24ef9d291e0f1a286739ff4fe5975938ada160145a0cd6dfe",
+        "foundation_run": 38148158380,
+        "foundation_enabled_jobs_pass": 7,
+        "foundation_artifact_id": 11705154803,
+        "foundation_sha256": "2269cc5a94528e7f7885e25184278071899b4f815c4703548cf3a41ec52514b4",
+        "classification_detail": "C2S [20] 0 switches; S2C [16,20] 2 switches, no recovery LOWER; last 120s clean history upper first-loss C2S 189/8192 S2C 50/8192; actual 1,036,185/1,036,185 first-unique each direction",
+        "seed_note": "tc netem kernel RNG unseeded requested601 not applied",
+        "physical": "NOT_RUN"
+      },
+      "n2_lower_gate_diagnostics": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT",
+        "scope": "read-only last qualified source prior candidate, Wilson residual, slow required grade, 30/60s stability and independent block flags; no controller thresholds changed"
       }
     },
     "fec_off_weaknet_v2": {
@@ -633,11 +653,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check exact new SOURCE next-adaptive-n2-auto-wave300 Actions one Normal auto min4 10Mbps C2S+S2C 300ms each, six stages 0/1/5/20/5 each 60s, final 0 clean120s, total420s+10 drain. See measured tc drops and explicitly unseeded kernel RNG, stage boundaries, bounded per-direction first unique/missing/zero-delivery/probe/p99, CPU/runner capacity, actual TX grades and 32 accepted source confidence history/EWMA/first valid/last qualified clocks; require authenticated RAISE during injury and actual LOWER during 120s recovery to qualify this subgate. If no LOWER, inspect trusted confidence and source geometry rather than lowering requirements; preserve historical 360s MEASURED_NOT_QUALIFIED. Remaining lowRTT damaged wave, aggressive, asymmetric/sparse/idle/rotation/feedback loss, mixed TCP/UDP/MTU, Game4 fixed3Mbps; then N3-N6. Physical NOT_RUN, historical off p99~2.73s/missing and S2C~80s OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-wave300-420s-final-clean-confidence-recovery-candidate.md",
+  "next_task": "Check NEW exact-source Foundation/Lifecycle for last qualified downgrade blocker diagnostics (no FEC behavior change), inspect red and repair. Previous SOURCE 1f5340c1 Wave420 Action38148158367 job114495767283 execution SUCCESS but analyzer MEASURED_NOT_QUALIFIED: C2S 0 commits; S2C 2 commits early then none in final120s recovery; final 32-source high-confidence history upper loss189/8192 C2S, 50/8192 S2C. Use new assessment of 16 prior profile, confidence residual vs .0005 and slow EWMA required grade vs prior, stable timers, and actual raw source coverage to determine genuine limiting gate; NO rerun expensive same 420s without new evidence and no loosening known UNKNOWN gates. Then remaining N2 wave low RTT, aggressive, asymmetric, sparse/idle/feedback interruption/rotation, mixed TCP UDP and legal small MTU, Game4 fixed 3Mbps. N3-N6 NOT_STARTED. Physical NOT_RUN. Historical off default MTU 2.73s p99/missing and 80s S2C initial break OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-wave420-measured-not-qualified-downgrade-gate-breakdown-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "90750ece1598f0f9c9ddea44c84a6ca8d70b6d72",
-  "last_tested_scope": "N2 bounded controller rolling last32 accepted source windows and fast/slow/confidence/stable timestamps diagnostic ONLY; Foundation 7 enabled Linux/Windows Go/race/native PASS, Lifecycle/N1codec/N0multi PASS. Prior 360s 300ms six-stage fully injected and goodput complete but no recovery LOWER, MEASURED_NOT_QUALIFIED.",
+  "last_tested_source_sha": "1f5340c1ad5e3308ec56066209078a485e0d329d",
+  "last_tested_scope": "N2 real 420s 300ms each-way wave 0/1/5/20/5/0 loss 10Mbps each: first unique 1036185/1036185 per direction, zero capture drop; C2S only20, S2C one initial lower and injury raise, no recovery lower. Analyser MEASURED_NOT_QUALIFIED, Foundation7 PASS, no physical.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

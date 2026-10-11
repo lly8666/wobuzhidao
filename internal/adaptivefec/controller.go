@@ -140,6 +140,16 @@ type Decision struct {
     ConfidenceHistoryWindows uint32
     FirstValidUnixNS, LastQualifiedUnixNS int64
     LastChangeUnixNS, LastLowerUnixNS int64
+    // The LAST QUALIFIED source's lower-profile assessment. Rejected/echo-
+    // duplicate sources do not recalculate it. These fields explain the
+    // existing 30s/60s, Wilson and slow EWMA gates; they cannot cause a
+    // grade transition, and are never written into the wire protocol.
+    LowerAssessedSeq uint64
+    LowerCandidate int
+    LowerGate string
+    LowerConfidenceResidual float64
+    LowerSlowRequired int
+    LowerWaitingStable, LowerConfidenceBlocked, LowerSlowBlocked bool
 }
 
 type Controller struct {
@@ -158,6 +168,12 @@ type Controller struct {
     mixedEvidence bool
     boundWidth float64
     offTotal,croppedTotal uint64
+    lowerAssessedSeq uint64
+    lowerCandidate int
+    lowerGate string
+    lowerConfidenceResidual float64
+    lowerSlowRequired int
+    lowerWaitingStable, lowerConfidenceBlocked, lowerSlowBlocked bool
 }
 
 type controlSample struct {
@@ -196,7 +212,13 @@ func (c *Controller) current(reason Reason) Decision {
         FirstValidUnixNS:controllerUnixNano(c.firstValid),
         LastQualifiedUnixNS:controllerUnixNano(c.lastAt),
         LastChangeUnixNS:controllerUnixNano(c.lastChange),
-        LastLowerUnixNS:controllerUnixNano(c.lastLower)}
+        LastLowerUnixNS:controllerUnixNano(c.lastLower),
+        LowerAssessedSeq:c.lowerAssessedSeq,LowerCandidate:c.lowerCandidate,
+        LowerGate:c.lowerGate,LowerConfidenceResidual:c.lowerConfidenceResidual,
+        LowerSlowRequired:c.lowerSlowRequired,
+        LowerWaitingStable:c.lowerWaitingStable,
+        LowerConfidenceBlocked:c.lowerConfidenceBlocked,
+        LowerSlowBlocked:c.lowerSlowBlocked}
 }
 
 // ResidualReference is an independent IID Reed-Solomon model, never a real
@@ -464,6 +486,16 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     c.seen=true
     if c.sinceDecision<1<<20 {c.sinceDecision+=uint64(s.Sent)}
     c.pushSample(s,upper,bounded)
+    // Reset the detail on each accepted source. A later UNKNOWN/HOLD due
+    // to invalid source retains the last QUALIFIED assessment+its seq.
+    c.lowerAssessedSeq=s.Sequence
+    c.lowerCandidate=0
+    c.lowerGate="WAIT_SAMPLES"
+    c.lowerConfidenceResidual=0
+    c.lowerSlowRequired=0
+    c.lowerWaitingStable=false
+    c.lowerConfidenceBlocked=false
+    c.lowerSlowBlocked=false
     if c.sinceDecision<MinDecisionRecords {return c.current(HoldSampleCount)}
     upTarget:=0
     if bounded {
@@ -476,27 +508,53 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
         c.lastChange=now
         c.sinceDecision=0
         c.firstValid=now
+        c.lowerGate="RAISED"
         return c.current(Raise)
     }
     prior:=priorProfile(c.ordinary,c.cfg.MinParity)
-    if prior>=c.ordinary {return c.current(HoldOptimal)}
+    if prior>=c.ordinary {
+        c.lowerGate="AT_FLOOR"
+        return c.current(HoldOptimal)
+    }
     stable:=30*time.Second
     if prior==0 {stable=60*time.Second}
-    if now.Sub(c.firstValid)<stable ||
-       (!c.lastChange.IsZero() && now.Sub(c.lastChange)<10*time.Second) ||
-       (!c.lastLower.IsZero() && now.Sub(c.lastLower)<10*time.Second) {
-        return c.current(HoldStable)
-    }
+    // Evaluate each independent downgrade blocker even when stability time
+    // is not yet met. This is diagnostic-only arithmetic on the existing
+    // fixed 32-source history; no extra sampling, traffic or looser gate.
     confidence:=wilsonUpper(c.confidentLost,c.confidentSent)
+    residual:=0.0
+    slowRequired:=0
     if bounded {
-        if mixedResidualWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,prior,confidence)>decreaseMargin ||
-           requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,c.slow,c.cfg.MinParity,c.cfg.MaxParity)>prior {
-            return c.current(HoldStable)
-        }
-    } else if ResidualReference(int(s.ShardK),prior,confidence)>decreaseMargin ||
-              requiredProfile(int(s.ShardK),c.slow,c.cfg.MinParity,c.cfg.MaxParity)>prior {
+        residual=mixedResidualWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,prior,confidence)
+        slowRequired=requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,c.slow,c.cfg.MinParity,c.cfg.MaxParity)
+    } else {
+        residual=ResidualReference(int(s.ShardK),prior,confidence)
+        slowRequired=requiredProfile(int(s.ShardK),c.slow,c.cfg.MinParity,c.cfg.MaxParity)
+    }
+    waitStable:=now.Sub(c.firstValid)<stable ||
+       (!c.lastChange.IsZero() && now.Sub(c.lastChange)<10*time.Second) ||
+       (!c.lastLower.IsZero() && now.Sub(c.lastLower)<10*time.Second)
+    confidenceBlocked:=residual>decreaseMargin
+    slowBlocked:=slowRequired>prior
+    c.lowerCandidate=prior
+    c.lowerConfidenceResidual=residual
+    c.lowerSlowRequired=slowRequired
+    c.lowerWaitingStable=waitStable
+    c.lowerConfidenceBlocked=confidenceBlocked
+    c.lowerSlowBlocked=slowBlocked
+    if waitStable {
+        c.lowerGate="WAIT_STABLE"
         return c.current(HoldStable)
     }
+    if confidenceBlocked {
+        c.lowerGate="CONFIDENCE_RESIDUAL"
+        return c.current(HoldStable)
+    }
+    if slowBlocked {
+        c.lowerGate="SLOW_EWMA"
+        return c.current(HoldStable)
+    }
+    c.lowerGate="LOWERED"
     c.ordinary=prior
     c.lastLower=now
     c.lastChange=now
