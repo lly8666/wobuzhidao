@@ -171,6 +171,7 @@ func TestBoundedOverlapMissingCoverageAndWideIntervalsHold(t *testing.T) {
     if d:=c.Step(s.At,s);d.Reason!=HoldReplay || d.AcceptedRecords!=256 {t.Fatal(d)}
     overlapping:=boundedSource(2,start,2,0,0)
     overlapping.FirstPN=s.LastPN
+    overlapping.LastPN=s.LastPN+255 // exactly 256 PNs, not a malformed 257 span
     if d:=c.Step(overlapping.At,overlapping);d.Reason!=HoldReplay {t.Fatal(d)}
     if d:=c.Step(boundedSource(2,start,2,0,0).At,boundedSource(2,start,2,0,0));d.AcceptedRecords!=512 {t.Fatal(d)}
     if c.confidentSent!=512 {t.Fatal("overlap counted twice",c.confidentSent)}
