@@ -214,6 +214,8 @@ DNS劫持优先于CN/LAN普通分流，明确dns-hijack=false能走system direct
 
 ### 9.3 硬门与合理性能门分开
 
+**2026-10-11用户修订**：FEC off弱网性能以 [FEC_OFF_PERFORMANCE_ACCEPTANCE](FEC_OFF_PERFORMANCE_ACCEPTANCE.md) 的 `off-weaknet-v2` 为准。取消套用loss<=线路p及goodput>=(1-p)*99%的off受损绝对门，明确实际分片加权参考、相对pre5恢复、可比基线和证据不足不PASS。lossless/非off/formal20与历史FAIL不变。先完成当前冻结Actions收尾，再迁移分析器；本次仅文档生效，运行实现NOT_IMPLEMENTED。
+
 硬门始终严格：payload/hash完整性、账户地址隔离、认证、same-Seq same-wire、generation、MTU/checksum、资源上限、无跨业务HOL、配置实际生效、owned清理。损伤率超过FEC模型能力允许业务丢失；TCP业务自身重传/有序不能误判成隧道HOL。人为永久丢旧record/大包缺片期间，后到独立完整包要继续交付，此定向证据优先于p99单数字判断HOL。
 
 无损健康容量：业务注入目标达到约98%以上，300s交付goodput通常>=95%目标；UDP finite-send确认未发送/收尾未成熟需单列，不能凑分母。受控无损确认真的发送且有充分drain的合法UDP不得无故丢失；TCP完成流hash正确。几次CPU调度late probe不能等同payload损坏，也不从returned-only p99隐藏missing/timeouts。

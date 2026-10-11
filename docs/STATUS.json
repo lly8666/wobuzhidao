@@ -5,7 +5,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-10-10",
+  "updated_at": "2026-10-11",
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
@@ -128,10 +128,20 @@
       "n1_high_churn_scope": "180/640 PN per 2s protected V3 ongoing upload/download/bidir, >=2 mature authenticated returned estimates & successful mature control emits each direction, -race count2; gapped source report sequences, post-repair deficit/late evidence and capacity; Linux/Windows foundation, lifecycle, 9-netns three-client functionality. Does not prove 10Mbps live impairment feedback.",
       "n1_strict_new_candidate_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
       "n1_strict_new_candidates": "NOT_RUN_AS_OF_DISPATCH_COMMIT"
+    },
+    "fec_off_acceptance_policy": {
+      "version": "off-weaknet-v2",
+      "document": "docs/FEC_OFF_PERFORMANCE_ACCEPTANCE.md",
+      "state": "DOCS_UPDATED_ANALYZER_NOT_IMPLEMENTED_NEW_POLICY_TESTS_NOT_RUN",
+      "timing": "AFTER_CURRENT_ACTIONS_WAVE_NO_REJUDGE",
+      "previous_progress_log": "docs/devlog/20261011-190000-n1-resumed-640pn-pass-realpath-mature-feedback-perf-dispatch.md",
+      "product_source_unchanged": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "legacy_fail_preserved": 38105045359,
+      "lossless_nonoff_formal20": "UNCHANGED"
     }
   },
-  "next_task": "Observe push relay single strict sample for latest product SOURCE 1c64e4e5 Normal/off/lossless 10Mbps each direction; inspect authenticated mature_echo_estimated vs mature_echo_capacity and sample/age in both client/server 1s diagnostic, plus runner/capacity/perf. On success dispatch a separate Normal/off/5205 single sample with same frozen harness via one relay rerun job; assess feedback under loss and no dishonest zero, 5205 not dedicated1%. Then 20:20/Game4 protections matched baseline; expand real one-way/sparse/small-MTU/1%-5% fixtures before N2. Keep N2 OFF, no physical.",
-  "latest_log": "docs/devlog/20261011-190000-n1-resumed-640pn-pass-realpath-mature-feedback-perf-dispatch.md",
+  "next_task": "Finish the currently frozen N1 Actions wave and retain original receipts first; then independently implement off-weaknet-v2 analyzer migration in docs/FEC_OFF_PERFORMANCE_ACCEPTANCE.md without loosening lossless/nonoff/formal20 or rewriting FAIL; insufficient comparison is MEASURED_NOT_QUALIFIED, not performance PASS. Continue existing N1 task: Observe push relay single strict sample for latest product SOURCE 1c64e4e5 Normal/off/lossless 10Mbps each direction; inspect authenticated mature_echo_estimated vs mature_echo_capacity and sample/age in both client/server 1s diagnostic, plus runner/capacity/perf. On success dispatch a separate Normal/off/5205 single sample with same frozen harness via one relay rerun job; assess feedback under loss and no dishonest zero, 5205 not dedicated1%. Then 20:20/Game4 protections matched baseline; expand real one-way/sparse/small-MTU/1%-5% fixtures before N2. Keep N2 OFF, no physical.",
+  "latest_log": "docs/devlog/20261011-fec-off-assessment-contract.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
   "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",
@@ -941,7 +951,8 @@
     "docs/ACCEPTANCE.md",
     "docs/PARAMETERS.json",
     "docs/PARAMETERS.md",
-    "docs/REALPATH_TEST_FIXTURE_GUIDE.md"
+    "docs/REALPATH_TEST_FIXTURE_GUIDE.md",
+    "docs/FEC_OFF_PERFORMANCE_ACCEPTANCE.md"
   ],
   "history_index": {
     "immediate_parent_status": "docs/history/20261010-adaptive-network-parent/docs/STATUS.json",

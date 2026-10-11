@@ -23,3 +23,7 @@ SOURCE/helper/config/seed/binary/hash/CPU型号与flags/quota/PSI/steal/实际�
 新contract另建version，历史11配对RTT/Q2/native失败结论不改。收口同SOURCE P6 manifest/hash核验后标ACTIONS_READY_FOR_PHYSICAL，PHYSICAL仍NOT_RUN；原试用部署不自动更新。
 
 父验收完整文本：[归档](history/20261010-adaptive-network-parent/docs/ACCEPTANCE.md)。既有弱网/生命周期专项用作场景和硬门来源，旧范围限制或过严统一零损失条款不覆盖用户本轮合理验收要求；不得回写旧分析结果。
+
+## FEC off 弱网考核修订（2026-10-11）
+
+受损场景 off 使用 [off-weaknet-v2](FEC_OFF_PERFORMANCE_ACCEPTANCE.md)：不把业务 loss<=外层p或goodput>=(1-p)*99%当绝对门，按真实分片/字节分布、有限repair、可比旧版与持续交付/低延迟/资源有界评估。无损、非off、formal20原门不借此放宽；旧FAIL保留。没有有效对照/模型时只记测量待资格，不自动PASS。当前只更新文档，分析器迁移待当前这波结束后由开发agent单独实现。
