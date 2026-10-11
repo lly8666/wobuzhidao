@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "3fdc70543ee11a9af27fbbe0502ce9c2f929d5ab",
+  "qualification": "SCOPED_ACTIONS_PASS_AEAD_LANE_TEST_ONLY_NO_PRODUCTION_ADMISSION",
+  "compiled_linux_windows": true,
+  "race_suite": true,
+  "physical": "NOT_RUN",
+  "n2_performance": "NOT_RUN",
+  "actions": [
+    {
+      "workflow": "next-foundation",
+      "run_id": 38129036196,
+      "conclusion": "success",
+      "enabled_jobs": [
+        [
+          "repository-contract",
+          114439335321
+        ],
+        [
+          "active-go-tests/windows",
+          114439369868
+        ],
+        [
+          "active-go-tests/linux",
+          114439369916
+        ],
+        [
+          "p2-kernel-fallback",
+          114439369869
+        ],
+        [
+          "p4-linux-shared-tun/nft",
+          114439369875
+        ],
+        [
+          "p4-linux-shared-tun/iptables",
+          114439369923
+        ],
+        [
+          "p4-openwrt-tproxy",
+          114439369880
+        ]
+      ],
+      "p5_p6": "SKIPPED",
+      "artifacts": [
+        {
+          "id": 11698386744,
+          "digest": "sha256:d980150edbbf44736d7bf1762c4beb0fc195aebd56794ee1d63fcbf4d4e7ef87"
+        },
+        {
+          "id": 11698905624,
+          "digest": "sha256:47f99c75b6955cb955d1b423544bc53986ce4a4956d6debb88a9c9b555c8288b"
+        }
+      ]
+    },
+    {
+      "workflow": "next-lifecycle",
+      "run_id": 38129036184,
+      "conclusion": "success",
+      "enabled_jobs": [
+        [
+          "core",
+          114439335064
+        ]
+      ]
+    }
+  ],
+  "prior_failed": {
+    "source_sha": "6dbc0c5076536feaea06ad0dcaa15f888acc1d2a",
+    "runs": [
+      {
+        "id": 38128830210,
+        "workflow": "next-foundation",
+        "conclusion": "failure"
+      },
+      {
+        "id": 38128830205,
+        "workflow": "next-lifecycle",
+        "conclusion": "failure"
+      },
+      {
+        "id": 38128830308,
+        "workflow": "next-adaptive-n1-codec",
+        "conclusion": "failure"
+      }
+    ],
+    "cause": "New AEAD switch unit test assumed 32ms though pairConfig supplied 8ms; product correctly emitted two parities at 8ms.",
+    "unaffected_scoped_success_runs": [
+      38128830349,
+      38128830179
+    ]
+  },
+  "prior_linkpath": {
+    "source": "f28d5b537086e60dac2568389ca6fe3f857c0962",
+    "foundation": 38128428615,
+    "lifecycle": 38128428619
+  },
+  "scope": "Explicit testing-only NewN2AdaptiveLaneForTests with stable reserved 20:20 record+LINK MTU; actual protected tlsrecord seal/open KindLINK, off/on across old 32ms partial and 20:8, first delivery and late/duplicate, unmodified legacy NewLane. No protected auto admission or N2 live runtime."
+}

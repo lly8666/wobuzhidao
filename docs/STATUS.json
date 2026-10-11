@@ -9,20 +9,20 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_AEAD_LANE_32MS_TEST_FIXTURE_CORRECTED_ACTIONS_PENDING",
+    "phase": "N2_AEAD_LANE_TEST_ONLY_SWITCH_CORRECTED_SCOPED_ACTIONS_PASS_PRODUCTION_ADMISSION_UNSUPPORTED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "f28d5b537086e60dac2568389ca6fe3f857c0962",
+    "new_product_source_sha": "3fdc70543ee11a9af27fbbe0502ce9c2f929d5ab",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "N2_BOUND_AND_ACTUAL_SOURCE_PN_FEC_CLOSURE_METADATA_SCOPED_PASS_AUTO_UNSUPPORTED",
+    "core": "N2_FIRST_ATTEMPT_BOUND_MIXED_PARTIAL_PROVENANCE_SHARED_RX_AND_TEST_ONLY_AEAD_LANE_SWITCH_SCOPED_PASS_NO_PRODUCTION_AUTO",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_OPT_IN_LINKDATA_OFF_ON_SWITCH_FOUNDATION_LIFECYCLE_PASS_AEAD_LANE_TEST_PATH_CANDIDATE_AUTO_ADMISSION_UNSUPPORTED",
+      "N2_normal_auto": "IN_PROGRESS_QUALIFIED_TEST_ONLY_MIXED_20R_RX_BOUNDED_SWITCH_OLD_32MS_OFF_ON_AEAD_LANE_GITHUB_ACTIONS_PASS_SOURCE_3FDC705_AUTO_ADMISSION_NOT_WIRED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -289,18 +289,24 @@
         "physical": "NOT_RUN"
       },
       "n2_aead_lane_candidate": {
-        "status": "FIRST_SOURCE_ACTIONS_FAIL_TEST_ORACLE_CORRECTION_PENDING",
-        "failed_source_sha": "6dbc0c5076536feaea06ad0dcaa15f888acc1d2a",
-        "failed_actions": {
-          "foundation": 38128830210,
-          "lifecycle": 38128830205,
-          "n1_codec": 38128830308,
-          "n0_samewire_success": 38128830349,
-          "n0_native_three_success": 38128830179
-        },
-        "failure": "N2 lane default test reused legacy pairConfig FlushAfter=8ms but asserted no due parity at 31ms as if 32ms; two valid parity packets emitted at 8ms. Test-only change sets both adaptive test lane configs to 32ms.",
-        "fixed_source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "production_admission": "NOT_WIRED",
+        "status": "SCOPED_PASS_TEST_ONLY_NOT_LIVE",
+        "source_sha": "3fdc70543ee11a9af27fbbe0502ce9c2f929d5ab",
+        "foundation_run": 38129036196,
+        "foundation_seven_enabled_jobs": "PASS",
+        "lifecycle_run": 38129036184,
+        "foundation_artifact_id": 11698386744,
+        "foundation_artifact_sha256": "d980150edbbf44736d7bf1762c4beb0fc195aebd56794ee1d63fcbf4d4e7ef87",
+        "failed_prior_source": "6dbc0c5076536feaea06ad0dcaa15f888acc1d2a",
+        "historical_red": [
+          38128830210,
+          38128830205,
+          38128830308
+        ],
+        "prior_n0_green": [
+          38128830349,
+          38128830179
+        ],
+        "production_admission": "UNSUPPORTED",
         "physical": "NOT_RUN"
       }
     },
@@ -333,11 +339,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 AEAD lane explicit 32ms test correction: original SOURCE 6dbc0c5 next-foundation38128830210 FAIL/Linux+Windows, lifecycle38128830205 FAIL, N1codec38128830308 FAIL all due same synthetic test using pairConfig 8ms but expecting 32ms. N0 samewire38128830349 and native3client38128830179 PASS. Corrected test explicitly 32ms, no product change; inspect next exact SOURCE Actions before PASS. Then source-shape cohorts and directional protected normal policy; N3-N6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-lane-32ms-test-fixture-correction.md",
+  "next_task": "N2 NEXT HARD BLOCKER: controller bounded sample currently asserts sum(closed k systematic)==quality Sent, but quality Sent counts both systematic AND parity KindLINK first-emits. With 256-PN 20:20 group samples the 40-PN geometry also implies cropped edge groups; requiring 100% closed group coverage can permanently HOLD even on healthy line. Fix source-correlated systematic+parity/off/cropped-edge accounting with conservative UNKNOWN gates, age, local drops, interval width, nonoverlap, 512 physical samples and trustworthy mixed partial min(k,R). Assert healthy traffic can eventually lower and genuine damage raise, aggressive ordinary+1. No post-repair residual used as first PLR. Then wire ONLY protected V3 Normal per-client policy, directional feedback, shared decoder and switch under actual runtime; keep fixed/Game untouched. Test Actions per SOURCE, next N2 one scenario/config/run. N3-6 NOT_STARTED, physical NOT_RUN, historical off p99/missing & 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-aead-lane-switch-corrected-scoped-actions-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
-  "last_tested_scope": "N2 sourced FEC meta+shape read-only: foundation 7/7 enabled PASS, lifecycle, N1 codec/race, N0 same-wire, 3-client hosted Linux functional; no N2 auto/weaknet/perf nor physical.",
+  "last_tested_source_sha": "3fdc70543ee11a9af27fbbe0502ce9c2f929d5ab",
+  "last_tested_scope": "AEAD Lane N2 explicit TEST-ONLY new-block off/on 20R old 32ms parity, first arrival/no HOL; foundation 7 enabled PASS Linux/Windows Go/race scoped, lifecycle PASS. P5/P6 SKIPPED. No N2 live/perf/physical.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
