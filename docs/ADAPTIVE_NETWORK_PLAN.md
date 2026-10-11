@@ -264,3 +264,8 @@ KindHealth 单独增加 encrypted zero padding，复用 tlsrecord.inner_type 后
 在已经用 GitHub Actions 验证的控制事件化/保活合并和正式 `control-padding` / `control-padding-max` 参数基础上，直接复用每个 ACTIVE lane 的成功发送计数，添加控制加密 record 本体长度直方图 8 桶（<=64、128、256、512、768、1024、1280、>1280 字节）、相邻成功控制发送时间差直方图 8 桶（<=0.5、1、1.5、2、2.5、3.5、5、>5 秒）、加密 record 总字节、随机填充量、预算跳过和触发/抑制原因。纯常量次计数，只有成功控制段写入，失败 Emit 不算成功报文或刷新间隔；只记 record 密文字节，不计 IP/TCP 头部，不记录正文/密钥/对端身份/大 pcap。独立内存计数通过 `Runtime.ControlStats` 可读；现有用户手动开启 `diagnostic-jsonl` 时写入 `TunnelDiagnostic.lanes[].control`，数组字段名 `control_length_bins` / `control_gap_bins`。旧协商/休眠 lane 没有虚构的 current control 状态；GUI 只读缓存不触发新报文。
 
 这一项只建立**有限观测接口**，不等同于已经采样任何真实线速的长度/间隔分布，也不证明 HTTPS 外观或不可识别。真实 10Mbps/3Mbps/弱网性能与协议外观的独立 Actions 比较仍 NOT_RUN。采用仓库已审计的单 SOURCE/单工况 workflow_dispatch `next-strict-weaknet.yml`：性能 Action 不设置自动 push trigger、不使用 matrix；当前 GitHub 插件只允许查询运行结果而没有调度这类 dispatch 的写动作，因而不能将计划运行标 PASS。对比时保留 4f0cf78(优化前) 与未来候选 SOURCE，按同一配置/runner 级别独立运行，记录 CPU 型号、quota/PSI、注入达标、业务首交付、goodput、p99、长零交付、控制总字节及直方图。低 RTT、完整 IPv6 外层和独立 MTU 场景没有证据一律 NOT_RUN。
+
+
+## 2026-10-11 固定20:20 N1保护门样本（已执行）
+
+最新产品 SOURCE `1c64e4e5` 对比基线 `4f0cf781`，固定夹具HEAD `43bb7326` seed601：Normal1 每向10Mbps与Game4逻辑每向3Mbps，20:20固定档，lossless与5205，共8条严格独立120s Actions的profile-screen CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE全PASS。详细run、runner、首次唯一交付、wire、CPU和digest见 `docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json`。Game4 CPU比较跨不同型号，不判优化；Normal 5205同CPU仅一组不判显著差异。当前可信只到scoped screen：旧off FAIL保留，新off-v2实测两条仍MEASURED_NOT_QUALIFIED；专用1%/5%、单向、稀疏、低RTT、小MTU、完整formal20、N2-N6及物理依旧未资格化。N1测量信号是修复后估计缺失而非物理首发PLR，不因此启用自动FEC。

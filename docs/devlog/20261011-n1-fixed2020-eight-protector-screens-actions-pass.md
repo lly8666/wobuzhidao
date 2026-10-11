@@ -1,0 +1,28 @@
+# N1 current SOURCE fixed20 Normal1 / Game4 protector 8 single-sample Actions PASS_SCREEN
+
+## Authority and exact source
+At start checked remote working branch HEAD `43bb732692bfc0c0354299c56e1083dd18f363c2`; no newer branch product changes. Candidate PRODUCT SOURCE `1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438`, old baseline `4f0cf7814dea0a04a0dc69863ae1e56412e0da9f`, **identical fixed single-job strict harness HEAD `43bb732692bfc0c0354299c56e1083dd18f363c2`** and seed601. All eight executed separately via original `next-strict-weaknet.yml`, never concurrent or multiple variants in one Action, no local Go/build/unit/perf jobs. Preserved all original strict summary and compact artifact hashes in `docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json`; no large raw pcap uploaded. No source code changed by this evidence commit.
+
+## Normal1, 10Mbps each direction, fixed FEC20:20, actual 120s Linux five-netns strict
+- lossless candidate [38107712384](https://github.com/lly8666/wobuzhidao/actions/runs/38107712384) **PASS_SCREEN** client/server CPU42.76/43.03s, wire C2S3.753249/S2C3.815600, 300,000,000 total first-unique bytes. EPYC9V45 CPU.
+- lossless baseline [38107962997](https://github.com/lly8666/wobuzhidao/actions/runs/38107962997) **PASS_SCREEN** CPU83.14/84.22, wire C2S3.751005/S2C3.815627, baseline EPYC7763. Different host CPU => comparison INCOMPARABLE, no invented optimization.
+- 5205 candidate [38108252709](https://github.com/lly8666/wobuzhidao/actions/runs/38108252709) **PASS_SCREEN** CPU97.61/98.80, wire C2S4.185287/S2C4.278233, 299,999,424 first-unique bytes both dir, EPYC7763. Pre5/stress20/post5 each dir aligned goodput about10Mbps, business loss0, zero multi-second delivery gap, probe stages sent/returned30/60/30, pressure p99 638.25ms with specified 300ms one-way.
+- 5205 baseline [38108849743](https://github.com/lly8666/wobuzhidao/actions/runs/38108849743) **PASS_SCREEN** CPU94.97/96.73, wire C2S4.185893/S2C4.276490; same EPYC7763 model, 299,996,416 first-unique total, S2C stress about0.0095% business packet loss within original gate. One matched sample: ~2.5% higher normalized process CPU in candidate but not reproducible degradation proof; runner PSI/steal variability needs repeated samples.
+
+## Game4, fixed20:20, logical 3Mbps each direction, 120s full strict
+- lossless candidate [38109111294](https://github.com/lly8666/wobuzhidao/actions/runs/38109111294) **PASS_SCREEN**, CPU83.16/85.18, wire C2S15.455124/S2C15.714679, 90,002,240 total first-unique; four actual lane copies, client/server ~89k logical packets, 3x cross-lane duplicates, no mismatch, 120/120 returned probes, 0 loss/stall, AMD EPYC7763.
+- lossless baseline [38109379728](https://github.com/lly8666/wobuzhidao/actions/runs/38109379728) **PASS_SCREEN**, CPU57.07/58.64, wire C2S15.415145/S2C15.685101, Intel Xeon Platinum8573C => CPU INCOMPARABLE.
+- 5205 candidate [38109644197](https://github.com/lly8666/wobuzhidao/actions/runs/38109644197) **PASS_SCREEN** CPU102.56/105.27, wire C2S16.799808/S2C17.073633, 90,001,040 first-unique both dir, stage goodput about3Mbps, 0 business packet loss, 0 stall, 120/120 probes; pressure p99 ~603ms, AMD EPYC7763.
+- 5205 baseline [38109905367](https://github.com/lly8666/wobuzhidao/actions/runs/38109905367) **PASS_SCREEN**, CPU63.46/64.72, wire C2S16.794183/S2C17.070741, 90,002,240 first unique, AMD EPYC9V45 => CPU INCOMPARABLE.
+
+All eight original CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE classifications PASS, socket drop 0 and captured link drops 0 across all namespaces, late-after10s drain bytes0. High Game wire amplification is real four-lane+20:20 behavior, **not** proof of general efficiency improvement or a recommendation to lower fixed Game protection. 5205 is 5%->20%->5%, NEVER dedicated1%.
+
+## N1 estimation under genuine injured constant business
+In current SOURCE fixed20 Normal/5205 120s client emitted 31 ESTIMATED /18 CAPACITY/11 INSUFFICIENT and server45/14/9. Last source sample client256 successful/254 arrived, estimated2, late10, age3822ms; server256/248, estimated8, age4776ms. This demonstrates continuing maturity after live ring overwrite under damaged native path, not physical first-attempt packet loss or proof auto FEC safely can be off. Protected 640PN -race and native functional earlier exact-source PASS preserved.
+
+## Separate off policy; remaining gates
+Old off/5205 original 38105045359 and38105308247 still PERFORMANCE FAIL in old analyzer; **new** independently measured off/5205 38107037219/38107283240 both new `off-weaknet-v2` MEASURED_NOT_QUALIFIED, original legacy errors preserved. `off-weaknet-v2` analyzers Actions 38107659251 PASS8/8. No ability to call these PASS or compare CPU across EPYC9V45 and EPYC7763.
+
+**Still NOT_RUN / not enough evidence:** dedicated 1%/5%, one-way asymmetry, sparse/long idle, low RTT, legal minimum MTU, true 300s formal20 and future N2 auto feedback estimator bias confidence, 900s soak/Windows driver/physical. Historical multi-second late probe and initial ~80sec S2C gap remain open, not silently attributed to environment/FEC. N2 remains OFF, N3/4/5/6 not started. No physical/client deployment, no main merge or old qualification ref move.
+
+Next implement genuine independent 1%/5% strict input/fixture validation, then separate one sample per Action and inspect class + real N1 estimated/late/capacity rather than declaring ordinary 5205 coverage.

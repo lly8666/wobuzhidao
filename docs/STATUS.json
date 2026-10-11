@@ -5,11 +5,11 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-10-10",
+  "updated_at": "2026-10-11",
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_OFF_V2_ANALYSIS_RACE_PASS_NATIVE_5205_MEASURED_NOW_20_20_PROTECTION_DISPATCH",
+    "phase": "N1_FIXED2020_NORMAL_AND_GAME_EIGHT_STRICT_SCREENS_PASS_INDEPENDENT_1PCT_5PCT_AND_EDGES_NOT_RUN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -127,7 +127,49 @@
       },
       "n1_high_churn_scope": "180/640 PN per 2s protected V3 ongoing upload/download/bidir, >=2 mature authenticated returned estimates & successful mature control emits each direction, -race count2; gapped source report sequences, post-repair deficit/late evidence and capacity; Linux/Windows foundation, lifecycle, 9-netns three-client functionality. Does not prove 10Mbps live impairment feedback.",
       "n1_strict_new_candidate_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
-      "n1_strict_new_candidates": "NOT_RUN_AS_OF_DISPATCH_COMMIT"
+      "n1_strict_new_candidates": "NOT_RUN_AS_OF_DISPATCH_COMMIT",
+      "n1_fixed2020_protectors": {
+        "state": "EIGHT_PASS_SCREEN",
+        "evidence": "docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json",
+        "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+        "baseline_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+        "fixture_sha": "43bb732692bfc0c0354299c56e1083dd18f363c2",
+        "actions": [
+          38107712384,
+          38107962997,
+          38108252709,
+          38108849743,
+          38109111294,
+          38109379728,
+          38109644197,
+          38109905367
+        ],
+        "seed": 601,
+        "one_measurement_per_action": true,
+        "formal20": "NOT_RUN",
+        "physical": "NOT_RUN"
+      },
+      "n1_real_5205_estimation": {
+        "normal20_candidate_run": 38108252709,
+        "client": {
+          "estimated": 31,
+          "capacity": 18,
+          "insufficient": 11,
+          "last_sender_success": 256,
+          "last_receiver_unique": 254,
+          "last_estimated_deficit": 2,
+          "last_late": 10
+        },
+        "server": {
+          "estimated": 45,
+          "capacity": 14,
+          "insufficient": 9,
+          "last_sender_success": 256,
+          "last_receiver_unique": 248,
+          "last_estimated_deficit": 8
+        },
+        "interpretation": "post-repair estimated authenticated record deficit, not physical first-attempt PLR; no blanket N2 off downgrade"
+      }
     },
     "fec_off_weaknet_v2": {
       "policy_version": "off-weaknet-v2",
@@ -136,7 +178,7 @@
       "analyzer": "tools/check_strict_off_weaknet_v2.py",
       "receipt": "off-weaknet-v2.json",
       "scope": "damaged FEC-off profile-screen only",
-      "implementation": "ACTIONS_SCOPED_ANALYZER_PASS_NEW_NATIVE_IMPAIRED_PERFORMANCE_NOT_RUN",
+      "implementation": "SCOPED_ANALYZER_ACTIONS_8_OF_8_PASS_AND_TWO_REAL_5205_RECEIPTS_MEASURED_NOT_QUALIFIED",
       "qualification": "MEASURED_NOT_QUALIFIED",
       "old_failed_runs": [
         38105045359,
@@ -149,7 +191,7 @@
       "targeted_actions_green_run": 38106939832,
       "targeted_actions_green_job": 114374351563,
       "test_count": 7,
-      "performance_sample_status": "NOT_RUN",
+      "performance_sample_status": "TWO_REAL_OFF_5205_SAMPLES_MEASURED_NOT_QUALIFIED",
       "n1_product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
       "fresh_v2_candidate_run": 38107037219,
       "fresh_v2_baseline_run": 38107283240,
@@ -158,11 +200,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "First inspect same-source candidate1c64e4e Normal20:20 lossless 10Mbps 120s strict Action using new plan relay exact harness, then separate baseline4f0 same config/seed. Follow with Normal20:20 5205 and Game4 3Mbps/4lane lossless/5205 strictly each one measurement Action, preserve original non-off gate. Read true first-unique/CPU/queue/wire, never treat functional 3client as performance. N1 dedicated1%/5%, one-way, sparse, small-MTU and true damage feedback uncertainty still incomplete; N2 OFF, N3..N6 NOT_STARTED.",
-  "latest_log": "docs/devlog/20261011-210000-off-v2-pairstatus-pass-resume-n1-2020-single-perf.md",
+  "next_task": "N1 next: implement actual independent 1%/5% scenario support in existing strict fixture and analyzer (do not fabricate inputs or repurpose 5205); exercise one-way, sparse/long idle, low RTT, small legal MTU, report loss and fast repair vs N1 estimate bias with distinct Actions. Keep 20:20 protector eight PASS_SCREEN exact source, off-weaknet-v2 MEASURED_NOT_QUALIFIED and old FAIL. Only then decide N2 controller safe inputs: estimated deficit is after repair and cannot blindly auto-reduce off; N2 disabled. Later N3 AES, N4 Windows TUN, N5 GUI, N6 P6/physical; no qualification ref/mainline movement.",
+  "latest_log": "docs/devlog/20261011-n1-fixed2020-eight-protector-screens-actions-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
-  "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",
+  "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+  "last_tested_scope": "Latest N1 product SOURCE 1c64e4e protected V3 continuous 180/640PN streaming -race x2, gapped control/lifecycle, foundation and 3client 9netns lossless native functional PASS; 120s strict Normal20:20 and Game4 fixed20:20 lossless+5205 8 single-seed independent candidate/baseline Actions PASS_SCREEN. N1 off-weaknet-v2 both real 5205 candidate/baseline MEASURED_NOT_QUALIFIED with original PERFORMANCE FAIL preserved. No 1%/5% dedicated, asymmetric/sparse/low RTT/small MTU performance, N2+, formal20 or physical qualification.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -954,6 +996,78 @@
       "scope": "N1_CONTROL_FRESHNESS_REAL_9_NETNS_THREE_CLIENTS",
       "status": "PASS",
       "cause": "PASS job114345262739 artifact11686815963 sha256 7583ab499953be9ef0c3dc52c30b50259c0588c3f65b0dcad734bcbcdab529ef 9 real Linux netns 3 native formal clients/shared server/TUN port443 each six directions 297/297 first unique 150480/150480B validator problems []; one low-rate configured lossless 300ms-each-way sample, not WAN perf"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38107712384",
+      "scope": "N1_fixed2020_normal1-lossless_single_seed601_screen_only",
+      "status": "PASS",
+      "run_id": 38107712384,
+      "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38107962997",
+      "scope": "N1_fixed2020_normal1-lossless_single_seed601_screen_only",
+      "status": "PASS",
+      "run_id": 38107962997,
+      "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38108252709",
+      "scope": "N1_fixed2020_normal1-5205_single_seed601_screen_only",
+      "status": "PASS",
+      "run_id": 38108252709,
+      "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38108849743",
+      "scope": "N1_fixed2020_normal1-5205_single_seed601_screen_only",
+      "status": "PASS",
+      "run_id": 38108849743,
+      "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38109111294",
+      "scope": "N1_fixed2020_game4-lossless_single_seed601_screen_only",
+      "status": "PASS",
+      "run_id": 38109111294,
+      "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38109379728",
+      "scope": "N1_fixed2020_game4-lossless_single_seed601_screen_only",
+      "status": "PASS",
+      "run_id": 38109379728,
+      "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38109644197",
+      "scope": "N1_fixed2020_game4-5205_single_seed601_screen_only",
+      "status": "PASS",
+      "run_id": 38109644197,
+      "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38109905367",
+      "scope": "N1_fixed2020_game4-5205_single_seed601_screen_only",
+      "status": "PASS",
+      "run_id": 38109905367,
+      "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
     }
   ],
   "required_read_set": [
@@ -1040,7 +1154,7 @@
     }
   ],
   "open_qualification": [
-    "All new V3/auto/AES/TUN/GUI current-source correctness, perf, packaging and physical NOT_RUN",
+    "N0 protected V3 and N1 targeted/native fixed20 screens done as exact-source scoped PASS; dedicated N1 1%/5%/one-way/sparse/low RTT/small MTU and complete current-source performance, N2 auto, N3 AES, N4 TUN, N5 GUI, N6 packaging and physical remain not fully qualified",
     "Historical 11 paired RTT FAIL/native S01/S16/M03 late/missing retained in parent STATUS",
     "Q2 old/new SIMD stress probes original FAIL retained; new rational contract does not rewrite them",
     "MTU stress/PMTU/ICMP and Windows driver/ARMnative capability must be scoped",
