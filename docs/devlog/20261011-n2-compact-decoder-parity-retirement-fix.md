@@ -1,0 +1,7 @@
+# N2 compact retired block identity regression: real bug fixed
+
+2026-10-11. Predecessor mixed decoder candidate SOURCE `321adf1dfddf932ae68c3b8c94b2c8fb1e24781d` [next-foundation 38126250217](https://github.com/lly8666/wobuzhidao/actions/runs/38126250217) ubuntu active-go-tests job `114431142872` **FAIL** on `TestN2MixedParityCollisionRejectsActiveAndCompactRetired`. New decoder correctly rejected different parity on a live block but not when pressure retired the old block. Root cause: `internal/fec/recovery.go` `RetireRecoveryExpired` creates `retiredBlock` without copying the active `parityShards`. That method, not `retireBlock` in block.go, is used on live pressure retirement.
+
+Fix: one field copy `parityShards:b.parityShards` in the compact retirement record. Wrong-profile shards of the same BlockID now encounter `ErrHeaderMismatch` in `addRetired`; no local deep caches, memory extension, recovery deadline changes, fresh record delay or error-to-success reinterpretation. Retain the exact new regression test for active AND pressure-retired collision. No other controller, wire, off/on or admission changes.
+
+This is a candidate SOURCE; repeat Actions only. Preserve red run as forensic evidence; don't call original PASS even if corrected run passes. Prior provenance SOURCE 98c7c09 has five scoped Actions PASS and remains unaffected. Next: strictly marked hybrid off/on payload adapter with escaped WF collision, no 32ms early flush, shared bounded decoder, then live protected policy. Physical NOT_RUN; N2 performance/N3-N6 NOT_RUN.

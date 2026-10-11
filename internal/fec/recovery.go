@@ -75,7 +75,7 @@ func (d *BlockDecoder) RetireRecoveryExpired(id uint32) RecoveryRetireResult {
 	}
 
 	delete(d.blocks, id)
-	r := retiredBlock{header: b.header, final: b.final}
+	r := retiredBlock{header: b.header, final: b.final, parityShards: b.parityShards}
 	for i, delivered := range b.delivered {
 		if delivered {
 			r.delivered |= uint32(1) << uint(i)

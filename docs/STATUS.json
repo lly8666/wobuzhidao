@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_SHARED_MIXED_PARITY_DECODER_SOURCE_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N2_SHARED_MIXED_PARITY_DECODER_RETIREMENT_BUGFIX_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -272,9 +272,13 @@
         "performance": "NOT_RUN"
       },
       "n2_mixed_decoder_candidate": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "shared_heavy_budget": true,
+        "status": "FIRST_SOURCE_ACTIONS_FAIL_CORRECTION_PENDING",
+        "failed_source_sha": "321adf1dfddf932ae68c3b8c94b2c8fb1e24781d",
+        "failed_foundation_run": 38126250217,
+        "failed_job": 114431142872,
+        "prior_lifecycle_run": 38126250233,
+        "failure": "TestN2MixedParityCollisionRejectsActiveAndCompactRetired: RetireRecoveryExpired did not persist b.parityShards into retiredBlock; different-profile late shard same BlockID could bypass retired parity fence.",
+        "fixed_source_sha": "CURRENT_COMMIT_HEAD_PENDING",
         "live": false
       }
     },
@@ -307,8 +311,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 mixed parity decoder candidate: check new GitHub Actions foundation/lifecycle Go Linux/Windows race at exact SOURCE; fix any failure. Then implement dual-path LINK strictly after authentication, on/off+mixed 20:R decoding in one shared heavy/retired budget, TX fresh immediate new encoder while old partial remains 32ms, safe BlockID alloc/3s, then actual N2 directional feedback/admission+realpath. Shape cohort now proven read-only but parity PN denominator normalization still missing, auto UNSUPPORTED. N3-N6 NOT_STARTED, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-shared-budget-mixed-parity-decoder-candidate.md",
+  "next_task": "N2 mixed parity decoder compact retirement correction: original candidate 321adf foundation38126250217 Linux unit failed job114431142872 because recovery.go RetireRecoveryExpired dropped per-block parity identity; now copied parityShards into retired record, check corrected exact-source Actions foundation/lifecycle. Do not credit historical red workflow. After PASS continue hybrid FEC-off + on one decoder safe switch and directional controller; product auto admission remains UNSUPPORTED, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n2-compact-decoder-parity-retirement-fix.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
   "last_tested_scope": "N2 sourced FEC meta+shape read-only: foundation 7/7 enabled PASS, lifecycle, N1 codec/race, N0 same-wire, 3-client hosted Linux functional; no N2 auto/weaknet/perf nor physical.",
