@@ -202,7 +202,28 @@ func (t *laneTransport) tickQuality(now time.Time) (attempted bool,err error) {
   t.quality.lastEchoSourcePN=echoPair.report.WindowLastPN
   t.quality.lastEchoSourceTx=echoPair.report.TxSuccess
  }
- if matureReady {t.quality.lastMatureEchoSeq=echoPair.report.ReportSeq}
+ if matureReady {
+  t.quality.lastMatureEchoSeq=echoPair.report.ReportSeq
+  // Only an actually emitted encrypted mature echo advances these counters.
+  // Business SendNormal/KindLINK never examines or waits for them.
+  switch estimate.State {
+  case datapath.QualityFeedbackEstimated:
+   t.control.MatureEchoEstimated++
+   t.control.MatureEchoLastSourceSeq=echoPair.report.ReportSeq
+   t.control.MatureEchoLastSenderSuccess=estimate.SenderSuccess
+   t.control.MatureEchoLastReceiverUnique=estimate.ReceiverUnique
+   t.control.MatureEchoLastDeficit=estimate.EstimatedMissing
+   t.control.MatureEchoLastLate=uint64(estimate.ReceiverLate)
+   t.control.MatureEchoLastDuplicate=uint64(estimate.ReceiverDuplicate)
+   t.control.MatureEchoLastAgeMillis=uint64(estimate.Age/time.Millisecond)
+  case datapath.QualityFeedbackCapacity:
+   t.control.MatureEchoCapacity++
+  case datapath.QualityFeedbackStale:
+   t.control.MatureEchoStale++
+  default:
+   t.control.MatureEchoInsufficient++
+  }
+ }
  t.quality.lastEchoMissing=estimate.EstimatedMissing
  t.quality.nextSend=now.Add(delay)
  if estimate.Age>0{t.control.FeedbackAgeMillis=uint64(estimate.Age/time.Millisecond)}

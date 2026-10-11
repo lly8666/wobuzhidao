@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_CLOSED_WINDOW_ACTIONS_PASS_STRICT_RELAY_ENV_SCOPE_FIX_CANDIDATE",
+    "phase": "N1_QUALIFIED_MATURE_ECHO_DIAGNOSTIC_SCALARS_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -112,11 +112,15 @@
       "n1_closed_window_foundation_run": 38102335708,
       "n1_closed_window_native_run": 38102335774,
       "n1_closed_window_native_artifact_id": 11687984403,
-      "n1_closed_window_scope": "Protected V3 sustained upload/download/bidirectional 180 DATA/2s 9 cycles, >=2 mature returned echoes in each active direction, -race count2 PASS; Linux/Windows foundation, lifecycle, nine-netns 3client lossless functional PASS; not native 10Mbps/weaknet or formal performance."
+      "n1_closed_window_scope": "Protected V3 sustained upload/download/bidirectional 180 DATA/2s 9 cycles, >=2 mature returned echoes in each active direction, -race count2 PASS; Linux/Windows foundation, lifecycle, nine-netns 3client lossless functional PASS; not native 10Mbps/weaknet or formal performance.",
+      "n1_lossless_ab_baseline_run": 38102647624,
+      "n1_lossless_ab_candidate_run": 38102874543,
+      "n1_lossless_ab_harness_sha": "447caae2d1a017ef428f9f1e5ba6c26870790db8",
+      "n1_lossless_ab_screen": "Both PASS_SCREEN: 120s Normal off lossless 10Mbps per direction seed601, 150MB unique each dir, no whole-second zero, socket/raw/link drops zero. Baseline SOURCE 4f0cf781 client/server CPU 44.25/45.63s, E5638253 39.81/41.01s; same AMD EPYC9V74 4-vCPU runner model, single-run CPU difference not proof. C2S wire amps 1.365823 vs 1.366078; S2C 1.312286 vs 1.312355."
     }
   },
-  "next_task": "Check feature relay Actions after correcting GITHUB_ENV step scoping (run 38102595788 previously failed preflight before GH dispatch). Start strictly one baseline strict Action and inspect actual acceptance and run metadata. Then rerun only same relay job for matched e563 SOURCE on identical harness after baseline finishes; keep performance NOT_RUN until real strict Action. N1 edge cases/loss and N2 gating still open.",
-  "latest_log": "docs/devlog/20261011-171000-n1-relay-github-env-scope-fix.md",
+  "next_task": "Validate successful-only mature outcome scalar telemetry in exact new source Actions N1 codec/race/lifecycle/foundation/native. Then assert 640+ PN per2s continuous all directions with new counters and report-loss/late repair/capacity cases. Product-code change makes prior e563 strict A/B non-inheritable; dispatch independent matched strict 20:20/lossless/5205/Game and real maturity counters. Auto N2 remains OFF; N3-N6 NOT_STARTED.",
+  "latest_log": "docs/devlog/20261011-173000-n1-qualified-mature-feedback-control-stats-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
   "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",

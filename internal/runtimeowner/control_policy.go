@@ -25,7 +25,20 @@ type ControlStats struct {
  EmissionFailures uint64 `json:"emission_failures"`
  PaddingBytes uint64 `json:"padding_bytes"`
  PaddingBudgetSkips uint64 `json:"padding_budget_skips"`
- FeedbackAgeMillis uint64 `json:"feedback_age_millis"` // read-only last computed qualified age
+ FeedbackAgeMillis uint64 `json:"feedback_age_millis"` // previous age, not necessarily qualified
+ // Scalar control-only outcomes after successful authenticated mature echo Emit.
+ // Existing diagnostic-jsonl snapshots read these at low frequency only.
+ MatureEchoEstimated uint64 `json:"mature_echo_estimated"`
+ MatureEchoInsufficient uint64 `json:"mature_echo_insufficient"`
+ MatureEchoCapacity uint64 `json:"mature_echo_capacity"`
+ MatureEchoStale uint64 `json:"mature_echo_stale"`
+ MatureEchoLastSourceSeq uint64 `json:"mature_echo_last_source_seq"`
+ MatureEchoLastSenderSuccess uint64 `json:"mature_echo_last_sender_success"`
+ MatureEchoLastReceiverUnique uint64 `json:"mature_echo_last_receiver_unique"`
+ MatureEchoLastDeficit uint64 `json:"mature_echo_last_deficit"`
+ MatureEchoLastLate uint64 `json:"mature_echo_last_late"`
+ MatureEchoLastDuplicate uint64 `json:"mature_echo_last_duplicate"`
+ MatureEchoLastAgeMillis uint64 `json:"mature_echo_last_age_millis"`
  // Bounded per-direction encrypted TLS-like record length and successful
  // control-to-control interval histograms. No raw packet body or pcap.
  ControlWireBytes uint64 `json:"control_wire_bytes"`
