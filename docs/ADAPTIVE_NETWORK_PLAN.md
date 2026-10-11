@@ -310,3 +310,7 @@ N1按用户明确收缩后的范围停止继续实验，记`SCOPED_COMPLETE`而�
 ## N2 认证发包首发损失上界（2026-10-11，候选待 Actions 核验）
 
 真实线路的首次发送与后续有限repair复用同Seq/同密文，接收端无法看包本身区分。N1成熟后最终缺失只是首发丢包的**下界**，不是准确值。本次 N2 增量不改变 wire、不额外发送控制，也不降低现有保护；在sender已保留的16份source report和256 DATA PN滚动槽中，以 PN 将“曾经修复过此新鲜加密DATA record”记为每source一bit。凡预备emit（含reserve）只在实际选中并形成repair segment后、Socket Emit之前记，避免peer已经收到而Sender还没登记；失败emit也计为可能修复，最多使上界变宽。对照对端128B认证回声的成熟 `ReceiverUnique`，得到 `MatureMissing <= FirstAttemptLoss <= MatureMissing+DistinctRepaired`，且上界不超过`TxSuccess`。同一PN重试多次只计一次。端点nonce/generation、序列和sender report窗口已由原N1代码检查；新增只读`QualityFirstAttemptBound`必须source-repair位图完整、record ring覆盖且localdrops=0，否则INSUFFICIENT，不可退化成0%。来源报告过期、16窗口换代或receiver CAPACITY/STale一样不能发布精确值。后续必须核实真实first attempt成功/修复路径覆盖和混合partial k分布，且本上界即使宽到100%也如实HOLD/维持高保护，不能强制拿其数值替代真实PLR。该阶段仍不启用V3 auto或FEC TX切档，GitHub Actions结果未返回前仅为源码候选；没有physical资格。
+
+### 2026-10-11 首发上界首轮定向 FAIL（测试断言修订）
+
+GitHub SOURCE `aa09bb3` lifecycle [38121946729](https://github.com/lly8666/wobuzhidao/actions/runs/38121946729) 和独立 N1 128B echo codec/race [38121946681](https://github.com/lly8666/wobuzhidao/actions/runs/38121946681) 在同一新增断言失败：真实 `client.Tick` 已对受损尾record选过**1次修复**，因测试夹具省略该record，成熟后ReceiverUnique=19 / TxSuccess=20，原始首发只能在[1,2]内，上界10%，不是无修复情况下精确5%。算法根据sender真实修复账本正确输出[1,2]；只修正测试expected，保留原FAIL，重新走完整Actions，不改传输行为或扩大测试。

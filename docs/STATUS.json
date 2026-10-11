@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_BOUNDED_FIRST_ATTEMPT_UPPER_BOUND_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N2_FIRST_ATTEMPT_BOUND_ACTIONS_TEST_EXPECTATION_REPAIR_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -262,8 +262,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 next staged feature candidate: source-correlated repair-attempt bitmap for up to16 authenticated quality reports, 256 DATA PN/report, source coverage strict, bound mature residual <= original first losses <= residual+distinct repaired; repair counter BEFORE Emit including reserves; no wire change, no actual auto switching. Run exact GitHub Actions unit/race/3-client/foundation, patch only concrete failures. Then prove bound quality against delayed repair/drops and mixed partial k distribution; N1 residual alone still unusable. No N2 live auto until trusted input and full TX/RX profile rotation contracts.",
-  "latest_log": "docs/devlog/20261011-n2-auth-first-attempt-upper-bound-source-window-candidate.md",
+  "next_task": "N2 read-only original-first-loss UPPER BOUND candidate aa09bb3 source active Actions 38121946729 lifecycle/38121946681 codec FAIL on a mistaken test expectation: real Tick emitted one repair for omitted tail, so mature missing=1 and distinct repaired=1 yields first-loss interval [1,2], not [1,1]; source implementation correctly returns conservative bound. Correct test only; rerun Actions test/race/samewire and retain FAIL. Auto still disabled; after scoped pass continue real mixed FEC k telemetry and bounded first-attempt upper-signal qualification.",
+  "latest_log": "docs/devlog/20261011-n2-upper-bound-live-repair-test-fix.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "last_tested_scope": "Latest N1 product1c64e4e protected 180/640PN race & native functional PASS; fixed20 normal/Game lossless/5205 prior8 PASS_SCREEN; dedicated Normal flat1/flat5 8 strict native 120s Actions: fixed20 4 PASS_SCREEN, off 4 MEASURED_NOT_QUALIFIED; old flat5 2 PERFORMANCE_FAIL preserved. No real first-send PLR oracle or N2 auto, N3-6/physical NOT_RUN.",
