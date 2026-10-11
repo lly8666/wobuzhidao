@@ -22,6 +22,9 @@ func (q *qualityState) n2ObserveAuthenticatedReturn(generation uint64,now time.T
 	input:=qualityBoundToAdaptiveInput(bound,now)
 	q.n2Last=q.n2.Step(now,input)
 	q.n2HasDecision=true
+	q.n2DecisionAt=now
+	q.n2Pending=q.n2Last.Reason==adaptivefec.Raise ||
+		q.n2Last.Reason==adaptivefec.Lower
 }
 
 // ConfigureN2ControllerForTests enables ONLY guarded proposal observation

@@ -29,6 +29,8 @@ type qualityState struct {
     n2 *adaptivefec.Controller
     n2Last adaptivefec.Decision
     n2HasDecision bool
+    n2DecisionAt time.Time
+    n2Pending bool // one authenticated rise/lower proposal may apply only once
     received uint64
     rejected uint64
     sent uint64

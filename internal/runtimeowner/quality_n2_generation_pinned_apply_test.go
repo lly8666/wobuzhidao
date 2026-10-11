@@ -57,15 +57,17 @@ func TestN2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock(t *testing.T) 
 	tport.mu.Lock()
 	tport.quality.n2Last=adaptivefec.Decision{Ordinary:4,Applied:4,Reason:adaptivefec.Lower}
 	tport.quality.n2HasDecision=true
+	tport.quality.n2DecisionAt=at.Add(time.Millisecond)
+	tport.quality.n2Pending=true
 	tport.mu.Unlock()
-	applied,err:=r.ApplyN2ProposalForTests(snap.Ref)
+	applied,err:=r.ApplyN2ProposalForTests(snap.Ref,at.Add(2*time.Millisecond))
 	if err!=nil||!applied {t.Fatalf("valid active TX advice not applied %v %v",applied,err)}
 	next,err:=lane.Outbound([]byte("new-after-advice"),at.Add(2*time.Millisecond))
 	if err!=nil||len(next)!=1||next[0].FEC.ConfiguredParity!=4||
 		next[0].FEC.BlockID==old[0].FEC.BlockID {
 		t.Fatalf("new block failed profile isolation %d %v",len(next),err)
 	}
-	if applied,err:=r.ApplyN2ProposalForTests(snap.Ref);err!=nil||applied {
+	if applied,err:=r.ApplyN2ProposalForTests(snap.Ref,at.Add(3*time.Millisecond));err!=nil||applied {
 		t.Fatalf("unchanged target reapplied %v %v",applied,err)
 	}
 	oldParity,err:=lane.FlushDue(at.Add(32*time.Millisecond))
@@ -79,14 +81,28 @@ func TestN2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock(t *testing.T) 
 	tport.mu.Lock()
 	tport.quality.n2Last=adaptivefec.Decision{Ordinary:8,Applied:8,Reason:adaptivefec.HoldUnqualified}
 	tport.mu.Unlock()
-	if applied,err:=r.ApplyN2ProposalForTests(snap.Ref);err!=nil||applied {
+	if applied,err:=r.ApplyN2ProposalForTests(snap.Ref,at.Add(4*time.Millisecond));err!=nil||applied {
 		t.Fatalf("UNKNOWN feedback changed profile %v %v",applied,err)
 	}
 	if current,ok:=owner.LaneStats(snap.Ref);!ok||current.TxPath.ParityShards!=4 {
 		t.Fatalf("HOLD modified active profile %+v %v",current.TxPath,ok)
 	}
+
+	// Even a still-cached last RAISE/LOWER must expire without new quality.
+	tport.mu.Lock()
+	tport.quality.n2Last=adaptivefec.Decision{Ordinary:8,Applied:8,Reason:adaptivefec.Raise}
+	tport.quality.n2HasDecision=true
+	tport.quality.n2Pending=true
+	tport.quality.n2DecisionAt=at
+	tport.mu.Unlock()
+	if applied,err:=r.ApplyN2ProposalForTests(snap.Ref,at.Add(11*time.Second));err!=nil||applied {
+		t.Fatalf("stale recommendation applied after feedback interruption %v %v",applied,err)
+	}
+	if current,ok:=owner.LaneStats(snap.Ref);!ok||current.TxPath.ParityShards!=4 {
+		t.Fatalf("expired recommendation changed source parity %+v %v",current.TxPath,ok)
+	}
 	if _,err:=r.Dormant();err!=nil {t.Fatal(err)}
-	if applied,err:=r.ApplyN2ProposalForTests(snap.Ref);applied||!errors.Is(err,ErrTransportMissing) {
+	if applied,err:=r.ApplyN2ProposalForTests(snap.Ref,at.Add(15*time.Second));applied||!errors.Is(err,ErrTransportMissing) {
 		t.Fatalf("dormant generation accepted stale switch %v %v",applied,err)
 	}
 }

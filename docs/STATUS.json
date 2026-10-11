@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_GENERATION_PINNED_TEST_ONLY_LOCAL_TX_PROPOSAL_APPLICATION_ACTIONS_PENDING",
+    "phase": "N2_PROTECTED_PROPOSAL_ONE_SHOT_EXPIRY_GUARD_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_PROTECTED_TX_DIRECTION_READONLY_AND_COLD_PREPARED_NEW_BLOCK_SWITCH_SCOPED_PASS_GENERATION_PINNED_TEST_ONLY_RUNTIME_OWNER_LANE_APPLY_CANDIDATE",
+      "N2_normal_auto": "IN_PROGRESS_NATURAL_KR_SOURCE_PROTECTED_TX_PROPOSAL_AND_TEST_ONLY_ACTIVE_GENERATION_SWITCH_SCOPED_PASS_NEW_ONE_USE_10SEC_PROPOSAL_FENCE_ACTIONS_PENDING",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -365,9 +365,18 @@
         "physical": "NOT_RUN"
       },
       "n2_generation_pinned_proposal_apply": {
+        "status": "SCOPED_PASS_TEST_ONLY_NOT_PRODUCTION",
+        "source_sha": "74a414c56b1658ad63f72c2a7ea85a0312352b3e",
+        "foundation_run": 38132641983,
+        "lifecycle_run": 38132641963,
+        "auto_admission": "UNSUPPORTED",
+        "physical": "NOT_RUN"
+      },
+      "n2_proposal_one_use_expiry": {
         "status": "ACTIONS_PENDING",
         "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "scope": "ONLY_TEST_SEAM_NO_AUTOMATIC_PRODUCTION_FEEDBACK_APPLY",
+        "prior_source_sha": "74a414c56b1658ad63f72c2a7ea85a0312352b3e",
+        "production_auto": "UNSUPPORTED",
         "physical": "NOT_RUN"
       }
     },
@@ -400,8 +409,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 generation-pinned test-only proposal-to-TX switch: verify latest SOURCE Actions foundation/lifecycle, repair any failure and repeat, preserving red history. Prior 0d59e0d two-phase cold encoder preparation/new+old absolute 32ms scope passes foundation38132200201/lifecycle38132200199; no live auto. New Runtime.ApplyN2ProposalForTests pins outboundMu.RLock and same ACTIVE TX ref, refuses dormant/stale/Game/invalid HOLD and uses owner SwitchN2ActiveParityForTests to apply only raise/lower (preparation outside Lane lock). After scoped regression pass, integrate protected Normal auto per-client V3 admission and real returned-source controller with bounded safe application, exact MTU/CLI/JSON/catalog; then single-condition Actions perf; N3-N6 not started, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-generation-pinned-normal-tx-proposal-test-application-candidate.md",
+  "next_task": "N2 pending: per-generation local TX proposal consumed once and expires after 10s without new authenticated echo. Corrected 0d59e0d cold-prepared split firstAt+32ms foundation38132200201/lifecycle38132200199 PASS. 74a414c test-only Runtime/owner generation-pinned active Normal profile application foundation38132641983/lifecycle38132641963 PASS. This new SOURCE adds n2Pending one-use + n2DecisionAt 10s age gate, verifies feedback interruption cannot apply stale last Raise and duplicate application cannot spend same echo twice; check exact Actions jobs. Then product per-client protected Normal V3 once admission and directional real TX effect, only after all gates CLI/JSON/catalog; Game fixed; N2 realpath one SOURCE/config/seed/case/measurement; N3-N6/physical NOT_RUN, off default MTU ~2.73s return p99/missing and ~80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-one-use-stale-feedback-proposal-fence-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "dcf0a5549738672a05934ccf810bfd7ca7875a96",
   "last_tested_scope": "N2 single-generation protected V3 returned local TX-source controller PROPOSAL only: foundation Linux/Windows Go/race seven enabled PASS, lifecycle/N1 codec race/N0 hosted Linux three-client PASS; auto admission/switch/performance/physical NOT_RUN",
