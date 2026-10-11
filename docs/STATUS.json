@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_CROPPED_PARITY_SOURCE_VS_BUSINESS_RESIDUAL_CORRECTION_ACTIONS_PENDING",
+    "phase": "N2_EXPLICIT_NORMAL_AUTO_INITIAL_FEC_OFF_WILSON_LOWER_PILOT_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "fcbda3d3c5637b9bef0d6e0335d9b682418965cd",
+    "new_product_source_sha": "e854b93c5bf0993f030a33b19e4d491555c011ff",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_PRODUCTION_AUTO_WAVE300_UNQUALIFIED_BUT_15MS_LOSSLESS_100S_BOTH_DIRECTION_GUARDED_LOWER_VERIFIED",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_15MS_100S_BOTH_DIRECTION_LOWER_PASS_300MS_100S_CLEAN_NOT_QUALIFIED_CROPPED_PARITY_MODEL_CORRECTION_ACTIONS_PENDING_OFF_INITIAL_EXPERIMENT_NEXT",
+      "N2_normal_auto": "IN_PROGRESS_CROPPED_PARITY_FIRST_UNIQUE_MODEL_SCOPED_ACTIONS_PASS_EXPLICIT_NORMAL_AUTO_START_OFF_AND_AUTH_BOUND_DAMAGE_RAISE_CANDIDATE",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -684,10 +684,28 @@
         "physical": "NOT_RUN"
       },
       "n2_cropped_parity_correction": {
+        "status": "SCOPED_PASS_GO_LINUX_WINDOWS_RACE_FOUNDATION_AND_NATIVE",
+        "source_sha": "e854b93c5bf0993f030a33b19e4d491555c011ff",
+        "foundation_run": 38153538491,
+        "foundation_enabled_jobs_pass": 7,
+        "foundation_artifact_id": 11707403335,
+        "foundation_artifact_sha256": "9fd081e554ead784e9113643bd2dabd6bc156512460fb374531f2dc10a909731",
+        "lifecycle_run": 38153538517,
+        "n1_codec_run": 38153538496,
+        "n0_native_multi_run": 38153538486,
+        "performance_after_change": "NOT_RUN"
+      },
+      "n2_explicit_off_start_pilot": {
         "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT",
-        "scope": "distinguish actual sender source vs parity within cropped FEC group; parity PN never treated as unprotected independent business; strict 256PN and mixed k/r/repaired hard gates retained",
-        "performance": "NOT_RUN_AFTER_CHANGE"
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "default_auto_initial": 20,
+        "explicit_initial": 0,
+        "only_mode": "Normal ordinary auto min0 max20",
+        "startup_mtubudget": 20,
+        "scientific_trigger": "95 percent Wilson LOWER over 512+ authenticated disjoint source PN with conservative M physical first-loss lower; never M+R upper",
+        "pilot": 4,
+        "subsequent": "real post-pilot k/r source 512 fresh and guarded fast rise",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -719,11 +737,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "First check exact SOURCE new Foundation/Lifecycle/go/race N2 cropped source-vs-parity correction; repair red. Then implement explicit Normal auto off initial (default remains20), while reserving max20 MTU on client/server and Game/fixed unaffected. Test actual protected fec-off first DATA PN, malformed/foreign nonce/generation, controller trusted first-loss 0→1→5% rise with 512 fresh non-overlapping samples and capacity HOLD; allow initial few seconds missing. Do one source/config/seed/condition workflow from OFF under injected degradation, record actual per-direction profile and goodput, no forced zero loss. Confirm 300ms clean downshift only after source model fix; previous fcbda3 clean300 MEASURED_NOT_QUALIFIED despite Action success. N3-N6, physical NOT_RUN. Historic default-MTU off ~2.73s probe p99/missing and ~80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-cropped-parity-first-unique-model-correction-actions-candidate.md",
+  "next_task": "First inspect new exact SOURCE Actions for protected Normal ordinary auto explicit --fec-start-parity 0 paired with --fec-min-parity 0, initial actual bare LINK and max20 MTU reservation, Wilson LOWER of first-attempt M (not upper M+R), pilot4 on credible injured off path then only post-pilot real k/r rises; old auto default20, aggressive initialoff forbidden, Game/fixed unchanged. Repair and rerun red. Then create separate real five-netns one-source/config/seed OFF-start 0→1→5→20→5→0 injected-loss waveform with enough stable periods, allow transient first-unique missing (do not demand zero), verify actual client/server TX profile and feedback by source, CPU/drop/p99/quota evidence. Re-run 300ms 100s clean after crop correction independently; previous fcbda3 clean300 MEASURED_NOT_QUALIFIED. N3-N6 and physical NOT_RUN; historic off~2.73s p99/missing and early80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-explicit-normal-auto-fecoff-start-wilson-lower-pilot-actions-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "a59e4ba871108469227527e3abfa71a881f12bf3",
-  "last_tested_scope": "N2 100s lossless 15ms one-way, Normal auto min4 default record cap0, 10Mbps each: real 5-netns first unique 246711/246711 each (125000240B), returned probe 100 sent with p99 31.5ms. Live client C2S 5 commits to4, server S2C 3 commits to10, both LOWER_ONE and no busy. This is scoped clean lowRTT controller qualification; 300ms damage waveform 420s still MEASURED_NOT_QUALIFIED, CPU diag ON.",
+  "last_tested_source_sha": "e854b93c5bf0993f030a33b19e4d491555c011ff",
+  "last_tested_scope": "N2 crop systematic/parity separation SCM scoped Actions PASS 7 foundation Linux+Windows unit/race, Lifecycle, N1 codec and three-native clients; 300ms clean downshift performance not rerun.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

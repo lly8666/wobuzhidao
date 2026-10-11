@@ -184,3 +184,55 @@ func TestN2NormalLaneConstructorNeverImplicitlyUpgradesFixedOrGame(t *testing.T)
 		t.Fatal("auto initialized below its required 20:20 max geometry")
 	}
 }
+
+
+func TestN2ExplicitInitialOffKeepsAEADDeliveryAndSharedTwentyBudget(t *testing.T) {
+	p:=n2V3CandidatePolicy(realityfront.FECAuto,0)
+	p.InitialParity=0 // only explicit ordinary Normal auto; fixed mode unaffected
+	if err:=p.SupportedNow();err!=nil {t.Fatal(err)}
+	clCfg:=pairConfig(RoleClient,20)
+	srvCfg:=pairConfig(RoleServer,20)
+	clCfg.N2Policy=p
+	srvCfg.N2Policy=p
+	client,err:=NewLane(clCfg)
+	if err!=nil {t.Fatal(err)}
+	defer client.Close()
+	server,err:=NewLane(srvCfg)
+	if err!=nil {t.Fatal(err)}
+	defer server.Close()
+	if client.TxBudget().ParityShards!=20 ||
+		server.RxBudget().ParityShards!=20 {
+		t.Fatal("off start illegally increased TUN MTU or weakened record envelope")
+	}
+	at:=time.Unix(288000,0)
+	off,err:=client.Outbound([]byte("actual off first arrival"),at)
+	if err!=nil||len(off)!=1||off[0].FEC.Enabled {
+		t.Fatalf("off start produced FEC or waited for ACK: %d %v",len(off),err)
+	}
+	got,err:=server.InboundPayload(off[0].Wire,at)
+	if err!=nil||len(got.Datagrams)!=1||
+		!bytes.Equal(got.Datagrams[0],[]byte("actual off first arrival")) {
+		t.Fatalf("authenticated bare LINK not first-delivered %+v %v",got,err)
+	}
+	// On/off coexist; a newly justified pilot does not reset PN/BlockID.
+	if err:=client.SwitchN2ParityForTests(4);err!=nil {t.Fatal(err)}
+	next,err:=client.Outbound([]byte("first 20:4 pilot systematic"),at.Add(time.Millisecond))
+	if err!=nil||len(next)!=1||!next[0].FEC.Enabled||
+		next[0].FEC.ConfiguredParity!=4||next[0].PN<=off[0].PN {
+		t.Fatalf("real first new-block switch from off failed %+v %v",next,err)
+	}
+	pilot,err:=server.InboundPayload(next[0].Wire,at.Add(time.Millisecond))
+	if err!=nil||len(pilot.Datagrams)!=1||
+		!bytes.Equal(pilot.Datagrams[0],[]byte("first 20:4 pilot systematic")) {
+		t.Fatalf("real pilot payload failed immediate first delivery %+v %v",pilot,err)
+	}
+	parity,err:=client.FlushDue(at.Add(33*time.Millisecond))
+	if err!=nil||len(parity)!=1||parity[0].FEC.ConfiguredParity!=4 {
+		t.Fatalf("k1/r=min(1,4) original deadline broke %d %v",len(parity),err)
+	}
+	// Recovery for old FEC-on groups and current off remains one shared RX
+	// budget. Initial maximum Tx and Rx never changes after switch.
+	if client.TxBudget().ParityShards!=20 || server.RxBudget().ParityShards!=20 {
+		t.Fatal("actual adaptive parity changed MTU on pilot")
+	}
+}

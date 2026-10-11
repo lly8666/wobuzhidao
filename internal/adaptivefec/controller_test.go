@@ -455,3 +455,85 @@ func TestN2CroppedParityIsNotAFirstUniqueBusinessSource(t *testing.T) {
 		t.Fatalf("genuine cropped parity not counted correctly: %+v",d)
 	}
 }
+
+
+// First-attempt bounded off-source witnesses are legitimate: each emitted
+// KindLINK PN is bare DATA, never an invented 20:20 closed FEC group.
+func offSource(i int,start time.Time,lower,upper uint32) Input {
+	s:=source(i,start)
+	s.Evidence=EvidenceFirstAttemptBounded
+	s.ShardK=0
+	s.OffRecords=256
+	s.FirstAttemptLost=lower
+	s.FirstAttemptLostMax=upper
+	return s
+}
+
+func TestN2ExplicitOffStartRequiresConfidentLowerDamageAndPilotsFour(t *testing.T) {
+	start:=time.Unix(200000,0)
+	ctl,err:=New(Config{Mode:Auto,InitialParity:0,MinParity:0,MaxParity:20},5)
+	if err!=nil {t.Fatal(err)}
+	// Even a credible possible repair interval M=0,R=10 is NOT proof of
+	// line loss. Repeated source reports do not manufacture new 512 samples.
+	for i:=1;i<=2;i++ {
+		s:=offSource(i,start,0,10)
+		d:=ctl.Step(s.At,s)
+		if d.Ordinary!=0 || d.Reason==Raise {t.Fatalf("upper-only loss raised off: %+v",d)}
+		if dup:=ctl.Step(s.At,s);dup.Reason!=HoldReplay {t.Fatalf("replayed off witness %+v",dup)}
+	}
+	// At this point source1+source2 are 512 nonoverlapping off PNs.
+	// Actual missing lower=4 on a THIRD 256 PN window confidently proves
+	// >0.1% damage (Wilson lower), without assuming any closed FEC k.
+	damage:=offSource(3,start,4,6)
+	d:=ctl.Step(damage.At,damage)
+	if d.Reason!=Raise || d.Ordinary!=4 || d.Applied!=4 ||
+		ctl.confidentSent!=0 || ctl.lastSeq!=3 || ctl.sinceDecision!=0 {
+		t.Fatalf("damaged off must pilot only one real protection rung: %+v",d)
+	}
+	if dup:=ctl.Step(damage.At,damage);dup.Reason!=HoldReplay {
+		t.Fatal("old off report spent twice",dup)
+	}
+	// Sender now emits actual 12:4 complete partial groups, not full20
+	// invented from historical bare LINK PNs. Two fresh windows are needed
+	// before further fast escalation to a justified higher candidate.
+	for i:=4;i<=5;i++ {
+		s:=source(i,start)
+		s.Evidence=EvidenceFirstAttemptBounded
+		s.ShardK=0
+		s.ClosedGroups[2][12]=16
+		s.ClosedR[4]=16
+		s.ClosedBySizeKR[2][12][4]=16
+		s.ParityRecords=64
+		s.FirstAttemptLost=26
+		s.FirstAttemptLostMax=26
+		d=ctl.Step(s.At,s)
+		if i==4 && d.Reason!=HoldSampleCount {t.Fatalf("not enough post-pilot evidence %+v",d)}
+	}
+	if d.Reason!=Raise || d.Ordinary<=4 || d.Ordinary>20 {
+		t.Fatalf("post-pilot true partial k/r damage did not justify rise %+v",d)
+	}
+}
+func TestN2OffStartRejectsAggressiveAndCannotRaiseOnUnknownOrCapacity(t *testing.T) {
+	if _,err:=New(Config{Mode:Aggressive,InitialParity:0,MinParity:0,MaxParity:20},5);err==nil {
+		t.Fatal("aggressive off start conflicts with ordinary+one-rung actual initial")
+	}
+	if _,err:=New(Config{Mode:Auto,InitialParity:0,MinParity:4,MaxParity:20},5);err==nil {
+		t.Fatal("off initial below negotiated protected floor")
+	}
+	now:=time.Unix(210000,0)
+	ctl,err:=New(Config{Mode:Auto,InitialParity:0,MinParity:0,MaxParity:20},5)
+	if err!=nil {t.Fatal(err)}
+	for i:=1;i<=3;i++ {
+		s:=offSource(i,now,20,20)
+		s.CapacityOrCongestion=true
+		if d:=ctl.Step(s.At,s);d.Reason!=HoldCapacity||d.Ordinary!=0 {
+			t.Fatal("congestion must HOLD even with true off loss",d)
+		}
+		s.CapacityOrCongestion=false
+		s.Evidence=EvidencePostRepair
+		if d:=ctl.Step(s.At,s);d.Reason!=HoldUnqualified||d.Ordinary!=0 {
+			t.Fatal("post-repair UNKNOWN treated as line loss",d)
+		}
+	}
+	if ctl.seen {t.Fatal("unknown or capacity off sources accumulated")}
+}

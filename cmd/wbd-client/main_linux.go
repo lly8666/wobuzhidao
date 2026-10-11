@@ -69,6 +69,7 @@ func runLinuxClient() error {
 		fecParity          = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		fecMode            = flag.String("fec-mode", "legacy", "FEC: legacy (existing fixed/off), fixed, off, auto, auto-aggressive; auto Normal only")
 		fecMinParity       = flag.Int("fec-min-parity", 4, "Normal auto minimum parity: 0=off or 4,8,10,12,16,20")
+		fecStartParity     = flag.Int("fec-start-parity", 20, "explicit Normal ordinary auto start: 20 default, or 0 only with --fec-min-parity=0")
 		tproxyPort         = flag.Uint("tproxy-port", 12345, "transparent TCP/UDP capture port")
 		mark               = flag.Uint("mark", 0x42, "TPROXY fwmark")
 		table              = flag.Uint("route-table", 1066, "TPROXY policy route table")
@@ -113,7 +114,7 @@ func runLinuxClient() error {
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
 		return err
 	}
-	requestedPolicy, err := realityfront.PolicyForClient(*lanes, *fecMode, *fecParity, *fecMinParity)
+	requestedPolicy, err := realityfront.PolicyForClientWithInitial(*lanes, *fecMode, *fecParity, *fecMinParity, *fecStartParity)
 	if err != nil { return err }
 	// Use one maximum permitted profile for BOTH directions' record budget.
 	// An auto lane may later run off; it never changes the TUN or peer MSS.

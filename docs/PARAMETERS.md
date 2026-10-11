@@ -1,3 +1,7 @@
+## 2026-10-11 N2 显式 Normal off 起步（SOURCE Actions 待验）
+
+Linux 和 Windows 客户端新增 `--fec-start-parity`，默认 **20**，所以所有已有 `legacy/fixed/off/auto/auto-aggressive` 配置的起步完全不变。只有显式 `--fec-mode=auto --fec-min-parity=0 --fec-start-parity=0 --lanes=1` 才从 **bare FEC off** 发送；`auto-aggressive` 不能 off 起步（其普通建议+一档映射无法与 off 初始发送档一致），Game/fixed/legacy 也拒绝初始 off override。V3 受保护协商原 10 字节字段内使用 initial=0/min=0/max=20，两个方向仍按 **max20** 保留 record/TUN/MSS MTU 预算，不会在升到 20:4 时改变 TUN MTU。此选项主要用于真实损伤升档验证，**不代表降低默认保护级别**；报告损伤早期允许存在合理的 first-unique missing，不增加修复/HOL。既有 `--config` JSON 扁平同名键可用，实际效果以新 SOURCE Actions 为准。
+
 ## N2 Normal 自动档参数（新生产接线候选，Actions 待验）
 
 Linux/Windows 客户端 `--fec-mode` 默认 `legacy`，完全保留旧配置的 `--fec-parity` 固定档或 off 语义；显式可用 `fixed`、`off`、`auto`、`auto-aggressive`，其中 auto 仅 Normal 单 lane，可设 `--fec-min-parity=0/4/8/10/12/16/20`（默认4）。自动初始/最高档固定20:20，最低 off 必须显式选择0；`--fec-parity` 在 auto 时须为默认0，不能当作同时生效的固定档。Game2..4 自动模式严格拒绝。相同扁平键支持 `--config` JSON；CLI 显式参数覆盖 JSON；新旧固定配置不会静默迁移。

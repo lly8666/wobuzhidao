@@ -59,7 +59,10 @@ func (p AdmissionPolicy) Validate() error {
     case FECAuto, FECAggressive:
         if p.Transport != TransportNormal || p.FixedParity != 0 ||
            !allowedParity(p.InitialParity) || !allowedParity(p.MinParity) || !allowedParity(p.MaxParity) ||
-           p.InitialParity != 20 || p.MaxParity != 20 || p.MinParity > p.InitialParity {
+           p.MaxParity != 20 ||
+           !(p.InitialParity==20 ||
+             (p.InitialParity==0 && p.FECMode==FECAuto && p.MinParity==0)) ||
+           p.MinParity > p.InitialParity {
             return ErrAdmissionParams
         }
     default:
@@ -98,7 +101,7 @@ func (p AdmissionPolicy) EffectiveParity() int {
     if p.FECMode==FECAuto || p.FECMode==FECAggressive {
         // Reserve the immutable max20 MTU/MSS envelope even when the
         // selected sending profile has later stepped down to off.
-        return int(p.InitialParity)
+        return int(p.MaxParity)
     }
     return 0
 }
@@ -125,6 +128,17 @@ func FixedPolicyForClient(desiredLanes, parity int) (AdmissionPolicy, error) {
 // their historical explicit fixed/off fec-parity semantics. Auto requires
 // an explicit Normal-only choice; it does not infer mode from parity=20.
 func PolicyForClient(lanes int, mode string, parity, minimum int) (AdmissionPolicy,error) {
+	return PolicyForClientWithInitial(lanes,mode,parity,minimum,20)
+}
+
+// PolicyForClientWithInitial is a deliberate opt-in Normal auto experiment.
+// Existing legacy/fixed/off and auto configurations WITHOUT an initial flag
+// still start at 20:20. Only Normal ordinary auto with explicit min=0 may
+// start FEC-off; its protected max20 envelope stays fixed for both MTUs.
+func PolicyForClientWithInitial(lanes int, mode string, parity, minimum, initial int) (AdmissionPolicy,error) {
+	if initial!=20 && !(mode=="auto" && initial==0 && minimum==0) {
+		return AdmissionPolicy{},ErrAdmissionParams
+	}
 	if mode=="" || mode=="legacy" {
 		if minimum!=4 {return AdmissionPolicy{},ErrAdmissionParams}
 		return FixedPolicyForClient(lanes,parity)
@@ -140,11 +154,12 @@ func PolicyForClient(lanes int, mode string, parity, minimum int) (AdmissionPoli
 		if lanes!=1 || parity!=0 {return AdmissionPolicy{},ErrAdmissionParams}
 		p:=AdmissionPolicy{
 			Schema:PolicySchemaV3,Transport:TransportNormal,DesiredLanes:1,
-			FECMode:FECAuto,InitialParity:20,MinParity:uint8(minimum),
+			FECMode:FECAuto,InitialParity:uint8(initial),MinParity:uint8(minimum),
 			MaxParity:20,Cipher:CipherChaCha,Quality:1,
 		}
 		if mode=="auto-aggressive" {p.FECMode=FECAggressive}
 		if minimum<0 || minimum>20 {return AdmissionPolicy{},ErrAdmissionParams}
+		if initial!=0 && initial!=20 {return AdmissionPolicy{},ErrAdmissionParams}
 		if err:=p.SupportedNow();err!=nil {return AdmissionPolicy{},err}
 		return p,nil
 	default:

@@ -67,8 +67,12 @@ func supported(r int) bool {
 // Only Normal auto modes are accepted. Game and fixed do not instantiate a
 // controller. The V3 design has initial=max=20, independently bounded min.
 func (c Config) Validate() error {
+    // Initial off is an explicit opt-in Normal AUTO experiment, never
+    // an implicit change to legacy/default20 or aggressive's +1 mapping.
+    initialOK:=c.InitialParity==20 ||
+        (c.InitialParity==0 && c.Mode==Auto && c.MinParity==0)
     if (c.Mode != Auto && c.Mode != Aggressive) ||
-        c.InitialParity != 20 || c.MaxParity != 20 ||
+        !initialOK || c.MaxParity != 20 ||
         !supported(c.MinParity) || c.MinParity > c.InitialParity {
         return ErrConfig
     }
@@ -164,7 +168,7 @@ type Controller struct {
     fast, slow float64
     lastAt, firstValid, lastChange, lastLower time.Time
     sinceDecision uint64
-    confidentSent, confidentLost uint64
+    confidentSent, confidentLost, confidentLowerLost uint64
     history [confidenceHistory]controlSample
     historyPos, historyCount int
     shapeTotals [3][DataShards+1]uint64
@@ -180,7 +184,7 @@ type Controller struct {
 }
 
 type controlSample struct {
-    sent, upperLost uint32
+    sent, upperLost, lowerLost uint32
     off,cropped,croppedSource uint32
     groups [3][DataShards+1]uint16
 }
@@ -263,6 +267,20 @@ func priorProfile(current,min int) int {
 
 // Wilson 95% upper confidence prevents low-sample zeroes from triggering
 // automatic downgrades. It is intentionally conservative under burst loss.
+// A 95% LOWER line-damage bound is the opposite of downgrade's upper
+// residual risk bound. Only a credibly damaged, actual FEC-off cohort
+// triggers a small pilot; one loss in a short sample cannot drive a blind
+// jump to maximum redundancy.
+func wilsonLower(lost,sent uint64) float64 {
+    if sent==0 || lost==0 {return 0}
+    n:=float64(sent)
+    p:=float64(lost)/n
+    z2:=1.96*1.96
+    v:=(p+z2/(2*n)-1.96*math.Sqrt(p*(1-p)/n+z2/(4*n*n)))/(1+z2/n)
+    if v<0 {return 0}
+    return v
+}
+
 func wilsonUpper(lost,sent uint64) float64 {
     if sent==0 {return 1}
     n:=float64(sent)
@@ -352,6 +370,7 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
         old:=c.history[c.historyPos]
         c.confidentSent-=uint64(old.sent)
         c.confidentLost-=uint64(old.upperLost)
+        c.confidentLowerLost-=uint64(old.lowerLost)
         c.offTotal-=uint64(old.off)
         c.croppedTotal-=uint64(old.cropped)
         c.croppedSourceTotal-=uint64(old.croppedSource)
@@ -361,7 +380,7 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
             }
         }
     } else {c.historyCount++}
-    item:=controlSample{sent:s.Sent,upperLost:upper}
+    item:=controlSample{sent:s.Sent,upperLost:upper,lowerLost:s.FirstAttemptLost}
     if bounded {
         item.groups=s.ClosedGroups
         item.off=s.OffRecords
@@ -372,6 +391,7 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
     c.historyPos=(c.historyPos+1)%len(c.history)
     c.confidentSent+=uint64(s.Sent)
     c.confidentLost+=uint64(upper)
+    c.confidentLowerLost+=uint64(s.FirstAttemptLost)
     if bounded {
         c.offTotal+=uint64(s.OffRecords)
         c.croppedTotal+=uint64(s.CroppedRecords)
@@ -506,6 +526,40 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     c.lowerConfidenceBlocked=false
     c.lowerSlowBlocked=false
     if c.sinceDecision<MinDecisionRecords {return c.current(HoldSampleCount)}
+    // Off-start cohorts contain only bare LINK records. Even while FEC
+    // is off, SAME-WIRE retransmissions may have been attempted: use only
+    // the conservative LOWER physical first-loss bound M (post-repair
+    // receiver deficit), NEVER the possible M+R upper bound to prove damage.
+    // Their observed k is UNKNOWN, however. Using these off records as
+    // if no future parity can protect them would always pick max20.
+    // Probe the first allowed rung (20:4) ONLY when 95% lower line-damage
+    // confidence exceeds the predeclared 0.1% first-loss target. Permit
+    // finite initial first-loss, then collect >=512 NEW post-probe records
+    // with their true full/partial k/r before further model-based escalation.
+    // UNKNOWN, capacity, stale and mixed/cropped cohorts never use this.
+    if bounded && c.ordinary==0 && c.offTotal==c.confidentSent &&
+        c.croppedTotal==0 && c.shapeBlocks()==0 {
+        if wilsonLower(c.confidentLowerLost,c.confidentSent)<=ResidualTarget {
+            c.lowerGate="OFF_WAIT_CONFIDENT_DAMAGE"
+            return c.current(HoldOptimal)
+        }
+        c.ordinary=4
+        c.lastChange=now
+        c.firstValid=now
+        c.lastLower=time.Time{}
+        c.sinceDecision=0
+        // Off had no verifiable FEC k; discard ONLY the profile-model
+        // history, not the monotonic source identity or EWMA. This stops
+        // an old unprotectable off cohort from falsely forcing 20:20 after
+        // the pilot. Future grade advice requires fresh authenticated k/r.
+        c.history=[confidenceHistory]controlSample{}
+        c.historyPos,c.historyCount=0,0
+        c.confidentSent,c.confidentLost,c.confidentLowerLost=0,0,0
+        c.shapeTotals=[3][DataShards+1]uint64{}
+        c.offTotal,c.croppedTotal,c.croppedSourceTotal=0,0,0
+        c.lowerGate="OFF_PILOT_WITH_WILSON_DAMAGE"
+        return c.current(Raise)
+    }
     upTarget:=0
     if bounded {
         upTarget=requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedSourceTotal,math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)

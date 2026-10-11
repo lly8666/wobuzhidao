@@ -7,8 +7,8 @@ import (
 )
 
 // N2PreparedPolicyForTests validates a negotiated protected V3 Normal policy
-// without advertising the incomplete production auto mode. Even when min=off,
-// the initial and MAX wire/TUN profile is fixed at 20:20 for this incarnation.
+// without advertising the incomplete production auto mode. Even when explicitly starting off,
+// the MAX wire/TUN envelope remains fixed at 20:20 for this incarnation.
 // This stage is deliberately unusable from public admission: SupportedNow
 // still rejects these modes on both TLS endpoints.
 func N2PreparedPolicyForTests(policy realityfront.AdmissionPolicy) (adaptivefec.Config,error) {

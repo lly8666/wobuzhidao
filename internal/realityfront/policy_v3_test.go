@@ -216,3 +216,33 @@ func TestRequireV3RejectsLegacyV2WithoutAllocating(t *testing.T) {
         t.Fatalf("legacy admission unexpectedly accepted: %+v",got)
     }
 }
+
+
+func TestNormalAutoOffStartIsExplicitProtectedAndKeepsMax20WireBudget(t *testing.T) {
+	legacyAuto,err:=PolicyForClient(1,"auto",0,0)
+	if err!=nil||legacyAuto.InitialParity!=20||legacyAuto.EffectiveParity()!=20 {
+		t.Fatalf("default auto silently changed initial parity %+v %v",legacyAuto,err)
+	}
+	p,err:=PolicyForClientWithInitial(1,"auto",0,0,0)
+	if err!=nil||p.InitialParity!=0||p.MinParity!=0||p.MaxParity!=20||
+		p.EffectiveParity()!=20||p.FECMode!=FECAuto||p.Quality!=1 {
+		t.Fatalf("deliberate off initial broke protected max budget %+v %v",p,err)
+	}
+	wire,err:=p.Encode()
+	if err!=nil {t.Fatal(err)}
+	if got,err:=decodePolicyV3(wire[:]);err!=nil||got!=p {
+		t.Fatalf("V3 byte-vector cannot preserve off first protected policy %+v %v",got,err)
+	}
+	for _,bad:=range []struct{mode string;min,initial int}{
+		{"auto",4,0},{"auto-aggressive",0,0},
+		{"fixed",4,0},{"legacy",4,0},{"off",4,0},
+		{"auto",0,4},{"auto",0,21},
+	} {
+		if p,err:=PolicyForClientWithInitial(1,bad.mode,0,bad.min,bad.initial);err==nil {
+			t.Fatalf("implicit off or non-standard initial admitted: %+v",p)
+		}
+	}
+	if p,err:=PolicyForClientWithInitial(4,"auto",0,0,0);err==nil {
+		t.Fatalf("Game fixed transport silently migrated to off-auto: %+v",p)
+	}
+}

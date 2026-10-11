@@ -235,11 +235,18 @@ func newLaneWithN2TestPath(cfg LaneConfig, adaptive bool) (*Lane, error) {
 			ErrConfigMismatch, txBudget.ParityShards, rxBudget.ParityShards, cfg.ParityShards)
 	}
 
+	initialPathParity:=cfg.ParityShards
+	if adaptive && cfg.N2Policy.Schema==realityfront.PolicySchemaV3 {
+		// The 20:20 record/TUN/MSS budget is immutable, but actual TX
+		// starts bare LINK for explicit Normal auto initial=off. Neither
+		// client nor server allocates a needless initial 20:20 encoder.
+		initialPathParity=int(cfg.N2Policy.InitialParity)
+	}
 	txPathCtor:=linkdata.NewFECPath
 	if adaptive {txPathCtor=linkdata.NewAdaptiveFECPath}
 	txPath, err := txPathCtor(linkdata.FECPathConfig{
 		SourceMTU:    txBudget.LinkFrameMTU,
-		ParityShards: cfg.ParityShards,
+		ParityShards: initialPathParity,
 		FlushAfter:   cfg.FlushAfter,
 		MaxBlocks:    cfg.MaxBlocks,
 	})
@@ -250,7 +257,7 @@ func newLaneWithN2TestPath(cfg LaneConfig, adaptive bool) (*Lane, error) {
 	if adaptive {rxPathCtor=linkdata.NewAdaptiveFECPath}
 	rxPath, err := rxPathCtor(linkdata.FECPathConfig{
 		SourceMTU:    rxBudget.LinkFrameMTU,
-		ParityShards: cfg.ParityShards,
+		ParityShards: initialPathParity,
 		FlushAfter:   cfg.FlushAfter,
 		MaxBlocks:    cfg.MaxBlocks,
 	})

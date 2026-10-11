@@ -107,6 +107,13 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
+      "fec-start-parity": {
+        "type": "Int",
+        "default_expression": "20",
+        "help": "explicit Normal ordinary auto start: 20 default, or 0 only with --fec-min-parity=0",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "idle-dormant": {
         "type": "Duration",
         "default_expression": "0",
@@ -435,6 +442,13 @@
         "type": "Int",
         "default_expression": "0",
         "help": "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "fec-start-parity": {
+        "type": "Int",
+        "default_expression": "20",
+        "help": "explicit Normal ordinary auto start: 20 default, or 0 only with --fec-min-parity=0",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },

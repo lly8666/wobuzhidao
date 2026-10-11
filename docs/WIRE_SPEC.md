@@ -1,3 +1,5 @@
+> **N2 off-initial 实验扩展候选（2026-10-11，待本SOURCE Actions）**：Normal 普通 auto 可显式 initial=0/min=0/max=20；默认 initial=20、不迁移 fixed/Game。仍是受保护 V3 原有 10 字节 policy 字段，服务器每客户端独立，max20 封装/MTU预算贯穿 off→on，初始发送 bare LINK，不提前分配20:20 TX encoder。auto-aggressive initial0 禁止。收到来源对应成熟回执时，用首发损伤保守下界的 Wilson95% lower 判定可信劣化才 0→4 试探，后续真实 k/r 的独立512样本判更高档；UNKNOWN/容量继续 HOLD，无额外ACK或业务等待。历史默认/阶段叙述以下方 STATUS 为准。该方案需 Actions 才计通过。
+
 > **N2生产接线候选（2026-10-11，Actions待验）**：受保护 V3 能力块保持原固定 10B，Normal auto/aggressive 使用 mode=2/3、initial=max=20、min=0/4/8/10/12/16/20、cipher=ChaCha(1)、quality=1。客户端/服务端真实 admission policy 完全一致且在两向第一包前创建一条共享decoder/各自 local-TX 控制器；旧 fixed/off 语义不改变，Game auto、AES128/256 在 N3 前拒绝。动态档位不入KDF/业务包，也不改 MTU/PN/BlockID；每次旧 partial 仍独立32ms、3s 回收。**本段为候选源码说明，未跑新 SOURCE Actions/负载不得计PASS**。下方原“仅fixed/off”的阶段性说明为演进历史，唯一现状看 STATUS。
 
 # 当前 N1 wire / 资格状态（2026-10-11）
