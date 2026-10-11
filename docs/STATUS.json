@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_OFF_INITIAL_NORMAL_AUTO_300MS_DAMAGE_RISE_420S_SINGLE_CASE_ACTIONS_PENDING",
+    "phase": "N2_OFFSTART_300MS_DAMAGE_RAISE_SCOPED_PASS_CLEAN300_LOWER_RERUN_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "e854b93c5bf0993f030a33b19e4d491555c011ff",
+    "new_product_source_sha": "10dc75c27551eb19b99b23a51d99b8e9cd54b262",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_PRODUCTION_AUTO_WAVE300_UNQUALIFIED_BUT_15MS_LOSSLESS_100S_BOTH_DIRECTION_GUARDED_LOWER_VERIFIED",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_CROPPED_PARITY_REMAINED_STRICT_SCOPED_PASS_INITIAL_FEC_OFF_WILSON_LOWER_AUTHED_TX_CONTROLLER_SCOPED_PASS_REAL_OFF_TO_ON_300MS_LOSSWAVE_ACTIONS_PENDING",
+      "N2_normal_auto": "IN_PROGRESS_OFFSTART_300MS_REAL_DAMAGE_BOTH_DIRECTIONS_0_TO_4_TO_20_RAISE_SCOPED_PASS_C2S_CLEAN_RECOVERY_DOWNGRADE_UNQUALIFIED_CLEAN300_RETRY_PENDING",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -714,6 +714,45 @@
         "scope": "one 420s 300ms one-way bidirectional 10Mbps formal Normal auto initial0,min0,max20; 0→1→5→20→5→0 all injected stages; scoped only if actual off then actual new profile committed rise per-direction; legitimate missing allowed",
         "kernel_netem_seed": "UNSEEDED_TC_OPTION_UNSUPPORTED",
         "physical": "NOT_RUN"
+      },
+      "n2_offstart_wave300_actual": {
+        "status": "SCOPED_OFF_START_RAISE_BOTH_DIRECTIONS_PASS_NOT_FULL_N2_PERFORMANCE",
+        "source_sha": "10dc75c27551eb19b99b23a51d99b8e9cd54b262",
+        "workflow_run": 38154751684,
+        "job": 114515309680,
+        "artifact_id": 11707823425,
+        "artifact_sha256": "63d86db932718bc3d7a235f6cc99be69263cd0f0001f4b40e5fd2c13a6ac45e3",
+        "foundation_run": 38154751590,
+        "foundation_pass_jobs": 7,
+        "foundation_artifact_id": 11708400936,
+        "foundation_sha256": "28b262adaec2a304ce4aab164fcc02097c15626d029a6d2b68072f47a8014d9a",
+        "client_first_unique": "1035853/1036185 (332 missing)",
+        "server_first_unique": "1035791/1036185 (394 missing)",
+        "initial_parity_both": 0,
+        "client_observed_profiles": [
+          0,
+          4,
+          20
+        ],
+        "server_observed_profiles": [
+          0,
+          4,
+          12,
+          16,
+          20
+        ],
+        "client_commit_count": 2,
+        "server_commit_count": 4,
+        "final_client_parity": 20,
+        "final_server_parity": 12,
+        "netem_rng_seed": "UNSUPPORTED_UNSEEDED_ACTUAL_TC_COUNTERS_GROUNDED",
+        "physical": "NOT_RUN"
+      },
+      "n2_clean300_after_edge_model": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "reason": "Separate one config, seed pair, 300ms one-way lossless 100s 10Mbps/dir; measure actual lowering and per-block confidence after corrected cropped source/parity model",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -745,11 +784,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check exact SOURCE Actions for one 420s off-initial Normal auto 10Mbps each-direction 300ms per-oneway 0→1→5→20→5→0 loss wave (netem kernel RNG seed not supported, measured real drops). Require actual TX initial0 in BOTH endpoints and independent real damaged-phase RAISE + actual off->4 commit, source-correlated M lower confidence, no fake 0%/zero-missing requirement. If no rise but line losses netem actual, classify MEASURED_NOT_QUALIFIED and inspect source M/R/capacity/true first delivery, do not weaken hard gates without evidence; may need scientifically bounded uncertainty exploration. Then rerun independent 300ms lossless 100s source after cropped-parity correction and decide downshift. N3-N6 and physical NOT_RUN; historic 2.73s off return p99/missing and 80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-offstart-300ms-injured-wave-single-source-actions-candidate.md",
+  "next_task": "Inspect exact new SOURCE next-adaptive-n2-auto-clean300 Actions. Distinguish functional first-unique PASS from N2 automatic lower eligibility: check client/server last actual TX profiles, committed switch count, lower confidence residual / slow EWMA / 30s stable and edge cropped source share under corrected model. If still HOLD, preserve first-attempt source hard gates and develop grounded identifiable candidate pricing using actual full/partial k/r, no unknown=0 or guess k20; add targeted race/functional Actions, then re-run exactly one scenario. Offstart 420s on 10dc75c passed actual both direction off→4→20 and S2C clean downshift, C2S did not downshift. Aggressive/directional/sparse/feedback cutoff/Game4 and N3-N6, physical NOT_RUN. Old off ~2.73s returning p99/missing and ~80s S2C still OPEN.",
+  "latest_log": "docs/devlog/20261012-n2-offstart-wave300-raise-pass-clean300-lower-rerun.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "3323eb5431c56bb74bfd7fa882e92e3b9b39a8d2",
-  "last_tested_scope": "N2 explicit client Linux+Windows --fec-start-parity=0 ordinary auto min0/initial0/max20 protected V3, genuine AEAD bare LINK first arrival, 0->4 Wilson lower over mature source windows, real k/r 512 further raise: 7 foundation Linux/Windows Go/race/native PASS + lifecycle/N1codec/samewire/3client PASS. No damaged realpath yet.",
+  "last_tested_source_sha": "10dc75c27551eb19b99b23a51d99b8e9cd54b262",
+  "last_tested_scope": "420s true 5-netns Normal auto min0 initial0, 10Mbps each dir, 300ms each one way, 0/1/5/20/5/0 loss: initial off both, authenticated raised to4 and20 on both; C2S 1035853/1036185, S2C 1035791/1036185; S2C later reduced to12, C2S stuck20. One source/wave job38154751684 and Foundation7/7 run38154751590 PASS, still N2 not qualified; TC loss RNG unseeded.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

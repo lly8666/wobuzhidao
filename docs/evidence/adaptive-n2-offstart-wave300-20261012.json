@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_sha": "10dc75c27551eb19b99b23a51d99b8e9cd54b262",
+  "run": 38154751684,
+  "job": 114515309680,
+  "artifact_id": 11707823425,
+  "artifact_sha256": "63d86db932718bc3d7a235f6cc99be69263cd0f0001f4b40e5fd2c13a6ac45e3",
+  "foundation_run": 38154751590,
+  "foundation_enabled_jobs_pass": 7,
+  "foundation_artifact_id": 11708400936,
+  "foundation_sha256": "28b262adaec2a304ce4aab164fcc02097c15626d029a6d2b68072f47a8014d9a",
+  "classification": "SCOPED_OFF_START_BOTH_DIRECTION_RAISE_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE",
+  "cfg": {
+    "mode": "Normal auto initial=0 min=0 max=20",
+    "loss_wave_pct": [
+      0,
+      1,
+      5,
+      20,
+      5,
+      0
+    ],
+    "stages_s": [
+      60,
+      60,
+      60,
+      60,
+      60,
+      120
+    ],
+    "logical_mbps_each_way": 10,
+    "one_way_delay_ms": 300,
+    "outer_mtu": 1400,
+    "record_caps": [
+      0,
+      0
+    ],
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ],
+    "netem_rng_seed_support": false
+  },
+  "results": {
+    "c2s": {
+      "sent": 1036185,
+      "first_unique": 1035853,
+      "missing": 332,
+      "observed_grades": [
+        0,
+        4,
+        20
+      ],
+      "commits": 2,
+      "final_grade": 20
+    },
+    "s2c": {
+      "sent": 1036185,
+      "first_unique": 1035791,
+      "missing": 394,
+      "observed_grades": [
+        0,
+        4,
+        12,
+        16,
+        20
+      ],
+      "commits": 4,
+      "final_grade": 12
+    },
+    "max_whole_wall_seconds_without_delivery": 0,
+    "corrupt": 0,
+    "duplicate": 0,
+    "reported_last_clean_stage": "120s with actual 0% injection",
+    "reason_for_limit": "one direction remained 20 after clean window; full automatic lowering not passed"
+  },
+  "issues": [
+    "tc does not support netem RNG seed: counter-measured losses, not strictly reproducible random realization",
+    "No claim of full N2 p99/CPU/adaptive clean recovery",
+    "Diagnostic ON CPU is not comparable with OFF; N3-N6 NOT_RUN"
+  ],
+  "raw_pcap_policy": "sha256+removed, not uploaded",
+  "physical": "NOT_RUN"
+}

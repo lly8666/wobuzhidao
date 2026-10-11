@@ -8,10 +8,10 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: adaptive-n2-lowrtt-single-${{ github.ref }}
+  group: adaptive-n2-clean300-single-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  one-v3-normal-auto-10mbps-lowrtt-functional:
+  one-v3-normal-auto-10mbps-clean300-lower-confidence:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -64,7 +64,7 @@ jobs:
           python3 tools/adaptive_n2_clean300.py prepare \
             --root . --script "$ART/n2-clean300-derived.sh" --receipt "$ART/harness-prep.json"
           bash -n "$ART/n2-clean300-derived.sh"
-      - name: One Normal auto 10Mbps each direction, 300ms one-way high RTT, 100s clean confidence-gate sample
+      - name: One independent 100s clean 300ms one-way Normal auto 10Mbps each way, evaluate actual lower gates
         id: sample
         continue-on-error: true
         env:
