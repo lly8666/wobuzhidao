@@ -21,13 +21,27 @@
   ],
   "new_analysis": {
     "source_sha": "PENDING_COMMIT",
-    "status": "TEST_FAIL_FIX_CANDIDATE",
+    "status": "SCOPED_UNIT_ACTIONS_PASS_REAL_IMPAIRED_SAMPLE_PENDING",
     "scope": "only damaged off profile-screen; separate off-weaknet-v2.json; legacy result and errors unchanged",
     "qualify_on_one_sample": false,
     "analysis_version": "off-weaknet-v2",
     "output": "off-weaknet-v2.json",
     "targeted_actions_red_run": 38106893242,
-    "targeted_actions_red_detail": "6 unittest PASS, test mixed fragment ERROR KeyError business_sent_packets: test sent legacy normalized wrong interface, not analyzer predicate; test now calls _raw_stage_measurements"
+    "targeted_actions_red_detail": "6 unittest PASS, test mixed fragment ERROR KeyError business_sent_packets: test sent legacy normalized wrong interface, not analyzer predicate; test now calls _raw_stage_measurements",
+    "targeted_actions_green_run": 38106939832,
+    "targeted_actions_green_job": 114374351563,
+    "targeted_unit_tests_passed": 7,
+    "fresh_profile_source": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+    "new_sample_case": {
+      "mode": "normal",
+      "parity": 0,
+      "scenario": "5205",
+      "rate_each_direction_mbps": 10,
+      "lanes": 1,
+      "seed": 601,
+      "source": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "status": "NOT_RUN_AS_OF_DISPATCH"
+    }
   },
   "expected_unit_vectors": [
     "off5205/5305 eligibility, nonoff/lossless/formal20 exclusion",

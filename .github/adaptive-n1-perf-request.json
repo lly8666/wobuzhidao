@@ -4,7 +4,7 @@
   "baseline_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
   "candidate_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "workflow": "next-strict-weaknet.yml",
-  "harness_policy": "Each relay attempt dispatches exactly one strict single-source measurement Action, sequential. All baseline/candidate pairs pinned to the exact same relay HEAD; no source-inference from branch HEAD.",
+  "harness_policy": "new off-weaknet-v2 measured receipt for damaged parity0 profile-screen only; original profile-original-gate-reference.json kept. Every re-run of relay job dispatches exactly one strict single-SOURCE/config/seed/wave sample, no concurrent measurement and immutable harness per A/B.",
   "cases": [
     {
       "role": "candidate",
@@ -12,20 +12,6 @@
       "qualification_kind": "fec-profile-screen",
       "fec_parity": "0",
       "mode": "normal",
-      "scenario": "lossless",
-      "seed": "601",
-      "rate_mbps": "10",
-      "lanes": "1",
-      "cpu_profile": false,
-      "stateful_middlebox": false,
-      "wan_neighbors": "dynamic"
-    },
-    {
-      "role": "candidate",
-      "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
-      "qualification_kind": "fec-profile-screen",
-      "fec_parity": "0",
-      "mode": "normal",
       "scenario": "5205",
       "seed": "601",
       "rate_mbps": "10",
@@ -156,6 +142,20 @@
       "seed": "601",
       "rate_mbps": "3",
       "lanes": "4",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    },
+    {
+      "role": "candidate",
+      "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "0",
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
       "cpu_profile": false,
       "stateful_middlebox": false,
       "wan_neighbors": "dynamic"
