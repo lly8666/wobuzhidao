@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "1bcb6501fdb55acbfdd5fb5efd6d3c036a72b3a0",
+  "status": "SCOPED_PASS_TEST_ONLY_EXISTING_TICK_TX_APPLY_NOT_PRODUCTION_AUTO",
+  "foundation": {
+    "run": 38135600769,
+    "conclusion": "success",
+    "seven_enabled_job_ids": [
+      114458704469,
+      114458728684,
+      114458728699,
+      114458728708,
+      114458728727,
+      114458728742,
+      114458728747
+    ],
+    "artifact": 11700323843,
+    "artifact_sha256": "7b21ce0cbaeff7d2ae95bdd71dbfe9feb3e4b14b4f3dbcee73d15988e6aefce1",
+    "p5_p6": "SKIPPED"
+  },
+  "lifecycle": {
+    "run": 38135600786,
+    "conclusion": "success"
+  },
+  "n1_codec_race": {
+    "run": 38135600764,
+    "conclusion": "success"
+  },
+  "n0_samewire": {
+    "run": 38135600785,
+    "conclusion": "success"
+  },
+  "n0_multi_client": {
+    "run": 38135600816,
+    "conclusion": "success"
+  },
+  "scope": "Only accepted local TX Raise/Lower pending triggers existing tick on explicitly test-only N2 auto lanes; no fresh wait/ACK/timer, expiry and generation fence",
+  "pending": [
+    "production V3 auto admission",
+    "per-client runtime bootstrap and CLI+JSON+catalog",
+    "one-config 10Mbps/300ms/waveform N2 realpath",
+    "N3 AES",
+    "N4 Windows TUN",
+    "N5 GUI",
+    "N6 packages"
+  ],
+  "physical": "NOT_RUN",
+  "historical_fail_preserved": true
+}

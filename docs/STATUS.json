@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_ACCEPTED_LOCAL_TX_PROPOSAL_EXISTING_TICK_NO_GAME_WAKE_ACTIONS_PENDING",
+    "phase": "N2_LOCAL_TX_CONTROLLER_EXISTING_TICK_TEST_ONLY_SCOPED_ACTIONS_PASS_PRODUCT_AUTO_UNSUPPORTED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "33151e05d051dbd163fc764dc2c4ece6dec530e4",
+    "new_product_source_sha": "1bcb6501fdb55acbfdd5fb5efd6d3c036a72b3a0",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_VERIFIED_NATURAL_COHORT_JOINT_KR_AND_PROTECTED_TX_ECHO_PROPOSAL_NO_LIVE_PARITY_SWITCH",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_TRUE_KR_SOURCE_PROTECTED_LOCAL_TX_ONE_USE_GENERATION_PINNED_PREPARE_ACTIONS_PASS_EXISTING_MAINTENANCE_TICK_NONBLOCKING_APPLY_CANDIDATE",
+      "N2_normal_auto": "IN_PROGRESS_TEST_ONLY_JOINT_KR_AND_SOURCE_CORRELATED_AUTH_TX_ECHO_ONE_USE_CURRENT_TICK_SWITCH_SCOPED_PASS_AUTO_PRODUCTION_NOT_ADMITTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -424,10 +424,15 @@
         "physical": "NOT_RUN"
       },
       "n2_existing_tick_proposal_apply": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "scope": "only explicitly staged quality-controller lanes trigger per-lane atomic pending; existing Tick applies old-source-supported RAISE/LOWER, expiration one-shot, no Game timer; production admission still gated",
-        "physical": "NOT_RUN"
+        "status": "SCOPED_PASS_TEST_ONLY_NO_LIVE_AUTO_ADMISSION",
+        "source_sha": "1bcb6501fdb55acbfdd5fb5efd6d3c036a72b3a0",
+        "foundation_run": 38135600769,
+        "lifecycle_run": 38135600786,
+        "n1_codec_run": 38135600764,
+        "n0_samewire_run": 38135600785,
+        "n0_multi_run": 38135600816,
+        "foundation_artifact": 11700323843,
+        "foundation_sha256": "7b21ce0cbaeff7d2ae95bdd71dbfe9feb3e4b14b4f3dbcee73d15988e6aefce1"
       }
     },
     "fec_off_weaknet_v2": {
@@ -459,11 +464,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2: verify next SOURCE existing Runtime.Tick accepted local-TX proposal handling via per-lane atomic pending, no added timer or Game controller; if red fix on Actions. Prior 33151e05 cold prepare outside generation + newer echo HOLD version fence passed foundation38135310621/lifecycle38135310674/N1codec38135310616/N0samewire38135310627/N0multi38135310655. Then wire protected V3 production auto/aggressive once-endpoint supported policy, per-client independent TX path, 20:20 max MTU stable, Quality=1, rotation and idle; update CLI Linux/Windows JSON catalog; run single SOURCE/config/seed/scenario per performance job. N3-N6 and physical NOT_RUN; default off return p99/missing ~2.73s and old ~80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-accepted-local-tx-proposal-on-existing-tick-candidate.md",
+  "next_task": "N2 NEXT: complete real protected once-only V3 Normal auto/aggressive per-client admission (currently intentionally rejected by SupportedNow), bind source-verified per-incarnation active TX controller on client/server after ConfigureQualityV3 and ensure new-block-only dynamic Lane constructor/MTU max20 from negotiated policy. Sync Linux/Windows fec-mode/min CLI and JSON/catalog+PARAMETERS only when feature is implemented; old fixed/off configs unchanged; Game auto explicit reject. Test 0/1/5/20/5/0 waveforms, 10Mbps each direction, 300ms one-way, partial/off/on, tail-loss, mismatched directions, feedback interruption, generation/idle/rotation, source-specific one case/config/seed/measure job Actions. N3-N6 and physical NOT_RUN; historic default off return probe p99/missing~2.73s and 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-existing-tick-local-tx-profile-apply-scoped-actions-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "33151e05d051dbd163fc764dc2c4ece6dec530e4",
-  "last_tested_scope": "Cold N2 preparation completely outside Runtime generation read lock, short same-active/ref/latest quality version commit; 7 foundation enabled Linux/Windows Go/race and Lifecycle/N1codec/N0samewire/N0multi Actions PASS; no product auto/performance.",
+  "last_tested_source_sha": "1bcb6501fdb55acbfdd5fb5efd6d3c036a72b3a0",
+  "last_tested_scope": "N2 local authenticated source TX controller current maintenance-tick test-only new-block profile application: Linux/Windows Go/race foundation7 PASS, lifecycle, N1 codec/race, samewire, 3 Linux native clients PASS. P5/P6 SKIPPED, auto public UNSUPPORTED, physical NOT_RUN.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
