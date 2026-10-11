@@ -1,0 +1,79 @@
+name: next-adaptive-n1-perf-relay
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n1-perf-relay.yml"
+      - ".github/adaptive-n1-perf-request.json"
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: next-adaptive-n1-perf-relay
+  cancel-in-progress: false
+jobs:
+  dispatch-one-strict-action-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate exact immutable harness and one-case index
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "next/adaptive-fec-aes-tun-20261010"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          remote="$(git ls-remote origin "refs/heads/$GITHUB_REF_NAME" | awk '{print $1}')"
+          test -n "$remote"
+          test "$remote" = "$GITHUB_SHA"
+          python3 - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          d=json.loads(Path(".github/adaptive-n1-perf-request.json").read_text())
+          assert d["schema"]==1 and d["workflow"]=="next-strict-weaknet.yml"
+          assert d["branch"]=="next/adaptive-fec-aes-tun-20261010"
+          assert re.fullmatch(r"[0-9a-f]{40}",d["baseline_sha"])
+          assert re.fullmatch(r"[0-9a-f]{40}",d["candidate_sha"])
+          assert d["baseline_sha"]!=d["candidate_sha"]
+          cs=d["cases"]
+          assert len(cs)==12
+          seen=set()
+          for c in cs:
+              assert set(c)=={"role","product_source_sha","qualification_kind","fec_parity","mode","scenario","seed","rate_mbps","lanes","cpu_profile","stateful_middlebox","wan_neighbors"}
+              assert c["qualification_kind"]=="fec-profile-screen"
+              assert (c["mode"],c["scenario"],c["fec_parity"],c["rate_mbps"],c["lanes"]) in {
+                ("normal","lossless","0","10","1"),("normal","lossless","20","10","1"),
+                ("normal","5205","0","10","1"),("normal","5205","20","10","1"),
+                ("game","lossless","20","3","4"),("game","5205","20","3","4")}
+              assert c["seed"]=="601" and c["wan_neighbors"]=="dynamic"
+              assert c["cpu_profile"] is False and c["stateful_middlebox"] is False
+              assert c["role"] in {"baseline","candidate"}
+              assert c["product_source_sha"]==d[c["role"]+"_sha"]
+              tag=(c["role"],c["mode"],c["scenario"],c["fec_parity"])
+              assert tag not in seen
+              seen.add(tag)
+          assert len(seen)==12
+          index=int(os.environ["GITHUB_RUN_ATTEMPT"])-1
+          if not 0<=index<len(cs):
+              raise SystemExit("All 12 attempt slots exhausted: no new performance sample dispatched")
+          c=cs[index]
+          with open(os.environ["GITHUB_ENV"],"a") as f:
+              for k,n in {"product_source_sha":"CASE_SOURCE","qualification_kind":"CASE_KIND","fec_parity":"CASE_PARITY","mode":"CASE_MODE","scenario":"CASE_SCENARIO","seed":"CASE_SEED","rate_mbps":"CASE_RATE","lanes":"CASE_LANES"}.items():
+                  f.write(n+"="+c[k]+"\n")
+          print("ONE_CASE_ONLY",index+1,"of",len(cs),c,"HARNESS_SHA",os.environ["GITHUB_SHA"])
+          PY
+          git cat-file -e "$CASE_SOURCE^{commit}"
+          python3 tools/check_performance_workflow_policy.py
+      - name: Prevent parallel strict samples and dispatch exactly one
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          active="$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/runs?event=workflow_dispatch&branch=$GITHUB_REF_NAME&per_page=100" |
+            jq -r --arg head "$GITHUB_SHA" '[.workflow_runs[] | select(.head_sha==$head and (.status=="queued" or .status=="in_progress" or .status=="waiting" or .status=="pending"))] | length')"
+          test "$active" = 0 || { echo "CAPACITY/BUSY: $active strict sample is still running on this exact harness; do not overlap measurement jobs"; exit 1; }
+          gh workflow run next-strict-weaknet.yml --ref "$GITHUB_REF_NAME"             -f qualification_kind="$CASE_KIND"             -f fec_parity="$CASE_PARITY"             -f mode="$CASE_MODE" -f scenario="$CASE_SCENARIO"             -f seed="$CASE_SEED" -f rate_mbps="$CASE_RATE"             -f lanes="$CASE_LANES"             -f product_source_sha="$CASE_SOURCE"
+          echo "DISPATCH_REQUEST_ACCEPTED (NOT PERFORMANCE PASS): source=$CASE_SOURCE harness=$GITHUB_SHA parity=$CASE_PARITY mode=$CASE_MODE scenario=$CASE_SCENARIO seed=$CASE_SEED rate=$CASE_RATE lanes=$CASE_LANES"

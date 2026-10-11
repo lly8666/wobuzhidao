@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_CONTINUOUS_MATURITY_REPRO_FAIL_CLOSED_RX_SNAPSHOT_FIX_ACTIONS_PENDING",
+    "phase": "N1_CONTINUOUS_CLOSED_WINDOW_SCOPED_ACTIONS_PASS_SINGLE_SAMPLE_PERF_RELAY_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -105,11 +105,18 @@
       "n1_control_freshness_lifecycle_run": 38097139569,
       "n1_control_freshness_foundation_run": 38097139585,
       "n1_control_freshness_native_three_run": 38097139591,
-      "n1_control_freshness_scope": "actual encrypted 20 then one data PN report despite same INSUFFICIENT state; two directions pure seq-only echo suppress; scalar Tick snapshot omits 16-source history; code/source Go -race2, Linux Windows and three native client zero-loss functional scoped PASS"
+      "n1_control_freshness_scope": "actual encrypted 20 then one data PN report despite same INSUFFICIENT state; two directions pure seq-only echo suppress; scalar Tick snapshot omits 16-source history; code/source Go -race2, Linux Windows and three native client zero-loss functional scoped PASS",
+      "n1_closed_window_source_sha": "e5638253a9e022fcd4c7e150740c1ebc0bd327ad",
+      "n1_closed_window_race_run": 38102335785,
+      "n1_closed_window_lifecycle_run": 38102335762,
+      "n1_closed_window_foundation_run": 38102335708,
+      "n1_closed_window_native_run": 38102335774,
+      "n1_closed_window_native_artifact_id": 11687984403,
+      "n1_closed_window_scope": "Protected V3 sustained upload/download/bidirectional 180 DATA/2s 9 cycles, >=2 mature returned echoes in each active direction, -race count2 PASS; Linux/Windows foundation, lifecycle, nine-netns 3client lossless functional PASS; not native 10Mbps/weaknet or formal performance."
     }
   },
-  "next_task": "N1 Actions verify candidate after a9016dc8 RED, Actions 38101947517 (all three real protected streaming directions 0 mature echoes). New bounded closed-report RX tracker must pass N1 race plus lifecycle/foundation/native. Then verify late/reorder/report loss/local drop/idle/rotation and real impairment/performance; keep N2 disabled. Formal strict 10Mbps paired-source samples NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-163000-n1-continuous-window-reproduction-fail-closed-snapshot-fix-candidate.md",
+  "next_task": "Run feature-branch push relay first sample then rerun its one non-measurement job only after the preceding distinct strict Action finishes; relay dispatches one exact SOURCE/config/seed/scenario per attempt from .github/adaptive-n1-perf-request.json. Inspect actual strict sample results, capacity/host/queue drop; if GH_TOKEN/actions dispatch blocked keep NOT_RUN. Finish 1%/5% dedicated functional fixture and impaired N1 receiver correctness, avoid N2 until feedback confidence. N3-N6 NOT_STARTED.",
+  "latest_log": "docs/devlog/20261011-170000-n1-closed-window-actions-pass-single-performance-dispatch-relay.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
   "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",
