@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "source_sha": "d2f785c7b843c8cf338599de491216a48e7f8a5f",
+  "status": "PRODUCT_10MBPS_FIRST_UNIQUE_FUNCTIONAL_PASS_ONE_DIRECTION_AUTO_LOWER_NOT_N2_QUALIFIED",
+  "foundation": {
+    "run": 38142265949,
+    "conclusion": "success",
+    "enabled_jobs": 7,
+    "artifact_id": 11702808068,
+    "artifact_sha256": "665d7125fdcac760efa4704d3b5cd850bcb1d152113545a5d899b2b73943b01e"
+  },
+  "lifecycle": {
+    "run": 38142265943,
+    "conclusion": "success"
+  },
+  "n1_codec": {
+    "run": 38142265955,
+    "conclusion": "success"
+  },
+  "n0_three_client": {
+    "run": 38142265940,
+    "conclusion": "success"
+  },
+  "realpath": {
+    "run": 38142265946,
+    "job": 114478378472,
+    "conclusion": "success",
+    "artifact_id": 11702723239,
+    "artifact_sha256": "f3e9203cbd72222635cf6ef5e34a8ac46514259d39b3ed2c2d1ef0195766a05c",
+    "rate_each_direction_mbps": 10,
+    "duration_s": 40,
+    "loss_percent": 0,
+    "one_way_ms": 15,
+    "mtu": 1400,
+    "record_caps": [
+      0,
+      0
+    ],
+    "seeds": [
+      2026092201,
+      2026092202
+    ],
+    "first_unique_each_direction": {
+      "sent": 98685,
+      "received": 98685,
+      "bytes": 50000400
+    },
+    "diagnostics": "ON",
+    "client_c2s": {
+      "actual_tx_parity": [
+        20
+      ],
+      "commits": 0,
+      "last_source_seq": 33,
+      "source_matched_snapshots": 64,
+      "repair_covered_snapshots": 52,
+      "complete_first_bound_snapshots": 42,
+      "cropped_snapshots": 35,
+      "invalid_shape_snapshots": 0,
+      "capacity_limited_snapshots": 0,
+      "reason_samples": {
+        "HOLD_UNQUALIFIED_FIRST_ATTEMPT": 22,
+        "HOLD_UNVERIFIED_PARTIAL_K": 6,
+        "HOLD_STABILITY_OR_CONFIDENCE": 21,
+        "HOLD_OLD_SOURCE_OR_OVERLAP": 12,
+        "HOLD_INSUFFICIENT_512": 3
+      }
+    },
+    "server_s2c": {
+      "actual_tx_parity": [
+        16,
+        20
+      ],
+      "commits": 1,
+      "last_source_seq": 33,
+      "source_matched_snapshots": 64,
+      "repair_covered_snapshots": 45,
+      "complete_first_bound_snapshots": 36,
+      "cropped_snapshots": 45,
+      "invalid_shape_snapshots": 0,
+      "capacity_limited_snapshots": 0,
+      "reason_samples": {
+        "HOLD_UNQUALIFIED_FIRST_ATTEMPT": 28,
+        "HOLD_UNVERIFIED_PARTIAL_K": 8,
+        "HOLD_STABILITY_OR_CONFIDENCE": 21,
+        "HOLD_OLD_SOURCE_OR_OVERLAP": 3,
+        "HOLD_INSUFFICIENT_512": 2,
+        "LOWER_ONE": 2
+      }
+    }
+  },
+  "qualification": "N2_AUTO_NOT_COMPLETE_NO_C2S_LOWER_NO_DAMAGE_RAISE_OR_300MS_PERF",
+  "physical": "NOT_RUN"
+}
