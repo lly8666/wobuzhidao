@@ -32,6 +32,7 @@ on:
       - "internal/runtimeowner/health_test.go"
       - "internal/runtimeowner/quality_echo_live_test.go"
       - "internal/runtimeowner/quality_pair_test.go"
+      - "internal/runtimeowner/quality_continuous_test.go"
       - "internal/runtimeowner/quality_window_test.go"
       - "internal/runtimeowner/send_batch.go"
       - "internal/runtimeowner/quality_live_test.go"

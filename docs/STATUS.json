@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_MERGED_PADDED_CONTROL_FRESH_SOURCE_ECHO_NO_PINGPONG_SCOPED_ACTIONS_PASS_FORMAL_AB_PERF_NOT_RUN",
+    "phase": "N1_CONTINUOUS_BUSINESS_FEEDBACK_PRODUCTION_PATH_REPRO_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -108,8 +108,8 @@
       "n1_control_freshness_scope": "actual encrypted 20 then one data PN report despite same INSUFFICIENT state; two directions pure seq-only echo suppress; scalar Tick snapshot omits 16-source history; code/source Go -race2, Linux Windows and three native client zero-loss functional scoped PASS"
     }
   },
-  "next_task": "NEXT: run separate manually dispatched next-strict-weaknet exact one SOURCE/config/seed/scenario per Action using manifest docs/evidence/adaptive-n1-control-perf-dispatch-plan-20261011.json: first identical harness normal1 parity0 10Mbps lossless fec-profile-screen seed601 old source 4f0cf78 versus optimized 83eca5e. GitHub connector lacks workflow_dispatch mutation; these A/B measurements NOT_RUN until triggered. Then normal fixed20 lossless/5205, Game4 3Mbps lossless/5205, separate sparse/idle/oneway 0/1/5/20 and low RTT/safe MTU where harness available; classify CPU/quota/PSI/raw socket drop/first unique p99/HOL/control length and gap and capacity. Resume N1 impaired feedback age/rotation/3s maturity and 10s source-history/reciprocal multilane before allowing N2 auto. Do not deploy or do physical until all N0-N6/P6.",
-  "latest_log": "docs/devlog/20261011-151500-n1-control-freshness-race-pass-performance-dispatch-next.md",
+  "next_task": "First run new TestN1QualityV3ContinuousBusinessEchoMaturity on push N1 Actions (upload/download/bidirectional streaming with protected V3 FakeTCP/real Lane owner). Inspect actual failing or passing job logs before declaring a defect. Only then apply bounded closed-window/receiver snapshot fixes if confirmed. Native 10Mbps lossless/5205 performance remains NOT_RUN until independent strict workflow_dispatch; no N2 activation until N1 feedback valid.",
+  "latest_log": "docs/devlog/20261011-160000-n1-continuous-protected-feedback-reproduction-actions-pending.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
   "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",
