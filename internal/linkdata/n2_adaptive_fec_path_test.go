@@ -206,10 +206,21 @@ func TestN2PreparedSwitchDoesNotHoldFreshAndCommitsOnlyNewBlockIDs(t *testing.T)
 	if early,err:=tx.FlushDue(at.Add(31*time.Millisecond));err!=nil||len(early)!=0 {
 		t.Fatalf("prepared commit forced old partial early %d %v",len(early),err)
 	}
-	parity,err:=tx.FlushDue(at.Add(32*time.Millisecond))
-	if err!=nil||len(parity)!=3 {t.Fatalf("old k2+r2 and new k1+r1 parity absent %d %v",len(parity),err)}
-	got:=n2Decode(t,rx,parity,at.Add(32*time.Millisecond))
-	if len(got)!=3 {t.Fatalf("old/new parity did not recover all lost firsts: %q",got)}
+	oldParity,err:=tx.FlushDue(at.Add(32*time.Millisecond))
+	if err!=nil||len(oldParity)!=2 {
+		t.Fatalf("old k2+r2 must close at t0+32ms, got=%d err=%v",len(oldParity),err)
+	}
+	got:=n2Decode(t,rx,oldParity,at.Add(32*time.Millisecond))
+	if len(got)!=2 {t.Fatalf("old sources unrecovered at own 32ms deadline: %q",got)}
+	if beforeNew,err:=tx.FlushDue(at.Add(33*time.Millisecond));err!=nil||len(beforeNew)!=0 {
+		t.Fatalf("new partial erroneously inherited older deadline %d %v",len(beforeNew),err)
+	}
+	newParity,err:=tx.FlushDue(at.Add(34*time.Millisecond))
+	if err!=nil||len(newParity)!=1 {
+		t.Fatalf("new k1+r1 must close at firstAt+32ms=t0+34ms got=%d err=%v",len(newParity),err)
+	}
+	got=append(got,n2Decode(t,rx,newParity,at.Add(34*time.Millisecond))...)
+	if len(got)!=3 {t.Fatalf("old/new independent parity deadlines lost original firsts: %q",got)}
 	if dupe:=n2Decode(t,rx,append(append(old,otherOld...),newWire...),at.Add(time.Second));len(dupe)!=0 {
 		t.Fatalf("late original systematic redelivered %q",dupe)
 	}

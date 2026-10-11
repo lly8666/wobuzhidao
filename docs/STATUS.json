@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_PREPARED_COLD_FEC_SWITCH_NO_FRESH_LOCK_WAIT_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N2_PREPARED_FEC_SWITCH_INDEPENDENT_DEADLINE_TEST_CORRECTION_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -353,10 +353,19 @@
         "physical": "NOT_RUN"
       },
       "n2_prepared_cold_switch_candidate": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "parent_doc_sha": "a5c3349903590ddd6b6f9e8c4ed7dc77bdc93ce4",
-        "productive_auto": "UNSUPPORTED",
+        "status": "FIRST_SOURCE_TEST_ORACLE_FAIL_CORRECTION_PENDING",
+        "original_source_sha": "a619a2b503881024ce30b9cfb7050dc2adf77094",
+        "original_foundation_run": 38132026228,
+        "failed_linux_job": 114448183629,
+        "original_lifecycle_run": 38132026241,
+        "other_scoped_runs": {
+          "n1_codec": 38132026215,
+          "n0_multi": 38132026211,
+          "n0_samewire": 38132026231
+        },
+        "root_cause": "Test wrongly expected parity of new partial whose firstAt=t0+2ms to be due at t0+32ms; real required new deadline t0+34ms",
+        "corrected_source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "production_auto": "UNSUPPORTED",
         "physical": "NOT_RUN"
       }
     },
@@ -389,8 +398,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 prepared two-phase encoder switch: check exact SOURCE new foundation/lifecycle and scoped if auto triggered, fix errors preserving run/job. New PrepareParitySwitch allocates cold encoder WITHOUT Lane TX lock; Commit under lane TX lock rebases unused BlockID, bounded drain old 32ms partial, monotonic PN/BlockID; tests cross-owner/reuse, old parity late/new fresh. Then bind controller's protected per-client local TX suggestion to generation-pinned active owner application with HOLD on busy/capacity, no send-blocking, and protected V3 Normal auto/aggressive admission. Game fixed; one-source realpath Actions and N3-6 still undone, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-prepared-cold-fec-switch-zero-fresh-hol-candidate.md",
+  "next_task": "N2 prepared switch oracle correction SOURCE after a619a2b: previous foundation38132026228 Linux job114448183629 FAIL solely new test assumed new partial firstAt+30ms rather than +32ms. Now assert old parity2 at t0+32 and new parity1 at t0+34 with no early flush. Verify next exact SOURCE Actions foundation/lifecycle/N1 codec/three-client before qualification; do not change product 32ms. Then generation-pinned local TX proposal application without fresh HOL, protected V3 per-client Normal auto/aggressive admission, N2 realpath per-case performance; N3-N6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n2-prepared-independent-deadline-test-oracle-correction.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "dcf0a5549738672a05934ccf810bfd7ca7875a96",
   "last_tested_scope": "N2 single-generation protected V3 returned local TX-source controller PROPOSAL only: foundation Linux/Windows Go/race seven enabled PASS, lifecycle/N1 codec race/N0 hosted Linux three-client PASS; auto admission/switch/performance/physical NOT_RUN",
