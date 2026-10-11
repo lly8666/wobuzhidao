@@ -117,30 +117,37 @@ func (r *Runtime) QualityFirstAttemptBound(ref logicaltunnel.LaneRef, now time.T
     }
     lane.mu.Unlock()
     if !enabled {return QualityFirstAttemptBound{},false}
+    return qualityFirstAttemptBoundFromSnapshot(echo,src,ref.Generation,now),true
+}
+
+// Pure, caller-lock-owned evaluation of the same-source authenticated return.
+// The protected RX receive callback can use this without reentering Runtime
+// locks, while the public read-only snapshot keeps exactly the same gates.
+func qualityFirstAttemptBoundFromSnapshot(echo qualityReturnedEcho,src qualitySentSource,generation uint64,now time.Time) QualityFirstAttemptBound {
     out:=QualityFirstAttemptBound{State:datapath.QualityFeedbackUnknown}
-    if !echo.valid {return out,true}
+    if !echo.valid {return out}
     e:=echo.report
     out.SourceReportSeq=e.SourceReportSeq
     out.SourceGeneration=e.SourceGeneration
     if now.Before(echo.received)||!now.Before(echo.received.Add(qualityEchoStaleAfter)) ||
        now.Before(src.sent)||!now.Before(src.sent.Add(qualityEchoStaleAfter)) {
         out.State=datapath.QualityFeedbackStale
-        return out,true
+        return out
     }
     out.Age=now.Sub(echo.received)
     if e.State!=datapath.QualityFeedbackEstimated {
         out.State=e.State
-        return out,true
+        return out
     }
     m:=src.report
-    if m.ReportSeq!=e.SourceReportSeq || m.Generation!=ref.Generation ||
+    if m.ReportSeq!=e.SourceReportSeq || m.Generation!=generation ||
        m.IncarnationNonce!=e.Report.IncarnationNonce ||
        m.WindowLastPN!=e.SourceLastPN ||
        !src.repairCoverage || m.TxSuccess<qualityPairMinTransmitted ||
        e.ReceiverUnique>m.TxSuccess ||
        uint64(e.EstimatedMissing)!=m.TxSuccess-e.ReceiverUnique {
         out.State=datapath.QualityFeedbackInsufficient
-        return out,true
+        return out
     }
     out.State=datapath.QualityFeedbackEstimated
     out.FirstPN,out.LastPN=m.WindowFirstPN,m.WindowLastPN
@@ -154,5 +161,5 @@ func (r *Runtime) QualityFirstAttemptBound(ref logicaltunnel.LaneRef, now time.T
     out.UpperFraction=float64(out.MaxFirstLost)/float64(out.Sent)
     out.Complete=true
     out.Shape=src.shape
-    return out,true
+    return out
 }

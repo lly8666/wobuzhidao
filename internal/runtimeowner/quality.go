@@ -4,6 +4,7 @@ import (
     "errors"
     "time"
 
+    "github.com/lly8666/wobuzhidao/internal/adaptivefec"
     "github.com/lly8666/wobuzhidao/internal/datapath"
     "github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
@@ -22,6 +23,12 @@ type qualityState struct {
     lastMatureEchoSeq uint64
     sentSources [qualitySentHistoryCapacity]qualitySentSource
     returned qualityReturnedEcho
+    // No production constructor sets n2. The authenticated return path may
+    // evaluate a guarded TEST-ONLY Normal TX-direction controller; the result
+    // is a proposal, NEVER a profile switch or fresh packet gate.
+    n2 *adaptivefec.Controller
+    n2Last adaptivefec.Decision
+    n2HasDecision bool
     received uint64
     rejected uint64
     sent uint64
@@ -254,6 +261,12 @@ func (t *laneTransport) observeQualityLocked(result datapath.InboundResult, now 
                 if candidate.Index==i {
                     if !t.quality.acceptReturnedEcho(candidate.Echo,now,t.ref.Generation) {
                         t.quality.rejected++
+                    } else {
+                        // Only the LOCAL sender's authenticated matured
+                        // returned source enters its LOCAL TX controller.
+                        // Incoming receiver quality cannot choose S2C/C2S
+                        // parity. This does not send, change or wake anything.
+                        t.quality.n2ObserveAuthenticatedReturn(t.ref.Generation,now)
                     }
                     break
                 }

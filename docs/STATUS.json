@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_JOINT_K_R_SOURCE_GEOMETRY_GUARD_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N2_PROTECTED_LOCAL_TX_RETURN_CONTROLLER_TEST_ONLY_OBSERVATION_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_NATURAL_ENCRYPTED_ENCODER_COHORT_SCOPED_PASS_JOINT_LENGTH_K_R_SOURCE_GEOMETRY_QUALIFIER_ACTIONS_PENDING_AUTO_UNSUPPORTED",
+      "N2_normal_auto": "IN_PROGRESS_NATURAL_SOURCE_AND_JOINT_KR_SCOPED_PASS_AUTH_RETURN_DIRECTION_LOCAL_TX_TEST_ONLY_CONTROL_ECHO_OBSERVATION_ACTIONS_PENDING",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -332,10 +332,19 @@
         "production_auto": "UNSUPPORTED"
       },
       "n2_joint_kr_guard": {
+        "status": "SCOPED_ACTIONS_PASS_NOT_LIVE",
+        "source_sha": "08be77e2bb977b324a25366b0f4cb35549473179",
+        "foundation_run": 38131135195,
+        "lifecycle_run": 38131135165,
+        "foundation_artifact_id": 11699109405,
+        "foundation_artifact_sha256": "29d875120ad98c39906a6baaf7f3dc55d8f6f79559a2e15b404e7cf8c5b75925",
+        "production_auto": "UNSUPPORTED"
+      },
+      "n2_directional_authenticated_observation": {
         "status": "ACTIONS_PENDING",
         "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "parent_source_sha": "238afa53caf0cd7972e46b55d4c9f07d2a488e3b",
-        "prod_admission": "UNSUPPORTED",
+        "production_profile_change": "NONE",
+        "protected_admission": "UNSUPPORTED",
         "physical": "NOT_RUN"
       }
     },
@@ -368,8 +377,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 joint k/r source window qualifier candidate: check GitHub Actions exact new SOURCE foundation/lifecycle and repair any red preserving history. Prior 238afa53 NATURAL real AEAD/encoder source cohort 45 windows scoped PASS foundation38130772105/lifecycle38130772069 (not socket/WAN). Joint [size,k,r] count now seals actual min(k,R), requires matching k/r marginals, rejects impossible unsupported geometry before 512 records/EWMA. Then move toward protected per-client Normal-only directional runtime controller/admission and single-source realpath Actions. N3-N6 NOT_STARTED, physical NOT_RUN, old probe p99/missing and 80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-joint-k-r-source-window-guard-candidate.md",
+  "next_task": "N2 protected local TX returned-echo observation candidate: new source foundation/lifecycle must PASS; it extracts identical bounded source evaluation under existing laneTransport.mu on real authenticated echo and Step called only if explicit test-only Normal controller enabled. Proposed parity NOT APPLIED. Verify per-generation/source replay, stale, wrong nonce/direction, quality idle not waking. Then wire protected client fixed/off/auto/aggressive once per customer + server own per-client TX controller, use test-only AEAD new-block switch for production with owner generation synchronization; Game auto reject; set initial worst-case 20 MTU stable and CLI/JSON/catalog once feature live; then N2 one-SOURCE one-case Actions perf. N3-N6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n2-protected-return-local-tx-controller-observation-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "9def27abfa128250297a29b878c12baf8db7a526",
   "last_tested_scope": "N2 real physical 256 PN source k/r/parity/off/cropped read-only input Foundation 7 enabled PASS + Lifecycle PASS. No live auto/admission, N2 realpath or physical.",
