@@ -65,6 +65,9 @@ func N2ClientLaneFromProtectedPolicyForTests(
 	if err!=nil{return nil,adaptivefec.Config{},err}
 	lane,err:=NewN2AdaptiveLaneForTests(laneCfg)
 	if err!=nil{return nil,adaptivefec.Config{},err}
+	// Immutable exact negotiated policy belongs to this lane instance.
+	// No copy of another customer's min/mode may arm its TX controller.
+	lane.n2ProtectedPolicy=session.Negotiated.Policy
 	return lane,plan,nil
 }
 
@@ -88,5 +91,8 @@ func N2ServerLaneFromProtectedPolicyForTests(
 	if err!=nil{return nil,adaptivefec.Config{},err}
 	lane,err:=NewN2AdaptiveLaneForTests(laneCfg)
 	if err!=nil{return nil,adaptivefec.Config{},err}
+	// Immutable exact negotiated policy belongs to this lane instance.
+	// No copy of another customer's min/mode may arm its TX controller.
+	lane.n2ProtectedPolicy=session.Negotiated.Policy
 	return lane,plan,nil
 }

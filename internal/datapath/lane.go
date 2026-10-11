@@ -11,6 +11,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/linkdata"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/pathmtu"
+	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/tlsrecord"
 )
 
@@ -161,6 +162,10 @@ type Lane struct {
 	txPath  *linkdata.FECPath
 	rxPath  *linkdata.FECPath
 	adaptiveN2Test bool
+	// Only the explicitly verified protected-policy test construction fills
+	// this immutable incarnation policy. Legacy/fixed and free-form test
+	// adaptive lanes never gain an implicit auto admission capability.
+	n2ProtectedPolicy realityfront.AdmissionPolicy
 	// A single buffered owner signal is emitted only when a first/earlier
 	// partial-FEC deadline is created. Nonblocking: never delay fresh data.
 	fecDeadlineWake chan<- struct{}
@@ -786,4 +791,16 @@ func (l *Lane) Close() {
 	l.txPath = nil
 	l.rxPath = nil
 	l.stats.Closed = true
+}
+
+// N2ProtectedPolicyForTests returns the exact protected V3 policy attached
+// at staged admission; no run-time profile change mutates this identity.
+// Production auto is still disallowed by realityfront.SupportedNow.
+func (l *Lane) N2ProtectedPolicyForTests() (realityfront.AdmissionPolicy,bool) {
+	if l==nil {return realityfront.AdmissionPolicy{},false}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	p:=l.n2ProtectedPolicy
+	return p,l.adaptiveN2Test && !l.closed &&
+		p.Schema==realityfront.PolicySchemaV3
 }
