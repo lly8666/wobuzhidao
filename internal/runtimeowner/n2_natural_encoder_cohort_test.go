@@ -33,7 +33,7 @@ func n2NoteActualRecords(t *testing.T,q *qualityState,w []datapath.WireRecord,at
 	t.Helper()
 	var last uint64
 	for _,record:=range w {
-		if !record.FEC.Known || record.PN==0 || len(record.Wire)==0 {
+		if !record.FEC.Known || len(record.Wire)==0 {
 			t.Fatalf("no sealed first-emission provenance %+v",record.FEC)
 		}
 		q.tx.noteWithMeta(record.PN,true,at,record.FEC)
@@ -54,7 +54,7 @@ func TestN2NaturalProtectedEncoderCohortsDoNotPermanentlyHold(t *testing.T) {
 	lowers:=0
 	for period:=1;period<=45;period++ {
 		at:=start.Add(time.Duration(period)*2*time.Second)
-		var first, sent uint64
+		var sent uint64
 		// 140 systematic records, seven naturally FULL 20:20 groups.
 		// This is 280 unique sealed record PNs. Sampling the last 256
 		// begins inside the oldest parity group; exactly 16 are cropped.
@@ -64,13 +64,14 @@ func TestN2NaturalProtectedEncoderCohortsDoNotPermanentlyHold(t *testing.T) {
 			if err!=nil {t.Fatalf("period=%d i=%d: %v",period,i,err)}
 			if len(wire)==0 {t.Fatalf("original waited period=%d i=%d",period,i)}
 			for _,record:=range wire {
-				if first==0 {first=record.PN}
 				q.tx.noteWithMeta(record.PN,true,at,record.FEC)
 				sent++
 				lastPN=record.PN
 			}
 		}
-		if sent!=280 || lastPN<256 || first<=lastPN-280 {
+		// Record PN starts at ZERO (not one). An unbroken batch of 280
+		// records ends at 279 on the first cohort; 2nd ends at 559.
+		if sent!=280 || lastPN!=uint64(period)*280-1 {
 			t.Fatalf("unexpected natural closure period=%d count=%d pn=%d",period,sent,lastPN)
 		}
 		m:=datapath.QualityHealthReport{
@@ -135,8 +136,8 @@ func TestN2NaturalPartialKRAndOffSourceMetadataNoImplicitFull20(t *testing.T) {
 	}
 	m:=datapath.QualityHealthReport{
 		Flags:datapath.QualityFlagWindowValid,
-		ReportSeq:1,Generation:5,WindowFirstPN:1,WindowLastPN:lastPN,
-		TxSuccess:lastPN,
+		ReportSeq:1,Generation:5,WindowFirstPN:0,WindowLastPN:lastPN,
+		TxSuccess:lastPN+1,
 	}
 	shape:=q.captureSentSourceRepairCoverage(m,now.Add(time.Second)).shape
 	if !shape.Complete||shape.Invalid!=0||shape.Cropped!=0 ||
@@ -146,8 +147,8 @@ func TestN2NaturalPartialKRAndOffSourceMetadataNoImplicitFull20(t *testing.T) {
 	}
 	b:=QualityFirstAttemptBound{
 		State:datapath.QualityFeedbackEstimated,Complete:true,
-		SourceReportSeq:1,SourceGeneration:5,FirstPN:1,LastPN:lastPN,
-		Sent:lastPN,ReceiverUnique:lastPN,Age:time.Second,Shape:shape,
+		SourceReportSeq:1,SourceGeneration:5,FirstPN:0,LastPN:lastPN,
+		Sent:lastPN+1,ReceiverUnique:lastPN+1,Age:time.Second,Shape:shape,
 	}
 	in:=qualityBoundToAdaptiveInput(b,now.Add(time.Second))
 	c,err:=adaptivefec.New(adaptivefec.Config{
