@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_LIVE_TX_PARITY_CONTROLLER_REASON_DIAGNOSTIC_INSTRUMENTATION_ACTIONS_PENDING",
+    "phase": "N2_NORMAL_AUTO_10MBPS_EACH_WAY_15MS_40S_DIAGNOSTIC_SINGLE_CASE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "071a7d54ccead7f5b773b561466b2da75f6fe548",
+    "new_product_source_sha": "b4762a1e9f505a21f2cae388d78b7394706db545",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_VERIFIED_NATURAL_COHORT_JOINT_KR_AND_PROTECTED_TX_ECHO_PROPOSAL_NO_LIVE_PARITY_SWITCH",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_PRODUCTION_NORMAL_AUTO_REALPATH_DEFAULT_MTU_FUNCTIONAL_PASS_ADD_BOUNDED_LIVE_TX_R_AND_CONTROL_DECISION_DIAGNOSTICS_FOR_WAVEFORM",
+      "N2_normal_auto": "IN_PROGRESS_ACTUAL_NORMAL_AUTO_DEFAULT_MTU_REALPATH_0P5MBPS_FUNCTIONAL_PASS_LIVE_TX_R_CONTROL_REASON_DIAG_SCOPED_PASS_10MBPS_LOWRTT_40S_CANDIDATE",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -470,9 +470,23 @@
         "physical": "NOT_RUN"
       },
       "n2_live_grade_diagnostics": {
+        "status": "SCOPED_PASS_LOW_FREQ_ONLY",
+        "source_sha": "b4762a1e9f505a21f2cae388d78b7394706db545",
+        "foundation_run": 38141069659,
+        "foundation_enabled_jobs_pass": 7,
+        "foundation_artifact": 11703440842,
+        "sha256": "7aee768ff3cfb835991c5c23dcf2d6350397bf6a376da82846746246cf1e5435",
+        "lifecycle_run": 38141069643,
+        "n1_codec_run": 38141069648,
+        "n0_negotiated_run": 38141069647,
+        "n0_multi_run": 38141069698,
+        "physical": "NOT_RUN"
+      },
+      "n2_10mbps_lowrtt_load": {
         "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT",
-        "scope": "opt-in sampled live ActualTxParity, per-incarnation reason, source seq/gen, sample confidence and true switch/busy counters, no packet hotpath",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "scope": "one Normal auto min4 10Mbps each direction 40s lossless 15ms one-way 0=auto record caps diagnostic ON strict first-unique and per-TX controller source witness",
+        "not_waveform": true,
         "physical": "NOT_RUN"
       }
     },
@@ -505,11 +519,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check exact new SOURCE Foundation/Lifecycle Actions for opt-in N2 current actual TX parity and controller reason telemetry. If red fix. Then build one 10Mbps EACH DIRECTION full protected Normal auto waveform 0→1→5→20→5→0 case with predeclared stable periods; one source/config/seed/job, use default 0=auto record caps, check per-epoch actual client/server TX R and Hold reason from bounded diag JSONL, p99/missing/first unique/CPU/goodput/OS queue and runner capacity. Need aggressive separate sample, asymmetric directions, low RTT and 300ms, sparse/idle/burst, feedback blackout, TCP/UDP mixed and Game4 fixed. N3-6 not started, physical NOT_RUN, off p99~2.73s missing and S2C initial ~80s OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-actual-directional-grade-control-reason-diagnostics-candidate.md",
+  "next_task": "Check one SOURCE latest Actions N2 Normal auto default-record-cap0, 10Mbps logical EACH DIRECTION, 15ms each way lossless, 40s + drain, fixed business seeds, bounded diagnostics ON. Require independent actual C2S/S2C controller N2 snapshots/at least one authenticated source decision per side, first-unique payload & missing/probes, kernel drop/netem receipts, CPU runner profile; diagnose FAIL or capacity-limited no claim of waveform. Then ONE source/config/seed 0→1→5→20→5→0 wave with enough stabilization and 300ms independent sample, auto and aggressive separate, asymmetric uploads/downloads, sparse/idle/burst, feedback break, mixed UDP/TCP, Game4 fixed guard; don't compare diag ON CPU against OFF. N3-N6 not started physical NOT_RUN, old default off ~2.73s p99/missing and 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-auto-10mbps-lowrtt-single-source-diagnostic-functional-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "071a7d54ccead7f5b773b561466b2da75f6fe548",
-  "last_tested_scope": "N2 Normal production auto real 5-netns one client default record auto cap0, 300ms one-way both, lossless 8s 0.5Mbps each; 987/987 first unique each, probe 8/8 p99 602.7ms; zero capture drops, Foundation7 PASS. Functional only, not 10Mbps adaptive waveform/CPU/p99 qual.",
+  "last_tested_source_sha": "b4762a1e9f505a21f2cae388d78b7394706db545",
+  "last_tested_scope": "N2 opt-in actual per-client local TX current parity + controller decision reason/source/bound and committed switches diagnostics: Foundation7 enabled Linux/Windows Go/race native PASS, Lifecycle/N1codec/N0negotiated/N0multi PASS. Prior 0.5Mbps 300ms production auto realpath functional PASS; 10Mbps waves not qualified.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
