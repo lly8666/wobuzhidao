@@ -128,3 +128,88 @@ func TestOffNeedsLongEvidence(t *testing.T){
  if firstOff<30 {t.Fatalf("off entered without 60sec evidence: %d",firstOff)}
  if firstOff<0 {t.Fatal("never reached opt-in off on proven zero loss")}
 }
+
+
+// These inputs are synthetic source-PN-correlated fixtures. Runtime must not
+// use its cumulative encoder statistics or post-repair echoes as this witness.
+func boundedSource(i int, start time.Time, k int, lower, upper uint32) Input {
+    s:=source(i,start)
+    s.Evidence=EvidenceFirstAttemptBounded
+    s.FirstAttemptLost=lower
+    s.FirstAttemptLostMax=upper
+    s.ShardK=0 // cannot fall back to the single-full-block model
+    // For 256 systematic source records use a real integral group count.
+    s.ClosedGroups[2][k]=uint16(256/k)
+    if 256%k!=0 {s.ClosedGroups[2][1]=uint16(256%k)}
+    return s
+}
+
+func TestBoundedMixedPartialProfilesAndWeightedModel(t *testing.T) {
+    var mixed [3][DataShards+1]uint64
+    mixed[0][1]=100
+    mixed[1][4]=10
+    mixed[2][20]=6
+    const p=0.05
+    want:=(100*ResidualReference(1,4,p)+40*ResidualReference(4,4,p)+120*ResidualReference(20,4,p))/260
+    if v:=weightedResidual(mixed,4,p);math.Abs(v-want)>1e-12 {t.Fatalf("mixed %.9g expected %.9g",v,want)}
+    if v:=weightedResidual(mixed,20,p);math.IsNaN(v) {t.Fatal("invalid full/partial mix")}
+    if got:=requiredMixedProfile(mixed,p,4,20);got<requiredProfile(20,p,4,20) {
+        t.Fatalf("sparse partial underestimated: mixed=%d full=%d",got,requiredProfile(20,p,4,20))
+    }
+}
+
+func TestBoundedOverlapMissingCoverageAndWideIntervalsHold(t *testing.T) {
+    start:=time.Unix(50000,0)
+    c:=controller(t,Auto,4)
+    s:=boundedSource(1,start,2,0,0)
+    s.ClosedGroups[0][2]=1 // 258 >256; source group proof cannot match
+    if d:=c.Step(s.At,s);d.Reason!=HoldShape {t.Fatal(d)}
+    s=boundedSource(1,start,2,0,20)
+    if d:=c.Step(s.At,s);d.Reason!=HoldWideBound {t.Fatal(d)}
+    s.FirstAttemptLostMax=0
+    if d:=c.Step(s.At,s);d.Reason!=HoldSampleCount || d.ShapeRecords!=256 || d.ShapeBlocks!=128 {t.Fatal(d)}
+    if d:=c.Step(s.At,s);d.Reason!=HoldReplay || d.AcceptedRecords!=256 {t.Fatal(d)}
+    overlapping:=boundedSource(2,start,2,0,0)
+    overlapping.FirstPN=s.LastPN
+    if d:=c.Step(overlapping.At,overlapping);d.Reason!=HoldReplay {t.Fatal(d)}
+    if d:=c.Step(boundedSource(2,start,2,0,0).At,boundedSource(2,start,2,0,0));d.AcceptedRecords!=512 {t.Fatal(d)}
+    if c.confidentSent!=512 {t.Fatal("overlap counted twice",c.confidentSent)}
+}
+
+func TestBoundedNormalAndAggressiveEventuallyMoveAndRaise(t *testing.T) {
+    start:=time.Unix(60000,0)
+    c:=controller(t,Auto,4)
+    a:=controller(t,Aggressive,4)
+    changed:=false
+    for i:=1;i<=90;i++ {
+        s:=boundedSource(i,start,2,0,0)
+        n:=c.Step(s.At,s);g:=a.Step(s.At,s)
+        if n.Ordinary!=g.Ordinary {t.Fatal("different ordinary advice",n,g)}
+        if n.Ordinary<20 {changed=true}
+        if n.Ordinary<20 && g.Applied<=n.Ordinary {t.Fatal("aggressive omitted one rung",n,g)}
+    }
+    if !changed || c.ordinary!=4 || a.ordinary!=4 {t.Fatal("controller stuck in HOLD",c.ordinary,a.ordinary)}
+    s:=boundedSource(91,start,2,34,36)
+    if d:=c.Step(s.At,s);d.Reason!=Raise || d.Ordinary<=4 {t.Fatal("trusted damage failed to raise",d)}
+    if d:=c.Step(s.At,s);d.Reason!=HoldReplay {t.Fatal(d)}
+}
+
+func TestBoundedCapacityAgeGenerationAndConfidenceAreFinite(t *testing.T) {
+    start:=time.Unix(70000,0)
+    c:=controller(t,Auto,0)
+    for i:=1;i<=100;i++ {
+        s:=boundedSource(i,start,1,0,0)
+        if i==2 {
+            s.CapacityOrCongestion=true
+            if d:=c.Step(s.At,s);d.Reason!=HoldCapacity {t.Fatal(d)}
+            s.CapacityOrCongestion=false
+        }
+        d:=c.Step(s.At,s)
+        if i==100 && (d.ConfidenceUpper<=0 || c.confidentSent>32*256) {t.Fatal("lifetime confidence or invalid Wilson",d,c.confidentSent)}
+    }
+    bad:=boundedSource(101,start,1,0,0)
+    bad.Generation=6
+    if d:=c.Step(bad.At,bad);d.Reason!=HoldReplay {t.Fatal(d)}
+    bad.Generation=5
+    if d:=c.Step(bad.At.Add(11*time.Second),bad);d.Reason!=HoldStale {t.Fatal(d)}
+}

@@ -9,20 +9,20 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_FIRST_ATTEMPT_REPAIR_AWARE_UPPER_BOUND_SCOPED_ACTIONS_PASS_CONTROLLER_NOT_LIVE",
+    "phase": "N2_MIXED_PARTIAL_BOUNDED_CONTROLLER_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "9b196358b464198a325acf2e9c802113757935d2",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "N0_SCOPED_PASS_N1_SCOPED_COMPLETE_N2_PURE_AUTO_CORE_PASS_N2_READONLY_SOURCE_CORRELATED_FIRST_ATTEMPT_BOUNDED_REPAIR_WITNESS_SOURCE9b19635_ACTIONS_SCOPED_PASS_AUTO_UNSUPPORTED",
+    "core": "N2_BOUND_READY_NOT_LIVE_PLUS_CLOSED_K_R_SIZE_SHAPE_COUNTERS_AND_CONSERVATIVE_MIXED_CONTROLLER_SOURCE_CANDIDATE_UNQUALIFIED_PRODUCTION_COHORT",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_GUARDED_CONTROLLER_PASS_AUTH_V4_SOURCE_REPAIR_BITMAP_FIRST_ATTEMPT_LOWER_UPPER_BOUNDS_LINUX_WINDOWS_RACE_3NATIVE_SCOPED_ACTIONS_PASS_MIXED_PARTIAL_K_AND_LIVE_SWITCH_NOT_READY",
+      "N2_normal_auto": "IN_PROGRESS_MIXED_K_R_COUNTERS_CONTROLLER_BOUND_INPUT_CANDIDATE_GITHUB_ACTIONS_PENDING_LIVE_AUTO_UNSUPPORTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -250,6 +250,14 @@
         "evidence": "docs/evidence/adaptive-n2-first-attempt-bound-scoped-actions-20261011.json",
         "controller": "NOT_WIRED_QUALITY_UPPER_BOUND_NOT_EXACT_PLR",
         "physical": "NOT_RUN"
+      },
+      "n2_mixed_partial_candidate": {
+        "status": "ACTIONS_PENDING_NOT_LIVE",
+        "prior_source_sha": "cd39f5fb7d49c7a5482a6aa29a832ac870eeeb70",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "foundation": "PENDING",
+        "production_source_shape": "NOT_WIRED",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -281,8 +289,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 current source 9b196358: controller-only guarded core plus 16-report x256PN source-scoped repair-attempt bitmaps, authenticated mature V4 echo read-only first-transmission loss BOUND (mature missing<=first loss<=mature missing+distinct retried) scoped Actions PASS foundation38122076600 (7/7 enabled), lifecycle38122076496 PASS, N1 V4 codec/race38122076533 PASS, true three-native-client38122076520 PASS. Preserve initial aa09bb3 errors in lifecycle38121946729 and codec38121946681 caused false exact [1,1] test oracle; new live test shows 1 missing+1 same-wire repair yields [1,2]. Next develop counted/qualified mixed partial k/r shape and first-attempt bound confidence/sample coverage, then profile-switch TX new blocks/RX mixed old blocks without fresh HOL; never turn on FECAuto until source-qualified, no N1 post-repair estimate as precise WAN loss. Do not redo N1 performance, no physical before all N0-N6.",
-  "latest_log": "docs/devlog/20261011-n2-first-attempt-upper-bound-source-scoped-actions-pass.md",
+  "next_task": "N2 mixed partial k/r + bounded interval controller candidate (SOURCE is HEAD of current change; prior product SOURCE 9b196358). Check new GitHub Actions foundation actual jobs first, fix any FAIL; preserve earlier scoped pass evidence. Then correlate each actual successful outbound KindLINK systematic PN with CLOSED k/r size class in the same authenticated report source cohort, exclude parity/local drop/overlap/capacity, and feed trusted bounded evidence. Do not use global cumulative FEC stats as a source-local histogram; do not enable auto admission before safe new-block TX + mixed legacy RX and directional feedback. Continue Actions-only, single measurement per run; N3-N6 still NOT_STARTED.",
+  "latest_log": "docs/devlog/20261011-n2-mixed-partial-bounded-controller-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "last_tested_scope": "Latest N1 product1c64e4e protected 180/640PN race & native functional PASS; fixed20 normal/Game lossless/5205 prior8 PASS_SCREEN; dedicated Normal flat1/flat5 8 strict native 120s Actions: fixed20 4 PASS_SCREEN, off 4 MEASURED_NOT_QUALIFIED; old flat5 2 PERFORMANCE_FAIL preserved. No real first-send PLR oracle or N2 auto, N3-6/physical NOT_RUN.",

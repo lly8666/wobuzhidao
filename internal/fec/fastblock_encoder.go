@@ -27,6 +27,11 @@ type FastBlockEncoderStats struct {
 	ParityBytes    uint64 `json:"parity_bytes"`
 	FullBlocks     uint64 `json:"full_blocks"`
 	PartialBlocks  uint64 `json:"partial_blocks"`
+	// Actual CLOSED groups only, with k and r=min(k, configured parity).
+	// These lifetime counters alone do NOT prove source-PN window alignment.
+	ClosedByK      [DataShards + 1]uint64 `json:"closed_by_k"`
+	ClosedByR      [DataShards + 1]uint64 `json:"closed_by_r"`
+	ClosedByClassK [3][DataShards + 1]uint64 `json:"closed_by_class_k"`
 	PendingSources int    `json:"pending_sources"`
 	SizeClasses    int    `json:"size_classes,omitempty"`
 	PendingBlocks  int    `json:"pending_blocks,omitempty"`
@@ -202,6 +207,8 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	}
 
 	e.stats.ParityShards += uint64(parityCount)
+	e.stats.ClosedByK[dataCount]++
+	e.stats.ClosedByR[parityCount]++
 	if dataCount == DataShards {
 		e.stats.FullBlocks++
 	} else {

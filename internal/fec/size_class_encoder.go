@@ -147,7 +147,7 @@ func (e *SizeClassEncoder) Stats() FastBlockEncoderStats {
 		return FastBlockEncoderStats{}
 	}
 	out := FastBlockEncoderStats{SizeClasses: e.count}
-	for _, group := range e.groups[:e.count] {
+	for i, group := range e.groups[:e.count] {
 		s := group.Stats()
 		out.SourceShards += s.SourceShards
 		out.SourceBytes += s.SourceBytes
@@ -156,6 +156,13 @@ func (e *SizeClassEncoder) Stats() FastBlockEncoderStats {
 		out.FullBlocks += s.FullBlocks
 		out.PartialBlocks += s.PartialBlocks
 		out.PendingSources += s.PendingSources
+		for k := 1; k <= DataShards; k++ {
+			out.ClosedByK[k] += s.ClosedByK[k]
+			out.ClosedByR[k] += s.ClosedByR[k]
+			class := i
+			if e.count == 1 { class = 2 }
+			out.ClosedByClassK[class][k] += s.ClosedByK[k]
+		}
 		if s.PendingSources != 0 {
 			out.PendingBlocks++
 		}

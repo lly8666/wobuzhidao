@@ -12,6 +12,11 @@ import (
 const (
     DataShards = 20
     MinDecisionRecords = 512
+    // A conservative, source-correlated first-attempt interval must be narrow
+    // before it contributes control samples. Five percentage points is a
+    // confidence/identifiability gate, NOT a target line loss or a tuning knob.
+    MaxQualifiedBoundWidth = 0.05
+    confidenceHistory = 32 // bounded independent source windows, not lifetime counts
     ResidualTarget = 0.001
     decreaseMargin = 0.0005
 )
@@ -35,6 +40,10 @@ const (
     // Reserved for a future authenticated, source-correlated first-attempt
     // witness. No production N1 callback currently supplies this evidence.
     EvidenceFirstAttemptVerified
+    // An authenticated, source-PN-correlated conservative interval. The caller
+    // must separately attest CLOSED FEC-block shapes for exactly the same
+    // first-transmission source cohort; current runtime does NOT yet do so.
+    EvidenceFirstAttemptBounded
 )
 
 type Config struct {
@@ -69,7 +78,13 @@ type Input struct {
     Generation uint64
     Sequence uint64
     FirstPN, LastPN uint64
-    Sent, FirstAttemptLost uint32
+    Sent, FirstAttemptLost uint32 // lower bound for bounded evidence; exact for verified
+    FirstAttemptLostMax uint32 // upper bound for bounded evidence
+    // Counts of CLOSED, source-correlated groups, by size class (<=256,
+    // <=512, >512) and actual systematic k=1..20. Each group contributes
+    // k source records, not r parity records. Source/parity LINK PN windows
+    // cannot be silently equated to these counts.
+    ClosedGroups [3][DataShards+1]uint16
     At time.Time
     RTT time.Duration
     // A sender/receiver FEC block-shape witness is needed to price partial
@@ -87,6 +102,7 @@ const (
     HoldReplay Reason = "HOLD_OLD_SOURCE_OR_OVERLAP"
     HoldCapacity Reason = "HOLD_CAPACITY_OR_CONGESTION"
     HoldShape Reason = "HOLD_UNVERIFIED_PARTIAL_K"
+    HoldWideBound Reason = "HOLD_WIDE_FIRST_ATTEMPT_INTERVAL"
     HoldSampleCount Reason = "HOLD_INSUFFICIENT_512"
     HoldStable Reason = "HOLD_STABILITY_OR_CONFIDENCE"
     HoldOptimal Reason = "HOLD_CURRENT_PROFILE"
@@ -101,6 +117,9 @@ type Decision struct {
     Fast, Slow float64
     ConfidenceUpper float64
     AcceptedRecords uint64
+    BoundWidth float64
+    ShapeRecords uint64
+    ShapeBlocks uint64
 }
 
 type Controller struct {
@@ -113,7 +132,18 @@ type Controller struct {
     lastAt, firstValid, lastChange, lastLower time.Time
     sinceDecision uint64
     confidentSent, confidentLost uint64
+    history [confidenceHistory]controlSample
+    historyPos, historyCount int
+    shapeTotals [3][DataShards+1]uint64
+    mixedEvidence bool
+    boundWidth float64
 }
+
+type controlSample struct {
+    sent, upperLost uint32
+    groups [3][DataShards+1]uint16
+}
+
 
 func New(c Config, generation uint64) (*Controller, error) {
     if err := c.Validate(); err != nil || generation == 0 { return nil, ErrConfig }
@@ -130,7 +160,9 @@ func (c *Controller) current(reason Reason) Decision {
     return Decision{Ordinary:c.ordinary, Applied:applied, Reason:reason,
         Fast:c.fast, Slow:c.slow,
         ConfidenceUpper:wilsonUpper(c.confidentLost,c.confidentSent),
-        AcceptedRecords:c.sinceDecision}
+        AcceptedRecords:c.sinceDecision,
+        BoundWidth:c.boundWidth,
+        ShapeRecords:c.shapeRecords(), ShapeBlocks:c.shapeBlocks()}
 }
 
 // ResidualReference is an independent IID Reed-Solomon model, never a real
@@ -180,9 +212,84 @@ func wilsonUpper(lost,sent uint64) float64 {
     return (p+z2/(2*n)+1.96*math.Sqrt(p*(1-p)/n+z2/(4*n*n)))/(1+z2/n)
 }
 
+// weightedResidual prices a source uniformly among actual CLOSED groups,
+// so a k=1 partial is NOT silently valued like a full 20:20 group. Counts
+// are bounded by the caller's authenticated, single-source 256-PN coverage.
+func weightedResidual(groups [3][DataShards+1]uint64, parity int, p float64) float64 {
+    var total uint64
+    sum := 0.0
+    for _, class := range groups {
+        for k:=1; k<=DataShards; k++ {
+            n:=class[k]
+            if n==0 {continue}
+            total+=uint64(k)*n
+            sum+=float64(k)*float64(n)*ResidualReference(k,parity,p)
+        }
+    }
+    if total==0 {return math.NaN()}
+    return sum/float64(total)
+}
+
+func requiredMixedProfile(groups [3][DataShards+1]uint64,p float64,min,max int) int {
+    for _,v:=range profiles {
+        if v<min||v>max {continue}
+        if weightedResidual(groups,v,p)<=ResidualTarget {return v}
+    }
+    return max
+}
+
+func (c *Controller) shapeRecords() uint64 {
+    if !c.mixedEvidence {return 0}
+    var n uint64
+    for _, class:=range c.shapeTotals {
+        for k:=1;k<=DataShards;k++ {n+=uint64(k)*class[k]}
+    }
+    return n
+}
+func (c *Controller) shapeBlocks() uint64 {
+    if !c.mixedEvidence {return 0}
+    var n uint64
+    for _, class:=range c.shapeTotals {
+        for k:=1;k<=DataShards;k++ {n+=class[k]}
+    }
+    return n
+}
+
+// Only accepted nonoverlapping source windows contribute. The last 32
+// accepted intervals bound confidence and shape weighting; otherwise a
+// lifetime of clean windows would mask a new damaged period indefinitely.
+func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
+    if c.historyCount==len(c.history) {
+        old:=c.history[c.historyPos]
+        c.confidentSent-=uint64(old.sent)
+        c.confidentLost-=uint64(old.upperLost)
+        for class:=range c.shapeTotals {
+            for k:=1;k<=DataShards;k++ {
+                c.shapeTotals[class][k]-=uint64(old.groups[class][k])
+            }
+        }
+    } else {c.historyCount++}
+    item:=controlSample{sent:s.Sent,upperLost:upper}
+    if bounded {item.groups=s.ClosedGroups}
+    c.history[c.historyPos]=item
+    c.historyPos=(c.historyPos+1)%len(c.history)
+    c.confidentSent+=uint64(s.Sent)
+    c.confidentLost+=uint64(upper)
+    if bounded {
+        for class:=range c.shapeTotals {
+            for k:=1;k<=DataShards;k++ {
+                c.shapeTotals[class][k]+=uint64(s.ClosedGroups[class][k])
+            }
+        }
+    }
+}
+
 func (c *Controller) Step(now time.Time,s Input) Decision {
-    if c==nil { return Decision{Reason:HoldUnqualified} }
-    if s.Evidence!=EvidenceFirstAttemptVerified {return c.current(HoldUnqualified)}
+    if c==nil {return Decision{Reason:HoldUnqualified}}
+    bounded:=s.Evidence==EvidenceFirstAttemptBounded
+    if !bounded && s.Evidence!=EvidenceFirstAttemptVerified {
+        return c.current(HoldUnqualified)
+    }
     stale:=10*time.Second
     if s.RTT>0 && s.RTT*4>stale {stale=s.RTT*4}
     if s.At.IsZero() || now.Before(s.At) || now.Sub(s.At)>stale ||
@@ -191,37 +298,60 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
        s.LastPN-s.FirstPN>=256 || uint64(s.Sent)>s.LastPN-s.FirstPN+1 ||
        s.RTT<0 {return c.current(HoldStale)}
     if s.Generation!=c.generation ||
-       (c.seen && (s.Sequence<=c.lastSeq || s.FirstPN<=c.lastPN || !s.At.After(c.lastAt))) {
+       (c.seen && (s.Sequence<=c.lastSeq || s.FirstPN<=c.lastPN ||
+                   !s.At.After(c.lastAt))) {
         return c.current(HoldReplay)
     }
-    // Source-local overload and unsupported shape never update the EWMAs or
-    // consume evidence. Avoid inventing a low line-loss estimate.
     if s.CapacityOrCongestion {return c.current(HoldCapacity)}
-    if !s.ShapeVerified || s.ShardK<1 || s.ShardK>DataShards {
+    if !s.ShapeVerified {return c.current(HoldShape)}
+    if c.seen && c.mixedEvidence!=bounded {return c.current(HoldUnqualified)}
+    upper:=s.FirstAttemptLost
+    if bounded {
+        upper=s.FirstAttemptLostMax
+        if upper<s.FirstAttemptLost || upper>s.Sent {
+            return c.current(HoldStale)
+        }
+        var shapeSourceRecords uint64
+        for _, class:=range s.ClosedGroups {
+            for k:=1;k<=DataShards;k++ {
+                shapeSourceRecords+=uint64(k)*uint64(class[k])
+            }
+        }
+        // Never approximate source-group coverage from just a block-count
+        // histogram, FEC parity PNs, or the most recent partial group.
+        if shapeSourceRecords!=uint64(s.Sent) {return c.current(HoldShape)}
+        if float64(upper-s.FirstAttemptLost)/float64(s.Sent)>MaxQualifiedBoundWidth {
+            return c.current(HoldWideBound)
+        }
+    } else if s.ShardK<1 || s.ShardK>DataShards {
         return c.current(HoldShape)
     }
-    p:=float64(s.FirstAttemptLost)/float64(s.Sent)
+    p:=float64(upper)/float64(s.Sent)
     if !c.seen {
         c.fast,c.slow=p,p
         c.firstValid=s.At
+        c.mixedEvidence=bounded
     } else {
         dt:=s.At.Sub(c.lastAt).Seconds()
         c.fast+=(p-c.fast)*(-math.Expm1(-dt/2))
         c.slow+=(p-c.slow)*(-math.Expm1(-dt/15))
     }
+    c.boundWidth=float64(upper-s.FirstAttemptLost)/float64(s.Sent)
     c.lastSeq,c.lastPN,c.lastAt=s.Sequence,s.LastPN,s.At
     c.seen=true
-    c.sinceDecision+=uint64(s.Sent)
-    c.confidentSent+=uint64(s.Sent)
-    c.confidentLost+=uint64(s.FirstAttemptLost)
+    if c.sinceDecision<1<<20 {c.sinceDecision+=uint64(s.Sent)}
+    c.pushSample(s,upper,bounded)
     if c.sinceDecision<MinDecisionRecords {return c.current(HoldSampleCount)}
-    k:=int(s.ShardK)
-    upTarget:=requiredProfile(k,math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
+    upTarget:=0
+    if bounded {
+        upTarget=requiredMixedProfile(c.shapeTotals,math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
+    } else {
+        upTarget=requiredProfile(int(s.ShardK),math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
+    }
     if upTarget>c.ordinary {
         c.ordinary=upTarget
         c.lastChange=now
         c.sinceDecision=0
-        c.confidentSent,c.confidentLost=0,0
         c.firstValid=now
         return c.current(Raise)
     }
@@ -234,10 +364,14 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
        (!c.lastLower.IsZero() && now.Sub(c.lastLower)<10*time.Second) {
         return c.current(HoldStable)
     }
-    // Do not trust a low point estimate: the next lower profile must fit
-    // with 2x safety margin using the conservative upper confidence bound.
-    if ResidualReference(k,prior,wilsonUpper(c.confidentLost,c.confidentSent))>decreaseMargin ||
-       requiredProfile(k,c.slow,c.cfg.MinParity,c.cfg.MaxParity)>prior {
+    confidence:=wilsonUpper(c.confidentLost,c.confidentSent)
+    if bounded {
+        if weightedResidual(c.shapeTotals,prior,confidence)>decreaseMargin ||
+           requiredMixedProfile(c.shapeTotals,c.slow,c.cfg.MinParity,c.cfg.MaxParity)>prior {
+            return c.current(HoldStable)
+        }
+    } else if ResidualReference(int(s.ShardK),prior,confidence)>decreaseMargin ||
+              requiredProfile(int(s.ShardK),c.slow,c.cfg.MinParity,c.cfg.MaxParity)>prior {
         return c.current(HoldStable)
     }
     c.ordinary=prior

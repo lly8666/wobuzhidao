@@ -210,3 +210,35 @@ func TestSizeClassEncoderBoundsAndForcedFlush(t *testing.T) {
 		}
 	}
 }
+
+
+// Actual encoder closure counts k and r at parity emission, not packet
+// admission, so partial and length-class mixes are observable without scan,
+// parity packet double counting or changed systematic wire scheduling.
+func TestN2ActualClosureKRBySizeClass(t *testing.T) {
+    now:=time.Unix(1234,0)
+    e,err:=NewSizeClassEncoder(NewFastReedSolomon20x20(),1200,32*time.Millisecond,4,20)
+    if err!=nil {t.Fatal(err)}
+    for _,size:=range []int{100,100,350,1000,1000,1000} {
+        out,err:=e.Add(bytes.Repeat([]byte{7},size),now)
+        if err!=nil || len(out)!=1 {t.Fatalf("systematic held: %v %d",err,len(out))}
+    }
+    if s:=e.Stats();s.ClosedByK[2]!=0||s.PendingSources!=6 {t.Fatal("unclosed group counted",s)}
+    if out,err:=e.FlushDue(now.Add(31*time.Millisecond));err!=nil||len(out)!=0 {t.Fatal("early flush",err)}
+    out,err:=e.FlushDue(now.Add(32*time.Millisecond))
+    if err!=nil||len(out)!=6 {t.Fatal("wrong min(k,20) actual parity",err,len(out))}
+    s:=e.Stats()
+    if s.ClosedByK[1]!=1||s.ClosedByK[2]!=1||s.ClosedByK[3]!=1||
+       s.ClosedByR[1]!=1||s.ClosedByR[2]!=1||s.ClosedByR[3]!=1||
+       s.ClosedByClassK[0][2]!=1||s.ClosedByClassK[1][1]!=1||
+       s.ClosedByClassK[2][3]!=1||s.PendingSources!=0 {
+        t.Fatalf("real partial and class closure shape wrong: %+v",s)
+    }
+    low,err:=NewSizeClassEncoder(NewFastReedSolomon20x20(),1200,32*time.Millisecond,1,4)
+    if err!=nil {t.Fatal(err)}
+    for i:=0;i<7;i++ {if _,err:=low.Add([]byte{byte(i+1)},now);err!=nil {t.Fatal(err)}}
+    out,err=low.FlushDue(now.Add(32*time.Millisecond))
+    if err!=nil||len(out)!=4 {t.Fatal("partial r=min(7,4)",err,len(out))}
+    ls:=low.Stats()
+    if ls.ClosedByK[7]!=1||ls.ClosedByR[4]!=1||ls.ClosedByClassK[2][7]!=1 {t.Fatal(ls)}
+}
