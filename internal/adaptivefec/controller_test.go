@@ -307,3 +307,43 @@ func TestN2JointKRRejectsMarginallyMatchingImpossibleGroups(t *testing.T) {
 		t.Fatalf("rejected samples consumed or poisoned cohort %+v",d)
 	}
 }
+
+
+func TestN2BoundedRecoveryDiagnosticHistoryDoesNotConsumeHolds(t *testing.T) {
+    now:=time.Unix(171800,0)
+    ctl:=controller(t,Auto,4)
+    for i:=1;i<=48;i++ {
+        sample:=boundedSource(i,now,20,0,0)
+        d:=ctl.Step(sample.At,sample)
+        wantWindows:=i
+        if wantWindows>32 {wantWindows=32}
+        if d.ConfidenceHistoryWindows!=uint32(wantWindows) ||
+           d.ConfidenceSent!=uint64(wantWindows)*256 ||
+           d.ConfidenceLost!=0 ||
+           d.LastQualifiedUnixNS!=sample.At.UnixNano() ||
+           d.FirstValidUnixNS==0 {
+            t.Fatalf("accepted bounded PN window lost its confidence provenance at %d: %+v",i,d)
+        }
+    }
+    valid:=boundedSource(48,now,20,0,0)
+    duplicate:=ctl.Step(valid.At.Add(time.Second),valid)
+    if duplicate.Reason!=HoldReplay || duplicate.ConfidenceHistoryWindows!=32 ||
+       duplicate.ConfidenceSent!=32*256 ||
+       duplicate.LastQualifiedUnixNS!=valid.At.UnixNano() {
+        t.Fatalf("duplicate source modified confidence history: %+v",duplicate)
+    }
+    unqualified:=boundedSource(49,now,20,0,0)
+    unqualified.Evidence=EvidencePostRepair
+    held:=ctl.Step(unqualified.At,unqualified)
+    if held.Reason!=HoldUnqualified || held.ConfidenceSent!=duplicate.ConfidenceSent ||
+       held.ConfidenceHistoryWindows!=duplicate.ConfidenceHistoryWindows ||
+       held.LastQualifiedUnixNS!=duplicate.LastQualifiedUnixNS {
+        t.Fatalf("post-repair UNKNOWN was counted as a clean confidence sample: %+v",held)
+    }
+    capacity:=boundedSource(49,now,20,0,0)
+    capacity.CapacityOrCongestion=true
+    held=ctl.Step(capacity.At,capacity)
+    if held.Reason!=HoldCapacity || held.ConfidenceSent!=duplicate.ConfidenceSent {
+        t.Fatalf("capacity sample mutated accepted confidence history: %+v",held)
+    }
+}

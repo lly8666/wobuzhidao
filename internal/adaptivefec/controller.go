@@ -133,6 +133,13 @@ type Decision struct {
     ShapeRecords uint64
     ShapeBlocks uint64
     OffRecords, CroppedRecords uint64
+    // Low-frequency read-only evidence for WHY stability/confidence HOLDS.
+    // Last 32 accepted, disjoint windows only; rejected source windows do
+    // not advance these counters or reset EWMA/stable clocks.
+    ConfidenceSent, ConfidenceLost uint64
+    ConfidenceHistoryWindows uint32
+    FirstValidUnixNS, LastQualifiedUnixNS int64
+    LastChangeUnixNS, LastLowerUnixNS int64
 }
 
 type Controller struct {
@@ -165,6 +172,11 @@ func New(c Config, generation uint64) (*Controller, error) {
     return &Controller{cfg:c, generation:generation, ordinary:c.InitialParity}, nil
 }
 
+func controllerUnixNano(t time.Time) int64 {
+    if t.IsZero() {return 0}
+    return t.UnixNano()
+}
+
 func (c *Controller) current(reason Reason) Decision {
     applied:=c.ordinary
     if c.cfg.Mode == Aggressive {
@@ -178,7 +190,13 @@ func (c *Controller) current(reason Reason) Decision {
         AcceptedRecords:c.sinceDecision,
         BoundWidth:c.boundWidth,
         ShapeRecords:c.shapeRecords(), ShapeBlocks:c.shapeBlocks(),
-        OffRecords:c.offTotal, CroppedRecords:c.croppedTotal}
+        OffRecords:c.offTotal, CroppedRecords:c.croppedTotal,
+        ConfidenceSent:c.confidentSent, ConfidenceLost:c.confidentLost,
+        ConfidenceHistoryWindows:uint32(c.historyCount),
+        FirstValidUnixNS:controllerUnixNano(c.firstValid),
+        LastQualifiedUnixNS:controllerUnixNano(c.lastAt),
+        LastChangeUnixNS:controllerUnixNano(c.lastChange),
+        LastLowerUnixNS:controllerUnixNano(c.lastLower)}
 }
 
 // ResidualReference is an independent IID Reed-Solomon model, never a real

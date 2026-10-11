@@ -70,6 +70,15 @@ type ControlStats struct {
  N2Pending bool `json:"n2_proposal_pending,omitempty"`
  N2BoundWidth float64 `json:"n2_first_loss_bound_width,omitempty"`
  N2ConfidenceUpper float64 `json:"n2_confidence_upper,omitempty"`
+ N2FastEWMA float64 `json:"n2_fast_first_loss_ewma,omitempty"`
+ N2SlowEWMA float64 `json:"n2_slow_first_loss_ewma,omitempty"`
+ N2ConfidenceSent uint64 `json:"n2_confidence_sent,omitempty"`
+ N2ConfidenceLost uint64 `json:"n2_confidence_lost_upper,omitempty"`
+ N2ConfidenceHistoryWindows uint32 `json:"n2_confidence_history_windows,omitempty"`
+ N2FirstValidUnixNS int64 `json:"n2_first_valid_unix_ns,omitempty"`
+ N2LastQualifiedUnixNS int64 `json:"n2_last_qualified_unix_ns,omitempty"`
+ N2LastChangeUnixNS int64 `json:"n2_last_change_unix_ns,omitempty"`
+ N2LastLowerUnixNS int64 `json:"n2_last_lower_unix_ns,omitempty"`
  N2AcceptedRecords uint64 `json:"n2_accepted_records,omitempty"`
  N2ShapeRecords uint64 `json:"n2_shape_records,omitempty"`
  N2CommittedSwitches uint64 `json:"n2_committed_switches,omitempty"`
@@ -230,6 +239,15 @@ func (r *Runtime) ControlStats(ref logicaltunnel.LaneRef) (ControlStats,bool) {
    v.N2Pending=q.n2Pending
    v.N2BoundWidth=q.n2Last.BoundWidth
    v.N2ConfidenceUpper=q.n2Last.ConfidenceUpper
+   v.N2FastEWMA=q.n2Last.Fast
+   v.N2SlowEWMA=q.n2Last.Slow
+   v.N2ConfidenceSent=q.n2Last.ConfidenceSent
+   v.N2ConfidenceLost=q.n2Last.ConfidenceLost
+   v.N2ConfidenceHistoryWindows=q.n2Last.ConfidenceHistoryWindows
+   v.N2FirstValidUnixNS=q.n2Last.FirstValidUnixNS
+   v.N2LastQualifiedUnixNS=q.n2Last.LastQualifiedUnixNS
+   v.N2LastChangeUnixNS=q.n2Last.LastChangeUnixNS
+   v.N2LastLowerUnixNS=q.n2Last.LastLowerUnixNS
    v.N2AcceptedRecords=q.n2Last.AcceptedRecords
    v.N2ShapeRecords=q.n2Last.ShapeRecords
    if q.returned.valid {

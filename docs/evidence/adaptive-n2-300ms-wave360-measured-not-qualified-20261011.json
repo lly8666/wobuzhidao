@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "9ab678001ca9c54d2bcd8ac27a19af2260a3ea29",
+  "run": 38146739831,
+  "job": 114491585645,
+  "action_conclusion": "success",
+  "classification": "MEASURED_NOT_QUALIFIED_CONTROLLER_WAVEFORM",
+  "foundation": {
+    "run": 38146739823,
+    "conclusion": "success",
+    "enabled_jobs_pass": 7
+  },
+  "artifact": {
+    "id": 11704673580,
+    "sha256": "612eab0b73b2e886fe38e00051a48e96f6e916e3870124e602a588cec04b1e38"
+  },
+  "scenario": {
+    "mode": "Normal auto min4 initial/max20 ChaCha protected V3",
+    "both_record_caps": 0,
+    "outer_mtu": 1400,
+    "logical_mbps_each_direction": 10,
+    "one_way_delay_ms_each_direction": 300,
+    "duration_s": 360,
+    "drain_s": 10,
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ],
+    "requested_netem_seed": 601,
+    "netem_seed_applied": false,
+    "netem_rng": "KERNEL_RANDOM_UNSEEDED_TC_OPTION_UNSUPPORTED"
+  },
+  "injected": [
+    {
+      "stage": "clean0",
+      "pct": 0,
+      "c2s": 0,
+      "s2c": 0
+    },
+    {
+      "stage": "loss1",
+      "pct": 1,
+      "c2s": 0.99228,
+      "s2c": 1.00364
+    },
+    {
+      "stage": "loss5",
+      "pct": 5,
+      "c2s": 4.95198,
+      "s2c": 4.97969
+    },
+    {
+      "stage": "loss20",
+      "pct": 20,
+      "c2s": 19.9516,
+      "s2c": 19.96402
+    },
+    {
+      "stage": "recover5",
+      "pct": 5,
+      "c2s": 5.0088,
+      "s2c": 5.02033
+    },
+    {
+      "stage": "recover0",
+      "pct": 0,
+      "c2s": 0,
+      "s2c": 0
+    }
+  ],
+  "business": {
+    "c2s": {
+      "sent": 888159,
+      "first_unique": 888159,
+      "bytes": 450000560,
+      "missing": 0,
+      "duplicates": 0,
+      "corrupt": 0,
+      "zero_delivery_seconds": 0
+    },
+    "s2c": {
+      "sent": 888159,
+      "first_unique": 888159,
+      "bytes": 450000560,
+      "missing": 0,
+      "duplicates": 0,
+      "corrupt": 0,
+      "zero_delivery_seconds": 0
+    },
+    "probes": {
+      "sent": 360,
+      "returned": 360,
+      "returned_only_p99_ms": 621.5
+    },
+    "oneway_first_unique_returned_only_p99_ms": {
+      "c2s": 320,
+      "s2c": 320
+    },
+    "capture_kernel_drops": {
+      "c2s_pre": 0,
+      "c2s_post": 0,
+      "s2c_pre": 0,
+      "s2c_post": 0
+    }
+  },
+  "control": {
+    "c2s": {
+      "observed_profiles": [
+        10,
+        12,
+        16,
+        20
+      ],
+      "commit_count": 4,
+      "raise_during_injury": true,
+      "lower_during_recovery": false,
+      "final": 20
+    },
+    "s2c": {
+      "observed_profiles": [
+        12,
+        16,
+        20
+      ],
+      "commit_count": 3,
+      "raise_during_injury": true,
+      "lower_during_recovery": false,
+      "final": 20
+    }
+  },
+  "resource": {
+    "diagnostic": "ON",
+    "client_cpu_s": 118.05,
+    "server_cpu_s": 118.48,
+    "runner_quota_visibility": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+    "cpu_across_hosts_comparable": false
+  },
+  "limitations": [
+    "Final 60s clean stage did not prove recovery lowering; source history/slow EWMA/age root cause not differentiated by old diagnostics",
+    "Kernel netem RNG seed unsupported, random realization unseeded; qdisc actual drops confirmed; not a deterministic seeded run",
+    "Not a complete N2 performance PASS, P6 physical NOT_RUN"
+  ]
+}
