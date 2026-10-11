@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_PRODUCTION_V3_NORMAL_AUTO_ADMISSION_CLI_LINUX_WINDOWS_ACTIONS_PENDING",
+    "phase": "N2_PRODUCTION_AUTO_REALPATH_DEFAULT_MTU_300MS_SINGLE_FUNCTIONAL_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "1bcb6501fdb55acbfdd5fb5efd6d3c036a72b3a0",
+    "new_product_source_sha": "061cf3c79e96c6d2bbd5d6c6a07da73561b7091d",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_VERIFIED_NATURAL_COHORT_JOINT_KR_AND_PROTECTED_TX_ECHO_PROPOSAL_NO_LIVE_PARITY_SWITCH",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_REAL_PROTECTED_CLIENT_SERVER_AUTO_ADMISSION_CONTROLLER_LINUX_WINDOWS_CLI_AND_CATALOG_CANDIDATE_ACTIONS_PENDING_NO_PERFORMANCE_QUALIFICATION",
+      "N2_normal_auto": "IN_PROGRESS_PRODUCTION_V3_NORMAL_AUTO_CLI_PER_CLIENT_CONTROLLER_FUNCTIONAL_SCOPED_PASS_TRUE_FIVE_NETNS_AUTO_MTU_SINGLE_FUNCTIONAL_SAMPLE_ACTIONS_PENDING_NOT_10MBPS_WAVEFORM",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -446,9 +446,30 @@
         "foundation_artifact_sha256": "de869f399df0fde916fa74603280aaa2a2fd4193276da1d317e97a86a72d5246"
       },
       "n2_production_admission_candidate": {
+        "status": "SCOPED_PASS_NO_PERFORMANCE",
+        "source_sha": "061cf3c79e96c6d2bbd5d6c6a07da73561b7091d",
+        "foundation_run": 38137836188,
+        "foundation_enabled_pass": 7,
+        "foundation_artifact_id": 11701197566,
+        "foundation_artifact_sha256": "af0ae0d8e7813430bc6539e05762272fe86a5514fa3e9f0377360ccafbc96d45",
+        "lifecycle_run": 38137836201,
+        "n1_codec_run": 38137836216,
+        "n0_negotiated_run": 38137836221,
+        "n0_multi_run": 38137836200,
+        "physical": "NOT_RUN"
+      },
+      "n2_first_auto_realpath": {
         "status": "ACTIONS_PENDING",
         "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "scope": "V3 normal FECAuto/Aggressive ChaCha quality1 handshake+real client/server Lane max20+quality TX current tick, Linux/Windows CLI JSON/catalog; N2 functional tests and realpath perf pending",
+        "scope": "one auto min4 Normal V3 per-client 0.5Mbps each direction 300ms one-way lossless 8s single seed real TPROXY+TUN+FakeTCP default record cap 0, initial admission/first delivery only",
+        "not_qualified": [
+          "10Mbps",
+          "waveforms",
+          "per-direction actual profile trajectory",
+          "CPU normalized goodput",
+          "long p99",
+          "sparse/burst/feedback interruption"
+        ],
         "physical": "NOT_RUN"
       }
     },
@@ -481,11 +502,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "CHECK exact SOURCE Actions for V3 protected Normal auto/aggressive real client/server admission, per-client TX-source quality controller and current Tick application, client Linux+Windows CLI fec-mode/min, PARAMETERS catalog and TLS protected auto handshake tests. If red locate first failing job and fix preserving run history. Then add actual runtimeentry end-to-end dynamic client/server new-block switch tests, source-scoped real 10Mbps each direction and 0→1→5→20→5→0 waveform one config/seed/measurement job per action, 300ms one-way, sparse/off/partial/feedback cutoff/Game4 fixed. Observe p99/missing/CPU/goodput/queue/wire and runner capacity. Do not claim N2 acceptance before realpath. N3 AES, N4 Windows TUN, N5 GUI, N6 P6 untouched. Physical NOT_RUN; off default MTU 2.73s return p99/missing and historic 80s S2C still OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-production-protected-normal-auto-admission-and-cli-candidate.md",
+  "next_task": "Check exact SOURCE Actions for new one-case Normal auto real socket TPROXY+TUN default actual auto MTU 300ms delay 0.5Mbps bidirectional 8s. New workflow next-adaptive-n2-auto-realpath.yml must collect 1 SOURCE/config/seed/job, hash/delete pcap, capture first unique and probe p99/drops/CPU runner preflight; mark functional only if PASS and diagnose any FAIL. Then introduce separate one-condition 10Mbps N2 impairment waveform 0→1→5→20→5→0 with stable periods and actual control trajectory; single SOURCE/config/seed/workload per action, not 120s multi-matrix. Auto/aggressive, low RTT/300ms, sparse/burst/asymmetric/mixed, Game4 fixed3Mbps gates still required. N3-N6 NOT_STARTED, physical NOT_RUN; default-off p99 2.73s missing and ~80s S2C interruption OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-first-production-auto-realpath-single-source-functional-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "7d25e82a19b97893fa270664cce561a1ca7a0fee",
-  "last_tested_scope": "NewLane exact original authenticated Normal auto V3 policy and max20 shared decoder budget scoped PASS Linux/Windows Foundation7/Lifecycle/N1/N0; real product auto still not in that SHA.",
+  "last_tested_source_sha": "061cf3c79e96c6d2bbd5d6c6a07da73561b7091d",
+  "last_tested_scope": "N2 production Normal V3 auto/aggressive admission and CLI+JSON catalog Foundation 7 jobs, Lifecycle, N1 codec race, N0 negotiated 3-client and N0 native 3-client Actions PASS; NOT N2 10Mbps/auto waveform.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
