@@ -9,6 +9,11 @@ import (
 
 const FECRecoveryHorizon = 3 * time.Second
 
+// Path-local TX retention only; dynamic RX remains ONE decoder with the
+// existing per-lane heavy/compact budgets, not six profile-specific decoders.
+const maxAdaptiveDrainingEncoders = 6
+
+
 type FECPathConfig struct {
 	// SourceMTU is the maximum LINK fragment frame carried as one systematic
 	// FEC source shard. The later unified MTU task is responsible for deriving
@@ -32,6 +37,8 @@ type FECRecoveryStats struct {
 }
 
 type FECPathState struct {
+	Adaptive     bool
+	DrainingEncoders int
 	FECEnabled   bool
 	ParityShards int
 	Encoder      fec.FastBlockEncoderStats
@@ -42,6 +49,14 @@ type FECPathState struct {
 
 type FECPath struct {
 	config      FECPathConfig
+	adaptive    bool
+	codec       fec.Codec
+	// Old partial blocks keep their original absolute <=32ms deadline.
+	// New systematic sources always choose the current profile immediately.
+	// Both paths retain one monotonic sender BlockID namespace.
+	draining    []*fec.SizeClassEncoder
+	nextBlockID uint32
+	closedStats fec.FastBlockEncoderStats
 	fragmenter  *Fragmenter
 	reassembler *Reassembler
 	encoder     *fec.SizeClassEncoder
@@ -93,6 +108,87 @@ func NewFECPath(config FECPathConfig) (*FECPath, error) {
 	return p, nil
 }
 
+// NewAdaptiveFECPath is a standalone guarded N2 path primitive, deliberately
+// NOT selected by existing fixed/off admission or LaneConfig. The caller must
+// pass a stable, worst-case FEC SourceMTU for both on and off and may invoke
+// SwitchParity only under one lane TX owner. Decode MUST receive an already
+// AEAD-authenticated plaintext KindLINK record; it is never a raw-wire parser.
+func NewAdaptiveFECPath(config FECPathConfig) (*FECPath, error) {
+	if config.ParityShards!=0 && !fec.IsSupportedParityShards(config.ParityShards) {
+		return nil, fmt.Errorf("linkdata: unsupported adaptive FEC 20:%d",config.ParityShards)
+	}
+	if config.SourceMTU<=FragmentHeaderLen || config.FlushAfter<=0 || config.MaxBlocks<=0 {
+		return nil, fmt.Errorf("linkdata: invalid adaptive FEC budget")
+	}
+	fragmenter,err:=NewFragmenter(config.SourceMTU)
+	if err!=nil {return nil,err}
+	reassembler,err:=NewReassembler(config.SourceMTU)
+	if err!=nil {return nil,err}
+	codec:=fec.NewFastReedSolomon20x20()
+	decoder,err:=fec.NewAdaptiveBlockDecoder(codec,config.SourceMTU,config.MaxBlocks)
+	if err!=nil {return nil,err}
+	p:=&FECPath{config:config,fragmenter:fragmenter,reassembler:reassembler,
+		adaptive:true,codec:codec,decoder:decoder,
+		recovery:newFECRecoveryTracker(FECRecoveryHorizon),nextBlockID:1}
+	if config.ParityShards!=0 {
+		p.encoder,err=fec.NewSizeClassEncoder(codec,config.SourceMTU,config.FlushAfter,1,config.ParityShards)
+		if err!=nil{return nil,err}
+	}
+	return p,nil
+}
+
+var ErrAdaptiveSwitchUnavailable = fmt.Errorf("linkdata: adaptive switching is not enabled")
+var ErrAdaptiveSwitchBusy = fmt.Errorf("linkdata: adaptive encoder drain budget exhausted")
+
+// SwitchParity only changes NEW FEC blocks. Existing partial groups retain
+// their encoder and firstAt+flushAfter, even after off and back on. When
+// pathological rapid switches exhaust the bounded drain budget, reject the
+// switch (HOLD at caller) without gating fresh sends on the active profile.
+func (p *FECPath) SwitchParity(parity int) error {
+	if p==nil || !p.adaptive {return ErrAdaptiveSwitchUnavailable}
+	if parity!=0 && !fec.IsSupportedParityShards(parity) {
+		return fmt.Errorf("linkdata: unsupported adaptive FEC 20:%d",parity)
+	}
+	if parity==p.config.ParityShards {return nil}
+	if p.encoder!=nil && p.encoder.Pending()>0 && len(p.draining)>=maxAdaptiveDrainingEncoders {
+		return ErrAdaptiveSwitchBusy
+	}
+	var next *fec.SizeClassEncoder
+	if parity!=0 {
+		var err error
+		next,err=fec.NewSizeClassEncoder(p.codec,p.config.SourceMTU,p.config.FlushAfter,p.nextBlockID,parity)
+		if err!=nil {return err}
+	}
+	if p.encoder!=nil {
+		p.nextBlockID=p.encoder.NextBlockID()
+		if p.encoder.Pending()>0 {p.draining=append(p.draining,p.encoder)} else {
+			p.closedStats=addEncoderStats(p.closedStats,p.encoder.Stats())
+		}
+	}
+	p.encoder=next
+	p.config.ParityShards=parity
+	return nil
+}
+
+func addEncoderStats(dst,src fec.FastBlockEncoderStats) fec.FastBlockEncoderStats {
+	dst.SourceShards+=src.SourceShards
+	dst.SourceBytes+=src.SourceBytes
+	dst.ParityShards+=src.ParityShards
+	dst.ParityBytes+=src.ParityBytes
+	dst.FullBlocks+=src.FullBlocks
+	dst.PartialBlocks+=src.PartialBlocks
+	dst.PendingSources+=src.PendingSources
+	dst.PendingBlocks+=src.PendingBlocks
+	for k:=1;k<=fec.DataShards;k++ {
+		dst.ClosedByK[k]+=src.ClosedByK[k]
+		dst.ClosedByR[k]+=src.ClosedByR[k]
+		for cls:=0;cls<3;cls++ {
+			dst.ClosedByClassK[cls][k]+=src.ClosedByClassK[cls][k]
+		}
+	}
+	return dst
+}
+
 func (p *FECPath) Config() FECPathConfig {
 	if p == nil {
 		return FECPathConfig{}
@@ -111,7 +207,7 @@ func (p *FECPath) FECWireLimit() int {
 	if p == nil {
 		return 0
 	}
-	if !p.FECEnabled() {
+	if !p.FECEnabled() && !p.adaptive {
 		return p.config.SourceMTU
 	}
 	return fec.HeaderSize + p.config.SourceMTU
@@ -124,7 +220,13 @@ func (p *FECPath) Encode(packet []byte, now time.Time) ([][]byte, error) {
 	if p == nil || p.fragmenter == nil {
 		return nil, fmt.Errorf("linkdata: FEC path unavailable")
 	}
-	fragments, err := p.fragmenter.Fragment(packet)
+	var fragments [][]byte
+	var err error
+	if p.adaptive && !p.FECEnabled() {
+		fragments,err=p.fragmenter.FragmentAvoidFEC(packet)
+	} else {
+		fragments,err=p.fragmenter.Fragment(packet)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -151,16 +253,23 @@ func (p *FECPath) Encode(packet []byte, now time.Time) ([][]byte, error) {
 		}
 		out = appendOwned(out, wire)
 	}
+	if p.adaptive && p.encoder!=nil {
+		p.nextBlockID=p.encoder.NextBlockID()
+	}
 	return out, nil
 }
 
 // NextFlushDeadline returns the oldest nonempty partial FEC group deadline.
 // FEC-off lanes and fully flushed groups have no FEC wake deadline.
 func (p *FECPath) NextFlushDeadline() time.Time {
-	if p == nil || p.encoder == nil {
-		return time.Time{}
+	if p==nil {return time.Time{}}
+	var first time.Time
+	if p.encoder!=nil {first=p.encoder.NextFlushDeadline()}
+	for _,old:=range p.draining {
+		due:=old.NextFlushDeadline()
+		if !due.IsZero() && (first.IsZero()||due.Before(first)) {first=due}
 	}
-	return p.encoder.NextFlushDeadline()
+	return first
 }
 
 func (p *FECPath) FlushDue(now time.Time) ([][]byte, error) {
@@ -168,25 +277,54 @@ func (p *FECPath) FlushDue(now time.Time) ([][]byte, error) {
 		return nil, nil
 	}
 	p.Expire(now)
-	if !p.FECEnabled() {
-		return nil, nil
+	if !p.adaptive {
+		if !p.FECEnabled() {return nil,nil}
+		wire,err:=p.encoder.FlushDue(now)
+		if err!=nil{return nil,err}
+		return appendOwned(nil,wire),nil
 	}
-	wire, err := p.encoder.FlushDue(now)
-	if err != nil {
-		return nil, err
+	var out [][]byte
+	// No pending group is forced early by a profile switch.
+	remaining:=p.draining[:0]
+	for _,old:=range p.draining {
+		wire,err:=old.FlushDue(now)
+		if err!=nil{return nil,err}
+		out=appendOwned(out,wire)
+		if old.Pending()>0 {remaining=append(remaining,old)} else {
+			p.closedStats=addEncoderStats(p.closedStats,old.Stats())
+		}
 	}
-	return appendOwned(nil, wire), nil
+	p.draining=remaining
+	if p.encoder!=nil {
+		wire,err:=p.encoder.FlushDue(now)
+		if err!=nil{return nil,err}
+		out=appendOwned(out,wire)
+	}
+	return out,nil
 }
 
 func (p *FECPath) Flush() ([][]byte, error) {
-	if p == nil || !p.FECEnabled() {
-		return nil, nil
+	if p==nil {return nil,nil}
+	if !p.adaptive {
+		if !p.FECEnabled(){return nil,nil}
+		wire,err:=p.encoder.Flush()
+		if err!=nil{return nil,err}
+		return appendOwned(nil,wire),nil
 	}
-	wire, err := p.encoder.Flush()
-	if err != nil {
-		return nil, err
+	var out [][]byte
+	for _,old:=range p.draining {
+		wire,err:=old.Flush()
+		if err!=nil{return nil,err}
+		out=appendOwned(out,wire)
+		p.closedStats=addEncoderStats(p.closedStats,old.Stats())
 	}
-	return appendOwned(nil, wire), nil
+	p.draining=nil
+	if p.encoder!=nil {
+		wire,err:=p.encoder.Flush()
+		if err!=nil{return nil,err}
+		out=appendOwned(out,wire)
+	}
+	return out,nil
 }
 
 // Decode returns complete application datagrams. FEC systematic first-arrival
@@ -199,7 +337,8 @@ func (p *FECPath) Decode(wire []byte, now time.Time) ([][]byte, error) {
 	p.Expire(now)
 
 	var candidates [][]byte
-	if !p.FECEnabled() {
+	if (!p.adaptive && !p.FECEnabled()) ||
+		(p.adaptive && (len(wire)<2 || wire[0]!='W'||wire[1]!='F')) {
 		candidates = [][]byte{wire}
 	} else {
 		h, err := fec.ParseBlockHeader(wire)
@@ -257,12 +396,25 @@ func (p *FECPath) State() FECPathState {
 		return FECPathState{}
 	}
 	state := FECPathState{
+		Adaptive:     p.adaptive,
+		DrainingEncoders: len(p.draining),
 		FECEnabled:   p.FECEnabled(),
 		ParityShards: p.config.ParityShards,
 		Reassembly:   p.reassembler.State(),
 	}
-	if p.encoder != nil {
-		state.Encoder = p.encoder.Stats()
+	if p.adaptive {
+		state.Encoder=p.closedStats
+		for _,old:=range p.draining {
+			state.Encoder=addEncoderStats(state.Encoder,old.Stats())
+		}
+	}
+	if p.encoder!=nil {
+		if p.adaptive {
+			state.Encoder=addEncoderStats(state.Encoder,p.encoder.Stats())
+			state.Encoder.SizeClasses=p.encoder.Stats().SizeClasses
+		} else {
+			state.Encoder=p.encoder.Stats()
+		}
 	}
 	if p.decoder != nil {
 		state.Decoder = p.decoder.PressureCounts()

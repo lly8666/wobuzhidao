@@ -60,13 +60,26 @@ func hasFragmentMagic(packet []byte) bool {
 // and ordinary payloads that begin with that reserved magic, are wrapped before
 // any later FEC stage.
 func (f *Fragmenter) Fragment(packet []byte) ([][]byte, error) {
+	return f.fragment(packet, false)
+}
+
+// FragmentAvoidFEC is ONLY for an explicitly adaptive path's FEC-off
+// records. "WF" is reserved for FEC header dispatch after authentication.
+// Escaping even a short payload with this prefix avoids treating legitimate
+// bare LINK content as a malformed FEC shard. Fixed/off legacy wire is unchanged.
+func (f *Fragmenter) FragmentAvoidFEC(packet []byte) ([][]byte, error) {
+	return f.fragment(packet, true)
+}
+
+func (f *Fragmenter) fragment(packet []byte, avoidFEC bool) ([][]byte, error) {
 	if f == nil || f.mtu <= FragmentHeaderLen {
 		return nil, fmt.Errorf("linkdata fragmenter unavailable: %w", ErrPacketTooLarge)
 	}
 	if len(packet) == 0 || len(packet) > MaxDatagramLen {
 		return nil, fmt.Errorf("linkdata fragment input_bytes=%d max=%d: %w", len(packet), MaxDatagramLen, ErrPacketTooLarge)
 	}
-	if len(packet) <= f.mtu && !hasFragmentMagic(packet) {
+	if len(packet) <= f.mtu && !hasFragmentMagic(packet) &&
+		!(avoidFEC && len(packet)>=2 && packet[0]=='W' && packet[1]=='F') {
 		return [][]byte{packet}, nil
 	}
 

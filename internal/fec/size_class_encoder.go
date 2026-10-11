@@ -142,6 +142,14 @@ func (e *SizeClassEncoder) Pending() int {
 	return e.Stats().PendingSources
 }
 
+// NextBlockID is the next globally unallocated block ID. Interleaved size
+// classes reserve IDs at group START; a switch must transfer this value
+// rather than restarting the new encoder from 1.
+func (e *SizeClassEncoder) NextBlockID() uint32 {
+	if e == nil { return 0 }
+	return e.nextBlockID
+}
+
 func (e *SizeClassEncoder) Stats() FastBlockEncoderStats {
 	if e == nil {
 		return FastBlockEncoderStats{}

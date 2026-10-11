@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_SHARED_MIXED_PARITY_DECODER_RETIREMENT_BUGFIX_ACTIONS_PENDING",
+    "phase": "N2_ADAPTIVE_LINK_PATH_SWITCH_OPT_IN_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_FIRST_EMIT_SHAPE_SCOPED_PASS_ONE_BUDGET_MIXED_20R_DECODER_CANDIDATE_NOT_INSTALLED_LIVE",
+      "N2_normal_auto": "IN_PROGRESS_MIXED_DECODER_SCOPED_PASS_OPT_IN_LINK_PATH_OFF_ON_NEW_BLOCK_BOUNDED_DRAIN_CANDIDATE_NOT_PRODUCTION_LANE",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -272,14 +272,20 @@
         "performance": "NOT_RUN"
       },
       "n2_mixed_decoder_candidate": {
-        "status": "FIRST_SOURCE_ACTIONS_FAIL_CORRECTION_PENDING",
-        "failed_source_sha": "321adf1dfddf932ae68c3b8c94b2c8fb1e24781d",
-        "failed_foundation_run": 38126250217,
-        "failed_job": 114431142872,
-        "prior_lifecycle_run": 38126250233,
-        "failure": "TestN2MixedParityCollisionRejectsActiveAndCompactRetired: RetireRecoveryExpired did not persist b.parityShards into retiredBlock; different-profile late shard same BlockID could bypass retired parity fence.",
-        "fixed_source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "live": false
+        "status": "SCOPED_PASS_NOT_INSTALLED_LIVE",
+        "source_sha": "e1ad3f07492eb4151f55aeb407f06f34c710adac",
+        "foundation": 38126440112,
+        "lifecycle": 38126440082,
+        "failed_prior_run": 38126250217,
+        "failed_prior_job": 114431142872,
+        "physical": "NOT_RUN"
+      },
+      "n2_adaptive_link_switch_candidate": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "prior_source_sha": "e1ad3f07492eb4151f55aeb407f06f34c710adac",
+        "production_admission": "NOT_WIRED",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -311,8 +317,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 mixed parity decoder compact retirement correction: original candidate 321adf foundation38126250217 Linux unit failed job114431142872 because recovery.go RetireRecoveryExpired dropped per-block parity identity; now copied parityShards into retired record, check corrected exact-source Actions foundation/lifecycle. Do not credit historical red workflow. After PASS continue hybrid FEC-off + on one decoder safe switch and directional controller; product auto admission remains UNSUPPORTED, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-compact-decoder-parity-retirement-fix.md",
+  "next_task": "Check exact SOURCE for N2 explicit NewAdaptiveFECPath all-parity/off mixed path Actions foundation/lifecycle, do not treat pending as PASS; preserve red decoder 38126250217. If tests pass, implement real authenticated Lane opt-in (no implicit fixed migration), strict mixed RX + same cohort controller normalization/age/overlap; protected client/server directional V3 admission and N2 single-SOURCE performance/weaknet. N3-6 remain NOT_STARTED, physical NOT_RUN; old off p99/missing OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-adaptive-link-path-switch-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
   "last_tested_scope": "N2 sourced FEC meta+shape read-only: foundation 7/7 enabled PASS, lifecycle, N1 codec/race, N0 same-wire, 3-client hosted Linux functional; no N2 auto/weaknet/perf nor physical.",
