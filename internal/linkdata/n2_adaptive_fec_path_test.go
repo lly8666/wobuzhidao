@@ -174,3 +174,48 @@ func TestN2AdaptiveOffWFEscapeAndStrictAuthenticatedDispatch(t *testing.T) {
 		t.Fatalf("legacy fixed profile silently migrated: %v",err)
 	}
 }
+
+
+func TestN2PreparedSwitchDoesNotHoldFreshAndCommitsOnlyNewBlockIDs(t *testing.T) {
+	tx,rx:=n2AdaptivePath(t,20),n2AdaptivePath(t,0)
+	at:=time.Unix(25000,0)
+	old,err:=tx.Encode([]byte("old-before-preparation"),at)
+	if err!=nil||len(old)!=1 {t.Fatalf("old first systematic err=%v records=%d",err,len(old))}
+	prepared,err:=tx.PrepareParitySwitch(4)
+	if err!=nil {t.Fatal(err)}
+	// Cold FEC encoder now exists but is not visible to the sending lane.
+	// Fresh must still use 20:20 immediately, not wait for preparation.
+	otherOld,err:=tx.Encode([]byte("old-while-prepared"),at.Add(time.Millisecond))
+	if err!=nil||len(otherOld)!=1 {t.Fatalf("old live fresh stalled %v %d",err,len(otherOld))}
+	hOld,err:=fec.ParseBlockHeader(otherOld[0])
+	if err!=nil||hOld.EffectiveParityCount()!=20 {t.Fatalf("preparation changed active wire %+v %v",hOld,err)}
+	foreign:=n2AdaptivePath(t,20)
+	if err:=foreign.CommitPreparedParitySwitch(prepared);!errors.Is(err,ErrAdaptiveSwitchUnavailable) {
+		t.Fatalf("another client's prepared encoder was accepted: %v",err)
+	}
+	if err:=tx.CommitPreparedParitySwitch(prepared);err!=nil {t.Fatal(err)}
+	if err:=tx.CommitPreparedParitySwitch(prepared);!errors.Is(err,ErrAdaptiveSwitchUnavailable) {
+		t.Fatalf("same prepared encoder committed twice: %v",err)
+	}
+	newWire,err:=tx.Encode([]byte("new-after-commit"),at.Add(2*time.Millisecond))
+	if err!=nil||len(newWire)!=1 {t.Fatalf("new FEC fresh stalled %v %d",err,len(newWire))}
+	hNew,err:=fec.ParseBlockHeader(newWire[0])
+	if err!=nil||hNew.EffectiveParityCount()!=4||hNew.BlockID==hOld.BlockID {
+		t.Fatalf("new block shared old identity or profile %+v vs %+v err=%v",hNew,hOld,err)
+	}
+	if early,err:=tx.FlushDue(at.Add(31*time.Millisecond));err!=nil||len(early)!=0 {
+		t.Fatalf("prepared commit forced old partial early %d %v",len(early),err)
+	}
+	parity,err:=tx.FlushDue(at.Add(32*time.Millisecond))
+	if err!=nil||len(parity)!=3 {t.Fatalf("old k2+r2 and new k1+r1 parity absent %d %v",len(parity),err)}
+	got:=n2Decode(t,rx,parity,at.Add(32*time.Millisecond))
+	if len(got)!=3 {t.Fatalf("old/new parity did not recover all lost firsts: %q",got)}
+	if dupe:=n2Decode(t,rx,append(append(old,otherOld...),newWire...),at.Add(time.Second));len(dupe)!=0 {
+		t.Fatalf("late original systematic redelivered %q",dupe)
+	}
+	if state:=tx.State();state.DrainingEncoders!=0 ||
+		state.Encoder.ClosedByK[2]!=1||state.Encoder.ClosedByK[1]!=1 ||
+		tx.FECWireLimit()!=fec.HeaderSize+1200 {
+		t.Fatalf("prepared path leaked drain or changed MTU %+v",state)
+	}
+}

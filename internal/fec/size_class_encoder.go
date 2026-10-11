@@ -150,6 +150,19 @@ func (e *SizeClassEncoder) NextBlockID() uint32 {
 	return e.nextBlockID
 }
 
+// RebaseUnusedBlockID is exclusively for an encoder PREPARED off the TX
+// owner lock and not yet attached to a lane. The authoritative next global
+// BlockID is read only while that lane lock is held at commit. A used encoder
+// cannot be reset, preventing duplicate BlockIDs after concurrent changes.
+func (e *SizeClassEncoder) RebaseUnusedBlockID(next uint32) error {
+	if e==nil || next==0 || e.Stats().SourceShards!=0 {
+		return fmt.Errorf("fec: prepared size-class encoder is used or next BlockID exhausted")
+	}
+	e.nextBlockID=next
+	return nil
+}
+
+
 func (e *SizeClassEncoder) Stats() FastBlockEncoderStats {
 	if e == nil {
 		return FastBlockEncoderStats{}

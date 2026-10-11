@@ -140,34 +140,74 @@ func NewAdaptiveFECPath(config FECPathConfig) (*FECPath, error) {
 var ErrAdaptiveSwitchUnavailable = fmt.Errorf("linkdata: adaptive switching is not enabled")
 var ErrAdaptiveSwitchBusy = fmt.Errorf("linkdata: adaptive encoder drain budget exhausted")
 
-// SwitchParity only changes NEW FEC blocks. Existing partial groups retain
-// their encoder and firstAt+flushAfter, even after off and back on. When
-// pathological rapid switches exhaust the bounded drain budget, reject the
-// switch (HOLD at caller) without gating fresh sends on the active profile.
-func (p *FECPath) SwitchParity(parity int) error {
-	if p==nil || !p.adaptive {return ErrAdaptiveSwitchUnavailable}
+// PreparedParitySwitch owns one cold encoder, built without taking the TX
+// lock. It cannot be reused; only CommitPreparedParitySwitch binds its fresh
+// BlockID to the authoritative owner namespace at commit time.
+type PreparedParitySwitch struct {
+	owner *FECPath
+	parity int
+	encoder *fec.SizeClassEncoder
+	used bool
+}
+
+// PrepareParitySwitch reads only immutable path configuration and codec.
+// Never reads or modifies active encoder, current parity or BlockID, so a
+// fresh packet cannot be held up by this relatively expensive allocation.
+func (p *FECPath) PrepareParitySwitch(parity int) (*PreparedParitySwitch,error) {
+	if p==nil || !p.adaptive {return nil,ErrAdaptiveSwitchUnavailable}
 	if parity!=0 && !fec.IsSupportedParityShards(parity) {
-		return fmt.Errorf("linkdata: unsupported adaptive FEC 20:%d",parity)
+		return nil,fmt.Errorf("linkdata: unsupported adaptive FEC 20:%d",parity)
 	}
-	if parity==p.config.ParityShards {return nil}
-	if p.encoder!=nil && p.encoder.Pending()>0 && len(p.draining)>=maxAdaptiveDrainingEncoders {
-		return ErrAdaptiveSwitchBusy
-	}
-	var next *fec.SizeClassEncoder
+	prepared:=&PreparedParitySwitch{owner:p,parity:parity}
 	if parity!=0 {
 		var err error
-		next,err=fec.NewSizeClassEncoder(p.codec,p.config.SourceMTU,p.config.FlushAfter,p.nextBlockID,parity)
-		if err!=nil {return err}
+		prepared.encoder,err=fec.NewSizeClassEncoder(p.codec,p.config.SourceMTU,
+			p.config.FlushAfter,1,parity)
+		if err!=nil{return nil,err}
+	}
+	return prepared,nil
+}
+
+// CommitPreparedParitySwitch MUST run under one owner TX mutex. The cold
+// allocation is done. Only new groups use the next profile; old partial
+// groups retain firstAt+32ms and consume one of six bounded drain slots.
+// A busy drain returns HOLD/error and leaves the active profile untouched.
+func (p *FECPath) CommitPreparedParitySwitch(prepared *PreparedParitySwitch) error {
+	if p==nil || !p.adaptive {return ErrAdaptiveSwitchUnavailable}
+	if prepared==nil || prepared.used || prepared.owner!=p {return ErrAdaptiveSwitchUnavailable}
+	prepared.used=true
+	parity:=prepared.parity
+	if parity==p.config.ParityShards {return nil}
+	if p.encoder!=nil && p.encoder.Pending()>0 &&
+		len(p.draining)>=maxAdaptiveDrainingEncoders {
+		return ErrAdaptiveSwitchBusy
+	}
+	nextID:=p.nextBlockID
+	if p.encoder!=nil {nextID=p.encoder.NextBlockID()}
+	if prepared.encoder!=nil {
+		if err:=prepared.encoder.RebaseUnusedBlockID(nextID);err!=nil {
+			return err
+		}
 	}
 	if p.encoder!=nil {
-		p.nextBlockID=p.encoder.NextBlockID()
-		if p.encoder.Pending()>0 {p.draining=append(p.draining,p.encoder)} else {
+		p.nextBlockID=nextID
+		if p.encoder.Pending()>0 {
+			p.draining=append(p.draining,p.encoder)
+		} else {
 			p.closedStats=addEncoderStats(p.closedStats,p.encoder.Stats())
 		}
 	}
-	p.encoder=next
+	p.encoder=prepared.encoder
 	p.config.ParityShards=parity
 	return nil
+}
+
+// Standalone LINK-path tests still use SwitchParity under their own TX owner.
+// Real Lane callers use PrepareParitySwitch OUTSIDE l.mu and commit in O(1).
+func (p *FECPath) SwitchParity(parity int) error {
+	prepared,err:=p.PrepareParitySwitch(parity)
+	if err!=nil{return err}
+	return p.CommitPreparedParitySwitch(prepared)
 }
 
 func addEncoderStats(dst,src fec.FastBlockEncoderStats) fec.FastBlockEncoderStats {
