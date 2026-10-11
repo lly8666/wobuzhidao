@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_PREPARED_FEC_SWITCH_INDEPENDENT_DEADLINE_TEST_CORRECTION_ACTIONS_PENDING",
+    "phase": "N2_GENERATION_PINNED_TEST_ONLY_LOCAL_TX_PROPOSAL_APPLICATION_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_PROTECTED_LOCAL_TX_PROPOSAL_SCOPED_PASS_PREPARED_COLD_FEC_ENCODER_SWITCH_OUTSIDE_TX_MUTEX_CANDIDATE_ACTIONS_PENDING_PRODUCTION_ADMISSION_UNSUPPORTED",
+      "N2_normal_auto": "IN_PROGRESS_PROTECTED_TX_DIRECTION_READONLY_AND_COLD_PREPARED_NEW_BLOCK_SWITCH_SCOPED_PASS_GENERATION_PINNED_TEST_ONLY_RUNTIME_OWNER_LANE_APPLY_CANDIDATE",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -353,19 +353,21 @@
         "physical": "NOT_RUN"
       },
       "n2_prepared_cold_switch_candidate": {
-        "status": "FIRST_SOURCE_TEST_ORACLE_FAIL_CORRECTION_PENDING",
-        "original_source_sha": "a619a2b503881024ce30b9cfb7050dc2adf77094",
-        "original_foundation_run": 38132026228,
+        "status": "SCOPED_PASS_TEST_ONLY_NOT_LIVE",
+        "source_sha": "0d59e0d1fe84537c60c2ce15c721a412a6d20a33",
+        "foundation": 38132200201,
+        "lifecycle": 38132200199,
+        "foundation_artifact_id": 11698889651,
+        "foundation_sha256": "461f9b9d8a82265cdffe170d22543c02c3f1446ac2a7f6cd8f40eea2b5f20184",
+        "prior_failed_source": "a619a2b503881024ce30b9cfb7050dc2adf77094",
+        "prior_failed_foundation_run": 38132026228,
         "failed_linux_job": 114448183629,
-        "original_lifecycle_run": 38132026241,
-        "other_scoped_runs": {
-          "n1_codec": 38132026215,
-          "n0_multi": 38132026211,
-          "n0_samewire": 38132026231
-        },
-        "root_cause": "Test wrongly expected parity of new partial whose firstAt=t0+2ms to be due at t0+32ms; real required new deadline t0+34ms",
-        "corrected_source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "production_auto": "UNSUPPORTED",
+        "physical": "NOT_RUN"
+      },
+      "n2_generation_pinned_proposal_apply": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "scope": "ONLY_TEST_SEAM_NO_AUTOMATIC_PRODUCTION_FEEDBACK_APPLY",
         "physical": "NOT_RUN"
       }
     },
@@ -398,8 +400,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 prepared switch oracle correction SOURCE after a619a2b: previous foundation38132026228 Linux job114448183629 FAIL solely new test assumed new partial firstAt+30ms rather than +32ms. Now assert old parity2 at t0+32 and new parity1 at t0+34 with no early flush. Verify next exact SOURCE Actions foundation/lifecycle/N1 codec/three-client before qualification; do not change product 32ms. Then generation-pinned local TX proposal application without fresh HOL, protected V3 per-client Normal auto/aggressive admission, N2 realpath per-case performance; N3-N6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-prepared-independent-deadline-test-oracle-correction.md",
+  "next_task": "N2 generation-pinned test-only proposal-to-TX switch: verify latest SOURCE Actions foundation/lifecycle, repair any failure and repeat, preserving red history. Prior 0d59e0d two-phase cold encoder preparation/new+old absolute 32ms scope passes foundation38132200201/lifecycle38132200199; no live auto. New Runtime.ApplyN2ProposalForTests pins outboundMu.RLock and same ACTIVE TX ref, refuses dormant/stale/Game/invalid HOLD and uses owner SwitchN2ActiveParityForTests to apply only raise/lower (preparation outside Lane lock). After scoped regression pass, integrate protected Normal auto per-client V3 admission and real returned-source controller with bounded safe application, exact MTU/CLI/JSON/catalog; then single-condition Actions perf; N3-N6 not started, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n2-generation-pinned-normal-tx-proposal-test-application-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "dcf0a5549738672a05934ccf810bfd7ca7875a96",
   "last_tested_scope": "N2 single-generation protected V3 returned local TX-source controller PROPOSAL only: foundation Linux/Windows Go/race seven enabled PASS, lifecycle/N1 codec race/N0 hosted Linux three-client PASS; auto admission/switch/performance/physical NOT_RUN",
