@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_sha": "a59e4ba871108469227527e3abfa71a881f12bf3",
+  "classification": "SCOPED_CLEAN_LOWRTT_BOTH_DIRECTION_LOWER_OBSERVED",
+  "global_n2_performance": "NOT_QUALIFIED",
+  "functional_run": {
+    "run": 38150426546,
+    "job": 114502563753,
+    "conclusion": "success",
+    "artifact_id": 11706618376,
+    "sha256": "ae5ed9d1487ff2d730b1f5b3e056c25f12a66b3d974e939fb317fdc85d2df94f"
+  },
+  "foundation": {
+    "run": 38150426471,
+    "conclusion": "success",
+    "seven_enabled_pass": 7,
+    "artifact_id": 11706353621,
+    "sha256": "c58416aa788a65c117201663ba77473adcfcfbff0d0f121410da765f3d9a881d"
+  },
+  "scenario": {
+    "seconds": 100,
+    "drain_seconds": 10,
+    "one_way_delay_ms": 15,
+    "loss_percent": 0,
+    "each_direction_mbps": 10,
+    "client_record_cap": 0,
+    "server_record_cap": 0,
+    "outer_mtu": 1400,
+    "normal_mode": "auto min4 initial20 max20",
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ],
+    "diagnostics": "ON 1s; cannot compare CPU to off or different runner"
+  },
+  "first_unique": {
+    "c2s": {
+      "sent": 246711,
+      "received_first_unique": 246711,
+      "bytes": 125000240,
+      "send_failures": 0,
+      "corrupt": 0,
+      "duplicates": 0
+    },
+    "s2c": {
+      "sent": 246711,
+      "received_first_unique": 246711,
+      "bytes": 125000240,
+      "send_failures": 0,
+      "corrupt": 0,
+      "duplicates": 0
+    },
+    "returned_only_probe_p99_ns": 31500000
+  },
+  "controller": {
+    "c2s": {
+      "observed_profiles": [
+        4,
+        8,
+        10,
+        12,
+        16,
+        20
+      ],
+      "commits": 5,
+      "busy_holds": 0,
+      "lower_reason_samples": 9,
+      "last_source_seq": 66,
+      "last_lower_candidate": 4,
+      "last_confidence_model_residual": 0.0001416108263599466,
+      "last_slow_required": 4,
+      "last_lower_gate": "LOWERED",
+      "source_matched_samples": 124,
+      "repair_covered_samples": 109,
+      "complete_bound_samples": 87,
+      "capacity_limited_samples": 0,
+      "invalid_shape_samples": 0
+    },
+    "s2c": {
+      "observed_profiles": [
+        10,
+        12,
+        16,
+        20
+      ],
+      "commits": 3,
+      "busy_holds": 0,
+      "lower_reason_samples": 6,
+      "last_source_seq": 64,
+      "last_lower_candidate": 10,
+      "last_confidence_model_residual": 0.00027345729377253474,
+      "last_slow_required": 4,
+      "last_lower_gate": "LOWERED",
+      "source_matched_samples": 123,
+      "repair_covered_samples": 90,
+      "complete_bound_samples": 69,
+      "capacity_limited_samples": 0,
+      "invalid_shape_samples": 0
+    }
+  },
+  "limits": [
+    "Lossless 15ms proves qualified lower in one Normal scenario only",
+    "No 300ms six-stage recovery successful result yet",
+    "No CPU OFF or cross hardware performance optimization evidence",
+    "No auto-aggressive, asymmetric, sparse/idle/feedback failure, TCP+UDP/small MTU/Game4, N3-N6 or physical"
+  ]
+}
