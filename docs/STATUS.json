@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_OFFSTART_300MS_DAMAGE_RAISE_SCOPED_PASS_CLEAN300_LOWER_RERUN_ACTIONS_PENDING",
+    "phase": "N2_300MS_CLEAN_BOTH_TX_DOWNGRADE_SCOPED_PASS_POST_DAMAGE_RECOVERY_STILL_OPEN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "10dc75c27551eb19b99b23a51d99b8e9cd54b262",
+    "new_product_source_sha": "3f5c7880679a1b982e29dd07333680fac2cfde03",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_PRODUCTION_AUTO_WAVE300_UNQUALIFIED_BUT_15MS_LOSSLESS_100S_BOTH_DIRECTION_GUARDED_LOWER_VERIFIED",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_OFFSTART_300MS_REAL_DAMAGE_BOTH_DIRECTIONS_0_TO_4_TO_20_RAISE_SCOPED_PASS_C2S_CLEAN_RECOVERY_DOWNGRADE_UNQUALIFIED_CLEAN300_RETRY_PENDING",
+      "N2_normal_auto": "IN_PROGRESS_OFF_START_300MS_420S_DAMAGED_RISE_BOTH_PASS_INDEPENDENT_300MS_100S_CLEAN_BOTH_LOWER_TO4_PASS_POST_20PCT_DAMAGE_C2S_RECOVERY_STILL_OPEN",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -749,9 +749,37 @@
         "physical": "NOT_RUN"
       },
       "n2_clean300_after_edge_model": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "reason": "Separate one config, seed pair, 300ms one-way lossless 100s 10Mbps/dir; measure actual lowering and per-block confidence after corrected cropped source/parity model",
+        "status": "SCOPED_CLEAN_300MS_BOTH_DIRECTION_LOWER_OBSERVED_NOT_FULL_N2",
+        "source_sha": "3f5c7880679a1b982e29dd07333680fac2cfde03",
+        "run": 38160516630,
+        "job": 114532260003,
+        "artifact_id": 11710336295,
+        "artifact_sha256": "e7c86ed1685d80ebec3c081fe12050950b8a487d75d413543f637e9157b7eeb5",
+        "foundation_run": 38160516589,
+        "foundation_enabled_pass": 7,
+        "foundation_artifact_id": 11710510713,
+        "foundation_artifact_sha256": "238f6f953ae78a4cdac1ea549128807dbe480bc737e1a7fe1861463d9fb27203",
+        "client_profiles": [
+          20,
+          16,
+          12,
+          10,
+          8,
+          4
+        ],
+        "server_profiles": [
+          20,
+          16,
+          12,
+          10,
+          8,
+          4
+        ],
+        "client_commits": 5,
+        "server_commits": 5,
+        "client_unique": "246711/246711",
+        "server_unique": "246711/246711",
+        "probe": "100/100 p99 600.706428ms",
         "physical": "NOT_RUN"
       }
     },
@@ -784,11 +812,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Inspect exact new SOURCE next-adaptive-n2-auto-clean300 Actions. Distinguish functional first-unique PASS from N2 automatic lower eligibility: check client/server last actual TX profiles, committed switch count, lower confidence residual / slow EWMA / 30s stable and edge cropped source share under corrected model. If still HOLD, preserve first-attempt source hard gates and develop grounded identifiable candidate pricing using actual full/partial k/r, no unknown=0 or guess k20; add targeted race/functional Actions, then re-run exactly one scenario. Offstart 420s on 10dc75c passed actual both direction off→4→20 and S2C clean downshift, C2S did not downshift. Aggressive/directional/sparse/feedback cutoff/Game4 and N3-N6, physical NOT_RUN. Old off ~2.73s returning p99/missing and ~80s S2C still OPEN.",
-  "latest_log": "docs/devlog/20261012-n2-offstart-wave300-raise-pass-clean300-lower-rerun.md",
+  "next_task": "N2 current exact SOURCE 3f5c788: independent 100s 300ms clean BOTH actual auto TX lower through 20→16→12→10→8→4, run38160516630 job114532260003 Foundation38160516589 all7 PASS. Yet damaged off-start 420s wave SOURCE10dc75c had both off→4→20 but C2S stayed20 through final 120s clean while S2C fell to12: investigate lingering upper M+R confidence / croppedSource / time-to-recover with one predeclared extended-recovery damaged-case measurement and actual per-side lower gate; do not tune seed or relax identity/unknown/wide bounds. Next remaining N2: aggressive auto, asymmetric uplink/downlink, sparse idle, feedback blackout, 300ms 10Mbps mixed TCP UDP/small-MTU, Game4 fixed 3Mbps with CPU/queue/p99 capacity; N3–N6 NOT_STARTED, physical NOT_RUN. Historic off returning p99~2.73s/missing and ~80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261012-n2-clean300-real-both-direction-lower-pass-damaged-recovery-remains-open.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "10dc75c27551eb19b99b23a51d99b8e9cd54b262",
-  "last_tested_scope": "420s true 5-netns Normal auto min0 initial0, 10Mbps each dir, 300ms each one way, 0/1/5/20/5/0 loss: initial off both, authenticated raised to4 and20 on both; C2S 1035853/1036185, S2C 1035791/1036185; S2C later reduced to12, C2S stuck20. One source/wave job38154751684 and Foundation7/7 run38154751590 PASS, still N2 not qualified; TC loss RNG unseeded.",
+  "last_tested_source_sha": "3f5c7880679a1b982e29dd07333680fac2cfde03",
+  "last_tested_scope": "N2 10Mbps each direction, 100s independent 300ms one-way each direction lossless, auto initial/max20 min4, both actual TX 20→16→12→10→8→4 five commits, 246711/246711 first unique each, 100/100 probe p99 600.706428ms, diagnostics ON; Foundation7 PASS. This and offstart 420s scoped RAISE PASS do NOT make full N2 performance PASS.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

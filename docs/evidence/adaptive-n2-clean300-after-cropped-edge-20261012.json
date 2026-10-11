@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_sha": "3f5c7880679a1b982e29dd07333680fac2cfde03",
+  "scope": "one lossless Normal auto initial20,min4,max20; 300ms each direction; 10Mbps EACH direction for 100s +10s drain; diagnostics ON; record caps auto 0, outer MTU 1400",
+  "run": 38160516630,
+  "job": 114532260003,
+  "artifact_id": 11710336295,
+  "artifact_sha256": "e7c86ed1685d80ebec3c081fe12050950b8a487d75d413543f637e9157b7eeb5",
+  "foundation_run": 38160516589,
+  "foundation_enabled_jobs_pass": 7,
+  "foundation_artifact_id": 11710510713,
+  "foundation_artifact_sha256": "238f6f953ae78a4cdac1ea549128807dbe480bc737e1a7fe1861463d9fb27203",
+  "result": "SCOPED_CLEAN_300MS_BOTH_DIRECTION_LOWER_OBSERVED",
+  "c2s": {
+    "actual_profiles": [
+      20,
+      16,
+      12,
+      10,
+      8,
+      4
+    ],
+    "committed_switches": 5,
+    "sent": 246711,
+    "first_unique": 246711,
+    "bytes": 125000240,
+    "qualification_observations": {
+      "last_source_seq": 65,
+      "raw_matched_snapshots": 121,
+      "repair_covered_snapshots": 101,
+      "complete_bound_snapshots": 83,
+      "capacity_limited_snapshots": 0,
+      "invalid_shape_snapshots": 0,
+      "edge_cropped_snapshots": 86
+    }
+  },
+  "s2c": {
+    "actual_profiles": [
+      20,
+      16,
+      12,
+      10,
+      8,
+      4
+    ],
+    "committed_switches": 5,
+    "sent": 246711,
+    "first_unique": 246711,
+    "bytes": 125000240,
+    "qualification_observations": {
+      "last_source_seq": 65,
+      "raw_matched_snapshots": 120,
+      "repair_covered_snapshots": 105,
+      "complete_bound_snapshots": 83,
+      "capacity_limited_snapshots": 0,
+      "invalid_shape_snapshots": 0,
+      "edge_cropped_snapshots": 105
+    }
+  },
+  "probes": {
+    "sent": 100,
+    "received": 100,
+    "returned_p99_ns": 600706428
+  },
+  "qualifications": [
+    "Both directions truly lowered and reached configured4 floor; no need to relax hard gates",
+    "This does NOT demonstrate full transient loss recovery 20→4 in 120s final clean after actual 20% damage",
+    "CPU diagnostics ON not compared with OFF, no Windows TUN or Game4 verified"
+  ],
+  "physical": "NOT_RUN"
+}
