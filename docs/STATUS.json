@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_640PN_GAPPED_REPORT_POSTREPAIR_BOUNDARY_TESTS_ACTIONS_PENDING",
+    "phase": "N1_640PN_RACE_FOUNDATION_NATIVE_PASS_REAL_10MBPS_FEEDBACK_QUALIFICATION_DISPATCH",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
+    "new_product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N0_SCOPED_ACTIONS_PASS_N1_104B_V3_2S_CONTROL_PLUS_256_PN_3S_MATURE_RECEIVER_FIRST_ARRIVAL_ESTIMATE_AND_128B_CORRELATED_ECHO_BACK_TO_SENDER_SCOPED_ACTIONS_PASS_N1_IMPAIRMENT_STRESS_PENDING",
     "ordinary_performance": "NOT_RUN_N1_SOURCE_83ECA5E_BASELINE_VS_OPTIMIZED",
@@ -116,11 +116,22 @@
       "n1_lossless_ab_baseline_run": 38102647624,
       "n1_lossless_ab_candidate_run": 38102874543,
       "n1_lossless_ab_harness_sha": "447caae2d1a017ef428f9f1e5ba6c26870790db8",
-      "n1_lossless_ab_screen": "Both PASS_SCREEN: 120s Normal off lossless 10Mbps per direction seed601, 150MB unique each dir, no whole-second zero, socket/raw/link drops zero. Baseline SOURCE 4f0cf781 client/server CPU 44.25/45.63s, E5638253 39.81/41.01s; same AMD EPYC9V74 4-vCPU runner model, single-run CPU difference not proof. C2S wire amps 1.365823 vs 1.366078; S2C 1.312286 vs 1.312355."
+      "n1_lossless_ab_screen": "Both PASS_SCREEN: 120s Normal off lossless 10Mbps per direction seed601, 150MB unique each dir, no whole-second zero, socket/raw/link drops zero. Baseline SOURCE 4f0cf781 client/server CPU 44.25/45.63s, E5638253 39.81/41.01s; same AMD EPYC9V74 4-vCPU runner model, single-run CPU difference not proof. C2S wire amps 1.365823 vs 1.366078; S2C 1.312286 vs 1.312355.",
+      "n1_high_churn_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "n1_high_churn_test_head_sha": "01574d34507c8684ff679d1407f84fe81fc4b334",
+      "n1_high_churn_actions": {
+        "codec": 38103442971,
+        "lifecycle": 38103442974,
+        "native_three_client": 38103442956,
+        "foundation": 38103442960
+      },
+      "n1_high_churn_scope": "180/640 PN per 2s protected V3 ongoing upload/download/bidir, >=2 mature authenticated returned estimates & successful mature control emits each direction, -race count2; gapped source report sequences, post-repair deficit/late evidence and capacity; Linux/Windows foundation, lifecycle, 9-netns three-client functionality. Does not prove 10Mbps live impairment feedback.",
+      "n1_strict_new_candidate_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "n1_strict_new_candidates": "NOT_RUN_AS_OF_DISPATCH_COMMIT"
     }
   },
-  "next_task": "Inspect exact HEAD Actions N1 codec -race twice for 180/640 PN per2s continuous upload/download/bidirectional, mature emission outcome counters, missing tail/late-postrepair/reportSeq gap and 10s stale/CAPACITY. Repair scoped FAIL before native loss. Then use qualified mature-state diagnostics in separate 10Mbps strict 5205, Normal20 and Game4, matching SOURCE/harness baseline; independent1%/5% and asymmetry/low RTT/MTU extension still NOT_RUN. N2 OFF; N3-N6 NOT_STARTED.",
-  "latest_log": "docs/devlog/20261011-180000-n1-640pn-and-report-gap-regression-coverage.md",
+  "next_task": "Observe push relay single strict sample for latest product SOURCE 1c64e4e5 Normal/off/lossless 10Mbps each direction; inspect authenticated mature_echo_estimated vs mature_echo_capacity and sample/age in both client/server 1s diagnostic, plus runner/capacity/perf. On success dispatch a separate Normal/off/5205 single sample with same frozen harness via one relay rerun job; assess feedback under loss and no dishonest zero, 5205 not dedicated1%. Then 20:20/Game4 protections matched baseline; expand real one-way/sparse/small-MTU/1%-5% fixtures before N2. Keep N2 OFF, no physical.",
+  "latest_log": "docs/devlog/20261011-190000-n1-resumed-640pn-pass-realpath-mature-feedback-perf-dispatch.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
   "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",
