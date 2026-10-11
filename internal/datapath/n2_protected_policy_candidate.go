@@ -63,11 +63,12 @@ func N2ClientLaneFromProtectedPolicyForTests(
 	shadow.Negotiated.Policy=n2FixedBudgetEquivalent(shadow.Negotiated.Policy)
 	laneCfg,err:=ClientLaneConfigFromAdmission(&shadow,params)
 	if err!=nil{return nil,adaptivefec.Config{},err}
-	lane,err:=NewN2AdaptiveLaneForTests(laneCfg)
+	// The exact protected original policy is retained on the immutable Lane
+	// config. Its max20 budget was independently derived using the private
+	// fixed equivalent, not leaked into the admission response.
+	laneCfg.N2Policy=session.Negotiated.Policy
+	lane,err:=NewLane(laneCfg)
 	if err!=nil{return nil,adaptivefec.Config{},err}
-	// Immutable exact negotiated policy belongs to this lane instance.
-	// No copy of another customer's min/mode may arm its TX controller.
-	lane.n2ProtectedPolicy=session.Negotiated.Policy
 	return lane,plan,nil
 }
 
@@ -89,10 +90,11 @@ func N2ServerLaneFromProtectedPolicyForTests(
 	shadow.Negotiated.Policy=n2FixedBudgetEquivalent(shadow.Negotiated.Policy)
 	laneCfg,err:=ServerLaneConfigFromAdmission(&shadow,assoc,params)
 	if err!=nil{return nil,adaptivefec.Config{},err}
-	lane,err:=NewN2AdaptiveLaneForTests(laneCfg)
+	// The exact protected original policy is retained on the immutable Lane
+	// config. Its max20 budget was independently derived using the private
+	// fixed equivalent, not leaked into the admission response.
+	laneCfg.N2Policy=session.Negotiated.Policy
+	lane,err:=NewLane(laneCfg)
 	if err!=nil{return nil,adaptivefec.Config{},err}
-	// Immutable exact negotiated policy belongs to this lane instance.
-	// No copy of another customer's min/mode may arm its TX controller.
-	lane.n2ProtectedPolicy=session.Negotiated.Policy
 	return lane,plan,nil
 }

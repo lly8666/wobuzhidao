@@ -55,6 +55,9 @@ func TestN2ProtectedPerClientPolicyCandidatePreservesWireBudgetAndLateMixedDeliv
 		if err!=nil{assoc.Close();t.Fatal(err)}
 		server,sc,err:=N2ServerLaneFromProtectedPolicyForTests(sl,assoc,paramsS)
 		if err!=nil{client.Close();assoc.Close();t.Fatal(err)}
+		if client.Config().N2Policy!=policy || server.Config().N2Policy!=policy {
+			t.Fatal("immutable Lane did not retain exact authenticated auto policy")
+		}
 		if cc.Mode!=tc.advice||sc.Mode!=tc.advice||cc.MinParity!=int(tc.min)||
 			sc.MinParity!=int(tc.min)||cc.InitialParity!=20||sc.MaxParity!=20 {
 			t.Fatalf("per-client controller mismatch C=%+v S=%+v",cc,sc)
@@ -124,5 +127,44 @@ func TestN2ProtectedAutoCandidateRejectsGameMissingQualityAndUnimplementedCipher
 	if l,_,err:=N2ClientLaneFromProtectedPolicyForTests(v2,ClientLaneParams{});l!=nil||
 		!errors.Is(err,ErrAdmissionHandoff) {
 		t.Fatalf("V2 promoted to auto path %v",err)
+	}
+}
+
+func TestN2NormalLaneConstructorNeverImplicitlyUpgradesFixedOrGame(t *testing.T) {
+	fixed:=pairConfig(RoleClient,20)
+	legacy,err:=NewLane(fixed)
+	if err!=nil {t.Fatal(err)}
+	if _,ok:=legacy.N2ProtectedPolicyForTests();ok {
+		t.Fatal("legacy fixed Lane gained implicit auto policy")
+	}
+	legacy.Close()
+	// An untrusted entrypoint cannot make a mixed-profile Lane by setting
+	// only an FEC mode byte or using a mismatching max MTU/initial parity.
+	p:=n2V3CandidatePolicy(realityfront.FECAuto,4)
+	fixed.N2Policy=p
+	if lane,err:=NewLane(fixed);err!=nil {
+		t.Fatalf("valid max20 protected Normal policy rejected: %v",err)
+	}else{
+		accepted,ok:=lane.N2ProtectedPolicyForTests()
+		if !ok||accepted!=p {t.Fatal("missing exact policy after initial construction")}
+		lane.Close()
+	}
+	fixed.N2Policy.Quality=0
+	if lane,err:=NewLane(fixed);err==nil {
+		lane.Close()
+		t.Fatal("non-quality auto accepted")
+	}
+	fixed.N2Policy=p
+	fixed.N2Policy.Transport=realityfront.TransportGame
+	fixed.N2Policy.DesiredLanes=4
+	if lane,err:=NewLane(fixed);err==nil {
+		lane.Close()
+		t.Fatal("Game silently migrated to Normal auto")
+	}
+	fixed.N2Policy=p
+	fixed.ParityShards=4
+	if lane,err:=NewLane(fixed);err==nil {
+		lane.Close()
+		t.Fatal("auto initialized below its required 20:20 max geometry")
 	}
 }

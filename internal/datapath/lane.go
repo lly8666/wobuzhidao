@@ -42,6 +42,10 @@ type LaneConfig struct {
 	// ParityShards is immutable for one lane incarnation. Zero means FEC off;
 	// otherwise it must be one of the live fixed 20:R profiles.
 	ParityShards int
+	// N2Policy is the exact once-protected V3 Normal auto policy. Zero means
+	// legacy/fixed/off and MUST retain the existing fixed constructor.
+	// A nonzero value selects one shared mixed-profile decoder at max20 MTU.
+	N2Policy realityfront.AdmissionPolicy
 	FlushAfter   time.Duration
 	MaxBlocks    int
 
@@ -181,7 +185,14 @@ type Lane struct {
 }
 
 func NewLane(cfg LaneConfig) (*Lane, error) {
-	return newLaneWithN2TestPath(cfg,false)
+	adaptive:=cfg.N2Policy.Schema!=0
+	if adaptive {
+		if _,err:=N2PreparedPolicyForTests(cfg.N2Policy);err!=nil {
+			return nil,ErrConfigMismatch
+		}
+		if cfg.ParityShards!=fec.ParityShards {return nil,ErrConfigMismatch}
+	}
+	return newLaneWithN2TestPath(cfg,adaptive)
 }
 
 // NewN2AdaptiveLaneForTests tests authenticated mixed on/off LINK paths.
@@ -265,6 +276,7 @@ func newLaneWithN2TestPath(cfg LaneConfig, adaptive bool) (*Lane, error) {
 		txPath:   txPath,
 		rxPath:   rxPath,
 		adaptiveN2Test: adaptive,
+		n2ProtectedPolicy: cfg.N2Policy,
 	}, nil
 }
 
