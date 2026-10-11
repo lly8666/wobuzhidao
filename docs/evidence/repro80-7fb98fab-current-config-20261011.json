@@ -1,0 +1,346 @@
+{
+  "schema": "wbd-repro80-current-config/v1",
+  "product_source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "scope": "single 300s existing GUI session sparse sequential UDP boundary echo, one natural lane rotation; no cold startup, throughput, native TCP or noHOL qualification",
+  "actual_seconds": 300.10089719999996,
+  "drain_seconds": 3.0703283000000283,
+  "client_alive": true,
+  "sent_success": 1879,
+  "target_received_unique": 1879,
+  "client_received_unique": 1879,
+  "missing_to_target": [],
+  "target_received_client_missing": [],
+  "missing_total": 0,
+  "target_bad_payload": 0,
+  "echo_send_errors": {},
+  "invalid_responses": 0,
+  "receive_socket_errors": 0,
+  "late_gt_1s": 0,
+  "p99_ms": 102.164,
+  "max_ms": 273.391,
+  "first_received_sent_offset_ms": 53.006699999999995,
+  "max_observed_response_gap_ms": 322.392,
+  "client_cpu_seconds": 9.6875,
+  "helper_cpu_seconds": 0.75,
+  "server_cpu_seconds": 4.49,
+  "server_raw_drop_initial": 0,
+  "server_raw_drop_max": 0,
+  "server_raw_buffer_bytes": [
+    1048576
+  ],
+  "linux_observer_dropped": 39,
+  "windows_observer_dropped_max": 0,
+  "new_syn_flows": {
+    "C2S/40031": {
+      "elapsed_seconds": 45.704,
+      "syn": 1
+    },
+    "S2C/40031": {
+      "elapsed_seconds": 45.704,
+      "syn": 1
+    }
+  },
+  "linux_final_flows": {
+    "C2S/40030": {
+      "packets": 5136,
+      "payload_packets": 3727,
+      "payload_bytes": 4359186,
+      "syn": 0,
+      "fin": 1,
+      "rst": 0,
+      "last_seq": 3041083410,
+      "last_ack": 2334050314
+    },
+    "S2C/40030": {
+      "packets": 5638,
+      "payload_packets": 3826,
+      "payload_bytes": 4518242,
+      "syn": 0,
+      "fin": 1,
+      "rst": 0,
+      "last_seq": 2334050314,
+      "last_ack": 3041083411
+    },
+    "C2S/40031": {
+      "packets": 31126,
+      "payload_packets": 22824,
+      "payload_bytes": 27456108,
+      "syn": 1,
+      "fin": 0,
+      "rst": 0,
+      "last_seq": 2766601867,
+      "last_ack": 2732955311
+    },
+    "S2C/40031": {
+      "packets": 35137,
+      "payload_packets": 23483,
+      "payload_bytes": 28335533,
+      "syn": 1,
+      "fin": 0,
+      "rst": 0,
+      "last_seq": 2732955271,
+      "last_ack": 2766601867
+    }
+  },
+  "windows_final_flows": {
+    "S2C/40030": {
+      "Packets": 5110,
+      "PayloadPackets": 3443,
+      "PayloadBytes": 4033382,
+      "Syn": 0,
+      "Fin": 1,
+      "Rst": 0,
+      "LastSeq": 2334050314,
+      "LastAck": 3041083411
+    },
+    "C2S/40030": {
+      "Packets": 4730,
+      "PayloadPackets": 3431,
+      "PayloadBytes": 3991587,
+      "Syn": 0,
+      "Fin": 1,
+      "Rst": 0,
+      "LastSeq": 3041083410,
+      "LastAck": 2334050314
+    },
+    "C2S/40031": {
+      "Packets": 31127,
+      "PayloadPackets": 22825,
+      "PayloadBytes": 27457463,
+      "Syn": 1,
+      "Fin": 0,
+      "Rst": 0,
+      "LastSeq": 2766601867,
+      "LastAck": 2732955311
+    },
+    "S2C/40031": {
+      "Packets": 34460,
+      "PayloadPackets": 22823,
+      "PayloadBytes": 27458051,
+      "Syn": 1,
+      "Fin": 0,
+      "Rst": 0,
+      "LastSeq": 2732955271,
+      "LastAck": 2766601867
+    }
+  },
+  "cases": [
+    {
+      "UDPPayload": 8972,
+      "DontFragment": false,
+      "Attempts": 171,
+      "Sent": 171,
+      "ReceivedExact": 171,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": 93.986,
+      "max_ms": 273.391
+    },
+    {
+      "UDPPayload": 96,
+      "DontFragment": false,
+      "Attempts": 1366,
+      "Sent": 1366,
+      "ReceivedExact": 1366,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": 61.462,
+      "max_ms": 113.629
+    },
+    {
+      "UDPPayload": 8973,
+      "DontFragment": false,
+      "Attempts": 171,
+      "Sent": 171,
+      "ReceivedExact": 171,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": 94.561,
+      "max_ms": 153.45
+    },
+    {
+      "UDPPayload": 65507,
+      "DontFragment": false,
+      "Attempts": 171,
+      "Sent": 171,
+      "ReceivedExact": 171,
+      "LateExact": 0,
+      "MessageSizeError": 0,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": 104.073,
+      "max_ms": 105.411
+    },
+    {
+      "UDPPayload": 65508,
+      "DontFragment": false,
+      "Attempts": 171,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 171,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": null,
+      "max_ms": null
+    },
+    {
+      "UDPPayload": 8972,
+      "DontFragment": true,
+      "Attempts": 171,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 171,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": null,
+      "max_ms": null
+    },
+    {
+      "UDPPayload": 8973,
+      "DontFragment": true,
+      "Attempts": 171,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 171,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": null,
+      "max_ms": null
+    },
+    {
+      "UDPPayload": 65507,
+      "DontFragment": true,
+      "Attempts": 170,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 170,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": null,
+      "max_ms": null
+    },
+    {
+      "UDPPayload": 65508,
+      "DontFragment": true,
+      "Attempts": 170,
+      "Sent": 0,
+      "ReceivedExact": 0,
+      "LateExact": 0,
+      "MessageSizeError": 170,
+      "OtherSendError": 0,
+      "BadPayload": 0,
+      "MissingSequences": [],
+      "p99_ms": null,
+      "max_ms": null
+    }
+  ],
+  "missing_events": [],
+  "no_raw_pcap": true,
+  "original_b4_failure": "OPEN_NOT_RECLASSIFIED",
+  "interpretation": "No automatic root-cause closure; current inner MTU1273 differs from old9000; observer drops limit packet-for-packet NIC comparison.",
+  "artifact_hashes": {
+    "actual-active-config.json": {
+      "size": 367,
+      "sha256": "d80e790b26e4408c01fe63d21db7d8ac904776aea76efbf1efbb05dc85101080"
+    },
+    "cleanup-check.json": {
+      "size": 523,
+      "sha256": "c236dab489010cf237d5d7f5a09f8a20e0b5f550e413834516d3d317db58e81a"
+    },
+    "linux-headers.jsonl": {
+      "size": 254888,
+      "sha256": "34625d545e8c0912024a944b0aed0eaa4228d905ce2d7f85cbe2b32b6ea4df56"
+    },
+    "load.log": {
+      "size": 16,
+      "sha256": "c783c269beaf3daa61a2322f3dd8907309e7aaef6512d0c680991b0da4fee146"
+    },
+    "preflight.json": {
+      "size": 1231,
+      "sha256": "a21f03ba95754d3fb4540fba69197f38efdae572e051675d59d92e07082dcde7"
+    },
+    "receipt.json": {
+      "size": 185,
+      "sha256": "899a309bbedda731a873108cd757ecae32463c1393631efcf3f3059426016c5d"
+    },
+    "resources.json": {
+      "size": 385186,
+      "sha256": "54be7fd381769962f91c9256dcfe9524c3a74d2dfe773f94a07c30b0f65d6873"
+    },
+    "result.json": {
+      "size": 1169367,
+      "sha256": "634dfd42b5cf48a995507ea7663a87f6314a124aadc7a9975314970aaa631cc2"
+    },
+    "target.json": {
+      "size": 377903,
+      "sha256": "89b52fa9222d99e5f5b28d90f5c050ec4756f07eeaccea816af052e1bc975945"
+    },
+    "target.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "windows-headers.jsonl": {
+      "size": 201254,
+      "sha256": "552d79ddc3656b3c44b0316a69565afb5d56a2cefd2d19ad94dcaa6b611c3c9d"
+    },
+    "windows-observer.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "result": "PASS_SCOPED_CURRENT_CONFIG_80S_NOT_REPRODUCED",
+  "helper_source": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
+  "helper_source_exact_files_verified": true,
+  "active_configuration": {
+    "Hash": "1D4B9D823984B088B2E260D11074568DD1ED49DB63169DF4CE5A5F5FD8ADAB1B",
+    "lanes": 1,
+    "fec-parity": 20,
+    "mtu": 1400,
+    "route-mode": "all",
+    "rotate-min": "5m",
+    "rotate-max": "10m",
+    "idle-dormant": "2m",
+    "keepalive-interval": "15s",
+    "diagnostic-jsonl": ""
+  },
+  "configuration_snapshot_notice": "Active GUI config captured during sample and hash unchanged afterward; preflight ConfigHash references inactive test-config, not live active.json.",
+  "cleanup": {
+    "windows": {
+      "ProductCount": 1,
+      "ProductPID": 7020,
+      "GUIAlive": true,
+      "ActiveConfigHash": "1D4B9D823984B088B2E260D11074568DD1ED49DB63169DF4CE5A5F5FD8ADAB1B",
+      "TemporaryCompilationFilesRemoved": true,
+      "OwnedRawPcapCount": 0
+    },
+    "arm": {
+      "owned_helper_pids": [],
+      "temporary_target_address_present": false,
+      "server_active": "active",
+      "server_pid": 501526,
+      "server_config_hash": "96606eb445ab8d93e8c288ce15355e8701608cf33bb236756ea12a29a661e316",
+      "raw_pcap_count": 0
+    }
+  },
+  "source_counters": "NOT_OBSERVED: existing diagnostics off preserved; no server FreshSent/Emit counter comparison claimed.",
+  "current_source_actions": "This is an already-deployed physical source7fb98fab; does not qualify current adaptive83eca5e.",
+  "business_payload_mbps": 0.383909
+}
