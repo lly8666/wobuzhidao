@@ -68,7 +68,10 @@ RESOURCE_PID="$!"
     s=exact(s,'printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"',
               'printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"\n'+stage)
     s=exact(s,'wait "$TGT_PID"\nTGT_PID=""',
-           'wait "$TGT_PID"\nTGT_PID=""\nwait "$STAGE_PID"\nSTAGE_PID=""\nkill -TERM "$RESOURCE_PID" 2>/dev/null || true\nwait "$RESOURCE_PID" || true\nRESOURCE_PID=""')
+           'wait "$TGT_PID"\nTGT_PID=""\nSTAGE_EXIT_CODE=0\nwait "$STAGE_PID" || STAGE_EXIT_CODE=$?\nprintf "%s\\n" "$STAGE_EXIT_CODE" > "$ART/stage-exit-code.txt"\nSTAGE_PID=""\nkill -TERM "$RESOURCE_PID" 2>/dev/null || true\nwait "$RESOURCE_PID" || true\nRESOURCE_PID=""')
+    # A failed stage must NOT skip business/process/hash/manifest snapshots.
+    # Fail the shell only AFTER the normal bounded receipt is written.
+    s += '\nif [[ "$STAGE_EXIT_CODE" -ne 0 ]]; then echo "WBD_N2_STAGE_HELPER_EXIT=$STAGE_EXIT_CODE" >&2; exit "$STAGE_EXIT_CODE"; fi\n'
     script.parent.mkdir(parents=True,exist_ok=True)
     script.write_text(s,encoding="utf-8")
     receipt.write_text(json.dumps({
@@ -78,7 +81,9 @@ RESOURCE_PID="$!"
         "analyzer_file_sha256":digest(root/"tools/adaptive_n2_wave300.py"),
         "waveform":[{"name":a,"start_s":b,"end_s":b+60,"loss_percent":c}
                     for a,b,c in PHASES],
-        "harness_loss_seed":601,"business_seeds":[2026092201,2026092202],
+        "requested_netem_seed":601,"netem_seed_applied":False,
+        "netem_rng":"KERNEL_RANDOM_UNSEEDED_TC_OPTION_UNSUPPORTED",
+        "business_seeds":[2026092201,2026092202],
         "configuration":"Normal auto min4 initial/max20, each-way10Mbps, 300ms one-way, default auto record cap0, outer MTU1400, diagnostics ON",
         "classification":"single predeclared 360s impairment scenario, not multiple configurations",
     },sort_keys=True,indent=2)+"\n",encoding="utf-8")
@@ -109,6 +114,8 @@ def phase_injection(path,errors):
             continue
         if begin.get("offset_seconds")!=offset or end.get("offset_seconds")!=offset+60 or begin.get("loss_percent")!=want or end.get("loss_percent")!=want:
             errors.append("stage time/loss contradiction: "+name)
+        if begin.get("netem_seed_applied") is not False or end.get("netem_seed_applied") is not False or begin.get("requested_netem_seed")!=601 or end.get("requested_netem_seed")!=601:
+            errors.append("netem RNG seed capability not honestly recorded: "+name)
         if abs(begin.get("clock_delta_from_target_ns",10**18))>2_000_000_000 or abs(end.get("clock_delta_from_target_ns",10**18))>2_000_000_000:
             errors.append("stage scheduler delayed >2s: "+name)
         stage={"name":name,"start_s":offset,"end_s":offset+60,"expected_loss_percent":want,
@@ -134,7 +141,10 @@ def phase_injection(path,errors):
         phases.append(stage)
     if len(phases)!=len(PHASES):
         errors.append("not all six stages observed")
-    return phases,{"events":len(events),"stage_names":[x["name"] for x in phases]}
+    return phases,{"events":len(events),"stage_names":[x["name"] for x in phases],
+                   "requested_netem_seed":601,
+                   "netem_seed_applied":False,
+                   "netem_rng":"KERNEL_RANDOM_UNSEEDED_TC_OPTION_UNSUPPORTED"}
 
 def analyze_direction(src,dst):
     sent=src["sent_packets"]
@@ -298,7 +308,7 @@ def check(art,source,output):
         if errors:verdict="INVALID_OR_INSUFFICIENT_MEASUREMENT"
         elif correctness:verdict="FAIL_CORRECTNESS"
         elif capacity:verdict="CAPACITY_LIMITED_REVIEW"
-        elif observed_rise and observed_down and both_applied:verdict="SCOPED_WAVEFORM_CONTROL_OBSERVED_REVIEW_PERFORMANCE"
+        elif observed_rise and observed_down and both_applied:verdict="SCOPED_WAVEFORM_CONTROL_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE"
         else:verdict="MEASURED_NOT_QUALIFIED_CONTROLLER_WAVEFORM"
         result={"schema":1,"source_sha":source,"classification":verdict,
                 "not_full_n2_pass":True,"errors":errors,"correctness_errors":correctness,
@@ -309,7 +319,8 @@ def check(art,source,output):
                 "limitations":["one 360s Normal auto waveform and runner; requires independent aggressive/lowRTT/asymmetric/sparse/mixed/Game4 gates",
                                "high loss may legitimately leave first-unique gaps; no automatic all-probe-zero-loss assumption",
                                "diagnostic ON resource samples not comparable with OFF or other CPU model",
-                               "qdisc observed drop fraction is network injected stress, not exact physical first-attempt PLR"]}
+                               "qdisc observed drop fraction is network injected stress, not exact physical first-attempt PLR",
+                               "ubuntu-24.04 tc lacks netem RNG seed option: kernel loss stochastic realization is UNSEEDED; business seeds fixed, measured qdisc drops required; no seed reproducibility claim"]}
     except Exception as exc:
         result={"schema":1,"source_sha":source,"classification":"INVALID_OR_INSUFFICIENT_MEASUREMENT",
                 "errors":errors+["analyzer exception: "+str(exc)],"correctness_errors":correctness,

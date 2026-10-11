@@ -3,7 +3,10 @@
 
 Six predeclared 60s stages: 360 seconds of one unchanged product/source/
 workload/seed, not six configurations or an A/B benchmark. Each direction
-uses its own router netem qdisc and a deterministic kernel loss seed. Captures
+uses its own router netem qdisc. The ubuntu-24.04 packaged tc netem
+parser has NO seed option; the loss RNG is therefore UNSEEDED. Fixed
+business seeds and actually observed per-stage qdisc drops are retained;
+never claim that a requested kernel loss seed was applied. Captures
 only bounded tc JSONL aggregates; no packet bodies or application payload.
 """
 import argparse
@@ -26,11 +29,11 @@ def snapshot(ns,dev):
         raise ValueError("missing tc qdisc snapshot for "+dev)
     return value
 
-def change(ns,dev,pct,seed):
+def change(ns,dev,pct):
     cmd=["ip","netns","exec",ns,"tc","qdisc","change","dev",dev,
          "root","netem","limit","200000","delay","300ms"]
     if pct:
-        cmd+=["loss","random",str(pct)+"%","seed",str(seed)]
+        cmd+=["loss","random",str(pct)+"%"]
     p=subprocess.run(cmd,capture_output=True,text=True)
     if p.returncode:
         raise RuntimeError("netem change rejected: "+repr((cmd,p.returncode,p.stderr)))
@@ -59,6 +62,8 @@ def main():
             row={"event":event_name,"name":name,"loss_percent":pct,
                  "offset_seconds":offset,"duration_seconds":DURATION,
                  "one_way_delay_ms":DELAY,"time_monotonic_ns":now,"time_wall_ns":time.time_ns(),
+                 "requested_netem_seed":x.seed,"netem_seed_applied":False,
+                 "netem_rng":"KERNEL_RANDOM_UNSEEDED_TC_OPTION_UNSUPPORTED",
                  "clock_delta_from_target_ns":now-(x.start_ns+offset*1000000000),
                  "c2s":snapshot(x.namespace,x.c2s_dev),
                  "s2c":snapshot(x.namespace,x.s2c_dev)}
@@ -69,15 +74,15 @@ def main():
                 if i:
                     prev=STAGES[i-1]
                     event("phase_end",prev[0],prev[2],offset)
-                change(x.namespace,x.c2s_dev,loss,x.seed*100+i*10+1)
-                change(x.namespace,x.s2c_dev,loss,x.seed*100+i*10+2)
+                change(x.namespace,x.c2s_dev,loss)
+                change(x.namespace,x.s2c_dev,loss)
                 event("phase_start",name,loss,offset)
             until(x.start_ns+DURATION*1000000000)
             event("phase_end",STAGES[-1][0],STAGES[-1][2],DURATION)
             until(x.start_ns+(DURATION+DRAIN)*1000000000)
             event("drain_end",STAGES[-1][0],0,DURATION+DRAIN)
-            change(x.namespace,x.c2s_dev,0,x.seed*100+91)
-            change(x.namespace,x.s2c_dev,0,x.seed*100+92)
+            change(x.namespace,x.c2s_dev,0)
+            change(x.namespace,x.s2c_dev,0)
         except Exception as exc:
             f.write(json.dumps({"event":"harness_error","error":str(exc)})+"\n")
             raise

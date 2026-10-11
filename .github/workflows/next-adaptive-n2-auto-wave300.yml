@@ -62,6 +62,7 @@ jobs:
           "$ART/wbd-client" --version > "$ART/client-version.txt"
           "$ART/wbd-server" --version > "$ART/server-version.txt"
           sha256sum "$ART/wbd-client" "$ART/wbd-server" > "$ART/binary-sha256.txt"
+          python3 -m py_compile tools/adaptive_n2_wave300.py tools/adaptive_n2_loss_wave_stage.py
           python3 tools/adaptive_n2_wave300.py prepare \
             --root . --script "$ART/n2-wave300-derived.sh" --receipt "$ART/harness-prep.json"
           bash -n "$ART/n2-wave300-derived.sh"
@@ -91,7 +92,7 @@ jobs:
           cat artifacts/adaptive-n2-auto-wave300/summary.json || true
           tail -n 50 artifacts/adaptive-n2-auto-wave300/client.log || true
           tail -n 50 artifacts/adaptive-n2-auto-wave300/server.log || true
-          echo "SOURCE_SHA=$GITHUB_SHA; N2 V3 Normal 300ms six-phase actual loss wave: inspect summary classification, never infer full PASS from job green; Windows TUN/CPU OFF/other modes NOT_RUN" >> "$GITHUB_STEP_SUMMARY"
+          echo "SOURCE_SHA=$GITHUB_SHA; N2 V3 Normal 300ms six-phase actual loss wave: inspect summary classification; tc netem RNG seed unsupported on this runner and not applied, actual drop counters mandatory; NEVER infer full N2 PASS; Windows TUN/CPU OFF/other modes NOT_RUN" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "93fe50a441475291ca722e020776cd996d16e3b3",
+  "classification": "FAIL_INVALID_OR_INSUFFICIENT_MEASUREMENT_HARNESS",
+  "foundation": {
+    "id": 38145013834,
+    "conclusion": "success"
+  },
+  "wave": {
+    "id": 38145013812,
+    "job": 114486430524,
+    "conclusion": "failure",
+    "artifact_id": 11704865648,
+    "artifact_sha256": "312cdf52f8156cb4c1b57132f35a22650041d11106fe08b638b292985d8bca1"
+  },
+  "stage": {
+    "only_completed": "clean0 0% 60s",
+    "next": "loss1 unsupported seed",
+    "command": "tc qdisc change dev rsrv root netem limit 200000 delay 300ms loss random 1% seed 60111",
+    "stderr": "What is \"seed\"?",
+    "rng_seed": "UNSUPPORTED_ON_RUNNER"
+  },
+  "analyzer": {
+    "classification": "INVALID_OR_INSUFFICIENT_MEASUREMENT",
+    "errors": [
+      "manifest.json missing after stage wait returned nonzero"
+    ],
+    "correctness_errors": []
+  },
+  "business_360s": {
+    "c2s_unique": 888159,
+    "s2c_unique": 888159,
+    "bytes_each": 450000560,
+    "probes_returned": 360,
+    "scope": "remaining traffic lossless due failed qdisc change, NOT a loss-wave acceptance"
+  },
+  "root_cause": "fixture incompatible netem tc syntax, not product defect proven",
+  "physical": "NOT_RUN"
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_FIRST_REAL_300MS_NORMAL_AUTO_360S_SIX_PHASE_DAMAGE_WAVE_ACTIONS_PENDING",
+    "phase": "N2_WAVE300_TC_NETEM_SEED_UNSUPPORTED_FIXTURE_REPAIR_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_BIDIRECTIONAL_REAL_HEALTHY_100S_10MBPS_20_TO_4_SCOPED_PASS_300MS_0_1_5_20_5_0_STAGED_ACTUAL_INJECTION_CPU_FIRST_UNIQUE_CANDIDATE",
+      "N2_normal_auto": "IN_PROGRESS_HEALTHY_100S_ACTUAL_C2S_AND_S2C_DOWNGRADE_SCOPED_PASS_FIRST_300MS_SIX_PHASE_SOURCE_93FE50A_FAILED_UNSUPPORTED_TC_SEED_REPAIR_PENDING",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -561,6 +561,25 @@
         "source_sha": "CURRENT_COMMIT",
         "scope": "one Normal auto min4 policy, 360s loss 0->1->5->20->5->0 each stage60s, 300ms one-way both, real 10Mbps each direction, default MTU cap0, seed601 netem and fixed business seeds; separate actual per-stage TX grades, first unique missing/probe/CPU/queue and netem actual; expected losses may be MEASURED_NOT_QUALIFIED",
         "physical": "NOT_RUN"
+      },
+      "n2_first_wave300_failure": {
+        "status": "FAIL_INVALID_OR_INSUFFICIENT_MEASUREMENT_HARNESS",
+        "source_sha": "93fe50a441475291ca722e020776cd996d16e3b3",
+        "run": 38145013812,
+        "job": 114486430524,
+        "artifact_id": 11704865648,
+        "artifact_sha256": "312cdf52f8156cb4c1b57132f35a22650041d11106fe08b638b292985d8bca1",
+        "reason": "tc netem on ubuntu-24.04 rejected seed option at first loss1 phase; stage helper failed; generator completed 360s but all later damage phases were NOT injected; script aborted prior to writing manifest; cannot infer auto wave or product correctness",
+        "foundation_run": 38145013834,
+        "foundation_conclusion": "success",
+        "physical": "NOT_RUN"
+      },
+      "n2_wave300_unseeded_rerun": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "NEXT_COMMIT_HEAD_PENDING",
+        "loss_seed_policy": "KERNEL_NETEM_RANDOM_UNSEEDED_TC_OPTION_UNSUPPORTED; business seeds still fixed; stage tc drop counters MUST prove actual injection; this is not deterministic kernel RNG",
+        "product_change": "NONE",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -592,8 +611,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "First check exact single-source N2 wave300 Actions for staging, stage injected qdisc counters, 300ms and 10Mbps 360s each direction, per-stage first unique/missing/probe/zero-delivery, client/server actual local-TX grade and source-backed rise/recover-lower. Red: inspect earliest failing job/log/source and correct analyzer/fixture or product only with demonstrated defect; preserve original FAILURE and rerun new SHA. If CAPACITY_LIMITED or MEASURED_NOT_QUALIFIED, do not claim PASS and separate report. Subsequent separate 15ms wave and Normal auto-aggressive mode, asymmetric directional loss/upload/download, sparse/idle/rotation/feedback interruption, mixed TCP/UDP/MTU, Game4 fixed3Mbps; N3 AES, N4 Windows Wintun split, N5 Chinese GUI, N6 same-SOURCE packages pending. Physical NOT_RUN; off p99~2.73s/missing and old80s S2C remain OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-first-auto-300ms-six-phase-10mbps-waveform-candidate.md",
+  "next_task": "Check exact SOURCE next-adaptive-n2-auto-wave300 Actions rerun after tc netem unsupported seed fixture correction. Original SOURCE 93fe50a1 Foundation38145013834 PASS, wave38145013812 job114486430524 FAIL at tc qdisc change 'What is seed?' at 60s; source correct product business not yet evaluated under injury; historical red retained. New source replaces invalid tc 'seed' option with explicitly UNSEEDED kernel random + actual per-stage tc measured drop, preserved fixed business seeds; stage failure cannot skip manifest or hide useful evidence. Inspect full 360s actual injected qdisc drops, directional local TX RAISE/LOWER, first unique/missing/p99/continuous zero gaps, resource/capacity. Even green scoped result cannot count as deterministic netem seeded or full N2 PASS. Then remaining separate low RTT, aggressive, asymmetry/sparse/feedback blackout/rotation, mixed TCP UDP MTU, Game4 gate; N3-N6 physical NOT_RUN. Prior off default MTU return p99~2.73s and 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-wave300-netem-tc-seed-unsupported-fixture-repair.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "0598479a2744848e83f02a793b1ab780c3c652d0",
   "last_tested_scope": "Normal auto real 5-netns 100s 10Mbps each direction lossless 15ms one-way, default cap0: 246711/246711 first unique each 125000240B; 100/100 probes p99 31.5ms; actual C2S+S2C 20->16->12->10->8->4 each 5 commits; Foundation 7 enabled PASS. Only stable healthy down, not full N2 wave or perf.",
