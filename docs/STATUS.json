@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_REAL_256PN_COHORT_CONTROLLER_SCOPED_PASS_PRODUCTION_AUTO_UNSUPPORTED",
+    "phase": "N2_NATURAL_ENCODER_256PN_COHORT_LIVENESS_TEST_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_SOURCE_PN_PARITY_OFF_CROPPED_READONLY_SCOPED_PASS_AND_TEST_ONLY_AEAD_SWITCH_SCOPED_PASS_PRODUCTION_AUTO_UNSUPPORTED",
+      "N2_normal_auto": "IN_PROGRESS_TRUE_KR_SOURCE_PN_CONTROLLER_READONLY_SCOPED_PASS_TEST_ONLY_AEAD_SWITCH_SCOPED_PASS_NATURAL_PROTECTED_ENCODER_256PN_COHORT_LIVENESS_CANDIDATE",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -316,6 +316,13 @@
         "lifecycle_run": 38129705523,
         "artifact_id": 11698472831,
         "original_red_run": 38129599448
+      },
+      "n2_natural_256pn_cohort": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "baseline_source": "9def27abfa128250297a29b878c12baf8db7a526",
+        "production_auto": "UNSUPPORTED",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -347,8 +354,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 continue: production V3 Normal-only source-direction controller and protected per-client admission remain UNSUPPORTED. Latest read-only source k/r/parity/off/cropped input scoped PASS SOURCE 9def27a foundation38129705520 lifecycle38129705523; test natural source cohorts, feedback/idle/generation and switch before realpath single-case Actions. N3-N6 NOT_STARTED, physical NOT_RUN; historical 2.73s probe p99/missing and 80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-physical-256pn-parity-cropped-source-scoped-pass.md",
+  "next_task": "Check exact new SOURCE Actions for actual AEAD Lane encoder first-seal PN natural repeated cohort test, not synthetic report k/r. Repair real failures without weakening tests or controller. Then review real V3 returned echo timing/overlap and admit Normal per-client policy with correct feedback direction, stable max MTU and no fresh HOL; N2 realpath single-config Actions not yet run. N3-6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n2-real-encoder-natural-256pn-cohort-controller-actions-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "9def27abfa128250297a29b878c12baf8db7a526",
   "last_tested_scope": "N2 real physical 256 PN source k/r/parity/off/cropped read-only input Foundation 7 enabled PASS + Lifecycle PASS. No live auto/admission, N2 realpath or physical.",
