@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_NORMAL_AUTO_10MBPS_LOWRTT_CLEAN100_BIDIRECTIONAL_REAL_LOWER_SCOPED_ACTIONS_PASS_WAVE300_NOT_QUALIFIED",
+    "phase": "N2_NORMAL_AUTO_10MBPS_300MS_CLEAN100_DELAY_ISOLATION_SINGLE_CASE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "a59e4ba871108469227527e3abfa71a881f12bf3",
+    "new_product_source_sha": "8fd339120cedc574f35d8af26681caaec12df34f",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_PRODUCTION_AUTO_WAVE300_UNQUALIFIED_BUT_15MS_LOSSLESS_100S_BOTH_DIRECTION_GUARDED_LOWER_VERIFIED",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_CLEAN100_LOSSLESS_LOWRTT_SCOPED_ACTUAL_C2S20_TO4_5_COMMITS_S2C20_TO10_3_COMMITS_PASS_WAVE300_FINAL_RECOVERY_NOT_QUALIFIED",
+      "N2_normal_auto": "IN_PROGRESS_SCOPED_15MS_100S_BOTH_DIRECTION_NORMAL_AUTO_LOWER_PASS_300MS_100S_LOSSLESS_INDEPENDENT_TEST_PENDING_420S_INJURY_WAVE_NOT_QUALIFIED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -657,6 +657,12 @@
         ],
         "s2c_commits": 3,
         "physical": "NOT_RUN"
+      },
+      "n2_clean300_controller_lower": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT_HEAD",
+        "scope": "one true Normal auto V3 100s 10Mbps both directions 300ms one-way 0% loss, 1400 outer, 0 auto record caps, min4, one measurement job and business seed pair2026092201/2, bounded independent client/server Wilson/slow/stability and actual R",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -688,8 +694,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 next isolate 300ms RTT effect by one independently predeclared 100s LOSSLESS 300ms one-way Normal auto min4 10Mbps each sample with original default record caps0 and bounded Wilson/slow/time lower blocker diagnostics; do NOT repeat 420s waveform without mechanism insight. Compare only control eligibility/first unique/p99/missing within each source, never CPU-s cross runner or diag ON/OFF. If 300ms clean source won't lower, check 3s source maturation/actual send first-unique drop, shape/repair coverage and confidenceSent/Lost rather than relaxing controller thresholds. After that finish 300ms actual injured waveform, aggressive 0/1/5/20/5/0, asymmetric and sparse/idle/feedback interruption, rotation, TCP+UDP/small MTU, Game4 fixed20:20 3Mbps. N3 AES, N4 Windows TUN native direct/Stop, N5 Chinese GUI, N6 P6 pending; physical NOT_RUN, off2.73s probe missing and 80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-clean100-lowrtt-both-tx-downshift-scoped-actions-pass.md",
+  "next_task": "Check exact SOURCE next-adaptive-n2-auto-clean300 real five-netns 300ms each-way lossless 10Mbps/dir 100s single scenario Actions and foundation. Full first unique and probe p99/missing/raw/socket/queue evidence; both per-direction true lower grade+LOWER_ONE commits necessary for SCOPED_CLEAN_300MS_BOTH_DIRECTION_LOWER_OBSERVED, otherwise MEASURED_NOT_QUALIFIED even if all app data arrives. Inspect Wilson confidence residual, slow EWMA grade and stable clocks in 300ms, compare 15ms only for cause not CPU optimization across runner. Next 300ms injured 0→1→5→20→5→0 recovery, auto aggressive, asymmetric/sparse/idle/feedback loss/rotation, legal small MTU and mixed TCP/UDP, Game4 fixed20:20 3Mbps; N3 AES, N4 Windows TUN direct/Stop, N5 Chinese GUI, N6 same-SOURCE P6 not started. Physical NOT_RUN, prior 420s waveform still MEASURED_NOT_QUALIFIED, historic off~2.73s p99/missing and 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-clean300-latency-isolation-100s-one-config-actions-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "a59e4ba871108469227527e3abfa71a881f12bf3",
   "last_tested_scope": "N2 100s lossless 15ms one-way, Normal auto min4 default record cap0, 10Mbps each: real 5-netns first unique 246711/246711 each (125000240B), returned probe 100 sent with p99 31.5ms. Live client C2S 5 commits to4, server S2C 3 commits to10, both LOWER_ONE and no busy. This is scoped clean lowRTT controller qualification; 300ms damage waveform 420s still MEASURED_NOT_QUALIFIED, CPU diag ON.",
