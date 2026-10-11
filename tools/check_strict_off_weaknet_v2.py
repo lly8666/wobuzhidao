@@ -219,8 +219,9 @@ def _comparison(current, baselines):
 
 def assess(legacy, manifest, biz, target, resources=(), baseline_receipts=(),
            fragment_mapping=None, queue_age_seconds=None):
-    if not eligible("fec-profile-screen", (manifest.get("config") or {}).get("fec_parity", -1),
-                    manifest.get("scenario")):
+    if (manifest.get("config") or {}).get("profile_screen") is not True or not eligible(
+            "fec-profile-screen", (manifest.get("config") or {}).get("fec_parity", -1),
+            manifest.get("scenario")):
         raise ValueError("off-weaknet-v2 only accepts off + damaged profile-screen")
     if manifest.get("source_sha") != legacy.get("source_sha") or manifest.get("scenario") != legacy.get("scenario") or \
        manifest.get("mode") != legacy.get("mode"):

@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "policy_version": "off-weaknet-v2",
+  "doc_source_commit": "d2ddbd9c93dd19141346e14724c68d96e93a1ad5",
+  "merge_commit": "f62efceec2aea8dbfbde2fca5499db88dd81d47d",
+  "legacy_failed_runs": [
+    {
+      "run_id": 38105045359,
+      "source": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "harness": "139a8b83aa8699ff84f1c279b577bfaa86e449f9",
+      "original_result": "PERFORMANCE_FAIL",
+      "artifact_id": 11688894995
+    },
+    {
+      "run_id": 38105308247,
+      "source": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "harness": "139a8b83aa8699ff84f1c279b577bfaa86e449f9",
+      "original_result": "PERFORMANCE_FAIL",
+      "artifact_id": 11689606206
+    }
+  ],
+  "new_analysis": {
+    "source_sha": "PENDING_COMMIT",
+    "status": "ACTIONS_NOT_RUN",
+    "scope": "only damaged off profile-screen; separate off-weaknet-v2.json; legacy result and errors unchanged",
+    "qualify_on_one_sample": false,
+    "analysis_version": "off-weaknet-v2",
+    "output": "off-weaknet-v2.json"
+  },
+  "expected_unit_vectors": [
+    "off5205/5305 eligibility, nonoff/lossless/formal20 exclusion",
+    "valid >p loss measured not passed",
+    "hard corruption/config mismatch",
+    "invalid injection and capacity",
+    "severe >=2s uninterrupted delivery gap",
+    "relative pre5 five-second recovery",
+    "per-packet and per-byte mixed LINK fragment weighting without unsourced m",
+    "incomparable baseline never automatic PASS"
+  ],
+  "physical": "NOT_RUN",
+  "performance_samples_under_v2": "NOT_RUN",
+  "limitations": [
+    "old runs not retroactively reanalyzed",
+    "no trusted per-size mapping in existing 5205 artifacts",
+    "no independently repeated low-RTT/one-way/damaged performance sample yet"
+  ]
+}

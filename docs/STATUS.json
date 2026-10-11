@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_OFF_WEAKNET_V2_POLICY_MERGED_ANALYZER_PENDING",
+    "phase": "N1_OFF_WEAKNET_V2_ANALYZER_SCOPED_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -130,19 +130,24 @@
       "n1_strict_new_candidates": "NOT_RUN_AS_OF_DISPATCH_COMMIT"
     },
     "fec_off_weaknet_v2": {
-      "policy": "off-weaknet-v2",
+      "policy_version": "off-weaknet-v2",
+      "document": "docs/FEC_OFF_PERFORMANCE_ACCEPTANCE.md",
       "source_document_commit": "d2ddbd9c93dd19141346e14724c68d96e93a1ad5",
-      "implementation": "NOT_IMPLEMENTED",
+      "analyzer": "tools/check_strict_off_weaknet_v2.py",
+      "receipt": "off-weaknet-v2.json",
+      "scope": "damaged FEC-off profile-screen only",
+      "implementation": "CANDIDATE_ACTIONS_PENDING",
       "qualification": "NOT_RUN",
-      "scope": "fec-profile-screen parity=0 damaged only; lossless, nonoff, formal20 unchanged",
-      "historic_fail_runs": [
+      "old_failed_runs": [
         38105045359,
         38105308247
-      ]
+      ],
+      "hard_gates_preserved": true,
+      "no_automatic_pass": true
     }
   },
-  "next_task": "Implement independent off-weaknet-v2 profile-screen damaged/parity0 analyzer and versioned receipt with legacy FAIL untouched; predeclared relative pre5 >=5s recovery, bounded valid fracture oracle or UNAVAILABLE, capacity/input/correctness/continuity gates, no baseline => MEASURED_NOT_QUALIFIED. Test analyzer in Actions. Then N1 20:20/Game4 protectors and damaged feedback continue; N2 off.",
-  "latest_log": "docs/devlog/20261011-194000-fec-off-policy-merge-no-retroactive-evaluation.md",
+  "next_task": "Inspect next-off-weaknet-v2-analysis scoped Actions Python unittest/py_compile for fresh analyzer/receipt. On failure repair and rerun, preserve original failed 5205 screens unchanged. Then new distinct strict normal off 5205 only if new SOURCE/harness identity and with no current measurement, collect both legacy and off-weaknet-v2 receipts, do not claim PASS absent matched evidence. Continue N1 Normal20/Game4 protector matched strict Actions after this analyzer gate, N2 OFF.",
+  "latest_log": "docs/devlog/20261011-200000-off-weaknet-v2-analyzer-meaningful-actions-pending.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
   "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",

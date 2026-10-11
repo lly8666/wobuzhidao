@@ -1,0 +1,24 @@
+name: next-off-weaknet-v2-analysis
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - "tools/check_strict_off_weaknet_v2.py"
+      - "tools/test_strict_off_weaknet_v2.py"
+      - "tools/check_strict_fec_profile_screen.py"
+      - ".github/workflows/next-off-weaknet-v2-analysis.yml"
+      - "docs/FEC_OFF_PERFORMANCE_ACCEPTANCE.md"
+permissions:
+  contents: read
+jobs:
+  isolated-off-v2-analysis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile Python analysis modules and run targeted policy vectors
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/check_strict_off_weaknet_v2.py tools/check_strict_fec_profile_screen.py
+          python3 -m unittest discover -s tools -p 'test_strict_off_weaknet_v2.py' -v
+          echo 'OFF_WEAKNET_V2_ANALYSIS_TESTS_PASS_ONLY: not a 120s measurement, never a performance qualification'

@@ -143,8 +143,21 @@ def main():
     print("WBD_FEC_PROFILE_SCREEN " + json.dumps({
         "fec_parity": args.fec_parity, "status": result["screen_status"],
         "classifications": result["classifications"], "profile_errors": profile_errors}))
-    # Preserve all original failures. Expert review can explain an exceeded
-    # loss reference, but must not rewrite this run's original result as PASS.
+    # Only a NEW damaged off profile-screen invokes the separately versioned
+    # assessment. Never rewrite legacy reference, its errors or its output.
+    # Any unqualified measured sample exits nonzero: workflow success is NOT
+    # equivalent to relaxed off performance qualification.
+    from check_strict_off_weaknet_v2 import eligible, run_artifact
+    if eligible("fec-profile-screen", args.fec_parity, args.scenario):
+        v = run_artifact(root, root / "off-weaknet-v2.json")
+        print("WBD_OFF_WEAKNET_V2 " + json.dumps({
+            "status":v["qualification_status"],
+            "legacy_screen":result["screen_status"],
+            "source":v["product_source_sha"],
+            "harness":v["harness_sha"]}))
+        raise SystemExit(1)  # explicit MEASURED_NOT_QUALIFIED is not PASS.
+    # Existing lossless, FEC-on and formal20 behavior is byte-for-byte the
+    # original performance classification and error/exit contract.
     raise SystemExit(0 if result["screen_status"] == "PASS_SCREEN" else 1)
 
 
