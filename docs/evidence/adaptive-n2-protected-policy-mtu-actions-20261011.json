@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "9d549f549269af1bc40515dcf855b1b489cac857",
+  "scope": "TEST_ONLY protected V3 Normal auto/aggressive policy -> independent client/server AEAD FEC paths, stable maximum20 MTU/MSS, late old partial, strict Game/AES/quality gate",
+  "status": "SCOPED_ACTIONS_PASS_NOT_PRODUCTION_AUTO",
+  "foundation": {
+    "run": 38134416408,
+    "conclusion": "success",
+    "enabled_job_ids": [
+      114455242677,
+      114455276975,
+      114455276978,
+      114455276979,
+      114455276983,
+      114455277024,
+      114455277044
+    ],
+    "enabled_pass": 7,
+    "skipped": "P5/P6 extended",
+    "artifact_id": 11699968110,
+    "artifact_sha256": "7f5642f76993abd57eb8f0551633c0a6bacdc7f09a26323fc6fbaa001f050974"
+  },
+  "lifecycle": {
+    "run": 38134416416,
+    "conclusion": "success"
+  },
+  "production_admission": "AUTO_UNSUPPORTED",
+  "n2_10mbps_performance": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "n3_n6": "NOT_STARTED"
+}
