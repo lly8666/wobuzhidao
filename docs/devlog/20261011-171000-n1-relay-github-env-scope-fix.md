@@ -1,0 +1,5 @@
+# N1 performance relay preflight ENV scope failure; narrowly repaired
+
+The first [feature-only relay Actions #38102595788](https://github.com/lly8666/wobuzhidao/actions/runs/38102595788) failed in preflight, job 114361442381: the Python script correctly wrote validated baseline SOURCE/config to `GITHUB_ENV` for the **next Actions step**, but a `git cat-file` check in the **same step** attempted `CASE_SOURCE` before it existed: `line 43: CASE_SOURCE: unbound variable`. It never reached `gh workflow run`, did not dispatch any 300s performance sample, and is NOT_RUN, not a product failure.
+
+Minimal correction moves `git cat-file -e "$CASE_SOURCE^{commit}"` to the following dispatch step, where documented Actions environment propagation is in effect, retaining exactly one SOURCE and one strict workflow dispatch request per relay attempt. The immutable 12-case plan, baseline 4f0cf781 / candidate e5638253 product SOURCE, source/branch guard and anti-concurrent strict sample check are unchanged. Previous red dispatch preflight is retained; the new helper commit changes no product SOURCE. Await fresh relay Action real result before claiming dispatch or measurement.

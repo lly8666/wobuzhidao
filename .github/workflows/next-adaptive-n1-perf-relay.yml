@@ -64,7 +64,6 @@ jobs:
                   f.write(n+"="+c[k]+"\n")
           print("ONE_CASE_ONLY",index+1,"of",len(cs),c,"HARNESS_SHA",os.environ["GITHUB_SHA"])
           PY
-          git cat-file -e "$CASE_SOURCE^{commit}"
           python3 tools/check_performance_workflow_policy.py
       - name: Prevent parallel strict samples and dispatch exactly one
         shell: bash
@@ -72,6 +71,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          git cat-file -e "$CASE_SOURCE^{commit}"
           active="$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/next-strict-weaknet.yml/runs?event=workflow_dispatch&branch=$GITHUB_REF_NAME&per_page=100" |
             jq -r --arg head "$GITHUB_SHA" '[.workflow_runs[] | select(.head_sha==$head and (.status=="queued" or .status=="in_progress" or .status=="waiting" or .status=="pending"))] | length')"
           test "$active" = 0 || { echo "CAPACITY/BUSY: $active strict sample is still running on this exact harness; do not overlap measurement jobs"; exit 1; }
