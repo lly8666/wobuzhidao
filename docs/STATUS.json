@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_NORMAL_AUTO_10MBPS_EACH_WAY_15MS_40S_DIAGNOSTIC_SINGLE_CASE_ACTIONS_PENDING",
+    "phase": "N2_10MBPS_LOWRTT_LOSSLESS_FIRST_UNIQUE_PASS_AUTO_CONTROLLER_STILL_HOLD_NOT_QUALIFIED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "b4762a1e9f505a21f2cae388d78b7394706db545",
+    "new_product_source_sha": "72de548929284a95680e7f70ccf1c32da6cf319b",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_VERIFIED_NATURAL_COHORT_JOINT_KR_AND_PROTECTED_TX_ECHO_PROPOSAL_NO_LIVE_PARITY_SWITCH",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_ACTUAL_NORMAL_AUTO_DEFAULT_MTU_REALPATH_0P5MBPS_FUNCTIONAL_PASS_LIVE_TX_R_CONTROL_REASON_DIAG_SCOPED_PASS_10MBPS_LOWRTT_40S_CANDIDATE",
+      "N2_normal_auto": "IN_PROGRESS_PRODUCT_FIRST_UNIQUE_10MBPS_LOWRTT_PASS_BUT_REAL_TX_AUTO_DID_NOT_DOWNSHIFT_HOLD_SHAPE_UNKNOWN_STABILITY_OPEN",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -483,10 +483,22 @@
         "physical": "NOT_RUN"
       },
       "n2_10mbps_lowrtt_load": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "scope": "one Normal auto min4 10Mbps each direction 40s lossless 15ms one-way 0=auto record caps diagnostic ON strict first-unique and per-TX controller source witness",
-        "not_waveform": true,
+        "status": "FIRST_UNIQUE_SCOPED_PASS_AUTO_PROFILE_NOT_QUALIFIED",
+        "source_sha": "72de548929284a95680e7f70ccf1c32da6cf319b",
+        "run": 38141507542,
+        "job": 114476143236,
+        "artifact_id": 11702983282,
+        "artifact_sha256": "7edacf900bc0a722f8ed1472cec8c93af077dcfa7d20f948ba19e09684096d77",
+        "foundation": 38141507347,
+        "foundation_artifact_sha256": "1511071f88f843c4ec7552df90204c95ef9fae1f587f9ccf8520794c3091833c",
+        "actual_tx_profiles_c2s": [
+          20
+        ],
+        "actual_tx_profiles_s2c": [
+          20
+        ],
+        "committed_c2s": 0,
+        "committed_s2c": 0,
         "physical": "NOT_RUN"
       }
     },
@@ -519,11 +531,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check one SOURCE latest Actions N2 Normal auto default-record-cap0, 10Mbps logical EACH DIRECTION, 15ms each way lossless, 40s + drain, fixed business seeds, bounded diagnostics ON. Require independent actual C2S/S2C controller N2 snapshots/at least one authenticated source decision per side, first-unique payload & missing/probes, kernel drop/netem receipts, CPU runner profile; diagnose FAIL or capacity-limited no claim of waveform. Then ONE source/config/seed 0→1→5→20→5→0 wave with enough stabilization and 300ms independent sample, auto and aggressive separate, asymmetric uploads/downloads, sparse/idle/burst, feedback break, mixed UDP/TCP, Game4 fixed guard; don't compare diag ON CPU against OFF. N3-N6 not started physical NOT_RUN, old default off ~2.73s p99/missing and 80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-auto-10mbps-lowrtt-single-source-diagnostic-functional-candidate.md",
+  "next_task": "Prior exact N2 lowRTT 10Mbps SOURCE 72de5489 Action38141507542 functional PASS both 98685/98685, 40/40 probes p99 31.504ms, Foundation38141507347 7 PASS, but BOTH TX profiles stayed20 and zero switch, so auto NOT QUALIFIED. Next analyze authenticated returned SOURCE exact shape/repair coverage/sender PN sample scalar diagnostics on each HOLD_SHAPE and HOLD_UNQUALIFIED (no weakening UNKNOWN=0 or artificial PN full20), test via Actions, rerun one case with actual source counts. Then require normal line actual stable downward and loss waves before acceptance. Full 0→1→5→20→5→0, 300ms 10Mbps, aggressive, asymmetry/feedback loss, sparse/idle/mixed, Game4 fixed still pending; N3-6 and physical NOT_RUN, old off p99 2.73s missing and initial80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-10mbps-lowrtt-goodput-pass-auto-still-hold.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "b4762a1e9f505a21f2cae388d78b7394706db545",
-  "last_tested_scope": "N2 opt-in actual per-client local TX current parity + controller decision reason/source/bound and committed switches diagnostics: Foundation7 enabled Linux/Windows Go/race native PASS, Lifecycle/N1codec/N0negotiated/N0multi PASS. Prior 0.5Mbps 300ms production auto realpath functional PASS; 10Mbps waves not qualified.",
+  "last_tested_source_sha": "72de548929284a95680e7f70ccf1c32da6cf319b",
+  "last_tested_scope": "Normal auto lossless 10Mbps both ways lowRTT 40s actual TPROXY/TUN 98685/98685 each 50000400 bytes 40/40 probe p99 31.50ms, diag ON. Controller 20 only both and zero committed switches; N2 auto reduction unqualified, HOLD reason shape/unknown/stable. Foundation seven PASS.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

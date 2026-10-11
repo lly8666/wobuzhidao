@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_sha": "72de548929284a95680e7f70ccf1c32da6cf319b",
+  "classification": "FIRST_UNIQUE_FUNCTIONAL_PASS_N2_AUTO_ACTUAL_PROFILE_NOT_QUALIFIED",
+  "one_case_run": 38141507542,
+  "measurement_job": 114476143236,
+  "artifact_id": 11702983282,
+  "artifact_sha256": "7edacf900bc0a722f8ed1472cec8c93af077dcfa7d20f948ba19e09684096d77",
+  "foundation_run": 38141507347,
+  "foundation_pass": 7,
+  "foundation_artifact_id": 11702923093,
+  "foundation_artifact_sha256": "1511071f88f843c4ec7552df90204c95ef9fae1f587f9ccf8520794c3091833c",
+  "case": {
+    "mode": "Normal auto min4 initial/max20",
+    "outer_mtu": 1400,
+    "client_record_cap": 0,
+    "server_record_cap": 0,
+    "rate_mbps_each_direction": 10,
+    "loss_percent": 0,
+    "one_way_ms_each_direction": 15,
+    "duration_s": 40,
+    "drain_s": 10,
+    "seeds": [
+      2026092201,
+      2026092202
+    ],
+    "diagnostic_mode": "ON, not comparable to OFF CPU"
+  },
+  "first_unique": {
+    "c2s": {
+      "sent": 98685,
+      "received": 98685,
+      "bytes": 50000400,
+      "corrupt": 0,
+      "duplicate": 0,
+      "source_send_lag_p99_ns": 500000
+    },
+    "s2c": {
+      "sent": 98685,
+      "received": 98685,
+      "bytes": 50000400,
+      "corrupt": 0,
+      "duplicate": 0
+    },
+    "probe": {
+      "sent": 40,
+      "received": 40,
+      "p99_rtt_ns": 31504053
+    }
+  },
+  "controller": {
+    "c2s": {
+      "actual_tx_profiles": [
+        20
+      ],
+      "committed_switches": 0,
+      "last_source_seq": 34,
+      "sampled_reasons": {
+        "HOLD_INSUFFICIENT_512": 4,
+        "HOLD_OLD_SOURCE_OR_OVERLAP": 14,
+        "HOLD_STABILITY_OR_CONFIDENCE": 12,
+        "HOLD_UNQUALIFIED_FIRST_ATTEMPT": 17,
+        "HOLD_UNVERIFIED_PARTIAL_K": 17
+      }
+    },
+    "s2c": {
+      "actual_tx_profiles": [
+        20
+      ],
+      "committed_switches": 0,
+      "last_source_seq": 33,
+      "sampled_reasons": {
+        "HOLD_INSUFFICIENT_512": 2,
+        "HOLD_OLD_SOURCE_OR_OVERLAP": 3,
+        "HOLD_STABILITY_OR_CONFIDENCE": 10,
+        "HOLD_UNQUALIFIED_FIRST_ATTEMPT": 35,
+        "HOLD_UNVERIFIED_PARTIAL_K": 13
+      }
+    }
+  },
+  "harness": {
+    "name": "tools/adaptive_n2_lowrtt_load.py",
+    "generated_script_sha256": "3c5698e6dd55c6c6e50dab035c1dd08a2cff37d38306aba41c96c02118eb5695"
+  },
+  "limitations": [
+    "This was lossless; no upshift damage challenge",
+    "No auto downshift achieved in 40s; controller still HOLD: not N2 qualification",
+    "Profiling ON, do not infer CPU optimization vs OFF",
+    "No 0/1/5/20/5/0, 300ms 10Mbps, aggressive, asymmetry, sparse, feedback interruption, Game4 gate",
+    "N3-N6 and physical NOT_RUN"
+  ]
+}
