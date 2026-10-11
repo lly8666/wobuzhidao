@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "0598479a2744848e83f02a793b1ab780c3c652d0",
+  "classification": "SCOPED_PASS_100S_LOSSLESS_BOTH_ACTUAL_TX_DOWN_NOT_N2_WAVEFORM_PERFORMANCE_PASS",
+  "run": {
+    "id": 38143950591,
+    "conclusion": "success",
+    "measurement_job": 114483299712,
+    "artifact_id": 11704147332,
+    "artifact_sha256": "27ab9ec5fe192efd687ccf33aaffec3e2f4f681d7f269cdb0cf0e89fe250f7f8"
+  },
+  "foundation": {
+    "id": 38143950466,
+    "conclusion": "success",
+    "jobs_enabled_pass": 7,
+    "artifact_id": 11703947421,
+    "sha256": "543c494351a6f5a30bbb5e78e824a8690581c107661b93d3e67643abd40fba15"
+  },
+  "configuration": {
+    "mode": "Normal auto min4 initial/max20",
+    "client_record_cap": 0,
+    "server_record_cap": 0,
+    "outer_mtu": 1400,
+    "loss_percent": 0,
+    "one_way_delay_ms_each_direction": 15,
+    "rate_mbps_each_direction": 10,
+    "duration_s": 100,
+    "drain_s": 10,
+    "seeds": [
+      2026092201,
+      2026092202
+    ],
+    "diagnostic": "ON 1s",
+    "product_helper_source": "0598479a2744848e83f02a793b1ab780c3c652d0"
+  },
+  "first_unique": {
+    "c2s": {
+      "sent": 246711,
+      "received": 246711,
+      "sent_bytes": 125000240,
+      "received_bytes": 125000240,
+      "duplicates": 0,
+      "corrupt": 0,
+      "send_failures": 0,
+      "send_lag_p99_ns": 400000
+    },
+    "s2c": {
+      "sent": 246711,
+      "received": 246711,
+      "sent_bytes": 125000240,
+      "received_bytes": 125000240,
+      "duplicates": 0,
+      "corrupt": 0,
+      "send_failures": 0,
+      "send_lag_p99_ns": 400000
+    },
+    "probe": {
+      "sent": 100,
+      "received": 100,
+      "returned_only_p99_ns": 31500000
+    }
+  },
+  "physical_injection": {
+    "median_one_way_ns": {
+      "c2s": 15031000,
+      "s2c": 15032000
+    },
+    "capture_kernel_drops": {
+      "c2s-pre": 0,
+      "c2s-post": 0,
+      "s2c-pre": 0,
+      "s2c-post": 0
+    }
+  },
+  "control": {
+    "c2s": {
+      "actual_profiles": [
+        4,
+        8,
+        10,
+        12,
+        16,
+        20
+      ],
+      "committed_switches": 5,
+      "busy_holds": 0,
+      "last_source_seq": 67,
+      "sampled_lower_one": 8,
+      "sampled_reason_holds_remain": true,
+      "first_bound_complete_snapshots": 78,
+      "invalid_shape_samples": 0,
+      "capacity_limited_samples": 0
+    },
+    "s2c": {
+      "actual_profiles": [
+        4,
+        8,
+        10,
+        12,
+        16,
+        20
+      ],
+      "committed_switches": 5,
+      "busy_holds": 0,
+      "last_source_seq": 65,
+      "sampled_lower_one": 9,
+      "sampled_reason_holds_remain": true,
+      "first_bound_complete_snapshots": 76,
+      "invalid_shape_samples": 0,
+      "capacity_limited_samples": 0
+    }
+  },
+  "harness": {
+    "template_sha256": "3f18f70de2610f0185bb1309822486b1276e2ebdfca7725fe92f7ccbb37575a3",
+    "derived_script_sha256": "01f9801bc423ba3845937937627f2ba6a7cda8b6a1f216615e7fcb36613dfea8"
+  },
+  "scope_exclusions": [
+    "Damage raise 0→1→5→20→5→0 not run",
+    "300ms 10Mbps performance not run",
+    "Aggressive actual parity mapping not in this real sample",
+    "CPU/GiB comparative OFF not claimed",
+    "SRTT/probes at 300ms, asymmetric, burst, sparse, Game4 not covered",
+    "N3–N6 and physical not run"
+  ],
+  "physical": "NOT_RUN"
+}

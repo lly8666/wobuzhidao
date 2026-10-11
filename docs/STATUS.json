@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_ONE_PRODUCTION_S2C_LOWER_SCOPED_PASS_C2S_STABLE_LOWER_100S_ACTIONS_PENDING",
+    "phase": "N2_REAL_NORMAL_AUTO_BIDIRECTIONAL_LOSSLESS_DOWN_SCOPED_PASS_NEXT_DAMAGED_WAVE_300MS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_REAL_10MBPS_FIRST_UNIQUE_BOTH_PASS_S2C_20_TO_16_ONE_COMMIT_C2S_HOLD_N2_SOURCE_SHAPE_SCOPED_PASS_100S_BOTH_LOWER_TEST_PENDING",
+      "N2_normal_auto": "IN_PROGRESS_NORMAL_100S_10MBPS_REAL_C2S_AND_S2C_DOWN_20_TO_4_5_COMMITS_EACH_SCOPED_PASS_DAMAGE_UPSHIFT_300MS_AGGRESSIVE_PENDING",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -529,9 +529,31 @@
         "physical": "NOT_RUN"
       },
       "n2_both_direction_stability_100s": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT",
-        "scope": "one new exact-SOURCE Normal auto low-RTT 100s lossless 10Mbps each direction, require real authenticated C2S and S2C lower separately and no first unique loss; no tuning thresholds",
+        "status": "SCOPED_PASS_BOTH_ACTUAL_TX_LOWER_NO_WAVEFORM",
+        "source_sha": "0598479a2744848e83f02a793b1ab780c3c652d0",
+        "foundation_run": 38143950466,
+        "foundation_artifact_sha256": "543c494351a6f5a30bbb5e78e824a8690581c107661b93d3e67643abd40fba15",
+        "measurement_run": 38143950591,
+        "measurement_job": 114483299712,
+        "artifact_sha256": "27ab9ec5fe192efd687ccf33aaffec3e2f4f681d7f269cdb0cf0e89fe250f7f8",
+        "actual_c2s": [
+          4,
+          8,
+          10,
+          12,
+          16,
+          20
+        ],
+        "actual_s2c": [
+          4,
+          8,
+          10,
+          12,
+          16,
+          20
+        ],
+        "c2s_commits": 5,
+        "s2c_commits": 5,
         "physical": "NOT_RUN"
       }
     },
@@ -564,11 +586,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Inspect exact-source Actions for new 100s lowRTT 10Mbps EACH direction stable Normal auto min4 (single seed 2026092201/2, 15ms one-way, lossless, default auto caps0, diagnostic1s): require BOTH actual TX profiles include 20 and lower level, committed switches>=1, sampled authenticated LOWER_ONE, preserve full first-unique/probe/capture gate. If red, do not tune thresholds or seed, inspect source coverage and actual hold and fail accurately. Prior d2f785 38142265946 S2C 20->16 one commit, C2S HOLD; 7 foundation jobs PASS. After normal two-way descent develop separate 300ms 10Mbps 0→1→5→20→5→0 waveform with stable down times, aggressive separate, asymmetric/feedback break, sparse/mixed/MTU/Game4, CPU/queue/real p99 measured. N3-N6 not started; physical NOT_RUN; off default p99~2.73s missing/old80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-both-direction-stable-auto-lower-100s-source-case.md",
+  "next_task": "N2 100s real Normal auto healthy SOURCE 0598479a scoped PASS: both TX actual 20->16->12->10->8->4 5 commits each while all 246711/246711 first unique and probe100/100. Now build independent Normal auto 10Mbps each direction 300ms single waveform 0→1→5→20→5→0 with each stage>=60s (>=360s total), source/seed/condition/job fixed, true per-stage netem injection/drop and first-unique/p99/missing/continuous gaps/wire/CPU/queue, actual TX source-matched Raise/Lower; do not require zero weaknet loss or weaken shape/age/512/30s/10s. Repeat separate aggressive mode, asymmetry/sparse/feedback cutoff/mixed small MTU/Game4 fixed. N3 AES, N4 Wintun, N5 GUI, N6 P6 pending, physical NOT_RUN; historical off probe p99~2.73s/missing and old 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-100s-real-normal-auto-bidirectional-downshift-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "d2f785c7b843c8cf338599de491216a48e7f8a5f",
-  "last_tested_scope": "N2 10Mbps lowRTT lossless 40s production realpath and raw source witness: C2S/S2C 98685/98685 first unique, valid metadata, 0 capacity; S2C actual 20->16, 1 committed; C2S 20 only no commit. Foundation7/Lifecycle/N1codec/N0multi PASS; auto two directions not qualified.",
+  "last_tested_source_sha": "0598479a2744848e83f02a793b1ab780c3c652d0",
+  "last_tested_scope": "Normal auto real 5-netns 100s 10Mbps each direction lossless 15ms one-way, default cap0: 246711/246711 first unique each 125000240B; 100/100 probes p99 31.5ms; actual C2S+S2C 20->16->12->10->8->4 each 5 commits; Foundation 7 enabled PASS. Only stable healthy down, not full N2 wave or perf.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
