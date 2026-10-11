@@ -107,6 +107,7 @@ def controller_trace(path,server,errors):
                 "committed_switches":control.get("n2_committed_switches",0),
                 "busy_holds":control.get("n2_busy_holds",0),
                 "pending":control.get("n2_proposal_pending",False),
+                "raw_source_evidence":control.get("n2_source_evidence"),
             })
     if len(active)<3:
         errors.append(f"{path.name}: fewer than 3 actual enabled N2 controller snapshots")
@@ -116,6 +117,15 @@ def controller_trace(path,server,errors):
         "actual_profiles":sorted({x["actual_tx_parity"] for x in active if x["actual_tx_parity"] is not None}),
         "reason_counts":dict(Counter(x["reason"] for x in active)),
         "last_source_seq":max((x["source_seq"] for x in active),default=0),
+        "raw_source_qualifier_counts":{
+            "matched":sum(bool((x["raw_source_evidence"] or {}).get("source_matched")) for x in active),
+            "repair_covered":sum(bool((x["raw_source_evidence"] or {}).get("repair_coverage")) for x in active),
+            "complete_first_bound":sum(bool((x["raw_source_evidence"] or {}).get("first_attempt_bound_complete")) for x in active),
+            "invalid_shape_samples":sum((x["raw_source_evidence"] or {}).get("shape_invalid",0)>0 for x in active),
+            "edge_cropped_samples":sum((x["raw_source_evidence"] or {}).get("shape_cropped",0)>0 for x in active),
+            "capacity_limited_samples":sum(bool((x["raw_source_evidence"] or {}).get("window_capacity_limited")) for x in active),
+            "source_not_matched":sum(x["decision_version"]>0 and not (x["raw_source_evidence"] or {}).get("source_matched") for x in active),
+        },
         "committed_switches":max((x["committed_switches"] for x in active),default=0),
         "busy_holds":max((x["busy_holds"] for x in active),default=0),
         "bounded_epoch_trace":active[:100],

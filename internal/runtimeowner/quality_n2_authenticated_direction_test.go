@@ -49,6 +49,19 @@ func TestN2ControllerConsumesOnlyAuthenticatedLocalTXEchoOnce(t *testing.T) {
 		t.Fatal("source-correlated local outbound echo unexpectedly rejected")
 	}
 	q.n2ObserveAuthenticatedReturn(5,at.Add(4*time.Second))
+	// The controller must be able to explain a 256-PN sample containing
+	// exactly one cropped source edge, without declaring invalid metadata
+	// or lying that the crop contributed a known full k20 group.
+	evidence:=q.n2Evidence
+	if !evidence.SourceMatched || !evidence.RepairCoverage ||
+		!evidence.BoundComplete || evidence.SourceWindowSuccess!=256 ||
+		evidence.ShapeSent!=256 || evidence.ShapeSystematic!=120 ||
+		evidence.ShapeParity!=120 || evidence.ShapeCropped!=16 ||
+		evidence.ShapeUnknown!=16 || evidence.ShapeInvalid!=0 ||
+		evidence.ShapeFullBlocks!=6 || evidence.LowerFirstLost!=0 ||
+		evidence.UpperFirstLost!=0 {
+		t.Fatalf("genuine raw TX source identity/geometry not explained %+v",evidence)
+	}
 	if !q.n2HasDecision || q.n2Last.Reason!=adaptivefec.HoldSampleCount ||
 		q.n2Last.AcceptedRecords!=256 || q.n2Last.ShapeRecords!=120 ||
 		q.n2Last.CroppedRecords!=16 {

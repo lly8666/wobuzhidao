@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/adaptivefec"
+	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
 
@@ -19,6 +20,41 @@ func (q *qualityState) n2ObserveAuthenticatedReturn(generation uint64,now time.T
 	e:=q.returned.report
 	src:=q.sentSources[e.SourceReportSeq%qualitySentHistoryCapacity]
 	bound:=qualityFirstAttemptBoundFromSnapshot(q.returned,src,generation,now)
+	// Always retain the genuine raw source qualification facts, including
+	// why this particular authenticated return did NOT qualify. A missing
+	// source identity, overwritten PN ring, invalid shard metadata and a
+	// conservative edge crop must never all appear as 0% loss to observers.
+	m:=src.report
+	sh:=src.shape
+	q.n2Evidence=N2SourceEvidenceDiagnostic{
+		SourceReportSeq:e.SourceReportSeq,
+		SourceGeneration:e.SourceGeneration,
+		SourceMatched:m.ReportSeq==e.SourceReportSeq &&
+			m.Generation==generation &&
+			m.WindowLastPN==e.SourceLastPN &&
+			m.IncarnationNonce==e.Report.IncarnationNonce,
+		SourceWindowFirstPN:m.WindowFirstPN,
+		SourceWindowLastPN:m.WindowLastPN,
+		SourceWindowSuccess:m.TxSuccess,
+		SourceWindowLocalDrops:m.LocalDrops,
+		SourceWindowCapacityLimited:m.Flags&datapath.QualityFlagCapacityLimited!=0,
+		RepairCoverage:src.repairCoverage,
+		DistinctRepairAttempts:src.repaired,
+		EchoReceiverUnique:e.ReceiverUnique,
+		BoundState:uint8(bound.State),
+		BoundComplete:bound.Complete,
+		LowerFirstLost:bound.MinFirstLost,
+		UpperFirstLost:bound.MaxFirstLost,
+		ShapeSent:sh.Sent,
+		ShapeSystematic:sh.Systematic,
+		ShapeParity:sh.Parity,
+		ShapeOff:sh.Off,
+		ShapeCropped:sh.Cropped,
+		ShapeUnknown:sh.Unknown,
+		ShapeInvalid:sh.Invalid,
+		ShapeFullBlocks:sh.FullBlocks,
+		ShapePartialBlocks:sh.PartialBlocks,
+	}
 	input:=qualityBoundToAdaptiveInput(bound,now)
 	if q.n2DecisionVersion==^uint64(0) {
 		q.n2Pending=false // exhaustion: never reuse an old token

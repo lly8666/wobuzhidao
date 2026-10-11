@@ -10,6 +10,37 @@ import (
  "github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
 
+// N2SourceEvidenceDiagnostic snapshots scalar facts from the exact source
+// report just evaluated. It does not count RX post-repair residual as physical
+// first-transmission loss; neither an unmatched source nor absent metadata is
+// represented as zero. No PN array, packet data or per-profile decoder copy.
+type N2SourceEvidenceDiagnostic struct {
+ SourceReportSeq uint64 `json:"source_report_seq"`
+ SourceGeneration uint64 `json:"source_generation"`
+ SourceMatched bool `json:"source_matched"`
+ SourceWindowFirstPN uint64 `json:"window_first_pn"`
+ SourceWindowLastPN uint64 `json:"window_last_pn"`
+ SourceWindowSuccess uint64 `json:"window_tx_success"`
+ SourceWindowLocalDrops uint32 `json:"window_local_drops"`
+ SourceWindowCapacityLimited bool `json:"window_capacity_limited"`
+ RepairCoverage bool `json:"repair_coverage"`
+ DistinctRepairAttempts uint32 `json:"distinct_repaired_pn"`
+ EchoReceiverUnique uint64 `json:"echo_receiver_unique"`
+ BoundState uint8 `json:"first_attempt_bound_state"`
+ BoundComplete bool `json:"first_attempt_bound_complete"`
+ LowerFirstLost uint64 `json:"lower_first_lost"`
+ UpperFirstLost uint64 `json:"upper_first_lost"`
+ ShapeSent uint32 `json:"shape_sent"`
+ ShapeSystematic uint32 `json:"shape_systematic"`
+ ShapeParity uint32 `json:"shape_parity"`
+ ShapeOff uint32 `json:"shape_off"`
+ ShapeCropped uint32 `json:"shape_cropped"`
+ ShapeUnknown uint32 `json:"shape_unknown"`
+ ShapeInvalid uint32 `json:"shape_invalid"`
+ ShapeFullBlocks uint16 `json:"shape_full_blocks"`
+ ShapePartialBlocks uint16 `json:"shape_partial_blocks"`
+}
+
 // ControlStats is bounded per ACTIVE incarnation, collected only when an
 // actual control decision is due. No per-business packet log or goroutine.
 type ControlStats struct {
@@ -43,6 +74,7 @@ type ControlStats struct {
  N2ShapeRecords uint64 `json:"n2_shape_records,omitempty"`
  N2CommittedSwitches uint64 `json:"n2_committed_switches,omitempty"`
  N2BusyHolds uint64 `json:"n2_busy_holds,omitempty"`
+ N2Evidence *N2SourceEvidenceDiagnostic `json:"n2_source_evidence,omitempty"`
 
  // Scalar control-only outcomes after successful authenticated mature echo Emit.
  // Existing diagnostic-jsonl snapshots read these at low frequency only.
@@ -204,6 +236,8 @@ func (r *Runtime) ControlStats(ref logicaltunnel.LaneRef) (ControlStats,bool) {
     v.N2SourceReportSeq=q.returned.report.SourceReportSeq
     v.N2SourceGeneration=q.returned.report.SourceGeneration
    }
+   evidence:=q.n2Evidence
+   v.N2Evidence=&evidence
   }
  }
  lane.mu.Unlock()

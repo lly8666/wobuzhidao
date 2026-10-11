@@ -23,14 +23,15 @@ type qualityState struct {
     lastMatureEchoSeq uint64
     sentSources [qualitySentHistoryCapacity]qualitySentSource
     returned qualityReturnedEcho
-    // No production constructor sets n2. The authenticated return path may
-    // evaluate a guarded TEST-ONLY Normal TX-direction controller; the result
-    // is a proposal, NEVER a profile switch or fresh packet gate.
+    // Only protected Normal auto/aggressive V3 admission installs this
+    // strictly per-incarnation LOCAL TX controller. Fixed/off and Game nil.
+    // The current Tick commits accepted proposals only to NEW FEC blocks.
     n2 *adaptivefec.Controller
     n2Last adaptivefec.Decision
     n2HasDecision bool
     n2DecisionAt time.Time
     n2DecisionVersion uint64 // incremented on every newly observed echo, including HOLD
+    n2Evidence N2SourceEvidenceDiagnostic // most recently evaluated echo/source, scalar only
     n2Pending bool // one authenticated rise/lower proposal may apply only once
     received uint64
     rejected uint64
