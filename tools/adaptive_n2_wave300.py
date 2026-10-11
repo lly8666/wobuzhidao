@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""One N2 protected Normal auto 360s, 300ms one-way 0/1/5/20/5/0 wave.
+"""One N2 protected Normal auto 420s, 300ms one-way 0/1/5/20/5/0 wave.
 
 One source, one fixed policy, one generator seed pair, one real netns scenario
-with six predeclared >=60s damage phases. This is not an A/B or an automatic
+with five 60s phases and 120s final clean recovery. This is not A/B or automatic
 PASS: invalid injection, capacity, business correctness, actual local TX grade
 and post-recovery first-unique are separate classifications. No pcap upload.
 """
@@ -15,9 +15,12 @@ from check_realpath_calibration import capture_drop
 
 PHASES=(("clean0",0,0),("loss1",60,1),("loss5",120,5),
         ("loss20",180,20),("recover5",240,5),("recover0",300,0))
-DURATION=360
+DURATION=420
 DRAIN=10
 SAMPLE_RATE=10.0
+
+def phase_end(name,offset):
+    return DURATION if name=="recover0" else offset+60
 
 def digest(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
@@ -37,7 +40,7 @@ def prepare(root,script,receipt):
     if s.count("--duration 8 --drain 10 --rate-mbps 0.5")!=2:
         raise ValueError("wave requires exactly two real simultaneous UDP directions")
     s=s.replace("--duration 8 --drain 10 --rate-mbps 0.5",
-                "--duration 360 --drain 10 --rate-mbps 10 --bounded-stats")
+                "--duration 420 --drain 10 --rate-mbps 10 --bounded-stats")
     s=exact(s,'"fec_parity": 20,',
         '"fec_parity": 20,\n        "server_config_fec_parity": 20,\n'
         '        "client_record_cap_config": 0,\n'
@@ -47,7 +50,7 @@ def prepare(root,script,receipt):
         '        "v3_client_record_cipher": "chacha20-poly1305",')
     s=exact(s,'"application_mbps_each_direction": 0.5',
             '"application_mbps_each_direction": 10.0')
-    s=exact(s,'"duration_s": 8','"duration_s": 360')
+    s=exact(s,'"duration_s": 8','"duration_s": 420')
     s=exact(s,'"loss_percent": 0','"loss_percent": "waveform:0-1-5-20-5-0"')
     s=exact(s,'CAP_PIDS=()\n\ncleanup() {',
       'CAP_PIDS=()\nSTAGE_PID=""\nRESOURCE_PID=""\n\ncleanup() {')
@@ -79,13 +82,13 @@ RESOURCE_PID="$!"
         "template_sha256":digest(template),"derived_script_sha256":digest(script),
         "wave_stage_file_sha256":digest(root/"tools/adaptive_n2_loss_wave_stage.py"),
         "analyzer_file_sha256":digest(root/"tools/adaptive_n2_wave300.py"),
-        "waveform":[{"name":a,"start_s":b,"end_s":b+60,"loss_percent":c}
+        "waveform":[{"name":a,"start_s":b,"end_s":phase_end(a,b),"loss_percent":c}
                     for a,b,c in PHASES],
         "requested_netem_seed":601,"netem_seed_applied":False,
         "netem_rng":"KERNEL_RANDOM_UNSEEDED_TC_OPTION_UNSUPPORTED",
         "business_seeds":[2026092201,2026092202],
         "configuration":"Normal auto min4 initial/max20, each-way10Mbps, 300ms one-way, default auto record cap0, outer MTU1400, diagnostics ON",
-        "classification":"single predeclared 360s impairment scenario, not multiple configurations",
+        "classification":"single predeclared 420s six-stage impairment scenario, final 120s clean recovery; not multiple configurations",
     },sort_keys=True,indent=2)+"\n",encoding="utf-8")
 
 def netem(snapshot):
@@ -112,13 +115,13 @@ def phase_injection(path,errors):
         if begin is None or end is None:
             errors.append("stage start/end missing: "+name)
             continue
-        if begin.get("offset_seconds")!=offset or end.get("offset_seconds")!=offset+60 or begin.get("loss_percent")!=want or end.get("loss_percent")!=want:
+        if begin.get("offset_seconds")!=offset or end.get("offset_seconds")!=phase_end(name,offset) or begin.get("loss_percent")!=want or end.get("loss_percent")!=want:
             errors.append("stage time/loss contradiction: "+name)
         if begin.get("netem_seed_applied") is not False or end.get("netem_seed_applied") is not False or begin.get("requested_netem_seed")!=601 or end.get("requested_netem_seed")!=601:
             errors.append("netem RNG seed capability not honestly recorded: "+name)
         if abs(begin.get("clock_delta_from_target_ns",10**18))>2_000_000_000 or abs(end.get("clock_delta_from_target_ns",10**18))>2_000_000_000:
             errors.append("stage scheduler delayed >2s: "+name)
-        stage={"name":name,"start_s":offset,"end_s":offset+60,"expected_loss_percent":want,
+        stage={"name":name,"start_s":offset,"end_s":phase_end(name,offset),"expected_loss_percent":want,
                "observed_start_wall_ns":begin.get("time_wall_ns"),
                "observed_end_wall_ns":end.get("time_wall_ns")}
         for direction in ("c2s","s2c"):
@@ -153,8 +156,8 @@ def analyze_direction(src,dst):
     ss=src.get("sent_packets_by_second",[])
     rr=dst.get("recv_packets_by_second",[])
     for name,offset,want in PHASES:
-        emitted=sum(ss[offset:offset+60])
-        unique=sum(rr[offset:offset+60])
+        emitted=sum(ss[offset:phase_end(name,offset)])
+        unique=sum(rr[offset:phase_end(name,offset)])
         rows.append({"stage":name,"expected_outer_loss_percent":want,
                      "sent":emitted,"first_unique":unique,
                      "missing":max(0,emitted-unique),
@@ -195,7 +198,18 @@ def parity_trace(path,server,stages,errors):
                              "version":ctl.get("n2_decision_version",0),
                              "source_seq":ctl.get("n2_source_report_seq",0),
                              "generation":ctl.get("n2_source_generation",0),
-                             "bound_width":ctl.get("n2_first_loss_bound_width",None)})
+                             "bound_width":ctl.get("n2_first_loss_bound_width",None),
+                             "fast":ctl.get("n2_fast_first_loss_ewma"),
+                             "slow":ctl.get("n2_slow_first_loss_ewma"),
+                             "confidence_sent":ctl.get("n2_confidence_sent",0),
+                             "confidence_lost":ctl.get("n2_confidence_lost_upper",0),
+                             "confidence_windows":ctl.get("n2_confidence_history_windows",0),
+                             "first_valid_ns":ctl.get("n2_first_valid_unix_ns",0),
+                             "last_qualified_ns":ctl.get("n2_last_qualified_unix_ns",0),
+                             "last_change_ns":ctl.get("n2_last_change_unix_ns",0),
+                             "last_lower_ns":ctl.get("n2_last_lower_unix_ns",0)})
+    if any(x["confidence_windows"]>32 or x["confidence_lost"]>x["confidence_sent"] for x in rows):
+        errors.append("N2 bounded controller confidence history invalid: "+path.name)
     if not rows or not any(x["version"]>0 for x in rows):
         errors.append("no real authenticated N2 source controller snapshots: "+path.name)
     bins=[]
@@ -208,7 +222,11 @@ def parity_trace(path,server,stages,errors):
                      "reasons":{reason:sum(x["reason"]==reason for x in batch)
                                 for reason in sorted(set(x["reason"] for x in batch))},
                      "first_commit":batch[0]["commits"] if batch else None,
-                     "last_commit":batch[-1]["commits"] if batch else None})
+                     "last_commit":batch[-1]["commits"] if batch else None,
+                     "last_confidence_and_stability":({k:batch[-1].get(k) for k in (
+                         "fast","slow","confidence_sent","confidence_lost",
+                         "confidence_windows","first_valid_ns","last_qualified_ns",
+                         "last_change_ns","last_lower_ns")} if batch else None)})
     return {"samples":len(rows),"initial_actual":rows[0]["r"] if rows else None,
             "final_actual":rows[-1]["r"] if rows else None,
             "observed_profiles":sorted(set(x["r"] for x in rows if x["r"] is not None)),
@@ -257,7 +275,7 @@ def check(art,source,output):
             "client_record_cap_config":0,"server_record_cap_config":0,
             "v3_client_fec_mode":"auto","v3_client_fec_min_parity":4,
             "mtu":1400,"one_way_delay_ms_each_direction":300,
-            "duration_s":360,"application_mbps_each_direction":10.0,
+            "duration_s":420,"application_mbps_each_direction":10.0,
             "loss_percent":"waveform:0-1-5-20-5-0"
         }.items():
             if cfg.get(key)!=expect:errors.append(f"{key}: expected {expect!r}; measured {cfg.get(key)!r}")
@@ -274,7 +292,7 @@ def check(art,source,output):
                 correctness.append(f"{direction}: corrupted/duplicate/local source send failure")
             if details["sent"]==0 or details["received_first_unique"]==0:
                 correctness.append(f"{direction}: no independent first-unique delivery")
-            if details["sent"]<0.98*360*10_000_000/8/520:
+            if details["sent"]<0.98*DURATION*10_000_000/8/520:
                 capacity.append(f"{direction}: below source injection expectation")
             if details["maximum_wall_seconds_without_delivery"]>=5:
                 capacity.append(f"{direction}: >=5s continuous no-first-delivery interval")
@@ -316,7 +334,7 @@ def check(art,source,output):
                 "input_and_unique_delivery":payload,"probe":probes,"capture":cap,
                 "actual_directional_control":ctrl,"resource":resources,
                 "harness":prep,"configuration":cfg,
-                "limitations":["one 360s Normal auto waveform and runner; requires independent aggressive/lowRTT/asymmetric/sparse/mixed/Game4 gates",
+                "limitations":["one 420s Normal auto waveform (final 120s clean) and runner; requires independent aggressive/lowRTT/asymmetric/sparse/mixed/Game4 gates",
                                "high loss may legitimately leave first-unique gaps; no automatic all-probe-zero-loss assumption",
                                "diagnostic ON resource samples not comparable with OFF or other CPU model",
                                "qdisc observed drop fraction is network injected stress, not exact physical first-attempt PLR",

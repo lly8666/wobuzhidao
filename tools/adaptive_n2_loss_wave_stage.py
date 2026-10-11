@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Exactly one N2 Normal 0->1->5->20->5->0 packet-loss waveform.
 
-Six predeclared 60s stages: 360 seconds of one unchanged product/source/
+Five 60s stages, then 120s clean recovery: 420 seconds of one unchanged product/source/
 workload/seed, not six configurations or an A/B benchmark. Each direction
 uses its own router netem qdisc. The ubuntu-24.04 packaged tc netem
 parser has NO seed option; the loss RNG is therefore UNSEEDED. Fixed
@@ -17,7 +17,7 @@ from pathlib import Path
 
 STAGES = (("clean0",0,0), ("loss1",60,1), ("loss5",120,5),
           ("loss20",180,20), ("recover5",240,5), ("recover0",300,0))
-DURATION = 360
+DURATION = 420
 DRAIN = 10
 DELAY = 300
 

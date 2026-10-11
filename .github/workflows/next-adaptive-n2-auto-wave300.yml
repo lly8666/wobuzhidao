@@ -12,7 +12,7 @@ concurrency:
   group: adaptive-n2-wave300-single-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  one-v3-normal-auto-10mbps-300ms-losswave360:
+  one-v3-normal-auto-10mbps-300ms-losswave420:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -34,7 +34,7 @@ jobs:
           python3 tools/check_repository.py
           python3 tools/check_performance_workflow_policy.py
           python3 tools/perf_sample_guard.py claim \
-            --identity "adaptive-n2:auto-min4:wave-0152050:300ms:10mbps_each:360s:netemseed601:biz2026092201-2026092202:sha$GITHUB_SHA" \
+            --identity "adaptive-n2:auto-min4:wave-0152050:300ms:10mbps_each:420s:netem-seed-unapplied601:biz2026092201-2026092202:sha$GITHUB_SHA" \
             --receipt artifacts/adaptive-n2-auto-wave300/sample-claim.json
           python3 tools/e4_runner_cpu_scope.py --output artifacts/adaptive-n2-auto-wave300/runner-cpu-scope.json
           {
@@ -66,7 +66,7 @@ jobs:
           python3 tools/adaptive_n2_wave300.py prepare \
             --root . --script "$ART/n2-wave300-derived.sh" --receipt "$ART/harness-prep.json"
           bash -n "$ART/n2-wave300-derived.sh"
-      - name: One protected Normal auto 10Mbps each-way 300ms 360s six-phase netem waveform
+      - name: One protected Normal auto 10Mbps each-way 300ms 420s six-phase netem waveform (final clean 120s)
         id: sample
         continue-on-error: true
         env:
@@ -96,7 +96,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: adaptive-n2-auto-wave300-360s-${{ github.sha }}
+          name: adaptive-n2-auto-wave300-420s-${{ github.sha }}
           path: |
             artifacts/adaptive-n2-auto-wave300/
             !artifacts/adaptive-n2-auto-wave300/*.pcap
