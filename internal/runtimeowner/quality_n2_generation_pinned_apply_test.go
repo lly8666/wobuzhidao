@@ -59,9 +59,15 @@ func TestN2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock(t *testing.T) 
 	tport.quality.n2HasDecision=true
 	tport.quality.n2DecisionAt=at.Add(time.Millisecond)
 	tport.quality.n2Pending=true
+	tport.n2PendingSignal.Store(true)
 	tport.mu.Unlock()
-	applied,err:=r.ApplyN2ProposalForTests(snap.Ref,at.Add(2*time.Millisecond))
-	if err!=nil||!applied {t.Fatalf("valid active TX advice not applied %v %v",applied,err)}
+	// The EXISTING maintenance cadence, not a new FEC timer, consumes
+	// authenticated advice. Fixed/Game lanes have no pending signal.
+	if err:=r.Tick(at.Add(2*time.Millisecond));err!=nil {t.Fatal(err)}
+	if st,ok:=owner.LaneStats(snap.Ref);!ok||st.TxPath.ParityShards!=4 {
+		t.Fatalf("existing Tick did not apply active TX profile %+v %v",st.TxPath,ok)
+	}
+	if tport.n2PendingSignal.Load() {t.Fatal("Tick kept consumed proposal armed")}
 	next,err:=lane.Outbound([]byte("new-after-advice"),at.Add(2*time.Millisecond))
 	if err!=nil||len(next)!=1||next[0].FEC.ConfiguredParity!=4||
 		next[0].FEC.BlockID==old[0].FEC.BlockID {
@@ -94,9 +100,11 @@ func TestN2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock(t *testing.T) 
 	tport.quality.n2HasDecision=true
 	tport.quality.n2Pending=true
 	tport.quality.n2DecisionAt=at
+	tport.n2PendingSignal.Store(true)
 	tport.mu.Unlock()
-	if applied,err:=r.ApplyN2ProposalForTests(snap.Ref,at.Add(11*time.Second));err!=nil||applied {
-		t.Fatalf("stale recommendation applied after feedback interruption %v %v",applied,err)
+	if err:=r.Tick(at.Add(11*time.Second));err!=nil {t.Fatal(err)}
+	if tport.n2PendingSignal.Load() {
+		t.Fatal("stale feedback rearmed a quality-driven work loop")
 	}
 	if current,ok:=owner.LaneStats(snap.Ref);!ok||current.TxPath.ParityShards!=4 {
 		t.Fatalf("expired recommendation changed source parity %+v %v",current.TxPath,ok)

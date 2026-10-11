@@ -270,6 +270,7 @@ func (t *laneTransport) observeQualityLocked(result datapath.InboundResult, now 
                         // Incoming receiver quality cannot choose S2C/C2S
                         // parity. This does not send, change or wake anything.
                         t.quality.n2ObserveAuthenticatedReturn(t.ref.Generation,now)
+                        t.n2PendingSignal.Store(t.quality.n2Pending)
                     }
                     break
                 }

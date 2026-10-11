@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
+	"github.com/lly8666/wobuzhidao/internal/linkdata"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/platformflow"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
@@ -300,6 +302,10 @@ type TransportStats struct {
 type laneTransport struct {
 	health   healthState
 	quality  qualityState
+	// Set ONLY by a matched local-TX authenticated Raise/Lower proposal.
+	// Test-only auto lanes are the sole owners; fixed/Game never run an
+	// automatic control tick or acquire any additional transport locks.
+	n2PendingSignal atomic.Bool
 	control  ControlStats
 	pressure receivePressure
 	mu       sync.Mutex
@@ -1707,6 +1713,19 @@ func (r *Runtime) Tick(now time.Time) error {
 				}
 			}
 			r.outboundMu.RUnlock()
+			if lane.transport.n2PendingSignal.Load() {
+				// Only the EXISTING maintenance tick consumes an accepted
+				// control proposal. Cold preparation has no generation
+				// read lock, and a busy old partial means HOLD, never
+				// business send delay or health failure.
+				if _, err := r.ApplyN2ProposalForTests(lane.ref,now); err!=nil &&
+					!errors.Is(err,linkdata.ErrAdaptiveSwitchBusy) &&
+					!errors.Is(err,ErrTransportMissing) &&
+					!errors.Is(err,datapath.ErrLaneUnavailable) &&
+					!errors.Is(err,logicaltunnel.ErrStaleLaneGeneration) {
+					errs=append(errs,err)
+				}
+			}
 		}
 		if err := lane.transport.tick(now); err != nil {
 			errs = append(errs, err)

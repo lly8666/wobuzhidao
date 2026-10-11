@@ -33,6 +33,7 @@ func (r *Runtime) ApplyN2ProposalForTests(ref logicaltunnel.LaneRef,now time.Tim
 	version:=t.quality.n2DecisionVersion
 	if t.quality.n2Pending {
 		t.quality.n2Pending=false // exactly one attempt, even on busy/noop
+		t.n2PendingSignal.Store(false)
 	}
 	t.mu.Unlock()
 	r.mu.Unlock()
