@@ -393,5 +393,19 @@
   ],
   "physical": "NOT_RUN",
   "fixture_source_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
-  "policy_semantics": "FEC off business packet loss close to injected outer line loss is ordinary expected behavior, including lower loss after finite repair or higher weighted byte loss from split LINK packets. Not a loss<=p hard gate or business zero-loss requirement. p99/missing/HOL/queue/CPU remains under review. Fixed20 four PASS_SCREEN; all four off MEASURED_NOT_QUALIFIED, old flat5 FAILURE preserved. CPU comparisons across distinct runner models not valid."
+  "policy_semantics": "FEC off business packet loss close to injected outer line loss is ordinary expected behavior, including lower loss after finite repair or higher weighted byte loss from split LINK packets. Not a loss<=p hard gate or business zero-loss requirement. p99/missing/HOL/queue/CPU remains under review. Fixed20 four PASS_SCREEN; all four off MEASURED_NOT_QUALIFIED, old flat5 FAILURE preserved. CPU comparisons across distinct runner models not valid.",
+  "future_analyzer_guard": {
+    "helper_sha": "d2fc9e711ec38c22fec93f3308846cdf6c8d6e96",
+    "analysis_actions_run": 38114320700,
+    "targeted_policy_tests": 10,
+    "targeted_result": "PASS",
+    "foundation_run": 38114320712,
+    "foundation_enabled_jobs": "ALL_PASS",
+    "foundation_optional_p5_p6": "SKIPPED_NOT_RUN",
+    "flat1_injection_tolerance_pp": 0.5,
+    "flat5_injection_tolerance_pp": 1,
+    "lossless_5205_5305_tolerance_pp": 2,
+    "applies_to": "new future runs, outer injected tc qdisc not business loss",
+    "historical_eight_samples_reanalysis": "PROHIBITED"
+  }
 }

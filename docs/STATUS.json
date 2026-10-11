@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_DEDICATED_FLAT1_FLAT5_EIGHT_REAL_SAMPLES_COMPLETE_FUTURE_INJECTION_GUARD_ACTIONS_PENDING",
+    "phase": "N1_STEADY_1PCT_5PCT_EIGHT_ACTIONS_EVIDENCE_AND_SCOPED_INPUT_GUARD_PASS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -197,7 +197,17 @@
         "off_v2": "FOUR_MEASURED_NOT_QUALIFIED",
         "off_legacy": "flat1_two_PASS_SCREEN_flat5_two_PERFORMANCE_FAIL",
         "interpretation": "off business loss near link loss expected normal; long latency/HOL/resource still matter; no reliable cross CPU efficiency verdict",
-        "future_injection_guard": "ACTIONS_PENDING"
+        "future_injection_guard": "PASS_38114320700_10_OF_10",
+        "future_helper_sha": "d2fc9e711ec38c22fec93f3308846cdf6c8d6e96",
+        "future_foundation_actions": {
+          "run_id": 38114320712,
+          "repository_contract": "PASS",
+          "windows_go": "PASS",
+          "linux_go": "PASS",
+          "privileged_networks": "PASS",
+          "p5_p6": "SKIPPED_NOT_RUN"
+        },
+        "future_injection_guard_actions": 38114320700
       }
     },
     "fec_off_weaknet_v2": {
@@ -229,8 +239,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check scoped next-off-weaknet-v2-analysis and foundation Actions on new helper SHA for real flat1 injector tolerance±0.5pt, flat5±1pt (5205 unchanged), newly added 10th unit test. Existing 8 real native screens frozen at old helper26e7315 and must not be reinterpreted or compared across helper versions. Then N1 targeted asymmetric one-way / sparse/long idle / low RTT / legal small MTU / lost report and repair rotation Actions; revise N2 auto signal only on confirmed postrepair deficit semantics. N2 stays OFF; N3-N6 pending.",
-  "latest_log": "docs/devlog/20261011-n1-flatloss-eight-actions-and-normal-fec-off-acceptance.md",
+  "next_task": "N1 has eight independent flat1/flat5 real strict sample receipts on frozen helper26e7315, fixed20 four PASS_SCREEN and off four MEASURED_NOT_QUALIFIED, original flat5 old PERFORMANCE_FAIL intact. New future-only injector guard analyzer/helper d2fc9e7 validated Actions38114320700 10/10 and foundation38114320712 Linux/Windows enabled jobs PASS. Next prioritize authentic one-way asymmetric up/down under loss, sparse/long idle, low RTT, small legal MTU, lost report/tail lost/repaired-before-maturity/rotation qualification; do not confuse postrepair estimated deficit with physical first-attempt PLR. N2 auto still OFF, N3-6 not begun, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n1-flat-injector-guard-ten-tests-and-foundation-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "last_tested_scope": "Latest N1 product1c64e4e protected 180/640PN race & native functional PASS; fixed20 normal/Game lossless/5205 prior8 PASS_SCREEN; dedicated Normal flat1/flat5 8 strict native 120s Actions: fixed20 4 PASS_SCREEN, off 4 MEASURED_NOT_QUALIFIED; old flat5 2 PERFORMANCE_FAIL preserved. No real first-send PLR oracle or N2 auto, N3-6/physical NOT_RUN.",
