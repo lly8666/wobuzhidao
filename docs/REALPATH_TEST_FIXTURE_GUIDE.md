@@ -97,3 +97,7 @@ python3 tools/efficiency_cost_ledger.py --artifact-dir "$ART" --output "$ART/eff
 ## N1独立稳态1%/5%夹具扩展候选（2026-10-11，Actions待验）
 
 当前候选加入明确、不同于5205的`flat1`与`flat5`输入：真实netem三段30/60/30秒均分别1%或5%，严格固定seed601、双方向各自有效注入检查。旧`lossless/5205/5305`语义/硬门和原始分析结果完全不变。覆盖Normal1单lane每向10Mbps fixed20与off（off受损只用独立`off-weaknet-v2` receipt记MEASURED/REVIEW，历史性能门继续作为legacy），正式20不借本次改放宽。原`next-adaptive-n1-perf-relay`只调度每次一个测量Action；8条计划是候选/基线×flat1/flat5×off/20。**本节为待验实施，不表示已经成功注入或Actions PASS。** 不以5205充当专用1%；新增测试需读取实际stage-events/netem及首次唯一交付/反馈控制状态。独立单向、稀疏、低RTT和合法小MTU仍未覆盖。
+
+## N1 flat1/flat5 输入验证及业务损失语义（2026-10-11）
+
+独立 flat1、flat5 在 30/60/30s 三阶段维持每方向恒定注入。后续夹具以 tc qdisc 的 drops/(passed+drops) 验证真实外层注入：flat1 容差±0.5百分点，flat5 ±1百分点，历史 lossless/5205/5305 ±2百分点门不改。原 helper 26e7315 下8条独立样本已按原始校验运行，实际注入约1%/5%，不可用新规则回写历史 verdict。**这些范围只限制注入有效性，不限制 FEC off 的业务丢包率。** FEC off 业务包 loss 与 p 接近是正常预期，字节 loss 可因 LINK 多片及权重更高，有限修复也可能降低观察缺口；不为 off 主动加强重传或阻塞 fresh。flat 后段仅为同损伤等级稳定性观测，不代表 20%→5% 恢复。仍查延迟/p99/丢探针、跨业务 HOL、CPU/首次交付、队列排空与完整性。

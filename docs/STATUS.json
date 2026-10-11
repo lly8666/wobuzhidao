@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_INDEPENDENT_FLAT_1_PERCENT_5_PERCENT_FIXTURE_IMPLEMENTATION_ACTIONS_PENDING",
+    "phase": "N1_DEDICATED_FLAT1_FLAT5_EIGHT_REAL_SAMPLES_COMPLETE_FUTURE_INJECTION_GUARD_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -176,6 +176,28 @@
         "seed": 601,
         "scope": "flat1 exact [1,1,1] netem loss and flat5 [5,5,5] 30/60/30 stages, Normal1 fixed20 and off, baseline independently paired. Cannot substitute 5205",
         "legacy_protector_evidence": "docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+      },
+      "n1_independent_flat1_flat5": {
+        "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+        "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+        "baseline_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+        "seed": 601,
+        "runs": [
+          38110450124,
+          38111571963,
+          38111837501,
+          38112088217,
+          38112321378,
+          38112614139,
+          38113609481,
+          38113877309
+        ],
+        "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json",
+        "fixed20": "FOUR_STRICT_PASS_SCREEN",
+        "off_v2": "FOUR_MEASURED_NOT_QUALIFIED",
+        "off_legacy": "flat1_two_PASS_SCREEN_flat5_two_PERFORMANCE_FAIL",
+        "interpretation": "off business loss near link loss expected normal; long latency/HOL/resource still matter; no reliable cross CPU efficiency verdict",
+        "future_injection_guard": "ACTIONS_PENDING"
       }
     },
     "fec_off_weaknet_v2": {
@@ -198,7 +220,7 @@
       "targeted_actions_green_run": 38106939832,
       "targeted_actions_green_job": 114374351563,
       "test_count": 7,
-      "performance_sample_status": "TWO_REAL_OFF_5205_SAMPLES_MEASURED_NOT_QUALIFIED",
+      "performance_sample_status": "FOUR_FLAT1_FLAT5_OFF_REAL_RECEIPTS_MEASURED_NOT_QUALIFIED_ADDED_TO_PRIOR_5205_TWO",
       "n1_product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
       "fresh_v2_candidate_run": 38107037219,
       "fresh_v2_baseline_run": 38107283240,
@@ -207,11 +229,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Read new exact HEAD Actions next-off-weaknet-v2-analysis targeted Python/shell checks and repository/foundation. If FAIL fix before calling 1%/5% supported. On PASS inspect exactly one live native strict flat1 Normal20 source1c64 netem raw/injection plus feedback ESTIMATED/CAPACITY, then separate flat1 off, flat5 20 and flat5 off Actions via existing relay, each SOURCE/seed/one job. Baseline flat1/flat5 comparison separate Actions. N2 OFF until confidence in post-repair deficit; one-way/sparse/lowRTT/smallMTU still NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n1-independent-flatloss-1-and-5-fixture-candidate.md",
+  "next_task": "Check scoped next-off-weaknet-v2-analysis and foundation Actions on new helper SHA for real flat1 injector tolerance±0.5pt, flat5±1pt (5205 unchanged), newly added 10th unit test. Existing 8 real native screens frozen at old helper26e7315 and must not be reinterpreted or compared across helper versions. Then N1 targeted asymmetric one-way / sparse/long idle / low RTT / legal small MTU / lost report and repair rotation Actions; revise N2 auto signal only on confirmed postrepair deficit semantics. N2 stays OFF; N3-N6 pending.",
+  "latest_log": "docs/devlog/20261011-n1-flatloss-eight-actions-and-normal-fec-off-acceptance.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
-  "last_tested_scope": "Latest N1 product SOURCE 1c64e4e protected V3 continuous 180/640PN streaming -race x2, gapped control/lifecycle, foundation and 3client 9netns lossless native functional PASS; 120s strict Normal20:20 and Game4 fixed20:20 lossless+5205 8 single-seed independent candidate/baseline Actions PASS_SCREEN. N1 off-weaknet-v2 both real 5205 candidate/baseline MEASURED_NOT_QUALIFIED with original PERFORMANCE FAIL preserved. No 1%/5% dedicated, asymmetric/sparse/low RTT/small MTU performance, N2+, formal20 or physical qualification.",
+  "last_tested_scope": "Latest N1 product1c64e4e protected 180/640PN race & native functional PASS; fixed20 normal/Game lossless/5205 prior8 PASS_SCREEN; dedicated Normal flat1/flat5 8 strict native 120s Actions: fixed20 4 PASS_SCREEN, off 4 MEASURED_NOT_QUALIFIED; old flat5 2 PERFORMANCE_FAIL preserved. No real first-send PLR oracle or N2 auto, N3-6/physical NOT_RUN.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
@@ -1075,6 +1097,86 @@
       "status": "PASS",
       "run_id": 38109905367,
       "cause": "Original strict analyzer all CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT_VALIDITY/PERFORMANCE PASS; separate 120s one-SOURCE 20:20 screen, not full qualification. Evidence docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38110450124",
+      "run_id": 38110450124,
+      "scope": "N1_independent_flat1_20_candidate_seed601",
+      "status": "PASS",
+      "cause": "Real fixed20 strict 120s all original classifiers PASS",
+      "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38111571963",
+      "run_id": 38111571963,
+      "scope": "N1_independent_flat1_off_candidate_seed601",
+      "status": "MEASURED_NOT_QUALIFIED",
+      "cause": "Actual off sample, original legacy verdict preserved. Deliberate nonzero exit does not mean correctness failure.",
+      "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38111837501",
+      "run_id": 38111837501,
+      "scope": "N1_independent_flat5_20_candidate_seed601",
+      "status": "PASS",
+      "cause": "Real fixed20 strict 120s all original classifiers PASS",
+      "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38112088217",
+      "run_id": 38112088217,
+      "scope": "N1_independent_flat5_off_candidate_seed601",
+      "status": "MEASURED_NOT_QUALIFIED",
+      "cause": "Actual off sample, original legacy verdict preserved. Deliberate nonzero exit does not mean correctness failure.",
+      "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38112321378",
+      "run_id": 38112321378,
+      "scope": "N1_independent_flat1_20_baseline_seed601",
+      "status": "PASS",
+      "cause": "Real fixed20 strict 120s all original classifiers PASS",
+      "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38112614139",
+      "run_id": 38112614139,
+      "scope": "N1_independent_flat1_off_baseline_seed601",
+      "status": "MEASURED_NOT_QUALIFIED",
+      "cause": "Actual off sample, original legacy verdict preserved. Deliberate nonzero exit does not mean correctness failure.",
+      "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38113609481",
+      "run_id": 38113609481,
+      "scope": "N1_independent_flat5_20_baseline_seed601",
+      "status": "PASS",
+      "cause": "Real fixed20 strict 120s all original classifiers PASS",
+      "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json"
+    },
+    {
+      "name": "next-strict-weaknet",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38113877309",
+      "run_id": 38113877309,
+      "scope": "N1_independent_flat5_off_baseline_seed601",
+      "status": "MEASURED_NOT_QUALIFIED",
+      "cause": "Actual off sample, original legacy verdict preserved. Deliberate nonzero exit does not mean correctness failure.",
+      "evidence": "docs/evidence/adaptive-n1-flatloss-1pct-5pct-20261011.json"
     }
   ],
   "required_read_set": [

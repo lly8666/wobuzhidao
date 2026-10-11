@@ -154,6 +154,20 @@ def qdisc_stage(events, name, direction):
     }
 
 
+def valid_injected_loss(scenario, expected_percent, observed_percent):
+    """Only tighten independently low flat-loss injector INPUT evidence.
+
+    Keep historical lossless/5205/5305 +/-2 percentage-point behavior.
+    This guards actual tc outer loss, NEVER FEC-off business loss.
+    """
+    if isinstance(observed_percent, bool) or not isinstance(observed_percent, (int, float)):
+        return False
+    if not math.isfinite(observed_percent):
+        return False
+    tol = {"flat1": 0.5, "flat5": 1.0}.get(scenario, 2.0)
+    return abs(observed_percent - expected_percent) <= tol
+
+
 def generator_stage(sender, receiver, name, target_mbps, path_delay_ms):
     lo, hi = STAGES[name]
     ss, rs = sender["stats"], receiver["stats"]
@@ -774,7 +788,7 @@ def main():
                 input_errors.append(f"{direction}/{name} send_target_ratio={ratio}")
             actual_loss = injection[direction][name]["loss_percent"]
             want = desired[name]
-            if actual_loss is None or abs(actual_loss - want) > 2.0:
+            if not valid_injected_loss(args.scenario, want, actual_loss):
                 input_errors.append(f"{direction}/{name} actual_loss={actual_loss} want={want}")
 
     capture = {}

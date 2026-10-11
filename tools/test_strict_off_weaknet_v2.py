@@ -206,6 +206,21 @@ class OffWeaknetV2Test(unittest.TestCase):
         # The existing 5205 reference still explicitly encodes the staged pulse.
         self.assertEqual(SCENARIOS["5205"],(0.05,0.20,0.05))
 
+    def test_flat1_flat5_real_injection_gate_does_not_bound_business_loss(self):
+        from check_strict_weaknet_loss_tolerant_v1 import valid_injected_loss
+        self.assertFalse(valid_injected_loss('flat1',1.0,0.0))
+        self.assertFalse(valid_injected_loss('flat1',1.0,0.4))
+        self.assertTrue(valid_injected_loss('flat1',1.0,0.5))
+        self.assertTrue(valid_injected_loss('flat1',1.0,1.4))
+        self.assertFalse(valid_injected_loss('flat1',1.0,1.6))
+        self.assertFalse(valid_injected_loss('flat5',5.0,0.0))
+        self.assertTrue(valid_injected_loss('flat5',5.0,4.9))
+        self.assertTrue(valid_injected_loss('flat5',5.0,6.0))
+        self.assertFalse(valid_injected_loss('flat5',5.0,float('nan')))
+        self.assertTrue(valid_injected_loss('5205',20.0,18.0))
+        self.assertFalse(valid_injected_loss('5205',20.0,17.9))
+        self.assertFalse(valid_injected_loss('5305',30.0,None))
+
 
 if __name__ == "__main__":
     unittest.main()

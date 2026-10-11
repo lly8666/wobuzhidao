@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "N1 native independent steady loss 1% and 5% fixture",
-  "status": "CANDIDATE_ACTIONS_NOT_RUN",
+  "status": "EIGHT_INDEPENDENT_REAL_STRICT_SAMPLES_COMPLETE",
   "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "baseline_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
   "case_plan": [
@@ -148,12 +148,250 @@
     "rate_mbps_each_direction": 10
   },
   "scope_limitations": [
-    "Need actual netem effective injection and runner CAPACITY",
-    "Original 5205/5305 unchanged",
-    "off-v2 does not auto PASS",
-    "No real sample result until exact Actions",
-    "Current SOURCE product N1 remains frozen, only helper changed"
+    "All 8 separate native 120s strict Actions finished on frozen harness 26e7315; same scenario/seed per source A/B",
+    "Only Normal1 10Mbps each dir and 300ms one-way; no 1-way asymmetric/low RTT/sparse/legal-small-MTU evidence",
+    "flat1 and flat5 are steady injected 1% and5%, not staged 5205; input guard tightened for FUTURE actions only",
+    "Off native packet/byte deficits are normally nonzero; physical first-attempt PLR cannot be inferred from postrepair N1 estimate",
+    "Four off-v2 independent receipts MEASURED_NOT_QUALIFIED; old original flat5 2 PERFORMANCE_FAIL not regraded",
+    "Most runner models differ, one seed/run per pair and no verified source-specific LINK fragment map; no CPU/p99 improvement claims",
+    "Source-sensitive error, no-HOL, generation/rotation, report lost, 80sec S2C and physical full qualification remain open",
+    "N2 disabled; N3-6 not begun"
   ],
-  "test_receipts": [],
-  "physical": "NOT_RUN"
+  "test_receipts": [
+    {
+      "role": "candidate",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "parity": 20,
+      "scenario": "flat1",
+      "run_id": 38110450124,
+      "artifact_id": 11690904799,
+      "artifact_digest": "sha256:453dfef7b8e952b6259ee0539f51d34b020b5d914cd956f05cbf3718b6818a4c",
+      "runner_model": "AMD EPYC 7763",
+      "client_server_cpu_seconds": 218.12,
+      "stress_c2s": {
+        "injected_percent": 1.006,
+        "business_packet_deficit_percent": 0,
+        "business_byte_deficit_percent": 0,
+        "timely_goodput_mbps": 10
+      },
+      "stress_s2c": {
+        "injected_percent": 0.994,
+        "business_packet_deficit_percent": 0,
+        "business_byte_deficit_percent": 0,
+        "timely_goodput_mbps": 10
+      },
+      "legacy_screen": "PASS_SCREEN",
+      "new_screen": "PASS_SCREEN",
+      "ci_conclusion": "success",
+      "seed": 601,
+      "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+      "one_120s_measurement": true
+    },
+    {
+      "role": "candidate",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "parity": 0,
+      "scenario": "flat1",
+      "run_id": 38111571963,
+      "artifact_id": 11690694726,
+      "artifact_digest": "sha256:c32c9281051ece6cf569541138694bf6570584d8e00ca57e2df9d1455fecac28",
+      "runner_model": "AMD EPYC 7763",
+      "client_server_cpu_seconds": 138.13,
+      "stress_c2s": {
+        "injected_percent": 1.025,
+        "business_packet_deficit_percent": 0.872,
+        "business_byte_deficit_percent": 1.598,
+        "timely_goodput_mbps": 9.84
+      },
+      "stress_s2c": {
+        "injected_percent": 1.009,
+        "business_packet_deficit_percent": 0.472,
+        "business_byte_deficit_percent": 0.474,
+        "timely_goodput_mbps": 9.952
+      },
+      "legacy_screen": "PASS_SCREEN",
+      "new_screen": "MEASURED_NOT_QUALIFIED",
+      "ci_conclusion": "failure_due_to_explicit_unqualified_exit",
+      "seed": 601,
+      "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+      "one_120s_measurement": true
+    },
+    {
+      "role": "candidate",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "parity": 20,
+      "scenario": "flat5",
+      "run_id": 38111837501,
+      "artifact_id": 11692111933,
+      "artifact_digest": "sha256:776d244495ced2a014a0ab6f3b2c8dcc159aa4a1d42dd0406821e375b44065ae",
+      "runner_model": "Intel Xeon Platinum 8573C",
+      "client_server_cpu_seconds": 124.17,
+      "stress_c2s": {
+        "injected_percent": 4.981,
+        "business_packet_deficit_percent": 0,
+        "business_byte_deficit_percent": 0,
+        "timely_goodput_mbps": 10
+      },
+      "stress_s2c": {
+        "injected_percent": 4.994,
+        "business_packet_deficit_percent": 0,
+        "business_byte_deficit_percent": 0,
+        "timely_goodput_mbps": 10
+      },
+      "legacy_screen": "PASS_SCREEN",
+      "new_screen": "PASS_SCREEN",
+      "ci_conclusion": "success",
+      "seed": 601,
+      "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+      "one_120s_measurement": true
+    },
+    {
+      "role": "candidate",
+      "source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "parity": 0,
+      "scenario": "flat5",
+      "run_id": 38112088217,
+      "artifact_id": 11692242035,
+      "artifact_digest": "sha256:6f321980e719b1351d50641773d1bb896709b0b6db94784f62f83cda4c20f1d4",
+      "runner_model": "AMD EPYC 9V45",
+      "client_server_cpu_seconds": 70.66,
+      "stress_c2s": {
+        "injected_percent": 4.967,
+        "business_packet_deficit_percent": 4.735,
+        "business_byte_deficit_percent": 8.165,
+        "timely_goodput_mbps": 9.182
+      },
+      "stress_s2c": {
+        "injected_percent": 4.999,
+        "business_packet_deficit_percent": 2.904,
+        "business_byte_deficit_percent": 2.939,
+        "timely_goodput_mbps": 9.699
+      },
+      "legacy_screen": "PERFORMANCE_FAIL",
+      "new_screen": "MEASURED_NOT_QUALIFIED",
+      "ci_conclusion": "failure_due_to_explicit_unqualified_exit",
+      "seed": 601,
+      "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+      "one_120s_measurement": true
+    },
+    {
+      "role": "baseline",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "parity": 20,
+      "scenario": "flat1",
+      "run_id": 38112321378,
+      "artifact_id": 11691882927,
+      "artifact_digest": "sha256:c542769185e620eec486c178df04b166ae74526005070a91b049ec69559be5c6",
+      "runner_model": "AMD EPYC 7763",
+      "client_server_cpu_seconds": 216.55,
+      "stress_c2s": {
+        "injected_percent": 1.006,
+        "business_packet_deficit_percent": 0,
+        "business_byte_deficit_percent": 0,
+        "timely_goodput_mbps": 10
+      },
+      "stress_s2c": {
+        "injected_percent": 0.994,
+        "business_packet_deficit_percent": 0,
+        "business_byte_deficit_percent": 0,
+        "timely_goodput_mbps": 10
+      },
+      "legacy_screen": "PASS_SCREEN",
+      "new_screen": "PASS_SCREEN",
+      "ci_conclusion": "success",
+      "seed": 601,
+      "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+      "one_120s_measurement": true
+    },
+    {
+      "role": "baseline",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "parity": 0,
+      "scenario": "flat1",
+      "run_id": 38112614139,
+      "artifact_id": 11692128325,
+      "artifact_digest": "sha256:6cd43048f43dd2f297c8f7f74164cbe6ce2664ad825baef0558aa1126e13585c",
+      "runner_model": "AMD EPYC 9V74",
+      "client_server_cpu_seconds": 98.14,
+      "stress_c2s": {
+        "injected_percent": 1.025,
+        "business_packet_deficit_percent": 0.886,
+        "business_byte_deficit_percent": 1.663,
+        "timely_goodput_mbps": 9.834
+      },
+      "stress_s2c": {
+        "injected_percent": 1.008,
+        "business_packet_deficit_percent": 0.482,
+        "business_byte_deficit_percent": 0.487,
+        "timely_goodput_mbps": 9.95
+      },
+      "legacy_screen": "PASS_SCREEN",
+      "new_screen": "MEASURED_NOT_QUALIFIED",
+      "ci_conclusion": "failure_due_to_explicit_unqualified_exit",
+      "seed": 601,
+      "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+      "one_120s_measurement": true
+    },
+    {
+      "role": "baseline",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "parity": 20,
+      "scenario": "flat5",
+      "run_id": 38113609481,
+      "artifact_id": 11692369107,
+      "artifact_digest": "sha256:b237f9ca98ca50cbedd9d4bbae78f614b5b5be294562c653d564f4bc1d4ebe10",
+      "runner_model": "AMD EPYC 7763",
+      "client_server_cpu_seconds": 202.92,
+      "stress_c2s": {
+        "injected_percent": 4.982,
+        "business_packet_deficit_percent": 0,
+        "business_byte_deficit_percent": 0,
+        "timely_goodput_mbps": 10
+      },
+      "stress_s2c": {
+        "injected_percent": 4.994,
+        "business_packet_deficit_percent": 0,
+        "business_byte_deficit_percent": 0,
+        "timely_goodput_mbps": 10
+      },
+      "legacy_screen": "PASS_SCREEN",
+      "new_screen": "PASS_SCREEN",
+      "ci_conclusion": "success",
+      "seed": 601,
+      "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+      "one_120s_measurement": true
+    },
+    {
+      "role": "baseline",
+      "source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "parity": 0,
+      "scenario": "flat5",
+      "run_id": 38113877309,
+      "artifact_id": 11693100621,
+      "artifact_digest": "sha256:202782adff20f0e2ad345bce24ed51088f4e2bea77d3ee31a923cf8d38fcfdd3",
+      "runner_model": "AMD EPYC 9V74",
+      "client_server_cpu_seconds": 116.02,
+      "stress_c2s": {
+        "injected_percent": 4.97,
+        "business_packet_deficit_percent": 4.725,
+        "business_byte_deficit_percent": 8.031,
+        "timely_goodput_mbps": 9.195
+      },
+      "stress_s2c": {
+        "injected_percent": 5,
+        "business_packet_deficit_percent": 2.767,
+        "business_byte_deficit_percent": 2.751,
+        "timely_goodput_mbps": 9.724
+      },
+      "legacy_screen": "PERFORMANCE_FAIL",
+      "new_screen": "MEASURED_NOT_QUALIFIED",
+      "ci_conclusion": "failure_due_to_explicit_unqualified_exit",
+      "seed": 601,
+      "harness_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+      "one_120s_measurement": true
+    }
+  ],
+  "physical": "NOT_RUN",
+  "fixture_source_sha": "26e7315c18c634a7cbfd75b6101f2304649e00ad",
+  "policy_semantics": "FEC off business packet loss close to injected outer line loss is ordinary expected behavior, including lower loss after finite repair or higher weighted byte loss from split LINK packets. Not a loss<=p hard gate or business zero-loss requirement. p99/missing/HOL/queue/CPU remains under review. Fixed20 four PASS_SCREEN; all four off MEASURED_NOT_QUALIFIED, old flat5 FAILURE preserved. CPU comparisons across distinct runner models not valid."
 }

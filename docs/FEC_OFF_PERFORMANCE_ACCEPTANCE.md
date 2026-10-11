@@ -4,7 +4,7 @@
 
 ## 生效与迁移
 
-这次是 **docs-only 考核契约更新**，不是分析器已实施或新测试已通过。`check_strict_fec_profile_screen.py` 当前仍继承旧分析器 performance errors；正在运行的 Actions 沿用各自冻结的旧 SOURCE/helper/analyzer，不中断、不修改门槛、不回写结论。
+此节初稿在政策提交 d2ddbd9 时是 docs-only，随后已实施独立 off-weaknet-v2 分析器并完成定向 Actions。初稿的“尚未实施”是历史当时状态，最新结论仅以唯一 STATUS.json 和对应精确 SOURCE、harness 的原始 receipt 为准。冻结的历史 run 和旧 FAIL 不改写。
 
 当前开发 agent 先结束这波工作，再独立修改 off profile 的分析器与定向验证，输出版本 `off-weaknet-v2`，并继续原 N1→N6 任务。旧参考分析、原 FAIL 和原错误列表必须保留；新版本用新 receipt/独立字段记录。非 off、formal20 和 lossless 不能无意改门。未实施写 NOT_IMPLEMENTED，未跑写 NOT_RUN。
 
@@ -17,6 +17,9 @@ FEC off 不是“任意损失都能过”。真实业务首次交付、低延迟
 输入/环境独立判定：真实发送量、注入波形、send failure/lag、runner型号/指令集/quota/PSI/steal、产品与发生器CPU、raw/socket/内部queue drop、有效观测覆盖。注入不足或环境容量受限分别标 INVALID/CAPACITY_LIMITED，不能写 PASS，也不能把系统drop归为FEC理论损失。
 
 ## 2. 无损与弱网分开
+
+**用户补充的设计预期**：FEC off 时，在有真实随机线路丢包的情况下，业务包丢包率与线路 p 同数量级、甚至大致相近，是完全正常的预期行为，不是需要加强重传、等待 ACK 或阻塞 fresh 来修好的缺陷。业务包率不保证精确等于 p；有效 LINK 分片可能增加业务包/字节损失，已有的有限修复和重排也可能降低最终缺失。**不能因为 off 业务丢包≈p、或某些尺寸的业务字节损失高于 p 就单项判产品退化，更不要求弱网 off 零丢包。** 仍严格评价 payload 完整性、真实首次唯一交付、长尾 p99/missing、无跨业务 HOL、连续交付、CPU/GiB、队列年龄/排空和 wire 开销；无有效可比对照时仍为 MEASURED_NOT_QUALIFIED/REVIEW_REQUIRED，不自动性能 PASS。flat1/flat5 三段损伤恒定，末段是稳定性观察，不是20%降到5%的恢复。
+
 
 **off + lossless**：保持现有无损保护和旧分析器行为。健康容量下实际已发送、合法、充分drain的UDP应正确完整交付；吞吐目标和旧 FAIL 不借本次修改放宽。跨版本CPU/p99/goodput变化结合重复性与环境比较。
 
