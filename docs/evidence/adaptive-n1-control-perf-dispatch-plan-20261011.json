@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_qualified_candidate": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
+  "source_fixed_baseline": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+  "workflow": ".github/workflows/next-strict-weaknet.yml",
+  "workflow_url": "https://github.com/lly8666/wobuzhidao/actions/workflows/next-strict-weaknet.yml",
+  "dispatch_method": "MANUAL_WORKFLOW_DISPATCH; CONNECTED_GITHUB_INTEGRATION_NO_DISPATCH_WRITE_ACTION",
+  "workflow_harness_sha": "MUST_RECORD_IDENTICAL_BOTH_RUNS",
+  "purpose": "matched single SOURCE/config/scenario first performance and appearance comparison, not qualified merely by run request",
+  "starter_pair": [
+    {
+      "role": "fixed-cadence-before",
+      "product_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "inputs": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "0",
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "601",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "cpu_profile": false,
+        "stateful_middlebox": false,
+        "wan_neighbors": "dynamic",
+        "product_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f"
+      },
+      "status": "NOT_RUN"
+    },
+    {
+      "role": "event-merged-padded-after",
+      "product_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
+      "inputs": {
+        "qualification_kind": "fec-profile-screen",
+        "fec_parity": "0",
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "601",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "cpu_profile": false,
+        "stateful_middlebox": false,
+        "wan_neighbors": "dynamic",
+        "product_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22"
+      },
+      "status": "NOT_RUN"
+    }
+  ],
+  "first_pair_notes": [
+    "Each manual dispatch is a distinct Action with only one exact product SOURCE, fixed seed601 and lossless normal 10Mbps each direction, one configuration",
+    "Use one identical harness HEAD for both runs; note actual GITHUB_SHA as HARNESS SHA, explicit TESTED_SOURCE_SHA as source",
+    "fec-profile-screen with fec_parity 0 is intentionally exploratory and cleans bounded raw *.pcap before artifact upload. It is NOT formal20 qualification.",
+    "Must evaluate actual runner CPU model/cores/quota/instruction set, busy/PSI, socket/raw drops, injection target attainment, first-unique/throughput/goodput/p99/longest zero delivery, duration and control total wire bytes. CAPACITY_LIMITED separate from product failures.",
+    "Record per-direction control encrypted-record-length/interval histogram if diagnostically available; baseline 4f0 has no new on-lane histogram, so no invented baseline control classification."
+  ],
+  "subsequent_pairs_one_per_action": [
+    {
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "20",
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1"
+    },
+    {
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "0",
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "note": "5%->20%->5% existing harness, NOT separate 1% scenario"
+    },
+    {
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "20",
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1"
+    },
+    {
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "20",
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": "601",
+      "rate_mbps": "3",
+      "lanes": "4"
+    },
+    {
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "20",
+      "mode": "game",
+      "scenario": "5205",
+      "seed": "601",
+      "rate_mbps": "3",
+      "lanes": "4"
+    }
+  ],
+  "unsupported_by_this_workflow": [
+    "dedicated 1% only impaired stage",
+    "isolated 5% and isolated 20% with specified change/recovery schedule beyond existing 5205 /5305",
+    "long idle, sparse, short burst idle, one-way upload and download as independent formal workload",
+    "low RTT; existing strict script installs 300ms on each-way path",
+    "explicit smaller outer MTU and all actual TCP options scenario controls",
+    "outer IPv6 (current product underlay IPv4, NOT_RUN)"
+  ],
+  "current_results": "EVERY_PERFORMANCE_PAIR_NOT_RUN",
+  "physical": "NOT_RUN",
+  "N2_auto": "OFF"
+}

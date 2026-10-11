@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "kind": "N1_CONTROL_EVENT_FRESH_SAMPLE_SOURCE_PN_AND_NO_ECHO_PINGPONG_SCOPED_ACTIONS_PASS",
+  "exact_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
+  "parent_histogram_source_sha": "f521d88018f6d037c7614d3482a42894ac6b2dde",
+  "source_diff": "runtimeowner quality Tick copies scalar decision snapshot instead of 16-report history; added protected FakeTCP fresh 20+1 DATA PN same INSUFFICIENT state and two-sided sequence-only echo non-amplification tests",
+  "actions": {
+    "focused_n1": {
+      "name": "next-adaptive-n1-codec",
+      "run_id": 38097139549,
+      "job_id": 114345262631,
+      "status": "PASS",
+      "go_race_count": 2,
+      "verified_raw_log": [
+        "TestN1ControlNewDataPNReportsDespiteStableInsufficientNumericState twice PASS",
+        "TestN1ControlNoEchoPingPongOnPeerReportSequenceOnly twice PASS",
+        "legacy 9/104/128 padded decoder, strict nonce/generation/correlated echo selectors Go race"
+      ]
+    },
+    "lifecycle": {
+      "run_id": 38097139569,
+      "status": "PASS"
+    },
+    "foundation": {
+      "run_id": 38097139585,
+      "status": "PASS",
+      "scope": "Linux and Windows active Go + privileged Linux TUN/OpenWrt + repo, P5/P6 policy-skipped NOT_RUN"
+    },
+    "native_three": {
+      "run_id": 38097139591,
+      "job_id": 114345262739,
+      "status": "PASS",
+      "artifact_id": 11686815963,
+      "artifact_sha256": "7583ab499953be9ef0c3dc52c30b50259c0588c3f65b0dcad734bcbcdab529ef",
+      "nine_linux_netns": true,
+      "three_independent_formal_clients": true,
+      "shared_server_tun_port": 443,
+      "configured_loss": "0%, 300ms per-direction, 8s low-rate functional",
+      "each_six_direction": {
+        "sent_first_unique": 297,
+        "received_first_unique": 297,
+        "first_unique_business_bytes": 150480
+      },
+      "independent_validator_problems": []
+    }
+  },
+  "validated_limits": {
+    "no_new_packet_data_loop": true,
+    "remaining_kind_health_body_lengths": [
+      9,
+      104,
+      128
+    ],
+    "success_only_health_refresh": true,
+    "control_only_random_legal_pathmtu_padding": true,
+    "N2_auto": "OFF",
+    "physical": "NOT_RUN",
+    "perf_ab_normal_10mbps": "NOT_RUN",
+    "perf_game4_3mbps": "NOT_RUN",
+    "weaknet_0_1_5_20": "NOT_RUN",
+    "raw_wan_physical_loss": "NOT_MEASURED",
+    "outer_ipv6": "NOT_RUN"
+  },
+  "known_prior_failure_preserved": {
+    "source": "6482c184d980028f002440e87b281a78b092ccfe",
+    "workflow_runs": [
+      38081234695,
+      38081234724
+    ],
+    "root_cause": "outdated fixed-length unpadded legacy health test",
+    "correction": "2dafe7cccc537554e7baede9fcbedb0dfd559c4d"
+  }
+}
