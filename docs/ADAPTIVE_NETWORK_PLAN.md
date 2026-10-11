@@ -314,3 +314,10 @@ N1按用户明确收缩后的范围停止继续实验，记`SCOPED_COMPLETE`而�
 ### 2026-10-11 首发上界首轮定向 FAIL（测试断言修订）
 
 GitHub SOURCE `aa09bb3` lifecycle [38121946729](https://github.com/lly8666/wobuzhidao/actions/runs/38121946729) 和独立 N1 128B echo codec/race [38121946681](https://github.com/lly8666/wobuzhidao/actions/runs/38121946681) 在同一新增断言失败：真实 `client.Tick` 已对受损尾record选过**1次修复**，因测试夹具省略该record，成熟后ReceiverUnique=19 / TxSuccess=20，原始首发只能在[1,2]内，上界10%，不是无修复情况下精确5%。算法根据sender真实修复账本正确输出[1,2]；只修正测试expected，保留原FAIL，重新走完整Actions，不改传输行为或扩大测试。
+
+
+### 2026-10-11 首发丢包区间 read-only GitHub Actions 定向结论
+
+生产只读质量接口 `Runtime.QualityFirstAttemptBound` 已经在不修改on-wire消息、不重设固定FEC、不改变重传字节的条件下，对已认证sender源窗口/receiver成熟回声结合sender每PN至少一次repair尝试的256bit bitmap实施严格有界**下界/上界**。这不能变成精确物理线路PLR，不能盲填N2参数。SOURCE `9b196358b464198a325acf2e9c802113757935d2` 的 [foundation38122076600](https://github.com/lly8666/wobuzhidao/actions/runs/38122076600) 所有启用job成功（Linux/Windows构建、Go test、Linux全仓-race、native平台基础），[lifecycle38122076496](https://github.com/lly8666/wobuzhidao/actions/runs/38122076496)、[N1 V4 race38122076533](https://github.com/lly8666/wobuzhidao/actions/runs/38122076533)、[三客户端real native38122076520](https://github.com/lly8666/wobuzhidao/actions/runs/38122076520)亦PASS。
+
+首轮SOURCE `aa09bb3` 的测试将真实送出1次修复的缺尾案例误要求上下界都为1，lifecycle `38121946729` 和N1codec `38121946681` FAIL保留；正确认证样本为发送20、成熟收到19、曾repair1个distinct PN，因此首次丢包处于[1,2]。后续下一里程碑是混合真实partial-k群体权重/样本区间验证及生产FEC TX只新组切档、RX旧group限时解码，未完成前autoadmission仍UNSUPPORTED且不能宣称N2已完成。完整数字和source归属见 `docs/evidence/adaptive-n2-first-attempt-bound-scoped-actions-20261011.json`。

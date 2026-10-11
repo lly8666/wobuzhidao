@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "title": "N2 authenticated source-correlated first-attempt loss BOUNDS, read-only, scoped Actions",
+  "updated_at": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "source_sha": "9b196358b464198a325acf2e9c802113757935d2",
+  "parent_source": "a030dbfcd5336b745651ff8346dab7111c33dcdd",
+  "implementation": [
+    "internal/runtimeowner/runtime.go",
+    "internal/runtimeowner/recovery.go",
+    "internal/runtimeowner/quality_window.go",
+    "internal/runtimeowner/quality_echo_live.go",
+    "internal/runtimeowner/quality_first_attempt_bound.go",
+    "internal/runtimeowner/quality_first_attempt_bound_test.go",
+    "internal/runtimeowner/quality_echo_live_test.go"
+  ],
+  "proof": "For each accepted authenticated sender DATA PN window with complete local repair coverage, peer mature unique count U from correlated authenticated 128B V4 echo and sender successful original DATA count S, M=S-U. Any original source delivered by retry must have had >=1 selected same-wire repair attempt; R counts unique PN selected for repair before Emit (both pending and reserve paths; repeated attempts deduplicated). Therefore M <= first_attempt_missing <= min(S,M+R). If one record never arrived even via retry it counts M; if rescued by retry it contributes R. Local failures, 256 PN rotation during control, capacity and age cause INSUFFICIENT/STALE, never fabricated 0%.",
+  "bounds": {
+    "range_lower": "TxSuccess-ReceiverUnique_after_maturity",
+    "range_upper": "min(TxSuccess,range_lower+DistinctRepairAttemptedDATA_PNs)",
+    "typical_mature_tail_example": {
+      "source_records": 20,
+      "receiver_unique": 19,
+      "distinct_repair_attempted": 1,
+      "first_loss_lower": 1,
+      "first_loss_upper": 2,
+      "lower_fraction": 0.05,
+      "upper_fraction": 0.1
+    }
+  },
+  "constraints": {
+    "wire_format_unchanged": true,
+    "auth_v4_128B_unchanged": true,
+    "added_control_messages": 0,
+    "per_new_fresh_record": "one immutable pn attached to shadow repair entry, no extra scans",
+    "per_repair_attempt": "at most sixteen source report bitmask comparisons under existing lane lock",
+    "source_repair_mask_size_bits": 256,
+    "max_reports": 16,
+    "ring_PN_capacity": 256,
+    "timeout_seconds": 10,
+    "full_report_provenance_required": true,
+    "no_raw_packet_payload_or_secrets": true
+  },
+  "actions": {
+    "initial_candidate_failures": [
+      {
+        "run_id": 38121946729,
+        "name": "next-lifecycle",
+        "result": "failure",
+        "cause": "synthetic exact [1,1] test oracle missed actual one runtime repair, should be bound [1,2]"
+      },
+      {
+        "run_id": 38121946681,
+        "name": "next-adaptive-n1-codec",
+        "result": "failure",
+        "cause": "same incorrect expectation in independent race validation"
+      }
+    ],
+    "initial_candidate_other": {
+      "samewire": {
+        "run_id": 38121946636,
+        "result": "success"
+      }
+    },
+    "final_verified": [
+      {
+        "run_id": 38122076600,
+        "name": "next-foundation",
+        "result": "success",
+        "enabled_jobs": [
+          "repository-contract",
+          "active-go-tests (windows-2022)",
+          "active-go-tests (ubuntu-24.04)",
+          "p2-kernel-fallback",
+          "p4-linux-shared-tun-privileged (iptables)",
+          "p4-openwrt-tproxy-privileged",
+          "p4-linux-shared-tun-privileged (nft)"
+        ],
+        "skipped_ext_not_pass": true
+      },
+      {
+        "run_id": 38122076496,
+        "name": "next-lifecycle",
+        "result": "success"
+      },
+      {
+        "run_id": 38122076533,
+        "name": "next-adaptive-n1-codec",
+        "result": "success",
+        "scope": "N1 live protected echo and return source histories under race"
+      },
+      {
+        "run_id": 38122076520,
+        "name": "next-adaptive-n0-multi",
+        "result": "success",
+        "scope": "3 real native clients+server functional, NOT Windows Wintun native"
+      }
+    ]
+  },
+  "test_vectors": [
+    "repair marked before source report and after report",
+    "repeat repair of same PN only one attribution",
+    "outside PN range repair not counted",
+    "bounded sender 256PN window may expire => HOLD",
+    "sender LocalDrops => HOLD",
+    "generation mismatch rejected",
+    "lost tail after maturity plus one real selected same-wire repair yields [1,2] not exact [1,1]",
+    "N1 authenticated returned echo and ratio preserve existing semantics"
+  ],
+  "limitations": {
+    "first_attempt_fraction": "LOWER_UPPER_BOUND_NOT_PRECISE_PHYSICAL_P",
+    "high_repair_rate": "UPPER_BOUND_CAN_BECOME_1.0_AND_MUST_NOT_BE_USED_TO_AUTO_DOWNGRADE",
+    "receiver_echo": "MATURED_WINDOW_OF_FINAL_ARRIVAL_NOT_PRE_REPAIR_MEASUREMENT",
+    "shape_mixed_k": "NOT_QUALIFIED",
+    "auto_policy": "UNSUPPORTED_NOW",
+    "dynamic_FEC_TX_RX": "NOT_IMPLEMENTED",
+    "full_weaknet_performance": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "historic_fail": "PRESERVED",
+    "N3_N6": "NOT_STARTED"
+  }
+}
