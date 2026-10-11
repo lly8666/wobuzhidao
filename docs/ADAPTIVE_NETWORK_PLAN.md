@@ -295,3 +295,7 @@ N1按用户明确收缩后的范围停止继续实验，记`SCOPED_COMPLETE`而�
 核心实现 V3 既定 Auto/Aggressive 20:20 起步、可选min off，支持离散0/4/8/10/12/16/20；2s/15s 按真实dt快慢EWMA、512不重叠成功发送数据记录起决策、真实partial `r=min(k,R)` 的IID参考模型、95% Wilson上界与0.05%下降裕量、30s/入off60s稳定、10s冷却、快升单次与降档最多一步、aggressive独立 ordinary 建议+1，所有计算只在输入控制tick而不是业务包。此阶段单一真实k证据的保守接口不假称已实现混合partial分布权重；实际接线前仍需升级真实混合 k 计数/成熟窗口。该候选在 GitHub foundation unit/race/Linux/Windows编译完成前仍是待验证代码；自动协商保持 UnsupportedNow，正式产品 fixed/off行为不变，不触发产品自动降档。
 
 下一道硬门是建立认证、首次真实发送（不是后续重传）记录损失的可辨证据，并覆盖尾端被丢、FEC修复后的0%估计差异、窗口年龄、资源压力及相同source的独立定向真实测试；未完成严禁声明 auto 已可用。不恢复可靠有序record、不改变原 N1 或历史 FAIL/默认MTU样本。
+
+### 2026-10-11 GitHub Actions N2 首轮定向失败记录
+
+`47b94777` GitHub foundation `38120812356` 的 Linux 单元 `TestHighPhysicalLossEscalatesButOverloadFreezes` 因**测试对512门槛的假设错误**失败：在解除capacity前，自上次降档之后已有远大于512条互不重叠有效source DATA PN，因此收到下一份真实恶化后应立即升级（快升规则），无需从刚出现恶化的窗口重计512。保留这次FAIL，测试改为“解除capacity时升级一次，之后仅256条新DATA不能按同一趋势重复决策”。这不改变产品逻辑或算法参数，下一精确SOURCE Actions 再核。

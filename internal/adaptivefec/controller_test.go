@@ -107,9 +107,15 @@ func TestHighPhysicalLossEscalatesButOverloadFreezes(t *testing.T) {
  s:=source(86,start);s.FirstAttemptLost=38;s.CapacityOrCongestion=true
  if d:=c.Step(s.At,s);d.Reason!=HoldCapacity || d.Ordinary!=4{t.Fatal(d)}
  s.CapacityOrCongestion=false
- if d:=c.Step(s.At,s);d.Ordinary!=4{t.Fatal("must accumulate 512 samples",d)}
+ // Since the last decision, many disjoint qualified windows already
+ // accumulated >=512 records. A genuine sharp loss increase may rise
+ // immediately after capacity pressure clears; no second 512-record delay.
+ if d:=c.Step(s.At,s);d.Reason!=Raise || d.Ordinary<=4{t.Fatal(d)}
+ prior:=c.ordinary
  next:=source(87,start);next.FirstAttemptLost=38
- if d:=c.Step(next.At,next);d.Reason!=Raise || d.Ordinary<=4{t.Fatal(d)}
+ if d:=c.Step(next.At,next);d.Reason!=HoldSampleCount || d.Ordinary!=prior {
+  t.Fatal("repeated high loss must not re-decide before 512 new records",d)
+ }
 }
 func TestOffNeedsLongEvidence(t *testing.T){
  start:=time.Unix(40000,0)
