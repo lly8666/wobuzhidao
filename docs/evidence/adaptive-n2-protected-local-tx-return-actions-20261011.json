@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "dcf0a5549738672a05934ccf810bfd7ca7875a96",
+  "status": "SCOPED_PASS_TEST_ONLY_SOURCE_DIRECTION_CONTROLLER_PROPOSAL_NO_PRODUCTION_AUTO",
+  "workflows": [
+    {
+      "workflow": "next-foundation",
+      "run": 38131512231,
+      "conclusion": "success",
+      "jobs": [
+        114446633271,
+        114446672024,
+        114446672083,
+        114446672086,
+        114446672092,
+        114446672099,
+        114446672108
+      ],
+      "enabled_jobs_pass": 7,
+      "extended_p5_p6": "SKIPPED",
+      "artifact_id": 11699610222,
+      "artifact_sha256": "eed257d2e3e7537ac12eda8fd6963ac63f7242306d4f939f3090759eea782544"
+    },
+    {
+      "workflow": "next-lifecycle",
+      "run": 38131512143,
+      "job": 114446632712,
+      "conclusion": "success"
+    },
+    {
+      "workflow": "next-adaptive-n1-codec",
+      "run": 38131512116,
+      "job": 114446632826,
+      "conclusion": "success"
+    },
+    {
+      "workflow": "next-adaptive-n0-multi",
+      "run": 38131512159,
+      "job": 114446632888,
+      "conclusion": "success",
+      "scope": "hosted Linux three-client functional, not N2 dynamic realpath impairment"
+    }
+  ],
+  "prior_cohort_source": {
+    "sha": "238afa53caf0cd7972e46b55d4c9f07d2a488e3b",
+    "foundation": 38130772105,
+    "lifecycle": 38130772069,
+    "historical_red": [
+      38130647820,
+      38130647838
+    ]
+  },
+  "prior_joint_source": {
+    "sha": "08be77e2bb977b324a25366b0f4cb35549473179",
+    "foundation": 38131135195,
+    "lifecycle": 38131135165,
+    "artifact_id": 11699109405,
+    "artifact_sha256": "29d875120ad98c39906a6baaf7f3dc55d8f6f79559a2e15b404e7cf8c5b75925"
+  },
+  "limitations": [
+    "No live parity switch from controller",
+    "No V3 production auto/aggressive admission",
+    "No 10Mbps/RTT300ms/waveform N2 performance",
+    "No CPU/latency/p99 acceptance",
+    "No N3-N6, P6, physical"
+  ],
+  "physical": "NOT_RUN"
+}
