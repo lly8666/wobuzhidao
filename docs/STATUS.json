@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_WAVE420_MEASURED_NOT_QUALIFIED_DOWNGRADE_GATE_DIAGNOSTICS_ACTIONS_PENDING",
+    "phase": "N2_LOWRTT_CLEAN100_10MBPS_BIDIRECTIONAL_TRUSTED_LOWER_ONE_CASE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_300MS_420S_WAVE_FIRST_UNIQUE_PASS_C2S_NO_SWITCH_S2C_EARLY_LOWER_RAISE_BUT_NO_RECOVERY_LOWER",
+      "N2_normal_auto": "IN_PROGRESS_420S_300MS_WAVE_MEASURED_NOT_QUALIFIED_DIAGNOSTIC_BREAKDOWN_ACTIONS_SCOPED_PASS_CLEAN100_ONE_CASE_PENDING",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -619,9 +619,21 @@
         "physical": "NOT_RUN"
       },
       "n2_lower_gate_diagnostics": {
+        "status": "SCOPED_ACTIONS_PASS_READONLY_NO_ALGORITHM_CHANGE",
+        "source_sha": "0dab136e2f01973aba31a81c57b82091aeac0f1d",
+        "foundation": 38150028862,
+        "lifecycle": 38150028824,
+        "n1_codec": 38150028810,
+        "n0_three_client": 38150028900,
+        "foundation_enabled_jobs_pass": 7,
+        "foundation_artifact": 11706387820,
+        "foundation_artifact_sha256": "4ed11de6cd9ba878dd3e49f5adca0f4a877057993013e298cc84eaaa201fd186"
+      },
+      "n2_clean100_controller_lower": {
         "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT",
-        "scope": "read-only last qualified source prior candidate, Wilson residual, slow required grade, 30/60s stability and independent block flags; no controller thresholds changed"
+        "source_sha": "CURRENT_COMMIT_HEAD",
+        "scope": "single lossless Normal auto min4 each-direction10Mbps 15ms one-way 100s 10s drain, actual default record caps0, real TCP-like/TProxy/TUN 5 netns, 1s diagnostics, requires BOTH actual local TX lower reason plus committed switch; functional green not necessarily controller qualified",
+        "physical": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -653,11 +665,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check NEW exact-source Foundation/Lifecycle for last qualified downgrade blocker diagnostics (no FEC behavior change), inspect red and repair. Previous SOURCE 1f5340c1 Wave420 Action38148158367 job114495767283 execution SUCCESS but analyzer MEASURED_NOT_QUALIFIED: C2S 0 commits; S2C 2 commits early then none in final120s recovery; final 32-source high-confidence history upper loss189/8192 C2S, 50/8192 S2C. Use new assessment of 16 prior profile, confidence residual vs .0005 and slow EWMA required grade vs prior, stable timers, and actual raw source coverage to determine genuine limiting gate; NO rerun expensive same 420s without new evidence and no loosening known UNKNOWN gates. Then remaining N2 wave low RTT, aggressive, asymmetric, sparse/idle/feedback interruption/rotation, mixed TCP UDP and legal small MTU, Game4 fixed 3Mbps. N3-N6 NOT_STARTED. Physical NOT_RUN. Historical off default MTU 2.73s p99/missing and 80s S2C initial break OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-wave420-measured-not-qualified-downgrade-gate-breakdown-candidate.md",
+  "next_task": "Inspect new 100s lossless lowRTT Normal auto 10Mbps each-direction default MTU single-case Actions exact SOURCE. Report first unique, p99/missing, injected qdisc and capture drops, C2S/S2C true actual TX grades, authenticated lower reasons and applied switches, last-qualified lower candidates/Wilson residual/slowRequired and 30s gate. Classification separate SCOPED_CLEAN_LOWRTT_BOTH_DIRECTION_LOWER_OBSERVED vs MEASURED_NOT_QUALIFIED even when functional workflow PASS; handle failed job, preserve historical 420s MEASURED_NOT_QUALIFIED. Do not rerun 420s without new evidence. Then diagnose C2S loss in 300ms clean final120s, test controlled lowRTT damaged wave/aggressive, asymmetric/sparse/idle/rotation/feedback cutoff, TCP+UDP/MTU/Game4 fixed20:20. N3 AES, N4 Windows native TUN, N5 GUI, N6 P6 pending. physical NOT_RUN; historical ~2.73s off return missing and ~80s S2C remain OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-clean100-10mbps-lowrtt-controller-lowering-one-case-actions-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "1f5340c1ad5e3308ec56066209078a485e0d329d",
-  "last_tested_scope": "N2 real 420s 300ms each-way wave 0/1/5/20/5/0 loss 10Mbps each: first unique 1036185/1036185 per direction, zero capture drop; C2S only20, S2C one initial lower and injury raise, no recovery lower. Analyser MEASURED_NOT_QUALIFIED, Foundation7 PASS, no physical.",
+  "last_tested_source_sha": "0dab136e2f01973aba31a81c57b82091aeac0f1d",
+  "last_tested_scope": "N2 read-only last QUALIFIED downgrade gate decomposition adds candidate parity, Wilson modeled residual, slow-required, time/confidence/slow flags; Foundation7 Linux/Windows Go/race, lifecycle, codec/race and native three client PASS. Previous 420s300ms loss-wave measured not qualified.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
