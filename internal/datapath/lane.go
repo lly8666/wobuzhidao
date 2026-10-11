@@ -68,12 +68,26 @@ type paddingSelection struct {
 
 type paddingSelector func(headroom int, source bool) (paddingSelection, error)
 
+// FECRecordMeta is sender-local, never serialized. The source header carries
+// a provisional k=20; only emitted parity has the authoritative CLOSED k.
+// Explicit Known distinguishes FEC-off from an uninstrumented/unknown record.
+type FECRecordMeta struct {
+	Known bool
+	Enabled bool
+	BlockID uint32
+	ShardIndex uint8
+	ConfiguredParity uint8
+	ClosedK uint8
+	ShardLengthBin uint8 // 0: <=256B, 1: <=512B, 2: >512B, final parity only
+}
+
 type WireRecord struct {
 	// Ref is local ownership metadata, never serialized or encrypted. Records
 	// sealed before promotion cannot be relabeled onto a new association.
 	Ref          logicaltunnel.LaneRef
 	Control      bool
 	PN           uint64
+	FEC          FECRecordMeta
 	PaddingBytes int
 	Wire         []byte
 }
@@ -500,8 +514,33 @@ func (l *Lane) sealLocked(datagrams [][]byte, selector paddingSelector) ([]WireR
 			selection.finish(true)
 			selections[i].finish = nil
 		}
+		metadata := FECRecordMeta{Known: true}
+		if l.cfg.ParityShards != 0 {
+			// Owned v1 shard bytes are still available BEFORE encryption. This
+			// local witness does not decrypt a record or alter the wire.
+			if len(datagram) < fec.HeaderSize {
+				return nil, ErrConfigMismatch
+			}
+			metadata.Enabled = true
+			metadata.BlockID = uint32(datagram[4])<<24 | uint32(datagram[5])<<16 | uint32(datagram[6])<<8 | uint32(datagram[7])
+			metadata.ShardIndex = datagram[8]
+			metadata.ConfiguredParity = datagram[10]
+			if metadata.ShardIndex >= fec.DataShards {
+				metadata.ClosedK = datagram[11]
+				maxShard := uint16(datagram[12])<<8 | uint16(datagram[13])
+				switch {
+				case maxShard <= 256:
+					metadata.ShardLengthBin = 0
+				case maxShard <= 512:
+					metadata.ShardLengthBin = 1
+				default:
+					metadata.ShardLengthBin = 2
+				}
+			}
+		}
 		out = append(out, WireRecord{
 			PN:           pn,
+			FEC:          metadata,
 			PaddingBytes: padding,
 			// Sealer returns a fresh owned allocation, including its AEAD body.
 			Wire: wire,

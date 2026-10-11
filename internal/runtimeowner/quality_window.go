@@ -24,6 +24,7 @@ type qualityTXSlot struct {
     used bool
     success bool
     repaired bool // At least one local same-wire repair attempt, including failed emits.
+    meta datapath.FECRecordMeta // post-emit provenance, never from inbound untrusted payload
 }
 
 type qualityTXWindow struct {
@@ -39,6 +40,10 @@ type qualityTXWindow struct {
 // A failed callback is counted as local drop only, never as WAN packet loss.
 // Retried bytes at original TCP Seq do not pass this fresh completion hook.
 func (w *qualityTXWindow) note(pn uint64, success bool, now time.Time) {
+    w.noteWithMeta(pn,success,now,datapath.FECRecordMeta{})
+}
+
+func (w *qualityTXWindow) noteWithMeta(pn uint64, success bool, now time.Time, meta datapath.FECRecordMeta) {
     if !w.haveHigh || pn>w.high {
         w.high=pn
         w.haveHigh=true
@@ -54,7 +59,7 @@ func (w *qualityTXWindow) note(pn uint64, success bool, now time.Time) {
         // success is immutable per fresh PN. Never double count.
         return
     }
-    *slot=qualityTXSlot{pn:pn,used:true,success:success}
+    *slot=qualityTXSlot{pn:pn,used:true,success:success,meta:meta}
     if success {w.lastSuccessAt=now}
 }
 

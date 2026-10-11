@@ -29,6 +29,9 @@ type QualityFirstAttemptBound struct {
     LowerFraction, UpperFraction float64
     Age time.Duration
     Complete bool
+    // Metadata is independent of the WAN loss interval. Only actual
+    // successful KindLINK first-emits for this SAME source report contribute.
+    Shape QualitySourceShape
 }
 
 // Caller holds laneTransport.mu; called only for an actual selected repair,
@@ -86,7 +89,12 @@ func (q *qualityState) captureSentSourceRepairCoverage(m datapath.QualityHealthR
         }
     }
     s.repairCoverage=successes==m.TxSuccess
-    if !s.repairCoverage { s.repaired=0; s.repairMask=[4]uint64{} }
+    if s.repairCoverage {
+        s.shape=q.tx.sourceShape(m)
+    } else {
+        s.repaired=0
+        s.repairMask=[4]uint64{}
+    }
     return s
 }
 
@@ -145,5 +153,6 @@ func (r *Runtime) QualityFirstAttemptBound(ref logicaltunnel.LaneRef, now time.T
     out.LowerFraction=float64(out.MinFirstLost)/float64(out.Sent)
     out.UpperFraction=float64(out.MaxFirstLost)/float64(out.Sent)
     out.Complete=true
+    out.Shape=src.shape
     return out,true
 }

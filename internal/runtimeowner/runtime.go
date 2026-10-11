@@ -441,6 +441,7 @@ type preparedFresh struct {
 	pending *pendingRecord
 	control bool
 	pn      uint64 // sealed record PN, not FakeTCP Seq
+	fec     datapath.FECRecordMeta
 	at      time.Time
 }
 
@@ -517,14 +518,14 @@ func (t *laneTransport) prepareFresh(record datapath.WireRecord, now time.Time) 
 		t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
 	}
 	t.mu.Unlock()
-	return preparedFresh{seg: seg, pending: p, control: record.Control, pn: record.PN, at: now}, nil
+	return preparedFresh{seg: seg, pending: p, control: record.Control, pn: record.PN, fec: record.FEC, at: now}, nil
 }
 
 func (t *laneTransport) completeFresh(f preparedFresh, err error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if t.quality.enabled && !f.control {
-		t.quality.tx.note(f.pn, err == nil, f.at)
+		t.quality.tx.noteWithMeta(f.pn, err == nil, f.at, f.fec)
 	}
 	if err != nil {
 		t.stats.FreshEmitFailures++

@@ -18,6 +18,7 @@ type qualitySentSource struct {
     repairMask [4]uint64
     repaired uint32
     repairCoverage bool
+    shape QualitySourceShape // immutable captured cohort, independent of PN-ring rotation
 }
 type qualityReturnedEcho struct {
     report datapath.QualityEchoV4
