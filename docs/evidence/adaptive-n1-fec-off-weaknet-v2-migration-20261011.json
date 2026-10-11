@@ -21,7 +21,7 @@
   ],
   "new_analysis": {
     "source_sha": "PENDING_COMMIT",
-    "status": "SCOPED_UNIT_ACTIONS_PASS_REAL_IMPAIRED_SAMPLE_PENDING",
+    "status": "SCOPED_ACTIONS_PASS_NATIVE_5205_PAIRED_MEASURED_NOT_QUALIFIED",
     "scope": "only damaged off profile-screen; separate off-weaknet-v2.json; legacy result and errors unchanged",
     "qualify_on_one_sample": false,
     "analysis_version": "off-weaknet-v2",
@@ -66,7 +66,10 @@
         "cpu_s_per_gib": 517.386587408845
       }
     ],
-    "comparison": "Two distinct host CPU models even though same harness/seed; cannot treat CPU/GiB difference as improvement. Both relative pre5 5s recovered initial10s, old post5 3x1s failed. Goodput +-0.7%; p99 2726.5ms vs2722ms, timeout 24 vs21, 1 A/B not qualification. New host identity guard Actions pending."
+    "comparison": "Two distinct host CPU models even though same harness/seed; cannot treat CPU/GiB difference as improvement. Both relative pre5 5s recovered initial10s, old post5 3x1s failed. Goodput +-0.7%; p99 2726.5ms vs2722ms, timeout 24 vs21, 1 A/B not qualification. New host identity guard Actions pending.",
+    "runner_guard_actions_pass": 38107659251,
+    "runner_guard_unit_tests": 8,
+    "new_perf_workflow": "NORMAL_20_20_LOSSLESS_FIRST_DISPATCH_PENDING"
   },
   "expected_unit_vectors": [
     "off5205/5305 eligibility, nonoff/lossless/formal20 exclusion",
