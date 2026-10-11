@@ -384,7 +384,7 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
            wholeParity!=uint64(s.ParityRecords) ||
            wholeParity>shapeSourceRecords ||
            shapeSourceRecords+wholeParity+uint64(s.OffRecords)+uint64(s.CroppedRecords)!=uint64(s.Sent) ||
-           (shapeSourceRecords+s.OffRecords)==0 ||
+           (shapeSourceRecords+uint64(s.OffRecords))==0 ||
            float64(s.CroppedRecords)/float64(s.Sent)>MaxCroppedShare {
             return c.current(HoldShape)
         }

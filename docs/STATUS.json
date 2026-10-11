@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_TRUSTED_PHYSICAL_256PN_MIXED_K_R_PARTIAL_EDGES_CONTROLLER_SOURCE_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N2_PHYSICAL_LINK_PN_COHORT_UINT_TYPE_FIX_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -310,11 +310,14 @@
         "physical": "NOT_RUN"
       },
       "n2_source_cohort_normalization_candidate": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "parent_doc_sha": "83a72260d176e89ec8140c936eeda2a958debbf9",
-        "model": "all KindLINK PN include parity; complete k/r groups priced source-weighted; known cropped edge group counted as unprotected; invalid/localdrop/overload/stale/overlap/wide bound HOLD",
-        "production_auto": "UNSUPPORTED",
+        "status": "FIRST_SOURCE_ACTIONS_FAIL_CORRECTION_PENDING",
+        "failed_source_sha": "b38d1b88271973b1c8d292b27103665dc8b975dc",
+        "failed_foundation_run": 38129599448,
+        "failed_linux_job": 114441016511,
+        "failed_lifecycle_run": 38129599400,
+        "root_cause": "controller.go:387 uint64 shapeSourceRecords + uint32 OffRecords mixed integer types; compile fails before tests",
+        "corrected_source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "auto_live": false,
         "physical": "NOT_RUN"
       }
     },
@@ -347,8 +350,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 source-normalized parity-PN and partial-edge controller candidate: check exact new Actions foundation/lifecycle/N1 codec/Linux multi; if failures fix and preserve original FAIL. New runtimeowner QualityAdaptiveCandidate read-only maps authenticated first-attempt conservative bound + true source local SourceShape (all first-success parity/off/cropped/invalid). Controller requires complete k/r source+parity accounting, Wilson bound/512 disjoint PN, <=50% known-cropped conservative; synthetic 256-PN 20:20 genuine whole+cut evidence can lower and raise. DO NOT enable auto until qualified under realistic normal patterns incl timeout/wide interval/feedback loss and per-client directional production+admission and realpath. N3-N6/physical NOT_RUN, old p99/missing and 80s OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-real-256pn-parity-cropped-source-control-candidate.md",
+  "next_task": "N2 source cohort parity/cropped fix: source b38d1b8 foundation38129599448 Linux unit job114441016511 build FAIL at controller.go:387 uint64+uint32. Fixed only uint64(s.OffRecords) in next SOURCE, no algorithm change. Inspect exact new foundation/lifecycle Go Linux/Windows/race and correct tests if further red. Continue trusted 256 PN on/parity/off/cropped sample qualification, never post-repair PLR as first attempt; auto unsupported, N3-N6 physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n2-parity-source-cohort-uint-correction.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "3fdc70543ee11a9af27fbbe0502ce9c2f929d5ab",
   "last_tested_scope": "AEAD Lane N2 explicit TEST-ONLY new-block off/on 20R old 32ms parity, first arrival/no HOL; foundation 7 enabled PASS Linux/Windows Go/race scoped, lifecycle PASS. P5/P6 SKIPPED. No N2 live/perf/physical.",
