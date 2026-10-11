@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_SCOPED_COMPLETE_DEFAULT_AUTO_MTU_FEC_OFF_FLAT5_PAIR_RECORDED_N2_TRUE_PLR_INPUT_HOLD",
+    "phase": "N2_DECISION_CORE_IMPLEMENTED_GUARDED_FIRST_ATTEMPT_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "NOT_STARTED",
+      "N2_normal_auto": "IN_PROGRESS_PURE_NORMAL_ONLY_ADAPTIVE_FEC_CONTROLLER_SHAPE_GUARD_EWMA_WILSON_512_STABILITY_30_60S_NO_LIVE_ADMISSION_UNTIL_AUTH_FIRST_ATTEMPT_EVIDENCE",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -262,8 +262,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N1 closed at explicit user-scoped minimal scope: default auto-MTU strict fixture committed83f040d; exactly two real native 120s Normal FEC off flat5 candidate/baseline on seed601 same AMD EPYC7763 run38119299941+38119560143 both CAPTURE/CORRECTNESS/ENVIRONMENT/INPUT/PERFORMANCE reference PASS; both independent off-v2 MEASURED_NOT_QUALIFIED, CI red is intentional honest qualification gate; record counts1:1 both directions. User asks no extra N1 samples. N2–N6 remain NOT_STARTED; N2 automatic FEC cannot use N1 after-repair deficit as actual first-transmission outer loss, source not qualified, HOLD until separately established. 80s S2C and multi-second probe tails remain OPEN; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n1-auto-mtu-baseline-pair-scoped-closure.md",
+  "next_task": "Run next-foundation GitHub Actions on N2 pure decision-core source; if failure patch exactly; do not authorize auto V3 admission or live parity switching until trustworthy independently authenticated first-attempt physical record-loss estimator, k/r partial shape and loss window coverage qualified. Existing N1 post-repair QualityEchoFeedback must HOLD. Then implement N2 bounded actual encoder profile switch + multi-profile delayed RX and one action functional regression; no physical before N0-N6 done.",
+  "latest_log": "docs/devlog/20261011-n2-guarded-first-attempt-decision-core-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "last_tested_scope": "Latest N1 product1c64e4e protected 180/640PN race & native functional PASS; fixed20 normal/Game lossless/5205 prior8 PASS_SCREEN; dedicated Normal flat1/flat5 8 strict native 120s Actions: fixed20 4 PASS_SCREEN, off 4 MEASURED_NOT_QUALIFIED; old flat5 2 PERFORMANCE_FAIL preserved. No real first-send PLR oracle or N2 auto, N3-6/physical NOT_RUN.",

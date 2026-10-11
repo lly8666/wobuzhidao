@@ -286,3 +286,12 @@ KindHealth 单独增加 encrypted zero padding，复用 tlsrecord.inner_type 后
 实施提交 `83f040db49ee6588ecc647d436431057563d3d24` 同时删除严格夹具的 `1250/1300` 方向限制并预声明两条不可并行样本。Actions候选 `38119299941` 与旧基线 `38119560143`，固定source分别 `1c64e4e` / `4f0cf781`，双方外层 MTU1400 与 record-cap默认0=auto，flat5双向固定5%、300ms单向、60s stress、Normal1 10Mbps/方向 seed601。同型号AMD EPYC7763。真实净损伤均接近5%；业务上/下失包：候选2.8265%/2.7562%（差0.0703pp），旧基线2.7137%/2.8015%（差0.0878pp）。双方lane计数均确认 datagram:record=1:1，旧手工1250/1300夹具上行额外分片完全消失；新样本两端全部CAPTURE/CORRECTNESS/INPUT/ENVIRONMENT以及legacy PERF各PASS，off-v2均MEASURED_NOT_QUALIFIED，无整秒断流。多秒probe尾部仍OPEN，不因返还p99只有返回者而忽略missing。原旧线样本/FAIL不可重判。精确artifact、SHA和指标见 `docs/evidence/adaptive-n1-auto-mtu-fec-off-flat5-pair-20261011.json`。
 
 N1按用户明确收缩后的范围停止继续实验，记`SCOPED_COMPLETE`而非`FULL_QUALIFIED`；N2的**真首发外层PLR**数据输入未完成，N1现有post-repair估计不能代替，N2自动模式保持未启动/等待独立验证。其它N3～N6、形式化20/物理和80s S2C保持原未验/OPEN。
+
+
+## N2 决策内核先行（2026-10-11，新候选，Actions 待验）
+
+用户确认继续后，先实施 `internal/adaptivefec` 中的独立 Normal-only 自动档**纯决策内核**，尚未启用接入协商或线路切档，不把 N2 记作已完成。输入必须是同 lane incarnation、独立非重叠 sender DATA PN 范围、单调来源 seq 的**可信首发观测**并确认真实 partial k；当前 N1 的受认证128B回声仍然只包含修复后的剩余缺口（`EvidencePostRepair`），控制器明确 HOLD，包括0%情况。容量/拥塞、未知 k、反馈过期、跨generation、重复数据都 HOLD，绝不把 UNKNOWN/不足当物理0%。
+
+核心实现 V3 既定 Auto/Aggressive 20:20 起步、可选min off，支持离散0/4/8/10/12/16/20；2s/15s 按真实dt快慢EWMA、512不重叠成功发送数据记录起决策、真实partial `r=min(k,R)` 的IID参考模型、95% Wilson上界与0.05%下降裕量、30s/入off60s稳定、10s冷却、快升单次与降档最多一步、aggressive独立 ordinary 建议+1，所有计算只在输入控制tick而不是业务包。此阶段单一真实k证据的保守接口不假称已实现混合partial分布权重；实际接线前仍需升级真实混合 k 计数/成熟窗口。该候选在 GitHub foundation unit/race/Linux/Windows编译完成前仍是待验证代码；自动协商保持 UnsupportedNow，正式产品 fixed/off行为不变，不触发产品自动降档。
+
+下一道硬门是建立认证、首次真实发送（不是后续重传）记录损失的可辨证据，并覆盖尾端被丢、FEC修复后的0%估计差异、窗口年龄、资源压力及相同source的独立定向真实测试；未完成严禁声明 auto 已可用。不恢复可靠有序record、不改变原 N1 或历史 FAIL/默认MTU样本。
