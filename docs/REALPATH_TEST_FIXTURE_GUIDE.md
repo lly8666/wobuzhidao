@@ -92,3 +92,8 @@ python3 tools/efficiency_cost_ledger.py --artifact-dir "$ART" --output "$ART/eff
 32ms SOURCE的Normal1/Game2各lossless/5205有单次300s scoped PASS；15ms稀疏完整产品路径run37937452545双方2667/2667、每尺寸889、单向p99约15.44..15.75ms，没定向丢片。不要拿它证明低RTT丢片修复、CPU收益、Game4或其它FEC档位。
 
 旧SOURCE有TCP-only输入/hash失败、8937/65507大包能力/归因未完成；profile-off没有内部lane流量证据就写configured lanes，不编actual lanes。额外socket drop和业务缺包是不同事实；FEC救回业务不能抹去socket资源FAIL。全局80秒S2C中断仍OPEN_DEFERRED。读取STATUS与原始summary才知道新源码资格，不从本文快照继承。
+
+
+## N1独立稳态1%/5%夹具扩展候选（2026-10-11，Actions待验）
+
+当前候选加入明确、不同于5205的`flat1`与`flat5`输入：真实netem三段30/60/30秒均分别1%或5%，严格固定seed601、双方向各自有效注入检查。旧`lossless/5205/5305`语义/硬门和原始分析结果完全不变。覆盖Normal1单lane每向10Mbps fixed20与off（off受损只用独立`off-weaknet-v2` receipt记MEASURED/REVIEW，历史性能门继续作为legacy），正式20不借本次改放宽。原`next-adaptive-n1-perf-relay`只调度每次一个测量Action；8条计划是候选/基线×flat1/flat5×off/20。**本节为待验实施，不表示已经成功注入或Actions PASS。** 不以5205充当专用1%；新增测试需读取实际stage-events/netem及首次唯一交付/反馈控制状态。独立单向、稀疏、低RTT和合法小MTU仍未覆盖。

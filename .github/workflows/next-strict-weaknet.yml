@@ -23,11 +23,11 @@ on:
         type: choice
         options: [normal, game]
       scenario:
-        description: "lossless, 5205, or 5305"
+        description: "lossless/5205/5305, or independent steady 1% (flat1) / 5% (flat5)"
         required: true
         default: lossless
         type: choice
-        options: [lossless, "5205", "5305"]
+        options: [lossless, "5205", "5305", flat1, flat5]
       seed:
         description: "single sample seed"
         required: true

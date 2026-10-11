@@ -38,15 +38,14 @@ jobs:
           assert re.fullmatch(r"[0-9a-f]{40}",d["candidate_sha"])
           assert d["baseline_sha"]!=d["candidate_sha"]
           cs=d["cases"]
-          assert len(cs)==12
+          assert len(cs)==8
           seen=set()
           for c in cs:
               assert set(c)=={"role","product_source_sha","qualification_kind","fec_parity","mode","scenario","seed","rate_mbps","lanes","cpu_profile","stateful_middlebox","wan_neighbors"}
               assert c["qualification_kind"]=="fec-profile-screen"
               assert (c["mode"],c["scenario"],c["fec_parity"],c["rate_mbps"],c["lanes"]) in {
-                ("normal","lossless","0","10","1"),("normal","lossless","20","10","1"),
-                ("normal","5205","0","10","1"),("normal","5205","20","10","1"),
-                ("game","lossless","20","3","4"),("game","5205","20","3","4")}
+                ("normal","flat1","0","10","1"),("normal","flat1","20","10","1"),
+                ("normal","flat5","0","10","1"),("normal","flat5","20","10","1")}
               assert c["seed"]=="601" and c["wan_neighbors"]=="dynamic"
               assert c["cpu_profile"] is False and c["stateful_middlebox"] is False
               assert c["role"] in {"baseline","candidate"}
@@ -54,10 +53,10 @@ jobs:
               tag=(c["role"],c["mode"],c["scenario"],c["fec_parity"])
               assert tag not in seen
               seen.add(tag)
-          assert len(seen)==12
+          assert len(seen)==8
           index=int(os.environ["GITHUB_RUN_ATTEMPT"])-1
           if not 0<=index<len(cs):
-              raise SystemExit("All 12 attempt slots exhausted: no new performance sample dispatched")
+              raise SystemExit("All 8 dedicated-flatloss attempt slots exhausted: no new performance sample dispatched")
           c=cs[index]
           with open(os.environ["GITHUB_ENV"],"a") as f:
               for k,n in {"product_source_sha":"CASE_SOURCE","qualification_kind":"CASE_KIND","fec_parity":"CASE_PARITY","mode":"CASE_MODE","scenario":"CASE_SCENARIO","seed":"CASE_SEED","rate_mbps":"CASE_RATE","lanes":"CASE_LANES"}.items():

@@ -71,6 +71,8 @@ class OffWeaknetV2Test(unittest.TestCase):
     def test_eligible_scope_does_not_touch_lossless_nonoff_or_formal20(self):
         self.assertTrue(eligible("fec-profile-screen",0,"5205"))
         self.assertTrue(eligible("fec-profile-screen",0,"5305"))
+        self.assertTrue(eligible("fec-profile-screen",0,"flat1"))
+        self.assertTrue(eligible("fec-profile-screen",0,"flat5"))
         for kind,parity,scenario in [
             ("fec-profile-screen",0,"lossless"),("fec-profile-screen",20,"5205"),
             ("formal20",0,"5205"),("formal20",20,"5205"),
@@ -189,6 +191,21 @@ class OffWeaknetV2Test(unittest.TestCase):
         check=assess(l,m,b,t,baseline_receipts=[old],runner_hardware=hw)
         self.assertEqual(check['comparison']['state'],'INCOMPARABLE')
         self.assertIsNone(_host_identity(host,[]))
+    def test_independent_steady_1_and_5_percent_are_not_staged_5205(self):
+        from check_strict_off_weaknet_v2 import SCENARIOS
+        self.assertEqual(SCENARIOS["flat1"],(0.01,0.01,0.01))
+        self.assertEqual(SCENARIOS["flat5"],(0.05,0.05,0.05))
+        l,m,b,t=fixture()
+        for scenario in ("flat1","flat5"):
+            m["scenario"]=scenario
+            l["scenario"]=scenario
+            result=assess(l,m,b,t)
+            self.assertEqual(result["qualification_status"],"MEASURED_NOT_QUALIFIED")
+            self.assertIn("no 20%-to-5%",result["flat_loss_stage_semantics"])
+            self.assertEqual(result["legacy_reference"]["classifications"]["PERFORMANCE"],"FAIL")
+        # The existing 5205 reference still explicitly encodes the staged pulse.
+        self.assertEqual(SCENARIOS["5205"],(0.05,0.20,0.05))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -121,7 +121,9 @@ def main():
         elif continuity[role] >= 2:
             profile_errors.append(role + " at least2 complete seconds with no business delivery")
     probabilities = {"lossless": (0, 0, 0), "5205": (.05, .20, .05),
-                     "5305": (.05, .30, .05)}[args.scenario]
+                     "5305": (.05, .30, .05),
+                     "flat1": (.01, .01, .01),
+                     "flat5": (.05, .05, .05)}[args.scenario]
     models = {}
     for stage, p in zip(("pre", "stress", "post"), probabilities):
         values = [source_loss_reference(k, args.fec_parity, p) for k in range(1, 21)]

@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "name": "N1 native independent steady loss 1% and 5% fixture",
+  "status": "CANDIDATE_ACTIONS_NOT_RUN",
+  "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+  "baseline_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+  "case_plan": [
+    {
+      "role": "candidate",
+      "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "20",
+      "mode": "normal",
+      "scenario": "flat1",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    },
+    {
+      "role": "candidate",
+      "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "0",
+      "mode": "normal",
+      "scenario": "flat1",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    },
+    {
+      "role": "candidate",
+      "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "20",
+      "mode": "normal",
+      "scenario": "flat5",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    },
+    {
+      "role": "candidate",
+      "product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "0",
+      "mode": "normal",
+      "scenario": "flat5",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    },
+    {
+      "role": "baseline",
+      "product_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "20",
+      "mode": "normal",
+      "scenario": "flat1",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    },
+    {
+      "role": "baseline",
+      "product_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "0",
+      "mode": "normal",
+      "scenario": "flat1",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    },
+    {
+      "role": "baseline",
+      "product_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "20",
+      "mode": "normal",
+      "scenario": "flat5",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    },
+    {
+      "role": "baseline",
+      "product_source_sha": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+      "qualification_kind": "fec-profile-screen",
+      "fec_parity": "0",
+      "mode": "normal",
+      "scenario": "flat5",
+      "seed": "601",
+      "rate_mbps": "10",
+      "lanes": "1",
+      "cpu_profile": false,
+      "stateful_middlebox": false,
+      "wan_neighbors": "dynamic"
+    }
+  ],
+  "scenario_waves": {
+    "flat1": {
+      "pre_percent": 1,
+      "stress_percent": 1,
+      "post_percent": 1,
+      "stages_seconds": [
+        30,
+        60,
+        30
+      ]
+    },
+    "flat5": {
+      "pre_percent": 5,
+      "stress_percent": 5,
+      "post_percent": 5,
+      "stages_seconds": [
+        30,
+        60,
+        30
+      ]
+    }
+  },
+  "strict_common": {
+    "one_measurement_job_per_action": true,
+    "seed": 601,
+    "mode": "normal",
+    "lanes": 1,
+    "rate_mbps_each_direction": 10
+  },
+  "scope_limitations": [
+    "Need actual netem effective injection and runner CAPACITY",
+    "Original 5205/5305 unchanged",
+    "off-v2 does not auto PASS",
+    "No real sample result until exact Actions",
+    "Current SOURCE product N1 remains frozen, only helper changed"
+  ],
+  "test_receipts": [],
+  "physical": "NOT_RUN"
+}

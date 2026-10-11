@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_FIXED2020_NORMAL_AND_GAME_EIGHT_STRICT_SCREENS_PASS_INDEPENDENT_1PCT_5PCT_AND_EDGES_NOT_RUN",
+    "phase": "N1_INDEPENDENT_FLAT_1_PERCENT_5_PERCENT_FIXTURE_IMPLEMENTATION_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -169,6 +169,13 @@
           "last_estimated_deficit": 8
         },
         "interpretation": "post-repair estimated authenticated record deficit, not physical first-attempt PLR; no blanket N2 off downgrade"
+      },
+      "n1_flatloss_1_and_5": {
+        "implementation": "CANDIDATE_ACTIONS_NOT_RUN",
+        "production_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+        "seed": 601,
+        "scope": "flat1 exact [1,1,1] netem loss and flat5 [5,5,5] 30/60/30 stages, Normal1 fixed20 and off, baseline independently paired. Cannot substitute 5205",
+        "legacy_protector_evidence": "docs/evidence/adaptive-n1-fixed2020-protector-screen-20261011.json"
       }
     },
     "fec_off_weaknet_v2": {
@@ -200,8 +207,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N1 next: implement actual independent 1%/5% scenario support in existing strict fixture and analyzer (do not fabricate inputs or repurpose 5205); exercise one-way, sparse/long idle, low RTT, small legal MTU, report loss and fast repair vs N1 estimate bias with distinct Actions. Keep 20:20 protector eight PASS_SCREEN exact source, off-weaknet-v2 MEASURED_NOT_QUALIFIED and old FAIL. Only then decide N2 controller safe inputs: estimated deficit is after repair and cannot blindly auto-reduce off; N2 disabled. Later N3 AES, N4 Windows TUN, N5 GUI, N6 P6/physical; no qualification ref/mainline movement.",
-  "latest_log": "docs/devlog/20261011-n1-fixed2020-eight-protector-screens-actions-pass.md",
+  "next_task": "Read new exact HEAD Actions next-off-weaknet-v2-analysis targeted Python/shell checks and repository/foundation. If FAIL fix before calling 1%/5% supported. On PASS inspect exactly one live native strict flat1 Normal20 source1c64 netem raw/injection plus feedback ESTIMATED/CAPACITY, then separate flat1 off, flat5 20 and flat5 off Actions via existing relay, each SOURCE/seed/one job. Baseline flat1/flat5 comparison separate Actions. N2 OFF until confidence in post-repair deficit; one-way/sparse/lowRTT/smallMTU still NOT_RUN.",
+  "latest_log": "docs/devlog/20261011-n1-independent-flatloss-1-and-5-fixture-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
   "last_tested_scope": "Latest N1 product SOURCE 1c64e4e protected V3 continuous 180/640PN streaming -race x2, gapped control/lifecycle, foundation and 3client 9netns lossless native functional PASS; 120s strict Normal20:20 and Game4 fixed20:20 lossless+5205 8 single-seed independent candidate/baseline Actions PASS_SCREEN. N1 off-weaknet-v2 both real 5205 candidate/baseline MEASURED_NOT_QUALIFIED with original PERFORMANCE FAIL preserved. No 1%/5% dedicated, asymmetric/sparse/low RTT/small MTU performance, N2+, formal20 or physical qualification.",

@@ -16,7 +16,8 @@ from pathlib import Path
 VERSION = "off-weaknet-v2"
 DIRECTIONS = ("c2s", "s2c")
 STAGES = ("pre", "stress", "post")
-SCENARIOS = {"5205": (0.05, 0.20, 0.05), "5305": (0.05, 0.30, 0.05)}
+SCENARIOS = {"5205": (0.05, 0.20, 0.05), "5305": (0.05, 0.30, 0.05),
+             "flat1": (0.01, 0.01, 0.01), "flat5": (0.05, 0.05, 0.05)}
 GIB = float(1024 ** 3)
 RECOVERY_WINDOW_SECONDS = 5
 PRE5_SECONDS = tuple(range(15, 30))
@@ -339,6 +340,7 @@ def assess(legacy, manifest, biz, target, resources=(), baseline_receipts=(),
         "drain": legacy.get("drain"),
         "relative_pre5_recovery":rec,
         "fragmentation_reference":fragmentation_reference(fragment_mapping,manifest,measured),
+        "flat_loss_stage_semantics": ("Steady independent per-direction netem loss in all 30/60/30s segments; no 20%-to-5% recovery transition. Post segment compared with same-level pre as stability, not recovery from a changed damage level." if manifest["scenario"] in ("flat1","flat5") else None),
         "threshold_revisions":{
             "removed_as_off_impairment_hard_gates":[
                 "business_packet_loss <= configured_outer_loss",

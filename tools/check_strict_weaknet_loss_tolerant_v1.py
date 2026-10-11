@@ -644,7 +644,7 @@ def main():
     ap.add_argument("--artifact-dir", required=True)
     ap.add_argument("--source-sha", required=True)
     ap.add_argument("--mode", choices=("normal", "game"), required=True)
-    ap.add_argument("--scenario", choices=("lossless", "5205", "5305"), required=True)
+    ap.add_argument("--scenario", choices=("lossless", "5205", "5305", "flat1", "flat5"), required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--target-mbps", type=float, required=True)
     ap.add_argument("--lanes", type=int, required=True)
@@ -715,6 +715,8 @@ def main():
         "lossless": {"pre": 0.0, "stress": 0.0, "post": 0.0},
         "5205": {"pre": 5.0, "stress": 20.0, "post": 5.0},
         "5305": {"pre": 5.0, "stress": 30.0, "post": 5.0},
+        "flat1": {"pre": 1.0, "stress": 1.0, "post": 1.0},
+        "flat5": {"pre": 5.0, "stress": 5.0, "post": 5.0},
     }[args.scenario]
     injection = {d: {name: qdisc_stage(events, name, d) for name in STAGES} for d in ("c2s", "s2c")}
 

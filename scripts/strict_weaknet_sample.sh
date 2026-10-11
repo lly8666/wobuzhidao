@@ -50,6 +50,8 @@ case "$SCENARIO" in
   lossless) PRE_LOSS=0; STRESS_LOSS=0; POST_LOSS=0 ;;
   5205) PRE_LOSS=5; STRESS_LOSS=20; POST_LOSS=5 ;;
   5305) PRE_LOSS=5; STRESS_LOSS=30; POST_LOSS=5 ;;
+  flat1) PRE_LOSS=1; STRESS_LOSS=1; POST_LOSS=1 ;; # Independent steady 1%, not 5205
+  flat5) PRE_LOSS=5; STRESS_LOSS=5; POST_LOSS=5 ;; # Independent steady 5%, not 5205
   blackhole100) PRE_LOSS=0; STRESS_LOSS=0; POST_LOSS=0; BLACKHOLE_MS=100; STAGER="$GITHUB_WORKSPACE/tools/strict_blackhole_stage.py" ;;
   blackhole500) PRE_LOSS=0; STRESS_LOSS=0; POST_LOSS=0; BLACKHOLE_MS=500; STAGER="$GITHUB_WORKSPACE/tools/strict_blackhole_stage.py" ;;
   *) echo "invalid scenario $SCENARIO" >&2; exit 2 ;;
