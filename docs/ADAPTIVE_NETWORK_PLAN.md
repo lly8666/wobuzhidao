@@ -1,6 +1,6 @@
 # Normal 自动 FEC、可选 AES、TUN 分流与线路质量显示
 
-状态：PLAN_READY，产品实现/本分支验收均 NOT_RUN。实时步骤只看 STATUS.json。
+状态：**N0已完成，N1已具备受保护关联反馈和有界成熟窗口，但全受损网络/配置性能未资格化；N2～N6未开始。** e5638253 SOURCE的定向-race、lifecycle、Linux/Windows foundation及三客户端原生功能通过Actions；Normal/off/lossless单工况10Mbps基线/候选各一条独立单样本同夹具PASS_SCREEN，非完整性能资格。2026-10-11追加轻量成熟状态诊断及640PN高周转测试属于Actions待验。**唯一实时结论看 docs/STATUS.json**，下文原“尚未实现”描述是撰写时的历史基线分析，不应用作当前验收。
 
 工作分支：`next/adaptive-fec-aes-tun-20261010`。父文档 HEAD `a8913e3b651413b6d37c3a7732a0baa375009da0`，继承 FEC 优化产品 SOURCE `7fb98fab79834a351a1dbe04eebb207f66bea28b`。不要把历史 SIMD/物理试用成绩当成本分支资格。
 

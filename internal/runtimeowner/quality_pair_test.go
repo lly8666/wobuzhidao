@@ -138,3 +138,48 @@ func TestN1QualityV3ActualAuthenticatedPeerDirectionMissingTailMatured(t *testin
   report.Flags&datapath.QualityFlagLossEstimated!=0 ||
   report.EstimatedMissing!=0 {t.Fatalf("N2 must remain HOLD: %+v state=%d",report,state)}
 }
+
+func TestN1QualityV3ClosedPendingReportGapsLateRepairAndCapacity(t *testing.T) {
+    t0:=time.Unix(7777,0)
+    var q qualityState
+    for i,seq:=range []uint64{2,4,7} {
+        m:=datapath.QualityHealthReport{
+            Flags:datapath.QualityFlagWindowValid|datapath.QualityFlagInsufficient,
+            ReportSeq:seq,Generation:1,WindowFirstPN:0,WindowLastPN:19,
+            TxSuccess:20,AgeMillis:1000,
+        }
+        m.IncarnationNonce[0]=42
+        var c qualityPairCandidate
+        c.accept(m,21+seq,t0.Add(time.Duration(i)*time.Second))
+        q.pending[seq%datapath.QualityTrackedReceiveCapacity]=c
+    }
+    if _,ok:=q.maturePair(t0.Add(2*time.Second),0,false);ok {
+        t.Fatal("no source may mature before its own 3s horizon")
+    }
+    for i,test:=range []struct{after,want uint64}{{0,2},{2,4},{4,7}} {
+        now:=t0.Add(time.Duration(i+3)*time.Second+10*time.Millisecond)
+        c,ok:=q.maturePair(now,test.after,false)
+        if !ok||c.report.ReportSeq!=test.want {
+            t.Fatalf("gapped authenticated report sequences must not reset old clocks: after=%d got=%+v ok=%v",test.after,c,ok)
+        }
+    }
+    if _,ok:=q.maturePair(t0.Add(13*time.Second),0,false);ok {
+        t.Fatal("old mature source must expire after 10s")
+    }
+    c:=q.pending[2]
+    rx:=datapath.QualityReceiveRange{FirstPN:0,LastPN:19,Unique:18,HaveAnchor:true,RangeRetained:true,AgeMillis:0}
+    missing:=evaluateQualityPair(c,rx,t0.Add(4*time.Second))
+    if missing.State!=datapath.QualityFeedbackEstimated||missing.EstimatedMissing!=2 {
+        t.Fatalf("missing tail cannot be guessed zero: %+v",missing)
+    }
+    rx.Unique=20
+    rx.Late=2 // Repair/reorder may fill the estimated deficit before maturity.
+    repaired:=evaluateQualityPair(c,rx,t0.Add(4*time.Second))
+    if repaired.State!=datapath.QualityFeedbackEstimated||repaired.EstimatedMissing!=0||repaired.ReceiverLate!=2 {
+        t.Fatalf("zero post-repair deficit is not proof of physical first-send PLR=0: %+v",repaired)
+    }
+    rx.CapacityLimited=true
+    if got:=evaluateQualityPair(c,rx,t0.Add(4*time.Second));got.State!=datapath.QualityFeedbackCapacity {
+        t.Fatalf("receiver pressure must be CAPACITY, not zero: %+v",got)
+    }
+}

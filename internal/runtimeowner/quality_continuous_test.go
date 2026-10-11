@@ -2,6 +2,7 @@ package runtimeowner
 
 import (
     "net/netip"
+    "fmt"
     "testing"
     "time"
 
@@ -14,12 +15,13 @@ import (
 // An in-process path isolates measurement state from host netns capacity;
 // native sustained 10Mbps qualification is a separate, still-required gate.
 func TestN1QualityV3ContinuousBusinessEchoMaturity(t *testing.T) {
+    for _,load:=range []int{180,640} {
     for _,tc:=range []struct{name string;up,down bool}{
         {"upload",true,false},
         {"download",false,true},
         {"bidirectional",true,true},
     }{
-        t.Run(tc.name,func(t *testing.T){
+        t.Run(fmt.Sprintf("%s-%dPN-per-2s",tc.name,load),func(t *testing.T){
             lease:=runtimeLease(t)
             leaseAddr,_:=lease.Config.LeaseIPv4()
             cOwner,err:=datapath.NewLeasedTunnelOwner(lease,1,8)
@@ -78,6 +80,7 @@ func TestN1QualityV3ContinuousBusinessEchoMaturity(t *testing.T) {
                     records,err:=owner.NormalOutbound(packet,now)
                     if err!=nil||len(records)!=1 {t.Fatalf("normal outbound up=%v i=%d got=%d err=%v",up,i,len(records),err)}
                     if err:=rt.SendNormal(records,now);err!=nil {t.Fatal(err)}
+                    if load>256 && (i+1)%64==0 {pump(now.Add(20*time.Millisecond))}
                 }
             }
             start:=time.Unix(15000,0)
@@ -90,8 +93,8 @@ func TestN1QualityV3ContinuousBusinessEchoMaturity(t *testing.T) {
                 now:=start.Add(time.Duration(cycle)*2*time.Second)
                 // >256 fresh DATA PNs in any 3s maturation interval;
                 // each 2s source report window changes while business stays active.
-                if tc.up {send(true,180,now.Add(-100*time.Millisecond))}
-                if tc.down {send(false,180,now.Add(-100*time.Millisecond))}
+                if tc.up {send(true,load,now.Add(-100*time.Millisecond))}
+                if tc.down {send(false,load,now.Add(-100*time.Millisecond))}
                 pump(now.Add(-50*time.Millisecond))
                 if err:=client.Tick(now);err!=nil {t.Fatal(err)}
                 if err:=server.Tick(now);err!=nil {t.Fatal(err)}
@@ -113,6 +116,19 @@ func TestN1QualityV3ContinuousBusinessEchoMaturity(t *testing.T) {
             }
             if tc.up&&len(seenUp)<2 {t.Fatalf("continuous upload: only %d independent matured correlated echoes, want >=2 without stopping traffic",len(seenUp))}
             if tc.down&&len(seenDown)<2 {t.Fatalf("continuous download: only %d independent matured correlated echoes, want >=2 without stopping traffic",len(seenDown))}
+            if tc.up {
+                st,ok:=server.ControlStats(sr.Ref)
+                if !ok || st.MatureEchoEstimated<2 || st.MatureEchoLastSenderSuccess<16 {
+                    t.Fatalf("continuous upload requires >=2 emitted mature ESTIMATED echoes: %+v enabled=%v",st,ok)
+                }
+            }
+            if tc.down {
+                st,ok:=client.ControlStats(cr.Ref)
+                if !ok || st.MatureEchoEstimated<2 || st.MatureEchoLastSenderSuccess<16 {
+                    t.Fatalf("continuous download requires >=2 emitted mature ESTIMATED echoes: %+v enabled=%v",st,ok)
+                }
+            }
         })
+    }
     }
 }

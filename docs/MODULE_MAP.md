@@ -1,6 +1,6 @@
-## 当前 N0..N6 覆盖（计划，未实现）
+## 当前 N0..N6 覆盖（已实施 N0/N1 基础，实时资格以 STATUS 为准）
 
-详细设计ADAPTIVE_NETWORK_PLAN，实时状态STATUS。N0改realityfront/admission与runtimeentry每Tunnel policy，N1复用runtimeowner RTT/record PN并扩展datapath health，N2新增轻量控制器/通用有界FEC RX，N3扩展tlsrecord AES AEAD/HP及uTLS真实协商，N4在windowsclient增加TUN分类/native direct和网络事务取消，N5配置/catalog/GUI，N6复用真实路径helper。Linux/OpenWrt nft分流不重构。
+详细设计ADAPTIVE_NETWORK_PLAN，唯一实时状态为STATUS。**现有产品：N0固定/off+ChaCha受保护V3；N1 104B/128B控制报告、方向/nonce/generation/Seq门、3s有界已封闭256PN窗口和一端到对端成熟反馈及轻量统计。** 旧演进阶段提到的“仅codec”“尚未接线”属于历史当时结论。e5638253 SOURCE通过持续业务定向-race、生命周期、原生三客户端功能和单配置Normal/off/lossless 10Mbps同夹具屏幕验收；2026-10-11的新有界成熟状态计数、640PN高周转测试仍待 Actions。**未实现：N2 Normal auto、N3 AES、N4 Windows少捕获路由+TUN分流/Apply取消、N5 GUI、N6组合打包。** Linux/OpenWrt nft分流不重构。
 
 复用当前FEC SIMD/32ms/3s/ownership/lease/lifecycle/MTU，不能用old循环替换已优化实现。下文原模块历程仅来源参考，其中“固定密码”“Windows补集capture”“不动态FEC”等历史范围不限制本轮明确授权。所有新增外部代码依赖登记版本/许可，不把GPL sing-tun当MIT摘取；优先标准库与本项目模块。
 

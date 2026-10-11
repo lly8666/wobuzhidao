@@ -1,3 +1,11 @@
+# 当前 N1 wire / 资格状态（2026-10-11）
+
+104B已认证Quality Health报告和128B已认证关联Echo在N0受保护admission V3下已接线，e5638253产品SOURCE的180PN/2s持续业务定向race、lifecycle、Linux/Windows foundation、三客户端Linux realpath功能已PASS；Normal/off/lossless每方向10Mbps严格同夹具基线/候选单样本PASS_SCREEN。**另有640PN/2s高周转与可解释的成功成熟Echo计数是后续候选，Actions待验。** 下方保留“RESERVED/not yet live/Actions pending”的早期段落是历史进化阶段，**不是当前产品状态**。N1仍缺原生真实5205、独立1%/5%、20:20/Game及反馈失效/轮换的完整验收，N2未开启。
+
+目前接收端为每个已认证源报告封闭最多4个256bit无业务正文的PN窗口，3s独立成熟、10s过期，新控制窗口或接收数据高速推进不会把旧成熟窗口firstSeen归零。资源不足返回CAPACITY，旧压力不能永久毒化新采样。观测的是成熟后的**post-repair authenticated KindLINK record deficit**，不是可证的物理线路第一次发送丢包；same-Seq固定密文RTO可能将缺口补齐，晚到/重排可另计，不能因为修复后估计0就直接自动FEC降off。新增只在成功加密控制Emit后增长的状态计数由原可选1s诊断读取，wire格式、fresh业务发送路径、4096影子修复缓存、MTU/认证/PN唯一性均不变。
+
+---
+
 # Admission V3（N0 阶段性实现；仅 fixed/off+ChaCha 接入）
 
 V3 不向业务记录增加 mode/cipher 明文标记。受真实 TLS 保护的请求保留 WBAD/WBAL、15B 头、TunnelID/user/password、可选 WBAL 17B lease 扩展，头中 version=3，末尾附固定 10B 能力。成功应答保留 26B 头/TunnelID、可选 4B lease，尾部原样回显 10B 能力。无 JSON/可变能力长度；截断、未知版本、字节不一致都拒绝。V2 原有编码、向量不变。
