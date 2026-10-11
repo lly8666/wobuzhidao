@@ -1,0 +1,43 @@
+{
+  "source_sha": "fcbda3d3c5637b9bef0d6e0335d9b682418965cd",
+  "date": "2026-10-11",
+  "run": 38151084167,
+  "job": 114504508832,
+  "artifact_id": 11706559760,
+  "sha256": "2f7eb5ec4a698f04490ca0e47a9241391fb60e91f1b4e217eda5adf5140059a0",
+  "foundation_run": 38151084139,
+  "foundation_jobs_pass": 7,
+  "classification": "MEASURED_NOT_QUALIFIED_CLEAN_300MS_BOTH_DIRECTION_LOWER",
+  "case": "Normal auto10Mbps each direction lossless 300ms each way 100s, default real auto record0 both directions, diagnosticON",
+  "probe": {
+    "sent": 100,
+    "received": 100,
+    "p99_ns": 602500000
+  },
+  "client": {
+    "actual_profiles": [
+      20
+    ],
+    "committed_switches": 0,
+    "last_source_seq": 65,
+    "lower_confidence_residual": 0.0009772558422768208,
+    "confidence_blocked": true,
+    "hold_confidence_residual_samples": 84
+  },
+  "server": {
+    "actual_profiles": [
+      20
+    ],
+    "committed_switches": 0,
+    "last_source_seq": 65,
+    "lower_confidence_residual": 0.0009615054318715659,
+    "confidence_blocked": true,
+    "hold_confidence_residual_samples": 62
+  },
+  "counterexample": "Cropped 256PN edge includes known parity records but old residual modeled every cropped record as unprotected business; prospective model correction needs independent verification",
+  "limitations": [
+    "No 300ms auto lowering",
+    "No deteriorating-loss off-to-on first-loss recovery test",
+    "No N3/N4/N5/N6 or physical"
+  ]
+}

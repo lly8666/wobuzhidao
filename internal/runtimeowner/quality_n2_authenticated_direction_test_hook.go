@@ -50,6 +50,8 @@ func (q *qualityState) n2ObserveAuthenticatedReturn(generation uint64,now time.T
 		ShapeParity:sh.Parity,
 		ShapeOff:sh.Off,
 		ShapeCropped:sh.Cropped,
+		ShapeCroppedSource:sh.CroppedSource,
+		ShapeCroppedParity:sh.CroppedParity,
 		ShapeUnknown:sh.Unknown,
 		ShapeInvalid:sh.Invalid,
 		ShapeFullBlocks:sh.FullBlocks,

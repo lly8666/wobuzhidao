@@ -22,6 +22,12 @@ type QualitySourceShape struct {
 	// or not yet closed at report time. They are NOT known k, so the future
 	// controller must price them conservatively, never as lossless samples.
 	Cropped uint32
+	// Keep actually sent cropped source and parity PN distinct. Only a
+	// systematic PN represents an independent first-delivery opportunity;
+	// assigning parity edge PNs fictitious application loss inflates the
+	// lower-profile residual despite complete authenticated metadata.
+	CroppedSource uint32
+	CroppedParity uint32
 	// Unattributed records without a trustworthy group identity. Any such
 	// record disqualifies the whole source-shape control sample.
 	Invalid uint32
@@ -104,9 +110,15 @@ func (w *qualityTXWindow) sourceShape(m datapath.QualityHealthReport) QualitySou
 	if valid!=uint32(m.TxSuccess) {return out}
 	for _,g:=range groups {
 		if g.invalid {continue}
-		groupRecords:=uint32(bits.OnesCount32(g.sourceMask)+bits.OnesCount32(g.parityMask))
+		croppedSource:=uint32(bits.OnesCount32(g.sourceMask))
+		croppedParity:=uint32(bits.OnesCount32(g.parityMask))
+		addCropped:=func() {
+			out.CroppedSource+=croppedSource
+			out.CroppedParity+=croppedParity
+			out.Cropped+=croppedSource+croppedParity
+		}
 		if !g.closed {
-			out.Cropped+=groupRecords
+			addCropped()
 			continue
 		}
 		k:=int(g.k)
@@ -116,7 +128,7 @@ func (w *qualityTXWindow) sourceShape(m datapath.QualityHealthReport) QualitySou
 			g.parityMask!=(uint32(1)<<r)-1 {
 			// Never invent a full group from missing endpoints. The
 			// records we DID send are known, but this k/r mixture is not.
-			out.Cropped+=groupRecords
+			addCropped()
 			continue
 		}
 		out.Systematic+=uint32(k)

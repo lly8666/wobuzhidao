@@ -97,6 +97,9 @@ type Input struct {
     // PN window. The marginal k/r histograms alone are not a pairing proof.
     ClosedBySizeKR [3][DataShards+1][DataShards+1]uint16
     ParityRecords, OffRecords, CroppedRecords, InvalidRecords uint32
+    // Exact sender-local masks for edge-truncated FEC groups. Parity can
+    // reveal network loss but is NOT an application first-arrival source.
+    CroppedSourceRecords, CroppedParityRecords uint32
     At time.Time
     RTT time.Duration
     // A sender/receiver FEC block-shape witness is needed to price partial
@@ -167,7 +170,7 @@ type Controller struct {
     shapeTotals [3][DataShards+1]uint64
     mixedEvidence bool
     boundWidth float64
-    offTotal,croppedTotal uint64
+    offTotal,croppedTotal,croppedSourceTotal uint64
     lowerAssessedSeq uint64
     lowerCandidate int
     lowerGate string
@@ -178,7 +181,7 @@ type Controller struct {
 
 type controlSample struct {
     sent, upperLost uint32
-    off,cropped uint32
+    off,cropped,croppedSource uint32
     groups [3][DataShards+1]uint16
 }
 
@@ -295,10 +298,12 @@ func requiredMixedProfile(groups [3][DataShards+1]uint64,p float64,min,max int) 
 }
 
 // Edge groups have real emitted PN coverage but no authoritative whole
-// k/r in THIS report. Price each conservatively like an unprotected source
-// rather than treating it as either a perfect full block or zero traffic.
+// k/r in THIS report. Only their observed SYSTEMATIC PNs represent business
+// first-arrivals. Treat these unverified k sources conservatively unprotected;
+// observed parity PNs still count in sender exposure/confidence/width but
+// NEVER as invented unprotected business. No guessed k=20 groups.
 // Counts of parity from complete groups are NEVER counted as business sources.
-func mixedResidualWithEdges(groups [3][DataShards+1]uint64,off,cropped uint64,parity int,p float64) float64 {
+func mixedResidualWithEdges(groups [3][DataShards+1]uint64,off,croppedSource uint64,parity int,p float64) float64 {
 	var systematic uint64
 	var weighted float64
 	for _,class:=range groups {
@@ -309,15 +314,15 @@ func mixedResidualWithEdges(groups [3][DataShards+1]uint64,off,cropped uint64,pa
 			weighted+=float64(k)*float64(n)*ResidualReference(k,parity,p)
 		}
 	}
-	unknown:=off+cropped
+	unknown:=off+croppedSource
 	if systematic+unknown==0 {return math.NaN()}
 	return (weighted+float64(unknown)*p)/float64(systematic+unknown)
 }
 
-func requiredProfileWithEdges(groups [3][DataShards+1]uint64,off,cropped uint64,p float64,min,max int) int {
+func requiredProfileWithEdges(groups [3][DataShards+1]uint64,off,croppedSource uint64,p float64,min,max int) int {
 	for _,v:=range profiles {
 		if v<min||v>max {continue}
-		if mixedResidualWithEdges(groups,off,cropped,v,p)<=ResidualTarget {return v}
+		if mixedResidualWithEdges(groups,off,croppedSource,v,p)<=ResidualTarget {return v}
 	}
 	return max
 }
@@ -349,6 +354,7 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
         c.confidentLost-=uint64(old.upperLost)
         c.offTotal-=uint64(old.off)
         c.croppedTotal-=uint64(old.cropped)
+        c.croppedSourceTotal-=uint64(old.croppedSource)
         for class:=range c.shapeTotals {
             for k:=1;k<=DataShards;k++ {
                 c.shapeTotals[class][k]-=uint64(old.groups[class][k])
@@ -360,6 +366,7 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
         item.groups=s.ClosedGroups
         item.off=s.OffRecords
         item.cropped=s.CroppedRecords
+        item.croppedSource=s.CroppedSourceRecords
     }
     c.history[c.historyPos]=item
     c.historyPos=(c.historyPos+1)%len(c.history)
@@ -368,6 +375,7 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
     if bounded {
         c.offTotal+=uint64(s.OffRecords)
         c.croppedTotal+=uint64(s.CroppedRecords)
+        c.croppedSourceTotal+=uint64(s.CroppedSourceRecords)
     }
     if bounded {
         for class:=range c.shapeTotals {
@@ -457,6 +465,7 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
         // A closed block with k sources has AT LEAST one parity and at most
         // k; no "full k=20" approximation can fill a cropped edge.
         if s.InvalidRecords!=0 ||
+           uint64(s.CroppedSourceRecords)+uint64(s.CroppedParityRecords)!=uint64(s.CroppedRecords) ||
            wholeRGroups!=wholeGroups ||
            wholeParity!=uint64(s.ParityRecords) ||
            wholeParity>shapeSourceRecords ||
@@ -499,7 +508,7 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     if c.sinceDecision<MinDecisionRecords {return c.current(HoldSampleCount)}
     upTarget:=0
     if bounded {
-        upTarget=requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
+        upTarget=requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedSourceTotal,math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
     } else {
         upTarget=requiredProfile(int(s.ShardK),math.Max(c.fast,p),c.cfg.MinParity,c.cfg.MaxParity)
     }
@@ -525,8 +534,8 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     residual:=0.0
     slowRequired:=0
     if bounded {
-        residual=mixedResidualWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,prior,confidence)
-        slowRequired=requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedTotal,c.slow,c.cfg.MinParity,c.cfg.MaxParity)
+        residual=mixedResidualWithEdges(c.shapeTotals,c.offTotal,c.croppedSourceTotal,prior,confidence)
+        slowRequired=requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedSourceTotal,c.slow,c.cfg.MinParity,c.cfg.MaxParity)
     } else {
         residual=ResidualReference(int(s.ShardK),prior,confidence)
         slowRequired=requiredProfile(int(s.ShardK),c.slow,c.cfg.MinParity,c.cfg.MaxParity)

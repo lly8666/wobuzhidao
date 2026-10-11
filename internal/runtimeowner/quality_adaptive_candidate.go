@@ -40,6 +40,8 @@ func qualityBoundToAdaptiveInput(b QualityFirstAttemptBound,now time.Time) adapt
 	s.ParityRecords=shape.Parity
 	s.OffRecords=shape.Off
 	s.CroppedRecords=shape.Cropped
+	s.CroppedSourceRecords=shape.CroppedSource
+	s.CroppedParityRecords=shape.CroppedParity
 	s.InvalidRecords=shape.Invalid
 	s.ShapeVerified=shape.Sent==s.Sent && shape.Invalid==0
 	return s

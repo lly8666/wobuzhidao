@@ -81,7 +81,7 @@ func TestN2NaturalProtectedEncoderCohortsDoNotPermanentlyHold(t *testing.T) {
 		}
 		source:=q.captureSentSourceRepairCoverage(m,at.Add(time.Second))
 		s:=source.shape
-		if !source.repairCoverage || s.Invalid!=0 || s.Cropped!=16 ||
+		if !source.repairCoverage || s.Invalid!=0 || s.Cropped!=16 || s.CroppedSource!=0 || s.CroppedParity!=16 ||
 			s.Systematic!=120 || s.Parity!=120 || s.Off!=0 ||
 			s.ClosedBySizeK[0][20]!=6 || s.ClosedByR[20]!=6 {
 			t.Fatalf("natural source period=%d shape=%+v covered=%v",period,s,source.repairCoverage)

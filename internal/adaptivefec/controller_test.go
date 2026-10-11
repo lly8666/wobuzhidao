@@ -147,6 +147,11 @@ func boundedSource(i int, start time.Time, k int, lower, upper uint32) Input {
     s.ClosedBySizeKR[2][k][k]=uint16(groups)
     s.ParityRecords=uint32(groups*k)
     s.CroppedRecords=uint32(256-2*groups*k)
+    // Existing synthetic fixture does not know the real cropped identity;
+    // make explicit conservative counts instead of silently treating all
+    // edge parity as independent business.
+    s.CroppedSourceRecords=s.CroppedRecords/2
+    s.CroppedParityRecords=s.CroppedRecords-s.CroppedSourceRecords
     return s
 }
 
@@ -274,6 +279,8 @@ func TestN2BoundedMixIncludesActualOffAndPartialEdges(t *testing.T) {
 	s.ParityRecords=64
 	s.OffRecords=64
 	s.CroppedRecords=64
+	s.CroppedSourceRecords=32
+	s.CroppedParityRecords=32
 	if d:=c.Step(s.At,s);d.Reason!=HoldSampleCount||d.ShapeRecords!=64||
 		d.ShapeBlocks!=4||d.OffRecords!=64||d.CroppedRecords!=64 {
 		t.Fatalf("mixed off/20:R/cropped source rejected %+v",d)
@@ -411,5 +418,40 @@ func TestN2LastQualifiedDowngradeBlockersExplainRealRecoveryWithoutTuning(t *tes
 		d.LowerConfidenceBlocked || d.LowerSlowBlocked ||
 		d.LowerWaitingStable || d.LowerAssessedSeq==0 {
 		t.Fatalf("clean trusted recovery stuck or diagnostics disagreed %+v",d)
+	}
+}
+
+
+func TestN2CroppedParityIsNotAFirstUniqueBusinessSource(t *testing.T) {
+	// One 20:20 source cohort can contain several edge-truncated parity
+	// groups. The source is known to have sent those parity PN successfully,
+	// but those aren't independent business payloads. Do not count 96
+	// cropped parity PNs as 96 unprotected business first arrivals.
+	var closed [3][DataShards+1]uint64
+	closed[2][20]=4 // 80 systematic + 80 parity, all genuine complete
+	const p=0.0022
+	correct:=mixedResidualWithEdges(closed,0,0,16,p)
+	falselyUnprotected:=mixedResidualWithEdges(closed,0,96,16,p)
+	if correct>decreaseMargin || falselyUnprotected<=decreaseMargin {
+		t.Fatalf("parity edge mispriced: correct=%.8f old=%.8f",correct,falselyUnprotected)
+	}
+	// Conversely an edge-truncated systematic IS a business source with
+	// unknown k; without full provenance it remains conservatively valued.
+	if observedSource:=mixedResidualWithEdges(closed,0,96,16,p);observedSource<=decreaseMargin {
+		t.Fatalf("unknown cropped systematic treated as protected %.8f",observedSource)
+	}
+	start:=time.Unix(194000,0)
+	ctrl:=controller(t,Auto,4)
+	bad:=boundedSource(1,start,20,0,0)
+	bad.CroppedParityRecords=0
+	bad.CroppedSourceRecords=0 // fake split cannot qualify any 16 cropped PNs
+	if d:=ctrl.Step(bad.At,bad);d.Reason!=HoldShape || ctrl.seen {
+		t.Fatalf("unattributed cropped parity identity accepted: %+v",d)
+	}
+	valid:=boundedSource(1,start,20,0,0)
+	valid.CroppedParityRecords=16
+	valid.CroppedSourceRecords=0
+	if d:=ctrl.Step(valid.At,valid);d.Reason!=HoldSampleCount {
+		t.Fatalf("genuine cropped parity not counted correctly: %+v",d)
 	}
 }

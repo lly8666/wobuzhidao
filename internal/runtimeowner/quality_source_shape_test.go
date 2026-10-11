@@ -63,7 +63,8 @@ func TestN2SourceShapeFailsClosedOnPartialGroupCutAndUnknownMeta(t *testing.T) {
 	}
 	src:=q.captureSentSourceRepairCoverage(m,at)
 	if !src.repairCoverage||src.shape.Complete||src.shape.Unknown!=4||
-		src.shape.ClosedByR[4]!=0 {
+		src.shape.ClosedByR[4]!=0 ||
+		src.shape.CroppedSource!=3 || src.shape.CroppedParity!=1 {
 		t.Fatalf("cropped k4/r4 claimed exact: %+v",src.shape)
 	}
 	q.tx.noteWithMeta(5,true,at,datapath.FECRecordMeta{}) // UNKNOWN != off

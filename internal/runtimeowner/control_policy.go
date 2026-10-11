@@ -35,6 +35,8 @@ type N2SourceEvidenceDiagnostic struct {
  ShapeParity uint32 `json:"shape_parity"`
  ShapeOff uint32 `json:"shape_off"`
  ShapeCropped uint32 `json:"shape_cropped"`
+ ShapeCroppedSource uint32 `json:"shape_cropped_source"`
+ ShapeCroppedParity uint32 `json:"shape_cropped_parity"`
  ShapeUnknown uint32 `json:"shape_unknown"`
  ShapeInvalid uint32 `json:"shape_invalid"`
  ShapeFullBlocks uint16 `json:"shape_full_blocks"`
