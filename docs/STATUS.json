@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_OFF_WEAKNET_V2_ANALYZER_SCOPED_ACTIONS_PENDING",
+    "phase": "N1_OFF_WEAKNET_V2_ANALYSIS_UNIT_SHAPE_FIX_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -143,11 +143,13 @@
         38105308247
       ],
       "hard_gates_preserved": true,
-      "no_automatic_pass": true
+      "no_automatic_pass": true,
+      "targeted_actions_red_run": 38106893242,
+      "targeted_actions_red_job": 114374209562
     }
   },
-  "next_task": "Inspect next-off-weaknet-v2-analysis scoped Actions Python unittest/py_compile for fresh analyzer/receipt. On failure repair and rerun, preserve original failed 5205 screens unchanged. Then new distinct strict normal off 5205 only if new SOURCE/harness identity and with no current measurement, collect both legacy and off-weaknet-v2 receipts, do not claim PASS absent matched evidence. Continue N1 Normal20/Game4 protector matched strict Actions after this analyzer gate, N2 OFF.",
-  "latest_log": "docs/devlog/20261011-200000-off-weaknet-v2-analyzer-meaningful-actions-pending.md",
+  "next_task": "Verify corrected off-weaknet-v2 Python tests in new exact HEAD Actions. Prior 38106893242 RED 6 tests PASS, one ERROR due test passing raw legacy.generator keys to normalized fragment_reference instead of _raw_stage_measurements; fix only test fixture interface; no product/scenario measurements rerun and no thresholds relaxed. Then fresh strict off-5205 produces both receipts, NOT_QUALIFIED absent independent repeated A/B; Normal20/Game4 remain.",
+  "latest_log": "docs/devlog/20261011-201000-off-v2-analyzer-test-normalized-fixture-fix.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
   "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",

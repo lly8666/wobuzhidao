@@ -1,0 +1,5 @@
+# off-weaknet-v2 targeted Actions first RED: test fixture shape only, fix and re-run
+
+[Actions 38106893242](https://github.com/lly8666/wobuzhidao/actions/runs/38106893242) isolated analysis job 114374209562: py_compile passed. Seven tests, six PASS; one ERROR in `test_mixed_fragment_q_weights_by_packet_and_byte_not_average_m`, KeyError `business_sent_packets`: test incorrectly supplied the legacy `generator` schema (`sent_packets`) directly to `fragmentation_reference`, while actual production route passes `_raw_stage_measurements(legacy)` normalized typed fields (`business_sent_packets`). No performance job was run. Fix only the test invocation to reflect real analyzer schema; no oracle relaxation, no product code, no output version change, no old FAIL recategorization.
+
+Next exact HEAD Actions must pass all meaningful vectors before running new FEC-off damaged strict performance sample. Source of last actual N1 data-plane remains 1c64e4e, historical off-5205 runs 38105045359/38105308247 still PERFORMANCE FAIL in old analyzer. New policy receipt NOT_RUN in performance. Existing separate docs policy merge, STATUS and evidence maintained.

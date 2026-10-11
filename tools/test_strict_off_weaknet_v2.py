@@ -9,7 +9,7 @@ import unittest
 
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
 from check_strict_off_weaknet_v2 import (
-    VERSION, eligible, assess, fragmentation_reference,
+    VERSION, eligible, assess, fragmentation_reference, _raw_stage_measurements,
 )
 
 
@@ -140,16 +140,16 @@ class OffWeaknetV2Test(unittest.TestCase):
                     {"business_packets":n//2,"business_bytes_per_packet":100,"link_fragments_per_business_packet":1},
                     {"business_packets":n//2,"business_bytes_per_packet":300,"link_fragments_per_business_packet":2},
                 ]
-        ref=fragmentation_reference(mapping,m,l["generator"])
+        ref=fragmentation_reference(mapping,m,_raw_stage_measurements(l))
         self.assertEqual(ref["state"],"REFERENCE_ONLY")
         stress=ref["by_direction_stage"]["c2s"]["stress"]
         self.assertAlmostEqual(stress["iid_no_repair_packet_loss_reference_percent"],28.0)
         self.assertAlmostEqual(stress["iid_no_repair_byte_loss_reference_percent"],32.0)
         mapping["size_distribution"]["c2s"]["stress"][1]["link_fragments_per_business_packet"]=0
-        self.assertEqual(fragmentation_reference(mapping,m,l["generator"])["state"],"INVALID_MAP")
+        self.assertEqual(fragmentation_reference(mapping,m,_raw_stage_measurements(l))["state"],"INVALID_MAP")
         mapping["size_distribution"]["c2s"]["stress"][1]["link_fragments_per_business_packet"]=2
         mapping["size_distribution"]["c2s"]["stress"][0]["business_packets"]=1
-        self.assertEqual(fragmentation_reference(mapping,m,l["generator"])["state"],"INVALID_MAP")
+        self.assertEqual(fragmentation_reference(mapping,m,_raw_stage_measurements(l))["state"],"INVALID_MAP")
 
     def test_incomparable_baseline_cannot_relabel_as_pass(self):
         l,m,b,t=fixture()

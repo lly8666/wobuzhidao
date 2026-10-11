@@ -21,11 +21,13 @@
   ],
   "new_analysis": {
     "source_sha": "PENDING_COMMIT",
-    "status": "ACTIONS_NOT_RUN",
+    "status": "TEST_FAIL_FIX_CANDIDATE",
     "scope": "only damaged off profile-screen; separate off-weaknet-v2.json; legacy result and errors unchanged",
     "qualify_on_one_sample": false,
     "analysis_version": "off-weaknet-v2",
-    "output": "off-weaknet-v2.json"
+    "output": "off-weaknet-v2.json",
+    "targeted_actions_red_run": 38106893242,
+    "targeted_actions_red_detail": "6 unittest PASS, test mixed fragment ERROR KeyError business_sent_packets: test sent legacy normalized wrong interface, not analyzer predicate; test now calls _raw_stage_measurements"
   },
   "expected_unit_vectors": [
     "off5205/5305 eligibility, nonoff/lossless/formal20 exclusion",
