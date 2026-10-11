@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "product_source_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
+  "doc_commit_parent_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
+  "physical": "NOT_RUN",
+  "n2_auto": "UNSUPPORTED",
+  "conclusion": "SCOPED_PASS_SOURCE_LOCAL_FEC_SHAPE_METADATA_NO_AUTO_NO_N2_PERFORMANCE",
+  "one_measurement_per_action": "N2 performance NOT_RUN; N0 three-client is one functional scenario",
+  "prior_failure_preserved": {
+    "source_sha": "8a149f4d48cc2b16b8f048895d020b6129070e38",
+    "foundation_run": 38125145784,
+    "linux_job": 114427877044,
+    "root_cause": "synthetic 257-PN overlap window wrongly expected replay rather than invalid-length HOLD",
+    "corrected_source_sha": "8d8692e2638ef23d2d4b9d2d85075cf4dc95493a",
+    "corrected_foundation_run": 38125294807,
+    "corrected_lifecycle_run": 38125294826
+  },
+  "actions": [
+    {
+      "workflow": "next-foundation",
+      "run_id": 38125834451,
+      "status": "success",
+      "enabled_jobs": [
+        [
+          "repository-contract",
+          114429891432
+        ],
+        [
+          "active-go-tests/windows-2022",
+          114429921057
+        ],
+        [
+          "active-go-tests/ubuntu-24.04",
+          114429921209
+        ],
+        [
+          "p2-kernel-fallback",
+          114429921062
+        ],
+        [
+          "p4-linux-shared-tun-privileged/nft",
+          114429921083
+        ],
+        [
+          "p4-linux-shared-tun-privileged/iptables",
+          114429921139
+        ],
+        [
+          "p4-openwrt-tproxy-privileged",
+          114429921090
+        ]
+      ],
+      "p5_p6": "SKIPPED",
+      "artifacts": [
+        {
+          "id": 11697600923,
+          "digest": "sha256:df2b4f8f024397b62c161b7992e9af39465439af222d28ab3eeccc7312f7d458"
+        },
+        {
+          "id": 11697740637,
+          "digest": "sha256:54848b1dd8e74a40b8f24a8ffb47b3ce1fad6354abbf501ed0ee2bfa56092648"
+        }
+      ]
+    },
+    {
+      "workflow": "next-lifecycle",
+      "run_id": 38125834287,
+      "status": "success",
+      "enabled_jobs": [
+        [
+          "core",
+          114429890595
+        ]
+      ]
+    },
+    {
+      "workflow": "next-adaptive-n1-codec",
+      "run_id": 38125834458,
+      "status": "success",
+      "enabled_jobs": [
+        [
+          "versioned-104-byte-health-codec-strict-vector-race",
+          114429891216
+        ]
+      ]
+    },
+    {
+      "workflow": "next-adaptive-n0-samewire",
+      "run_id": 38125834263,
+      "status": "success",
+      "enabled_jobs": [
+        [
+          "controlled-repair-ciphertext-six-cases",
+          114429890681
+        ]
+      ]
+    },
+    {
+      "workflow": "next-adaptive-n0-multi",
+      "run_id": 38125834281,
+      "status": "success",
+      "enabled_jobs": [
+        [
+          "three-isolated-native-clients-one-server-functional",
+          114429890553
+        ]
+      ],
+      "scope": "one hosted Linux three-client functional, NOT N2 realpath performance, NOT Windows Wintun",
+      "artifacts": [
+        {
+          "id": 11697286577,
+          "digest": "sha256:287e2a985abb769982d21aecf2a926bfd90a526b74d69b9a2dd425e458d914d6"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "No source-cohort sample input actually feeds auto; true physical first-attempt PLR remains an interval",
+    "closed group source counts are subset of total KindLINK emitted PN records including FEC parity; cropped groups remain UNKNOWN",
+    "No dynamic TX switching, shared mixed RX decoder, user auto negotiation, source direction-specific controller or auto/aggressive performance",
+    "No CPU optimization claim, p99/MTU default-off ~2.73s and missing, ~80s S2C first interruption remain OPEN",
+    "No physical device verification, N3 AES N4 Windows TUN N5 GUI N6 packages not started"
+  ]
+}

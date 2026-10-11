@@ -9,20 +9,20 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_SOURCE_PN_CLOSED_K_R_PROVENANCE_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N2_SOURCE_PN_CLOSED_K_R_SHAPE_ACTIONS_SCOPED_PASS_CONTROLLER_NOT_LIVE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "8d8692e2638ef23d2d4b9d2d85075cf4dc95493a",
+    "new_product_source_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
-    "core": "N2_BOUND_SCOPED_PASS_CLOSED_K_R_PROVENANCE_READONLY_CANDIDATE_NOT_LIVE_AUTO",
+    "core": "N2_BOUND_AND_ACTUAL_SOURCE_PN_FEC_CLOSURE_METADATA_SCOPED_PASS_AUTO_UNSUPPORTED",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_PRODUCTION_FIRST_EMIT_PN_METADATA_READONLY_SOURCE_SCOPED_SHAPE_CANDIDATE_ACTIONS_PENDING_AUTO_UNSUPPORTED",
+      "N2_normal_auto": "IN_PROGRESS_FIRST_EMIT_SOURCE_WINDOW_FEC_K_R_BIN_PROVENANCE_READONLY_LINUX_WINDOWS_RACE_N1_CODEC_N0_NATIVE_SCOPED_PASS_NO_LIVE_SWITCH",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -260,11 +260,16 @@
         "physical": "NOT_RUN"
       },
       "n2_source_shape_candidate": {
-        "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "prior_source_sha": "8d8692e2638ef23d2d4b9d2d85075cf4dc95493a",
-        "wire_change": false,
-        "auto_supported": false
+        "status": "SCOPED_PASS_NOT_LIVE",
+        "source_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
+        "foundation": 38125834451,
+        "lifecycle": 38125834287,
+        "n1_codec": 38125834458,
+        "n0_samewire": 38125834263,
+        "n0_three_native": 38125834281,
+        "n0_three_native_artifact": 11697286577,
+        "physical": "NOT_RUN",
+        "performance": "NOT_RUN"
       }
     },
     "fec_off_weaknet_v2": {
@@ -296,11 +301,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 source-PN real FEC metadata candidate after prior source 8d8692e foundation38125294807 PASS/lifecycle38125294826 PASS. Await new Actions; verify actual success of Linux/Windows Go/race and N1/N0 quality/native workflows if triggered. Source-local shape only counts fully closed emitted groups; parity consumes PN and cropped groups remain UNKNOWN, so cannot feed controller until count normalization/coverage/eligibility is proved. Then implement safe new block TX + shared mixed RX, per-client directional feedback/admission, per-case realpath Actions; no N1 retest matrix. N3-N6 not begun; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-source-pn-fec-closure-provenance-candidate.md",
+  "next_task": "N2 SOURCE 98c7c090 source-window k/r provenance closed, all five scoped Actions PASS (foundation38125834451, lifecycle38125834287, n1codec38125834458, n0samewire38125834263, native3client38125834281). Continue correct joint accounting of emitted systematic+parity PN and incomplete edge cohorts in controller. Ensure overlapping samples not duplicated and meaningful healthy network up/down. Then implement shared-budget mixed-parity decoder, new-block-only switch preserving 32ms, off/on coexistence and 3s, authenticated per-client policy and directional feedback, single SOURCE/scenario perf Actions, N3-N6. Auto UNSUPPORTED, physical NOT_RUN; old failures/probe p99/80s OPEN. Latest log authoritative.",
+  "latest_log": "docs/devlog/20261011-n2-source-pn-closure-actions-scoped-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
-  "last_tested_scope": "Latest N1 product1c64e4e protected 180/640PN race & native functional PASS; fixed20 normal/Game lossless/5205 prior8 PASS_SCREEN; dedicated Normal flat1/flat5 8 strict native 120s Actions: fixed20 4 PASS_SCREEN, off 4 MEASURED_NOT_QUALIFIED; old flat5 2 PERFORMANCE_FAIL preserved. No real first-send PLR oracle or N2 auto, N3-6/physical NOT_RUN.",
+  "last_tested_source_sha": "98c7c090ef4a7e68531f40e1e11977502207e259",
+  "last_tested_scope": "N2 sourced FEC meta+shape read-only: foundation 7/7 enabled PASS, lifecycle, N1 codec/race, N0 same-wire, 3-client hosted Linux functional; no N2 auto/weaknet/perf nor physical.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
