@@ -1,29 +1,61 @@
 package datapath
 
 import (
+	"github.com/lly8666/wobuzhidao/internal/linkdata"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
 
-// SwitchN2ActiveParityForTests is an opt-in N2 integration seam; production
-// admission still cannot construct auto/aggressive lanes. Its Runtime caller
-// MUST hold outboundMu.RLock for the entire operation, pinning promotion.
-// Owner.mu is released before cold encoder preparation: fresh traffic never
-// waits for the FEC change preparation under the tunnel-wide owner mutex.
-// The final Lane commit is short; any outgoing record remains generation-
-// fenced by the existing owner.FenceOutbound.
-func (o *TunnelOwner) SwitchN2ActiveParityForTests(ref logicaltunnel.LaneRef,parity int) error {
-	if o==nil {return ErrTunnelOwnerClosed}
+// N2PreparedActiveSwitch is a single-use, lane-bound cold allocation. It is
+// safe to prepare while promotion/normal outbound happens concurrently.
+// ONLY a generation-pinning Runtime may call CommitN2ActiveParityForTests.
+type N2PreparedActiveSwitch struct {
+	ref logicaltunnel.LaneRef
+	lane *Lane
+	prepared *linkdata.PreparedParitySwitch
+}
+
+func (o *TunnelOwner) n2ActiveLane(ref logicaltunnel.LaneRef) (*Lane,error) {
+	if o==nil{return nil,ErrTunnelOwnerClosed}
 	o.mu.Lock()
-	if o.closed {o.mu.Unlock();return ErrTunnelOwnerClosed}
-	if o.desired!=1 {o.mu.Unlock();return ErrNormalLaneMode}
-	binding,ok:=o.active[ref.ID]
-	if !ok {o.mu.Unlock();return ErrLaneUnavailable}
-	if binding.ref!=ref {
-		current:=binding.ref
-		o.mu.Unlock()
-		return staleGeneration(ref,current)
-	}
-	lane:=binding.lane
-	o.mu.Unlock()
-	return lane.SwitchN2ParityForTests(parity)
+	defer o.mu.Unlock()
+	if o.closed{return nil,ErrTunnelOwnerClosed}
+	if o.desired!=1{return nil,ErrNormalLaneMode}
+	b,ok:=o.active[ref.ID]
+	if !ok{return nil,ErrLaneUnavailable}
+	if b.ref!=ref{return nil,staleGeneration(ref,b.ref)}
+	return b.lane,nil
+}
+
+// PrepareN2ActiveParityForTests never holds generation, owner or TX locks
+// across cold codec allocation. It cannot block fresh packets or prolong a
+// pending promotion's writer lock. A stale preparation may be discarded.
+func (o *TunnelOwner) PrepareN2ActiveParityForTests(
+	ref logicaltunnel.LaneRef, parity int,
+) (*N2PreparedActiveSwitch,error) {
+	lane,err:=o.n2ActiveLane(ref)
+	if err!=nil{return nil,err}
+	cold,err:=lane.PrepareN2ParityForTests(parity)
+	if err!=nil{return nil,err}
+	return &N2PreparedActiveSwitch{ref:ref,lane:lane,prepared:cold},nil
+}
+
+// CommitN2ActiveParityForTests must be called with the owning Runtime's
+// outboundMu.RLock held. Its ref and actual Lane pointer must both remain
+// authoritative. The prepared handle is internally one-use; rejected old
+// generation blocks never mutate a new encoder or reassign BlockIDs.
+func (o *TunnelOwner) CommitN2ActiveParityForTests(ref logicaltunnel.LaneRef,
+	pending *N2PreparedActiveSwitch) error {
+	if pending==nil || pending.ref!=ref {return ErrLaneUnavailable}
+	lane,err:=o.n2ActiveLane(ref)
+	if err!=nil{return err}
+	if lane!=pending.lane {return ErrLaneUnavailable}
+	return lane.CommitN2ParityForTests(pending.prepared)
+}
+
+// Old explicit single-operation seam retains compatibility with existing
+// tests. The Runtime controller uses the split prepare / pinned commit API.
+func (o *TunnelOwner) SwitchN2ActiveParityForTests(ref logicaltunnel.LaneRef,parity int) error {
+	p,err:=o.PrepareN2ActiveParityForTests(ref,parity)
+	if err!=nil{return err}
+	return o.CommitN2ActiveParityForTests(ref,p)
 }

@@ -30,6 +30,7 @@ type qualityState struct {
     n2Last adaptivefec.Decision
     n2HasDecision bool
     n2DecisionAt time.Time
+    n2DecisionVersion uint64 // incremented on every newly observed echo, including HOLD
     n2Pending bool // one authenticated rise/lower proposal may apply only once
     received uint64
     rejected uint64

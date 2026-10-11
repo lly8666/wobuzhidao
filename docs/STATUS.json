@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_AUTHENTICATED_PER_INCARNATION_POLICY_BOUND_TX_CONTROLLER_TEST_ONLY_ACTIONS_PENDING",
+    "phase": "N2_COLD_PREPARED_SWITCH_GENERATION_LOCK_SPLIT_AND_VERSION_RECHECK_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "9d549f549269af1bc40515dcf855b1b489cac857",
+    "new_product_source_sha": "cfeca9447ab4daab809638b04e9b937654750c98",
     "implementation": "N0_PROTECTED_V3_FIXED_OFF_CHACHA_REAL_LINUX_PRODUCTION_PATH",
     "core": "N2_VERIFIED_NATURAL_COHORT_JOINT_KR_AND_PROTECTED_TX_ECHO_PROPOSAL_NO_LIVE_PARITY_SWITCH",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_PROTECTED_AUTO_POLICY_MAXMTU_TEST_ONLY_PASS_ONE_USE_LOCAL_TX_APPLICATION_TEST_ONLY_PASS_PER_INCARNATION_ACCEPTED_POLICY_CONTROLLER_BINDING_CANDIDATE_ACTIONS_PENDING",
+      "N2_normal_auto": "IN_PROGRESS_TEST_ONLY_ACCEPTED_POLICY_EXACT_NONCE_LOCAL_TX_CONTROLLER_ACTIONS_PASS_COLD_PREP_OUTSIDE_GENERATION_PIN_AND_NEW_ECHO_VERSION_RECHECK_CANDIDATE",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -400,11 +400,21 @@
         "physical": "NOT_RUN"
       },
       "n2_protected_policy_bound_controller": {
+        "status": "SCOPED_PASS_TEST_ONLY_NO_PRODUCT_AUTO",
+        "source_sha": "cfeca9447ab4daab809638b04e9b937654750c98",
+        "foundation_run": 38134829227,
+        "lifecycle_run": 38134829213,
+        "n1_codec_run": 38134829216,
+        "n0_samewire_run": 38134829215,
+        "n0_multi_run": 38134829228,
+        "foundation_artifact_id": 11701021058,
+        "foundation_artifact_sha256": "d01aa830eec0285da2f165d9ad98390bb723784d6664edb0913108101f807cff"
+      },
+      "n2_cold_prep_generation_lock_split": {
         "status": "ACTIONS_PENDING",
         "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
-        "parent_doc_sha": "e116d8b702ecc61ea5c2091c663f8bedee3220cf",
-        "scope": "test-only stored exact negotiated Normal auto V3 policy per Lane, account/nonce/generation ref verification before installing local TX controller",
-        "production_auto": "UNSUPPORTED",
+        "scope": "test-only two-phase prepare without Runtime outboundMu, generation+pinned O(1) commit and newer-echo version recheck",
+        "production_admission": "UNSUPPORTED",
         "physical": "NOT_RUN"
       }
     },
@@ -437,11 +447,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "N2 next: check exact Actions for new source's per-incarnation protected V3 auto/aggressive mode+min policy binding on quality-enabled active Normal TX. Reject policy mismatch, nonce mismatch, dormant generation, fixed legacy; test two independent clients. On red fix, preserve failed run. Still production SupportedNow refuses auto/AES and NewLane fixed; afterwards connect production one-shot per-client admission, correct per-direction returned feedback to active owner applying only new FEC blocks without fresh HOL, update CLI Windows/Linux JSON/catalog; N2 10Mbps single-source waveform Actions, then N3-N6. Physical NOT_RUN, historical off ~2.73s probe p99/missing, early ~80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-protected-incarnation-policy-bound-tx-controller-candidate.md",
+  "next_task": "N2 immediate: inspect exact new SOURCE Actions for moving cold encoder allocation entirely outside Runtime outboundMu.RLock and revalidating active generation + latest authenticated echo version at short commit. Fix red without changing real 32ms deadlines, do not run Go local. Prior cfeca944 accepted per-customer policy/nonce binding pass foundation38134829227/lifecycle38134829213/N1codec38134829216/N0samewire38134829215/N0multi38134829228. Then use existing quality cadence Tick to apply only accepted current active TX change with Game zero overhead, still production admission gated. Finish per-client Normal protected once-mode acceptance and actual CLI/JSON/catalog before realpath single SOURCE/config/seed performance. N3-N6/physical NOT_RUN; off default-MTU 2.73s probe p99/missing and historical 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-no-generation-lock-during-cold-prep-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "9d549f549269af1bc40515dcf855b1b489cac857",
-  "last_tested_scope": "Protected N2 Normal policy scoped test-only: Linux/Windows unit/race 7 enabled Foundation PASS and Lifecycle PASS; max geometry and bidirectional budget, old parity recovery, no public admission; P5/P6 not run.",
+  "last_tested_source_sha": "cfeca9447ab4daab809638b04e9b937654750c98",
+  "last_tested_scope": "N2 exact client V3 policy and nonce attached to one active TX controller only: Foundation 7 enabled Linux/Windows Go/race PASS, Lifecycle, N1 codec/race, N0 samewire, N0 three-client PASS. No live auto admission, N2 perf, physical.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

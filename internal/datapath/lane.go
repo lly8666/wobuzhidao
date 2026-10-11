@@ -374,18 +374,31 @@ func (l *Lane) outbound(packet []byte, now time.Time, selector paddingSelector) 
 // must still fence the lane generation when actually flushing/issuing wire.
 // SwitchN2ParityForTests applies a new parity to NEW blocks only. The
 // explicit opt-in constructor is not reachable from production admission.
-func (l *Lane) SwitchN2ParityForTests(parity int) error {
+// PrepareN2ParityForTests only reads immutable geometry/codec and allocates
+// an unused encoder. It holds NO Lane TX, TunnelOwner or generation lock.
+// The active encoder remains authoritative until CommitN2ParityForTests.
+func (l *Lane) PrepareN2ParityForTests(parity int) (*linkdata.PreparedParitySwitch,error) {
+	if l==nil {return nil,ErrLaneClosed}
+	if !l.adaptiveN2Test {return nil,linkdata.ErrAdaptiveSwitchUnavailable}
+	return l.txPath.PrepareParitySwitch(parity)
+}
+
+// CommitN2ParityForTests is short and only replaces the encoder for NEW
+// blocks. The caller owning a Runtime must pin the active generation across
+// this call. Existing partial deadlines and shared RX remain untouched.
+func (l *Lane) CommitN2ParityForTests(prepared *linkdata.PreparedParitySwitch) error {
 	if l==nil {return ErrLaneClosed}
-	if !l.adaptiveN2Test {return linkdata.ErrAdaptiveSwitchUnavailable}
-	// All cold geometry/encoder allocation runs without the TX mutex. A
-	// concurrent fresh packet keeps sealing immediately under the old valid
-	// profile until the O(1) commit, and pending old partials retain 32ms.
-	prepared,err:=l.txPath.PrepareParitySwitch(parity)
-	if err!=nil{return err}
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.closed {return ErrLaneClosed}
+	if !l.adaptiveN2Test {return linkdata.ErrAdaptiveSwitchUnavailable}
 	return l.txPath.CommitPreparedParitySwitch(prepared)
+}
+
+func (l *Lane) SwitchN2ParityForTests(parity int) error {
+	prepared,err:=l.PrepareN2ParityForTests(parity)
+	if err!=nil{return err}
+	return l.CommitN2ParityForTests(prepared)
 }
 
 func (l *Lane) NextFlushDeadline() time.Time {

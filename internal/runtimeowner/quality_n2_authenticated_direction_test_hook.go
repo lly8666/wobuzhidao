@@ -20,6 +20,11 @@ func (q *qualityState) n2ObserveAuthenticatedReturn(generation uint64,now time.T
 	src:=q.sentSources[e.SourceReportSeq%qualitySentHistoryCapacity]
 	bound:=qualityFirstAttemptBoundFromSnapshot(q.returned,src,generation,now)
 	input:=qualityBoundToAdaptiveInput(bound,now)
+	if q.n2DecisionVersion==^uint64(0) {
+		q.n2Pending=false // exhaustion: never reuse an old token
+		return
+	}
+	q.n2DecisionVersion++
 	q.n2Last=q.n2.Step(now,input)
 	q.n2HasDecision=true
 	q.n2DecisionAt=now
