@@ -10,6 +10,7 @@ import unittest
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
 from check_strict_off_weaknet_v2 import (
     VERSION, eligible, assess, fragmentation_reference, _raw_stage_measurements,
+    _host_identity, _host_pressure,
 )
 
 
@@ -162,10 +163,32 @@ class OffWeaknetV2Test(unittest.TestCase):
         self.assertNotIn("PASS",result["qualification_status"])
         baseline["harness_sha"]=current["harness_sha"]
         baseline["resource"]["cpu_seconds_per_delivered_gib"]*=0.5
-        result=assess(l,m,b,t,baseline_receipts=[baseline])
+        hw={"model":"synthetic EPYC","logical_cpus":4,"instructions":["aes","avx2"],"cpu_max":"max 100000"}
+        baseline["runner_hardware"]=hw
+        result=assess(l,m,b,t,baseline_receipts=[baseline],runner_hardware=hw)
         self.assertEqual(result["qualification_status"],"REVIEW_REQUIRED")
         self.assertIn("CPU/GiB",str(result["comparison"]["review_flags"]))
 
+    def test_cross_cpu_runner_comparison_is_incomparable(self):
+        l,m,b,t=fixture()
+        host='Model name: AMD EPYC 9V45\nCPU(s): 4\nFlags: aes avx2 vaes\n'
+        rows=[{'processes':{'client':{'cgroup':{'cpu.max':'max 100000\n'}}},
+               'pressure':{'cpu':'some avg10=5.50 avg60=3.0'},
+               'proc_stat':{'cpu':[1,2,3,4,5,6,7,8,9,10]}},
+              {'pressure':{'cpu':'some avg10=9.00 avg60=4.0'},
+               'proc_stat':{'cpu':[9,10,12,14,16,18,20,24,26,30]}}]
+        hw=_host_identity(host,rows)
+        self.assertEqual(hw['logical_cpus'],4)
+        self.assertEqual(hw['cpu_max'],'max 100000')
+        self.assertEqual(_host_pressure(rows)['cpu_psi_some_avg10_peak_percent'],9.0)
+        self.assertGreater(_host_pressure(rows)['host_cpu_steal_delta_percent'],0)
+        curr=assess(l,m,b,t,runner_hardware=hw)
+        old=copy.deepcopy(curr)
+        old['product_source_sha']='b'*40
+        old['runner_hardware']['model']='AMD EPYC 7763'
+        check=assess(l,m,b,t,baseline_receipts=[old],runner_hardware=hw)
+        self.assertEqual(check['comparison']['state'],'INCOMPARABLE')
+        self.assertIsNone(_host_identity(host,[]))
 
 if __name__ == "__main__":
     unittest.main()

@@ -41,7 +41,32 @@
       "seed": 601,
       "source": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
       "status": "NOT_RUN_AS_OF_DISPATCH"
-    }
+    },
+    "fresh_samples": [
+      {
+        "run": 38107037219,
+        "artifact_id": 11690228319,
+        "source": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+        "harness": "1bdbf913daee355388c3474790ff3c239736c347",
+        "original": "PERFORMANCE_FAIL",
+        "v2": "MEASURED_NOT_QUALIFIED",
+        "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+        "c2s_stress_mbps": 6.8310208,
+        "cpu_s_per_gib": 272.54673483109565
+      },
+      {
+        "run": 38107283240,
+        "artifact_id": 11689434004,
+        "source": "4f0cf7814dea0a04a0dc69863ae1e56412e0da9f",
+        "harness": "1bdbf913daee355388c3474790ff3c239736c347",
+        "original": "PERFORMANCE_FAIL",
+        "v2": "MEASURED_NOT_QUALIFIED",
+        "cpu_model": "AMD EPYC 7763 64-Core Processor",
+        "c2s_stress_mbps": 6.789098666666667,
+        "cpu_s_per_gib": 517.386587408845
+      }
+    ],
+    "comparison": "Two distinct host CPU models even though same harness/seed; cannot treat CPU/GiB difference as improvement. Both relative pre5 5s recovered initial10s, old post5 3x1s failed. Goodput +-0.7%; p99 2726.5ms vs2722ms, timeout 24 vs21, 1 A/B not qualification. New host identity guard Actions pending."
   },
   "expected_unit_vectors": [
     "off5205/5305 eligibility, nonoff/lossless/formal20 exclusion",

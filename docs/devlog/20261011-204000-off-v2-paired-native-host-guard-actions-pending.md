@@ -1,0 +1,9 @@
+# Off-v2 native 5205 paired receipts recorded; CPU host provenance fence pending Actions
+
+Fresh distinct 120s Actions candidate #38107037219 SOURCE1c64e4e and baseline #38107283240 SOURCE4f0cf78, same harness1bdbf913, Normal off 5205 seed601 10Mbps each direction. Both new off-weaknet-v2 receipts MEASURED_NOT_QUALIFIED; old loss-tolerant-v1 PERFORMANCE FAIL retained intact. Both CAPTURE/CORRECTNESS/INPUT_VALIDITY/ENVIRONMENT/CONTINUITY PASS; both directions relative-pre5 5-second recovery within initial 10s. No actual per-size LINK fragmentation map, so IID m-weighted model UNAVAILABLE, no fake threshold.
+
+Candidate C2S stress first-unique 6.8310Mbps, 23.3221% business packet deficit,31.6979% byte deficit; baseline 6.7891Mbps,23.4214% packet,32.107% byte. Goodput all stages differed below0.7% in this one A/B, no improvement conclusion. Returned-only probe p99 2726.5ms candidate /2722ms baseline, timeout24/21; latter matters. Candidate CPU/GiB272.55, baseline517.39 but CPU models AMD EPYC 9V45 vs EPYC 7763 and runner resource conditions differ: CPU benefit INCOMPARABLE. Both raw v2 artifact IDs 11690228319/11689434004 with original immutable legacy summary as separate JSON.
+
+New candidate analyzer enhancement reads already-collected runner-host.txt CPU model/vCPU/instruction set and resource sampler cpu.max/PSI/steal. Pair comparator now refuses absent/different hardware identity even if both say ubuntu-24.04; true improvement needs comparable host resources and repeat/noise. New deterministic unit test covers CPU model mismatch, quota and PSI/steal reading, no perpacket overhead, no source/product change.
+
+**At commit creation** exact new analyzer unit Actions NOT_RUN, no new performance samples were reinterpreted or requalified. Original N1 640PN pass and deferred N2..N6/physical NOT_RUN unchanged.

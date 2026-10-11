@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 import statistics
 from pathlib import Path
 
@@ -183,6 +184,41 @@ def _five_second_relative_recovery(sources, queue_age_seconds=None):
     return out
 
 
+def _host_identity(text, resources):
+    identity={}
+    for line in text.splitlines():
+        if line.startswith('Model name:') and 'model' not in identity:
+            identity['model']=line.split(':',1)[1].strip()
+        elif line.startswith('CPU(s):') and 'logical_cpus' not in identity:
+            try: identity['logical_cpus']=int(line.split(':',1)[1].strip())
+            except ValueError: pass
+        elif line.startswith('Flags:'):
+            bits=set(line.split(':',1)[1].split())
+            identity['instructions']=sorted(bits.intersection({'aes','avx2','vaes','pclmulqdq','sha_ni','vpclmulqdq'}))
+    for sample in resources:
+        quota=((((sample.get('processes') or {}).get('client') or {}).get('cgroup') or {}).get('cpu.max'))
+        if quota:
+            identity['cpu_max']=quota.strip()
+            break
+    return identity if all(k in identity for k in ('model','logical_cpus','instructions','cpu_max')) else None
+
+def _host_pressure(samples):
+    peak=None
+    first=last=None
+    for sample in samples:
+        text=((sample.get('pressure') or {}).get('cpu') or '')
+        match=re.search(r'some avg10=([0-9.]+)',text)
+        if match: peak=max(peak or 0.0,float(match.group(1)))
+        ticks=((sample.get('proc_stat') or {}).get('cpu'))
+        if isinstance(ticks,list) and len(ticks)>7:
+            if first is None: first=ticks
+            last=ticks
+    steal=None
+    if first is not None and last is not None:
+        diff=[max(0,y-x) for x,y in zip(first,last)]
+        if sum(diff): steal=100.0*diff[7]/sum(diff)
+    return {'cpu_psi_some_avg10_peak_percent':peak,'host_cpu_steal_delta_percent':steal}
+
 def _comparison(current, baselines):
     if not baselines:
         return {"state": "UNAVAILABLE", "reason": "No independent same-harness, same-config, comparable-runner baseline receipts; lack of regression evidence cannot qualify."}
@@ -193,8 +229,10 @@ def _comparison(current, baselines):
            base.get("harness_sha") != current["harness_sha"] or \
            base.get("scenario") != current["scenario"] or base.get("mode") != current["mode"] or \
            base.get("seed") != current["seed"] or base.get("config") != current["config"] or \
-           base.get("runner") != current["runner"]:
-            issues.append("reference mismatch: source/harness/config/seed/runner/policy")
+           base.get("runner") != current["runner"] or \
+           not current.get("runner_hardware") or \
+           base.get("runner_hardware") != current.get("runner_hardware"):
+            issues.append("reference mismatch: source/harness/config/seed/CPU model/instructions/quota/policy")
             continue
         peers.append(base)
         for direction in DIRECTIONS:
@@ -218,7 +256,7 @@ def _comparison(current, baselines):
 
 
 def assess(legacy, manifest, biz, target, resources=(), baseline_receipts=(),
-           fragment_mapping=None, queue_age_seconds=None):
+           fragment_mapping=None, queue_age_seconds=None, runner_hardware=None):
     if (manifest.get("config") or {}).get("profile_screen") is not True or not eligible(
             "fec-profile-screen", (manifest.get("config") or {}).get("fec_parity", -1),
             manifest.get("scenario")):
@@ -275,7 +313,7 @@ def assess(legacy, manifest, biz, target, resources=(), baseline_receipts=(),
         "schema":1, "policy_version":VERSION, "qualification_status":qualification,
         "product_source_sha":manifest["source_sha"], "harness_sha":manifest.get("harness_sha"),
         "mode":manifest["mode"],"scenario":manifest["scenario"], "seed":manifest.get("seed"),
-        "runner":manifest.get("runner"),"config":manifest.get("config"),
+        "runner":manifest.get("runner"),"runner_hardware":runner_hardware,"config":manifest.get("config"),
         "legacy_reference":{
             "analysis_version":legacy.get("analysis_version"),
             "classifications":c, "profile_errors":legacy.get("profile_errors"),
@@ -336,7 +374,9 @@ def run_artifact(root, output, baselines=(), fragment_map=None):
     queue=[queue_age_at(diags,start_ns+int((s+0.5)*1e9)) for s in range(120)]
     b=[json.loads(Path(x).read_text()) for x in baselines]
     mapping=json.loads(Path(fragment_map).read_text()) if fragment_map else None
-    v=assess(legacy,manifest,biz,target,resources,b,mapping,queue)
+    hardware=_host_identity((root/"runner-host.txt").read_text(),resources)
+    v=assess(legacy,manifest,biz,target,resources,b,mapping,queue,hardware)
+    v["resource"]["runner_pressure"]=_host_pressure(resources)
     v["analyzer_sha256"]=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     v["legacy_receipt_sha256"]=hashlib.sha256(legacy_path.read_bytes()).hexdigest()
     v["independent_v2_receipt"]=str(output.name)

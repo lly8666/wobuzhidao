@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N1_OFF_WEAKNET_V2_ACTIONS_UNIT_PASS_FRESH_SINGLE_5205_REVIEW_SAMPLE_DISPATCH",
+    "phase": "N1_OFF_V2_PAIRED_5205_MEASURED_CPU_MODEL_FENCE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -150,11 +150,15 @@
       "targeted_actions_green_job": 114374351563,
       "test_count": 7,
       "performance_sample_status": "NOT_RUN",
-      "n1_product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438"
+      "n1_product_source_sha": "1c64e4e5163ce80c7e90ee7c8ec4bdb5e3cf3438",
+      "fresh_v2_candidate_run": 38107037219,
+      "fresh_v2_baseline_run": 38107283240,
+      "fresh_v2_outcome": "Both MEASURED_NOT_QUALIFIED; legacy PERFORMANCE FAIL preserved, CORRECTNESS INPUT ENVIRONMENT CAPTURE CONTINUITY PASS, relative pre5 five-second recovery within initial10s each direction. Candidate EPYC9V45 vs baseline EPYC7763, CPU comparisons INCOMPARABLE; one A/B goodput changes within0.7% no performance qualification.",
+      "analyzer_runner_guard": "CANDIDATE_ACTIONS_PENDING"
     }
   },
-  "next_task": "Inspect push relay and its fresh exact product1c64e4e Normal/off/5205 seed601 single-source strict 120s Action on new harness: collect legacy original receipt and off-weaknet-v2.json distinctly, expect MEASURED_NOT_QUALIFIED or REVIEW_REQUIRED, not performance PASS. Audit injection, host/CPU/queue, first-unique/p99/probe missing, relative5s, fragmentation model UNAVAILABLE unless mapped; preserve historic two FAIL. Then matched old baseline sample if warranted, Normal20/Game4 protector strict runs. N2 OFF and native/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-202500-off-v2-scoped-actions-green-fresh-5205-dispatch.md",
+  "next_task": "Validate off-v2 analyzer CPU model/instruction/quota identity and host PSI/steal tests on new exact HEAD in Actions; then begin separate strict Normal20:20 and Game4 lossless/5205 Actions on next plan dispatch and same-source baseline checks. Off v2 two 5205 samples MEASURED_NOT_QUALIFIED; old FAIL preserved; do not claim CPU gain across EPYC9V45 vs EPYC7763. N2 OFF.",
+  "latest_log": "docs/devlog/20261011-204000-off-v2-paired-native-host-guard-actions-pending.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "83eca5ed9b238cb09274950b7fc68bc1fefd7c22",
   "last_tested_scope": "83eca5e Go race2 actual encrypted newest PN and no echo-only pingpong, lifecycle, Ubuntu/Windows foundation+privileged and 9-netns three formal native client functional all PASS. Strict matched baseline vs candidate Normal10Mbps/Game4 3Mbps, genuine impaired/oneway/sparse/low RTT/small MTU, outer IPv6 and P6/physical NOT_RUN; no N2 auto.",
