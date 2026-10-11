@@ -1,5 +1,9 @@
 # 稳态修复与真实路径弱网资格（2026-09-21）
 
+## 当前adaptive分支覆盖入口（2026-10-11）
+
+当前工作线为 `next/adaptive-fec-aes-tun-20261010`，实时进度只读STATUS.active_work/next_task/latest_log，正式计划为ADAPTIVE_NETWORK_PLAN。下文SIMD串行例外、旧下一步和旧硬阈值只属历史来源；当前每性能Action一SOURCE/配置/seed/场景/测量job。FEC off受损考核优先执行 [off-weaknet-v2](FEC_OFF_PERFORMANCE_ACCEPTANCE.md)，旧结果不重判、无损和正式20:20门不变。当前分析器尚待迁移，不把文档生效当新run PASS。
+
 ## 2026-10-10 FEC SIMD优化任务覆盖
 
 当前独立工作分支`next/fec-simd-20261010`，方案[FEC_SIMD_OPTIMIZATION_PLAN](FEC_SIMD_OPTIMIZATION_PLAN.md)，接手[模板](templates/FEC_SIMD_AGENT_PROMPT.md)，实时任务只看STATUS.active_work.fec_simd/next_task。用户明确性能第一、自有FEC内部允许大改；原来“不换codec”、禁止新旧对比/串行多测的限制对本项由新方案窄例外覆盖，不影响其它任务。单个Actions测量job新旧ABBA串行；核心功能可多job，未测不算通过。保留已验source快路、active partial、32ms/3s生命周期/late first arrival、无HOL和原硬门。原E1与旧FEC-off实验仅历史，80秒S2C仍优化后处理。
