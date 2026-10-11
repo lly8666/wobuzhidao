@@ -138,6 +138,10 @@ func (e *BlockEncoder) flush() ([][]byte, error) {
 type decodeBlock struct {
 	header BlockHeader
 	final  bool
+	// Immutable wire profile captured by the first authenticated FEC shard.
+	// A subsequent mixed-parity shard with the same BlockID must not mutate
+	// a pending streaming/final block before per-block authentication checks.
+	parityShards int
 
 	shards  [][]byte
 	present []bool
@@ -159,6 +163,7 @@ type retiredBlock struct {
 	header    BlockHeader
 	final     bool
 	delivered uint32
+	parityShards int // compact cross-profile collision fence
 }
 
 // BlockDecoder keeps a bounded number of full reconstruction states and compact
@@ -208,6 +213,19 @@ func NewBlockDecoderWithParity(codec Codec, maxPacketSize, maxBlocks, parityShar
 	}, nil
 }
 
+// NewAdaptiveBlockDecoder accepts the fixed 20:R wire family simultaneously
+// under ONE maxBlocks heavy budget and ONE bounded completed/retired registry.
+// It has no independent decoder per profile. FEC-off LINK records must be
+// dispatched outside this decoder AFTER record authentication.
+func NewAdaptiveBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, error) {
+	d, err := NewBlockDecoderWithParity(codec, maxPacketSize, maxBlocks, ParityShards)
+	if err != nil {
+		return nil, err
+	}
+	d.parityShards = 0 // explicit internal mixed-family sentinel, not FEC off
+	return d, nil
+}
+
 func (d *BlockDecoder) InFlight() int { return len(d.blocks) }
 
 func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
@@ -230,7 +248,7 @@ func (d *BlockDecoder) add(datagram []byte, live bool) ([][]byte, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
-	if h.EffectiveParityCount() != d.parityShards {
+	if d.parityShards != 0 && h.EffectiveParityCount() != d.parityShards {
 		return nil, false, ErrHeaderMismatch
 	}
 	if int(h.ShardSize) > d.maxPacketSize || len(datagram) != HeaderSize+int(h.ShardSize) {
@@ -279,9 +297,12 @@ func (d *BlockDecoder) add(datagram []byte, live bool) ([][]byte, bool, error) {
 				return nil, false, ErrDecoderFull
 			}
 		}
-		b = &decodeBlock{}
+		b = &decodeBlock{parityShards: h.EffectiveParityCount()}
 		d.blocks[h.BlockID] = b
 		d.blockOrder = append(d.blockOrder, h.BlockID)
+	}
+	if b.parityShards != h.EffectiveParityCount() {
+		return nil, false, ErrHeaderMismatch
 	}
 	if streaming {
 		return d.addStreamingSource(b, h, datagram[HeaderSize:])
@@ -380,6 +401,12 @@ func (d *BlockDecoder) addFinalShard(b *decodeBlock, h BlockHeader, payload []by
 }
 
 func (d *BlockDecoder) addRetired(h BlockHeader, payload []byte, streaming bool, r retiredBlock) ([][]byte, bool, error) {
+	if r.parityShards != 0 && r.parityShards != h.EffectiveParityCount() {
+		return nil, false, ErrHeaderMismatch
+	}
+	if r.parityShards == 0 {
+		r.parityShards = h.EffectiveParityCount()
+	}
 	if streaming {
 		idx := int(h.ShardIndex)
 		if r.final {
@@ -563,7 +590,7 @@ func (d *BlockDecoder) retireBlock(id uint32, b *decodeBlock) {
 		return
 	}
 	delete(d.blocks, id)
-	r := retiredBlock{header: b.header, final: b.final}
+	r := retiredBlock{header: b.header, final: b.final, parityShards: b.parityShards}
 	for i, delivered := range b.delivered {
 		if delivered {
 			r.delivered |= uint32(1) << uint(i)
