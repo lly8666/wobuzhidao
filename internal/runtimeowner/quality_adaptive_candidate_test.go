@@ -41,7 +41,8 @@ func TestN2BoundedSourceCandidateUsesParityPNAndCroppedEdge(t *testing.T) {
 	in:=qualityBoundToAdaptiveInput(b,at.Add(time.Second))
 	if in.Evidence!=adaptivefec.EvidenceFirstAttemptBounded||
 		!in.ShapeVerified||in.CroppedRecords!=16||in.ParityRecords!=120||
-		in.ClosedGroups[2][20]!=6||in.ClosedR[20]!=6 {
+		in.ClosedGroups[2][20]!=6||in.ClosedR[20]!=6||
+		in.ClosedBySizeKR[2][20][20]!=6 {
 		t.Fatalf("source candidate wrong %+v",in)
 	}
 	c,err:=adaptivefec.New(adaptivefec.Config{

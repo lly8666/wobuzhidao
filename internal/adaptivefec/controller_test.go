@@ -144,6 +144,7 @@ func boundedSource(i int, start time.Time, k int, lower, upper uint32) Input {
     groups:=256/(2*k)
     s.ClosedGroups[2][k]=uint16(groups)
     s.ClosedR[k]=uint16(groups)
+    s.ClosedBySizeKR[2][k][k]=uint16(groups)
     s.ParityRecords=uint32(groups*k)
     s.CroppedRecords=uint32(256-2*groups*k)
     return s
@@ -263,10 +264,13 @@ func TestN2BoundedMixIncludesActualOffAndPartialEdges(t *testing.T) {
 	s:=boundedSource(1,start,20,0,0)
 	s.ClosedGroups=[3][DataShards+1]uint16{}
 	s.ClosedR=[DataShards+1]uint16{}
+	s.ClosedBySizeKR=[3][DataShards+1][DataShards+1]uint16{}
 	s.ClosedGroups[2][20]=3 // 60 systematic
 	s.ClosedGroups[0][4]=1 // 4 systematic
 	s.ClosedR[20]=3
 	s.ClosedR[4]=1
+	s.ClosedBySizeKR[2][20][20]=3
+	s.ClosedBySizeKR[0][4][4]=1
 	s.ParityRecords=64
 	s.OffRecords=64
 	s.CroppedRecords=64
@@ -278,5 +282,28 @@ func TestN2BoundedMixIncludesActualOffAndPartialEdges(t *testing.T) {
 	// overlapping returned echoes cannot spend the remaining 256 again.
 	if d:=c.Step(s.At,s);d.Reason!=HoldReplay||d.AcceptedRecords!=256 {
 		t.Fatalf("same report counted twice %+v",d)
+	}
+}
+
+
+func TestN2JointKRRejectsMarginallyMatchingImpossibleGroups(t *testing.T) {
+	start:=time.Unix(97000,0)
+	c:=controller(t,Auto,4)
+	good:=boundedSource(1,start,20,0,0)
+	// Separate k and r marginals cannot detect a false joint geometry.
+	bad:=good
+	bad.ClosedBySizeKR[2][20][20]--
+	bad.ClosedBySizeKR[2][20][19]++ // 20:19 is unsupported
+	if d:=c.Step(bad.At,bad);d.Reason!=HoldShape {
+		t.Fatalf("forged 20:19 geometry admitted %+v",d)
+	}
+	bad=good
+	bad.ClosedBySizeKR[2][20][20]--
+	bad.ClosedBySizeKR[2][20][0]++ // a closed FEC group cannot send zero parity
+	if d:=c.Step(bad.At,bad);d.Reason!=HoldShape {
+		t.Fatalf("zero parity geometry admitted %+v",d)
+	}
+	if d:=c.Step(good.At,good);d.Reason!=HoldSampleCount {
+		t.Fatalf("rejected samples consumed or poisoned cohort %+v",d)
 	}
 }

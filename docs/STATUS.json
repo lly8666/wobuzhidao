@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_NATURAL_ENCODER_ZERO_BASED_PN_TEST_CORRECTION_ACTIONS_PENDING",
+    "phase": "N2_JOINT_K_R_SOURCE_GEOMETRY_GUARD_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_TRUE_KR_SOURCE_PN_CONTROLLER_READONLY_SCOPED_PASS_TEST_ONLY_AEAD_SWITCH_SCOPED_PASS_NATURAL_PROTECTED_ENCODER_256PN_COHORT_LIVENESS_CANDIDATE",
+      "N2_normal_auto": "IN_PROGRESS_NATURAL_ENCRYPTED_ENCODER_COHORT_SCOPED_PASS_JOINT_LENGTH_K_R_SOURCE_GEOMETRY_QUALIFIER_ACTIONS_PENDING_AUTO_UNSUPPORTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -318,14 +318,24 @@
         "original_red_run": 38129599448
       },
       "n2_natural_256pn_cohort": {
-        "status": "FIRST_SOURCE_ACTIONS_FAIL_TEST_ORACLE_CORRECTION_PENDING",
-        "failed_source_sha": "1887cf44a3ad513a62b23d4f12b2d646e944f00d",
-        "failed_lifecycle_run": 38130647820,
-        "failed_lifecycle_job": 114444079059,
-        "failed_foundation_run": 38130647838,
-        "root_cause": "Real protected record PN starts at 0: first 280 sealed records end at 279; new test incorrectly required positive first PN and used TxSuccess=LastPN rather than length for zero-origin partial cohort",
-        "correction_source": "CURRENT_COMMIT_HEAD_PENDING",
-        "production_auto": "UNSUPPORTED",
+        "status": "SCOPED_PASS_TEST_ONLY_NO_WAN",
+        "source_sha": "238afa53caf0cd7972e46b55d4c9f07d2a488e3b",
+        "foundation_run": 38130772105,
+        "lifecycle_run": 38130772069,
+        "foundation_artifact_id": 11698339897,
+        "foundation_artifact_sha256": "19a6ac2808f2029ef2b0b79c47d8e6c303b69ec4e09134029b260ef3413ab699",
+        "failed_prior_source": "1887cf44a3ad513a62b23d4f12b2d646e944f00d",
+        "historical_red_runs": [
+          38130647820,
+          38130647838
+        ],
+        "production_auto": "UNSUPPORTED"
+      },
+      "n2_joint_kr_guard": {
+        "status": "ACTIONS_PENDING",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "parent_source_sha": "238afa53caf0cd7972e46b55d4c9f07d2a488e3b",
+        "prod_admission": "UNSUPPORTED",
         "physical": "NOT_RUN"
       }
     },
@@ -358,8 +368,8 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check new Actions at corrected source. First natural cohort test source 1887cf4 failed lifecycle38130647820 job114444079059 because test mistakenly excluded PN0 (legitimate first TLS-like record) and counted first 280 sealed records as LastPN280 vs actual279. Test-only correction asserts 0..279 and TxSuccess=LastPN+1, no production PN changes. Then continue source-qualified echo/controller real runtime wiring and Normal per-client protected admission; one-source measurement Actions; N3-N6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261011-n2-natural-pn0-test-oracle-correction.md",
+  "next_task": "N2 joint k/r source window qualifier candidate: check GitHub Actions exact new SOURCE foundation/lifecycle and repair any red preserving history. Prior 238afa53 NATURAL real AEAD/encoder source cohort 45 windows scoped PASS foundation38130772105/lifecycle38130772069 (not socket/WAN). Joint [size,k,r] count now seals actual min(k,R), requires matching k/r marginals, rejects impossible unsupported geometry before 512 records/EWMA. Then move toward protected per-client Normal-only directional runtime controller/admission and single-source realpath Actions. N3-N6 NOT_STARTED, physical NOT_RUN, old probe p99/missing and 80s S2C OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-joint-k-r-source-window-guard-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "9def27abfa128250297a29b878c12baf8db7a526",
   "last_tested_scope": "N2 real physical 256 PN source k/r/parity/off/cropped read-only input Foundation 7 enabled PASS + Lifecycle PASS. No live auto/admission, N2 realpath or physical.",

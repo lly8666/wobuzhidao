@@ -32,6 +32,10 @@ type QualitySourceShape struct {
 	// originally selected the same size class for a hinted LINK fragment.
 	ClosedBySizeK [3][fec.DataShards+1]uint16
 	ClosedByR [fec.DataShards+1]uint16
+	// An actual closed group has one joint (size, k, r) identity. Separate
+	// marginals alone cannot prove min(k,R) during mixed-profile changes.
+	// This remains sender-local: never encoded into quality/control wire.
+	ClosedBySizeKR [3][fec.DataShards+1][fec.DataShards+1]uint16
 	Complete bool
 }
 
@@ -119,6 +123,7 @@ func (w *qualityTXWindow) sourceShape(m datapath.QualityHealthReport) QualitySou
 		out.Parity+=uint32(r)
 		out.ClosedBySizeK[g.bin][k]++
 		out.ClosedByR[r]++
+		out.ClosedBySizeKR[g.bin][k][r]++
 		if k==fec.DataShards {out.FullBlocks++} else {out.PartialBlocks++}
 	}
 	out.Attributed=out.Systematic+out.Parity+out.Off

@@ -36,6 +36,7 @@ func qualityBoundToAdaptiveInput(b QualityFirstAttemptBound,now time.Time) adapt
 	s.At=now.Add(-b.Age)
 	s.ClosedGroups=shape.ClosedBySizeK
 	s.ClosedR=shape.ClosedByR
+	s.ClosedBySizeKR=shape.ClosedBySizeKR
 	s.ParityRecords=shape.Parity
 	s.OffRecords=shape.Off
 	s.CroppedRecords=shape.Cropped

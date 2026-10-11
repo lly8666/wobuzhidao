@@ -93,6 +93,9 @@ type Input struct {
     // includes FEC parity and FEC-off, not just k systematic shards.
     // ClosedR is the count of actually complete blocks by r=min(k,R).
     ClosedR [DataShards+1]uint16
+    // Actual joint k/r geometry, bounded by the authenticated single source
+    // PN window. The marginal k/r histograms alone are not a pairing proof.
+    ClosedBySizeKR [3][DataShards+1][DataShards+1]uint16
     ParityRecords, OffRecords, CroppedRecords, InvalidRecords uint32
     At time.Time
     RTT time.Duration
@@ -374,6 +377,40 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
             n:=uint64(s.ClosedR[r])
             wholeRGroups+=n
             wholeParity+=uint64(r)*n
+        }
+        if s.ClosedR[0]!=0 {return c.current(HoldShape)}
+        for class:=0;class<3;class++ {
+            if s.ClosedGroups[class][0]!=0 {return c.current(HoldShape)}
+        }
+        var jointK [3][DataShards+1]uint64
+        var jointR [DataShards+1]uint64
+        for class:=0;class<3;class++ {
+            for k:=0;k<=DataShards;k++ {
+                for r:=0;r<=DataShards;r++ {
+                    n:=uint64(s.ClosedBySizeKR[class][k][r])
+                    if n==0 {continue}
+                    // r=min(k,actual configured supported parity).
+                    // Any r<k must be an explicitly supported fixed R;
+                    // r==k is possible when configured R>=k.
+                    if k==0 || r==0 || r>k || (r<k && !supported(r)) {
+                        return c.current(HoldShape)
+                    }
+                    jointK[class][k]+=n
+                    jointR[r]+=n
+                }
+            }
+        }
+        for class:=0;class<3;class++ {
+            for k:=1;k<=DataShards;k++ {
+                if jointK[class][k]!=uint64(s.ClosedGroups[class][k]) {
+                    return c.current(HoldShape)
+                }
+            }
+        }
+        for r:=1;r<=DataShards;r++ {
+            if jointR[r]!=uint64(s.ClosedR[r]) {
+                return c.current(HoldShape)
+            }
         }
         // All KindLINK first-success records share one 256-PN window,
         // including parity and off. Match actual r=min(k,R) closure count.

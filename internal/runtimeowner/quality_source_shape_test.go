@@ -38,7 +38,9 @@ func TestN2SourceWindowShapeCountsActualCompleteBlocksAndOff(t *testing.T) {
 	if !s.repairCoverage||!got.Complete||got.Sent!=15||got.Systematic!=7||
 		got.Parity!=7||got.Off!=1||got.Unknown!=0||got.ClosedByR[3]!=1||
 		got.ClosedByR[4]!=1||got.ClosedBySizeK[0][3]!=1||
-		got.ClosedBySizeK[2][4]!=1||got.PartialBlocks!=2 {
+		got.ClosedBySizeK[2][4]!=1||
+		got.ClosedBySizeKR[0][3][3]!=1||
+		got.ClosedBySizeKR[2][4][4]!=1||got.PartialBlocks!=2 {
 		t.Fatalf("source proof %+v repairCoverage=%v",got,s.repairCoverage)
 	}
 	// Same first-send PN duplicate does not create another transmitted
