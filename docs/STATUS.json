@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_EXACT_PROTECTED_AUTO_POLICY_IN_REAL_NEWLANE_CONSTRUCTOR_ACTIONS_PENDING",
+    "phase": "N2_PRODUCTION_V3_NORMAL_AUTO_ADMISSION_CLI_LINUX_WINDOWS_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_SCOPED_PASS_EXISTING_TICK_ONE_SHOT_PROPOSAL_NEWLANE_EXACT_V3_AUTO_POLICY_MAX20_CONSTRUCTOR_ACTIONS_PENDING_NO_PRODUCT_ADMISSION",
+      "N2_normal_auto": "IN_PROGRESS_REAL_PROTECTED_CLIENT_SERVER_AUTO_ADMISSION_CONTROLLER_LINUX_WINDOWS_CLI_AND_CATALOG_CANDIDATE_ACTIONS_PENDING_NO_PERFORMANCE_QUALIFICATION",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -435,10 +435,20 @@
         "foundation_sha256": "7b21ce0cbaeff7d2ae95bdd71dbfe9feb3e4b14b4f3dbcee73d15988e6aefce1"
       },
       "n2_newlane_exact_policy_constructor": {
+        "status": "SCOPED_PASS_TEST_ONLY_POLICY_CONSTRUCTOR",
+        "source_sha": "7d25e82a19b97893fa270664cce561a1ca7a0fee",
+        "foundation_run": 38137250521,
+        "lifecycle_run": 38137250662,
+        "n1_codec_run": 38137250524,
+        "n0_samewire_run": 38137250568,
+        "n0_multi_run": 38137250663,
+        "foundation_artifact_id": 11701945891,
+        "foundation_artifact_sha256": "de869f399df0fde916fa74603280aaa2a2fd4193276da1d317e97a86a72d5246"
+      },
+      "n2_production_admission_candidate": {
         "status": "ACTIONS_PENDING",
-        "source_sha": "CURRENT_COMMIT",
-        "product_enabled": "NO",
-        "scope": "NewLane can select one shared mixed-profile decoder from exact pre-bound V3 Normal auto policy; production admission still rejects it",
+        "source_sha": "CURRENT_COMMIT_HEAD_PENDING",
+        "scope": "V3 normal FECAuto/Aggressive ChaCha quality1 handshake+real client/server Lane max20+quality TX current tick, Linux/Windows CLI JSON/catalog; N2 functional tests and realpath perf pending",
         "physical": "NOT_RUN"
       }
     },
@@ -471,11 +481,11 @@
       "targeted_actions_updated_green_run": 38107659251
     }
   },
-  "next_task": "Check exact new SOURCE Foundation/Lifecycle and triggered N0/N1 Actions for NewLane immutable protected Normal auto policy construction and untouched fixed/Game behavior. Fix red then extend actual V3 client/server admission handoff with max20 record/MSS/TUN budgets and per-incarnation local TX controller binding; only open SupportedNow/CLI when both ends ready. Avoid new timers/ACK waits/false first-loss. Then Linux/Windows CLI+JSON/catalog and N2 single SOURCE/config/seed/realpath measurement. N3 AES, N4 TUN, N5 GUI, N6 packaging pending, physical NOT_RUN; off default-MTU ~2.73s returning probe p99/missing and historical 80s S2C OPEN.",
-  "latest_log": "docs/devlog/20261011-n2-immutable-admission-policy-auto-lane-constructor-actions-candidate.md",
+  "next_task": "CHECK exact SOURCE Actions for V3 protected Normal auto/aggressive real client/server admission, per-client TX-source quality controller and current Tick application, client Linux+Windows CLI fec-mode/min, PARAMETERS catalog and TLS protected auto handshake tests. If red locate first failing job and fix preserving run history. Then add actual runtimeentry end-to-end dynamic client/server new-block switch tests, source-scoped real 10Mbps each direction and 0→1→5→20→5→0 waveform one config/seed/measurement job per action, 300ms one-way, sparse/off/partial/feedback cutoff/Game4 fixed. Observe p99/missing/CPU/goodput/queue/wire and runner capacity. Do not claim N2 acceptance before realpath. N3 AES, N4 Windows TUN, N5 GUI, N6 P6 untouched. Physical NOT_RUN; off default MTU 2.73s return p99/missing and historic 80s S2C still OPEN.",
+  "latest_log": "docs/devlog/20261011-n2-production-protected-normal-auto-admission-and-cli-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "1bcb6501fdb55acbfdd5fb5efd6d3c036a72b3a0",
-  "last_tested_scope": "N2 local authenticated source TX controller current maintenance-tick test-only new-block profile application: Linux/Windows Go/race foundation7 PASS, lifecycle, N1 codec/race, samewire, 3 Linux native clients PASS. P5/P6 SKIPPED, auto public UNSUPPORTED, physical NOT_RUN.",
+  "last_tested_source_sha": "7d25e82a19b97893fa270664cce561a1ca7a0fee",
+  "last_tested_scope": "NewLane exact original authenticated Normal auto V3 policy and max20 shared decoder budget scoped PASS Linux/Windows Foundation7/Lifecycle/N1/N0; real product auto still not in that SHA.",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

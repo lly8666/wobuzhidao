@@ -28,8 +28,8 @@ func TestN2ProtectedPolicyControllerBindingIsExactPerIncarnation(t *testing.T) {
 			InitialParity:20,MinParity:tc.min,MaxParity:20,
 			Cipher:realityfront.CipherChaCha,Quality:1,
 		}
-		if err:=p.SupportedNow();!errors.Is(err,realityfront.ErrAdmissionUnsupported) {
-			t.Fatalf("candidate policy prematurely publicly accepted: %v",err)
+		if err:=p.SupportedNow();err!=nil {
+			t.Fatalf("protected Normal auto policy still unsupported: %v",err)
 		}
 		var nonce [16]byte
 		nonce[0]=tc.seed

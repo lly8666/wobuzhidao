@@ -50,12 +50,50 @@ func TestV3PolicyWireAndFailures(t *testing.T) {
     }
     for _,p:=range cases {if _,err:=marshalAdmissionRequest(v3TestRequest(p));!errors.Is(err,ErrAdmissionParams){t.Fatalf("accepted %#v: %v",p,err)}}
     for _,p:=range []AdmissionPolicy{
-        {Schema:1,Transport:1,DesiredLanes:1,FECMode:FECAuto,InitialParity:20,MinParity:4,MaxParity:20,Cipher:1},
         {Schema:1,Transport:1,DesiredLanes:1,FECMode:FECFixed,FixedParity:4,Cipher:CipherAES128},
         {Schema:1,Transport:1,DesiredLanes:1,FECMode:FECFixed,FixedParity:4,Cipher:CipherAES256},
-        {Schema:1,Transport:1,DesiredLanes:1,FECMode:FECFixed,FixedParity:4,Cipher:1,Quality:1},
     } {if err:=p.SupportedNow();!errors.Is(err,ErrAdmissionUnsupported){t.Fatalf("advertised unsupported %#v: %v",p,err)}}
 }
+func TestN2AutoProductionSupportedOnlyForNormalChaChaQuality(t *testing.T) {
+	for _,mode:=range []string{"auto","auto-aggressive"} {
+		for _,min:=range []int{0,4,8,10,12,16,20} {
+			p,err:=PolicyForClient(1,mode,0,min)
+			if err!=nil||p.EffectiveParity()!=20||p.Quality!=1 {
+				t.Fatalf("protected Normal policy %s/%d: %+v %v",mode,min,p,err)
+			}
+			if err:=p.SupportedNow();err!=nil {t.Fatal(err)}
+			for _,cipher:=range []uint8{CipherAES128,CipherAES256} {
+				bad:=p;bad.Cipher=cipher
+				if err:=bad.SupportedNow();!errors.Is(err,ErrAdmissionUnsupported) {
+					t.Fatalf("N3 cipher prematurely admitted %+v %v",bad,err)
+				}
+			}
+			bad:=p;bad.Quality=0
+			if err:=bad.SupportedNow();!errors.Is(err,ErrAdmissionUnsupported) {
+				t.Fatalf("auto without N1 feedback admitted: %v",err)
+			}
+		}
+	}
+	for _,c:=range []struct{lanes,parity,min int;mode string}{
+		{4,0,4,"auto"},{2,0,4,"auto-aggressive"},
+		{1,4,4,"auto"},{1,20,4,"auto-aggressive"},
+		{1,0,3,"auto"},{1,0,-1,"auto"},
+		{1,0,4,"garbage"},{1,0,4,"fixed"},
+	} {
+		if _,err:=PolicyForClient(c.lanes,c.mode,c.parity,c.min);err==nil {
+			t.Fatalf("invalid combination accepted: %+v",c)
+		}
+	}
+	for _,parity:=range []int{0,4,20} {
+		old,err:=FixedPolicyForClient(1,parity)
+		if err!=nil {t.Fatal(err)}
+		legacy,err:=PolicyForClient(1,"legacy",parity,4)
+		if err!=nil||legacy!=old {
+			t.Fatalf("old fec-parity silently changed semantics: %+v %+v %v",old,legacy,err)
+		}
+	}
+}
+
 func TestV3ProtectedFixedAdmissionKeys(t *testing.T) {
     cert:=makeServerCert(t)
     routeKey:=[]byte("0123456789abcdef0123456789abcdef")

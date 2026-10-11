@@ -892,6 +892,13 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
             laneState.close()
             return logicaltunnel.LaneRef{}, err
         }
+        if session.Negotiated.Policy.FECMode==realityfront.FECAuto ||
+            session.Negotiated.Policy.FECMode==realityfront.FECAggressive {
+            if err:=c.rt.ConfigureN2ProtectedPolicy(snapshot.Ref,session.Negotiated);err!=nil {
+                laneState.close()
+                return logicaltunnel.LaneRef{},err
+            }
+        }
     }
 	c.mu.Lock()
 	laneState.ref = snapshot.Ref
@@ -1701,6 +1708,13 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
         if err := group.rt.ConfigureQualityV3(snapshot.Ref, result.Admission.Negotiated.IncarnationNonce); err != nil {
             s.dropAdmission(flow)
             return
+        }
+        if result.Admission.Negotiated.Policy.FECMode==realityfront.FECAuto ||
+            result.Admission.Negotiated.Policy.FECMode==realityfront.FECAggressive {
+            if err:=group.rt.ConfigureN2ProtectedPolicy(snapshot.Ref,result.Admission.Negotiated);err!=nil {
+                s.dropAdmission(flow)
+                return
+            }
         }
     }
 	// Admission is serialized by admitMu until policy publication. Identity,

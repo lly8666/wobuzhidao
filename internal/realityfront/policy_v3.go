@@ -82,14 +82,24 @@ func decodePolicyV3(b []byte) (AdmissionPolicy,error) {
 // Do not advertise until the corresponding data plane stage is implemented.
 func (p AdmissionPolicy) SupportedNow() error {
     if err:=p.Validate();err!=nil { return err }
-    if p.Cipher!=CipherChaCha || p.Quality!=0 ||
-       (p.FECMode!=FECOff && p.FECMode!=FECFixed) {
+    if p.Cipher!=CipherChaCha {
+        return ErrAdmissionUnsupported // AES is only released after N3
+    }
+    // N2 requires authenticated low-frequency feedback for its own TX
+    // direction. Fixed/off can continue to collect quality for GUI later,
+    // but never construct an automatic controller.
+    if (p.FECMode==FECAuto || p.FECMode==FECAggressive) && p.Quality!=1 {
         return ErrAdmissionUnsupported
     }
     return nil
 }
 func (p AdmissionPolicy) EffectiveParity() int {
     if p.FECMode==FECFixed { return int(p.FixedParity) }
+    if p.FECMode==FECAuto || p.FECMode==FECAggressive {
+        // Reserve the immutable max20 MTU/MSS envelope even when the
+        // selected sending profile has later stepped down to off.
+        return int(p.InitialParity)
+    }
     return 0
 }
 
@@ -109,4 +119,35 @@ func FixedPolicyForClient(desiredLanes, parity int) (AdmissionPolicy, error) {
     }
     if err := p.SupportedNow(); err != nil { return AdmissionPolicy{}, err }
     return p,nil
+}
+
+// PolicyForClient keeps all existing empty-mode configurations pinned to
+// their historical explicit fixed/off fec-parity semantics. Auto requires
+// an explicit Normal-only choice; it does not infer mode from parity=20.
+func PolicyForClient(lanes int, mode string, parity, minimum int) (AdmissionPolicy,error) {
+	if mode=="" || mode=="legacy" {
+		if minimum!=4 {return AdmissionPolicy{},ErrAdmissionParams}
+		return FixedPolicyForClient(lanes,parity)
+	}
+	switch mode {
+	case "fixed":
+		if parity==0 || minimum!=4 {return AdmissionPolicy{},ErrAdmissionParams}
+		return FixedPolicyForClient(lanes,parity)
+	case "off":
+		if parity!=0 || minimum!=4 {return AdmissionPolicy{},ErrAdmissionParams}
+		return FixedPolicyForClient(lanes,0)
+	case "auto","auto-aggressive":
+		if lanes!=1 || parity!=0 {return AdmissionPolicy{},ErrAdmissionParams}
+		p:=AdmissionPolicy{
+			Schema:PolicySchemaV3,Transport:TransportNormal,DesiredLanes:1,
+			FECMode:FECAuto,InitialParity:20,MinParity:uint8(minimum),
+			MaxParity:20,Cipher:CipherChaCha,Quality:1,
+		}
+		if mode=="auto-aggressive" {p.FECMode=FECAggressive}
+		if minimum<0 || minimum>20 {return AdmissionPolicy{},ErrAdmissionParams}
+		if err:=p.SupportedNow();err!=nil {return AdmissionPolicy{},err}
+		return p,nil
+	default:
+		return AdmissionPolicy{},ErrAdmissionParams
+	}
 }

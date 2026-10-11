@@ -116,6 +116,7 @@ func ClientLaneConfigFromAdmission(session *realityfront.ClientAdmissionSession,
 		ServerRecordLimit: int(n.ServerLimit),
 		Keys:              n.Keys,
 		ParityShards:      params.ParityShards,
+		N2Policy:          n2AdmittedAutoPolicy(n),
 		FlushAfter:        params.FlushAfter,
 		MaxBlocks:         params.MaxBlocks,
 		TxMTU:             tx,
@@ -209,6 +210,7 @@ func ServerLaneConfigFromAdmission(session *realityfront.ServerAdmissionSession,
 		ServerRecordLimit: int(n.ServerLimit),
 		Keys:              n.Keys,
 		ParityShards:      params.ParityShards,
+		N2Policy:          n2AdmittedAutoPolicy(n),
 		FlushAfter:        params.FlushAfter,
 		MaxBlocks:         params.MaxBlocks,
 		TxMTU:             tx,
@@ -240,4 +242,15 @@ func (l *Lane) InboundTransition(packets []faketcp.TransitionPacket, now time.Ti
 		out.PathErrors = append(out.PathErrors, item.PathErrors...)
 	}
 	return out, nil
+}
+
+// Immutable, authenticated V3 policy is only attached to a Normal adaptive
+// lane; fixed/off (including all historic configurations) remain zero.
+func n2AdmittedAutoPolicy(n realityfront.AdmissionResult) realityfront.AdmissionPolicy {
+	if n.RecordVersion==realityfront.RecordVersionV3 &&
+		(n.Policy.FECMode==realityfront.FECAuto ||
+		 n.Policy.FECMode==realityfront.FECAggressive) {
+		return n.Policy
+	}
+	return realityfront.AdmissionPolicy{}
 }

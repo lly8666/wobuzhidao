@@ -1,3 +1,9 @@
+## N2 Normal 自动档参数（新生产接线候选，Actions 待验）
+
+Linux/Windows 客户端 `--fec-mode` 默认 `legacy`，完全保留旧配置的 `--fec-parity` 固定档或 off 语义；显式可用 `fixed`、`off`、`auto`、`auto-aggressive`，其中 auto 仅 Normal 单 lane，可设 `--fec-min-parity=0/4/8/10/12/16/20`（默认4）。自动初始/最高档固定20:20，最低 off 必须显式选择0；`--fec-parity` 在 auto 时须为默认0，不能当作同时生效的固定档。Game2..4 自动模式严格拒绝。相同扁平键支持 `--config` JSON；CLI 显式参数覆盖 JSON；新旧固定配置不会静默迁移。
+
+各 Tunnel 的受保护 V3 admission 一次绑定实际 FEC 策略与 ChaCha；自动档需 quality=1，server 每客户独立发送控制器/封装预算。上下行只消费各自的成熟、来源对应的首发损伤保守区间；未知不视为0%。客户端 auto 的 TUN MTU/record/MSS 预算始终按最大20:20，绝不因当前 off 改动；server 共享 TUN 的原最大FEC预算保持稳定。N3 AES 未开放，Linux/Windows GUI新配置选择/指标显示属后续N5，Windows 原生 Wintun/CPU/p99/perf 资格不得由此推断。此候选需新 SOURCE Actions 才能宣告定向PASS。
+
 # 参数与配置：所有 agent 的必读入口
 
 > 本优化分支当前：继承68cd1a4/c480cce自动record cap与按配置派生TUN MTU；FEC20:20、普通外层头下outer1400名义inner1273，实际预算仍受方向record cap/peer MSS限制。下文带日期的9000固定TUN描述属于旧源码历史，不是当前默认；合法单IPv4上限9000与大UDP兼容保留。真实压力资格NOT_RUN，统一参数实值以PARAMETERS.json及程序check-config为准。

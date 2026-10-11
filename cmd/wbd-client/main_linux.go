@@ -67,6 +67,8 @@ func runLinuxClient() error {
 		mtu                = flag.Int("mtu", 1500, "connection MTU")
 		tlsStartupPadding  = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
 		fecParity          = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
+		fecMode            = flag.String("fec-mode", "legacy", "FEC: legacy (existing fixed/off), fixed, off, auto, auto-aggressive; auto Normal only")
+		fecMinParity       = flag.Int("fec-min-parity", 4, "Normal auto minimum parity: 0=off or 4,8,10,12,16,20")
 		tproxyPort         = flag.Uint("tproxy-port", 12345, "transparent TCP/UDP capture port")
 		mark               = flag.Uint("mark", 0x42, "TPROXY fwmark")
 		table              = flag.Uint("route-table", 1066, "TPROXY policy route table")
@@ -111,9 +113,12 @@ func runLinuxClient() error {
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
 		return err
 	}
-	requestedPolicy, err := realityfront.FixedPolicyForClient(*lanes, *fecParity)
+	requestedPolicy, err := realityfront.PolicyForClient(*lanes, *fecMode, *fecParity, *fecMinParity)
 	if err != nil { return err }
-	fecFlushAfter, fecMaxBlocks, err := datapath.FixedFECRuntimeDefaults(*fecParity)
+	// Use one maximum permitted profile for BOTH directions' record budget.
+	// An auto lane may later run off; it never changes the TUN or peer MSS.
+	fecBudgetParity:=requestedPolicy.EffectiveParity()
+	fecFlushAfter, fecMaxBlocks, err := datapath.FixedFECRuntimeDefaults(fecBudgetParity)
 	if err != nil {
 		return err
 	}
@@ -292,7 +297,7 @@ func runLinuxClient() error {
 			ConnectionMTU:   *mtu,
 			TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 			RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
-			ParityShards: *fecParity, FlushAfter: fecFlushAfter, MaxBlocks: fecMaxBlocks,
+			ParityShards: fecBudgetParity, FlushAfter: fecFlushAfter, MaxBlocks: fecMaxBlocks,
 		},
 		Deliver: func(packets [][]byte, now time.Time) error {
 			if adapter == nil {

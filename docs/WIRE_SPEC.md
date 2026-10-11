@@ -1,3 +1,5 @@
+> **N2生产接线候选（2026-10-11，Actions待验）**：受保护 V3 能力块保持原固定 10B，Normal auto/aggressive 使用 mode=2/3、initial=max=20、min=0/4/8/10/12/16/20、cipher=ChaCha(1)、quality=1。客户端/服务端真实 admission policy 完全一致且在两向第一包前创建一条共享decoder/各自 local-TX 控制器；旧 fixed/off 语义不改变，Game auto、AES128/256 在 N3 前拒绝。动态档位不入KDF/业务包，也不改 MTU/PN/BlockID；每次旧 partial 仍独立32ms、3s 回收。**本段为候选源码说明，未跑新 SOURCE Actions/负载不得计PASS**。下方原“仅fixed/off”的阶段性说明为演进历史，唯一现状看 STATUS。
+
 # 当前 N1 wire / 资格状态（2026-10-11）
 
 104B已认证Quality Health报告和128B已认证关联Echo在N0受保护admission V3下已接线，e5638253产品SOURCE的180PN/2s持续业务定向race、lifecycle、Linux/Windows foundation、三客户端Linux realpath功能已PASS；Normal/off/lossless每方向10Mbps严格同夹具基线/候选单样本PASS_SCREEN。**另有640PN/2s高周转与可解释的成功成熟Echo计数是后续候选，Actions待验。** 下方保留“RESERVED/not yet live/Actions pending”的早期段落是历史进化阶段，**不是当前产品状态**。N1仍缺原生真实5205、独立1%/5%、20:20/Game及反馈失效/轮换的完整验收，N2未开启。

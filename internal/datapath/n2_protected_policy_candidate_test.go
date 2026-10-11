@@ -27,8 +27,8 @@ func TestN2ProtectedPerClientPolicyCandidatePreservesWireBudgetAndLateMixedDeliv
 		{realityfront.FECAggressive,4,adaptivefec.Aggressive},
 	} {
 		policy:=n2V3CandidatePolicy(tc.mode,tc.min)
-		if err:=policy.SupportedNow();!errors.Is(err,realityfront.ErrAdmissionUnsupported) {
-			t.Fatalf("unqualified auto inadvertently advertised %v",err)
+		if err:=policy.SupportedNow();err!=nil {
+			t.Fatalf("fully wired Normal auto admission rejected %v",err)
 		}
 		var nonce [16]byte
 		nonce[0]=tc.mode
@@ -51,6 +51,22 @@ func TestN2ProtectedPerClientPolicyCandidatePreservesWireBudgetAndLateMixedDeliv
 		if err!=nil{t.Fatal(err)}
 		paramsC:=ClientLaneParams{ConnectionMTU:1500,PeerMSS:1400,PeerMSSSet:true}
 		paramsS:=ServerLaneParams{ConnectionMTU:1500}
+		// The official authenticated V3 handoff must now select this exact
+		// client's policy without using a fixed20 shadow or a test-only path.
+		directC,err:=ClientLaneConfigFromAdmission(cl,paramsC)
+		if err!=nil || directC.N2Policy!=policy || directC.ParityShards!=20 {
+			t.Fatalf("official client admission skipped auto source budget %+v %v",directC,err)
+		}
+		probeC,err:=NewLane(directC)
+		if err!=nil {t.Fatal(err)}
+		probeC.Close()
+		directS,err:=ServerLaneConfigFromAdmission(sl,assoc,paramsS)
+		if err!=nil || directS.N2Policy!=policy || directS.ParityShards!=20 {
+			t.Fatalf("official server admission skipped auto source budget %+v %v",directS,err)
+		}
+		probeS,err:=NewLane(directS)
+		if err!=nil {t.Fatal(err)}
+		probeS.Close()
 		client,cc,err:=N2ClientLaneFromProtectedPolicyForTests(cl,paramsC)
 		if err!=nil{assoc.Close();t.Fatal(err)}
 		server,sc,err:=N2ServerLaneFromProtectedPolicyForTests(sl,assoc,paramsS)

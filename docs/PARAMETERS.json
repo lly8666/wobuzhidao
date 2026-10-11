@@ -86,6 +86,20 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
+      "fec-min-parity": {
+        "type": "Int",
+        "default_expression": "4",
+        "help": "Normal auto minimum parity: 0=off or 4,8,10,12,16,20",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "fec-mode": {
+        "type": "String",
+        "default_expression": "\"legacy\"",
+        "help": "FEC: legacy (existing fixed/off), fixed, off, auto, auto-aggressive; auto Normal only",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "fec-parity": {
         "type": "Int",
         "default_expression": "0",
@@ -400,6 +414,20 @@
         "type": "String",
         "default_expression": "\"1.1.1.1,8.8.8.8\"",
         "help": "primary,backup IPv4 DNS; Windows resolver performs failover",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "fec-min-parity": {
+        "type": "Int",
+        "default_expression": "4",
+        "help": "Normal auto minimum parity: 0=off or 4,8,10,12,16,20",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "fec-mode": {
+        "type": "String",
+        "default_expression": "\"legacy\"",
+        "help": "FEC: legacy (existing fixed/off), fixed, off, auto, auto-aggressive; auto Normal only",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },

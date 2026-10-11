@@ -7,12 +7,12 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 )
 
-// ConfigureN2ProtectedPolicyForTests binds only the EXACT authenticated
-// policy already saved on the active Normal AEAD Lane to its local-TX
-// first-attempt controller. Must occur after ConfigureQualityV3 with the
-// SAME protected incarnation nonce. No product entrypoint calls this, and
-// SupportedNow still refuses auto/aggressive on the wire.
-func (r *Runtime) ConfigureN2ProtectedPolicyForTests(
+// ConfigureN2ProtectedPolicy binds only the EXACT once-authenticated V3
+// Normal auto/aggressive policy stored on the ACTIVE AEAD Lane to this
+// incarnation's LOCAL TX first-attempt controller. It runs after protected
+// ConfigureQualityV3, before the lane is published for normal business;
+// other client/other nonce/other generation or Game fails closed.
+func (r *Runtime) ConfigureN2ProtectedPolicy(
 	ref logicaltunnel.LaneRef,accepted realityfront.AdmissionResult,
 ) error {
 	if r==nil{return ErrRuntimeClosed}
@@ -45,3 +45,9 @@ func (r *Runtime) ConfigureN2ProtectedPolicyForTests(
 	t.quality.n2=controller
 	return nil
 }
+
+// ConfigureN2ProtectedPolicyForTests keeps the existing directed regression
+// entrypoint as a compatibility alias, never a separate validation path.
+func (r *Runtime) ConfigureN2ProtectedPolicyForTests(
+	ref logicaltunnel.LaneRef, accepted realityfront.AdmissionResult,
+) error {return r.ConfigureN2ProtectedPolicy(ref,accepted)}
