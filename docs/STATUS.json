@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C10_REAL_240S_900_BOUNDARY_GE_SCOPED_BUSINESS_PASS_P99_1_8_TO_1_95S_OPEN_N2_OPEN",
+    "phase": "N2_CURRENT_SOURCE_NOHOL_RELEASE_GATE_BEFORE_GUI_CONFIG",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1990,10 +1990,26 @@
           "latency_tail": "OPEN"
         }
       }
+    },
+    "n2_nohol_release": {
+      "status": "GITHUB_RECHECK_NEW_WORKFLOW_CANDIDATE_NOT_YET_EXECUTED",
+      "workflow": ".github/workflows/next-adaptive-n2-nohol-release-gate.yml",
+      "scope": "Existing authenticated concurrent noHOL Go test cases on current product SOURCE with race, no real mixed TCP/UDP 10ms performance and no physical",
+      "tests": [
+        "RuntimeNormalNoHOLRepairReplacementAndGenerationFence",
+        "ACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK",
+        "SteadyRepairReserveBoundedWithoutFreshHOL",
+        "N2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock",
+        "CrossInnerMTUTinyTailFECRecoveryDoesNotHOLSmallDatagram",
+        "DecoderNoHOLAndMultiRecord"
+      ],
+      "results": "PENDING_GITHUB_ACTIONS",
+      "old_nohol_reference": "2026-10-08 Actions noHOL acceptance scoped; newer N2 source requires independent rerun",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "C10 true GE 240s Action38250711104/source96e6bc2/artifact11747679974 has scoped functional firstunique PASS but severe delivered business oneway p99 C2S1833/S2C1947.5ms and probe RTT p99 2441ms, max returned3405ms, 6 missing; fail to certify low latency. Read-only existing artifact 10ms bucket audit: in 1..239s active continuous 10Mbps UDP, each direction all 23800 10ms aggregate buckets had some unique delivery; this is NOT independent TCP/UDP multi-flow HOL proof and doesn't eliminate huge tail. NEXT bounded one dedicated GitHub Action with identity-separated small TCP+UDP concurrent 10ms first arrivals on 15ms/300ms underlay (choose ONE exact case), correct source/backpressure/ISA/quota monitoring, then 1Mbps sparse/idle/rotation and Game guard as needed; preserve frozen C04 S2C78.3% and C05 S2C10%70% efficiency failures. Do not indefinitely overfit C10/GE single seed; after explicit bounded N2 residual list proceed N3 AES, then N4 Windows TUN, N5 GUI, N6 packaging, all through GitHub Actions. N2 OPEN physical NOT_RUN, historical probe2.73s/80s S2C OPEN; no deploy/qualification ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-c10-posthoc-10ms-continuity-versus-long-tail.md",
+  "next_task": "NEW USER PRIORITY: verify noHOL on current N2 branch through separate GitHub exact-SOURCE focused Go runtimeowner/linkdata/tlsrecord six tests plus race (0 performance jobs); preserve noHOL label SCOPED_GITHUB_UNIT_ONLY, independent multi-TCP/UDP 10ms realpath STILL NOT_RUN unless additional single config Action. Once current noHOL gate passes, wire currently implemented FEC mode legacy/fixed/off/auto/auto-aggressive, min parity 0/4/8/10/12/16/20, start parity 0/20 into docs/PARAMETERS.json-aligned windows/gui/fields.json and GUI Transport tab, keep legacy fixed FEC presets and Game auto invalid. Include lightweight GUI status RTT/estimated line loss/actual FEC with unknown not zero, avoid heavyweight diagnostic file and public ports; only after native GH Windows UI/API acceptance qualify config/GUI. N3 AES remains UNSUPPORTED until implemented, do not advertise. Follow N4 Windows TUN split and N6 packages. N2 overall OPEN due C04 S2C recover5 78.3pct FAIL, C05 S2C10pct 70pct FAIL, C10 GE business p99 1.83-1.95s and probe RTT p99 2.441s, legacy2.73s/80s OPEN. physical NOT_RUN, no deployment, qualification ref or merge.",
+  "latest_log": "docs/devlog/20261012-n2-nohol-source-gate-before-config-gui.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",

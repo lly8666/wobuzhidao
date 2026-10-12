@@ -1,0 +1,68 @@
+name: next-adaptive-n2-nohol-release-gate
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n2-nohol-release-gate.yml"
+      - "internal/runtimeowner/**"
+      - "internal/linkdata/**"
+      - "internal/tlsrecord/**"
+permissions:
+  contents: read
+jobs:
+  current-source-concurrent-nohol-functional-and-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Pin exact source and repository checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          echo "NOHOL_RELEASE_GATE_SOURCE=$GITHUB_SHA"
+      - name: Authenticated N2 policy and independent record delivery targeted tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -count=1 -v ./internal/runtimeowner -run '^Test(RuntimeNormalNoHOLRepairReplacementAndGenerationFence|ACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK|SteadyRepairReserveBoundedWithoutFreshHOL|N2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock)$'
+          go test -count=1 -v ./internal/linkdata -run '^TestCrossInnerMTUTinyTailFECRecoveryDoesNotHOLSmallDatagram$'
+          go test -count=1 -v ./internal/tlsrecord -run '^TestDecoderNoHOLAndMultiRecord$'
+      - name: Current SHA concurrency race plus real link and record loops
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race -count=1 ./internal/runtimeowner ./internal/linkdata ./internal/tlsrecord ./internal/adaptivefec ./internal/datapath
+      - name: Source receipt scoped noHOL qualification only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/n2-nohol-gate
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          out={"schema":1,"source_sha":os.environ["GITHUB_SHA"],"run_id":os.environ["GITHUB_RUN_ID"],
+            "scope":"N2_UNIT_CONCURRENT_NOHOL_CURRENT_SOURCE_GITHUB_ACTIONS",
+            "targeted_tests":["RuntimeNormalNoHOLRepairReplacementAndGenerationFence","ACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK",
+             "SteadyRepairReserveBoundedWithoutFreshHOL","N2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock",
+             "CrossInnerMTUTinyTailFECRecoveryDoesNotHOLSmallDatagram","DecoderNoHOLAndMultiRecord"],
+            "real_network_mixed_TCP_UDP_10ms":"NOT_RUN",
+            "performance_jobs":0,"hardware_windows_TUN":"NOT_RUN",
+            "not_full_N2":True}
+          Path("artifacts/n2-nohol-gate/receipt.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n2-nohol-current-source-${{ github.sha }}
+          path: artifacts/n2-nohol-gate/
+          if-no-files-found: warn

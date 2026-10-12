@@ -1,0 +1,9 @@
+# 2026-10-12 用户优先级调整：当前SOURCE先复验无HOL，随后配置与Windows GUI，之后N3–N6
+
+用户要求主要功能有限验证无HOL后不再无限等待曲线重跑：落实Normal自动FEC到配置文件和Win GUI合适的传输位置，显示质量（RTT/线路丢包估计/当前实际TX FEC）并按GitHub Actions阶段开发流程继续收口下一阶段。历史2026-10-08本项目已有经GitHub Actions接受的六类无HOL/乱序/ACK阻塞/fragment小包不受大包尾碎片等Go回归，旧SOURCE b4ea061验过不能假冒当前N2源；C10真实时驱GE累计10Mbps每向第1–239秒23800个10ms聚合桶非空也只证明持续UDP流，不证明多独立TCP/UDP无跨HOL，而且该单场景p99 1833/1947.5ms和probe长尾仍OPEN。短期先再跑当前SOURCE targeted noHOL/race门，并明确该范围和多TCP+UDP真实10ms独立工况的缺口。
+
+新增 `.github/workflows/next-adaptive-n2-nohol-release-gate.yml`，只在当前工作分支workflow/具体三个组件有变动时触发，ubuntu24.04 Go1.23.12，精确SOURCE，repo/perf政策，然后六个明确有意义的现有Go回归：`TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence`、`TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK`、`TestSteadyRepairReserveBoundedWithoutFreshHOL`、`TestN2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock`、`TestCrossInnerMTUTinyTailFECRecoveryDoesNotHOLSmallDatagram`、`TestDecoderNoHOLAndMultiRecord`，再覆盖runtimeowner/linkdata/tlsrecord/adaptivefec/datapath的Linux `go test -race -count=1`。本workflow**无真实网络perf job，不能称量化混合多流p99/低RTT严格门、不能标N2全PASS**；若这些基本无HOL回归红则先按原样保留FAIL、定点修复，不马上UI揭露模式。
+
+GUI是真WinForms .NET Framework4.8中文便携前端，现有`windows/gui/fields.json`对docs/PARAMETERS.json要求**精确全字段一致**，Go CLI已经有`fec-mode` legacy/fixed/off/auto/auto-aggressive,`fec-min-parity`默认4,`fec-start-parity`默认20，而GUI仍缺三项导致当前新SOURCE生成GUI包字段清单不匹配。这次明确下一改动在GUI传输页本来FEC fixed参数旁放Auto模式/最小保护/起步R20或特别off起步R0，off需min0且仅Normal ordinary auto，不可让Game2–4默许auto，参数原值默认legacy保护旧文件。3种AES cipher并未实现N3，GUI不提前给可选假功能。质量显示按N5界限：最多2秒轻量实际可信状态、有UNKNOWN必须写未知、断开清空、不记录密码/认证/正文、无需开诊断JSONL也不能另建公开接口；正式轻量输出与GUI消费都需要独立GH单元/native UI验收，若尚不能可靠提供单向质量则宁可显示未知而非0。旧Windows GUI工作流默认仅旧分支next/tlslike-dataplane，需新增限本分支native Windows GUI功能Job并据真实结果宣告。
+
+项目整体仍N2 OPEN，C04恢复5% S2C78.3%目标90 FAIL、C05高10% S2C70% FAIL、C10真实GE firstunique scoped PASS但1.8–1.95秒尾延迟未解决，历史2.73s晚探针和80s S2C未定因。N3 AES、N4 Windows TUN内部直连分流、N5 GUI状态完善与N6产品打包须顺序经Actions；physical NOT_RUN，禁止部署用户机/移动资格ref/合主线。
