@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_B_AES128_AES256_V3_LANE_FULL_GO_UNIT_RACE_CROSS_BUILD_SCOPED_PASS_ADMISSION_NEXT",
+    "phase": "N3_C_AES_AUTHENTICATED_PROTECTED_V3_ADMISSION_AND_FEC_HANDOFF_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2157,10 +2157,27 @@
       "artifact_id": 11755365344,
       "artifact_zip_sha256": "2003716398099bea2a7ea23df2191b42151d73dca23c9b54b4a860c2bd95b7bd",
       "action_status": "SUCCESS"
+    },
+    "n3_aes_admission": {
+      "status": "PREDECLARED_ACTUAL_TLS_PROTECTED_AES_ADMISSION_AND_N2_AUTO_AES_HANDOFF_PENDING_GITHUB_UNIT_RACE",
+      "workflow": ".github/workflows/next-adaptive-n3-aes-protected-admission-gate.yml",
+      "supported_suites": [
+        "V3 ChaCha",
+        "V3 AES128-GCM",
+        "V3 AES256-GCM"
+      ],
+      "default_cipher": "ChaCha unchanged",
+      "source_config_legacy": "still ChaCha by default, explicit V3 suite opt-in only",
+      "coverage": "real TLS-protected client/server AES128+256 exporter matching and directional C2S/S2C; mismatch/downgrade reject; fixed/off/auto/auto-aggressive both first datagrams with authentic policy and FEC",
+      "public_Aes_CLI": "NOT_CONFIGURABLE_YET",
+      "GUI_Aes": "NOT_ADVERTISED",
+      "real_network": "NOT_RUN",
+      "single_source_unit_race": true,
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "N3-B AES lane exact SOURCEf067abcc9d283f6fb67c613c9008bc935e6330b7 Action38266249189 job114869041048 artifact11755365344 ZIP SHA200371639 SUCCESS: actual N3 cipher suite V3 lane C2S/S2C first delivery tests parity0/4/20, bad/unmarked version rejects, old V2 unchanged; full datapath/record/realityfront/runtimeowner/linkdata Go unit/race/vet and Windows client/Linux ARM64 server compile. NEXT N3-C independently prove authenticated public Admission policy AES128/AES256, authenticated C2S/S2C key derivation, reject wrong suite/reply, AES auto/fixed/off, no TLS decoy alignment false claims, narrow Go unit/race; then real AES128 and AES256 separate one SOURCE/config/scenario/perf jobs, after verified open CLI config and Windows GUI cipher in Transport with docs and native screenshot. Keep GUI N2 Transport 258 PASS, N2 noHOL scoped; C04/C05 grade FAIL GE p99 OPEN; physical NOT_RUN no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n3-aes-v3-lane-selectors-actions-scoped-pass.md",
+  "next_task": "N3-B AES V3 record suite lane per direction sourcef067abc Action38266249189 job114869041048 artifact11755365344 ZIP2003716 PASS. Next N3-C candidate source tests via same GitHub SOURCE: remove AES SupportedNow artificial rejection ONLY after actual V3 authenticated lane wiring, new explicit PolicyForClientWithInitialAndCipher for AES suite, N2PreparedPolicyForTests allows AES auto while preserving N1 quality guard and any invalid suite fail, protected actual TLS peer admission AES128 and AES256 independent exporter match, wrong protected reply suite/downgrade rejected, handoff actual AES fixed/off/auto/auto-aggressive and C2S/S2C. Run GitHub action unit/race/cross-build; if failures preserve evidence, no misleading AES release. Then separately run one AES128 and another AES256 true five-netns protected performance Action, then expose CLI/config/Windows GUI Transport cipher option/native screenshot, then N4 Windows TUN N6 packages. N2 noHOL unit scoped and GUI 258 native pass, C04/C05 grade efficiencies and GE p99 remain OPEN, physical NOT_RUN no deploy/qualification ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n3-aes-protected-admission-handoff-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",

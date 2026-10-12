@@ -52,9 +52,9 @@ func TestV3PolicyWireAndFailures(t *testing.T) {
     for _,p:=range []AdmissionPolicy{
         {Schema:1,Transport:1,DesiredLanes:1,FECMode:FECFixed,FixedParity:4,Cipher:CipherAES128},
         {Schema:1,Transport:1,DesiredLanes:1,FECMode:FECFixed,FixedParity:4,Cipher:CipherAES256},
-    } {if err:=p.SupportedNow();!errors.Is(err,ErrAdmissionUnsupported){t.Fatalf("advertised unsupported %#v: %v",p,err)}}
+    } {if err:=p.SupportedNow();err!=nil{t.Fatalf("rejected N3 wired suite %#v: %v",p,err)}}
 }
-func TestN2AutoProductionSupportedOnlyForNormalChaChaQuality(t *testing.T) {
+func TestN2AutoProductionSupportedOnlyForNormalQuality(t *testing.T) {
 	for _,mode:=range []string{"auto","auto-aggressive"} {
 		for _,min:=range []int{0,4,8,10,12,16,20} {
 			p,err:=PolicyForClient(1,mode,0,min)
@@ -64,8 +64,8 @@ func TestN2AutoProductionSupportedOnlyForNormalChaChaQuality(t *testing.T) {
 			if err:=p.SupportedNow();err!=nil {t.Fatal(err)}
 			for _,cipher:=range []uint8{CipherAES128,CipherAES256} {
 				bad:=p;bad.Cipher=cipher
-				if err:=bad.SupportedNow();!errors.Is(err,ErrAdmissionUnsupported) {
-					t.Fatalf("N3 cipher prematurely admitted %+v %v",bad,err)
+				if err:=bad.SupportedNow();err!=nil {
+					t.Fatalf("N3 V3 protected auto suite rejected %+v %v",bad,err)
 				}
 			}
 			bad:=p;bad.Quality=0

@@ -15,8 +15,7 @@ func N2PreparedPolicyForTests(policy realityfront.AdmissionPolicy) (adaptivefec.
 	if policy.Validate()!=nil || policy.Schema!=realityfront.PolicySchemaV3 ||
 		policy.Transport!=realityfront.TransportNormal ||
 		policy.DesiredLanes!=1 || policy.Quality!=1 ||
-		policy.Cipher!=realityfront.CipherChaCha ||
-		(policy.FECMode!=realityfront.FECAuto &&
+				(policy.FECMode!=realityfront.FECAuto &&
 			policy.FECMode!=realityfront.FECAggressive) {
 		return adaptivefec.Config{},ErrAdmissionHandoff
 	}

@@ -85,9 +85,8 @@ func decodePolicyV3(b []byte) (AdmissionPolicy,error) {
 // Do not advertise until the corresponding data plane stage is implemented.
 func (p AdmissionPolicy) SupportedNow() error {
     if err:=p.Validate();err!=nil { return err }
-    if p.Cipher!=CipherChaCha {
-        return ErrAdmissionUnsupported // AES is only released after N3
-    }
+    // N3 record suite is now bound to the same authenticated V3 policy
+    // on both TX/RX lanes. No unauthenticated transport flag selects AES.
     // N2 requires authenticated low-frequency feedback for its own TX
     // direction. Fixed/off can continue to collect quality for GUI later,
     // but never construct an automatic controller.
@@ -165,4 +164,17 @@ func PolicyForClientWithInitial(lanes int, mode string, parity, minimum, initial
 	default:
 		return AdmissionPolicy{},ErrAdmissionParams
 	}
+}
+
+// PolicyForClientWithInitialAndCipher is the explicit V3 suite opt-in.
+// Existing config defaults remain byte-for-byte ChaCha and legacy mode never
+// silently upgrades its cipher. A validated Cipher 1/2/3 is carried in the
+// ten-byte authenticated admission policy and suite-separated HKDF context.
+func PolicyForClientWithInitialAndCipher(lanes int, mode string, parity, minimum, initial int, suite uint8) (AdmissionPolicy,error) {
+    if (mode=="" || mode=="legacy") && suite!=CipherChaCha { return AdmissionPolicy{},ErrAdmissionParams }
+    p,err:=PolicyForClientWithInitial(lanes,mode,parity,minimum,initial)
+    if err!=nil { return AdmissionPolicy{},err }
+    p.Cipher=suite
+    if err:=p.SupportedNow();err!=nil { return AdmissionPolicy{},err }
+    return p,nil
 }
