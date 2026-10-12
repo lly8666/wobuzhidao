@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C03_2_TO31_STEADY_SERIAL_FIXED_ORIGIN_CORRECTION_CANDIDATE_CORE_RACE_PENDING",
+    "phase": "N2_C03_LONG_LIVED_SERIAL_CORE_RACE_PASS_SINGLE_REALPATH_RETARGET_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1007,7 +1007,7 @@
       "product_result": "FAIL_BOTH_SIDES_FINAL_CLEAN_0PCT_FIRST_DELIVERY_41S_46S_BLACKOUT_HIGH20_AND_FINAL0_GRADE_SCREENS_OBSERVED_ONLY",
       "hypothesis": "FIXED_RECVSTART_UINT32_SERIAL_HALFSPACE_2_TO31_OVERLIFE_LONG_STREAM_ACCEPTANCE_FAILURE_NEEDS_GO_REGRESSION_AND_REAL_CASE",
       "long_serial_candidate": {
-        "status": "SOURCE_PATCH_AND_TARGETED_UNIT_CREATED_UNTESTED",
+        "status": "CORE_RACE_AND_EXISTING_HARD_GATE_ACTIONS_SUCCESS_NEEDS_NEW_SINGLE_REALPATH_MEASUREMENT",
         "source_code": "internal/runtimeowner/runtime.go",
         "unit_test": "internal/runtimeowner/steady_long_lived_serial_test.go",
         "change": "Moving receive serial floor within 1GiB behind gap-free recvNext, preserving original handshake bound until progression; applied to steady routing predicate and authenticated steady payload admission",
@@ -1017,12 +1017,37 @@
         "validation": "NOT_RUN_IN_ACTIONS_YET",
         "new_performance": "NOT_RUN",
         "original_c03_failure": "docs/evidence/adaptive-n2-c03-780s-delivery-outage-20261012.json",
-        "physical": "NOT_RUN"
+        "physical": "NOT_RUN",
+        "core_source_sha": "74b31fc9f2adea0ecf13f4f0c9f318f06569a69a",
+        "core_run_id": 38212134105,
+        "core_result": "SUCCESS_ALL_ENABLED_JOBS_LINUX_WINDOWS_FULL_GO_UNIT_RACE_LIFECYCLE_N0_SAMEWIRE_N1_CODEC",
+        "other_actions": [
+          38212134040,
+          38212134055,
+          38212134030,
+          38212134071
+        ],
+        "longserial_gate": "tools/adaptive_n2_c03_longserial_gate.py",
+        "longserial_gate_version": "n2-c03-longserial-first-delivery-gate-v1",
+        "longserial_gate_test": "tools/test_adaptive_n2_c03_longserial_gate.py",
+        "performance_workflow": ".github/workflows/next-adaptive-n2-c03-longserial-regression.yml",
+        "predeclared_gate": {
+          "final_120_active_seconds": [
+            660,
+            780
+          ],
+          "max_consecutive_zero_business_seconds": 4,
+          "min_wall_first_unique_over_sent": 0.9,
+          "must_grade_high20_and_final0": true,
+          "business_loss20_allow_nonzero": true,
+          "test_status": "NOT_RUN_AT_COMMIT"
+        },
+        "performance_status": "PENDING_NEW_EXACT_SOURCE_ACTION"
       }
     }
   },
-  "next_task": "Validate minimal generic runtimeowner long-lived serial fix in GitHub next-foundation Go unit/race (especially TestLongLivedReceiveSerialReplayFloorAcrossHalfAndFullRollover and initial admission barrier). If any FAILED retain job, fix before performance. After core/race green, run ONE new SOURCE/config/scenario/job corresponding C03 780s original 2^31 reproduction, no simultaneous other performance job. Report business first arrival/missing/41-46s gaps, raw/queue/CPU, netem, true grade timebands and residual theoretical reference, not just Action green. Preserve old product C03 FAIL and C08 scoped PASS. N2 OPEN; 2.73s off probe/80s downlink OPEN; N3-N6 unfinished, physical NOT_RUN; do not deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-c03-longlived-serial-halfspace-fix-candidate.md",
+  "next_task": "Core SOURCE74b31fc9f2ad GitHub next-foundation38212134105 full Linux/Windows Go unit/race SUCCESS; N0 samewire, N1 codec, multicli, lifecycle Actions success. Dispatch only predeclared C03 780s longserial corrected realpath workflow on new exact SOURCE one config/scenario/measurement job after independent gate mock unit; compare delivery blackout in final clean active [660,780), require no >=5s zero delivery and >=90% wall first unique/sent, high20/final0 true grade, honest missing/p99/CPU/queue. If failure preserve artifacts/status and narrow root, don't rerun blindly; old C03 41/46s FAIL and C08 scoped PASS stay. No parallel performance. N2 OPEN, N3–N6 unfinished, physical NOT_RUN, 2.73s/80s OPEN; no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-c03-longserial-core-pass-one-realpath-retest-dispatch.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "6d6a19abb011c9d4479ca1161d7cf9d8449def11",
   "last_tested_scope": "C03_780S_WAVE_SOURCE6D6A19A_WORKFLOW_SUCCESS_PRODUCT_103705_116514_MISSING_FINAL0_BLACKOUT41_46S_NO_N2_PASS",
