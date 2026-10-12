@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_TUN_PURE_CLASSIFIER_LINUX_WINDOWS_SCOPED_PASS_GENERATION_BOUNDED_FLOW_FRAGMENT_CACHE_CANDIDATE",
+    "phase": "N4_TUN_BOUNDED_FLOW_FRAG_NATIVE_WINDOWS_PASS_DIRECT_DISPATCH_BOUNDARY_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
       "N3_aes": "SCOPED_COMPLETE_GO_STD_AES_GCM_CIPHER_RECORD_ADMISSION_LANE_AND_INDEPENDENT_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_FUNCTIONAL_PASS_WITH_HARD_OPEN_DAMAGE_CPU_WIN_TUN",
-      "N4_windows_tun": "IN_PROGRESS_PURE_IPV4_DESTINATION_DNS_CLASSIFIER_LINUX_RACE_AND_WIN_NATIVE_UNIT_SCOPED_PASS_ACTION38284069629_BOUNDED_GENERATION_FLOW_FRAGMENT_ASSOCIATION_CANDIDATE_NOT_MEASURED_NO_NATIVE_WINTUN_DIRECT_YET",
+      "N4_windows_tun": "IN_PROGRESS_SCOPED_LINUX_GO_RACE_AND_NATIVE_WINDOWS_CLASSIFIER_AND_512_FLOW_256_FRAGMENT_CACHE_PASS_ACTION38284708568_NEXT_DISPATCH_BOUNDARY_PRE_GATE_NO_NATIVE_DIRECT_TCP_UDP_OR_PHYSICAL_WINTUN",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINDOWS2022_WINFORMS_273_REAL_CLIENT_CONFIG_TESTS_AES128_AES256_GUI_TRANSPORT_AND_N2_AUTO_QUALITY_UNKNOWN_SOURCE_EB3D_DRIVERS_NETWORK_NOT_RUN",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2454,22 +2454,45 @@
         "physical": "NOT_RUN"
       },
       "third_candidate": {
-        "status": "BOUNDED_IN_MEMORY_FIVE_TUPLE_AND_GENERATION_FRAGMENT_ASSOCIATION_NOT_YET_GITHUB_TESTED",
-        "files": [
+        "status": "GITHUB_NATIVE_WINDOWS_2022_GO_UNIT_AND_LINUX_RACE_SCOPED_PASS",
+        "source_sha": "05e5ae8e8a16aacf70a9cb1145065b5346859518",
+        "run_id": 38284708568,
+        "linux_job_id": 114930180274,
+        "windows_job_id": 114930180622,
+        "outcome": "SUCCESS_BOTH_JOBs",
+        "verified_files": [
           "internal/windowsclient/tun_classifier_flow.go",
           "internal/windowsclient/tun_classifier_flow_test.go"
         ],
+        "scope": "Bounded 512 generation+interface-scoped five-tuple decisions with 120s TTL, 256 3s fragment associations; spoof, fragment collision, nonfirst missing, stale generations, capacity tests; native Win2022 compile/test, Linux Go race.",
+        "runtime_network": "NOT_RUN",
+        "physical": "NOT_RUN",
+        "evidence": "docs/evidence/adaptive-n4-flow-fragment-cache-native-actions-scoped-pass-20261013.json"
+      },
+      "fourth_candidate": {
+        "status": "UNTESTED_PURE_NATIVE_DISPATCH_INTERFACE_NEXT_GITHUB_ACTION",
+        "files": [
+          "internal/windowsclient/tun_packet_dispatch.go",
+          "internal/windowsclient/tun_packet_dispatch_test.go"
+        ],
         "workflow": ".github/workflows/next-adaptive-n4-tun-classifier-core.yml",
-        "scope": "Pure TUNScopedFlows maps 5tuple and iface/generation; UDP/TCP first fragment validates transport headers, later fragments only follow 3s bounded association, rejects ID collision and cross-generation, caps 512 flow/256 fragment, no native route/direct socket",
-        "live_Wintun_writes": false,
-        "changed_legacy_capture_routes": false,
-        "real_direct_TCP_UDP": "NOT_IMPLEMENTED",
-        "real_windows_physical": "NOT_RUN"
+        "purpose": "Connect pure classification to existing authenticated Normal/Game Router on protected or hijacked DNS; direct local/CN/underlay must go to explicit interface/generation-bound backend and never fall back to protected if backend absent/error.",
+        "checks": [
+          "direct sink never sees protected or DNS",
+          "Normal owner never sees direct",
+          "no native direct sink fails closed",
+          "mutated packet buffer cloned",
+          "native error propagation",
+          "fragment generation fence",
+          "classifier-owner /32 lease match"
+        ],
+        "caveat": "TUNDirectSink is only an interface/mock at this stage, no actual Windows system TCP/UDP stack redirector or Wintun physical network, no route changes.",
+        "physical": "NOT_RUN"
       }
     }
   },
-  "next_task": "N4 pure TUN classifier second exact SOURCE a4689a48 Action38284069629 Linux job114928087692 and Windows2022 native job114928086952 both SUCCESS, foundation38284069502 lifecycle38284069517 SUCCESS. Original first SOURCEb675235 Action38283726245 both Linux/Windows FAIL false-invalid-IHL negative (0x46 means24<28B) retained and corrected only test (0x48). Next new SOURCE candidate add generation and interface scoped 512 max immutable per-flow 5tuple and 256 max/3s fragment association fail-closed with deliberate collision/expired fragment scenarios; Go tests Linux race and native Windows Actions before claim. Still NOT connected to Windows router/direct TCP/UDP and old complement routes unchanged; next implement real native system-stack TCP redirector, bound physical source interface and UDP mapping, small capture route plan, owned reversible teardown. N2 mixed TCP/UDP real per-flow 10ms noHOL NOT_RUN, C04/C05 efficiency FAIL and C10 severe p99 OPEN; N3 AES128/256 lossless and GUI 273 true Windows Actions scoped PASS, N6 packages pending, physical NOT_RUN no deployment/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n4-tun-classifier-both-gh-pass-flow-frag-cache-candidate.md",
+  "next_task": "N4 HEAD05e5ae8/source05e5: Action38284708568 Linux job114930180274 + Windows job114930180622 both SUCCESS for 512 bound five-tuple and 256 3s fragment cache, recorded. NEXT test simple TUN dispatch boundary current candidate: classify actual /32 source to protected Normal/Game via existing Router, DNS hijack protected even direct LAN, direct to explicit TUNDirectSink with physical interface/generation, missing direct backend or native send error fail-closed (no encrypted fallback), clone packets and preserve fragment decisions. Run Linux race and native Windows Go Action BEFORE calling scoped PASS. Native Windows system-stack TCP/UDP redirector and owned underlay binding still NOT IMPLEMENTED; plan separately, don't suggest driver already works. Then N4 real socket and route reversible teardown on Actions without physical machine, bounded N4 integration. N2 real independent mixed TCP/UDP 10ms noHOL NOT_RUN, C10 long p99 OPEN, C04/C05 efficiency FAIL. N3 AES both 100s lossless GH, GUI 273 native PASS; N5 scoped but native Wintun physical NOT_RUN. N6 packages NOT_STARTED; physical NOT_RUN no qualification/ref/mainline/deploy.",
+  "latest_log": "docs/devlog/20261013-n4-flow-cache-native-pass-dispatch-boundary-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "a4689a48e5bbafba05e8759be9b2ef4405770854",
   "last_tested_scope": "N4_PURE_WINDOWSCLIENT_TUN_CLASSIFIER_LINUX_GO_UNIT_RACE_AND_WINDOWS_NATIVE_GO_UNIT_SCOPED_PASS_NOT_REAL_ROUTER",

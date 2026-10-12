@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "date": "2026-10-13",
+  "classification": "N4_FLOW_FRAGMENT_CACHE_LINUX_RACE_AND_NATIVE_WINDOWS_GO_UNIT_SCOPED_PASS",
+  "source_sha": "05e5ae8e8a16aacf70a9cb1145065b5346859518",
+  "run_id": 38284708568,
+  "linux_job_id": 114930180274,
+  "windows_job_id": 114930180622,
+  "runner_os": [
+    "ubuntu-24.04",
+    "windows-2022"
+  ],
+  "outcomes": [
+    "SUCCESS",
+    "SUCCESS"
+  ],
+  "workflow": ".github/workflows/next-adaptive-n4-tun-classifier-core.yml",
+  "scope": {
+    "flow_capacity": 512,
+    "fragment_capacity": 256,
+    "flow_ttl_s": 120,
+    "fragment_ttl_s": 3,
+    "keys": "interface index,generation,source/destination IPv4,protocol and ports; fragment ID for fragment cache",
+    "tests": "Five-tuple DNS/route independent, stale reconnect purged, nonfirst fragment fail-closed before association, TTL expiry, same ID different transport flow collision, spoof reject, bound memory, Linux race."
+  },
+  "artifacts": "None. GitHub Actions completed jobs provide results and source receipts.",
+  "qualification": "SCOPED_PURE_GO_TUN_CLASSIFIER_AND_CACHE_ONLY",
+  "unimplemented": [
+    "Native physical-bound Windows TCP redirector",
+    "Native physical-bound Windows UDP transparent mapping",
+    "Wintun actual driver network and reversible OS route mutation",
+    "Independent mixed small TCP/UDP per-flow 10ms noHOL performance"
+  ],
+  "prior_n4_first_failure": {
+    "source_sha": "b67523546c61f77797d49da963088fa494f6731b",
+    "run_id": 38283726245,
+    "root": "false invalid-IHL negative test 0x46 was valid 24B IPv4 header not invalid",
+    "status": "RETAINED_FAIL"
+  },
+  "N2": "OPEN",
+  "N4": "IN_PROGRESS",
+  "physical": "NOT_RUN"
+}
