@@ -1,0 +1,5 @@
+# 2026-10-12 N2 C03 780秒一条原生真实路径测量已登记，不是PASS
+
+精确SOURCE `6d6a19abb011c9d4479ca1161d7cf9d8449def11`，Actions [38208649752](https://github.com/lly8666/wobuzhidao/actions/runs/38208649752)，job `114677666815`，单配置Normal auto default20/min4、ChaCha、MTU1400、各方向10Mbps/300ms，预冻结IID阶段0/1/5/20/5/0的120+120+120+120+120+180秒加10秒drain。Performance Action只有一个SOURCE/一个配置/一个场景/一个measurement job。此次仅准备/监测：repo + performance policy、独立C03 freeze和stage时间/理论比对、Go N2 unit/race 均在同SOURCE GitHub Actions实际成功；正式二进制构建阶段仍运行中，**不能宣布780秒负载测量成功，artifact ID及hash尚未知**。见 `docs/evidence/adaptive-n2-c03-wave780-dispatched-20261012.json`。预冻结模型SHA256 `288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f`，允许档与末60秒规则不因结果更动。
+
+若运行失败，区分helper语法/模型、netem阶段变更、capacity/runner、实际业务正确性、20%保护和recover0过保护；至少保留失败日志/产物，避免重跑同类无新证据；继续不要同时开C04或其他性能Action。此前C08已由 SOURCE2aa03ae1 job114673789091 scoped PASS，540秒C2S缓降与约2.73秒/80秒历史异常仍OPEN。N2尚未全部验证，N3-N6未开始，physical NOT_RUN，不部署/不移动qualification ref/不合并正式主线。

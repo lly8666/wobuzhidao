@@ -921,7 +921,7 @@
       "evidence": "docs/evidence/adaptive-n2-c08-scope-actions-20261012.json"
     },
     "n2_c03": {
-      "status": "PREDECLARED_FREEZE_MATCH_AND_HELPER_CANDIDATE_NOT_YET_ACTIONS",
+      "status": "REGISTERED_RUN38208649752_JOB114677666815_IN_PROGRESS",
       "source_baseline": "cb7bfa0860cf14f31c25f9667ab01a8cf951f057",
       "waveform": "0_1_5_20_5_0_PCT",
       "phase_offsets_seconds": [
@@ -994,11 +994,16 @@
       "performance_action": "NOT_RUN_AT_CANDIDATE_COMMIT",
       "core_race": "REQUIRED_IN_GITHUB_ACTION_BEFORE_PERF",
       "physical": "NOT_RUN",
-      "overall_n2": "OPEN"
+      "overall_n2": "OPEN",
+      "source_sha": "6d6a19abb011c9d4479ca1161d7cf9d8449def11",
+      "run_id": 38208649752,
+      "job_id": 114677666815,
+      "preflight": "MODEL_STAGE_REPO_N2_UNIT_RACE_PASS_BUILD_RUNNING",
+      "dispatch_receipt": "docs/evidence/adaptive-n2-c03-wave780-dispatched-20261012.json"
     }
   },
-  "next_task": "C03 frozen waveform helper candidate on 780s 0/1/5/20/5/0, default Normal initial20/floor4, actual source-correlated shapes, per-stage netem, last60 highloss and recover grade screens. Check exact C03 Action created by push and first check repo/core/race/freeze/stage preflight; do not claim test PASS on docs-only or stage green. One SOURCE/config/scenario/measurement job only. If Action FAIL inspect job/analyzer/artifact; correct with precise reason, no repeated blind 13min run. C08 scoped PASS evidence preserved, 540 C2S excessive protection and historical2.73s/80s OPEN. After C03 evaluate N2 then C04 explicit off-start and asym/GE/burst/feedback/sparse/mixedGame guards; N3-N6 not started, physical NOT_RUN, no deployment or ref/mainline changes.",
-  "latest_log": "docs/devlog/20261012-n2-c03-frozen-wave780-candidate.md",
+  "next_task": "C03 Action38208649752 job114677666815 exact SOURCE6d6a19a is active. Model/stage static preflight and N2 Go unit/race already PASS, then one real 780s C03 scenario with 0/1/5/20/5/0. Check actual Job outcome/artifact/helper/config hashes after completion; no claim before. Classify high20 protection and final clean last60 separately, missing/p99/goodput/parity/wire/CPU/source/shape and capacity; preserve C08 scoped PASS and historical FAIL. Do not dispatch another performance Action concurrently. N2 overall OPEN, N3-N6 not started, physical NOT_RUN, 2.73s/80s OPEN.",
+  "latest_log": "docs/devlog/20261012-n2-c03-single-action-registered.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "2aa03ae1a181e630a974d164e22bec302ad7f251",
   "last_tested_scope": "C08_240S_STEADY1PCT_300MS_10MBPS_EACH_SOURCE_2AA03AE1_BOTH_R4_FINAL60_FIRST_UNIQUE_COMPLETE_CPU_DIAG_ON_QUOTA_UNKNOWN_NOT_FULL_N2_OR_PHYSICAL",

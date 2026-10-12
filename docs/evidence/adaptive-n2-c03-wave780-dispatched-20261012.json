@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "classification": "C03_FROZEN_WAVE_ACTION_DISPATCHED_NOT_YET_MEASURED",
+  "as_of": "2026-10-12",
+  "source_sha": "6d6a19abb011c9d4479ca1161d7cf9d8449def11",
+  "run_id": 38208649752,
+  "job_id": 114677666815,
+  "workflow": ".github/workflows/next-adaptive-n2-c03-wave780.yml",
+  "helper": "tools/adaptive_n2_c03_wave.py",
+  "stage_helper": "tools/adaptive_n2_c03_stage.py",
+  "frozen_input": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+  "frozen_input_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "model_version": "n2-independent-iid-timeband-v1",
+  "expected_config": "Normal auto initial20/min4/max20 ChaCha MTU1400, both directions 10Mbps, 300ms one-way; one waveform0_1_5_20_5_0 with 120s*5+180s=780 active +10s drain; business seed 2026092201/2026092202; netem RNG UNSEEDED",
+  "stage_offsets_s": [
+    0,
+    120,
+    240,
+    360,
+    480,
+    600,
+    780
+  ],
+  "expected_iid_full20_grades": [
+    4,
+    4,
+    8,
+    16,
+    8,
+    4
+  ],
+  "allowed_grade_screens": [
+    [
+      4,
+      8
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      8,
+      10
+    ],
+    [
+      16,
+      20
+    ],
+    [
+      8,
+      10
+    ],
+    [
+      4,
+      8
+    ]
+  ],
+  "premeasurement": "repo performance policy+freeze and stage preflight+N2 Go unit and race PASS at registration; formal binaries building",
+  "one_source_config_scenario_measurement_job": true,
+  "artifact_id": null,
+  "artifact_sha256": null,
+  "helper_generated_sha256": "PENDING_ACTION_ARTIFACT",
+  "verdict": "NOT_RUN_TO_COMPLETION_NOT_PRODUCT_PASS",
+  "overall_n2": "OPEN",
+  "known_open": [
+    "historical 540s C2S slow downshift",
+    "off 2.73s tail",
+    "80s S2C interruption",
+    "N3-N6 unfinished",
+    "physical NOT_RUN"
+  ]
+}
