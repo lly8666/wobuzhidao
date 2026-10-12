@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "model_version": "n2-asymmetric-iid-timeband-v1",
+  "created_date": "2026-10-12",
+  "measurement_status": "FROZEN_THEORY_ONLY_NOT_ACTIONS",
+  "source": "docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md P1 C05/C06",
+  "purpose": "Compare direction-local independent Normal auto FEC grades at 1pct vs10pct line IID, no netem truth supplied to product",
+  "tested_side_performance": 0,
+  "reference_library": "tools/adaptive_n2_curve_reference.py",
+  "reference_library_model": "n2-independent-iid-timeband-v1",
+  "model_settings": {
+    "report_s": 2,
+    "maturity_s": 3,
+    "effective_reports_per_s": 0.5,
+    "history_windows_enabled": 16,
+    "off_proof_windows": 32,
+    "min_records": 512,
+    "pn_window": 256,
+    "fast_tau_s": 2,
+    "slow_tau_s": 15,
+    "stable_s": 30,
+    "off_stable_s": 60,
+    "cooldown_s": 10,
+    "rtt_s": 0.6,
+    "source_only_scope": "IID full closed k20 reference; actual source k/r partial and cropped M/R separate"
+  },
+  "scenario_common": {
+    "normal_mode": "auto",
+    "initial_parity": 20,
+    "min_parity": 4,
+    "max_parity": 20,
+    "cipher": "chacha20-poly1305",
+    "record_cap": 0,
+    "outer_mtu": 1400,
+    "directional_oneway_ms": 300,
+    "directional_application_mbps": 10,
+    "active_s": 240,
+    "drain_s": 10,
+    "realpath": "existing five Linux netns formal client/server",
+    "diag": "ON",
+    "kernel_netem_rng": "UNSEEDED; record actual qdisc losses and queues"
+  },
+  "separate_performance_scenarios": [
+    {
+      "id": "C05",
+      "loss_pct_by_direction": {
+        "c2s": 1,
+        "s2c": 10
+      },
+      "expected_full_k20_ideal_parity": {
+        "c2s": 4,
+        "s2c": 8
+      },
+      "frozen_allowed_last60": {
+        "c2s": [
+          4,
+          8
+        ],
+        "s2c": [
+          8,
+          10
+        ]
+      },
+      "limit_label": "only one configuration, only C05 damage pair in its own Action"
+    },
+    {
+      "id": "C06",
+      "loss_pct_by_direction": {
+        "c2s": 10,
+        "s2c": 1
+      },
+      "expected_full_k20_ideal_parity": {
+        "c2s": 8,
+        "s2c": 4
+      },
+      "frozen_allowed_last60": {
+        "c2s": [
+          8,
+          10
+        ],
+        "s2c": [
+          4,
+          8
+        ]
+      },
+      "limit_label": "independent Action, reverse damage, no shared measurement job with C05"
+    }
+  ],
+  "fixed_controls": {
+    "last_60_active_seconds": [
+      180,
+      240
+    ],
+    "minimum_fraction_within_frozen_grade_band": 0.9,
+    "max_consecutive_zero_first_delivery_seconds_when_continuous_source": 4,
+    "minimum_first_unique_over_sent_ratio_last60": 0.9,
+    "report_actual_source_first_attempt_bounds": true,
+    "report_overprotected_rank_seconds": true,
+    "report_extra_parity_bytes": true,
+    "report_outer_wire_amplification": true,
+    "report_cpu_isa_quota_psi": true,
+    "verify_actual_tc_drop_fraction": true,
+    "weaknet_must_have_zero_missing": false,
+    "probe_all_must_return": false
+  },
+  "timing_qualification": "B upper computed by independent oracle from predeclared effective reports/s; do not postfit rates/margins",
+  "physical": "NOT_RUN",
+  "product_n2": "OPEN"
+}

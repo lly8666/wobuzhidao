@@ -1,0 +1,9 @@
+# 2026-10-12 P1 C05/C06 双向非对称1%/10% IID理论候选冻结（零性能测量）
+
+当前唯一在运行的产品性能 Action 为C04 `38231341392` / Job114751294469 / SOURCE `0e3daca5e26a8487b0d0e1c94b67a3959deb791d`；C04的唯一840s波形仍在正式五netns持续业务阶段。**本提交不触发新的性能测量**，新`.github/workflows/next-adaptive-n2-asym-theory-only.yml`只一个纯Python数学模型和unit job，明确性能jobs=0，不影响旧C04样本SOURCE。此理论是C04之后的计划预备，STATUS.next_task仍优先分析C04。
+
+依据`docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md` P1 C05/C06，本轮独立冻结两个将来**必须各自单Action**的方向非对称工况：C05线损C2S1%/S2C10%，C06反过来C2S10%/S2C1%；其他均为Normal auto initial20/min4/max20、ChaCha、MTU1400、300ms单向双方向、各10Mbps真实业务、固定240秒活跃+10秒drain、诊断ON、tc RNG seed不能实际应用明确UNSEEDED。记录真实两个方向qdisc/drop、业务首次到达/p99/missing/无HOL空洞、跨方向档位独立、parity、总wire和CPU/ISA/配额/PSI，不将探针不回或20%持续业务小量损失当作全统一零loss要求。每个Action仅一个SOURCE/config/scenario/measurement job，C05/C06不得串行放同Action。
+
+新增只读独立`tools/adaptive_n2_asym_reference.py`仅import已验算的独立离线`tools/adaptive_n2_curve_reference.py`，**不import任何产品auto controller/Step**。它为完整k20、线IID p=1%算最低R4、p=10%算最低R8（0.1%模型源残余目标），允许普通稳态档p1[R4,R8]、p10[R8,R10]；实际partial k、source M/R上下界和面积破碎要在真实测量另列重算。对两方向分别使用测前设计2s报告、3s成熟、600ms RTT、有效0.5 qualified source window/s、512记录/256PN窗口、fast2s/slow15s、30s稳定、10s每档冷却，以及M3 **enabled history16、offProof32**（实际两工况floor4，不需要off）。预计B screen: p1从initial20降R4最新约122.4秒、p10降R8最新约107.4秒，加末60秒稳态均能落240秒内；这只是predeclared design rate，不事后按坏seed改上界，反馈质量不足就HOLD但自动效率仍OPEN。稳态最后60秒[180,240)正常两方向各>=90%在预定R档允许带，业务仍在活跃；高弱网不能伪造0缺包或者丢fresh来节省parity。冻结文件`docs/evidence/adaptive-n2-c05-c06-asym-model-freeze-v1.json`明确不是实测结论。
+
+新独立unit`tools/test_adaptive_n2_asym_reference.py`在GitHub Actions校验C05/C06方向不串、真实数学档、冻结配置时带、偷偷变更档位允许范围时报错、误把16窗口换成32时fail。新的Action输出模型JSON和文件SOURCE/helper/freeze/output SHA256小收据。不在本地构建、Go测、性能压载或物理测试，不宣称本提交即模型unit PASS；实际Action outcome后再填run/job/artifact/hash。N2长流C03跨SOURCE scoped PASS，off起步C04测量正在进行，弱网GE已有只读理论模型但未执行真实GE。N3–N6不启动，physical NOT_RUN，历史2.73秒尾及80秒S2C OPEN；不部署、移qualification ref或合主线。
