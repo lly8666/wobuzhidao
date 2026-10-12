@@ -1,0 +1,40 @@
+name: next-adaptive-n2-marginal-core
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - internal/adaptivefec/controller.go
+      - internal/adaptivefec/controller_marginal_test.go
+      - .github/workflows/next-adaptive-n2-marginal-core.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: adaptive-n2-marginal-core-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  n2-marginal-unit-race-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Prove exact SOURCE and zero performance measurements
+        run: |
+          set -euo pipefail
+          echo "SOURCE=$(git rev-parse HEAD)"
+          git status --porcelain
+          echo "Only Go unit/race: no business/netem measurements in this Action"
+      - name: Focused N2 controller unit
+        run: go test -count=1 -v ./internal/adaptivefec
+      - name: N2 protected generation, quality, FEC and runtime owner race guards
+        run: go test -race -count=1 ./internal/adaptivefec ./internal/datapath ./internal/runtimeowner ./internal/linkdata
+      - name: Verify repository policy and safety contracts
+        run: |
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py

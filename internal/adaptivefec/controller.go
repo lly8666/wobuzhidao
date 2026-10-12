@@ -23,6 +23,12 @@ const (
     confidenceHistory = 32 // bounded independent source windows, not lifetime counts
     ResidualTarget = 0.001
     decreaseMargin = 0.0005
+    // If conservative edge/repair ambiguity makes the absolute target
+    // unreachable, spending more parity for <=10% of the source-residual
+    // target's marginal improvement is not an effective protection trade.
+    // Only relative known-shape MDS model gain is compared: never rewrite
+    // M+R to zero, assume cropped groups are complete, or drop fresh data.
+    unattainableMarginalSlack = ResidualTarget / 10
 )
 
 var ErrConfig = errors.New("adaptivefec: invalid Normal automatic profile")
@@ -337,12 +343,45 @@ func mixedResidualWithEdges(groups [3][DataShards+1]uint64,off,croppedSource uin
 	return (weighted+float64(unknown)*p)/float64(systematic+unknown)
 }
 
+// Conservative absolute target may be unattainable because a 256-PN
+// source window has UNKNOWN boundary groups or historical FEC-off source.
+// Do not convert "unattainable" to a blind R=20. Instead choose the
+// least expensive rung within a very small absolute source-residual
+// distance of the best *modeled* protection (<=10% of the 0.1% target).
+// This retains all meaningful known-group protection, and avoids treating
+// unverifiable systematic edge source as either zero loss or full k20.
 func requiredProfileWithEdges(groups [3][DataShards+1]uint64,off,croppedSource uint64,p float64,min,max int) int {
-	for _,v:=range profiles {
-		if v<min||v>max {continue}
-		if mixedResidualWithEdges(groups,off,croppedSource,v,p)<=ResidualTarget {return v}
-	}
-	return max
+    var selected [len(profiles)]float64
+    best:=math.Inf(1)
+    for i,v:=range profiles {
+        if v<min||v>max {selected[i]=math.NaN(); continue}
+        q:=mixedResidualWithEdges(groups,off,croppedSource,v,p)
+        selected[i]=q
+        if !math.IsNaN(q) && q<best {best=q}
+        if q<=ResidualTarget {return v}
+    }
+    if math.IsInf(best,1) {return max}
+    for i,v:=range profiles {
+        if v>=min&&v<=max&&!math.IsNaN(selected[i]) &&
+           selected[i]<=best+unattainableMarginalSlack {return v}
+    }
+    return max
+}
+
+// An absolute historical confidence bound can be dominated by edge crop
+// and ambiguous same-wire repair attempts; while such uncertainty remains,
+// permit a *stable, one-rung* decrease only if the proposed rung loses at
+// most 10% of the target residual protection relative to the CURRENT
+// profile on the very same conservative input. It does not manufacture a
+// clean sample, bypass 512 records, slow EWMA, 30/60s stability, or 10s
+// change limits. A materially protective rung still cannot be skipped.
+func negligibleMarginalProtection(groups [3][DataShards+1]uint64,
+    off,croppedSource uint64,p float64,prior,current int) bool {
+    if prior>=current || prior<0 || current>20 || math.IsNaN(p) {return false}
+    lower:=mixedResidualWithEdges(groups,off,croppedSource,prior,p)
+    upper:=mixedResidualWithEdges(groups,off,croppedSource,current,p)
+    return !math.IsNaN(lower) && !math.IsNaN(upper) &&
+        lower>=upper && lower-upper<=unattainableMarginalSlack
 }
 
 func (c *Controller) shapeRecords() uint64 {
@@ -598,6 +637,14 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
        (!c.lastChange.IsZero() && now.Sub(c.lastChange)<10*time.Second) ||
        (!c.lastLower.IsZero() && now.Sub(c.lastLower)<10*time.Second)
     confidenceBlocked:=residual>decreaseMargin
+    // In bounded mode only, historical M+R/cropped uncertainty must not
+    // force endless max parity when the next smaller rung loses essentially
+    // no model protection. This is NOT an assertion of physical zero loss.
+    if bounded && confidenceBlocked &&
+       negligibleMarginalProtection(c.shapeTotals,c.offTotal,
+           c.croppedSourceTotal,confidence,prior,c.ordinary) {
+        confidenceBlocked=false
+    }
     slowBlocked:=slowRequired>prior
     c.lowerCandidate=prior
     c.lowerConfidenceResidual=residual
