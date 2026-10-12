@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M1_CORE_UNIT_RACE_PASS_POLICY_WORKFLOW_SHALLOW_CHECKOUT_FIX_PENDING",
+    "phase": "N2_M1_CORE_RACE_PASS_C08_STEADY1_SINGLE_SOURCE_REALPATH_MEASUREMENT_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -869,8 +869,8 @@
       "reason": "540s C2S 240s clean confidence gate; 256 PN cropped systematic + R-only conservative bound can make absolute q target unattainable for every grade; k1 equally protected across all R",
       "risk": "True burst protection may exceed IID marginal q improvement; new protection/first delivery/perf Actions mandatory",
       "param": "internal constant 10% of model source residual target, not a new CLI/JSON option",
-      "actions_test": "RUN38203126804_JOB114660662737_UNIT_RACE_PASS_WORKFLOW_FAIL_SHALLOW_BASELINE_GIT_TREE",
-      "performance_test": "NOT_RUN",
+      "actions_test": "PASS_RUN38203279239_AFTER_FULL_CHECKOUT_POLICY_UNIT_RACE",
+      "performance_test": "C08_ONE_CONFIG_ONE_SOURCE_REALPATH_ACTION_PENDING",
       "qualification": "NOT_PASSED",
       "physical": "NOT_RUN",
       "first_failed_source_sha": "6e0d6aea1214033b164fda495d4cdff977cfb0b3",
@@ -879,11 +879,33 @@
         "EXISTING_UNIT k2 real R=min(k,R) never >2 so high loss alone cannot justify nominal raise; now test meaningful high loss with k20"
       ],
       "second_source_sha": "df8e54be5598b2010937206932b879a8b3fc9757",
-      "second_failure": "PERFORMANCE_NOT_RUN. Go N2 unit PASS + four-package race PASS. Exact workflow FAIL repository policy due fetch-depth shallow and missing historical baseline b5c848f tree. Fix checkout fetch-depth0 and rerun."
+      "second_failure": "PERFORMANCE_NOT_RUN. Go N2 unit PASS + four-package race PASS. Exact workflow FAIL repository policy due fetch-depth shallow and missing historical baseline b5c848f tree. Fix checkout fetch-depth0 and rerun.",
+      "actions_run_id": 38203279239,
+      "core_source_sha": "f4447f7cd066818d4d4f3a6e1f2d80b9dc6710c3"
+    },
+    "n2_c08": {
+      "id": "C08",
+      "status": "WORKFLOW_TO_BE_DISPATCHED_BY_WORKFLOW_FILE_PUSH_ONLY",
+      "frozen_model": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+      "exact_config": "Normal Auto initial20 floor4 max20 ChaCha 300ms each-way, 10Mbps each-way, real five-netns, MTU1400, steady1percent random netem 240s plus10s drain",
+      "helper": "tools/adaptive_n2_c08_steady1.py",
+      "workflow": ".github/workflows/next-adaptive-n2-c08-steady1-single.yml",
+      "independent_theory_full20_ideal": 4,
+      "ordinary_allowed": [
+        4,
+        8
+      ],
+      "stable_active_last_s": 60,
+      "grade_within_fraction_min": 0.9,
+      "product_original_540_source": "90925f81cfb16e8435c238b060c46492eef017ea",
+      "new_real_measurement": "NOT_RUN_AT_COMMIT",
+      "cpu": "DIAG_ON_NOT_CPU_OPT_PROOF",
+      "quality": "UNQUALIFIED_UNTIL_ACTIONS",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "GitHub Actions M1 run38203126804 unit/race passed but workflow policy FAIL due shallow checkout; correct dedicated workflow actions/checkout fetch-depth0, rerun and verify policy green on exact SOURCE. Do NOT run performance until full unit/race/policy green; all prior FAIL preserved. Then one real C08 steady1 or next minimal network counterexample with frozen independent M0 reference, do not conceal overprotection/true business losses. N3-N6 and physical remain NOT_RUN.",
-  "latest_log": "docs/devlog/20261012-n2-m1-core-race-green-policy-checkout-fail.md",
+  "next_task": "M1 core/race Actions38203279239 is PASS; run and audit first predeclared C08 steady1 240s one measurement job on exact C08 workflow SOURCE after fresh core/race. Inspect tc qdisc netem real loss, CPU/ISA/quota/PSI, socket/raw/queue capture drops, first unique goodput/p99/missing/continuous gaps, last60s grade<=8 at least90%, source/closed partial k and ambiguous R-only repairs. If Action red or capacity limited record exact job/hashes and narrow diagnose; do not change theoretical screen post-measurement. After C08 scoped result, sequentially C03/C04 and cross-condition burst/feedback/asym etc. N2 OPEN, N3-N6 unfinished, legacy2.73s/80s OPEN, physical NOT_RUN; do not merge/ref/deploy.",
+  "latest_log": "docs/devlog/20261012-n2-c08-one-source-steady1pct-240s-dispatch.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
   "last_tested_scope": "READ_ONLY_RECEIPT_RECOVER540_BOTH_OFFSTART_RAISE_C2S_NO_LOWER_IN_240S_ACTIVE_CLEAN_DRAIN16_S2C_OFF_NOT_FULL_N2_PASS_FOUNDATION_7_ENABLED_PASS",
