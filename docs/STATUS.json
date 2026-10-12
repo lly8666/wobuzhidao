@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_TUN_BOUNDED_FLOW_FRAG_NATIVE_WINDOWS_PASS_DIRECT_DISPATCH_BOUNDARY_CANDIDATE",
+    "phase": "N4_TUN_DISPATCH_FIRST_SOURCE_BOTH_NATIVE_WINDOWS_LINUX_FAIL_UNUSED_TEST_IMPORT_MINIMAL_FIX",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2470,29 +2470,30 @@
         "evidence": "docs/evidence/adaptive-n4-flow-fragment-cache-native-actions-scoped-pass-20261013.json"
       },
       "fourth_candidate": {
-        "status": "UNTESTED_PURE_NATIVE_DISPATCH_INTERFACE_NEXT_GITHUB_ACTION",
+        "status": "FIRST_ACTION_FAILED_BOTH_GO_BUILD_UNUSED_TEST_IMPORT_MINIMAL_FIX_ONLY",
         "files": [
           "internal/windowsclient/tun_packet_dispatch.go",
           "internal/windowsclient/tun_packet_dispatch_test.go"
         ],
         "workflow": ".github/workflows/next-adaptive-n4-tun-classifier-core.yml",
-        "purpose": "Connect pure classification to existing authenticated Normal/Game Router on protected or hijacked DNS; direct local/CN/underlay must go to explicit interface/generation-bound backend and never fall back to protected if backend absent/error.",
-        "checks": [
-          "direct sink never sees protected or DNS",
-          "Normal owner never sees direct",
-          "no native direct sink fails closed",
-          "mutated packet buffer cloned",
-          "native error propagation",
-          "fragment generation fence",
-          "classifier-owner /32 lease match"
-        ],
-        "caveat": "TUNDirectSink is only an interface/mock at this stage, no actual Windows system TCP/UDP stack redirector or Wintun physical network, no route changes.",
-        "physical": "NOT_RUN"
+        "first_action": {
+          "source_sha": "57783244d7bf33ae61aca0ad5c79a13d31e3ceec",
+          "run_id": 38289712226,
+          "linux_job_id": 114946578930,
+          "windows_job_id": 114946579298,
+          "linux_result": "FAIL_GO_TEST_BUILD_BEFORE_UNIT_RACE",
+          "windows_result": "FAIL_GO_TEST_BUILD_BEFORE_RUNTIME_TEST",
+          "error": "internal/windowsclient/tun_packet_dispatch_test.go:7:2: net/netip imported and not used",
+          "artifact_id": null,
+          "product_network": "NOT_RUN"
+        },
+        "minimal_fix": "DELETE ONLY unused net/netip import from Go test file. Do not change production dispatcher nor config/GUI product tests.",
+        "next_action": "ONE new GitHub Action Linux Go unit/race and native Windows Go unit, preserve first red."
       }
     }
   },
-  "next_task": "N4 HEAD05e5ae8/source05e5: Action38284708568 Linux job114930180274 + Windows job114930180622 both SUCCESS for 512 bound five-tuple and 256 3s fragment cache, recorded. NEXT test simple TUN dispatch boundary current candidate: classify actual /32 source to protected Normal/Game via existing Router, DNS hijack protected even direct LAN, direct to explicit TUNDirectSink with physical interface/generation, missing direct backend or native send error fail-closed (no encrypted fallback), clone packets and preserve fragment decisions. Run Linux race and native Windows Go Action BEFORE calling scoped PASS. Native Windows system-stack TCP/UDP redirector and owned underlay binding still NOT IMPLEMENTED; plan separately, don't suggest driver already works. Then N4 real socket and route reversible teardown on Actions without physical machine, bounded N4 integration. N2 real independent mixed TCP/UDP 10ms noHOL NOT_RUN, C10 long p99 OPEN, C04/C05 efficiency FAIL. N3 AES both 100s lossless GH, GUI 273 native PASS; N5 scoped but native Wintun physical NOT_RUN. N6 packages NOT_STARTED; physical NOT_RUN no qualification/ref/mainline/deploy.",
-  "latest_log": "docs/devlog/20261013-n4-flow-cache-native-pass-dispatch-boundary-candidate.md",
+  "next_task": "N4 current SOURCE57783244 dispatcher Action38289712226 Linux job114946578930 and Windows job114946579298 both failed Go test compile (unused import net/netip in new tun_packet_dispatch_test.go); no Windows/TUN network or actual dispatch tests executed; retain exact FAIL. Remove only unused import, run new exact SOURCE GH N4 classifier Linux race+native Windows unit, inspect outcomes. Earlier N4 bound 512 five-tuple+256 frag cache SOURCE05e5 Action38284708568 both PASS. Direct sink still interface/mock, no real bound Win system TCP/UDP stack or Wintun driver, physical NOT_RUN. N2 mixed multistream TCP/UDP 10ms real noHOL pending, C04/C05 efficiency fail+C10 tail OPEN; N3 AES and GUI 273 native pass but not native Wintun, N6 packaging NOT_STARTED; no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261013-n4-tun-dispatch-first-unused-test-import-fail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "a4689a48e5bbafba05e8759be9b2ef4405770854",
   "last_tested_scope": "N4_PURE_WINDOWSCLIENT_TUN_CLASSIFIER_LINUX_GO_UNIT_RACE_AND_WINDOWS_NATIVE_GO_UNIT_SCOPED_PASS_NOT_REAL_ROUTER",

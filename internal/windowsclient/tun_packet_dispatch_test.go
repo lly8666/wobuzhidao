@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"net/netip"
 	"testing"
 	"time"
 

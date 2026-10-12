@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "date": "2026-10-13",
+  "classification": "N4_TUN_PACKET_DISPATCH_FIRST_SOURCE_LINUX_WINDOWS_GO_BUILD_FAIL_UNUSED_TEST_IMPORT",
+  "source_sha": "57783244d7bf33ae61aca0ad5c79a13d31e3ceec",
+  "run_id": 38289712226,
+  "linux_job_id": 114946578930,
+  "windows_job_id": 114946579298,
+  "workflow": ".github/workflows/next-adaptive-n4-tun-classifier-core.yml",
+  "linux": "failure",
+  "windows": "failure",
+  "real_failed_step": "Exact SOURCE/branch policy and bounded classifier unit/race",
+  "exact_compiler_error": "internal/windowsclient/tun_packet_dispatch_test.go:7:2: \"net/netip\" imported and not used",
+  "root": "Extraneous unused import in new pure Go dispatcher test; compile-time Go build blocked logic tests",
+  "product_source_changed_in_minimal_fix": false,
+  "planned_fix": "Only remove unused import line; repeat dual Github native tests once; no product payload or route mutation",
+  "no_product_or_physical_network": true,
+  "run_artifact": "NONE",
+  "overall_N4": "OPEN",
+  "physical": "NOT_RUN"
+}
