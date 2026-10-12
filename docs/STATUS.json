@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C10_GE_CROSS_TIME_TRACE_ACTION38250711104_IN_PROGRESS",
+    "phase": "N2_C10_REAL_240S_900_BOUNDARY_GE_SCOPED_BUSINESS_PASS_P99_1_8_TO_1_95S_OPEN_N2_OPEN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_M3_C03_HIGHLOSS_AND_RECOVER5_SCOPED_PASS_C04_S2C_RECOVER5_78_3PCT_FAIL_C05_S2C10PCT_LAST60_70PCT_FAIL_C06_REVERSED_C2S10PCT_S2C1PCT_GRADE100PCT_SCOPED_PASS_RESOURCE_AND_BURST_MATRIX_OPEN",
+      "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -1716,7 +1716,7 @@
       "evidence": "docs/evidence/adaptive-n2-c06-asym10-1-realpath-actions-scoped-pass-20261012.json"
     },
     "n2_c10": {
-      "status": "KERNEL_MONOTONIC_TC_BPF_16_GOOD_16_BAD_SMOKE_ACTION_SUCCESS_FULL_CTMC_REALPATH_NOT_RUN",
+      "status": "REALPATH_TIME_DRIVEN_GE_PRODUCT_SCOPED_FIRST_UNIQUE_AND_TRUE_KERNEL_ERASURE_PASS_NOT_FULL_N2_P99_LATENCY_LIMIT_OPEN",
       "independent_frozen_ctmc": "docs/evidence/adaptive-n2-ge-ctmc-freeze-v1.json",
       "independent_model_version": "n2-independent-ge-ctmc-v1",
       "independent_model_run_id": 38217981601,
@@ -1734,7 +1734,7 @@
       "smoke_network": "two isolated temporary Linux netns and 32 tagged UDP packets, not product client/server",
       "smoke_gate": "Good-phase >=12/16 first arrivals; bad-phase 0/16 arrivals; independent sender monotonic phase labels verified",
       "not_ge_ctmc": "Time kernel capability smoke is deterministic 100ms alternating 0/100pct; NOT exponential450/50ms 0/50pct; only checks BPF kernel clock and netns privileges",
-      "GE_product_realpath": "NOT_RUN",
+      "GE_product_realpath": "SCOPED_C10_REAL_240S_PASS_NOT_FULL_N2",
       "physical": "NOT_RUN",
       "kernel_clock_smoke": {
         "source_sha": "04f26bca317f16067961dcdb27be9a73211a9046",
@@ -1826,7 +1826,7 @@
         }
       },
       "realpath": {
-        "status": "CORRECTED_PREMEASUREMENT_UNIT_PASS_PRODUCT_BINARY_BUILD_IN_PROGRESS_ACTION38250711104",
+        "status": "GITHUB_ACTION38250711104_SUCCESS_240S_REAL_GE_SCOPED_BUSINESS_PASS_LONG_P99_AND_RESOURCE_OPEN",
         "workflow": ".github/workflows/next-adaptive-n2-c10-ge-ctmc-time-single.yml",
         "helper": "tools/adaptive_n2_c10_ge_realpath.py",
         "preflight_unit": "tools/test_adaptive_n2_c10_ge_realpath.py",
@@ -1887,25 +1887,92 @@
           "source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
           "run_id": 38250711104,
           "job_id": 114815961958,
-          "status": "IN_PROGRESS_NO_REAL_PRODUCT_VERDICT",
-          "go_unit_race": "PASS",
-          "original_CTMC_model_tests": "PASS_6_OF_6",
-          "true_ctmc_frozen_trace_and_derived_script_preflight": "PASS",
-          "linux_five_netns_prerequisites": "PASS",
-          "product_and_kernel_binaries": "IN_PROGRESS_AS_REGISTERED",
-          "business_active_s": 240,
-          "artifact_id": null,
-          "product_perf_verdict": "NOT_YET_AVAILABLE",
-          "evidence": "docs/evidence/adaptive-n2-c10-real-ctmc-second-action-running-20261012.json"
+          "artifact_id": 11747679974,
+          "zip_sha256": "adeba9fcbb89dba5cbd88435f25c17cb00b4cd56f130c0b1caf1c31d4bdc88de",
+          "summary_sha256": "46dbacae24b1841505f654ed2f0fd767b922485b0de0d7db4a4f7f5ae60b8a5e",
+          "map_loaded_sha256": "d5ab6c282cd68a7a83604e6fe16494d4ffe5356d6e8ec1ccbfdd712fc045f44a",
+          "map_audited_sha256": "22a39f2ee6a9dc0a129ab5280543e6c5ceccc490149e99aaa92574cd497a81ca",
+          "ge_trace_sha256": "5fcfe423903d5b7665eb8bb341170e901757b5e6def4af1ba4ca242670237aec",
+          "model_version": "n2-ge-ctmc-event-trace-v1",
+          "real_transition_count": 900,
+          "action_result": "SUCCESS",
+          "source_go_unit_race": "PASS",
+          "model_reference_unit": "PASS",
+          "real_kernel_bpf_maps": {
+            "map12": {
+              "good": 1573293,
+              "bad": 170773,
+              "bad_dropped": 85469,
+              "bad_erasure_fraction": 0.5004830974451465
+            },
+            "map13": {
+              "good": 1550493,
+              "bad": 167727,
+              "bad_dropped": 83469,
+              "bad_erasure_fraction": 0.49764796365522546
+            },
+            "same_start_epoch_ns": 338353788122,
+            "both_exact_900_boundaries": true
+          },
+          "business": {
+            "c2s": {
+              "sent": 592107,
+              "first_unique": 581281,
+              "missing": 10826,
+              "goodput_mbps": 9.819525333333333,
+              "returned_only_oneway_p99_ms": 1833
+            },
+            "s2c": {
+              "sent": 592104,
+              "first_unique": 579563,
+              "missing": 12541,
+              "goodput_mbps": 9.788445866666667,
+              "returned_only_oneway_p99_ms": 1947.5
+            },
+            "max_wall_second_no_first_unique_s": 0,
+            "source_send_failures": 0,
+            "corrupt_or_duplicates": 0,
+            "probe": {
+              "sent": 240,
+              "returned": 234,
+              "missing": 6,
+              "returned_only_rtt_p99_ms": 2441
+            }
+          },
+          "real_model_limits": {
+            "CTMC_R20_full_k20_hypothetical_source_residual": 0.02123025541589025,
+            "target": 0.001,
+            "target_unattainable": true,
+            "actual_k_PN_timings_not_independently_recomputed": true
+          },
+          "actual_parity_bytes": {
+            "c2s": 339560328,
+            "s2c": 288467288
+          },
+          "qdisc_outer_wire_bytes_total": 1607207172,
+          "total_outer_over_generated_business": 2.6786775485289804,
+          "cpu_diagnostic_ON_s": {
+            "client": 155.25,
+            "server": 155.85
+          },
+          "resource_samples": 53,
+          "cpu_quota": "UNKNOWN",
+          "captured_kernel_drops": 0,
+          "capacity_flags": [],
+          "measurement_invalid": [],
+          "errors": [],
+          "highest_priority_open": "Returned-only business p99 1833/1947.5ms and probe RTT p99 2441ms with six missing; no independent 10ms multi-flow HOL qualification",
+          "evidence": "docs/evidence/adaptive-n2-c10-real-ctmc-240s-actions-scoped-pass-p99-open-20261012.json",
+          "physical": "NOT_RUN"
         }
       }
     }
   },
-  "next_task": "C10 single exact SOURCE96e6bc21675ebb0cdf3e1582e072a80359ba1205 Action38250711104 Job114815961958. As of registration Go adaptivefec unit/race PASS; frozen six GE CTMC reference tests+900 event trace, client-auto/server-fixed assertions PASS, Linux prereqs PASS; binary build IN_PROGRESS. First Action38249347023/source7dafa8 FAIL premeasurement bad parity-count test, no GE traffic, artifact11747216632 SHA d9329f preserved. Do not assume second Action success until completion: sample must load identical 900 GE boundaries with one START_NS on rsrv/rcli, run ONE 240s each-way10Mbps 300ms one-way real business and 10s drain, audit BPF good/bad/drop both maps, actual first unique/p99/no >=5s gaps/parity/wire CPU quota/capture. If fail keep exact original evidence, do not label N2 PASS. C04/C05 S2C grades 78.3% and70% fail OPEN; N2 OPEN N3–N6 NOT_STARTED physical NOT_RUN old2.73s/80s OPEN, no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-c10-second-real-ctmc-action-registered-running.md",
+  "next_task": "C10 actual five-netns GE real SOURCE96e6bc21675ebb0cdf3e1582e072a80359ba1205 Action38250711104/job114815961958/artifact11747679974/zip SHAadeba9f completed SUCCESS; dual 900-boundary CLOCK_MONOTONIC kernel BPF maps witnessed BAD erasure50.05%/49.76%; actual business first-unique C2S581281/592107 (98.17%) S2C579563/592104 (97.88%), no continuous wall-second blackout, no integrity/capture/capacity flags. IMPORTANT returned-only one-way p99 1833/1947.5ms, probe RTT p99 2441ms 234/240 returned; high tail remains OPEN and C10 is FUNCTIONAL SCOPED ONLY. Trace frozen hash5fcfe, independent GE MDS full k20 model target0.1% unattainable at R20 under assumed timestamps, cannot claim actual source residual or CPU optimization. NEXT bounded N2 first-delivery/p99 correlation analysis from existing GE artifact, then independent short low-RTT15ms or 1Mbps sparse/mixed TCP+UDP 10ms no HOL single source/config/scenario/job, preserve C04 S2C recover5 78.3% and C05 S2C10%70% efficiency FAIL, old2.73s/80s incident OPEN. Avoid endless curve retunes and move promptly to N3 AES then N4 Windows TUN N5 GUI N6 packages after bounded N2 coverage. physical NOT_RUN no deploy/qualification-ref/mainline merge.",
+  "latest_log": "docs/devlog/20261012-n2-c10-real-time-ge240s-first-unique-scoped-pass-tail-p99-open.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
-  "last_tested_scope": "C06_REAL240S_DIRECTION_C2S10PCT_TRUE_NETEM10_0023_FEC_R10_LAST60_100PCT_S2C1PCT_TRUE_NETEM1_0172_FEC_R4_LAST60_100PCT_FIRST_UNIQUE592100_592107_AND592107_592107_P99_313_5_302MS_NO_GAP_WIRE2_8202X_DIAG_ON",
+  "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
+  "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

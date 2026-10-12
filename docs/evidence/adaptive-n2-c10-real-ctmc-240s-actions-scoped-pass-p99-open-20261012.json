@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N2_C10_REAL_CTMC_TIME_DRIVEN_BPF_BUSINESS_FIRST_UNIQUE_SCOPED_PASS_TAIL_LATENCY_AND_RESOURCE_NOT_QUALIFIED",
+  "source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
+  "workflow": ".github/workflows/next-adaptive-n2-c10-ge-ctmc-time-single.yml",
+  "run_id": 38250711104,
+  "job_id": 114815961958,
+  "artifact_id": 11747679974,
+  "archive_sha256": "adeba9fcbb89dba5cbd88435f25c17cb00b4cd56f130c0b1caf1c31d4bdc88de",
+  "summary_sha256": "46dbacae24b1841505f654ed2f0fd767b922485b0de0d7db4a4f7f5ae60b8a5e",
+  "manifest_sha256": "cc9abc5b1f6fe53a30f32168076c3ca21707aa67b9a613d9239d0f6e09984f86",
+  "prep_sha256": "62153b8da87d42142d9a226711d601d878bce4474516b31d7362a156fc8a0429",
+  "ge_map_loaded_sha256": "d5ab6c282cd68a7a83604e6fe16494d4ffe5356d6e8ec1ccbfdd712fc045f44a",
+  "ge_map_audit_sha256": "22a39f2ee6a9dc0a129ab5280543e6c5ceccc490149e99aaa92574cd497a81ca",
+  "independent_ge_MDS_reference_sha256": "cbab2373056253ee53b085643ee839507ad3bac59fa7649d3993e0d3e9f87420",
+  "frozen_trace_json_file_sha256": "8951a56995cbabb9b4b4b6de735ccc90ff149132ccf71e4f4518ed5428409d1b",
+  "frozen_trace_canonical_sha256": "5fcfe423903d5b7665eb8bb341170e901757b5e6def4af1ba4ca242670237aec",
+  "resource_samples_sha256": "3b7113d5f392caabac203ebda21a20d3198a3adb35ffe3af3fe18b8f06748598",
+  "client_diag_sha256": "52567ae520e5ba37f16d7362fcb4e4d59e768a6573dfb9d0c8ca26abe34a1265",
+  "server_diag_sha256": "7d2901e829180dbb2cbba51fe2a116144acf7d62ebe28f4db4cefa2988aa5075",
+  "biz_json_sha256": "2acad40b82debf7ef8662308ba265c598943b24dcc953acf52c2750ce607f61b",
+  "target_json_sha256": "ebf2ef16f3ecfc611577628d891f92145763584ef3bce0a9dd5df6a36a4b1071",
+  "compiled_ge_elf_sha256": "531eeb3ac4d32ed0364f132a457197234a5f53a5c61e59eaa1d4f422595ed4a2",
+  "one_SOURCE_configuration_scenario_measurement_job": true,
+  "github_run_conclusion": "SUCCESS",
+  "core_go_unit_race": "SUCCESS_IN_SAME_ACTION",
+  "independent_math_reference_units": "PASS_6",
+  "business_action": "SUCCESS",
+  "independent_business_analyzer": "C10_SCOPED_TIME_CORRELATED_GE_BUSINESS_PASS_NOT_FULL_N2",
+  "errors": [],
+  "measurement_invalid": [],
+  "capacity_flags": [],
+  "config": {
+    "mode": "Normal auto",
+    "initial_R": 20,
+    "floor_R": 4,
+    "max_R": 20,
+    "server_fixed_R": 20,
+    "record_cipher": "ChaCha20-Poly1305",
+    "outer_mtu": 1400,
+    "each_direction_oneway_ms": 300,
+    "each_direction_application_mbps": 10,
+    "active_s": 240,
+    "drain_s": 10,
+    "ge_good_mean_ms": 450,
+    "ge_bad_mean_ms": 50,
+    "good_packet_erasure_percent": 0,
+    "bad_packet_erasure_percent": 50,
+    "trace_seed": 2026101210,
+    "number_of_transition_boundaries": 900,
+    "actual_frozen_bad_dwell_ms": 23249
+  },
+  "BPF_MAP_synchronized": {
+    "map_ids": [
+      12,
+      13
+    ],
+    "same_monotonic_start_ns": 338353788122,
+    "same_exact_900_boundaries": true,
+    "model_version": "n2-ge-ctmc-event-trace-v1",
+    "map_12": {
+      "good_packets": 1573293,
+      "bad_packets": 170773,
+      "bad_dropped": 85469,
+      "bad_erasure_fraction": 0.5004830974451465
+    },
+    "map_13": {
+      "good_packets": 1550493,
+      "bad_packets": 167727,
+      "bad_dropped": 83469,
+      "bad_erasure_fraction": 0.49764796365522546
+    },
+    "caveat": "Map numeric IDs not assigned to specific direction without independent interface-to-map evidence; both router egress direction attachments frozen in script. These are kernel clocks not packet-event Markov."
+  },
+  "source_first_unique": {
+    "c2s": {
+      "sent": 592107,
+      "unique": 581281,
+      "missing": 10826,
+      "unique_fraction": 0.9817161425215375,
+      "unique_bytes": 294585760,
+      "goodput_mbps": 9.819525333333333,
+      "p50_delivered_ms": 300.5,
+      "p95_delivered_ms": 302,
+      "p99_delivered_ms": 1833,
+      "wall_second_max_zero_delivery": 0,
+      "integrity_corrupt": 0,
+      "duplicates": 0,
+      "send_failures": 0,
+      "send_lag_p99_ms": 0.6
+    },
+    "s2c": {
+      "sent": 592104,
+      "unique": 579563,
+      "missing": 12541,
+      "unique_fraction": 0.9788195992595895,
+      "unique_bytes": 293653376,
+      "goodput_mbps": 9.788445866666667,
+      "p50_delivered_ms": 300.5,
+      "p95_delivered_ms": 301.5,
+      "p99_delivered_ms": 1947.5,
+      "wall_second_max_zero_delivery": 0,
+      "integrity_corrupt": 0,
+      "duplicates": 0,
+      "send_failures": 0,
+      "send_lag_p99_ms": 0.6
+    }
+  },
+  "true_probe": {
+    "sent": 240,
+    "returned": 234,
+    "missing": 6,
+    "returned_rtt_p50_ms": 601,
+    "returned_rtt_p95_ms": 603.5,
+    "returned_rtt_p99_ms": 2441,
+    "limitation": "Returned-only RTT; six missing are separate and do not count as latency successes"
+  },
+  "rx_bucket_observation": {
+    "business_10ms_wall_bucket_available": true,
+    "not_independent_mixed_TCP_UDP_or_multi_stream_HOL_proof": true
+  },
+  "qdisc_after": {
+    "rsrv": {
+      "forwarded_packets": 1659703,
+      "forwarded_outer_bytes": 829943483,
+      "post_queue_bytes": 0,
+      "post_queue_length": 0,
+      "overlimits_delta": 0,
+      "requeues_delta": 0
+    },
+    "rcli": {
+      "forwarded_packets": 1635854,
+      "forwarded_outer_bytes": 777263689,
+      "post_queue_bytes": 903,
+      "post_queue_length": 1,
+      "overlimits_delta": 0,
+      "requeues_delta": 0
+    }
+  },
+  "total_outer_wire": {
+    "rsrv_plus_rcli_bytes": 1607207172,
+    "generated_business_bytes": 600000240,
+    "outer_wire_over_generated_business": 2.6786775485289804,
+    "meaning": "includes repair/control/header/AEAD and does not by itself isolate FEC parity"
+  },
+  "FEC_encoder": {
+    "c2s": {
+      "source_bytes": 371107816,
+      "parity_bytes": 339560328,
+      "full_k20": 29609,
+      "partial_groups": 70,
+      "last_active_R": 4,
+      "stability_last60_profiles": [
+        4,
+        8,
+        10,
+        12,
+        16
+      ],
+      "max_source_confidence_upper_last_qualified": 0.0031924447830940102
+    },
+    "s2c": {
+      "source_bytes": 371097512,
+      "parity_bytes": 288467288,
+      "full_k20": 29614,
+      "partial_groups": 8,
+      "last_active_R": 4,
+      "stability_last60_profiles": [
+        4
+      ],
+      "max_source_confidence_upper_last_qualified": 0.00285461753628406
+    }
+  },
+  "independent_GE_MDS_full20_reference": {
+    "hypothetical_source_gap_ms": 0.42,
+    "hypothetical_parity_spacing_ms": 0.1,
+    "R20_source_residual_estimate": 0.02123025541589025,
+    "target_source_residual": 0.001,
+    "target_unattainable_under_declared_full20_GE_geometry": true,
+    "warning": "DO NOT treat hypothetical group timestamps as actual SOURCE PN sharding, and do not claim actual residual or policy optimality on this basis"
+  },
+  "capacity_and_resource": {
+    "capture_kernel_drops_all_four": 0,
+    "capacity_flags": [],
+    "cpu_client_diag_on_s": 155.25,
+    "cpu_server_diag_on_s": 155.85,
+    "samples": 53,
+    "cpu_quota": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+    "ISA_and_CPU_model": "NOT_FULLY_EVIDENCED_IN_ARTIFACT",
+    "cpu_OFF_matched_same_runner": "NOT_RUN"
+  },
+  "result_scope": {
+    "business_scoped_integrity_and_90pct_first_unique": "PASS",
+    "BPF_correlated_clock_and_BAD50pct_true": "PASS",
+    "wall_second_no_blackout": "PASS",
+    "full_N2": "OPEN",
+    "p99_first_delivery_optimization": "OPEN_HIGH_TAIL_1_833_TO_1_948_SECONDS",
+    "CPU_memory_power_optimization": "INCONCLUSIVE",
+    "mixed_TCP_UDP_10ms_HOL": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "N3_N6": "NOT_STARTED"
+  },
+  "preceding_measured_fails": [
+    {
+      "scenario": "C04",
+      "description": "S2C recover5 last60 R8-R10 78.3% <90% original frozen efficiency screen",
+      "action": 38231341392
+    },
+    {
+      "scenario": "C05",
+      "description": "S2C10pct last60 R8-R10 70% <90% frozen efficiency screen",
+      "action": 38241759581
+    }
+  ],
+  "previous_C10_false_preflight_FAIL": {
+    "source_sha": "7dafa8c06ea2338c31f287791d8049c54d3f5743",
+    "action": 38249347023,
+    "job_id": 114811301934,
+    "artifact_id": 11747216632,
+    "artifact_sha256": "d9329fdf9f896ab17e46aa19b6098e6b53eb5fc4f2a924bd2af8d7b64f01914c",
+    "root": "asserted client had fixed --fec-parity 20 while it actually uses auto mode; no product load ran"
+  },
+  "physical": "NOT_RUN"
+}
