@@ -1,0 +1,272 @@
+{
+  "schema": 1,
+  "kind": "N2_C04_OFFSTART_840S_REALPATH_SCOPED_DELIVERY_PROTECTION_OFF_RETURN_PASS_RECOVER5_DUAL_DIRECTION_EFFICIENCY_FAIL",
+  "date": "2026-10-12",
+  "source_sha": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
+  "run_id": 38217154364,
+  "job_id": 114704454429,
+  "artifact_id": 11732997492,
+  "artifact_name": "adaptive-n2-c04-longserial-regression-840s-c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
+  "archive_sha256": "79f3301e20400ec355648f6957cbed959fe74161b99cb6c3d525561be6250a11",
+  "summary_sha256": "17ea179a566626d5f549b0e48bb9bd9062462d7dfa3ee9b1c541b1b00839c1da",
+  "gate_sha256": "52a6bad010a985559092b5be1b2ead44c8a7106a2274e608ec6ccf8ef610c386",
+  "manifest_sha256": "0396ebb762032839a1c90806b2a73f48d791ab045381934c95186037f908737f",
+  "harness_prep_sha256": "cc6fd73d79843d51ffb2778c41fbf7386f9d55936f64c28ff7f680d3ef1cc76f",
+  "resource_sample_sha256": "c1861cc09b59c6c54b0c5ec09af80f9484937dabe58ae59f6e8514b30d939e2e",
+  "stage_events_sha256": "b1db5a8c7be8ccda48b63a40b028ae8d37e506c213fb86ffea5bbb2ad2b27e0e",
+  "frozen_reference": "n2-independent-iid-timeband-v1",
+  "frozen_model_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "config": {
+    "mode": "Normal V3 auto",
+    "explicit_start_parity": 0,
+    "explicit_min_parity": 0,
+    "max_parity": 20,
+    "cipher": "ChaCha",
+    "mtu": 1400,
+    "each_way_app_mbps": 10,
+    "one_way_latency_ms": 300,
+    "total_active_s": 840,
+    "drain_s": 10,
+    "phase_offsets_s": [
+      0,
+      120,
+      240,
+      360,
+      480,
+      600,
+      840
+    ],
+    "loss_percent": [
+      0,
+      1,
+      5,
+      20,
+      5,
+      0
+    ],
+    "netem_rng": "UNSEEDED_TC_UNSUPPORTED",
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ]
+  },
+  "workflow_conclusion": "SUCCESS",
+  "original_summary_classification": "SCOPED_WAVEFORM_CONTROL_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE",
+  "scoped_gate": "SCOPED_C04_LONG_LIVED_FIRST_DELIVERY_AND_GRADE_PASS",
+  "original_errors": [],
+  "original_capacity_flags": [],
+  "first_unique": {
+    "c2s": {
+      "sent": 2072370,
+      "received": 2071476,
+      "missing": 894,
+      "stages_missing": {
+        "clean0": 0,
+        "loss1": 330,
+        "loss5": 27,
+        "loss20": 537,
+        "recover5": 0,
+        "recover0": 0
+      },
+      "longest_zero_delivered_seconds": 0,
+      "p99_onway_returned_ms": 313
+    },
+    "s2c": {
+      "sent": 2072370,
+      "received": 2071293,
+      "missing": 1077,
+      "stages_missing": {
+        "clean0": 0,
+        "loss1": 497,
+        "loss5": 15,
+        "loss20": 565,
+        "recover5": 0,
+        "recover0": 0
+      },
+      "longest_zero_delivered_seconds": 0,
+      "p99_onway_returned_ms": 313.5
+    }
+  },
+  "probe": {
+    "sent": 840,
+    "returned": 840,
+    "missing": 0,
+    "returned_only_p99_ms": 617.5
+  },
+  "netem_measured_drop_pct": {
+    "clean0": [
+      0,
+      0
+    ],
+    "loss1": [
+      0.983,
+      0.9914
+    ],
+    "loss5": [
+      5.0183,
+      4.9722
+    ],
+    "loss20": [
+      20.0557,
+      20.0184
+    ],
+    "recover5": [
+      4.9768,
+      4.969
+    ],
+    "recover0": [
+      0,
+      0
+    ]
+  },
+  "grade_last60_fraction_in_frozen_band": {
+    "clean0": {
+      "c2s": 1,
+      "s2c": 1
+    },
+    "loss1": {
+      "c2s": 1,
+      "s2c": 1
+    },
+    "loss5": {
+      "c2s": 1,
+      "s2c": 1
+    },
+    "loss20": {
+      "c2s": 1,
+      "s2c": 1
+    },
+    "recover5": {
+      "c2s": 0.5833333333,
+      "s2c": 0.4166666667
+    },
+    "recover0": {
+      "c2s": 1,
+      "s2c": 1
+    }
+  },
+  "actual_recover5_last60_r": {
+    "c2s": [
+      8,
+      10,
+      12,
+      16
+    ],
+    "s2c": [
+      8,
+      10,
+      12,
+      16
+    ]
+  },
+  "actual_final_clean_last60_r": {
+    "c2s": [
+      0
+    ],
+    "s2c": [
+      0
+    ]
+  },
+  "actual_highloss_last60_r": {
+    "c2s": [
+      16,
+      20
+    ],
+    "s2c": [
+      16,
+      20
+    ]
+  },
+  "conservative_control_recover5": {
+    "c2s": {
+      "t_sec": [
+        500,
+        540,
+        580,
+        600
+      ],
+      "tx_r": [
+        20,
+        16,
+        10,
+        8
+      ],
+      "wilson_upper_p": [
+        0.1527,
+        0.1504,
+        0.1108,
+        0.0849
+      ],
+      "window_history_counts": [
+        32,
+        32,
+        32,
+        32
+      ]
+    },
+    "s2c": {
+      "t_sec": [
+        500,
+        540,
+        580,
+        600
+      ],
+      "tx_r": [
+        20,
+        16,
+        12,
+        10
+      ],
+      "wilson_upper_p": [
+        0.1664,
+        0.168,
+        0.1202,
+        0.1151
+      ],
+      "window_history_counts": [
+        32,
+        32,
+        32,
+        32
+      ]
+    }
+  },
+  "wire": {
+    "gross_qdisc_bytes": 4572320616,
+    "generated_business_bytes": 2100001600,
+    "gross_bytes_over_business": 2.1772938725,
+    "client_parity_bytes": 739159176,
+    "client_FEC_enabled_source_bytes": 810383376,
+    "server_parity_bytes": 741085816,
+    "server_FEC_enabled_source_bytes": 776365048,
+    "interpretation": "Encoder source count is for active FEC groups and can omit off periods; parity/FEC-enabled-source 91.2%/95.5% is not whole-run wire amplification or even whole-run source overhead. A cleaner reference is gross qdisc 2.177x, includes all outer traffic."
+  },
+  "resource": {
+    "samples": 173,
+    "client_cpu_s_diag_on": 452.35,
+    "server_cpu_s_diag_on": 453.67,
+    "runner_quota": "NOT_VERIFIED_EQUAL_ACROSS_RUNS",
+    "cpu_efficiency": "DESCRIPTIVE_ONLY_DIAG_ON_NO_CROSS_VM_PROOF"
+  },
+  "qualified": {
+    "longserial_no_blackout": "SCOPED_PASS",
+    "off_start_true_r0": "SCOPED_PASS",
+    "first_1pct_adaptation": "OBSERVED_330_497_MISSING",
+    "high20_grade": "SCOPED_PASS",
+    "final_clean_actual_off": "SCOPED_PASS",
+    "recover5_ordinary_graded_efficiency": "FAIL_BOTH_DIRECTIONS_90PCT_SCREEN",
+    "full_n2": "OPEN",
+    "N3_N6": "NOT_STARTED",
+    "physical": "NOT_RUN"
+  },
+  "limits": [
+    "C04 5% recovery sampled last60 both 58.3/41.7 below90%; green Action not full N2 pass",
+    "Off start first1pct phase loses330/497 before protection; authentic missing not treated zero",
+    "Onway p99 only delivered returns, probe all returned here not generic requirement",
+    "No mixed TCP/UDP small independent flow 10ms noHOL or real packet-level first-arrival p99 diagnosis",
+    "Partials affect actual min(k,R); aggregate encoder source excludes FEC-off time",
+    "No diagnosed OFF CPU comparable baseline or cross-VM CPU proof",
+    "Historic 2.73s off tail, 80s downlink historical OPEN",
+    "No qualification ref/mainline move or physical deployment"
+  ]
+}

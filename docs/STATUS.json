@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C04_OFFSTART_REALPATH_ACTION_RUNNING_GE_CORRELATED_INDEPENDENT_MODEL_CANDIDATE",
+    "phase": "N2_C04_OFFSTART_LONGSERIAL_REALPATH_SCOPED_PASS_BOTH_RECOVER5_OVERPROTECTION_FAIL_NEXT_GENERIC_HISTORY_EXPERIMENT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_C03_LONGSERIAL_REALPATH_FIRST_DELIVERY_SCOPED_PASS_OLD_41_46S_OUTAGE_GONE_C03_RECOVER5_C2S_R12_20_OVERPROTECTION_FAIL_N2_EFFICIENCY_OPEN",
+      "N2_normal_auto": "IN_PROGRESS_C03_C04_HIGHLOSS_FINALCLEAN_SOURCE_SUCCESS_BUT_C03_RECOVER5_C2S_FAIL_C04_RECOVER5_BOTH_DIRECTIONS_FAIL_EFFICIENCY_OPEN",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -1055,7 +1055,7 @@
       }
     },
     "n2_c04": {
-      "status": "ACTION38217154364_JOB114704454429_IN_PROGRESS_PREMEASUREMENT_UNIT_RACE_AND_FREEZE_PASS",
+      "status": "ACTION_SUCCESS_SCOPED_FIRST_DELIVERY_HIGHLOSS_OFF_RETURN_PASS_RECOVER5_EFFICIENCY_FAIL_BOTH",
       "frozen_model": "n2-independent-iid-timeband-v1",
       "frozen_manifest": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
       "phase_offsets": [
@@ -1133,7 +1133,22 @@
       "source_sha": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
       "run_id": 38217154364,
       "job_id": 114704454429,
-      "performance_stage": "ONE_840S_NETEM_WAVE_RUNNING"
+      "performance_stage": "ONE_840S_NETEM_WAVE_RUNNING",
+      "artifact_id": 11732997492,
+      "artifact_sha256": "79f3301e20400ec355648f6957cbed959fe74161b99cb6c3d525561be6250a11",
+      "summary_sha256": "17ea179a566626d5f549b0e48bb9bd9062462d7dfa3ee9b1c541b1b00839c1da",
+      "gate_sha256": "52a6bad010a985559092b5be1b2ead44c8a7106a2274e608ec6ccf8ef610c386",
+      "final_clean_off_status": "C2S_S2C_R0_ACTIVE_LAST60_100PCT",
+      "high20_status": "C2S_S2C_R16_R20_LAST60_100PCT",
+      "recover5_status": "FROZEN_ALLOWED_R8_TO_R10_LAST60_C2S_58_3PCT_S2C_41_7PCT_FAIL",
+      "business_missing": {
+        "c2s": 894,
+        "s2c": 1077
+      },
+      "business_max_zero_delivery_s": 0,
+      "gross_wire_over_business": 2.1772938725,
+      "evidence": "docs/evidence/adaptive-n2-c04-offstart-scoped-pass-recover5-efficiency-fail-20261012.json",
+      "qualification": "SCOPED_PASS_NOT_FULL_N2_BOTH_RECOVER5_EFFICIENCY_FAIL"
     },
     "n2_ge_m2": {
       "status": "GITHUB_ACTIONS_SCOPED_INDEPENDENT_MODEL_PASS_NO_NETWORK_PERFORMANCE",
@@ -1157,11 +1172,11 @@
       "key_result": "DECLARED_GE_5PCT_FULLK20_SOURCE_SPACING0_42MS_R20_RESIDUAL_ABOUT2_123PCT_TARGET0_1PCT_UNATTAINABLE"
     }
   },
-  "next_task": "First C04 Action38217154364 job114704454429 SOURCEc835c6d9986 is already running one 840s off-start scenario; check its final Action/artifact/gate/true off and qdisc/first unique/CPU/missing before any further product perf. Concurrent GE THEORY ONLY Action38217981601 unit/reference succeeded with 0 performance measurements, source fe1920b artifact11732741452: frozen CTMC G450/B50ms stationary5pct and full k20 R20 model residual~2.12pct target0.1pct unattainable; do not claim GE netem test or control-pass. Preserve C03 scoped longserial pass but recover5 C2S overprotection FAIL, compare C04. N2 OPEN, 2.73s/80s OPEN, N3-N6 unfinished, physical NOT_RUN no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-ge-independent-model-actions-success-no-performance.md",
+  "next_task": "C04 Action38217154364/job114704454429/artifact11732997492 scoped off-start/high20/final clean deliver PASS but recover5 last60 in frozen [R8,R10] C2S58.3% S2C41.7% FAIL; C03 recover5 C2S0% FAIL. These two distinct initial/floor configs at same rate/RTT show 32 qualified source-window history + Wilson/stability retains old loss, not a direction-only artifact; sample rate ~0.5-0.6 qualified windows/s => ~55-64s wall history. Next propose ONLY minimal generic confidenceHistory 32->16 windows (still >=512 source records/30s/60s/slow EWMA/10s cooldown), add ring/underprotect/high20/recover5 controller unit; Github core/race FIRST. Then one 240s high20->recover5 realpath counterexample SAME frozen model with independent last60 and no weaknet zero-loss blanket, followed by C03/C04 if basic passes and GE burst/asym tests. Do not lower because of true netem phase, never alter fresh or samewire. Preserve historical failure and all Action hashes. N2 OPEN, N3-N6 NOT_STARTED, physical NOT_RUN, old2.73s/80s OPEN; no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-c04-realpath-scoped-pass-recover5-bidirectional-overprotection.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "08e63965dd9b2910e2e8ea073a22bbc3d0032db6",
-  "last_tested_scope": "C03_780S_SOURCE08E63965_SCOPE_FIRST_DELIVERY_C2S_MISSING579_S2C_MISSING142_MAX_GAP0_PROBE780OF780_STABLE20_R16_20_STABLE0_R4_C2S_RECOVER5_OVERPROTECTION_FAIL",
+  "last_tested_source_sha": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
+  "last_tested_scope": "C04_840S_OFFSTART_SOURCE_C835C6D_HIGH20_BOTH_R16_20_RETURN_OFF_BOTH_CLEAN_LAST60_FIRST_UNIQUE_BOTH_NO_GAP_MISSING894_1077_SCOPED_PASS_RECOVER5_BOTH_LT90PCT_FAIL",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
