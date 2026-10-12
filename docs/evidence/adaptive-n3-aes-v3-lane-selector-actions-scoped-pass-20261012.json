@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "N3_AES_128_256_AUTHENTICATED_V3_LANE_INTERNAL_FUNCTIONAL_PASS_NOT_PUBLIC_AES",
+  "source_sha": "f067abcc9d283f6fb67c613c9008bc935e6330b7",
+  "run_id": 38266249189,
+  "job_id": 114869041048,
+  "artifact_id": 11755365344,
+  "artifact_sha256": "2003716398099bea2a7ea23df2191b42151d73dca23c9b54b4a860c2bd95b7bd",
+  "workflow": "next-adaptive-n3-aes-authenticated-lane-core",
+  "outcome": "SUCCESS",
+  "tested": [
+    "V3 Lane uses suite-selected tlsrecord sealer/decoder on actual datagrams with independent C2S/S2C keys, suites ChaCha/AES128/AES256 x fixed/off parity 0/4/20",
+    "Reject zero or unknown suite with V3, reject suite on legacy/V2, preserve original V2 default ChaCha",
+    "Datapath/realityfront/tlsrecord/runtimeowner/linkdata/adaptivefec Go unit PASS",
+    "Same-source Go race PASS datapath/record/realityfront/runtimeowner",
+    "go vet datapath/tlsrecord PASS",
+    "Windows AMD64 client + Linux ARM64 server cross compilation PASS"
+  ],
+  "not_tested": [
+    "Actual authorized public AES V3 admission blocked by SupportedNow",
+    "No real five-netns AES network throughput, late loss, CPU AES hw vs software",
+    "No AES configuration file, CLI or Windows GUI option advertised",
+    "No physical Windows TUN test"
+  ],
+  "N3_full": "OPEN",
+  "physical": "NOT_RUN",
+  "N2": "OPEN"
+}

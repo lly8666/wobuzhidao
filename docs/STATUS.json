@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_AES_V3_AUTHENTICATED_LANE_SELECTOR_PREDECLARED_UNIT_RACE_NOT_RUN",
+    "phase": "N3_B_AES128_AES256_V3_LANE_FULL_GO_UNIT_RACE_CROSS_BUILD_SCOPED_PASS_ADMISSION_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -23,7 +23,7 @@
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
-      "N3_aes": "IN_PROGRESS_AES128_AES256_RECORD_CORE_GITHUB_ACTION38263629068_UNIT_RACE_VET_WINDOWS_LINUX_CROSS_BUILD_SCOPED_PASS_AUTHENTICATED_SUITE_PER_LANE_AND_REAL_NET_TESTS_NOT_STARTED",
+      "N3_aes": "IN_PROGRESS_AES128_AES256_RECORD_CORE_ACTION38263629068_AND_AUTH_V3_LANE_UNIT_RACE_BUILD_ACTION38266249189_SCOPED_PASS_PUBLIC_POLICY_NEGOTIATION_AND_REAL_NET_NOT_YET_TESTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "SCOPED_GUI_N2_FEC_CONFIG_AND_QUALITY_TRANSPORT_PAGE_IMPLEMENTED_WINDOWS_NATIVE_258_TESTS_PASS_N3_AES_SELECTOR_NOT_YET_ADVERTISED_PHYSICAL_NOT_RUN",
       "N6_actions_packages": "NOT_STARTED"
@@ -2138,7 +2138,7 @@
       }
     },
     "n3_aes_lane": {
-      "status": "PREDECLARED_INTERNAL_V3_LANE_CIPHER_SUITE_ROUTING_CANDIDATE_PENDING_GITHUB_ACTIONS",
+      "status": "ACTIONS_SUCCESS_AES_128_256_V3_REAL_LANE_EACH_DIRECTION_FIXED_OFF_PARITY_0_4_20_UNIT_RACE_CROSSBUILD_SCOPE_ONLY",
       "file_sources": [
         "internal/datapath/lane.go",
         "internal/datapath/handoff.go",
@@ -2150,11 +2150,17 @@
       "configured_AES_CLI": "NOT_ENABLED",
       "gui_AES": "NOT_ADVERTISED",
       "real_AES_network": "NOT_RUN",
-      "physical": "NOT_RUN"
+      "physical": "NOT_RUN",
+      "source_sha": "f067abcc9d283f6fb67c613c9008bc935e6330b7",
+      "run_id": 38266249189,
+      "job_id": 114869041048,
+      "artifact_id": 11755365344,
+      "artifact_zip_sha256": "2003716398099bea2a7ea23df2191b42151d73dca23c9b54b4a860c2bd95b7bd",
+      "action_status": "SUCCESS"
     }
   },
-  "next_task": "N2 scoped noHOL Go/action38257097791+38263051747 PASS; Windows GUI Transport/connection page 258 native checks + screenshot Action38260818090 PASS, no early GUI AES. N3 AES record core sourcef321e671 Action38263629068 unit/race/vet/cross build PASS, but not connected to authenticated product Lane. NEW candidate N3-B adds V3 lane cipher selector from admission session and internal parity0/4/20 bidirectional actual sealer/decoder tests, still public SupportedNow AES UNSUPPORTED, preserves V2 original ChaCha. Run exact SOURCE GitHub unit/race/vet and Win/Linux builds, inspect failures and original artifact. After this scoped PASS, N3-C policy allow and authenticated client/server negotiation/AES wrong-suite reject; real5netns one SOURCE/config/scenario/performance job for AES128 then separate AES256; only then UI cipher selector Transport page and genuine packaging. Keep N2 C04/C05 auto grade FAIL, C10 true GE p99 1.8-1.95s OPEN, physical NOT_RUN, no ref/mainline/deploy.",
-  "latest_log": "docs/devlog/20261012-n3-aes-lane-authenticated-v3-selector-candidate.md",
+  "next_task": "N3-B AES lane exact SOURCEf067abcc9d283f6fb67c613c9008bc935e6330b7 Action38266249189 job114869041048 artifact11755365344 ZIP SHA200371639 SUCCESS: actual N3 cipher suite V3 lane C2S/S2C first delivery tests parity0/4/20, bad/unmarked version rejects, old V2 unchanged; full datapath/record/realityfront/runtimeowner/linkdata Go unit/race/vet and Windows client/Linux ARM64 server compile. NEXT N3-C independently prove authenticated public Admission policy AES128/AES256, authenticated C2S/S2C key derivation, reject wrong suite/reply, AES auto/fixed/off, no TLS decoy alignment false claims, narrow Go unit/race; then real AES128 and AES256 separate one SOURCE/config/scenario/perf jobs, after verified open CLI config and Windows GUI cipher in Transport with docs and native screenshot. Keep GUI N2 Transport 258 PASS, N2 noHOL scoped; C04/C05 grade FAIL GE p99 OPEN; physical NOT_RUN no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n3-aes-v3-lane-selectors-actions-scoped-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
