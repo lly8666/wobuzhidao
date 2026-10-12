@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "kind": "N2_M2_INDEPENDENT_GE_MODEL_ONLY_ACTIONS_PASS_NO_PERFORMANCE",
+  "date": "2026-10-12",
+  "source_sha": "fe1920b664a19baacd137a4c85e584eee985ee99",
+  "run_id": 38217981601,
+  "job_id": 114707114719,
+  "artifact_id": 11732741452,
+  "artifact_name": "adaptive-n2-ge-model-only-fe1920b664a19baacd137a4c85e584eee985ee99",
+  "artifact_sha256": "ac64afe5f28163f1935a759f239fcdf056e512594f0b819b750489f6c866895e",
+  "model_output_sha256": "cbab2373056253ee53b085643ee839507ad3bac59fa7649d3993e0d3e9f87420",
+  "receipt_sha256": "61165edb079268f934e233c9e7a1073fb46ecc53b26d38d77c6ce8936c562aae",
+  "model_version": "n2-independent-ge-ctmc-v1",
+  "model_file_sha256": "a9c732bf1a8d6c4e5c7f1698e98e27228ea1ff1b6b7e6d1c201f76b400702ae4",
+  "test_file_sha256": "6c0d16ed47f57c287f5dcfd4521d8af07fc5bbaafd1037585954dc7e7263dbcd",
+  "manifest_file_sha256": "04f2edbbc1ea2195b8051b262318a73f454d20517c2d40181bb98d21b451f47c",
+  "actions_unit": "PASS",
+  "actions_reference": "PASS",
+  "products_tested": false,
+  "performance_jobs": 0,
+  "ge": {
+    "good_mean_ms": 450,
+    "bad_mean_ms": 50,
+    "good_loss": 0,
+    "bad_loss": 0.5,
+    "stationary_loss": 0.05,
+    "target_source_residual": 0.001
+  },
+  "scoped_model": {
+    "FULL_K20_REALTIME_10MBPS": {
+      "emitted_sys_spacing_ms": 0.42,
+      "parity_spacing_ms": 0.1,
+      "model_residual_R0": 0.05,
+      "model_residual_R4": 0.04884,
+      "model_residual_R8": 0.04603,
+      "model_residual_R16": 0.03249,
+      "model_residual_R20": 0.02123,
+      "sufficient_r": null
+    },
+    "K20_LONGER_INTERSHARD": {
+      "source_spacing_ms": 2,
+      "parity_spacing_ms": 0.1,
+      "model_residual_R20": 0.01311,
+      "sufficient_r": null
+    },
+    "PARTIAL_K5_MIX": {
+      "model_residual_R20": 0.02131,
+      "sufficient_r": null
+    },
+    "SPARSE_K1": {
+      "model_residual_R4": 0.025,
+      "model_residual_R20": 0.025,
+      "sufficient_r": null
+    }
+  },
+  "limits": [
+    "No physical network or real fault trace executed, and no actual FEC packet timestamps; model output is scenario hypothesis only",
+    "Actual C10 controller never receives simulated GE truth; separate observed waveform/netem trace must be validated",
+    "Strong correlated 50ms bursts across a full k20 group can make 0.1pct unattainable even at maxR20; do not demand zero business loss",
+    "Equivalent shard-time assumptions change residual; must recalc with verified actual group shapes",
+    "N2 pass remains OPEN, N3-N6 NOT_STARTED, physical NOT_RUN"
+  ]
+}
