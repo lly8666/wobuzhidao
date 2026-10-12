@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "status": "GITHUB_ACTION_IN_PROGRESS_NOT_PRODUCT_RESULT",
+  "registered_date": "2026-10-12",
+  "source_sha": "4aaeaef984f60229eada301bb048bbca5a2b41f4",
+  "run_id": 38241338957,
+  "job_id": 114784421949,
+  "one_source_configuration_scenario_job": true,
+  "scenario": "C05 C2S1% S2C10% IID-ish kernel unseeded qdisc, 240s active+10s drain",
+  "freeze_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+  "model_only_run_id": 38232373616,
+  "expected": {
+    "C2S_last60_band": [
+      4,
+      8
+    ],
+    "S2C_last60_band": [
+      8,
+      10
+    ],
+    "min_active_fraction": 0.9
+  },
+  "preflight_status": "IN_PROGRESS_GITHUB_N2_UNIT_RACE",
+  "artifact_id": null,
+  "performance_result": "NOT_YET_AVAILABLE",
+  "physical": "NOT_RUN",
+  "overall_N2": "OPEN"
+}

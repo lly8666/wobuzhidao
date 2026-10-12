@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C05_ASYM_1_10_REALPATH_SINGLE_SOURCE_CANDIDATE_PRE_ACTIONS",
+    "phase": "N2_C05_ASYM_REALPATH_ACTION38241338957_IN_PROGRESS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1535,7 +1535,7 @@
       "evidence": "docs/evidence/adaptive-n2-c05-c06-asym-theory-actions-20261012.json"
     },
     "n2_c05": {
-      "status": "NEW_ASYMMETRIC_C05_SINGLE_REALPATH_FIXTURE_FROZEN_NOT_YET_RUN",
+      "status": "GITHUB_ACTION38241338957_JOB114784421949_PREFLIGHT_PENDING_OR_IN_PROGRESS_NO_PERFORMANCE_CONCLUSION",
       "model_version": "n2-asymmetric-iid-timeband-v1",
       "model_freeze": "docs/evidence/adaptive-n2-c05-c06-asym-model-freeze-v1.json",
       "model_freeze_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
@@ -1565,12 +1565,16 @@
       "workflow": ".github/workflows/next-adaptive-n2-c05-asym1-10-single.yml",
       "performance_single_source_config_scenario_measurement_job": true,
       "pending_real_run_id": "NOT_YET_STARTED",
-      "product_result": "NOT_RUN",
-      "physical": "NOT_RUN"
+      "product_result": "IN_PROGRESS_NOT_YET_VERIFIED",
+      "physical": "NOT_RUN",
+      "source_sha": "4aaeaef984f60229eada301bb048bbca5a2b41f4",
+      "run_id": 38241338957,
+      "job_id": 114784421949,
+      "evidence": "docs/evidence/adaptive-n2-c05-asym-first-action-registered-20261012.json"
     }
   },
-  "next_task": "C05 C2S1% / S2C10% independent-source Normal auto 240s single performance Action on push of next exact SOURCE. Original C04 SOURCE0e3daca5 Action38231341392 failed cross S2C recover5 grade78.3% and preserved. C05 independent IID ref model-only Action38232373616 pass with no network, predeclared C2S [R4,R8] and S2C [R8,R10] last60 >=90%, B_latest122.4/107.4s. New helper derived only real five-netns C08, router rsrv C2S1pct rcli S2C10pct, actual qdisc loss assert; preflight unit parses generated shell, freeze, grade direction, early null lanes; GitHub unit/race before real 240s. If fail preserve exact errors/artifacts/hash no blind seed reruns. Then reverse C06 in separate Action only if C05 analyzed, GE correlated, blackhole/reorder, feedback, sparse/mixed traffic, MTU/Game. N2 remains OPEN N3–N6 NOT_STARTED physical NOT_RUN legacy 2.73s/80s OPEN, no deploy/merge/ref.",
-  "latest_log": "docs/devlog/20261012-n2-c05-asym-1pct-10pct-realpath-frozen-candidate.md",
+  "next_task": "C05 Action38241338957/job114784421949 SOURCE4aaeaef984f60229eada301bb048bbca5a2b41f4 running preflight Go unit/race. Check final step outcomes first; if preflight failure, preserve exact log/artifact and narrow fix, no fabricated performance. If 240s realpath reaches analysis, inspect actual rsrv C2S1%/rcli S2C10% qdisc drops, 2 directional last60 grades [R4,R8]/[R8,R10] at >=90%, business unique/p99/missing/gap/CPU/wire/parity; provide scoped verdict not full N2. Only after C05 final and zero running perf prepare C06 reversed 10%/1% separate SOURCE/Action. Preserve C04 S2C recover5 78.3% below90 FAIL and old evidence; N2 OPEN N3–N6 pending physical NOT_RUN historical2.73s/80s OPEN, no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-c05-action-registered-preflight.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "0e3daca5e26a8487b0d0e1c94b67a3959deb791d",
   "last_tested_scope": "M3_C04_FULL840S_HIGH20_BOTH_GOOD_INITIAL_AND_FINAL_OFF_REAL_BOTH_FIRSTUNIQUE_NO_BLACKOUT_C2S_RECOVER5_R8_R10_96_7PCT_PASS_S2C_78_3PCT_FAIL_GROSS_WIRE2_162X_CPU_ON",
