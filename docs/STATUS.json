@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M1_PARTIAL_K_UNIT_EXPECTATION_CORRECTION_PENDING_ACTIONS_RERUN",
+    "phase": "N2_M1_CORE_UNIT_RACE_PASS_POLICY_WORKFLOW_SHALLOW_CHECKOUT_FIX_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -869,7 +869,7 @@
       "reason": "540s C2S 240s clean confidence gate; 256 PN cropped systematic + R-only conservative bound can make absolute q target unattainable for every grade; k1 equally protected across all R",
       "risk": "True burst protection may exceed IID marginal q improvement; new protection/first delivery/perf Actions mandatory",
       "param": "internal constant 10% of model source residual target, not a new CLI/JSON option",
-      "actions_test": "FAIL_UNIT_RUN38202927503_JOB114660056352_RACE_NOT_RUN",
+      "actions_test": "RUN38203126804_JOB114660662737_UNIT_RACE_PASS_WORKFLOW_FAIL_SHALLOW_BASELINE_GIT_TREE",
       "performance_test": "NOT_RUN",
       "qualification": "NOT_PASSED",
       "physical": "NOT_RUN",
@@ -877,11 +877,13 @@
       "failures": [
         "NEW_UNIT k1 floor0 expected 0 but correct parity4 because off q=p while enabled q=p^2",
         "EXISTING_UNIT k2 real R=min(k,R) never >2 so high loss alone cannot justify nominal raise; now test meaningful high loss with k20"
-      ]
+      ],
+      "second_source_sha": "df8e54be5598b2010937206932b879a8b3fc9757",
+      "second_failure": "PERFORMANCE_NOT_RUN. Go N2 unit PASS + four-package race PASS. Exact workflow FAIL repository policy due fetch-depth shallow and missing historical baseline b5c848f tree. Fix checkout fetch-depth0 and rerun."
     }
   },
-  "next_task": "M1 first core Actions38202927503 FAIL, race NOT_RUN. Recheck corrected k1/k2 exact coding and meaningful k20 high-loss raise regression in next GitHub Actions core/race. No performance until passing. M0 reference model PASS only; C03/C04/C08/C09 frozen. Original540 C2S adaptive efficiency still OPEN, legacy 2.73s tail/80s S2C OPEN; next run one performance SOURCE/config/scenario/job; N3-N6 not started, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261012-n2-m1-core-fail-partial-k-correction.md",
+  "next_task": "GitHub Actions M1 run38203126804 unit/race passed but workflow policy FAIL due shallow checkout; correct dedicated workflow actions/checkout fetch-depth0, rerun and verify policy green on exact SOURCE. Do NOT run performance until full unit/race/policy green; all prior FAIL preserved. Then one real C08 steady1 or next minimal network counterexample with frozen independent M0 reference, do not conceal overprotection/true business losses. N3-N6 and physical remain NOT_RUN.",
+  "latest_log": "docs/devlog/20261012-n2-m1-core-race-green-policy-checkout-fail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
   "last_tested_scope": "READ_ONLY_RECEIPT_RECOVER540_BOTH_OFFSTART_RAISE_C2S_NO_LOWER_IN_240S_ACTIVE_CLEAN_DRAIN16_S2C_OFF_NOT_FULL_N2_PASS_FOUNDATION_7_ENABLED_PASS",

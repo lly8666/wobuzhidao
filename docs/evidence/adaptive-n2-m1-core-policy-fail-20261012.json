@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "kind": "M1_SECOND_ACTION_CORE_UNIT_RACE_PASS_WORKFLOW_FAIL",
+  "source_sha": "df8e54be5598b2010937206932b879a8b3fc9757",
+  "run_id": 38203126804,
+  "job_id": 114660662737,
+  "status": "FAIL",
+  "passed_steps": [
+    "Focused N2 controller unit",
+    "N2 protected generation quality FEC and runtime owner race guards"
+  ],
+  "failed_step": "Verify repository policy and safety contracts",
+  "exact_error": "fatal: not a tree object when check_repository.py git ls-tree -r -z b5c848f4e9afdffd15d1bc451560edf4e9390a35",
+  "root_cause": "actions/checkout shallow depth default1 missing repository baseline tree",
+  "fix": "Add fetch-depth:0; do not weaken repository policy",
+  "measurement_count": 0,
+  "tests_not_claimed": "workflow not green, no real netem/product performance or N2 effectiveness evidence",
+  "original_first_fail": {
+    "run_id": 38202927503,
+    "job_id": 114660056352,
+    "classification": "product unit expectation FAIL k1/k2"
+  },
+  "long_lived_open": [
+    "C2S slow recover540",
+    "legacy off probe2.73s",
+    "80s S2C"
+  ]
+}
