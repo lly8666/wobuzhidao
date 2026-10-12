@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "classification": "C08_SCOPED_GRADE_SCREEN_PASS_NOT_FULL_N2",
+  "date": "2026-10-12",
+  "source_sha": "2aa03ae1a181e630a974d164e22bec302ad7f251",
+  "run_id": 38207388447,
+  "job_id": 114673789091,
+  "artifact_id": 11728240325,
+  "artifact_sha256": "75e40e812669667ec1c5c44b90ffea82b1d25c862fa61090812e9be2a7da2dc3",
+  "summary_sha256": "f5a0b0dcdba2ed24d715cd0399f2dcf3c39378c71f0bc4ec7d41a2a0a183b7f1",
+  "manifest_sha256": "77d5d6fd9f157b34de3ebc27aeb576be50f219dc38eb4e6d1fe80bc4d720ccc4",
+  "c08_helper_sha256": "7484c211390d0c930fad09a29b19d08e3f9746f9e7d1f665de38f6638daeef37",
+  "derived_script_sha256": "ceb567fc4e8dac6cb3e27afefd750089cb3e30fb7642e1bcb58a5ba7e06a104e",
+  "resource_samples_sha256": "4f9f72674008565f324e03213eeca2d0ad3be779df564ce978c27095d4f2c612",
+  "template_sha256": "3f18f70de2610f0185bb1309822486b1276e2ebdfca7725fe92f7ccbb37575a3",
+  "frozen_manifest_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "model_version": "n2-independent-iid-timeband-v1",
+  "config": {
+    "scenario": "C08",
+    "mode": "Normal auto",
+    "initial_parity": 20,
+    "floor": 4,
+    "ceiling": 20,
+    "cipher": "ChaCha20-Poly1305",
+    "outer_mtu": 1400,
+    "record_cap": 0,
+    "loss_percent": 1,
+    "one_way_delay_ms": 300,
+    "mbps_each_way": 10,
+    "active_seconds": 240,
+    "drain_seconds": 10,
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ],
+    "netem_rng": "KERNEL_RANDOM_UNSEEDED_TC_OPTION_UNSUPPORTED",
+    "diagnostic": "ON"
+  },
+  "verified_action_steps": [
+    "repo policy",
+    "Go unit/race exact SHA",
+    "nullable lane functional regression",
+    "5-netns real binaries",
+    "one 240s source/config/scenario measurement job",
+    "independent analyzer",
+    "bounded owned pcap cleanup"
+  ],
+  "first_action_fail_retained": {
+    "source": "251b6225c1d5df8fd7f1110b04b296075d4b1f60",
+    "run": 38203559446,
+    "job": 114661980342,
+    "artifact": 11726706308,
+    "sha256": "dc92606858bcee76565e3258f5d3d40d49bac00b8e7907b901a7d30cbf25e962",
+    "error": "nullable early server lane TypeError"
+  },
+  "original_theory": {
+    "full_k20_iid_ideal_r": 4,
+    "ordinary_allowed": [
+      4,
+      8
+    ],
+    "minimum_fraction_active_last60": 0.9
+  },
+  "measurements": {
+    "qdisc": {
+      "rcli": {
+        "packets": 1658641,
+        "drops": 16720,
+        "loss_percent": 0.997993865,
+        "bytes": 770915283
+      },
+      "rsrv": {
+        "packets": 1659673,
+        "drops": 16819,
+        "loss_percent": 1.003225783,
+        "bytes": 757730216
+      },
+      "kernel_capture_drops": 0,
+      "overlimits": 0,
+      "requeues": 0,
+      "backlog": 0,
+      "gross_bytes_over_business": 2.547735025
+    },
+    "business": {
+      "c2s": {
+        "sent": 592107,
+        "first_unique": 592107,
+        "bytes": 300000880,
+        "missing": 0,
+        "goodput_mbps": 10.0000293,
+        "p99_oneway_ms": 302.5,
+        "send_lag_p99_ms": 0.6
+      },
+      "s2c": {
+        "sent": 592107,
+        "first_unique": 592107,
+        "bytes": 300000880,
+        "missing": 0,
+        "goodput_mbps": 10.0000293,
+        "p99_oneway_ms": 302.5,
+        "send_lag_p99_ms": 0.6
+      },
+      "corrupt": 0,
+      "duplicates": 0,
+      "send_failures": 0
+    },
+    "probe": {
+      "sent": 240,
+      "returned": 240,
+      "missing": 0,
+      "returned_only_rtt_p99_ms": 608.5
+    },
+    "adaptive": {
+      "c2s": {
+        "first_lower_s": 47.048,
+        "reached_r4_s": 94.048,
+        "final60_r4_snapshots": 60,
+        "final60_r4_fraction": 1,
+        "over_r8_active_s": 84,
+        "over_r8_rank_seconds": 258,
+        "last_report_seq": 129,
+        "last_qualified_seq": 128,
+        "encoder": {
+          "source_shards": 592407,
+          "source_bytes": 371108920,
+          "parity_shards": 230095,
+          "parity_bytes": 244175240,
+          "parity_to_source_bytes": 0.657961,
+          "full_blocks": 29613,
+          "partial_blocks": 67
+        }
+      },
+      "s2c": {
+        "first_lower_s": 64.002,
+        "reached_r4_s": 110.002,
+        "final60_r4_snapshots": 60,
+        "final60_r4_fraction": 1,
+        "over_r8_active_s": 96,
+        "over_r8_rank_seconds": 318,
+        "last_report_seq": 130,
+        "last_qualified_seq": 130,
+        "encoder": {
+          "source_shards": 592347,
+          "source_bytes": 371097880,
+          "parity_shards": 261589,
+          "parity_bytes": 257650744,
+          "parity_to_source_bytes": 0.694293,
+          "full_blocks": 29614,
+          "partial_blocks": 8
+        }
+      }
+    },
+    "cpu": {
+      "diagnostic": "ON",
+      "resource_samples": 53,
+      "client_cpu_s": 152.28,
+      "server_cpu_s": 153.08,
+      "quota": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+      "same_cpu_model_isa_verified": false,
+      "cross_vm_cpu_optimization_proven": false
+    }
+  },
+  "verdicts": {
+    "correctness": "SCOPED_PASS",
+    "first_unique_goodput": "SCOPED_PASS",
+    "grade_last60": "SCOPED_PASS",
+    "resource_performance": "DESCRIPTIVE_ONLY",
+    "whole_run_protection_and_overhead": "OPEN",
+    "burst_asym_sparse_reorder_feedback_tcp_mtu_game": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "full_n2_pass": false
+  },
+  "limits": [
+    "Runtime quality source M/R conservative, not actual first-attempt loss",
+    "Real partial k cumulative available but 256-PN cropped groups cannot all be priced as full20",
+    "Parity bytes cumulatively 65.8%/69.4% due to expensive startup/transition; final grade4 is not all-run grade4",
+    "qdisc bytes include repair, control and ciphertext headers",
+    "CPU quota/model/ISA and diagnostic-OFF same VM baseline lacking",
+    "p99 is per returned business, not independent 10ms HOL proof",
+    "2.73s probe tail and 80s S2C historical issue OPEN",
+    "N3-N6 NOT_STARTED",
+    "No credential/payload/raw pcap pushed"
+  ]
+}
