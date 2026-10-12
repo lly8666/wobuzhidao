@@ -58,7 +58,7 @@ def prepare(root,script,receipt):
     s=exact(s,'for pid in "$BIZ_PID" "$TGT_PID" "$CLIENT_PID" "$SERVER_PID"; do',
        'for pid in "$BIZ_PID" "$TGT_PID" "$CLIENT_PID" "$SERVER_PID" "$STAGE_PID" "$RESOURCE_PID"; do')
     stage='''
-python3 "$GITHUB_WORKSPACE/tools/adaptive_n2_m3_stage.py" \\
+python3 "$GITHUB_WORKSPACE/tools/adaptive_n2_m3_recovery_stage.py" \\
   --namespace "$RTR" --c2s-dev rsrv --s2c-dev rcli \\
   --seed 601 --start-ns "$START_NS" --output "$ART/stage-events.jsonl" \\
   > "$ART/stage.log" 2>&1 &
@@ -82,8 +82,8 @@ RESOURCE_PID="$!"
         "schema":1,"source_template":"scripts/realpath_calibration.sh",
         "m3_frozen":model,
         "template_sha256":digest(template),"derived_script_sha256":digest(script),
-        "wave_stage_file_sha256":digest(root/"tools/adaptive_n2_m3_stage.py"),
-        "analyzer_file_sha256":digest(root/"tools/adaptive_n2_m3_wave.py"),
+        "wave_stage_file_sha256":digest(root/"tools/adaptive_n2_m3_recovery_stage.py"),
+        "analyzer_file_sha256":digest(root/"tools/adaptive_n2_m3_recovery.py"),
         "waveform":[{"name":a,"start_s":b,"end_s":phase_end(a,b),"loss_percent":c}
                     for a,b,c in PHASES],
         "requested_netem_seed":601,"netem_seed_applied":False,

@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M3_TWO_TIER_HISTORY_CORE_RACE_PASS_M3_R1_FROZEN_MINIMAL_REALPATH_PENDING",
+    "phase": "N2_M3_R1_FIRST_ACTION_FAIL_HELPER_PATH_FIX_PENDING_SECOND_SINGLE_SOURCE_ACTION",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1292,12 +1292,33 @@
         "min_unique_over_sent_recovery": 0.9,
         "single_source_config_scenario_job": true,
         "qualification": "NOT_RUN",
-        "physical": "NOT_RUN"
+        "physical": "NOT_RUN",
+        "first_action": {
+          "source_sha": "82e84b89ba278bd1ac4b4738a7aa4a2695c79f39",
+          "run_id": 38222199128,
+          "job_id": 114720895289,
+          "artifact_id": 11734239704,
+          "artifact_sha256": "abbce5f55469dbbca0fd7cfcda39849d6e991443fcdcebcd8c34904924b80c00",
+          "result": "FAIL_HELPER_FILE_NOT_FOUND_NO_REAL_MEASUREMENT",
+          "failed_step": "Build exact current SOURCE binaries",
+          "exact_error": "FileNotFoundError tools/adaptive_n2_m3_stage.py",
+          "root": "transformed prepare helper still referenced adaptive_n2_m3_stage.py, actual path adaptive_n2_m3_recovery_stage.py; analyzer self-hash also referenced old m3_wave.py",
+          "passed": [
+            "repo and performance policy",
+            "independent frozen M3 model/2-stage preflight",
+            "Python independent gate self-tests",
+            "Go N2 unit and four-package race"
+          ],
+          "performance_measurement": "NOT_RUN",
+          "fix_scope": "tools/adaptive_n2_m3_recovery.py only: change 2 stage helper path references and analyzer path 1 reference",
+          "theory_changed": false
+        },
+        "second_run": "PENDING_CORRECTED_SOURCE_PUSH"
       }
     }
   },
-  "next_task": "Two-tier controller exact SOURCEc942599 core/race success Foundation38221255938/N2 core38221255805/lifecycle38221255660; old b5f6047 Wilson off FAIL retained. New M3-R1 minimal independent realpath: one source Normal initial20 floor4, one 330s wave 20%120s then 5%210s +10s drain, one Actions performance job. M3-R1 freeze model/grade/timeband and gate must PASS unit/Github Go/race before netem. Inspect actual tc stage loss, high20 and recover5 active last60 grade, first unique/p99/missing/no >=5s gap, partial k/M-R source history, parity and total wire CPU/queue; scoped only. If failed, preserve Action run/job/artifact/hash and narrow. If PASS, rerun C03/C04 and burst/asym to check underprotection and resource; N2 OPEN, N3-N6 not started, historical2.73s/80s OPEN; physical NOT_RUN, no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-m3-two-tier-core-pass-m3-r1-frozen-single-test.md",
+  "next_task": "M3-R1 first Action38222199128 SOURCE82e84b8 job114720895289 artifact11734239704 FAIL before measuring (wrong prepared stage path; Python FileNotFoundError); Go N2 unit/race and frozen preflight PASS. Exact helper reference fixed to adaptive_n2_m3_recovery_stage.py (2 occurrences) and analyzer hash to adaptive_n2_m3_recovery.py (1). Preserve original failure receipt and hash, re-run GitHub same one 330s config/scenario/job on fresh SOURCE only; if second same failure no new evidence narrow, do not keep long reruns. M3 two-tier core/race remains successful, N2 product efficiency OPEN, GE only theory PASS. N3-N6 pending physical NOT_RUN, legacy2.73s/80s OPEN.",
+  "latest_log": "docs/devlog/20261012-n2-m3-r1-first-action-helper-fail-path-fix.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
   "last_tested_scope": "C04_840S_OFFSTART_SOURCE_C835C6D_HIGH20_BOTH_R16_20_RETURN_OFF_BOTH_CLEAN_LAST60_FIRST_UNIQUE_BOTH_NO_GAP_MISSING894_1077_SCOPED_PASS_RECOVER5_BOTH_LT90PCT_FAIL",

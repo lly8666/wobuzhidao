@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "kind": "M3_R1_FIRST_ACTION_FAIL_UNTESTED_PERFORMANCE",
+  "source_sha": "82e84b89ba278bd1ac4b4738a7aa4a2695c79f39",
+  "run_id": 38222199128,
+  "job_id": 114720895289,
+  "artifact_id": 11734239704,
+  "artifact_sha256": "abbce5f55469dbbca0fd7cfcda39849d6e991443fcdcebcd8c34904924b80c00",
+  "name": "adaptive-n2-m3-20to5-realpath-single-330s-82e84b89ba278bd1ac4b4738a7aa4a2695c79f39",
+  "conclusion": "FAIL",
+  "run_scope": "NO_PERFORMANCE_MEASUREMENT",
+  "time_utc": "2026-10-12T08:14:03Z",
+  "passed_steps": [
+    "Exact one SOURCE and one functional sample",
+    "M3 independent freeze and stage preflight before any netem load",
+    "Independent first-delivery gate self-tests BEFORE real workload",
+    "Install five-netns kernel prerequisites",
+    "Exact SOURCE Go N2 unit/race before measurement"
+  ],
+  "failed_step": "Build exact current SOURCE binaries",
+  "cause": "FileNotFoundError: [Errno 2] No such file or directory: 'tools/adaptive_n2_m3_stage.py'",
+  "reason": "After source adaptation `prepare()` injected obsolete staged helper name and hashed nonexistent old stage path; expected tools/adaptive_n2_m3_recovery_stage.py. Analyzer helper hash also pointed to old adaptive_n2_m3_wave.py.",
+  "sample_outcome": "skipped",
+  "verify_outcome": "failure_without_manifest",
+  "independent_gate": "failure_without_manifest",
+  "raw_capture": "NOT_CREATED",
+  "no_netem_samples": true,
+  "fix": "only helper correct three path references; freeze remains unchanged, same one scenario and independent gate",
+  "product_n2": "OPEN",
+  "physical": "NOT_RUN"
+}
