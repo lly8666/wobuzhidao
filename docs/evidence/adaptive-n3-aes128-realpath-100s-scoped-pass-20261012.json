@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N3_AES128_REAL_5NETNS_100S_LOSSLESS_AUTH_RECORD_FUNCTIONAL_SCOPED_PASS_NOT_FULL_N3",
+  "source_sha": "52651945e68513655f1d3601530829e869f21422",
+  "run_id": 38273052020,
+  "job_id": 114891765713,
+  "artifact_id": 11757344960,
+  "archive_sha256": "d30affd58bdea2f17c4ae2267bc2e0a6b54ce88f0234ec4c95b8d3e866fe0c57",
+  "summary_sha256": "3e0a0d947db597ec61384a7f837861319ae337317f1e79212c1ae5b1c0a97178",
+  "manifest_sha256": "0107e739a2ea96394f19c25a3c83618687a9a0416160bfc2b36d799c96a51b71",
+  "harness_prep_sha256": "4c13e2a1324ac8794e0c711b53bd4cf49c06135667d2a5b12f29cdf618359b4c",
+  "business_source_sha256": "5315d5e0c1160285c1abeff33686e5d31169cd680879b2b936e67da039345df6",
+  "business_target_sha256": "7e98094b5f4e4ea81c182c882ac4e19e0b457790a9b46e059233cd80d1849a69",
+  "workflow_conclusion": "SUCCESS",
+  "analyzer_classification": "N3_AES_REALPATH_LOSSLESS_FIRST_UNIQUE_SCOPED_PASS_NOT_FULL_N3",
+  "cipher": "aes-128-gcm",
+  "V3_authenticated_record_codepath": true,
+  "source_config": {
+    "fec_mode": "Normal auto",
+    "initial_R": 20,
+    "min_R": 4,
+    "server_fixed_R": 20,
+    "mtu": 1400,
+    "one_way_delay_ms": 300,
+    "each_direction_mbps": 10,
+    "loss_pct": 0,
+    "active_s": 100,
+    "drain_s": 10,
+    "diagnostics": "ON",
+    "one_config_one_scenario_one_measurement_job": true
+  },
+  "first_unique": {
+    "c2s": {
+      "sent": 246711,
+      "received": 246711,
+      "unique_bytes": 125000240,
+      "corrupt": 0,
+      "duplicates": 0,
+      "send_failures": 0,
+      "delivered_oneway_p99_ms": 301.5
+    },
+    "s2c": {
+      "sent": 246711,
+      "received": 246711,
+      "unique_bytes": 125000240,
+      "corrupt": 0,
+      "duplicates": 0,
+      "send_failures": 0,
+      "delivered_oneway_p99_ms": 301.5
+    }
+  },
+  "probe": {
+    "sent": 100,
+    "returned": 100,
+    "returned_only_rtt_p99_ms": 601.84064
+  },
+  "N2_both_directions_live_auto_lowered_to_floor_R4": true,
+  "capture_all_4_kernel_drops": 0,
+  "qdisc_no_loss": {
+    "rsrv_forwarded_packets": 562292,
+    "rcli_forwarded_packets": 577489,
+    "rsrv_drops": 0,
+    "rcli_drops": 0,
+    "rsrv_outer_bytes": 337686940,
+    "rcli_outer_bytes": 355843401
+  },
+  "outer_bytes_total": 693530341,
+  "generated_business_bytes": 250000480,
+  "outer_wire_over_business": 2.774116037697208,
+  "quota": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+  "scope_limits": [
+    "One normal single-client lossless AES128 sample only; not weaknet",
+    "No independent cryptographic ciphertext capture oracle; V3 suite authenticated via product Go unit and real client/server",
+    "N2 real mixed TCP/UDP per-flow 10ms HOL NOT_RUN; Go noHOL functional/race scoped PASS",
+    "CPU diagnostics ON and no same-runner OFF, no CPU efficiency certification",
+    "Windows native Wintun and user physical NOT_RUN",
+    "AES256 requires its own independent performance SOURCE/Action"
+  ],
+  "overall_N3": "OPEN_PENDING_AES256_REALPATH",
+  "physical": "NOT_RUN"
+}

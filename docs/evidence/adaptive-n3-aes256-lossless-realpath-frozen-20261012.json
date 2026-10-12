@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "model": "N3_AES256_LOSSLESS_SINGLE_REALPATH_FROZEN_V1",
+  "source": "tools/adaptive_n3_aes_realpath.py",
+  "workflow": ".github/workflows/next-adaptive-n3-aes256-lossless-single.yml",
+  "record_cipher": "aes-256-gcm",
+  "baseline_default": "chacha20-poly1305",
+  "mode": "Normal auto V3 initial20 floor4 max20 (server configured fixed20)",
+  "lanes": 1,
+  "outer_mtu": 1400,
+  "record_caps": "client=0 server=0",
+  "true_kernel": "five netns native TPROXY/TUN/Linux raw protected record path",
+  "duration_active_seconds": 100,
+  "drain_seconds": 10,
+  "business_rate_mbps_each_direction": 10,
+  "oneway_delay_ms_each_direction": 300,
+  "netem_loss_percent": 0,
+  "source_seeds": [
+    2026092201,
+    2026092202
+  ],
+  "diagnostics": "ON",
+  "minimum_first_unique_fraction_c2s": 1,
+  "minimum_first_unique_fraction_s2c": 1,
+  "missing_packets_max_each_direction": 0,
+  "corrupt_duplicates_and_send_failure_max": 0,
+  "probe_missing_max": 0,
+  "qdisc_median_latency_ms_min": 280,
+  "qdisc_median_latency_ms_max": 340,
+  "crypto": "AES128 authenticated V3 record AEAD, not outer TLS",
+  "previous_core_unit_run_id": 38269196217,
+  "measurement_current": "NOT_RUN",
+  "limitations": [
+    "Not under loss, no independent multiple TCP+UDP 10ms HOL",
+    "No Windows Wintun physical or CPU OFF pairing",
+    "No AEAD ciphertext independent oracle from capture: actual protected record binding via GO protocol tests and real delivery",
+    "AES128 was measured separately at Action38273052020; AES256 requires its own first run"
+  ],
+  "physical": "NOT_RUN",
+  "previous_real_AES128_source_sha": "52651945e68513655f1d3601530829e869f21422",
+  "previous_real_AES128_run_id": 38273052020
+}
