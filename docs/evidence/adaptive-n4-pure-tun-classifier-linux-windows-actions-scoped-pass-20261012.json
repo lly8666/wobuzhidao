@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "N4_PURE_TUN_IPV4_INTERVAL_CLASSIFIER_LINUX_RACE_AND_NATIVE_WINDOWS_UNIT_SCOPED_PASS",
+  "source_sha": "a4689a48e5bbafba05e8759be9b2ef4405770854",
+  "run_id": 38284069629,
+  "linux_job_id": 114928087692,
+  "windows_job_id": 114928086952,
+  "workflow": ".github/workflows/next-adaptive-n4-tun-classifier-core.yml",
+  "conclusions": {
+    "linux": "SUCCESS_TARGETED_UNIT_AND_RACE",
+    "windows": "SUCCESS_NATIVE_WINDOWS_GO_WINDOWSCLIENT_AND_SPLITROUTE"
+  },
+  "same_source_foundation_run": 38284069502,
+  "same_source_lifecycle_run": 38284069517,
+  "tests": {
+    "nested_LAN_CN_custom_interval": "PASS",
+    "overseas_proxy": "PASS",
+    "DNS_TCP_UDP_53_before_CN_LAN": "PASS",
+    "underlay_mandatory_direct": "PASS",
+    "leased_IP_spoof": "REJECTED",
+    "fragment_without_bound_flow": "REJECTED",
+    "embedded_China_ipv4_bound": "PASS",
+    "invalid_ipv4_len_or_header": "REJECTED"
+  },
+  "first_action_FAIL": {
+    "source_sha": "b67523546c61f77797d49da963088fa494f6731b",
+    "run_id": 38283726245,
+    "linux_job_id": 114926954555,
+    "windows_job_id": 114926954806,
+    "classification": "FAIL_WRONG_UNIT_TEST_IHL_0x46_ALLOWED_WITH_28_BYTE_PACKET",
+    "remediation": "ONLY test negative IHL to 0x48 with 28-byte packet, no production policy change"
+  },
+  "limitations": [
+    "Standalone Go classifier isn't attached to Wintun Router/TUNInput yet",
+    "Still uses existing Windows capture route complements; old route count and stop hang remain N4 OPEN",
+    "Does not implement per-flow underlay-bound system TCP redirector or bounded UDP native mapping",
+    "No physical driver setup, Windows test validates hosted Go classifier only",
+    "N2 mixed independent TCP+UDP 10ms noHOL in true realpath still NOT_RUN; only scoped Go unit/race"
+  ],
+  "N4": "IN_PROGRESS",
+  "physical": "NOT_RUN"
+}

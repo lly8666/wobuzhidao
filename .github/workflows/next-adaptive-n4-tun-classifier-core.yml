@@ -6,6 +6,8 @@ on:
       - ".github/workflows/next-adaptive-n4-tun-classifier-core.yml"
       - "internal/windowsclient/tun_classifier.go"
       - "internal/windowsclient/tun_classifier_test.go"
+      - "internal/windowsclient/tun_classifier_flow.go"
+      - "internal/windowsclient/tun_classifier_flow_test.go"
 permissions:
   contents: read
 jobs:
@@ -27,7 +29,7 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           python3 tools/check_repository.py
-          go test -count=1 -v ./internal/windowsclient -run '^TestN4TUNClassifier'
+          go test -count=1 -v ./internal/windowsclient -run '^TestN4(TUNClassifier|FlowScoped)'
           go test -race -count=1 ./internal/windowsclient ./internal/splitroute
   windows-native-classifier-core-no-driver:
     runs-on: windows-2022

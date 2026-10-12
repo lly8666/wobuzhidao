@@ -1,0 +1,9 @@
+# 2026-10-12 N4 TUN IPv4纯分类器 Linux race+Windows原生Go单元限定PASS；有界flow/fragment后续
+
+**准确已测SOURCE** `a4689a48e5bbafba05e8759be9b2ef4405770854`，GitHub [N4 Action38284069629](https://github.com/lly8666/wobuzhidao/actions/runs/38284069629) Linux job`114928087692` 与 Windows2022 Go job`114928086952` **两个全部SUCCESS**，此外同SOURCE foundation`38284069502`启用7job全PASS与 lifecycle`38284069517` PASS。当前`internal/windowsclient/tun_classifier.go`没有改变原BuildNetworkPlan/真实Windows系统路由/真实Wintun连接，也没有创建本地TCP或UDP direct socket；仅对已校验租约源地址的独立IPv4按DNS优先（UDP/TCP目的53）、物理underlay强直连、LAN/CN/自定义合并静态区间 O(logN) 分类，其余归保护隧道；未关联分片fail closed。分类单元和跨平台Go检查均过，这只证明纯函数逻辑和兼容性，**不是N4真实native TUN direct/proxy PASS**。此工作流没有artifact上传，不能编造它的ZIP SHA。
+
+**历史失败保留**：原SOURCE`b67523546c61f77797d49da963088fa494f6731b` [Action38283726245](https://github.com/lly8666/wobuzhidao/actions/runs/38283726245) Linux job114926954555和Windows job114926954806均FAIL同一新增测试断言：把28字节IPv4包IHL设为`0x46`（24字节）仍合法，却错误期望fail；下一SOURCE只改测试为`0x48`（IHL32大于真实28），生产分类代码没变，真实Linux和Windows都绿；原FAIL凭据`docs/evidence/adaptive-n4-tun-classifier-first-invalid-ihl-negative-test-fail-20261012.json`仍在。
+
+下一SOURCE为**独立分流关联能力候选**：只添加`internal/windowsclient/tun_classifier_flow.go`、同名test，不改旧Windows网卡。带时间TTL的五元组+interfaceID/generation关联，最多512活跃flow、256片段、非首IPv4 fragment在原接口和代际内要求先看过首片以及IPv4 ID/proto/src/dst，否则拒绝；已重复ID但不同port的首片拒绝以防分错。分类器借原不可变DNS/underlay/CN规则，对首片仅临时拷贝清除MF做只读分类，**不修改任何业务包**，热cache命中O(1)、cap触发常量上界枚举。未通过GitHub Actions前不宣布这段代码PASS；若race/Windows core fail按精确log再改。
+
+下一阶段还要真正接入Windows native system TCP stack redirector和受绑定物理接口的socket、UDP per-flow mapping、少量系统capture路由替换/owned清理，不能使用把原TUN包原封不动塞物理NIC的错误设计。上述直接网络功能未做，N4仍OPEN。N3两套真实AES五netns各自无损100s、WinForms三选项273项原生已SCOPED PASS；N2 Go noHOL已测但**真正独立多TCP/UDP 10ms跨HOL无真实perf样本**、GE一向p99近2秒、C04/C05自动效率FAIL、历史2.73s/80s均OPEN。physical NOT_RUN，不部署用户机器、不动qualification ref/mainline。
