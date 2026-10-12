@@ -1,0 +1,9 @@
+# 2026-10-12 C10 正式时驱GE同产物只读排查：10ms持续交付不等于低p99或跨流无HOL
+
+严格以已完成 `96e6bc21675ebb0cdf3e1582e072a80359ba1205` [Action38250711104](https://github.com/lly8666/wobuzhidao/actions/runs/38250711104) / artifact11747679974 ZIP `adeba9fcbb89dba5cbd88435f25c17cb00b4cd56f130c0b1caf1c31d4bdc88de` 原始 `biz.json` SHA256 `2acad40b82debf7ef8662308ba265c598943b24dcc953acf52c2750ce607f61b` 和`target.json` SHA256 `ebf2ef16f3ecfc611577628d891f92145763584ef3bce0a9dd5df6a36a4b1071` 做**离线只读审计**，没有运行新的GitHub性能Action、更没有本地产品性能压载。算式/范围完整见`docs/evidence/adaptive-n2-c10-ge-10ms-udp-tail-posthoc-audit-20261012.json`。
+
+这份真实源数据原有 `recv_wall_bucket_ms=10`、`recv_wall_bytes_by_bucket` 各25001个10ms时间槽，原业务240秒活跃+10s drain。每个方向从首业务时起前30个10ms槽恰好都为0，与300ms单程传播对齐。为了避免把初始300ms正常路由延迟或最终drain混入连续性审计，仅看业务激活期 **t=1..239秒**（10ms数组索引100..23899的23800个槽）：C2S和S2C每个槽都收到非零的聚合first-unique字节，最长零槽连续数均0。**这只说明当前固定每向10Mbps持续单个UDP业务源的全局接收流在中间稳定段没有10ms量化的空档**；不能证明同源每个包按时抵达、不证明独立TCP/UDP多个flow的10ms首次交付、不能结算no-HOL资格。单方向收到的业务包仍少10826与12541，并且有大量迟到业务。
+
+另一方面原独立`oneway_p99_ns`已确认C2S **1833ms**、S2C **1947.5ms**（received-only），返回probe240发234回/6未回，已回RTTp99 **2441ms**，原`probe_rtt_ns_by_second`观察到共9个超过1000ms（对应秒索引17/23/58/73/114/123/183/195/238，分别1305/1949/2097/2217/2441/1409/2468/2305/3405ms），最大已回 **3405ms**。因此p99大尾可以与聚合10ms持续到达同时成立；推测原因可包括突发中FEC修复/协议重传/控制反馈/队列或调度，尚未用因果probe+per-flow原始trace解耦，绝不能把GE BAD最长一段415ms直接当成最大迟到上界，更不能宣称CPU未知的runner负载是根因。4个capture kernel drops=0与qdisc几乎无backlog仍不能代替队列/调度所有层的证据。
+
+下一步是有界**独立多小流TCP+UDP实打实10ms无HOL**，保留flow身份和每包首次交付/最坏中断，并在同一个SOURCE/config/scenario/measurement job中采样CPU型号/ISA/cgroup PSI和真实首达，不同时串两个损伤工况；之后有限1Mbps sparse/idle/rotation及Game拒绝auto/MTU防护与诊断OFF成本门后尽快推进N3标准库AES/N4 Windows TUN/N5 GUI/N6交付。N2 remains OPEN，C04恢复5%下行78.3%和C05高损10%下行70%档位效率FAIL以及历史2.73s/80s S2C事件继续OPEN，physical NOT_RUN，不部署、不移qualification ref、不合主线。

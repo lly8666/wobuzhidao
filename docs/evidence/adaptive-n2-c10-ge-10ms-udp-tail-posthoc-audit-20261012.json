@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "N2_C10_POSTHOC_RETURN_TAIL_AND_10MS_CONTINUOUS_UDP_ARRIVAL_AUDIT",
+  "source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
+  "origin_action": 38250711104,
+  "origin_job": 114815961958,
+  "origin_artifact_id": 11747679974,
+  "zip_sha256": "adeba9fcbb89dba5cbd88435f25c17cb00b4cd56f130c0b1caf1c31d4bdc88de",
+  "biz_json_sha256": "2acad40b82debf7ef8662308ba265c598943b24dcc953acf52c2750ce607f61b",
+  "target_json_sha256": "ebf2ef16f3ecfc611577628d891f92145763584ef3bce0a9dd5df6a36a4b1071",
+  "analysis_method": "Read-only analysis of GitHub Action archived business JSON stats.recv_wall_bytes_by_bucket, 10ms each; slice index100..23900 excludes first1s and last1s business-boundary/drain effects; no new code executed against product or local perf simulation",
+  "time_bucket_ms": 10,
+  "steady_active_second_slice": [
+    1,
+    239
+  ],
+  "steady_active_bucket_index_slice": [
+    100,
+    23900
+  ],
+  "steady_active_buckets_per_direction": 23800,
+  "first_30_bins_startup_zero_due_to_300ms_oneway_delay_each_direction": 30,
+  "continuous_udp": {
+    "c2s": {
+      "first_unique_received": 581281,
+      "total_received_wall_buckets": 25001,
+      "zero_10ms_buckets_in_steady_active": 0,
+      "longest_consecutive_zero_10ms_bins_in_steady_active": 0,
+      "original_p99_delivered_oneway_ms": 1833,
+      "first_unique_missing": 10826
+    },
+    "s2c": {
+      "first_unique_received": 579563,
+      "total_received_wall_buckets": 25001,
+      "zero_10ms_buckets_in_steady_active": 0,
+      "longest_consecutive_zero_10ms_bins_in_steady_active": 0,
+      "original_p99_delivered_oneway_ms": 1947.5,
+      "first_unique_missing": 12541
+    }
+  },
+  "probe_observations": {
+    "sent": 240,
+    "returned": 234,
+    "non_returned": 6,
+    "returned_only_rtt_p99_ms": 2441,
+    "returned_RTT_above_1s_by_send_second_index_ms": [
+      {
+        "index": 17,
+        "ms": 1305
+      },
+      {
+        "index": 23,
+        "ms": 1949
+      },
+      {
+        "index": 58,
+        "ms": 2097
+      },
+      {
+        "index": 73,
+        "ms": 2217
+      },
+      {
+        "index": 114,
+        "ms": 2441
+      },
+      {
+        "index": 123,
+        "ms": 1409
+      },
+      {
+        "index": 183,
+        "ms": 2468
+      },
+      {
+        "index": 195,
+        "ms": 2305
+      },
+      {
+        "index": 238,
+        "ms": 3405
+      }
+    ],
+    "number_of_returned_rtt_samples_above_1s": 9,
+    "observed_max_returned_rtt_ms": 3405
+  },
+  "scope": "DIAGNOSTIC_ONLY_NOT_NEW_FROZEN_QUALIFICATION",
+  "deductions": [
+    "These two continuous UDP sources provide arrival every 10ms after propagation; does not imply each original packet arrived fast or prove independent TCP/UDP HOL freedom",
+    "Extremely delayed returned probes coexist with continuous high-rate first-unique bytes; do not use absence of empty aggregate buckets to clear p99",
+    "Probe RTT maximum 3405ms and p99 2441ms are separate legitimate metrics; 6 missing probes are not 0ms successes",
+    "No causal assertion that this is protocol HOL vs GE erasure/retransmission/feedback/queue/host scheduler without a targeted forensic trace"
+  ],
+  "next_condition": "Dedicated independent small TCP/UDP concurrent flow identity and first-arrival tracking in one future GitHub Action, plus bounded p99 diagnose with fixed 15ms/300ms calibration and matched CPU flags/quotas",
+  "N2": "OPEN",
+  "physical": "NOT_RUN"
+}

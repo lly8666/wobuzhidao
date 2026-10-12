@@ -1964,12 +1964,36 @@
           "highest_priority_open": "Returned-only business p99 1833/1947.5ms and probe RTT p99 2441ms with six missing; no independent 10ms multi-flow HOL qualification",
           "evidence": "docs/evidence/adaptive-n2-c10-real-ctmc-240s-actions-scoped-pass-p99-open-20261012.json",
           "physical": "NOT_RUN"
+        },
+        "posthoc_tail_audit": {
+          "evidence": "docs/evidence/adaptive-n2-c10-ge-10ms-udp-tail-posthoc-audit-20261012.json",
+          "source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
+          "source_run_id": 38250711104,
+          "original_artifact_id": 11747679974,
+          "type": "READ_ONLY_EXISTING_ARTIFACT_NOT_NEW_ACTIONS_MEASUREMENT",
+          "time_bucket_ms": 10,
+          "steady_seconds": [
+            1,
+            239
+          ],
+          "steady_buckets": 23800,
+          "each_direction_zero_steady_10ms_buckets": 0,
+          "packet_oneway_p99_ms": {
+            "c2s": 1833,
+            "s2c": 1947.5
+          },
+          "probe_returned": 234,
+          "probe_sent": 240,
+          "probe_returned_RTT_gt_1s_count": 9,
+          "probe_returned_max_rtt_ms": 3405,
+          "independent_TCP_UDP_10ms_no_HOL": "NOT_TESTED",
+          "latency_tail": "OPEN"
         }
       }
     }
   },
-  "next_task": "C10 actual five-netns GE real SOURCE96e6bc21675ebb0cdf3e1582e072a80359ba1205 Action38250711104/job114815961958/artifact11747679974/zip SHAadeba9f completed SUCCESS; dual 900-boundary CLOCK_MONOTONIC kernel BPF maps witnessed BAD erasure50.05%/49.76%; actual business first-unique C2S581281/592107 (98.17%) S2C579563/592104 (97.88%), no continuous wall-second blackout, no integrity/capture/capacity flags. IMPORTANT returned-only one-way p99 1833/1947.5ms, probe RTT p99 2441ms 234/240 returned; high tail remains OPEN and C10 is FUNCTIONAL SCOPED ONLY. Trace frozen hash5fcfe, independent GE MDS full k20 model target0.1% unattainable at R20 under assumed timestamps, cannot claim actual source residual or CPU optimization. NEXT bounded N2 first-delivery/p99 correlation analysis from existing GE artifact, then independent short low-RTT15ms or 1Mbps sparse/mixed TCP+UDP 10ms no HOL single source/config/scenario/job, preserve C04 S2C recover5 78.3% and C05 S2C10%70% efficiency FAIL, old2.73s/80s incident OPEN. Avoid endless curve retunes and move promptly to N3 AES then N4 Windows TUN N5 GUI N6 packages after bounded N2 coverage. physical NOT_RUN no deploy/qualification-ref/mainline merge.",
-  "latest_log": "docs/devlog/20261012-n2-c10-real-time-ge240s-first-unique-scoped-pass-tail-p99-open.md",
+  "next_task": "C10 true GE 240s Action38250711104/source96e6bc2/artifact11747679974 has scoped functional firstunique PASS but severe delivered business oneway p99 C2S1833/S2C1947.5ms and probe RTT p99 2441ms, max returned3405ms, 6 missing; fail to certify low latency. Read-only existing artifact 10ms bucket audit: in 1..239s active continuous 10Mbps UDP, each direction all 23800 10ms aggregate buckets had some unique delivery; this is NOT independent TCP/UDP multi-flow HOL proof and doesn't eliminate huge tail. NEXT bounded one dedicated GitHub Action with identity-separated small TCP+UDP concurrent 10ms first arrivals on 15ms/300ms underlay (choose ONE exact case), correct source/backpressure/ISA/quota monitoring, then 1Mbps sparse/idle/rotation and Game guard as needed; preserve frozen C04 S2C78.3% and C05 S2C10%70% efficiency failures. Do not indefinitely overfit C10/GE single seed; after explicit bounded N2 residual list proceed N3 AES, then N4 Windows TUN, N5 GUI, N6 packaging, all through GitHub Actions. N2 OPEN physical NOT_RUN, historical probe2.73s/80s S2C OPEN; no deploy/qualification ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-c10-posthoc-10ms-continuity-versus-long-tail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
