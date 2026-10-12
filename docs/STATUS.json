@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C03_LONGSERIAL_CORRECTNESS_SCOPED_PASS_RECOVER5_C2S_OVERPROTECTION_FAIL_C04_NEXT",
+    "phase": "N2_C03_LONGSERIAL_DELIVERY_SCOPED_PASS_C04_OFFSTART_FROZEN_840S_PENDING_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1053,10 +1053,87 @@
         "protection": "LOSS20_LAST60_BOTH_R16_TO_R20_ALLOWED_R16_R20",
         "first_delivery": "C2S_1923765_1924344_S2C_1924202_1924344_BOTH_0S_MAX_GAP"
       }
+    },
+    "n2_c04": {
+      "status": "SINGLE_SCENARIO_HELPER_AND_INDEPENDENT_GATE_CANDIDATE_ACTIONS_NOT_YET_STARTED",
+      "frozen_model": "n2-independent-iid-timeband-v1",
+      "frozen_manifest": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+      "phase_offsets": [
+        0,
+        120,
+        240,
+        360,
+        480,
+        600,
+        840
+      ],
+      "loss_pcts": [
+        0,
+        1,
+        5,
+        20,
+        5,
+        0
+      ],
+      "initial_parity": 0,
+      "min_parity": 0,
+      "max_parity": 20,
+      "mtu": 1400,
+      "rtt_s": 0.6,
+      "mbps_each_way": 10,
+      "ordinary_ideal_parity": [
+        0,
+        4,
+        8,
+        16,
+        8,
+        0
+      ],
+      "allowed_grade": [
+        [
+          0,
+          4
+        ],
+        [
+          4,
+          8
+        ],
+        [
+          8,
+          10
+        ],
+        [
+          16,
+          20
+        ],
+        [
+          8,
+          10
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "helper": "tools/adaptive_n2_c04_wave.py",
+      "stage_helper": "tools/adaptive_n2_c04_stage.py",
+      "independent_gate": "tools/adaptive_n2_c04_longserial_gate.py",
+      "gate_version": "n2-c04-longserial-first-delivery-gate-v1",
+      "workflow": ".github/workflows/next-adaptive-n2-c04-longserial-regression.yml",
+      "predeclared_final_active_window": [
+        720,
+        840
+      ],
+      "max_contiguous_zero_delivery_seconds": 4,
+      "minimum_first_unique_over_sent_final_window": 0.9,
+      "require_actual_off_observed_final_last60": true,
+      "full_n2_qualification": false,
+      "perf_action": "NOT_RUN_AT_THIS_COMMIT",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "C03 longserial corrected run38212621418 job114689998724 artifact11731170110 full job SUCCESS and 0s active delivery gaps, with genuine 20% stage missing575/121, final clean0 missing0; old 41/46s FAIL preserved. However C2S recover5 last60s R12-R20 not allowed8-10 (0% fraction): N2 efficiency OPEN. No change to frozen M0 or direction/seed special case. Next predeclared C04 off-start 0/1/5/20/5/0 840s single SOURCE/config/scenario/job and compare C2S/S2C recovery timing and overhead; ensure hard first delivery >2^31 gate and samewire. Only if second independent condition supports it consider minimal generic history/acceptance soft-gate change with risk/cross-scenario, core/race first; next N2 burst/asym/feedback/sparse/MTU/Game. N3-N6 not started, legacy 2.73s/80s OPEN, physical NOT_RUN. No deployment/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-c03-longserial-success-recover5-efficiency-fail.md",
+  "next_task": "C03 longserial Action38212621418 scoped correctness PASS no 41/46s blackout, but recover5 C2S last60 R12-R20 vs frozen R8-R10 FAIL. C04 explicit offstart/floor0, one 840s SOURCE/config/scenario/measurement job next; verify frozen C04 initial0 through CLI/manifest and 0/1/5/20/5/0 (5*120+240 clean) with >=90% last120 first unique and no >=5s empty, 20% last60 [16,20], clean last60 [0,4], actual off observed. Run model/gate unit and Go core/race in GitHub before sample. If FAIL pin job/artifact/causal classification, no blind duplicate; compare C03/C04 decline age and M/R before generic soft tweak. N2 OPEN, historical 2.73s/80s OPEN, N3–N6 NOT_STARTED, physical NOT_RUN, no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-c04-offstart-840s-frozen-dispatch-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "08e63965dd9b2910e2e8ea073a22bbc3d0032db6",
   "last_tested_scope": "C03_780S_SOURCE08E63965_SCOPE_FIRST_DELIVERY_C2S_MISSING579_S2C_MISSING142_MAX_GAP0_PROBE780OF780_STABLE20_R16_20_STABLE0_R4_C2S_RECOVER5_OVERPROTECTION_FAIL",
