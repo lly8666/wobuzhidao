@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "kind": "N2_C03_GREEN_WORKFLOW_PRODUCT_DELIVERY_FAIL_FORENSIC",
+  "date": "2026-10-12",
+  "source_sha": "6d6a19abb011c9d4479ca1161d7cf9d8449def11",
+  "run_id": 38208649752,
+  "job_id": 114677666815,
+  "artifact_id": 11729226256,
+  "artifact_sha256": "f0efdaf65fa33c3666f40065dbc703a79837364084ccaaee5aea0c6eb780afb6",
+  "summary_sha256": "9fc545f0909cfb02a7ea630df510245d9805db42ae0c26e74a66afce41bd59a7",
+  "manifest_sha256": "5e0d598d340784379fa5d30005596e1c1b7cbf640fcb6a40517e5e708a4ec17",
+  "helper_receipt_sha256": "d7eeec2f7325dcf69d9d5785381737e622db29a549e46153855459c6ae0620a4",
+  "derived_script_sha256": "eec4f940e4b3bc7ed77140bb8714cea661ef5285ebc7a850702be7c89472d860",
+  "analyzer_sha256": "b7accb8bd0383e84ef60473cea314b4b75cff312179088aab63287476096eb3c",
+  "stage_helper_sha256": "59ee4b3fa8359ac6c903453aae47e0ee23f39b4ffc8a49c0cd048d413efbb7f6",
+  "freeze_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "reference_version": "n2-independent-iid-timeband-v1",
+  "scenario": "C03 one SOURCE, Normal auto initial20 min4 max20, 300ms each way, 10Mbps each, 0(120s)->1(120)->5(120)->20(120)->5(120)->0(180)%, drain10, MTU1400, diag ON, business seeds 2026092201/2026092202, netem RNG UNSEEDED",
+  "original_verdict": "CAPACITY_LIMITED_REVIEW",
+  "corrected_interpretation": "PRODUCT_FIRST_DELIVERY_FAILURE_CAUSE_UNATTRIBUTED; capacity flag means gap, not proof of runner saturation; green Action does not mean product PASS",
+  "status": "FAIL_SCOPE_NOT_FULL_N2_PASS",
+  "verified_stages": [
+    {
+      "name": "clean0",
+      "c2s_drop_pct": 0,
+      "s2c_drop_pct": 0
+    },
+    {
+      "name": "loss1",
+      "c2s_drop_pct": 1.01565,
+      "s2c_drop_pct": 0.99096
+    },
+    {
+      "name": "loss5",
+      "c2s_drop_pct": 5.00776,
+      "s2c_drop_pct": 5.00481
+    },
+    {
+      "name": "loss20",
+      "c2s_drop_pct": 19.96118,
+      "s2c_drop_pct": 19.99809
+    },
+    {
+      "name": "recover5",
+      "c2s_drop_pct": 4.98762,
+      "s2c_drop_pct": 5.00946
+    },
+    {
+      "name": "recover0",
+      "c2s_drop_pct": 0,
+      "s2c_drop_pct": 0
+    }
+  ],
+  "direction": {
+    "c2s": {
+      "sent": 1924344,
+      "received_first_unique": 1820639,
+      "missing": 103705,
+      "longest_contiguous_no_delivery_s": 41,
+      "zero_delivery_seconds": [
+        739,
+        779
+      ],
+      "p99_returned_business_ms": 316.5,
+      "last60_r_loss20": 20,
+      "last60_r_clean0": 4,
+      "final_recovery_180s_sent": 444081,
+      "final_recovery_180s_unique": 340751,
+      "parity_bytes": 948592760,
+      "source_bytes": 1206076616,
+      "full_k20_groups": 96244,
+      "partial_groups": 80
+    },
+    "s2c": {
+      "sent": 1924344,
+      "received_first_unique": 1807830,
+      "missing": 116514,
+      "longest_contiguous_no_delivery_s": 46,
+      "zero_delivery_seconds": [
+        734,
+        779
+      ],
+      "p99_returned_business_ms": 316.5,
+      "last60_r_loss20": 20,
+      "last60_r_clean0": 4,
+      "final_recovery_180s_sent": 444081,
+      "final_recovery_180s_unique": 327974,
+      "parity_bytes": 959924088,
+      "source_bytes": 1206058032,
+      "full_k20_groups": 96246,
+      "partial_groups": 15
+    }
+  },
+  "previous_20pct_phase_missing": {
+    "c2s": 362,
+    "s2c": 399
+  },
+  "probe": {
+    "sent": 780,
+    "returned": 733,
+    "missing": 47,
+    "p99_returned_only_ms": 622.5
+  },
+  "resource": {
+    "cpu_client_s": 241.84,
+    "cpu_server_s": 241.06,
+    "samples": 161,
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "vcpus": 4,
+    "isa": "avx2,avx512f,vaes,sse4",
+    "hypervisor": "Microsoft",
+    "cgroup_cpu_max_sample": "max 100000",
+    "cpu_throttled_periods": 0,
+    "psi_cpu_some_avg10_at_approx_end_pct": 4.1,
+    "psi_cpu_full_avg10_at_approx_end_pct": 3,
+    "quota_ultimate": "HOST_OR_HYPERVISOR_UNKNOWN",
+    "performance_comparison": "NO_CROSS_VM_CPU_PROOF",
+    "diagnostic": "ON"
+  },
+  "wire_qdisc_delta_bytes": 4951086693,
+  "wire_bytes_over_generated_business_bytes": 2.5390163,
+  "capture_kernel_drops": "zero reported during this case; no source payload uploaded",
+  "forensic_time_alignment": {
+    "business_s2c_zero_delivery_from_s": 734,
+    "business_c2s_zero_delivery_from_s": 739,
+    "client_lane_inbound_plateau_diag_relative_s": 747,
+    "server_lane_inbound_plateau_diag_relative_s": 756,
+    "client_retry_error_first_diag_relative_s": 751,
+    "client_error": "runtimeowner: ACK exceeds steady send sequence",
+    "client_lifecycle_retryable_errors_final": 124079,
+    "while_failed": "fresh generator continued, product process remained alive, raw receive messages continued increasing, lane delivered counter stopped, netem configured0%",
+    "error_timing_note": "ACK error appears after client inbound plateau; correlation does not prove initial cause"
+  },
+  "suspected_defect": {
+    "classification": "STRONG_HYPOTHESIS_NOT_YET_UNIT_CONFIRMED",
+    "area": "internal/runtimeowner/runtime.go",
+    "fixed_replay_floor": "recvStart assigned cfg.ReceiveNext in newLaneTransport; never updated",
+    "use_sites": [
+      "handleSegment rejects seqLT(seg.Seq,t.recvStart)",
+      "Runtime.steadyOwnsSegment returns !seqLT(seg.Seq,start)"
+    ],
+    "mechanism": "uint32 serial signed half-space comparison becomes inverted for legitimate continued seq once advance from fixed handshake initial >2^31 byte positions; encoded source+parity bytes near2GiB before stall and TCP record overhead supplies remaining delta",
+    "proposed_fix": "bound replay watermark to moving recvNext without changing 3s FEC repair, generation, max outstanding 4096, fresh systematic, sameSeq immutable retransmit",
+    "caution": "do not remove replay/security gate or relax authenticated generation or invent netem truth"
+  },
+  "controls": {
+    "high20_last60_both_allowed": true,
+    "final0_last60_both_allowed": true,
+    "recover5_last60_grade_in_band_fraction": {
+      "c2s": 0.13333,
+      "s2c": 0.81667
+    },
+    "scoped_waveform_auto_efficiency": "NOT_QUALIFIED_WITH_LAST_PHASE_OUTAGE"
+  },
+  "qualification": {
+    "N2": "OPEN_FAIL_DELIVERY",
+    "N3_N6": "NOT_STARTED",
+    "physical": "NOT_RUN",
+    "legacy_2_73s_tail": "OPEN",
+    "legacy_80s_s2c": "OPEN"
+  }
+}

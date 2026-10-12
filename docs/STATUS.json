@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C03_FROZEN_780S_WAVE_SINGLE_REALPATH_ACTION_CANDIDATE_PENDING",
+    "phase": "N2_C03_780S_GREEN_ACTION_BUT_PRODUCT_DELIVERY_OUTAGE_FAIL_ROOT_CAUSE_INVESTIGATION",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_M0_INDEPENDENT_REFERENCE_ACTIONS_PASS_M1_CORE_RACE_PASS_C08_STEADY1_SCOPED_BOTH_R4_LAST60_PASS_540_C2S_RECOVERY_HIGHLOSS_BURST_CPU_OFF_OPEN",
+      "N2_normal_auto": "IN_PROGRESS_C08_SCOPED_PASS_C03_REPRO_41S_46S_CLEAN_STAGE_BLACKOUT_103705_116514_MISSING_2_TO31_FIXED_RECVSTART_SUSPECT",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -921,7 +921,7 @@
       "evidence": "docs/evidence/adaptive-n2-c08-scope-actions-20261012.json"
     },
     "n2_c03": {
-      "status": "REGISTERED_RUN38208649752_JOB114677666815_IN_PROGRESS",
+      "status": "ACTION_GREEN_CAPACITY_LIMITED_REVIEW_BUT_DELIVERY_PRODUCT_FAIL_CAUSE_UNATTRIBUTED",
       "source_baseline": "cb7bfa0860cf14f31c25f9667ab01a8cf951f057",
       "waveform": "0_1_5_20_5_0_PCT",
       "phase_offsets_seconds": [
@@ -999,14 +999,20 @@
       "run_id": 38208649752,
       "job_id": 114677666815,
       "preflight": "MODEL_STAGE_REPO_N2_UNIT_RACE_PASS_BUILD_RUNNING",
-      "dispatch_receipt": "docs/evidence/adaptive-n2-c03-wave780-dispatched-20261012.json"
+      "dispatch_receipt": "docs/evidence/adaptive-n2-c03-wave780-dispatched-20261012.json",
+      "artifact_id": 11729226256,
+      "artifact_sha256": "f0efdaf65fa33c3666f40065dbc703a79837364084ccaaee5aea0c6eb780afb6",
+      "summary_sha256": "9fc545f0909cfb02a7ea630df510245d9805db42ae0c26e74a66afce41bd59a7",
+      "evidence": "docs/evidence/adaptive-n2-c03-780s-delivery-outage-20261012.json",
+      "product_result": "FAIL_BOTH_SIDES_FINAL_CLEAN_0PCT_FIRST_DELIVERY_41S_46S_BLACKOUT_HIGH20_AND_FINAL0_GRADE_SCREENS_OBSERVED_ONLY",
+      "hypothesis": "FIXED_RECVSTART_UINT32_SERIAL_HALFSPACE_2_TO31_OVERLIFE_LONG_STREAM_ACCEPTANCE_FAILURE_NEEDS_GO_REGRESSION_AND_REAL_CASE"
     }
   },
-  "next_task": "C03 Action38208649752 job114677666815 exact SOURCE6d6a19a is active. Model/stage static preflight and N2 Go unit/race already PASS, then one real 780s C03 scenario with 0/1/5/20/5/0. Check actual Job outcome/artifact/helper/config hashes after completion; no claim before. Classify high20 protection and final clean last60 separately, missing/p99/goodput/parity/wire/CPU/source/shape and capacity; preserve C08 scoped PASS and historical FAIL. Do not dispatch another performance Action concurrently. N2 overall OPEN, N3-N6 not started, physical NOT_RUN, 2.73s/80s OPEN.",
-  "latest_log": "docs/devlog/20261012-n2-c03-single-action-registered.md",
+  "next_task": "C03 run38208649752 job114677666815 artifact11729226256 green workflow BUT serious product first-delivery FAIL: final0 stage actual loss0, 41s C2S and46s S2C delivery blackout, 103705/116514 missing. Inspect runtimeowner fixed recvStart stale 32-bit serial cutoff around 2^31 wire bytes, client subsequent ACK exceeds steady send sequence; do not assert causality without unit/real verification. Write minimum generic moving bounded replay floor test and fix preserving generation, anti-replay, 3s/4096 memory, sameSeq wire, immediate fresh. Run GitHub unit/race before SINGLE C03 long-real-path counterexample, no parallel performance. Keep scoped C08 and old FAIL, 2.73s/80s OPEN; N2 OPEN N3-N6 NOT_STARTED physical NOT_RUN; no deployment/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-c03-780s-green-product-outage-forensic.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "2aa03ae1a181e630a974d164e22bec302ad7f251",
-  "last_tested_scope": "C08_240S_STEADY1PCT_300MS_10MBPS_EACH_SOURCE_2AA03AE1_BOTH_R4_FINAL60_FIRST_UNIQUE_COMPLETE_CPU_DIAG_ON_QUOTA_UNKNOWN_NOT_FULL_N2_OR_PHYSICAL",
+  "last_tested_source_sha": "6d6a19abb011c9d4479ca1161d7cf9d8449def11",
+  "last_tested_scope": "C03_780S_WAVE_SOURCE6D6A19A_WORKFLOW_SUCCESS_PRODUCT_103705_116514_MISSING_FINAL0_BLACKOUT41_46S_NO_N2_PASS",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
