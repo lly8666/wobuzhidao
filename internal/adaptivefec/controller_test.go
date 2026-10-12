@@ -201,8 +201,22 @@ func TestBoundedNormalAndAggressiveEventuallyMoveAndRaise(t *testing.T) {
         if n.Ordinary<20 && g.Applied<=n.Ordinary {t.Fatal("aggressive omitted one rung",n,g)}
     }
     if !changed || c.ordinary!=4 || a.ordinary!=4 {t.Fatal("controller stuck in HOLD",c.ordinary,a.ordinary)}
+    // k=2 has exactly min(k,R)=2 parity even at configured R=20.
+    // A higher nominal profile cannot improve its p^3 source residual,
+    // so the old unconditional "damage must raise" assertion was wrong.
     s:=boundedSource(91,start,2,34,36)
-    if d:=c.Step(s.At,s);d.Reason!=Raise || d.Ordinary<=4 {t.Fatal("trusted damage failed to raise",d)}
+    if d:=c.Step(s.At,s);d.Reason==Raise || d.Ordinary!=4 {
+        t.Fatal("unattainable k2 high loss must not blindly raise20",d)
+    }
+    // A later source-correlated large-k cohort on the same direction
+    // DOES have meaningful parity gain; this must still raise rapidly.
+    raised:=false
+    for i:=92;i<=130;i++ {
+        s=boundedSource(i,start,20,34,36)
+        d:=c.Step(s.At,s)
+        if d.Reason==Raise && d.Ordinary>4 {raised=true;break}
+    }
+    if !raised {t.Fatal("meaningfully protectable real k20 damage did not raise")}
     if d:=c.Step(s.At,s);d.Reason!=HoldReplay {t.Fatal(d)}
 }
 

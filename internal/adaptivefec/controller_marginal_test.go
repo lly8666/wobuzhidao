@@ -12,8 +12,12 @@ func TestN2UnattainableDoesNotBlindlyRaiseTo20(t *testing.T) {
     k1[0][1]=128
     for _,floor:=range []int{0,4} {
         got:=requiredProfileWithEdges(k1,0,0,.05,floor,20)
-        if got!=floor {
-            t.Fatalf("k=1 with min(k,R)=1 has no additional protection above floor%d: got%d",floor,got)
+        // From off, adding its first parity shard improves p to p^2;
+        // after any enabled rung, min(k,R)=1 and all grades tie.
+        want:=floor
+        if floor==0 {want=4}
+        if got!=want {
+            t.Fatalf("k=1 partial after first enabled rung must saturate: floor%d got%d want%d",floor,got,want)
         }
     }
     var closed [3][DataShards+1]uint64

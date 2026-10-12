@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "kind": "M1_CORE_FIRST_FAIL_PRESERVED",
+  "source_sha": "6e0d6aea1214033b164fda495d4cdff977cfb0b3",
+  "workflow": "next-adaptive-n2-marginal-core",
+  "run_id": 38202927503,
+  "job_id": 114660056352,
+  "job_conclusion": "failure",
+  "failed_step": "Focused N2 controller unit",
+  "race": "NOT_RUN",
+  "failures": [
+    {
+      "test": "TestN2UnattainableDoesNotBlindlyRaiseTo20",
+      "condition": "k=1 p5% explicit floor0",
+      "expected_old": 0,
+      "actual": 4,
+      "root": "off q=p, first enabled k1 r1 q=p²"
+    },
+    {
+      "test": "TestBoundedNormalAndAggressiveEventuallyMoveAndRaise",
+      "condition": "k=2 upper 36/256",
+      "expected_old": "RAISE",
+      "actual": "HOLD_CURRENT_PROFILE parity4",
+      "root": "all configured R>=4 emit only min(k,R)=2 parity; no marginal protection"
+    }
+  ],
+  "new_expected_actions": "correct partial logic + meaningful k20 damage must still RAISE",
+  "result": "FAIL_NOT_PRODUCT_PASS",
+  "new_performance_measurement": "NOT_RUN",
+  "old_540": "SCOPED_RISE_ONLY_EFFICIENCY_OPEN"
+}

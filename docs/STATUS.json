@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M1_MARGINAL_GAIN_SOFT_CONTROL_CANDIDATE_ACTIONS_CORE_RACE_PENDING",
+    "phase": "N2_M1_PARTIAL_K_UNIT_EXPECTATION_CORRECTION_PENDING_ACTIONS_RERUN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -869,14 +869,19 @@
       "reason": "540s C2S 240s clean confidence gate; 256 PN cropped systematic + R-only conservative bound can make absolute q target unattainable for every grade; k1 equally protected across all R",
       "risk": "True burst protection may exceed IID marginal q improvement; new protection/first delivery/perf Actions mandatory",
       "param": "internal constant 10% of model source residual target, not a new CLI/JSON option",
-      "actions_test": "NOT_RUN_AT_CANDIDATE_COMMIT",
+      "actions_test": "FAIL_UNIT_RUN38202927503_JOB114660056352_RACE_NOT_RUN",
       "performance_test": "NOT_RUN",
       "qualification": "NOT_PASSED",
-      "physical": "NOT_RUN"
+      "physical": "NOT_RUN",
+      "first_failed_source_sha": "6e0d6aea1214033b164fda495d4cdff977cfb0b3",
+      "failures": [
+        "NEW_UNIT k1 floor0 expected 0 but correct parity4 because off q=p while enabled q=p^2",
+        "EXISTING_UNIT k2 real R=min(k,R) never >2 so high loss alone cannot justify nominal raise; now test meaningful high loss with k20"
+      ]
     }
   },
-  "next_task": "M1 candidate update with soft marginal (unattainable saturation and slow grade, no security/transport hard-gate edits) now requires GitHub Actions focused Go unit and full relevant race: .github/workflows/next-adaptive-n2-marginal-core.yml. If failure, record and repair exact SOURCE; do not run performance until core/race verified. Then run single SOURCE/config/scenario/measurement Action on small real-path 1%-clean recovery counterexample with frozen M0 reference and inspect CPU/MTU/noHOL; expand C03/C04/GE burst/asym/sparse/feedback/idle/rotation/mixed MTU/fixed/off/Game; don't disguise 540s as PASS. N3-N6 and final Actions only after N2 bounded acceptance; physical NOT_RUN; 2.73s and 80s OPEN.",
-  "latest_log": "docs/devlog/20261012-n2-m1-marginal-benefit-candidate.md",
+  "next_task": "M1 first core Actions38202927503 FAIL, race NOT_RUN. Recheck corrected k1/k2 exact coding and meaningful k20 high-loss raise regression in next GitHub Actions core/race. No performance until passing. M0 reference model PASS only; C03/C04/C08/C09 frozen. Original540 C2S adaptive efficiency still OPEN, legacy 2.73s tail/80s S2C OPEN; next run one performance SOURCE/config/scenario/job; N3-N6 not started, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261012-n2-m1-core-fail-partial-k-correction.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
   "last_tested_scope": "READ_ONLY_RECEIPT_RECOVER540_BOTH_OFFSTART_RAISE_C2S_NO_LOWER_IN_240S_ACTIVE_CLEAN_DRAIN16_S2C_OFF_NOT_FULL_N2_PASS_FOUNDATION_7_ENABLED_PASS",
