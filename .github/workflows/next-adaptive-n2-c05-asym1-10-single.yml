@@ -62,7 +62,7 @@ jobs:
           import json, tempfile, sys
           from pathlib import Path
           sys.path.insert(0, "tools")
-          from adaptive_n2_c05_steady1 import grades
+          from adaptive_n2_c05_asym1_10 import grades
           with tempfile.TemporaryDirectory() as td:
               p=Path(td)/"early.jsonl"
               for server in (False,True):

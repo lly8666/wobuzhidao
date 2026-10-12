@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "kind": "N2_C05_FIRST_SOURCE_FAIL_PREMEASUREMENT_STALE_INLINE_IMPORT",
+  "source_sha": "4aaeaef984f60229eada301bb048bbca5a2b41f4",
+  "run_id": 38241338957,
+  "job_id": 114784421949,
+  "artifact_id": 11742454692,
+  "artifact_sha256": "0381302d13293bda15506a85651ebfde982d7acde1c681cad80903fa96b351df",
+  "result": "FAIL_ACTION",
+  "preflight_test": "C05 source-directional netem freeze and grade parser preflight (no traffic)",
+  "actual_exception": "ModuleNotFoundError: No module named 'adaptive_n2_c05_steady1'",
+  "good_before_fail": [
+    "perf policy+single source claim PASS",
+    "Go controller full unit/race PASS",
+    "2/2 independent Python C05 derived shell direction and actual grade unit tests PASS"
+  ],
+  "sample_outcome": "skipped",
+  "verify_outcome": "failure_no_manifest",
+  "network_performance_executed": false,
+  "measured_bytes": 0,
+  "root": "workflow inline previous C08 name wasn't updated although source helper file is adaptive_n2_c05_asym1_10.py",
+  "minimal_fix": "replace one workflow-only Python import, no product/helper/model changes",
+  "overall_N2": "OPEN",
+  "physical": "NOT_RUN"
+}
