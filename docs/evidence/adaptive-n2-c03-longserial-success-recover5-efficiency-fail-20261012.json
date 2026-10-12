@@ -1,0 +1,193 @@
+{
+  "schema": 1,
+  "kind": "N2_C03_LONGSERIAL_REALPATH_SCOPED_CORRECTION_WITH_RECOVER5_EFFICIENCY_FAIL",
+  "date": "2026-10-12",
+  "source_sha": "08e63965dd9b2910e2e8ea073a22bbc3d0032db6",
+  "run_id": 38212621418,
+  "job_id": 114689998724,
+  "workflow": ".github/workflows/next-adaptive-n2-c03-longserial-regression.yml",
+  "artifact_id": 11731170110,
+  "artifact_name": "adaptive-n2-c03-longserial-regression-780s-08e63965dd9b2910e2e8ea073a22bbc3d0032db6",
+  "artifact_sha256": "190617681fd5415a7ebb530a9690e9a04351888f08bc311ffb6c385ad0f40405",
+  "summary_sha256": "c7ed3047406dc398f494dd8b33d5886b1374ec1fbda82bbbdeb8485c742bb1a8",
+  "manifest_sha256": "73b77e1afdcb1b20b8280eaf924907bd8a472247e6879570e3542b2df88f40fe",
+  "serial_gate_sha256": "3ef7a6b8c6ffe838fdcd3c61697a13c866df7e290b8a52533abea08cfed66269",
+  "harness_prep_sha256": "d7eeec2f7325dcf69d9d5785381737e622db29a549e46153855459c6ae0620a4",
+  "resource_sha256": "c10cbf1b942407796ff1aaf5e12284b7b4cd13cbf1bff6c25696e8cdab507fbb",
+  "stage_events_sha256": "abdce3e1968f63798d456898c7d7677f25bbe144a2dd0674cf416b5d345205e0",
+  "reference_version": "n2-independent-iid-timeband-v1",
+  "reference_freeze_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "gate_version": "n2-c03-longserial-first-delivery-gate-v1",
+  "config": "One 780s Normal auto initial20 floor4 max20, ChaCha MTU1400, each-direction 10Mbps and 300ms, wave0[120] 1[120] 5[120] 20[120] 5[120] 0[180] plus drain10, diag ON, biz seeds2026092201/2026092202, tc RNG unseeded",
+  "workflow_conclusion": "SUCCESS",
+  "original_analyzer": "SCOPED_WAVEFORM_CONTROL_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE",
+  "gate": "SCOPED_C03_LONG_LIVED_FIRST_DELIVERY_AND_GRADE_PASS",
+  "overall_n2": "OPEN",
+  "predecessor_failure": {
+    "run_id": 38208649752,
+    "job_id": 114677666815,
+    "artifact_id": 11729226256,
+    "sha256": "f0efdaf65fa33c3666f40065dbc703a79837364084ccaaee5aea0c6eb780afb6",
+    "c2s_missing": 103705,
+    "s2c_missing": 116514,
+    "contiguous_gap_seconds": [
+      41,
+      46
+    ],
+    "status": "HISTORICAL_PRODUCT_FAIL_UNCHANGED"
+  },
+  "direction": {
+    "c2s": {
+      "sent": 1924344,
+      "first_unique": 1923765,
+      "missing": 579,
+      "longest_zero_business_delivery_seconds": 0,
+      "p99_returned_business_oneway_ms": 314.5,
+      "phases_missing": {
+        "clean0": 0,
+        "loss1": 0,
+        "loss5": 4,
+        "loss20": 575,
+        "recover5": 0,
+        "recover0": 0
+      },
+      "final_clean_last120_ratio": 0.9999966222264257,
+      "final_clean_steady_r": 4,
+      "high20_last60_r": [
+        16,
+        20
+      ],
+      "recover5_last60_r": [
+        12,
+        16,
+        20
+      ],
+      "recover5_last60_within_theoretical_plus_one_fraction": 0,
+      "encoder_source_bytes": 1206076616,
+      "encoder_parity_bytes": 980998944,
+      "encoder_full20_blocks": 96245,
+      "encoder_partial_blocks": 83
+    },
+    "s2c": {
+      "sent": 1924344,
+      "first_unique": 1924202,
+      "missing": 142,
+      "longest_zero_business_delivery_seconds": 0,
+      "p99_returned_business_oneway_ms": 314.5,
+      "phases_missing": {
+        "clean0": 0,
+        "loss1": 0,
+        "loss5": 21,
+        "loss20": 121,
+        "recover5": 0,
+        "recover0": 0
+      },
+      "final_clean_last120_ratio": 1.0000067555471486,
+      "final_clean_steady_r": 4,
+      "high20_last60_r": [
+        16,
+        20
+      ],
+      "recover5_last60_r": [
+        8,
+        10
+      ],
+      "recover5_last60_within_theoretical_plus_one_fraction": 1,
+      "encoder_source_bytes": 1206065760,
+      "encoder_parity_bytes": 970210504,
+      "encoder_full20_blocks": 96246,
+      "encoder_partial_blocks": 21
+    }
+  },
+  "probe": {
+    "sent": 780,
+    "returned": 780,
+    "missing": 0,
+    "returned_only_p99_ms": 617
+  },
+  "runner": {
+    "cpu_model_isa": "NOT_VALIDATED_AS_EQUAL_TO_PRIOR_MACHINE",
+    "diag_on_client_cpu_s": 452.33,
+    "diag_on_server_cpu_s": 452.59,
+    "cpu_quota": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+    "samples": 161
+  },
+  "measured_netem_stage_drop_pct": {
+    "clean0": [
+      0,
+      0
+    ],
+    "loss1": [
+      1.007,
+      0.986
+    ],
+    "loss5": [
+      4.977,
+      5
+    ],
+    "loss20": [
+      19.975,
+      20.019
+    ],
+    "recover5": [
+      5.017,
+      5.032
+    ],
+    "recover0": [
+      0,
+      0
+    ]
+  },
+  "per_stage_c2s_control_recover5": {
+    "sample_time_s": [
+      475,
+      495,
+      515,
+      535,
+      555,
+      575,
+      595,
+      605
+    ],
+    "tx_r": [
+      20,
+      16,
+      20,
+      20,
+      16,
+      12,
+      12,
+      12
+    ],
+    "lower_gate_examples": [
+      "WAIT_STABLE",
+      "WAIT_SAMPLES",
+      "WAIT_STABLE",
+      "WAIT_STABLE",
+      "LOWERED",
+      "WAIT_STABLE",
+      "CONFIDENCE_RESIDUAL",
+      "CONFIDENCE_RESIDUAL"
+    ],
+    "confidence_upper_approx": [
+      0.1073,
+      0.1181,
+      0.12145,
+      0.12158,
+      0.12246,
+      0.12296,
+      0.12321,
+      0.12208
+    ],
+    "explanation": "High-confidence historical damage (and source M/R uncertainty) persists into 5% recovery; R12 into stage end, C2S recover5 curve efficiency FAIL despite full delivery."
+  },
+  "limits": [
+    "Clean-stage old 41s/46s blackout not reproduced, unit+race and scoped first-delivery gate PASS; repeated 780s beyond2^31 case grounded fix, but not all epochs or 2^32 physical",
+    "C03 source/R still excessive during recover5, 0% in frozen R8..R10 screen on C2S. This is an efficacy FAIL, not resolved by reliable delivery.",
+    "No statistical across-seed/CPU normalization or diagnostics OFF comparison",
+    "FEC parity bytes cumulative across initial20 and all stages cannot be treated as steady low profile",
+    "Weak 20% stage has actual missing575/121, probes all returned only here; do not impose zero business loss universally",
+    "No burst, blackhole, reorder, feedback loss, sparse, idle, rotation, mixedTCPUDP/MTU or Game fixed qualification",
+    "Legacy 2.73s/80s scenarios OPEN, physical NOT_RUN, N3–N6 incomplete"
+  ]
+}
