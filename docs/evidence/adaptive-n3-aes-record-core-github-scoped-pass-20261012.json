@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N3_AES128_AES256_GCM_AND_INDEPENDENT_AES_HEADER_PROTECTION_RECORD_CORE_SCOPED_PASS_NOT_PRODUCT_AES",
+  "source_sha": "f321e671c546b1ee5cc4e239ce7f462e7d02f90b",
+  "run_id": 38263629068,
+  "job_id": 114860157436,
+  "artifact_id": 11753995512,
+  "artifact_sha256": "6e1f860a22f6ee1d7394f75fe3f60ea8c7bd368658388cc41bab01554794b394",
+  "workflow": ".github/workflows/next-adaptive-n3-aes-record-core.yml",
+  "conclusion": "success",
+  "source_go_version": "1.23.12",
+  "covered": {
+    "AES128": "16B AES key, separate16B PN HP key; Go crypto/aes & cipher.NewGCM",
+    "AES256": "32B AES key, separate32B PN HP key; Go crypto/aes & cipher.NewGCM",
+    "GCM": "12B nonce,16B authentication tag; 31B fixed wire overhead unchanged",
+    "KDF": "prior DeriveKeysV3 suite/direction separated, unchanged",
+    "PN_mask": "ciphertext first16B AES single-block encryption first8B; WBD custom nonstandard QUIC",
+    "tested": [
+      "independent Go aes-gcm oracle reconstructs exact ciphertext+AAD+PN mask",
+      "AES128 and AES256 C2S roundtrips different lengths",
+      "health padded kind",
+      "tamper PN/tag/ciphertext rejection",
+      "wrong-suite opener rejection",
+      "out-of-order later independent record arrives ahead of earlier",
+      "trailing good record survives earlier corrupt record",
+      "replay duplicate rejected",
+      "ChaCha historic byte-for-byte",
+      "Go race on tlsrecord, realityfront, runtimeowner, linkdata",
+      "Go vet tlsrecord",
+      "crossbuild windows/amd64 client and linux/arm64 server"
+    ]
+  },
+  "legacy_initial_fail": {
+    "source_sha": "35ce7df5bb2e50c27dedcfc86c22262dcd1ac0dd",
+    "run_id": 38263051774,
+    "job_id": 114858201617,
+    "conclusion": "failure",
+    "reason": "pre-existing unrelated realityfront/admission_lane_test.go t.Fatalf called from goroutine found by go vet; correct AES tests/race already passed"
+  },
+  "production_cipher_supported_now": "AES_DISALLOWED_BY_ADMISSION",
+  "data_plane_per_lane_AES": "NOT_CONNECTED",
+  "TLS13_preferred_cipher_decoy_alignment": "NOT_RUN",
+  "real_AES_business_perf": "NOT_RUN",
+  "actual_physical_windows": "NOT_RUN",
+  "known_N2_limits": [
+    "C04 5percent recovery S2C 78.3pct grade FAIL",
+    "C05 S2C 10percent 70pct grade FAIL",
+    "C10 GE business 1.83/1.95s p99 OPEN",
+    "historic 80s S2C and ~2.73s probe tail OPEN"
+  ]
+}

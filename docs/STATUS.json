@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_AES128_AES256_RECORD_CORE_GO_UNIT_RACE_PASS_PREEXISTING_REALITYFRONT_VET_FAIL_SCOPED_VET_FIX",
+    "phase": "N3_AES128_AES256_GCM_RECORD_CORE_SOURCE_F321_ACTION_SUCCESS_ADMISSION_LANE_NOT_YET_CONNECTED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -23,7 +23,7 @@
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
-      "N3_aes": "N3_AES128_AES256_RECORD_STANDARD_LIBRARY_CORE_CANDIDATE_NOT_YET_GITHUB_TESTED_LANE_POLICY_STILL_REJECTS_AES",
+      "N3_aes": "IN_PROGRESS_AES128_AES256_RECORD_CORE_GITHUB_ACTION38263629068_UNIT_RACE_VET_WINDOWS_LINUX_CROSS_BUILD_SCOPED_PASS_AUTHENTICATED_SUITE_PER_LANE_AND_REAL_NET_TESTS_NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "SCOPED_GUI_N2_FEC_CONFIG_AND_QUALITY_TRANSPORT_PAGE_IMPLEMENTED_WINDOWS_NATIVE_258_TESTS_PASS_N3_AES_SELECTOR_NOT_YET_ADVERTISED_PHYSICAL_NOT_RUN",
       "N6_actions_packages": "NOT_STARTED"
@@ -2085,7 +2085,7 @@
       }
     },
     "n3_aes": {
-      "status": "FIRST_CORE_ACTION_FAIL_PREEXISTING_REALITYFRONT_TEST_GOROUTINE_VET_AFTER_AES_GOLANG_UNIT_RACE_PASS",
+      "status": "N3_AES_GCM_RECORD_CORE_STD_LIB_GITHUB_GO_TEST_RACE_VET_CROSS_BUILD_SCOPED_PASS_NOT_FULL_N3",
       "workflow": ".github/workflows/next-adaptive-n3-aes-record-core.yml",
       "files": [
         "internal/tlsrecord/suite.go",
@@ -2115,11 +2115,31 @@
         "artifact": "NOT_UPLOADED_RUN_LOGS_ONLY",
         "next_fix": "Limit N3 core stage vet to internal/tlsrecord; retain separate runtime+realityfront unit/race. Document known vet lint instead of disguising action success",
         "evidence": "docs/evidence/adaptive-n3-aes-core-first-preexisting-realityfront-vet-fail-20261012.json"
+      },
+      "second_action": {
+        "source_sha": "f321e671c546b1ee5cc4e239ce7f462e7d02f90b",
+        "run_id": 38263629068,
+        "job_id": 114860157436,
+        "artifact_id": 11753995512,
+        "artifact_sha256": "6e1f860a22f6ee1d7394f75fe3f60ea8c7bd368658388cc41bab01554794b394",
+        "conclusion": "SUCCESS",
+        "targeted_go_AES_GCM_aead_and_header_protection_independent_oracle": "PASS",
+        "wrong_tag_wrong_suite_PN_replay_and_independent_record_noHOL": "PASS",
+        "unchanged_existing_ChaCha_record_regression": "PASS",
+        "tests_tlsrecord_realityfront_runtimeowner_adaptivefec": "PASS",
+        "race_tlsrecord_realityfront_runtimeowner_linkdata": "PASS",
+        "vet_tlsrecord": "PASS",
+        "cross_build_client_windows_amd64": "PASS",
+        "cross_build_server_linux_arm64": "PASS",
+        "source_evidence": "docs/evidence/adaptive-n3-aes-record-core-github-scoped-pass-20261012.json",
+        "actual_authenticated_AES_admission": "NOT_ENABLED",
+        "actual_product_encrypted_AES_link": "NOT_RUN",
+        "physical": "NOT_RUN"
       }
     }
   },
-  "next_task": "N2 current-source scoped noHOL Go concurrency+race Action38257097791 PASS; GUI Transport Tab screenshot and actual WinForms 258 checks Action38260818090 PASS. N3 AES record core first SOURCE35ce7df Action38263051774 job114858201617 FAIL only at `go vet ./internal/realityfront` existing test goroutine Fatalf misuse, after new AES oracle+legacy ChaCha+noHOL+race all PASS, before cross builds; original log receipt stored. Narrow fix vet only ./internal/tlsrecord and run same existing realityfront unit/race (not weaken runtime functionality). Follow GitHub core Action result, run Windows amd64 client and Linux arm64 server cross builds and preserve artifact exact. Policy SupportedNow still refuses AES; no GUI AES/real network until lane stage N3-B with authenticated policy. N2 p99 and C04/C05 fail remain, physical NOT_RUN no deploy/qualification refs/mainline.",
-  "latest_log": "docs/devlog/20261012-n3-first-core-aes-oracle-race-pass-preexisting-vet-fail.md",
+  "next_task": "N2 Go concurrent noHOL Action38257097791 and follow-up35ce7df/action38263051747 PASS_SCOPED, Windows GUI actual Transmission tab 258 native checks source78a2dee/action38260818090 PASS_SCOPED. N3 CORE SOURCEf321e671c546b1ee5cc4e239ce7f462e7d02f90b Action38263629068 job114860157436 artifact11753995512 SHA6e1f860... SUCCESS: AES128/256 separate GCM AEAD, per-lane AES PN HP and independent golden oracle, tamper/noHOL/legacy ChaCha, Go unit/race/vet and Windows AMD64 client/Linux arm64 server builds. Previous first Action38263051774 source35ce7df FAIL pre-existing realityfront test go vet unrelated documented. NEXT N3-B: plumb V3 authenticated cipher policy into datapath LaneConfig (both fixed/off and auto), require authenticated effective suite, per-lane constructor selects exact suite for TX/RX; preserve V2 default ChaCha and 31B wire/MTU, route change through N0 admission and source identity tests, and single-source Go unit/race first. Do not open AES in GUI or advertise SupportedNow until full protected data path and exact cross-version negative/auto/legacy tests; then independent one source/scenario/perf Actions and quality/CPU, and N4 Win TUN etc. No deploy/qualification ref/mainline, physical NOT_RUN, N2 C04/C05 grade red and C10 long p99 OPEN.",
+  "latest_log": "docs/devlog/20261012-n3-aes-record-core-github-unit-race-crossbuild-scoped-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
