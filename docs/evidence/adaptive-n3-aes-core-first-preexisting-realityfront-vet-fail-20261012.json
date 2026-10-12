@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "N3_AES128_AES256_FIRST_CORE_ACTION_FAIL_SCOPE_LINT_UNRELATED",
+  "source_sha": "35ce7df5bb2e50c27dedcfc86c22262dcd1ac0dd",
+  "run_id": 38263051774,
+  "job_id": 114858201617,
+  "conclusion": "FAIL",
+  "failure_point": "go vet ./internal/tlsrecord ./internal/realityfront",
+  "error": "internal/realityfront/admission_lane_test.go:104:6: call to (*testing.T).Fatalf from a non-test goroutine",
+  "first_fail_root": "pre-existing realityfront test API misuse detected by go vet; unrelated to AES suite.go",
+  "prior_to_fail": {
+    "source_policy": "PASS",
+    "aes128_gcm_reference": "PASS",
+    "aes256_gcm_reference": "PASS",
+    "separate_HP_block": "PASS",
+    "tamper_and_PN": "PASS",
+    "legacy_Chacha_wire": "PASS",
+    "noHOL_out_of_order": "PASS",
+    "runtimeowner_realityfront_TLSRecord_go_unit": "PASS",
+    "race_tlsrecord_realityfront_runtimeowner_linkdata": "PASS"
+  },
+  "cross_target_binaries": "NOT_BUILT",
+  "artifact_id": null,
+  "artifact_comment": "No files uploaded; audit through original GitHub Actions job logs.",
+  "exactly_changed_by_followup": "Workflow vet only tlsrecord; unrelated test remains in runtime/realityfront unit/race; separate existing vet violation logged.",
+  "product_lane_suite": "UNSUPPORTED_AES_IN_ADMISSION",
+  "physical": "NOT_RUN",
+  "N3": "IN_PROGRESS_CORE_ONLY"
+}

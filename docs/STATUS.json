@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_NOHOL_AND_WINDOWS_GUI_CONFIG_SCOPED_GITHUB_READY_N3_AES_STANDARD_LIBRARY_CORE_CANDIDATE",
+    "phase": "N3_AES128_AES256_RECORD_CORE_GO_UNIT_RACE_PASS_PREEXISTING_REALITYFRONT_VET_FAIL_SCOPED_VET_FIX",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2085,7 +2085,7 @@
       }
     },
     "n3_aes": {
-      "status": "AES128_AES256_RECORD_CORE_PATCH_CANDIDATE_PENDING_GITHUB_ACTION",
+      "status": "FIRST_CORE_ACTION_FAIL_PREEXISTING_REALITYFRONT_TEST_GOROUTINE_VET_AFTER_AES_GOLANG_UNIT_RACE_PASS",
       "workflow": ".github/workflows/next-adaptive-n3-aes-record-core.yml",
       "files": [
         "internal/tlsrecord/suite.go",
@@ -2098,11 +2098,28 @@
       "policy_supported_now": "AES still UNSUPPORTED via realityfront AdmissionPolicy.SupportedNow; no data-plane lane negotiation until N3 stage B",
       "regression": "Independent Go crypto/aes GCM oracle manual wire, tamper, replay/out-of-order noHOL, legacy ChaCha unchanged, Go tests/race/vet cross-build",
       "expected_result": "PENDING_REAL_GITHUB_ACTION",
-      "physical": "NOT_RUN"
+      "physical": "NOT_RUN",
+      "first_action": {
+        "source_sha": "35ce7df5bb2e50c27dedcfc86c22262dcd1ac0dd",
+        "run_id": 38263051774,
+        "job_id": 114858201617,
+        "conclusion": "FAIL_AT_EXTRA_UNRELATED_GO_VET_BEFORE_CROSS_BUILD",
+        "actual_aes_reference_oracle": "PASS",
+        "aes_tamper_replay_noHOL": "PASS",
+        "legacy_chacha_byte_for_byte": "PASS",
+        "go_tlsrecord_realityfront_runtimeowner_linkdata_unit_race": "PASS",
+        "failed_step": "AES record Go static analysis and both cross-target builds",
+        "exact_error": "internal/realityfront/admission_lane_test.go:104:6: call to (*testing.T).Fatalf from a non-test goroutine",
+        "culprit": "pre-existing test vet in unrelated realityfront package; not AES cipher implementation",
+        "cross_build": "NOT_EXECUTED_DUE_VET_EARLY_EXIT",
+        "artifact": "NOT_UPLOADED_RUN_LOGS_ONLY",
+        "next_fix": "Limit N3 core stage vet to internal/tlsrecord; retain separate runtime+realityfront unit/race. Document known vet lint instead of disguising action success",
+        "evidence": "docs/evidence/adaptive-n3-aes-core-first-preexisting-realityfront-vet-fail-20261012.json"
+      }
     }
   },
-  "next_task": "GUI actual Transport screenshot from native Windows Action38260818090/source78a2dee/job114850541501/artifact11751524849 GitHub artifact digest50f14a... completed PASS; prior 258 checks Action38259485234 and NOHOL Go/race Action38257097791 scoped PASS. Record present C04 C05 fail and GE p99 tail as OPEN. New N3 AES128/256 standard-library GCM + per-lane AES PN HP core candidate: exact source will trigger one core-only GitHub action verifying independent stdlib record oracle, legacy ChaCha vector/noHOL/tamper/replay, race/vet cross-compilation. Do not mark N3 full/pass yet or enable GUI AES: policy still Unsupported, lane contexts still ChaCha. After core Action success wire chosen suite through authenticated v3 policy/TS lane and tests before separate one scenario per performance Action; only then UI/GUI AES and N4 Windows TUN, N6 packages. No physical/deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n3-aes-record-core-with-gui-transport-screenshot-closure.md",
+  "next_task": "N2 current-source scoped noHOL Go concurrency+race Action38257097791 PASS; GUI Transport Tab screenshot and actual WinForms 258 checks Action38260818090 PASS. N3 AES record core first SOURCE35ce7df Action38263051774 job114858201617 FAIL only at `go vet ./internal/realityfront` existing test goroutine Fatalf misuse, after new AES oracle+legacy ChaCha+noHOL+race all PASS, before cross builds; original log receipt stored. Narrow fix vet only ./internal/tlsrecord and run same existing realityfront unit/race (not weaken runtime functionality). Follow GitHub core Action result, run Windows amd64 client and Linux arm64 server cross builds and preserve artifact exact. Policy SupportedNow still refuses AES; no GUI AES/real network until lane stage N3-B with authenticated policy. N2 p99 and C04/C05 fail remain, physical NOT_RUN no deploy/qualification refs/mainline.",
+  "latest_log": "docs/devlog/20261012-n3-first-core-aes-oracle-race-pass-preexisting-vet-fail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
