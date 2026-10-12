@@ -20,7 +20,8 @@ const (
     // consist of physically observed but edge-cropped FEC groups. Such
     // records are priced as NO FEC protection, not assumed k=20.
     MaxCroppedShare = 0.5
-    confidenceHistory = 16 // faster bounded exit of stale qualified source windows; >=512 records still mandatory
+    confidenceHistory = 16 // recent FEC-active model: don't retain long-ago damage
+    offConfidenceHistory = 32 // off needs >=8192 clean source PNs for unchanged 0.0005 Wilson margin
     ResidualTarget = 0.001
     decreaseMargin = 0.0005
     // If conservative edge/repair ambiguity makes the absolute target
@@ -177,6 +178,11 @@ type Controller struct {
     confidentSent, confidentLost, confidentLowerLost uint64
     history [confidenceHistory]controlSample
     historyPos, historyCount int
+    // The off decision still needs 32 disjoint certified windows: with
+    // only 16*256 clean PNs, Wilson95 upper > decreaseMargin. This fixed
+    // extra ring holds counters/shapes only, never actual packet data.
+    offHistory [offConfidenceHistory]controlSample
+    offHistoryPos, offHistoryCount int
     shapeTotals [3][DataShards+1]uint64
     mixedEvidence bool
     boundWidth float64
@@ -401,6 +407,35 @@ func (c *Controller) shapeBlocks() uint64 {
     return n
 }
 
+// Off has strictly more exact zero-loss confidence requirements than
+// a reduction between enabled FEC rungs. Aggregate up to 32 independently
+// authenticated qualified windows, including their actual closed k/R and
+// cropped source, without treating observed repairs or UNKNOWN as clean.
+// On every initial off pilot, this history resets with the profile history.
+// No packet storage or extra network sampling is introduced.
+type offConfidenceTotals struct {
+    sent, upperLost uint64
+    off, croppedSource uint64
+    groups [3][DataShards+1]uint64
+}
+
+func (c *Controller) offProofTotals() offConfidenceTotals {
+    var total offConfidenceTotals
+    for i:=0;i<c.offHistoryCount;i++ {
+        x:=c.offHistory[i]
+        total.sent+=uint64(x.sent)
+        total.upperLost+=uint64(x.upperLost)
+        total.off+=uint64(x.off)
+        total.croppedSource+=uint64(x.croppedSource)
+        for class:=range total.groups {
+            for k:=1;k<=DataShards;k++ {
+                total.groups[class][k]+=uint64(x.groups[class][k])
+            }
+        }
+    }
+    return total
+}
+
 // Only accepted nonoverlapping source windows contribute. The last 16
 // accepted intervals bound confidence and shape weighting; otherwise a
 // lifetime of clean windows would mask a new damaged period indefinitely.
@@ -428,6 +463,9 @@ func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
     }
     c.history[c.historyPos]=item
     c.historyPos=(c.historyPos+1)%len(c.history)
+    c.offHistory[c.offHistoryPos]=item
+    c.offHistoryPos=(c.offHistoryPos+1)%len(c.offHistory)
+    if c.offHistoryCount<len(c.offHistory) {c.offHistoryCount++}
     c.confidentSent+=uint64(s.Sent)
     c.confidentLost+=uint64(upper)
     c.confidentLowerLost+=uint64(s.FirstAttemptLost)
@@ -593,6 +631,8 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
         // the pilot. Future grade advice requires fresh authenticated k/r.
         c.history=[confidenceHistory]controlSample{}
         c.historyPos,c.historyCount=0,0
+        c.offHistory=[offConfidenceHistory]controlSample{}
+        c.offHistoryPos,c.offHistoryCount=0,0
         c.confidentSent,c.confidentLost,c.confidentLowerLost=0,0,0
         c.shapeTotals=[3][DataShards+1]uint64{}
         c.offTotal,c.croppedTotal,c.croppedSourceTotal=0,0,0
@@ -620,15 +660,24 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     }
     stable:=30*time.Second
     if prior==0 {stable=60*time.Second}
-    // Evaluate each independent downgrade blocker even when stability time
-    // is not yet met. This is diagnostic-only arithmetic on the existing
-    // fixed 16-source history; no extra sampling, traffic or looser gate.
+    // Diagnose every soft downgrade blocker, even if the 30/60s stable
+    // clock still blocks. Enabled FEC rungs use the recent 16 qualified
+    // windows; a proposal to switch FEC fully OFF instead uses 32 *actual*
+    // qualified windows to preserve the unchanged 0.05% Wilson margin.
     confidence:=wilsonUpper(c.confidentLost,c.confidentSent)
+    modelGroups:=c.shapeTotals
+    modelOff,modelCroppedSource:=c.offTotal,c.croppedSourceTotal
+    if prior==0 {
+        proof:=c.offProofTotals()
+        confidence=wilsonUpper(proof.upperLost,proof.sent)
+        modelGroups=proof.groups
+        modelOff,modelCroppedSource=proof.off,proof.croppedSource
+    }
     residual:=0.0
     slowRequired:=0
     if bounded {
-        residual=mixedResidualWithEdges(c.shapeTotals,c.offTotal,c.croppedSourceTotal,prior,confidence)
-        slowRequired=requiredProfileWithEdges(c.shapeTotals,c.offTotal,c.croppedSourceTotal,c.slow,c.cfg.MinParity,c.cfg.MaxParity)
+        residual=mixedResidualWithEdges(modelGroups,modelOff,modelCroppedSource,prior,confidence)
+        slowRequired=requiredProfileWithEdges(modelGroups,modelOff,modelCroppedSource,c.slow,c.cfg.MinParity,c.cfg.MaxParity)
     } else {
         residual=ResidualReference(int(s.ShardK),prior,confidence)
         slowRequired=requiredProfile(int(s.ShardK),c.slow,c.cfg.MinParity,c.cfg.MaxParity)
@@ -640,9 +689,9 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     // In bounded mode only, historical M+R/cropped uncertainty must not
     // force endless max parity when the next smaller rung loses essentially
     // no model protection. This is NOT an assertion of physical zero loss.
-    if bounded && confidenceBlocked &&
-       negligibleMarginalProtection(c.shapeTotals,c.offTotal,
-           c.croppedSourceTotal,confidence,prior,c.ordinary) {
+    if bounded && prior!=0 && confidenceBlocked &&
+       negligibleMarginalProtection(modelGroups,modelOff,
+           modelCroppedSource,confidence,prior,c.ordinary) {
         confidenceBlocked=false
     }
     slowBlocked:=slowRequired>prior

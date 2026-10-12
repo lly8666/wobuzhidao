@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "kind": "N2_M3_FIRST_CORE_FAIL_PRESERVED_DUAL_QUALIFIED_HISTORY_CORRECTION",
+  "source_sha": "b5f6047be2b1cc2f52c400f8defba3d73915ecdf",
+  "date": "2026-10-12",
+  "workflow_runs": [
+    {
+      "id": 38219612120,
+      "name": "next-foundation",
+      "conclusion": "failure",
+      "jobs": [
+        {
+          "id": 114712470162,
+          "step": "Verify active packages and unit tests",
+          "status": "failure"
+        },
+        {
+          "id": 114712470204,
+          "step": "Verify active packages and unit tests",
+          "status": "failure"
+        }
+      ]
+    },
+    {
+      "id": 38219612192,
+      "name": "next-adaptive-n2-marginal-core",
+      "conclusion": "failure",
+      "job_id": 114712415227,
+      "failed_step": "Focused N2 controller unit"
+    },
+    {
+      "id": 38219612039,
+      "name": "next-lifecycle",
+      "conclusion": "success"
+    }
+  ],
+  "exact_failure": "--- FAIL TestOffNeedsLongEvidence controller_test.go:128 off entered without 60sec evidence: -1",
+  "root_math": {
+    "main_history": 16,
+    "source_pn_per_window": 256,
+    "visible_samples": 4096,
+    "wilson95_upper_zero_loss_approx": 0.0009376,
+    "unchanged_decrease_margin": 0.0005,
+    "needed_history_at_least": 31,
+    "prior_history": 32,
+    "wilson95_upper_8192_approx": 0.0004687
+  },
+  "outcome": "FAIL_THIS_SOURCE_NOT_PRODUCT_PASS",
+  "change_after_fail": "keep existing enabled FEC history16; add independent 32-window qualified off confidence accumulator, do not loosen .0005/60s",
+  "new_actions": "NOT_RUN_AT_THIS_CANDIDATE_COMMIT",
+  "physical": "NOT_RUN",
+  "overall_n2": "OPEN",
+  "old_c03_recover5_failure": "C2S 0pct in frozen R8-R10, action38212621418",
+  "old_c04_recover5_failure": "C2S58.3pct S2C41.7pct, action38217154364"
+}
