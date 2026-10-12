@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "source_sha": "41063bec5672659b61522fb5955e084cf94aaf56",
+  "run_id": 38248104193,
+  "job_id": 114807018445,
+  "artifact_id": 11746299495,
+  "archive_sha256": "1cd8172d2c17ad7ec9546afbb47e482be857f430077d0c6fc506218c1ccd45a3",
+  "loaded_map_sha256": "3a63125b2d4a4f83d126876b2f09196e101dc959e1b1594676fd710a07d02def",
+  "audited_map_sha256": "51265aebf85d485c7b5ecfadf0b0f61fe0e50ae05dfa4f15ba637d3260e9d7ea",
+  "independent_gate_sha256": "0478d760188c9f1f85b9214f14f2a36bad2c0db460237d70a339e0d5e78d7058",
+  "receipt_sha256": "cb7dbf61e1100e3997164e700653c4cc83ca93b1b4c74e2248fc2d5e7143666c",
+  "result": "SUCCESS_KTIME_BPF_DYNAMIC_MAP_PREPRODUCT_ONLY",
+  "model_trace_version": "n2-ge-ctmc-event-trace-v1",
+  "full_CTMC_freeze_sha256": "5fcfe423903d5b7665eb8bb341170e901757b5e6def4af1ba4ca242670237aec",
+  "capability_smoke": "64 deterministic 100ms switch offsets, non-exponential, good0% bad50% by per-packet kernel prandom; independent two netns, two egress BPF instances and 8232B array map values",
+  "map_exact": {
+    "ids": [
+      12,
+      13
+    ],
+    "readback_sync": true,
+    "shared_epoch_ns": 88800000000,
+    "boundaries_count": 64,
+    "value_bytes": 8232,
+    "initial_bad": 0
+  },
+  "actual": {
+    "good_sent": 32,
+    "good_received": 32,
+    "bad_sent": 32,
+    "bad_received": 15,
+    "sender_phase_mismatch": [],
+    "active_map": {
+      "good_packets": 32,
+      "bad_packets": 32,
+      "bad_dropped": 17
+    },
+    "other_map": {
+      "good_packets": 0,
+      "bad_packets": 1,
+      "bad_dropped": 1
+    }
+  },
+  "original_premeasurement_failure": {
+    "source_sha": "f3031cff9359ca40fb5df5834df19d9f6927764f",
+    "run_id": 38247690639,
+    "artifact_id": 11746073837,
+    "sha256": "3797a5662191d7b060c894b04452e4afd980834d91e7e9a70d56bebbda4a6a90",
+    "root": "bpftool virtual package Ubuntu24.04, fixed by native bpf map syscalls"
+  },
+  "limitations": [
+    "No protected client/server or continuous 10Mbps load, 0 product measurement jobs",
+    "Actual 240s exponential GE trace not attached to formal realpath yet",
+    "The idle opposite-direction map observed only one ICMP packet, not independent full direction qualification",
+    "No model-to-actual source MDS erasure comparison, latency/probe evidence, FEC parity/wire/CPU from full protected traffic",
+    "C04 recover5 S2C78.3% and C05 highloss S2C70% resource screens FAIL still OPEN"
+  ],
+  "product_N2": "OPEN",
+  "physical": "NOT_RUN"
+}
