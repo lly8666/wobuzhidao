@@ -231,7 +231,7 @@ func TestBoundedCapacityAgeGenerationAndConfidenceAreFinite(t *testing.T) {
             s.CapacityOrCongestion=false
         }
         d:=c.Step(s.At,s)
-        if i==100 && (d.ConfidenceUpper<=0 || c.confidentSent>32*256) {t.Fatal("lifetime confidence or invalid Wilson",d,c.confidentSent)}
+        if i==100 && (d.ConfidenceUpper<=0 || c.confidentSent>confidenceHistory*256) {t.Fatal("lifetime confidence or invalid Wilson",d,c.confidentSent)}
     }
     bad:=boundedSource(101,start,1,0,0)
     bad.Generation=6
@@ -337,7 +337,7 @@ func TestN2BoundedRecoveryDiagnosticHistoryDoesNotConsumeHolds(t *testing.T) {
         sample:=boundedSource(i,now,20,0,0)
         d:=ctl.Step(sample.At,sample)
         wantWindows:=i
-        if wantWindows>32 {wantWindows=32}
+        if wantWindows>confidenceHistory {wantWindows=confidenceHistory}
         if d.ConfidenceHistoryWindows!=uint32(wantWindows) ||
            d.ConfidenceSent!=uint64(wantWindows)*256 ||
            d.ConfidenceLost!=0 ||
@@ -348,8 +348,8 @@ func TestN2BoundedRecoveryDiagnosticHistoryDoesNotConsumeHolds(t *testing.T) {
     }
     valid:=boundedSource(48,now,20,0,0)
     duplicate:=ctl.Step(valid.At.Add(time.Second),valid)
-    if duplicate.Reason!=HoldReplay || duplicate.ConfidenceHistoryWindows!=32 ||
-       duplicate.ConfidenceSent!=32*256 ||
+    if duplicate.Reason!=HoldReplay || duplicate.ConfidenceHistoryWindows!=confidenceHistory ||
+       duplicate.ConfidenceSent!=confidenceHistory*256 ||
        duplicate.LastQualifiedUnixNS!=valid.At.UnixNano() {
         t.Fatalf("duplicate source modified confidence history: %+v",duplicate)
     }
@@ -400,7 +400,7 @@ func TestN2LastQualifiedDowngradeBlockersExplainRealRecoveryWithoutTuning(t *tes
 	if d.Reason!=HoldSampleCount || d.LowerGate!="WAIT_SAMPLES" {
 		t.Fatalf("post raise fresh 512 quota changed %+v",d)
 	}
-	// Keep the last 32 independent source windows genuinely damaged. The
+	// Keep the last 16 independent source windows genuinely damaged. The
 	// confidence-based HOLD must persist after 30 seconds even though the
 	// same protected application is live and emitting.
 	for i:=41;i<=83;i++ {
@@ -420,7 +420,7 @@ func TestN2LastQualifiedDowngradeBlockersExplainRealRecoveryWithoutTuning(t *tes
 		dup.ConfidenceSent!=last.ConfidenceSent {
 		t.Fatalf("replayed source rewrote downgrade assessment %+v",dup)
 	}
-	// Refill the EXACT bounded 32-window history with truly clean,
+	// Refill the EXACT bounded 16-window history with truly clean,
 	// authenticated, non-overlapping cohorts, never by lowering limits.
 	lowered:=false
 	for i:=84;i<=156;i++ {

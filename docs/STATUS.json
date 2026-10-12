@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C04_OFFSTART_LONGSERIAL_REALPATH_SCOPED_PASS_BOTH_RECOVER5_OVERPROTECTION_FAIL_NEXT_GENERIC_HISTORY_EXPERIMENT",
+    "phase": "N2_M3_QUALIFIED_HISTORY_RETENTION_32_TO16_GENERAL_SOFT_CANDIDATE_PENDING_CORE_RACE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_C03_C04_HIGHLOSS_FINALCLEAN_SOURCE_SUCCESS_BUT_C03_RECOVER5_C2S_FAIL_C04_RECOVER5_BOTH_DIRECTIONS_FAIL_EFFICIENCY_OPEN",
+      "N2_normal_auto": "IN_PROGRESS_C03_C04_SOURCE_AND_OFF_STEADY_SCOPED_PASS_RECOVER5_ALL_DIRECTIONS_OVERPROTECTION_OPEN_M3_GENERIC_16_HISTORY_UNTESTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -1170,10 +1170,39 @@
       "output_sha256": "cbab2373056253ee53b085643ee839507ad3bac59fa7649d3993e0d3e9f87420",
       "evidence": "docs/evidence/adaptive-n2-ge-ctmc-model-actions-20261012.json",
       "key_result": "DECLARED_GE_5PCT_FULLK20_SOURCE_SPACING0_42MS_R20_RESIDUAL_ABOUT2_123PCT_TARGET0_1PCT_UNATTAINABLE"
+    },
+    "n2_m3_candidate": {
+      "status": "CODE_CANDIDATE_UNTESTED",
+      "source_code": "internal/adaptivefec/controller.go",
+      "test_files": [
+        "internal/adaptivefec/controller_test.go",
+        "internal/adaptivefec/controller_history_transition_test.go"
+      ],
+      "change": "confidenceHistory 32 -> 16 authenticated nonoverlapping source report windows; no wall clock truth for selection",
+      "reason": "2 distinct initial/min configurations C03/C04 show excess R during 20%->5%, last32 accepted 256PN windows imply~55-64s old damage retention",
+      "expected_gain": "Retire old high-loss group evidence in~28-35s at dense 0.5-0.6 qualified reports/s without weakening minimum512/new source qualification, slow EWMA15, 30/60s stability or 10s cooldown",
+      "risk": "Less history on correlated bursts/low sample rate; underprotection if burst/feedback issues. Must crossvalidate high-loss, burst, low-loss and Game fixed. Unsupported source sample => HOLD.",
+      "test": "NOT_RUN_GITHUB_ACTIONS_AT_COMMIT",
+      "performance": "NOT_RUN",
+      "next_single_scenario": "20pct loss 120s -> 5pct recovery 120s, Normal20/min4, 10Mbps each direction 300ms each way, one SOURCE/config/wave/job, diagnostic ON",
+      "hard_gates": [
+        "auth",
+        "generation",
+        "same Seq same ciphertext",
+        "FEC SIMD",
+        "immediate systematic",
+        "partial min(k,R)",
+        "MTU",
+        "512 new records",
+        "3s repair",
+        "4096 bounded",
+        "Game fixed"
+      ],
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "C04 Action38217154364/job114704454429/artifact11732997492 scoped off-start/high20/final clean deliver PASS but recover5 last60 in frozen [R8,R10] C2S58.3% S2C41.7% FAIL; C03 recover5 C2S0% FAIL. These two distinct initial/floor configs at same rate/RTT show 32 qualified source-window history + Wilson/stability retains old loss, not a direction-only artifact; sample rate ~0.5-0.6 qualified windows/s => ~55-64s wall history. Next propose ONLY minimal generic confidenceHistory 32->16 windows (still >=512 source records/30s/60s/slow EWMA/10s cooldown), add ring/underprotect/high20/recover5 controller unit; Github core/race FIRST. Then one 240s high20->recover5 realpath counterexample SAME frozen model with independent last60 and no weaknet zero-loss blanket, followed by C03/C04 if basic passes and GE burst/asym tests. Do not lower because of true netem phase, never alter fresh or samewire. Preserve historical failure and all Action hashes. N2 OPEN, N3-N6 NOT_STARTED, physical NOT_RUN, old2.73s/80s OPEN; no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-c04-realpath-scoped-pass-recover5-bidirectional-overprotection.md",
+  "next_task": "M3 candidate only changes confidenceHistory32->16 after C03 recover5 C2S0% and C04 C2S58.3/S2C41.7% within frozen R8-R10; C03/C04 high20 and finalclean delivered correct. FIRST run GitHub next-foundation full core/unit/race plus N0 samewire/lifecycle check exact M3 SOURCE, correct FAIL if any, no performance until successful. Then predeclare minimal 20%120s->5%120s true single realpath counterexample 300ms both ways10Mbps both Normal initial20/floor4, explicit independent timeband and first delivery/p99/drop/queue/parity; only after scoped evidence try C03/C04 cross-retention and GE burst/asym. Do not select grade from netem, no forced reduction/no NEW control options. No physical deployment/ref/mainline, N2 OPEN, legacy2.73s/80s OPEN, N3-N6 not started.",
+  "latest_log": "docs/devlog/20261012-n2-m3-qualified-history-16-soft-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
   "last_tested_scope": "C04_840S_OFFSTART_SOURCE_C835C6D_HIGH20_BOTH_R16_20_RETURN_OFF_BOTH_CLEAN_LAST60_FIRST_UNIQUE_BOTH_NO_GAP_MISSING894_1077_SCOPED_PASS_RECOVER5_BOTH_LT90PCT_FAIL",

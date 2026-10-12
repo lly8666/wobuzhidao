@@ -20,7 +20,7 @@ const (
     // consist of physically observed but edge-cropped FEC groups. Such
     // records are priced as NO FEC protection, not assumed k=20.
     MaxCroppedShare = 0.5
-    confidenceHistory = 32 // bounded independent source windows, not lifetime counts
+    confidenceHistory = 16 // faster bounded exit of stale qualified source windows; >=512 records still mandatory
     ResidualTarget = 0.001
     decreaseMargin = 0.0005
     // If conservative edge/repair ambiguity makes the absolute target
@@ -147,7 +147,7 @@ type Decision struct {
     ShapeBlocks uint64
     OffRecords, CroppedRecords uint64
     // Low-frequency read-only evidence for WHY stability/confidence HOLDS.
-    // Last 32 accepted, disjoint windows only; rejected source windows do
+    // Last 16 accepted, disjoint windows only; rejected source windows do
     // not advance these counters or reset EWMA/stable clocks.
     ConfidenceSent, ConfidenceLost uint64
     ConfidenceHistoryWindows uint32
@@ -401,7 +401,7 @@ func (c *Controller) shapeBlocks() uint64 {
     return n
 }
 
-// Only accepted nonoverlapping source windows contribute. The last 32
+// Only accepted nonoverlapping source windows contribute. The last 16
 // accepted intervals bound confidence and shape weighting; otherwise a
 // lifetime of clean windows would mask a new damaged period indefinitely.
 func (c *Controller) pushSample(s Input,upper uint32,bounded bool) {
@@ -622,7 +622,7 @@ func (c *Controller) Step(now time.Time,s Input) Decision {
     if prior==0 {stable=60*time.Second}
     // Evaluate each independent downgrade blocker even when stability time
     // is not yet met. This is diagnostic-only arithmetic on the existing
-    // fixed 32-source history; no extra sampling, traffic or looser gate.
+    // fixed 16-source history; no extra sampling, traffic or looser gate.
     confidence:=wilsonUpper(c.confidentLost,c.confidentSent)
     residual:=0.0
     slowRequired:=0
