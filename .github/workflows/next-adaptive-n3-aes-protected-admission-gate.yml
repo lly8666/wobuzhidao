@@ -8,6 +8,7 @@ on:
       - "internal/realityfront/policy_v3_test.go"
       - "internal/realityfront/n3_aes_protected_admission_test.go"
       - "internal/datapath/n2_protected_policy_candidate.go"
+      - "internal/datapath/n2_protected_policy_candidate_test.go"
       - "internal/datapath/n3_aes_authenticated_handoff_test.go"
 permissions:
   contents: read
