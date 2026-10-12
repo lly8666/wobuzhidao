@@ -1,0 +1,167 @@
+name: next-adaptive-n2-m3-20to5-realpath-single
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n2-m3-20to5-realpath-single.yml"
+      - "tools/adaptive_n2_m3_recovery_gate.py"
+      - "tools/test_adaptive_n2_m3_recovery_gate.py"
+      - "tools/adaptive_n2_m3_recovery.py"
+      - "docs/evidence/adaptive-n2-m3-recovery-freeze-v1.json"
+      - "tools/adaptive_n2_m3_recovery_stage.py"
+permissions:
+  contents: read
+concurrency:
+  group: adaptive-n2-m3-20to5-realpath-single-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  one-v3-normal-m3-300ms-wave330-single-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 34
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Exact one SOURCE and one functional sample
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/adaptive-n2-m3-20to5-realpath-single
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          python3 tools/perf_sample_guard.py claim \
+            --identity "adaptive-n2:auto-min4:wave-20to5:300ms:10mbps_each:330s:netem-seed-unapplied601:biz2026092201-2026092202:sha$GITHUB_SHA" \
+            --receipt artifacts/adaptive-n2-m3-20to5-realpath-single/sample-claim.json
+          python3 tools/e4_runner_cpu_scope.py --output artifacts/adaptive-n2-m3-20to5-realpath-single/runner-cpu-scope.json
+          lscpu --json > artifacts/adaptive-n2-m3-20to5-realpath-single/lscpu.json
+          (grep -m1 -E '^(flags|Features)[[:space:]]*:' /proc/cpuinfo || true) > artifacts/adaptive-n2-m3-20to5-realpath-single/isa-flags.txt
+          {
+            cat /proc/pressure/cpu 2>/dev/null || true
+            cat /sys/fs/cgroup/cpu.max 2>/dev/null || true
+            grep '^cpu ' /proc/stat || true
+            cat /proc/loadavg || true
+          } > artifacts/adaptive-n2-m3-20to5-realpath-single/runner-preflight.txt
+      - name: M3 independent freeze and stage preflight before any netem load
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/adaptive_n2_m3_recovery.py tools/adaptive_n2_m3_recovery_stage.py
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "tools")
+          from adaptive_n2_m3_recovery import m3_frozen, PHASES, DURATION
+          from adaptive_n2_m3_recovery_stage import STAGES
+          m=m3_frozen(Path("."))
+          assert DURATION==330 and STAGES==PHASES
+          assert len(m["grade_screens"])==2
+          print("M3_FROZEN_INDEPENDENT_MODEL_SHA256="+m["manifest_sha256"])
+          PY
+      - name: Independent first-delivery gate self-tests BEFORE real workload
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/adaptive_n2_m3_recovery_gate.py
+          python3 -m unittest discover -s tools -p 'test_adaptive_n2_m3_recovery_gate.py' -v
+      - name: Install five-netns kernel prerequisites
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables nftables tcpdump openssl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+          test -c /dev/net/tun
+      - name: Exact SOURCE Go N2 unit/race before measurement
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -count=1 ./internal/adaptivefec
+          go test -race -count=1 ./internal/adaptivefec ./internal/datapath ./internal/runtimeowner ./internal/linkdata
+      - name: Build exact current SOURCE binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ART=artifacts/adaptive-n2-m3-20to5-realpath-single
+          go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+          "$ART/wbd-client" --version > "$ART/client-version.txt"
+          "$ART/wbd-server" --version > "$ART/server-version.txt"
+          sha256sum "$ART/wbd-client" "$ART/wbd-server" > "$ART/binary-sha256.txt"
+          python3 -m py_compile tools/adaptive_n2_m3_recovery.py tools/adaptive_n2_m3_recovery_stage.py
+          python3 tools/adaptive_n2_m3_recovery.py prepare \
+            --root . --script "$ART/n2-m3-derived.sh" --receipt "$ART/harness-prep.json"
+          bash -n "$ART/n2-m3-derived.sh"
+          grep -q "adaptive_n2_m3_recovery_stage.py" "$ART/n2-m3-derived.sh"
+          grep -q "resource-samples.jsonl" "$ART/n2-m3-derived.sh"
+      - name: One Normal auto 20pct 120s to 5pct 210s single realpath load 10Mbps each-way 300ms one-way
+        id: sample
+        continue-on-error: true
+        env:
+          WBD_REALPATH_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/adaptive-n2-m3-20to5-realpath-single
+        shell: bash
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_REALPATH_ARTIFACT_DIR \
+            bash artifacts/adaptive-n2-m3-20to5-realpath-single/n2-m3-derived.sh
+      - name: Independent protected Normal auto and first-unique delivery check
+        id: verify
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          python3 tools/adaptive_n2_m3_recovery.py check \
+            --artifact-dir artifacts/adaptive-n2-m3-20to5-realpath-single \
+            --source-sha "$GITHUB_SHA" \
+            --output artifacts/adaptive-n2-m3-20to5-realpath-single/summary.json
+      - name: Scoped M3 predeclared 20% protection and 5% recovery source/grade gate
+        id: m3_gate
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          python3 tools/adaptive_n2_m3_recovery_gate.py \
+            --artifact-dir artifacts/adaptive-n2-m3-20to5-realpath-single \
+            --source-sha "$GITHUB_SHA" \
+            --frozen-model docs/evidence/adaptive-n2-m3-recovery-freeze-v1.json \
+            --output artifacts/adaptive-n2-m3-20to5-realpath-single/m3-gate.json
+      - name: Report fail and preserve small evidence
+        if: always()
+        shell: bash
+        run: |
+          cat artifacts/adaptive-n2-m3-20to5-realpath-single/summary.json || true
+          cat artifacts/adaptive-n2-m3-20to5-realpath-single/m3-gate.json || true
+          tail -n 50 artifacts/adaptive-n2-m3-20to5-realpath-single/client.log || true
+          tail -n 50 artifacts/adaptive-n2-m3-20to5-realpath-single/server.log || true
+          echo "SOURCE_SHA=$GITHUB_SHA; N2 M3 Normal 300ms actual 20pct to 5pct restoration: inspect summary classification; tc netem RNG seed unsupported on this runner and not applied, actual drop counters mandatory; NEVER infer full N2 PASS; Windows TUN/CPU OFF/other modes NOT_RUN" >> "$GITHUB_STEP_SUMMARY"
+      - name: Clean only owned raw PCAP before artifact upload
+        if: always()
+        run: |
+          find artifacts/adaptive-n2-m3-20to5-realpath-single -maxdepth 1 -type f -name '*.pcap' -delete
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: adaptive-n2-m3-20to5-realpath-single-330s-${{ github.sha }}
+          path: |
+            artifacts/adaptive-n2-m3-20to5-realpath-single/
+            !artifacts/adaptive-n2-m3-20to5-realpath-single/*.pcap
+            !artifacts/adaptive-n2-m3-20to5-realpath-single/wbd-client
+            !artifacts/adaptive-n2-m3-20to5-realpath-single/wbd-server
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Enforce functional result
+        if: always()
+        env:
+          SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+          M3_GATE_OUTCOME: ${{ steps.m3_gate.outcome }}
+        run: |
+          test "$SAMPLE_OUTCOME" = success
+          test "$VERIFY_OUTCOME" = success
+          test "$M3_GATE_OUTCOME" = success

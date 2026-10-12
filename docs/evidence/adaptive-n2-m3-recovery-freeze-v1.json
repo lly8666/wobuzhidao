@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "model_version": "n2-m3-iid-recover-high20-to5-v1",
+  "frozen_date": "2026-10-12",
+  "status": "PREMEASUREMENT_FROZEN_MODEL_NOT_PRODUCT_PASS",
+  "derived_from_preexisting_curve": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+  "original_curve_model_version": "n2-independent-iid-timeband-v1",
+  "original_reference_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "scenario": "M3-R1",
+  "purpose": "minimal counterexample for general 16 operational / 32 off qualified history after cross-initial C03/C04 5percent slow down",
+  "source": "exact GitHub SHA compiled in Actions; never netem truth into controller",
+  "config": {
+    "fec_mode": "Normal-auto",
+    "initial_parity": 20,
+    "min_parity": 4,
+    "max_parity": 20,
+    "cipher": "chacha20-poly1305",
+    "outer_mtu": 1400,
+    "one_way_delay_ms_each_direction": 300,
+    "application_mbps_each_direction": 10,
+    "record_cap": 0,
+    "diagnostics": "ON"
+  },
+  "stage_schedule": [
+    {
+      "name": "loss20",
+      "start_s": 0,
+      "duration_s": 120,
+      "loss_percent": 20,
+      "frozen_full_k20_ideal_parity": 16,
+      "frozen_grade_screen": [
+        16,
+        20
+      ],
+      "final_active_60s_grade_fraction_min": 0.9
+    },
+    {
+      "name": "recover5",
+      "start_s": 120,
+      "duration_s": 210,
+      "loss_percent": 5,
+      "frozen_full_k20_ideal_parity": 8,
+      "frozen_grade_screen": [
+        8,
+        10
+      ],
+      "final_active_60s_grade_fraction_min": 0.9
+    }
+  ],
+  "duration_active_s": 330,
+  "drain_s": 10,
+  "ordinary_recovery_independent_B_upper_s": 140.4,
+  "recovery_last60_active_s": [
+    270,
+    330
+  ],
+  "qualified_window_arrival_rate_reference": "~0.5-0.6 source-correlated accepted PN windows/s from independent C03/C04 evidence, not a production controller truth",
+  "group_qualification": "actual k, r=min(k,R), source-PN 256-edge cropped and M/R bounds required; 20:8 full-k IID only a reference",
+  "network_rng": "Linux tc seed unsupported; kernel netem stochastic UNSEEDED, check actual per-stage drops and qdisc queues; business seeds are deterministic only",
+  "business_seeds": [
+    2026092201,
+    2026092202
+  ],
+  "thresholds": {
+    "max_consecutive_no_first_unique_delivery_seconds_recovery": 4,
+    "minimum_recovery_business_first_unique_to_sent": 0.9,
+    "high20_grade_final60_min": 0.9,
+    "recover5_grade_final60_min": 0.9,
+    "observation": "both directions, during active delivery not drain",
+    "zero_loss_at_high20": "NOT_REQUIRED",
+    "probe_all_return": "NOT_REQUIRED",
+    "cpu_cross_vm": "NOT_QUALIFIED"
+  },
+  "one_source_one_config_one_scenario_one_performance_job": true,
+  "limits": [
+    "This is a short protected highloss->recovery test, not full C03/C04 or N2",
+    "Do not postfit B upper or grade screens after measurement",
+    "Even if final R8-R10 at210s, still report first arrival/missing, cumulative overprotect seconds and exact parity bytes",
+    "No reliance on diagnostic-ON CPU to claim optimization",
+    "Physical NOT_RUN"
+  ]
+}

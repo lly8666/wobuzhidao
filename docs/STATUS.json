@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M3_TWO_TIER_16_ENABLED_32_OFF_CONFIDENCE_CANDIDATE_CORE_RACE_PENDING",
+    "phase": "N2_M3_TWO_TIER_HISTORY_CORE_RACE_PASS_M3_R1_FROZEN_MINIMAL_REALPATH_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1201,7 +1201,7 @@
       "physical": "NOT_RUN"
     },
     "n2_m3": {
-      "status": "M3_FIRST_SOURCE_FAILED_NEXT_DUAL_HISTORY_CANDIDATE_UNTESTED",
+      "status": "TWO_TIER_GO_CORE_RACE_FOUNDATION_LIFECYCLE_SUCCESS_NEW_M3_R1_MEASUREMENT_PENDING",
       "first_failed_source": "b5f6047be2b1cc2f52c400f8defba3d73915ecdf",
       "first_fail": {
         "foundation_run": 38219612120,
@@ -1229,11 +1229,75 @@
       "new_test": "TestN2EnabledHistory16OffRequires32CleanQualifiedWindows; TestN2OffConfidenceKeepsSeparateOlderVerifiedDamage",
       "performance_status": "NOT_RUN",
       "physical": "NOT_RUN",
-      "qualification": "N2_OPEN"
+      "qualification": "N2_OPEN",
+      "core_source": "c9425990123f74b7a8b43e6efcad818a965cc021",
+      "core_evidence": {
+        "foundation": {
+          "run_id": 38221255938,
+          "conclusion": "success",
+          "platforms": "Linux Windows all enabled jobs and full Go unit/race"
+        },
+        "focused": {
+          "run_id": 38221255805,
+          "conclusion": "success"
+        },
+        "lifecycle": {
+          "run_id": 38221255660,
+          "conclusion": "success"
+        }
+      },
+      "validation": "GITHUB_ACTIONS_UNIT_AND_RACE_SUCCESS_PERFORMANCE_NOT_RUN",
+      "measured_realpath": "NOT_RUN_AT_FREEZE_COMMIT",
+      "m3_r1": {
+        "scenario": "M3-R1",
+        "source_to_be_exact_push_sha": "NEXT_COMMIT_GITHUB_SHA",
+        "helper": "tools/adaptive_n2_m3_recovery.py",
+        "stage": "tools/adaptive_n2_m3_recovery_stage.py",
+        "gate": "tools/adaptive_n2_m3_recovery_gate.py",
+        "gate_test": "tools/test_adaptive_n2_m3_recovery_gate.py",
+        "frozen_file": "docs/evidence/adaptive-n2-m3-recovery-freeze-v1.json",
+        "freeze_version": "n2-m3-iid-recover-high20-to5-v1",
+        "normal_initial20_floor4": true,
+        "loss": [
+          20,
+          5
+        ],
+        "phase_seconds": [
+          120,
+          210
+        ],
+        "active_seconds": 330,
+        "drain_seconds": 10,
+        "frozen_full20_ideal": [
+          16,
+          8
+        ],
+        "frozen_allow": [
+          [
+            16,
+            20
+          ],
+          [
+            8,
+            10
+          ]
+        ],
+        "recovery_B_upper_s": 140.4,
+        "recovery_last60_active": [
+          270,
+          330
+        ],
+        "minimum_fraction_grade_band": 0.9,
+        "max_no_first_unique_delivery_s": 4,
+        "min_unique_over_sent_recovery": 0.9,
+        "single_source_config_scenario_job": true,
+        "qualification": "NOT_RUN",
+        "physical": "NOT_RUN"
+      }
     }
   },
-  "next_task": "M3 32->16 single history FAILED Go TestOffNeedsLongEvidence exact b5f6047 Action38219612120 Linux/Win and Action38219612192 N2 core; first fail preserved. Modified two-tier 16 enabled/32 OFF source-window proof with same Wilson0.0005 and 60s OFF gate, no extra network traffic, conservative off pilot reset. FIRST GitHub next-foundation full Linux/Windows unit/race plus focused N2 core and N0 samewire/lifecycle. If success, only one predeclared source/config/scenario/job minimal 20%->5% realpath recovery before C03/C04 remeasure and GE burst/asym; if fail preserve exact error and narrow. No N3–N6/physical/merge; 2.73s/80s OPEN.",
-  "latest_log": "docs/devlog/20261012-n2-m3-off-wilson32-and-enabled16-correction.md",
+  "next_task": "Two-tier controller exact SOURCEc942599 core/race success Foundation38221255938/N2 core38221255805/lifecycle38221255660; old b5f6047 Wilson off FAIL retained. New M3-R1 minimal independent realpath: one source Normal initial20 floor4, one 330s wave 20%120s then 5%210s +10s drain, one Actions performance job. M3-R1 freeze model/grade/timeband and gate must PASS unit/Github Go/race before netem. Inspect actual tc stage loss, high20 and recover5 active last60 grade, first unique/p99/missing/no >=5s gap, partial k/M-R source history, parity and total wire CPU/queue; scoped only. If failed, preserve Action run/job/artifact/hash and narrow. If PASS, rerun C03/C04 and burst/asym to check underprotection and resource; N2 OPEN, N3-N6 not started, historical2.73s/80s OPEN; physical NOT_RUN, no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-m3-two-tier-core-pass-m3-r1-frozen-single-test.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
   "last_tested_scope": "C04_840S_OFFSTART_SOURCE_C835C6D_HIGH20_BOTH_R16_20_RETURN_OFF_BOTH_CLEAN_LAST60_FIRST_UNIQUE_BOTH_NO_GAP_MISSING894_1077_SCOPED_PASS_RECOVER5_BOTH_LT90PCT_FAIL",
