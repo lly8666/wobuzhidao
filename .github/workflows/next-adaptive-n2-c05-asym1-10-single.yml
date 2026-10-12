@@ -1,0 +1,149 @@
+name: next-adaptive-n2-c05-asym1-10-single
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n2-c05-asym1-10-single.yml"
+      - "tools/adaptive_n2_c05_asym1_10.py"
+      - "tools/test_adaptive_n2_c05_asym_preflight.py"
+      - "docs/evidence/adaptive-n2-c05-c06-asym-model-freeze-v1.json"
+permissions:
+  contents: read
+concurrency:
+  group: adaptive-n2-c05-asym1-10-single-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  one-source-c05-c2s1-s2c10-realpath-normal-auto-240s:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Exact one SOURCE and one functional sample
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/adaptive-n2-c05-asym1-10
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          python3 tools/perf_sample_guard.py claim \
+            --identity "adaptive-n2:C05:auto-initial20-min4:c2s1pct-s2c10pct:300ms:10mbps_each:240s:biz2026092201-2026092202:sha$GITHUB_SHA" \
+            --receipt artifacts/adaptive-n2-c05-asym1-10/sample-claim.json
+          python3 tools/e4_runner_cpu_scope.py --output artifacts/adaptive-n2-c05-asym1-10/runner-cpu-scope.json
+          lscpu --json > artifacts/adaptive-n2-c05-asym1-10/lscpu.json
+          (grep -m1 -E '^(flags|Features)[[:space:]]*:' /proc/cpuinfo || true) > artifacts/adaptive-n2-c05-asym1-10/isa-flags.txt
+          {
+            cat /proc/pressure/cpu 2>/dev/null || true
+            cat /sys/fs/cgroup/cpu.max 2>/dev/null || true
+            grep '^cpu ' /proc/stat || true
+            cat /proc/loadavg || true
+          } > artifacts/adaptive-n2-c05-asym1-10/runner-preflight.txt
+      - name: Exact SOURCE N2 M1 Go unit/race before any live measurement
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -count=1 ./internal/adaptivefec
+          go test -race -count=1 ./internal/adaptivefec ./internal/datapath ./internal/runtimeowner ./internal/linkdata
+      - name: C05 source-directional netem freeze and grade parser preflight (no traffic)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/adaptive_n2_c05_asym1_10.py tools/adaptive_n2_asym_reference.py
+          python3 -m unittest discover -s tools -p 'test_adaptive_n2_c05_asym_preflight.py' -v
+          python3 - <<'PY'
+          import json, tempfile, sys
+          from pathlib import Path
+          sys.path.insert(0, "tools")
+          from adaptive_n2_c05_steady1 import grades
+          with tempfile.TemporaryDirectory() as td:
+              p=Path(td)/"early.jsonl"
+              for server in (False,True):
+                  event={"unix_ns":123, "product":(
+                      {"present":True,"tunnel":{"lanes":None}} if server
+                      else {"lanes":None})}
+                  p.write_text(json.dumps(event)+"\n")
+                  out=grades(Path(td),p.name,server,123)
+                  assert out["active"]==0 and out["stable_active"]==0, out
+          PY
+      - name: Install five-netns kernel prerequisites
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables nftables tcpdump openssl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+          test -c /dev/net/tun
+      - name: Build exact current SOURCE binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ART=artifacts/adaptive-n2-c05-asym1-10
+          go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+          "$ART/wbd-client" --version > "$ART/client-version.txt"
+          "$ART/wbd-server" --version > "$ART/server-version.txt"
+          sha256sum "$ART/wbd-client" "$ART/wbd-server" > "$ART/binary-sha256.txt"
+          python3 tools/adaptive_n2_c05_asym1_10.py prepare \
+            --root . --script "$ART/n2-c05-derived.sh" --receipt "$ART/harness-prep.json"
+          bash -n "$ART/n2-c05-derived.sh"
+          grep -q 'strict_resource_sampler.py' "$ART/n2-c05-derived.sh"
+          grep -q 'resource-samples.jsonl' "$ART/n2-c05-derived.sh"
+      - name: One exact SOURCE C05 C2S1pct S2C10pct 240s 300ms one-way Normal auto 10Mbps each, actively evaluate frozen last60 grades
+        id: sample
+        continue-on-error: true
+        env:
+          WBD_REALPATH_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/adaptive-n2-c05-asym1-10
+        shell: bash
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_REALPATH_ARTIFACT_DIR \
+            bash artifacts/adaptive-n2-c05-asym1-10/n2-c05-derived.sh
+      - name: Independent protected Normal auto and first-unique delivery check
+        id: verify
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          python3 tools/adaptive_n2_c05_asym1_10.py check \
+            --artifact-dir artifacts/adaptive-n2-c05-asym1-10 \
+            --source-sha "$GITHUB_SHA" \
+            --output artifacts/adaptive-n2-c05-asym1-10/summary.json
+      - name: Report fail and preserve small evidence
+        if: always()
+        shell: bash
+        run: |
+          cat artifacts/adaptive-n2-c05-asym1-10/summary.json || true
+          tail -n 50 artifacts/adaptive-n2-c05-asym1-10/client.log || true
+          tail -n 50 artifacts/adaptive-n2-c05-asym1-10/server.log || true
+          echo "SOURCE_SHA=$GITHUB_SHA; N2 C05 V3 Normal auto asymmetric C2S1%/S2C10% 240s diagnostics ON; one scenario only; overall adaptive/wire/CPU OFF/p99/physical NOT QUALIFIED" >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove only owned raw PCAP after bounded analyzer, including failure cases
+        if: always()
+        run: |
+          find artifacts/adaptive-n2-c05-asym1-10 -maxdepth 1 -type f -name '*.pcap' -delete
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: adaptive-n2-c05-asym1-10-${{ github.sha }}
+          path: |
+            artifacts/adaptive-n2-c05-asym1-10/
+            !artifacts/adaptive-n2-c05-asym1-10/*.pcap
+            !artifacts/adaptive-n2-c05-asym1-10/wbd-client
+            !artifacts/adaptive-n2-c05-asym1-10/wbd-server
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Enforce functional result
+        if: always()
+        env:
+          SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+        run: |
+          test "$SAMPLE_OUTCOME" = success
+          test "$VERIFY_OUTCOME" = success

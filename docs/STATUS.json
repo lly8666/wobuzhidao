@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M3_C04_CROSS_RESTORE_OFF_SCOPED_PASS_RECOVER5_S2C_EFFICIENCY_FAIL_C05_ASYM_NEXT",
+    "phase": "N2_C05_ASYM_1_10_REALPATH_SINGLE_SOURCE_CANDIDATE_PRE_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1533,10 +1533,44 @@
       "model_output_sha256": "0480a100841e976885f5baa3807b328f36cdbf9196040e8358238e6da0b5c778",
       "freeze_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
       "evidence": "docs/evidence/adaptive-n2-c05-c06-asym-theory-actions-20261012.json"
+    },
+    "n2_c05": {
+      "status": "NEW_ASYMMETRIC_C05_SINGLE_REALPATH_FIXTURE_FROZEN_NOT_YET_RUN",
+      "model_version": "n2-asymmetric-iid-timeband-v1",
+      "model_freeze": "docs/evidence/adaptive-n2-c05-c06-asym-model-freeze-v1.json",
+      "model_freeze_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+      "model_theory_run_id": 38232373616,
+      "C2S_actual_netem_target_loss_pct": 1,
+      "S2C_actual_netem_target_loss_pct": 10,
+      "C2S_router_interface": "rsrv",
+      "S2C_router_interface": "rcli",
+      "full_k20_IID_reference_parity": {
+        "c2s": 4,
+        "s2c": 8
+      },
+      "frozen_allowed_last60": {
+        "c2s": [
+          4,
+          8
+        ],
+        "s2c": [
+          8,
+          10
+        ]
+      },
+      "minimum_last60_graded_seconds_fraction": 0.9,
+      "configuration": "Normal auto initial20 floor4 max20 ChaCha MTU1400, each10Mbps 300ms one-way, 240s active and10s drain, diagnostics ON",
+      "fixed_realpath_helper": "tools/adaptive_n2_c05_asym1_10.py",
+      "preflight_unit": "tools/test_adaptive_n2_c05_asym_preflight.py",
+      "workflow": ".github/workflows/next-adaptive-n2-c05-asym1-10-single.yml",
+      "performance_single_source_config_scenario_measurement_job": true,
+      "pending_real_run_id": "NOT_YET_STARTED",
+      "product_result": "NOT_RUN",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "C04 Action38231341392 job114751294469 artifact11739481919 verification: original summary+off first delivery PASS, but independent cross grade S2C recover5 last60 R8-R10 78.3% <90% so Action FAIL; C2S96.7%; both return actual off active last60, no blackout, missing818/654. Preserve evidence no blind same-C04 rerun or postfit B/model. C05 pre-frozen C2S1% vs S2C10% steady240s only NEXT performance Action, exact one SOURCE/config/scenario/job; helper adapted from C08 netem per direction, verify actual qdisc and proper source/target orientation. Core/race and separate gate unit first, then single realpath, followed C06 reverse separately, then GE bursts/blackhole/reorder/feedback/sparse/idle/mixedTCPUDP MTU Game. N2 remains OPEN, N3-N6 NOT_STARTED physical NOT_RUN, 2.73s/80s OPEN no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-m3-c04-cross840s-s2c-efficiency-fail.md",
+  "next_task": "C05 C2S1% / S2C10% independent-source Normal auto 240s single performance Action on push of next exact SOURCE. Original C04 SOURCE0e3daca5 Action38231341392 failed cross S2C recover5 grade78.3% and preserved. C05 independent IID ref model-only Action38232373616 pass with no network, predeclared C2S [R4,R8] and S2C [R8,R10] last60 >=90%, B_latest122.4/107.4s. New helper derived only real five-netns C08, router rsrv C2S1pct rcli S2C10pct, actual qdisc loss assert; preflight unit parses generated shell, freeze, grade direction, early null lanes; GitHub unit/race before real 240s. If fail preserve exact errors/artifacts/hash no blind seed reruns. Then reverse C06 in separate Action only if C05 analyzed, GE correlated, blackhole/reorder, feedback, sparse/mixed traffic, MTU/Game. N2 remains OPEN N3–N6 NOT_STARTED physical NOT_RUN legacy 2.73s/80s OPEN, no deploy/merge/ref.",
+  "latest_log": "docs/devlog/20261012-n2-c05-asym-1pct-10pct-realpath-frozen-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "0e3daca5e26a8487b0d0e1c94b67a3959deb791d",
   "last_tested_scope": "M3_C04_FULL840S_HIGH20_BOTH_GOOD_INITIAL_AND_FINAL_OFF_REAL_BOTH_FIRSTUNIQUE_NO_BLACKOUT_C2S_RECOVER5_R8_R10_96_7PCT_PASS_S2C_78_3PCT_FAIL_GROSS_WIRE2_162X_CPU_ON",
