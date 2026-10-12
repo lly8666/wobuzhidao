@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "kind": "N2_M0_MODEL_ONLY_AND_PRIOR_ARTIFACT_READONLY_AUDIT_ACTIONS_PASS",
+  "model_source_commit": "8b5b08918189e42816d82ef8661bc17704c3604b",
+  "model_version": "n2-independent-iid-timeband-v1",
+  "audit_version": "n2-evidence-audit-v1",
+  "actions_run_id": 38202228800,
+  "actions_job_id": 114657908330,
+  "conclusion": "success",
+  "actions_artifact_id": 11726191066,
+  "artifact_zip_sha256": "0f1ceda0b43a4a1c0f13b4ab2f2dd89c03e72c413e8c6f599ab7ad942325f858",
+  "model_output_sha256": "bf71f41d420d96c3c46f97b7370cbcfab3bd7d521176d09671773ae83cc0f1bd",
+  "readonly_audit_output_sha256": "98c24d5df18705acc0eb38708b703fa166b6abc77d133d77d51a00c93691c292",
+  "receipt_artifact_sha256": "3db625657ff83fdb9135854a7b1850f500ba75f6684222cc571e8189b790883c",
+  "original_product_source": "90925f81cfb16e8435c238b060c46492eef017ea",
+  "original_action_run": 38161148715,
+  "original_job_id": 114534148614,
+  "original_artifact_id": 11710956407,
+  "original_summary_sha256": "85163b36ba051a76adf33fef5d748e8a224e0e8d5fac2003270d5aa52bfc8450",
+  "frozen_input": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+  "scenarios_ideal_only": {
+    "C03": [
+      4,
+      4,
+      8,
+      16,
+      8,
+      4
+    ],
+    "C04": [
+      0,
+      4,
+      8,
+      16,
+      8,
+      0
+    ],
+    "C08": [
+      4
+    ],
+    "C09": [
+      8
+    ]
+  },
+  "time_model_assumptions": "IID k20 only; effective accepted source report rate .5/s declared before new runs; report2s maturity3s RTT.6s per direction roundtrip; no underfed/dropped feedback equivalence",
+  "observed_readonly": {
+    "c2s_clean_active_grade": "20 all 240s",
+    "s2c_clean_active_grade": "20 down to off",
+    "c2s_clean_gate_counts": {
+      "CONFIDENCE_RESIDUAL": 240
+    },
+    "c2s_clean_reason_counts": {
+      "HOLD_STABILITY_OR_CONFIDENCE": 92,
+      "HOLD_UNQUALIFIED_FIRST_ATTEMPT": 61,
+      "HOLD_UNVERIFIED_PARTIAL_K": 87
+    },
+    "c2s_repair_only_spikes": [
+      {
+        "t_s": 428.058,
+        "M": 0,
+        "U": 1
+      },
+      {
+        "t_s": 429.058,
+        "M": 0,
+        "U": 8
+      },
+      {
+        "t_s": 451.058,
+        "M": 0,
+        "U": 5
+      },
+      {
+        "t_s": 507.058,
+        "M": 0,
+        "U": 2
+      }
+    ],
+    "c2s_wilson_upper_first_last": [
+      0.06805100722881824,
+      0.0030191349256443725
+    ],
+    "s2c_wilson_upper_first_last": [
+      0.066174188778912,
+      0.0004687255058711725
+    ]
+  },
+  "foundation_run": 38202228724,
+  "foundation_enabled_jobs": "seven enabled completed SUCCESS incl ubuntu/windows Go unit/race and owned-netns smoke; skipped jobs do not count",
+  "performance_measurements_started": 0,
+  "product_controller_changed": false,
+  "adaptive_effectiveness": "OPEN",
+  "physical": "NOT_RUN",
+  "limits": [
+    "No new netem measurement and no reclassification of original run",
+    "M+R upper is conservative repair bound, not actual first-attempt loss",
+    "partial k and group cropping under existing 256-PN report not proven across boundaries",
+    "diagnostic ON CPU not standard performance",
+    "N3-N6 not started; prior 2.73s late and 80s S2C remain OPEN"
+  ]
+}

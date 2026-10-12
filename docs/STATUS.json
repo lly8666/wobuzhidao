@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_INDEPENDENT_REFERENCE_AND_RECOVER540_READONLY_AUDIT_M0_CANDIDATE_PENDING_ACTIONS",
+    "phase": "N2_M0_INDEPENDENT_THEORY_AND_EXISTING540_READONLY_ACTIONS_SCOPED_PASS_ADAPTIVE_EFFICIENCY_OPEN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -840,7 +840,7 @@
       "physical": "NOT_RUN_NEW_SOURCE"
     },
     "m0_reference": {
-      "status": "CANDIDATE_NOT_TESTED_IN_ACTIONS",
+      "status": "SCOPED_MODEL_ONLY_AND_PRIOR_540_AUDIT_ACTIONS_PASS",
       "reference_model": "tools/adaptive_n2_curve_reference.py",
       "reference_version": "n2-independent-iid-timeband-v1",
       "audit": "tools/adaptive_n2_curve_audit.py",
@@ -849,13 +849,20 @@
       "preliminary_readonly_evidence": "docs/evidence/adaptive-n2-recover540-diagnostic-audit-candidate-20261012.json",
       "workflow": ".github/workflows/next-adaptive-n2-theory-audit.yml",
       "old_product_source": "90925f81cfb16e8435c238b060c46492eef017ea",
-      "actions_result": "NOT_RUN_AT_COMMIT_TIME",
+      "actions_result": "SUCCESS_RUN_38202228800_JOB_114657908330_ARTIFACT_11726191066_NOT_PRODUCT_PASS",
       "new_performance_run": "NOT_RUN",
-      "physical": "NOT_RUN"
+      "physical": "NOT_RUN",
+      "model_source_sha": "8b5b08918189e42816d82ef8661bc17704c3604b",
+      "actions_run_id": 38202228800,
+      "actions_job_id": 114657908330,
+      "actions_artifact_id": 11726191066,
+      "artifact_sha256": "0f1ceda0b43a4a1c0f13b4ab2f2dd89c03e72c413e8c6f599ab7ad942325f858",
+      "evidence": "docs/evidence/adaptive-n2-m0-actions-receipt-20261012.json",
+      "core_foundation_run": 38202228724
     }
   },
-  "next_task": "Audit new HEAD model-only Actions next-adaptive-n2-theory-audit: verify independent binomial/timeband unit, freeze, prior run38161148715 read-only summaries, and artifact hashes. On FAIL fix and rerun before claiming model verified. Then compare 540s directional confidence history/edge cropping/R-only upper spikes to frozen oracle, diagnose false-positive same-wire repair vs real loss without netem truth fed to product; only with cross-scenario evidence consider minimal time-window/qualified-source/soft gate changes. For any PRODUCT change, first Actions core/race, then exactly one SOURCE/config/scenario/measurement job in each performance Action; expand per acceptance C01–C20, continue N3–N6 only after reasonable N2 closure. Original 80s S2C/2.73s tail OPEN; no physical/deploy/merge/ref move.",
-  "latest_log": "docs/devlog/20261012-n2-m0-independent-reference-and-recover540-audit-candidate.md",
+  "next_task": "M0 independent model and recover540 read-only audit Action38202228800 succeeded, no new product/performance measured. Next analyze source-correlated M+R ambiguity, 256-PN cropping, history oldest/newest/age and low-loss persistent max20 against frozen curve; identify and unit-test minimal general fix with M0 oracle (never netem-controlled grade). Run core/race GitHub Actions and one SOURCE/config/scenario/measurement job per performance Action; begin C03/C04 counterexample only after core, then asym, IID/GE burst, blackhole, reorder, feedback loss, sparse, idle/rotation, mixed TCP/UDP MTU and Game/off/fixed. Preserve original 90925f81 run38161148715 FAIL/limits, overprotection qualification OPEN, N3-N6 NOT_STARTED, physical NOT_RUN, 2.73s tail and 80s S2C OPEN; no deployment/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-m0-model-actions-pass-audit.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
   "last_tested_scope": "READ_ONLY_RECEIPT_RECOVER540_BOTH_OFFSTART_RAISE_C2S_NO_LOWER_IN_240S_ACTIVE_CLEAN_DRAIN16_S2C_OFF_NOT_FULL_N2_PASS_FOUNDATION_7_ENABLED_PASS",
