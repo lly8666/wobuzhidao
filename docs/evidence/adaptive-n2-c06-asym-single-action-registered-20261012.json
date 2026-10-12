@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "kind": "N2_C06_REVERSED_ASYM_ONE_REALPATH_ACTION_REGISTERED_PENDING_RESULT",
+  "source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
+  "run_id": 38242922144,
+  "job_id": 114789708409,
+  "date": "2026-10-12",
+  "scenario": "C06 C2S rsrv10pct / S2C rcli1pct, Normal auto20/min4, 300ms each way, each business10Mbps, 240s active+10s drain",
+  "frozen_model_version": "n2-asymmetric-iid-timeband-v1",
+  "frozen_model_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+  "actual_expected_last60": {
+    "C2S": [
+      8,
+      10
+    ],
+    "S2C": [
+      4,
+      8
+    ],
+    "fraction_min": 0.9
+  },
+  "state": "PREMEASUREMENT_ACTION_IN_PROGRESS",
+  "artifact_id": null,
+  "performance_verdict": "NOT_YET_AVAILABLE",
+  "related_C05_failure": {
+    "run_id": 38241759581,
+    "job_id": 114785832142,
+    "archive_sha256": "c89feaa2223c338a13d7295f2df3b1b9b9c9da247fe9b23003ab03b089e853ff",
+    "grade_10pct_lane_last60": 0.7
+  },
+  "physical": "NOT_RUN",
+  "overall_N2": "OPEN"
+}

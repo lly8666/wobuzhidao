@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C05_ASYM_MEASURED_S2C_10PCT_GRADE_EFFICIENCY_FAIL_C06_REVERSE_SINGLE_CASE_NEXT",
+    "phase": "N2_C06_REVERSE_C2S10_S2C1_REALPATH_ACTION38242922144_IN_PROGRESS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1636,7 +1636,7 @@
       }
     },
     "n2_c06": {
-      "status": "NEW_REVERSED_10PCT_C2S_1PCT_S2C_SINGLE_PERFORMANCE_CANDIDATE_NOT_YET_ACTIONS",
+      "status": "ACTION38242922144_JOB114789708409_GITHUB_PREMEASUREMENT_IN_PROGRESS",
       "frozen_model_version": "n2-asymmetric-iid-timeband-v1",
       "frozen_manifest_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
       "model_only_success_run_id": 38232373616,
@@ -1662,11 +1662,16 @@
       "test": "tools/test_adaptive_n2_c06_asym_preflight.py",
       "single_source_config_scenario_job": true,
       "performance_run_id": "PENDING_SOURCE_PUSH",
-      "physical": "NOT_RUN"
+      "physical": "NOT_RUN",
+      "source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
+      "run_id": 38242922144,
+      "job_id": 114789708409,
+      "product_result": "NOT_YET_MEASURED",
+      "action_registration_evidence": "docs/evidence/adaptive-n2-c06-asym-single-action-registered-20261012.json"
     }
   },
-  "next_task": "C05 valid 240s realpath SOURCE758f310b run38241759581 job114785832142 artifact11744115276 ZIPc89feaa summaryaf9f1c: actual rsrv1pct .9838, rcli10pct10.02965, business 592107/592107 c2s,592099/592107 s2c, no blackout, p99 301.5/310.5ms, no capacity; last60 C2S R4 100% [4,8] PASS, S2C R10 42s/R12 18s =>70% <90%, Action FAIL. Do not retune to one seed. Separate reversed C06 pre-frozen C2S10 S2C1 240s / one new exact SOURCE/config/scenario/job with Go core/race+helper preflight before load; check actual rsrv10/rcli1, C2S[R8,R10] S2C[R4,R8] 90% screen, source/MR, business/parity/wire/CPU. If C06 demonstrates 10pct issue both directions, characterize generic confidence/shape and protect vs efficiency; later finite GE/burst/blackhole/feedback/idle/mixed. N2 still OPEN, N3–N6 NOT_STARTED physical NOT_RUN, legacy2.73s/80s OPEN, no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-c05-240s-asym-efficiency-fail-c06-reverse-predeclared.md",
+  "next_task": "C06 reverse asymmetric action38242922144 job114789708409 SOURCE1e0fe4baeec2 in premeasure Go N2 unit/race as last read. Fixed one C2S10% (rsrv)/S2C1% (rcli), Normal auto initial20 floor4 max20 240s 300ms one-way each 10Mbps, separate from C05. First verify no preflight errors, sample actual one performance job; then artifact inspect netem rsrv10/rcli1, firstunique/missing/p99/source recovery, last60 C2S[R8,R10],S2C[R4,R8] >=90% both, source confident samples M/R and parity/bytes wire CPU/capacity. C05 run38241759581 realpath valid but S2C10% grade70% FAIL preserved. If C06 10% side similar FAIL generic confidence limitation; do not use fault true p to controller, do not blindly retune for seed. N2 OPEN, N3-N6 pending, physical NOT_RUN, old2.73s/80s OPEN, no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-c06-reverse-action-registered.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "758f310b005a26f2610d721f8877a8a13c5f521c",
   "last_tested_scope": "C05_ASYM_REAL240S_C2S_1PCT_NT_R4_60OF60_BUSINESS_ALL592107_S2C10PCT_R8_R10_42OF60_70PCT_FAIL_MISSING8_P99_310_5MS_WIRE2_811X_NO_CAPACITY_DIAG_ON",
