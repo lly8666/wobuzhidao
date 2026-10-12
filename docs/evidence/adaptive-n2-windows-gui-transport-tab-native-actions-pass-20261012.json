@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "N2_WIN_GUI_TRANSPORT_TAB_SCREENSHOT_NATIVE_ACTIONS_SCOPED_PASS",
+  "source_sha": "78a2dee07c5d1d1ed847acedc898c3518d03f2b4",
+  "run_id": 38260818090,
+  "job_id": 114850541501,
+  "artifact_id": 11751524849,
+  "artifact_sha256": "50f14a6077ba4c06cfb7cf0866e7626490c939d8c9a55cd45bca1a86c69faf1c",
+  "native_action": "SUCCESS",
+  "actual_winforms_tests": "PASS",
+  "test_count": 258,
+  "actual_transport_tab_selected": true,
+  "actual_screenshot_created": "gui-screenshot.png",
+  "disconnected_quality": "实际发送 FEC：未知",
+  "no_network_connection": "GUI_SELF_TEST_ONLY",
+  "design": {
+    "area": "Windows GUI · 传输 Tab",
+    "fields": [
+      "fec-mode",
+      "fec-parity",
+      "fec-min-parity",
+      "fec-start-parity",
+      "control-padding",
+      "control-padding-max"
+    ],
+    "quality": [
+      "RTT trusted",
+      "authenticated first attempt loss confidence upper",
+      "actual TX R; UNKNOWN if unqualified or inactive"
+    ]
+  },
+  "prior_action": {
+    "source_sha": "bb24268b62a254651edc3a1404698c383e2486aa",
+    "run_id": 38259485234,
+    "artifact_id": 11751308548,
+    "classification": "258_NATIVE_WINDOWS_CONFIG_CHECKS_PASS"
+  },
+  "nohol": {
+    "source_sha": "55a156489b0855b4e73f85964849427079c73ad9",
+    "run_id": 38257097791,
+    "artifact_id": 11750249279,
+    "result": "GO_TARGETED_NOHOL_CONCURRENCY_AND_RACE_PASS_SCOPED"
+  },
+  "still_unknown": [
+    "No native physical Windows GUI human click/UAC/network driver acceptance",
+    "No independent real mixed TCP+UDP 10ms per-flow noHOL result",
+    "N3 AES unavailable until suite integration pass, and not in current GUI"
+  ],
+  "N2": "OPEN",
+  "physical": "NOT_RUN",
+  "not_deployed": true
+}

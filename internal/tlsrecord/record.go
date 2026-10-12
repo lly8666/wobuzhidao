@@ -44,6 +44,7 @@ var (
 type Sealer struct {
 	keys      Keys
 	aead      cipher.AEAD
+	hpBlock   cipher.Block // nil retains historical ChaCha PN protection
 	maxBody   int
 	nextPN    uint64
 	exhausted bool
@@ -62,6 +63,7 @@ type SealerStats struct {
 type Opener struct {
 	keys    Keys
 	aead    cipher.AEAD
+	hpBlock cipher.Block // nil retains historical ChaCha PN protection
 	maxBody int
 }
 
@@ -141,7 +143,7 @@ func (s *Sealer) seal(payload []byte, padding int, explicitPadding bool, kind by
 			s.stats.RequestedPaddingBytes += uint64(padding)
 		}
 	}
-	wire, err := sealRecord(s.keys, s.aead, s.maxBody, pn, kind, payload, padding)
+	wire, err := sealRecordWithHP(s.keys, s.aead, s.hpBlock, s.maxBody, pn, kind, payload, padding)
 	if err != nil {
 		s.stats.Failed++
 		return nil, pn, err
@@ -174,7 +176,7 @@ func (o *Opener) OpenRecord(wire []byte) (Record, error) {
 	}
 
 	ciphertext := wire[OuterHeaderLen+ProtectedPNLen:]
-	mask, err := headerMask(o.keys.HPKey, ciphertext)
+	mask, err := headerMaskForSuite(o.keys.HPKey, o.hpBlock, ciphertext)
 	if err != nil {
 		return Record{}, ErrInvalidLength
 	}
@@ -228,6 +230,12 @@ func effectiveBodyLimit(maxWire int) (int, error) {
 }
 
 func sealRecord(keys Keys, aead cipher.AEAD, maxBody int, pn uint64, kind byte, payload []byte, padding int) ([]byte, error) {
+	return sealRecordWithHP(keys, aead, nil, maxBody, pn, kind, payload, padding)
+}
+
+// hpBlock is immutable lane-local AES state. nil preserves V1/V2 and V3
+// ChaCha record bytes exactly, including existing independent test vectors.
+func sealRecordWithHP(keys Keys, aead cipher.AEAD, hpBlock cipher.Block, maxBody int, pn uint64, kind byte, payload []byte, padding int) ([]byte, error) {
 	if padding < 0 {
 		return nil, ErrInvalidPadding
 	}
@@ -266,7 +274,7 @@ func sealRecord(keys Keys, aead cipher.AEAD, maxBody int, pn uint64, kind byte, 
 	wire = aead.Seal(wire[:prefix], nonce[:], plain, aad[:])
 	ciphertext := wire[prefix:]
 
-	mask, err := headerMask(keys.HPKey, ciphertext)
+	mask, err := headerMaskForSuite(keys.HPKey, hpBlock, ciphertext)
 	if err != nil {
 		return nil, err
 	}

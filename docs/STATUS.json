@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_NOHOL_SCOPED_PASS_WIN_GUI_NATIVE_258_CHECKS_PASS_TRANSPORT_SCREENSHOT_FOLLOWUP_N3_NEXT",
+    "phase": "N2_NOHOL_AND_WINDOWS_GUI_CONFIG_SCOPED_GITHUB_READY_N3_AES_STANDARD_LIBRARY_CORE_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -23,9 +23,9 @@
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
-      "N3_aes": "NOT_STARTED",
+      "N3_aes": "N3_AES128_AES256_RECORD_STANDARD_LIBRARY_CORE_CANDIDATE_NOT_YET_GITHUB_TESTED_LANE_POLICY_STILL_REJECTS_AES",
       "N4_windows_tun": "NOT_STARTED",
-      "N5_gui_catalog": "NOT_STARTED",
+      "N5_gui_catalog": "SCOPED_GUI_N2_FEC_CONFIG_AND_QUALITY_TRANSPORT_PAGE_IMPLEMENTED_WINDOWS_NATIVE_258_TESTS_PASS_N3_AES_SELECTOR_NOT_YET_ADVERTISED_PHYSICAL_NOT_RUN",
       "N6_actions_packages": "NOT_STARTED"
     },
     "decisions": {
@@ -2010,7 +2010,7 @@
       "evidence": "docs/evidence/adaptive-n2-current-source-nohol-unit-race-actions-pass-20261012.json"
     },
     "n2_windows_gui_config": {
-      "status": "GITHUB_NATIVE_WIN_FORMS_258_CHECKS_SOURCE_EXACT_SCOPED_PASS_FINAL_PHYSICAL_NOT_RUN",
+      "status": "GITHUB_258_NATIVE_WINDOWS_GUI_TESTS_PASS_WITH_TRANSPORT_TAB_SCREENSHOT_NO_PHYSICAL",
       "config_source": "docs/PARAMETERS.json exact same existing product Go flags: fec-mode legacy/fixed/off/auto/auto-aggressive, fec-min-parity 0/4/8/10/12/16/20, fec-start-parity 0/20",
       "ui": "windows/gui/fields.json and MainForm.cs: Transmission FEC mode/legacy fixed/min/initial selects, no AES until N3",
       "status_event": "WBD_CLIENT_QUALITY_V1 rtt_ms=x|UNKNOWN loss_pct=x|UNKNOWN fec_tx=r|UNKNOWN",
@@ -2067,11 +2067,42 @@
         "evidence": "docs/evidence/adaptive-n2-windows-gui-native-config-quality-258-scoped-pass-20261012.json"
       },
       "docs": "docs/WINDOWS_GUI.md updated for new FEC mode configs/quality limitations",
-      "next_action": "Selftest select actual Transport tab for visual screenshot, no product/control change, rerun native GitHub Actions, then N3 independent AES core stage"
+      "next_action": "N3 adds working AES record core then policy/lane integration; current UI retains ChaCha only until genuine AES admission/data-plane evidence",
+      "third_native_action": {
+        "source_sha": "78a2dee07c5d1d1ed847acedc898c3518d03f2b4",
+        "run_id": 38260818090,
+        "job_id": 114850541501,
+        "artifact_id": 11751524849,
+        "artifact_sha256": "50f14a6077ba4c06cfb7cf0866e7626490c939d8c9a55cd45bca1a86c69faf1c",
+        "classification": "SUCCESS_NATIVE_WINDOWS_GUI_TRANSPORT_SCREENSHOT_AND_CONFIRMED_UNKNOWN",
+        "result": "PASS_258_NATIVE_GUI_CONFIG_TESTS_INCLUDING_REAL_TRANSPORT_TAB_SELECTION",
+        "screen": "windows/gui/GuiTests.cs selects TabControl tab title 传输 before capture; asserts disconnected actual FEC quality UNKNOWN",
+        "runtime": "native WinForms .NET Framework 4.8 Windows GitHub runner",
+        "go_windows_cli_config": "Go --check-config roundtrip PASS from prior same UI feature",
+        "checksum_kind": "GitHub artifact SHA256 as returned by Actions; screenshot individual image bytes not locally rehashed",
+        "physical": "NOT_RUN",
+        "evidence": "docs/evidence/adaptive-n2-windows-gui-transport-tab-native-actions-pass-20261012.json"
+      }
+    },
+    "n3_aes": {
+      "status": "AES128_AES256_RECORD_CORE_PATCH_CANDIDATE_PENDING_GITHUB_ACTION",
+      "workflow": ".github/workflows/next-adaptive-n3-aes-record-core.yml",
+      "files": [
+        "internal/tlsrecord/suite.go",
+        "internal/tlsrecord/suite_test.go",
+        "internal/tlsrecord/record.go"
+      ],
+      "crypto": "crypto/aes + crypto/cipher.NewGCM; 16/32 byte AEAD keys and independently domain separated AES HP keys; 12 byte nonce; 16 byte tag; unchanged 31 byte record fixed overhead",
+      "protection": "AES-ECB single block encrypt ciphertext first16 to mask PN first8; distinct per lane HP block; ChaCha remains byte-for-byte old construction",
+      "constructor": "NewSealerForCipher / NewOpenerForCipher / NewDecoderForCipher",
+      "policy_supported_now": "AES still UNSUPPORTED via realityfront AdmissionPolicy.SupportedNow; no data-plane lane negotiation until N3 stage B",
+      "regression": "Independent Go crypto/aes GCM oracle manual wire, tamper, replay/out-of-order noHOL, legacy ChaCha unchanged, Go tests/race/vet cross-build",
+      "expected_result": "PENDING_REAL_GITHUB_ACTION",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "CURRENT USER REQUEST N2 noHOL Go concurrent targeted source55a156 Run38257097791 PASS scoped, no new real mixed TCP/UDP HOL performance. GUI fixed SOURCEbb24268 Run38259485234 Job114846030632 artifact11751308548 zipSHA33aac4a323f 258 native WinForms/config checks PASS; old SOURCEa79af61 Run38258825007 artifact11752130767 STRICT GUI catalog 43vs41 fail retained, two existing control padding fields added. GUI source quality event 2s authenticated SRTT/fresh first-attempt upper loss/actual TX FEC, UNKNOWN on no data; FEC mode legacy/fixed/off/auto/auto-aggressive with R0/4..20 min and initialR20/R0 shown in Transport, no AES offered. Next GitHub native UI screenshot explicit Transfer page and doc update SOURCE push; if success register with hash, then N3 AES128/256 protected record and suite-specific HP/KDF unit/race and realpath, no fake TLS cipher/decoy alignment and no early GUI AES until product supported. N2 OPEN C04/C05 auto efficiency FAIL and GE tail p99/older80s unresolved, physical NOT_RUN, no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-win-gui-258-native-config-checks-pass-transport-screenshot-followup.md",
+  "next_task": "GUI actual Transport screenshot from native Windows Action38260818090/source78a2dee/job114850541501/artifact11751524849 GitHub artifact digest50f14a... completed PASS; prior 258 checks Action38259485234 and NOHOL Go/race Action38257097791 scoped PASS. Record present C04 C05 fail and GE p99 tail as OPEN. New N3 AES128/256 standard-library GCM + per-lane AES PN HP core candidate: exact source will trigger one core-only GitHub action verifying independent stdlib record oracle, legacy ChaCha vector/noHOL/tamper/replay, race/vet cross-compilation. Do not mark N3 full/pass yet or enable GUI AES: policy still Unsupported, lane contexts still ChaCha. After core Action success wire chosen suite through authenticated v3 policy/TS lane and tests before separate one scenario per performance Action; only then UI/GUI AES and N4 Windows TUN, N6 packages. No physical/deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n3-aes-record-core-with-gui-transport-screenshot-closure.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",

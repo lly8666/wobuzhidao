@@ -80,3 +80,10 @@ GUI进程生命周期用显式fake session验证UI顺序；真实stdin stop/EOF�
 [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/37185477537)7个active jobs PASS（9个历史扩展job SKIPPED），Windows/Linux单测/构建、Linux race/fuzz和平台专项通过；同源默认网络、分流、targeted lifecycle、startup padding及steady targeted亦通过。完整机器证据见[evidence](evidence/windows-gui-9857bdb.json)，历史测试夹具失败保留在STATUS。
 
 用户已接受Wintun系统驱动安装，原版DLL与许可随包；Npcap仍使用官方安装引导。应用便携不意味着Windows驱动注册不写系统。真实安装/UAC/NIC和真实跨服务器业务尚未验收。本轮没有吞吐/弱网性能样本，也未重跑full70/strict18/1800s/36生命周期，不把历史d9结果继承给985。文档HEAD和包来源独立记录。
+
+
+## 2026-10-12 自适应 FEC 传输页与受控质量状态（Actions 限定）
+
+可用参数、适用范围及互斥组合以同SOURCE客户端 `--check-config` 为准。新建Normal单lane可选择 `fec-mode=auto`、`fec-min-parity=4`、`fec-start-parity=20`，配置既有`fec-parity=0`；如要从无FEC启动，需显式 `auto/min0/start0`。老配置无 `fec-mode` 时仍然 `legacy` 固定档/off，不会因GUI迁移自动改为auto。Game2–4 lanes不允许auto。传输页给出模式、固定R、最低R、初始R及两个既有控制填充字段；质量显示的是受保护且满足样本资格的RTT和源首发丢失上界及当前TX R，未有可信新样本/离线均显示“未知”，不是物理WAN精确loss。
+
+GitHub Windows native [Action38260818090](https://github.com/lly8666/wobuzhidao/actions/runs/38260818090)，源码 `78a2dee07c5d1d1ed847acedc898c3518d03f2b4`，在258项WinForms+Go配置自测中实际选择“传输”Tab、断开质量显示“未知”后生成截图；artifact11751524849 SHA256 `50f14a6077ba4c06cfb7cf0866e7626490c939d8c9a55cd45bca1a86c69faf1c`。这是Windows hosted GUI构建/自测通过，不是人工实体机/驱动联网试验。**AES-128/256仍未接线产品，GUI不显示未经支持的算法**；N3真实认证及加密lane通过后方可开放。

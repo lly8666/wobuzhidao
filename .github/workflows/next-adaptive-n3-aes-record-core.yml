@@ -1,0 +1,76 @@
+name: next-adaptive-n3-aes-record-core
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n3-aes-record-core.yml"
+      - "internal/tlsrecord/record.go"
+      - "internal/tlsrecord/suite.go"
+      - "internal/tlsrecord/suite_test.go"
+permissions:
+  contents: read
+jobs:
+  one-source-aes-record-cipher-only-no-performance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE, repository and restricted performance policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          echo "WBD_N3_AES_CORE_SOURCE=$GITHUB_SHA"
+          echo "N3 scope: record AEAD and PN header protection only; policy still AES UNSUPPORTED"
+      - name: Independent AES 128/256 oracle, tamper, legacy vectors and no HOL
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -count=1 -v ./internal/tlsrecord -run '^Test(N3|V3|Decoder|Wire|Record|Sealer|Opener)'
+          go test -count=1 ./internal/tlsrecord ./internal/realityfront ./internal/runtimeowner ./internal/adaptivefec
+      - name: Race/ownership/regression including N2 authenticated lane
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race -count=1 ./internal/tlsrecord ./internal/realityfront ./internal/runtimeowner ./internal/linkdata
+      - name: AES record Go static analysis and both cross-target builds
+        shell: bash
+        run: |
+          set -euo pipefail
+          go vet ./internal/tlsrecord ./internal/realityfront
+          GOOS=windows GOARCH=amd64 go build -o /tmp/wbd-aes-core-windows.exe ./cmd/wbd-client
+          GOOS=linux GOARCH=arm64 go build -o /tmp/wbd-aes-core-linux-arm64 ./cmd/wbd-server
+      - name: Explicitly limited result receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/n3-record-core
+          python3 - <<'PY'
+          import json,os,pathlib,hashlib
+          names=["internal/tlsrecord/record.go","internal/tlsrecord/suite.go",
+                 "internal/tlsrecord/suite_test.go","internal/tlsrecord/keys.go"]
+          out={"schema":1,"source_sha":os.environ["GITHUB_SHA"],
+             "run_id":os.environ["GITHUB_RUN_ID"],
+             "classification":"N3_AES_RECORD_PRIMITIVES_SCOPED_UNIT_RACE_PASS_ONLY",
+             "aes128_aes256_data_plane":"NOT_CONNECTED",
+             "authenticated_policy_aes_offer":"UNSUPPORTED_UNCHANGED",
+             "TLS_13_AND_DECOY_ALIGNMENT":"NOT_RUN",
+             "real_wire_AES_NETWORK":"NOT_RUN","physical":"NOT_RUN",
+             "files_sha256":{n:hashlib.sha256(pathlib.Path(n).read_bytes()).hexdigest() for n in names}}
+          pathlib.Path("artifacts/n3-record-core/result.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n3-aes-record-core-${{ github.sha }}
+          path: artifacts/n3-record-core
+          if-no-files-found: warn
