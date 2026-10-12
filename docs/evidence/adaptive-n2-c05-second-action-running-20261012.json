@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "source_sha": "758f310b005a26f2610d721f8877a8a13c5f521c",
+  "run_id": 38241759581,
+  "job_id": 114785832142,
+  "status": "C05_REALPATH_MEASURING_NO_RESULTS_YET",
+  "date": "2026-10-12",
+  "freeze_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+  "preflight": [
+    "go unit/race PASS",
+    "Python directional source template and grade unit PASS",
+    "inline old import fixed PASS",
+    "five netns prerequisites PASS",
+    "binary build PASS"
+  ],
+  "only_one_source_config_scenario_job": true,
+  "real_stage": "240s C2S1% S2C10% on 300ms one-way each",
+  "artifact_id": null,
+  "qualification": "PENDING",
+  "physical": "NOT_RUN"
+}

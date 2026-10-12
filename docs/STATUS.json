@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C05_ASYM_FIRST_ACTION_FAIL_PREFLIGHT_STALE_IMPORT_NARROW_FIX_CANDIDATE",
+    "phase": "N2_C05_ASYM_SECOND_SINGLE_ACTION38241759581_REALPATH_IN_PROGRESS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1586,11 +1586,25 @@
         "independent_model_version": "n2-asymmetric-iid-timeband-v1",
         "next_patch": "ONLY change workflow inline import to adaptive_n2_c05_asym1_10",
         "raw_artifact_size_bytes": 2801
+      },
+      "second_action": {
+        "source_sha": "758f310b005a26f2610d721f8877a8a13c5f521c",
+        "run_id": 38241759581,
+        "job_id": 114785832142,
+        "status": "IN_PROGRESS_ONE_240S_REALPATH_NOT_YET_ANALYZED",
+        "old_preflight_issue": "RESOLVED_INLINE_IMPORT_IN_ACTIONS",
+        "go_unit_race": "PASS",
+        "python_preflight": "PASS",
+        "five_netns_deps": "PASS",
+        "binary_build": "PASS",
+        "measurement": "RUNNING",
+        "artifact_id": null,
+        "qualification": "PENDING"
       }
     }
   },
-  "next_task": "C05 first Action38241338957 job114784421949 exact SOURCE4aaeaef984f6 FAILED before binary/netem: Go unit/race and C05 two new unit preflights passed; old inline workflow import adaptive_n2_c05_steady1 nonexistent => ModuleNotFoundError. Preserve artifact11742454692 sha038130... and full failure in evidence. ONLY change .github/workflows/next-adaptive-n2-c05-asym1-10-single.yml import to adaptive_n2_c05_asym1_10. Then new exact SOURCE GitHub Go unit/race/prepare and single realpath C2S1%/S2C10% 240s; no model/grade/seed changes. If fails same type twice without new evidence stop blindly rerunning. After C05 result C06 reverse separate performance. N2 OPEN, N3–N6 pending, physical NOT_RUN, legacy2.73s/80s OPEN no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-c05-first-premeasurement-stale-import-fail.md",
+  "next_task": "C05 second Action38241759581/job114785832142 exact SOURCE758f310b (not current docs HEAD) has passed Go unit/race, two Python preflight units and corrected inline import, Linux five-netns deps, binary build; ONE 240s C2S1%/S2C10% realpath is RUNNING. When complete obtain exact artifact id/digest and summarize actual qdisc loss rsrv/rcli, C2S grade last60 [4,8] and S2C [8,10] >=90%, source/first unique and throughput/p99, missing/capacity queue/CPU/parity. Original C05 preflight failure SOURCE4aaeaef run38241338957 archive11742454692 preserved. Do not launch C06 or any other perf until C05 final analyzed. N2 OPEN N3–N6 not started physical NOT_RUN old2.73s/80s OPEN no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-c05-second-action-realpath-running.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "0e3daca5e26a8487b0d0e1c94b67a3959deb791d",
   "last_tested_scope": "M3_C04_FULL840S_HIGH20_BOTH_GOOD_INITIAL_AND_FINAL_OFF_REAL_BOTH_FIRSTUNIQUE_NO_BLACKOUT_C2S_RECOVER5_R8_R10_96_7PCT_PASS_S2C_78_3PCT_FAIL_GROSS_WIRE2_162X_CPU_ON",
