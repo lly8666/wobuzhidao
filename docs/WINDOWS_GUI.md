@@ -1,3 +1,7 @@
+## 2026-10-12 N3-D：在“传输”页接入新 record cipher 与自动 FEC
+
+新版客户端 Linux/Windows `--record-cipher` / JSON `"record-cipher"` **默认 ChaCha20-Poly1305**。受保护 V3 能识别 `aes-128-gcm` 和 `aes-256-gcm`，但 **两个真实 AES 单场景五 netns 收发/CPU/资源证据未过前，WinForms GUI 的“记录加密套件”下拉只列 ChaCha**，不得将 Go 认证单元测试等同产品资格。这个字段位于“传输”，紧邻 Normal/Game、FEC 模式与固定/最小/起步保护，避免用户在 TLS 伪装、安全或网络路由页误配。新增字段在统一 `PARAMETERS.json` 中存在，与 `gui-fields.json` 完全等键，GUI 自测对每字段均经真实 Windows 客户端 `--check-config` 校验；不重复单独维护另一套 AES 选项。诊断状态仅显示已认证且新鲜的 RTT/损失估计/实际发送 FEC，未知保留 UNKNOWN。旧已保存的配置缺少该字段时使用默认 ChaCha，旧固定模式不自动迁移至 AES。物理 Npcap/Wintun 驱动安装仍未测试、不得宣告完成。N3/N4/N6 以 STATUS 的真实 Actions 为准。
+
 # Windows 中文便携客户端
 
 2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。

@@ -1,3 +1,9 @@
+## 2026-10-12 N3-D 记录加密套件显式配置（候选；GUI 真实 AES 测试前不开放选择）
+
+Linux 和 Windows **客户端** `--record-cipher` 及同名扁平 JSON 字段默认仍为 `chacha20-poly1305`；只接受精确 `chacha20-poly1305`、`aes-128-gcm`、`aes-256-gcm` 三种拼写。AES 必须显式选用，结合受保护 V3 admission 协商；不允许旧 `legacy` FEC 配置无意升级 AES，也不与外层 TLS 伪装的密码套件混淆。CLI 优先于 JSON，已有未指定字段的配置保持原 ChaCha 语义。**参数目录 `docs/PARAMETERS.json` 本次由实际 Linux/Windows flag 声明同步，`tools/parameter_catalog.py` 在 GitHub Actions 阻止字段漂移。**
+
+Windows GUI 将 `record-cipher` 放在“传输”页，使用同一份正式客户端字段清单、客户端 `--check-config` 只读验证与便携目录保存逻辑；暂时**只可选 ChaCha**。AES-128/256 需各自完成真实五 netns 单 SOURCE/单场景 GitHub Actions 收发与性能验证后，才能在 GUI 显示为可选择项；N3 核心/认证 Go unit/race 通过不等于真实网络或 GUI AES 可用。当前 `fec-mode`、固定/自动 FEC 冗余及 Normal 的起始/最小保护仍在同一个“传输”页，质量状态显示已认证的新鲜 RTT / 来源合格损失保守估计 / 实际 TX FEC；数据缺失时标“未知”，不能标成 0%。原先下面的“N3 AES 未开放、GUI 后续”文字是历史阶段描述，本段及真实 STATUS 最新 SOURCE 优先。当前 Windows 原生 UI/selftest 与 CLI/catalog 需通过单独 GitHub Actions，physical NOT_RUN。
+
 ## 2026-10-11 N2 显式 Normal off 起步（SOURCE Actions 待验）
 
 Linux 和 Windows 客户端新增 `--fec-start-parity`，默认 **20**，所以所有已有 `legacy/fixed/off/auto/auto-aggressive` 配置的起步完全不变。只有显式 `--fec-mode=auto --fec-min-parity=0 --fec-start-parity=0 --lanes=1` 才从 **bare FEC off** 发送；`auto-aggressive` 不能 off 起步（其普通建议+一档映射无法与 off 初始发送档一致），Game/fixed/legacy 也拒绝初始 off override。V3 受保护协商原 10 字节字段内使用 initial=0/min=0/max=20，两个方向仍按 **max20** 保留 record/TUN/MSS MTU 预算，不会在升到 20:4 时改变 TUN MTU。此选项主要用于真实损伤升档验证，**不代表降低默认保护级别**；报告损伤早期允许存在合理的 first-unique missing，不增加修复/HOL。既有 `--config` JSON 扁平同名键可用，实际效果以新 SOURCE Actions 为准。

@@ -44,13 +44,14 @@ namespace Wbd.Gui {
             try {
                 var store = new PortableStore(root);
                 Assert(store.Fields.Count >= 36, "CLI catalogue complete including all managed operations");
+                Assert(store.Fields.Any(f => f.Key == "record-cipher" && f.Section == "传输" && Convert.ToString(f.Default) == "chacha20-poly1305"), "new record cipher binds native GUI Transport with protected ChaCha default");
                 Profile p = store.Book.Profiles[0]; Populate(p); store.Save();
                 using (var real = new ClientSession(store)) {
                     var mutations = new Dictionary<string, object> {
                         {"server-ip","203.0.113.18"},{"server-port",8443},{"source-port",42000},{"account","another-account"},{"server-name","cdn.example.com"},{"username","another-user"},
                         {"password","different-secret"},{"route-key-hex","aabbccddeeff00112233445566778899"},{"tunnel-id","22223333444455556666777788889999"},{"installation-id","aaaabbbbccccddddeeeeffff00001111"},{"lease4","10.66.0.8/32"},
                         {"mtu",1280},{"client-record-limit",1250},{"adapter","WBD Test"},{"dns-hijack",false},{"dns4","9.9.9.9,1.0.0.1"},{"direct4","203.0.113.0/24"},{"route-mode","bypass-lan"},
-                        {"lanes",4},{"fec-mode","legacy"},{"fec-parity",20},{"fec-min-parity",4},{"fec-start-parity",20},{"control-padding",false},{"control-padding-max",16},{"tls-startup-padding",true},{"keepalive-interval","10s"},{"dead-after","120s"},{"reconnect-min","2s"},{"reconnect-max","45s"},{"idle-dormant","15m"},{"rotate-min","30m"},{"rotate-max","60m"}, {"china-ip-file", "data/china-test.txt"}, {"diagnostic-jsonl","logs/diagnostic.jsonl"}, {"diagnostic-interval","2s"}
+                        {"lanes",4},{"record-cipher","chacha20-poly1305"},{"fec-mode","legacy"},{"fec-parity",20},{"fec-min-parity",4},{"fec-start-parity",20},{"control-padding",false},{"control-padding-max",16},{"tls-startup-padding",true},{"keepalive-interval","10s"},{"dead-after","120s"},{"reconnect-min","2s"},{"reconnect-max","45s"},{"idle-dormant","15m"},{"rotate-min","30m"},{"rotate-max","60m"}, {"china-ip-file", "data/china-test.txt"}, {"diagnostic-jsonl","logs/diagnostic.jsonl"}, {"diagnostic-interval","2s"}
                     };
                     store.WriteAtomic("data/china-test.txt", "1.0.1.0/24\n");
                     using (var configForm = new MainForm(store, new FakeSession(), () => new DependencyState { Admin=true, Npcap=true, Wintun=true, NpcapVersion="config-test" }))

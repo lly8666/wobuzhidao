@@ -205,6 +205,13 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
+      "record-cipher": {
+        "type": "String",
+        "default_expression": "\"chacha20-poly1305\"",
+        "help": "V3 protected record AEAD (not outer TLS): chacha20-poly1305, aes-128-gcm, aes-256-gcm; AES must be explicitly chosen and peer upgraded",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "rotate-max": {
         "type": "Duration",
         "default_expression": "0",
@@ -519,6 +526,13 @@
         "type": "Duration",
         "default_expression": "runtimeentry.DefaultReconnectMin",
         "help": "minimum retry delay after failed lane admission",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "record-cipher": {
+        "type": "String",
+        "default_expression": "\"chacha20-poly1305\"",
+        "help": "V3 protected record AEAD (not outer TLS): chacha20-poly1305, aes-128-gcm, aes-256-gcm; AES must be explicitly chosen and peer upgraded",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },

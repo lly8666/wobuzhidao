@@ -1,0 +1,11 @@
+# 2026-10-12 N3-D 客户端 AES 显式选项：原生GUI与权威参数目录漂移 FAIL，源清单同步修复
+
+同一准确原SOURCE `56c170dfd20cc78d859a7f5c50866af81da24603`，[N3配置Action38269196238](https://github.com/lly8666/wobuzhidao/actions/runs/38269196238) job114878936834 **SUCCESS**（真实Linux/Windows客户端 `--record-cipher` 三个精确允许值/错误拒绝、严格JSON/CLI优先、受保护V3 TLS/record AES/handoff，Go unit/race/vet和Linux/Win crossbuild）。同源 [AES受保护准入Action38269196217](https://github.com/lly8666/wobuzhidao/actions/runs/38269196217) 也SUCCESS；**仍没有一项真实AES128或AES256五netns测试**，GUI AES不可展示可用。
+
+但该SHA有两个不能掩盖的真实集成红Action：
+1. [next-lifecycle38269196268](https://github.com/lly8666/wobuzhidao/actions/runs/38269196268) job114878935817，首个Parameter authority gate报 `CLI/defaults changed without docs/PARAMETERS.json: regenerate with --write and update PARAMETERS.md`，因为源文件新增 `record-cipher` CLI却漏同步权威清单，未继续后续测试。
+2. [Windows原生GUI38269196184](https://github.com/lly8666/wobuzhidao/actions/runs/38269196184) job114878936384（小artifact11756475913 ZIP SHA256`50620ba9d538b086e10a567ae88ecf70d80cfe3bc2667f3c5a07a217f5fdedd4`）Windows Go CLI test、真实.NET Framework WinForms编译与原P6测试bundle生成PASS，实际 `WBD.exe --self-test` 在 `PortableStore` 构造时因为 `HashSet(cli.Keys).SetEquals(labels.Keys)` 严格相等失败：`System.IO.InvalidDataException: GUI 参数清单与客户端不一致`，未执行任何后续GUI逐字段验收或截图。根因同一：`windows/gui/fields.json` 早已为 `record-cipher` 提供“传输”页文案，但PARAMETERS.json漏了该真实CLI键。不得放宽此强一致性门。
+
+本候选最小修正直接从同SOURCE Linux和Windows `flag.String("record-cipher","chacha20-poly1305", ...)` 读真实type/default/help，补 `docs/PARAMETERS.json` 两客户端 targets 字段、JSON字段允许，原所有参数与默认值保持；`docs/PARAMETERS.md`、`docs/WINDOWS_GUI.md` 置顶更新N3阶段真实能力，旧历史段落不作为当前宣称。Windows `windows/gui/GuiTests.cs` 的逐字段 `mutations` 同步加入 `record-cipher="chacha20-poly1305"`，并显式断言对应Field只在**传输**区、默认ChaCha；否则源清单变完整后迭代44个字段时会对缺失mutations抛异常。严格 `PortableStore` exact set equality不改，旧profile缺该键时有效默认仍是ChaCha；Windows原生测试仍需与真实Go客户端`--check-config`双端只读核。GUI AES-128/256目前仍**不可选择**，原UI在传输页提示需未来真实AES网测与资源验收。
+
+后续仅通过独立GitHub Actions验证同SOURCE parameter_catalog 完整一致、lifecycle、WinForms原生258+测试/传输页截图、Go unit/race。任何红继续留证，不是“修了就算PASS”。此后做**分开单工况**AES128、AES256的正式五netns客户端/服务端首达、完整性、性能/资源与source HASH，才把AES在GUI下拉开放；不将N3 Go unit/race称真实业务PASS。N2无HOL当前SOURCE Go六项并发/race专项Action38257097791 PASS，但独立真实多TCP+UDP流10ms scoped 尚NOT_RUN；旧C04 S2C恢复5%78.3%、C05 S2C10%70% 资源效率FAIL、C10 GE p99接近2秒仍OPEN。物理NOT_RUN，N4 TUN/N6 P6正式包尚未完成；不动qualification ref、不部署或合主线。

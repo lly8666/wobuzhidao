@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_D_EXPLICIT_CLIENT_CIPHER_CONFIG_AND_GUI_TRANSPORT_SAFE_PLACEHOLDER_CANDIDATE",
+    "phase": "N3_D_EXPLICIT_CIPHER_PARAM_CATALOG_GUI_NATIVE_TEST_REGRESSION_FIXED_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2082,7 +2082,8 @@
         "checksum_kind": "GitHub artifact SHA256 as returned by Actions; screenshot individual image bytes not locally rehashed",
         "physical": "NOT_RUN",
         "evidence": "docs/evidence/adaptive-n2-windows-gui-transport-tab-native-actions-pass-20261012.json"
-      }
+      },
+      "fourth_native_regression": "LATEST_56C170_SOURCE_FAIL_CATALOG_STALE_RECORD_CIPHER; FIX_CANDIDATE_PEND_ACTION"
     },
     "n3_aes": {
       "status": "N3_AES_GCM_RECORD_CORE_STD_LIB_GITHUB_GO_TEST_RACE_VET_CROSS_BUILD_SCOPED_PASS_NOT_FULL_N3",
@@ -2205,7 +2206,7 @@
       }
     },
     "n3_cipher_client_config": {
-      "status": "PREDECLARED_NOT_ACTIONS_TESTED",
+      "status": "CLI_GO_UNIT_RACE_CROSSBUILD_SUCCESS_CATALOG_AND_GUI_DRIFT_FAILURE_FIXED_SOURCE_CANDIDATE",
       "flag": "record-cipher",
       "default": "chacha20-poly1305",
       "valid": [
@@ -2222,11 +2223,56 @@
       "workflow": ".github/workflows/next-adaptive-n3-explicit-record-cipher-config.yml",
       "real_AES128_Actions": "NOT_RUN",
       "real_AES256_Actions": "NOT_RUN",
-      "physical": "NOT_RUN"
+      "physical": "NOT_RUN",
+      "cli_actions": {
+        "source_sha": "56c170dfd20cc78d859a7f5c50866af81da24603",
+        "run_id": 38269196238,
+        "job_id": 114878936834,
+        "conclusion": "SUCCESS",
+        "coverage": "Both Linux/Windows record-cipher strict CLI/JSON, protected V3 handoff, Go unit/race/vet, cross builds; NOT real AES netem"
+      },
+      "integration_failures": [
+        {
+          "source_sha": "56c170dfd20cc78d859a7f5c50866af81da24603",
+          "run_id": 38269196268,
+          "job_id": 114878935817,
+          "workflow": "next-lifecycle",
+          "conclusion": "FAIL_PARAMETER_AUTHORITY",
+          "exact_error": "CLI/defaults changed without docs/PARAMETERS.json: regenerate with --write and update PARAMETERS.md",
+          "network_measurement": "NOT_RUN"
+        },
+        {
+          "source_sha": "56c170dfd20cc78d859a7f5c50866af81da24603",
+          "run_id": 38269196184,
+          "job_id": 114878936384,
+          "artifact_id": 11756475913,
+          "artifact_zip_sha256": "50620ba9d538b086e10a567ae88ecf70d80cfe3bc2667f3c5a07a217f5fdedd4",
+          "workflow": "next-adaptive-n2-windows-gui-config-native",
+          "conclusion": "FAIL_PORTABLESTORE_CATALOG_STRICT_EQUALITY",
+          "exact_error": "System.IO.InvalidDataException: GUI 参数清单与客户端不一致",
+          "root": "Windows CLI added record-cipher but docs/PARAMETERS.json inventory still lacked it; gui-fields.json already had field",
+          "native_WinForms_build": "PASS",
+          "Go_Windows_client_crossbuild": "PASS",
+          "actual_Windows_GUI_selftest": "FAIL_BEFORE_FIELD_CHECKS",
+          "physical": "NOT_RUN"
+        }
+      ],
+      "current_fix": {
+        "scope": "CATALOG_SYNC_GUI_ROUNDTRIP_TEST_AND_DOC_ONLY",
+        "catalog": "docs/PARAMETERS.json now adds record-cipher to both client targets with production flag type String default chacha20-poly1305 and V3 AEAD wording, leaves existing defaults unchanged",
+        "gui": "windows/gui/GuiTests.cs adds record-cipher in mutations, checks native Transport field/default and true Go --check-config; GUI only displays ChaCha while AES realpath NOT_RUN",
+        "docs": [
+          "docs/PARAMETERS.md",
+          "docs/WINDOWS_GUI.md"
+        ],
+        "native_current_source_validation": "PENDING_GITHUB_ACTION",
+        "record_cipher_AES_GUI_choices": "NOT_ADVERTISED",
+        "physical": "NOT_RUN"
+      }
     }
   },
-  "next_task": "N3-C TLS authenticated AES128/256 record suite+off/fixed/auto handoff Action38267871609 source16517ff artifact11755447591 SHAda34f0 success. NEXT N3-D explicit --record-cipher Linux/Windows client and strict JSON key; names chacha20-poly1305/aes-128-gcm/aes-256-gcm, old ChaCha default, wrong/legacy implicit AES reject, no outer TLS cipher confusion. Windows GUI Transmission page includes cipher catalog field but currently only ChaCha selectable until separate real AES128 and AES256 five-netns Action results; run Github Go unit/race and WinForms native catalog/screenshot. Then separate AES128 and AES256 one source/config/scenario/measurement job, record cryptographic correctness/first unique/CPU/wire; if qualified add GUI AES choices and proceed N4 Win TUN, N5 GUI N6 packaging. N2 noHOL scoped PASS; C04/C05 FEC efficiency red/GE p99 long-tail OPEN, physical NOT_RUN, no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n3-explicit-record-cipher-config-gui-gated-candidate.md",
+  "next_task": "N2 noHOL current-source Go concurrency/race Action38257097791 PASS scoped; independent mixed TCP/UDP 10ms true realpath NOT_RUN (do not claim full physical noHOL). N2 Windows FEC config/quality native WinForms 258 checks and transport screenshot last PASS Action38260818090 SOURCE78a2dee. N3-D exact source56c170 CLI `record-cipher` unit/race/crossbuild Action38269196238 PASS, AES TLS unit Action38269196217 PASS; but latest lifecycle38269196268 FAIL because authoritative docs/PARAMETERS.json not regenerated, and native GUI Action38269196184 FAIL strict PortableStore field equality before selftest because record-cipher missing in catalog. New minimal catalog/docs + GuiTests record-cipher mutation/transport default fix should be tested by GH foundation+lifecycle+native Windows GUI, no network. Preserve failing prior Actions. Once green, N3-E each AES128 then AES256 separate one source/config/scenario/perf GH realpath, AES selectable in GUI ONLY after both actual success; then N4 Win TUN N5 GUI N6 packaging. Keep C04/C05 efficiency FAIL/GE high p99 OPEN, physical NOT_RUN no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n3-d-catalog-authority-native-gui-drift-fail-corrected.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
