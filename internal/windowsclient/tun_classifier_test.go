@@ -69,7 +69,7 @@ func TestN4TUNClassifierFailClosedSourceFragmentMalformedAndNoMisroute(t *testin
   if _,err:=c.Decide(p);!errors.Is(err,ErrTUNFragmentUnmapped) {t.Fatalf("fragment %04x: %v",bits,err)}
  }
  p=n4TestIPv4("10.66.0.2","1.1.1.1",17,443,0)
- p[0]=0x46
+ p[0]=0x48 // IHL=32 exceeds the true 28-byte IPv4 packet
  if _,err:=c.Decide(p);!errors.Is(err,ErrInvalidIPv4) {t.Fatalf("short IPv4 options: %v",err)}
  p=n4TestIPv4("10.66.0.2","1.1.1.1",17,443,0)
  binary.BigEndian.PutUint16(p[2:4],uint16(len(p)+1))

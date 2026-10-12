@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N4_TUN_CLASSIFIER_FIRST_GITHUB_UNIT_FALSE_NEGATIVE_TEST_FAIL_NO_NATIVE_ROUTE",
+  "source_sha": "b67523546c61f77797d49da963088fa494f6731b",
+  "run_id": 38283726245,
+  "linux_job_id": 114926954555,
+  "linux_conclusion": "FAIL",
+  "windows_job_id": 114926954806,
+  "windows_conclusion": "FAIL_SAME_FALSE_NEGATIVE_IPV4_IHL_TEST",
+  "failed_step": "Exact SOURCE/branch policy and bounded classifier unit/race",
+  "exact_error": "tun_classifier_test.go:73: short IPv4 options: <nil>",
+  "root": "Test changes IHL from20 to24 bytes (0x46) while 28B packet remains long enough; classifier correctly accepts header-length bound. Negative must use 0x48 (IHL32>28).",
+  "test_cases_passed_before_failure": [
+    "TestN4TUNClassifierDNSBeforeCNDirectAndUnderlayFence",
+    "TestN4TUNClassifierEmbeddedChinaIntervalAndNoFIBSideEffect"
+  ],
+  "one_pure_guard_false_negative": true,
+  "source_production_packet_classification_changed_by_fix": false,
+  "fix": "Modify only invalid-IHL test nibble 0x46 => 0x48, preserve TUNClassifier fail-closed path and no reroute side effects",
+  "N4_native_Wintun": "NOT_RUN",
+  "system_route_changes": false,
+  "physical": "NOT_RUN"
+}

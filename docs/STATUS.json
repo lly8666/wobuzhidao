@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N5_GUI_AES_273_NATIVE_WINFORMS_SCOPED_PASS_N4_TUN_CLASSIFIER_SAFE_CORE_CANDIDATE",
+    "phase": "N4_PURE_TUN_CLASSIFIER_FIRST_ACTION_FALSE_INVALID_IHL_TEST_FAIL_NARROW_FIX_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2410,7 +2410,7 @@
       }
     },
     "n4_tun_classifier": {
-      "status": "PURE_BOUNDED_IPV4_DST_INTERVAL_CLASSIFIER_CANDIDATE_NOT_YET_GITHUB_TESTED",
+      "status": "FIRST_SOURCE_LINUX_ACTION_FAIL_ON_WRONG_TEST_MALFORMED_IHL_NEGATIVE_FIX_ONLY",
       "files": [
         "internal/windowsclient/tun_classifier.go",
         "internal/windowsclient/tun_classifier_test.go"
@@ -2420,11 +2420,30 @@
       "touched_live_Windows_route_plan": false,
       "added_native_Direct_TCP_UDP": false,
       "no_Wintun_actual_load": true,
-      "physical": "NOT_RUN"
+      "physical": "NOT_RUN",
+      "first_action": {
+        "source_sha": "b67523546c61f77797d49da963088fa494f6731b",
+        "run_id": 38283726245,
+        "linux_job_id": 114926954555,
+        "windows_job_id": 114926954806,
+        "linux_result": "FAIL_FALSE_MALFORMED_IHL_TEST_ASSERTION",
+        "windows_result": "FAIL_SAME_FALSE_NEGATIVE_IPV4_IHL_TEST",
+        "original_error": "tun_classifier_test.go:73: short IPv4 options: <nil>",
+        "true_test_issue": "IHL 0x46 => 24-byte IPv4 header, total packet28 bytes, valid length; not a corrupted header as asserted",
+        "go_real_classification_tests": [
+          "DNS priority, CN/LAN/custom, overseas, underlay PASS",
+          "Built-in splitroute China IPv4 interval lookup PASS"
+        ],
+        "fix": "Only test negative p[0] from 0x46 to 0x48 (IHL32>actual28) to make invalid IPv4 condition true",
+        "no_native_driver_network": true,
+        "no_live_route_change": true,
+        "evidence": "docs/evidence/adaptive-n4-tun-classifier-first-invalid-ihl-negative-test-fail-20261012.json",
+        "physical": "NOT_RUN"
+      }
     }
   },
-  "next_task": "Windows native GUI AES three option Action38283111076/job114924911975 SOURCEeb3d766c artifact11761868940 ZIP ce564ae8 sha, 273 WinForms .NET4.8 native selftest checks PASS with real Windows Go --check-config per AES128/AES256/ChaCha and transport screenshot. First source6cede GUI CS0103 FAIL preserved. Now start bounded N4 pure TUN classifier/flow boundaries: immutable CN/LAN/direct IPv4 intervals O(logN), DNS TCP/UDP53 precedence, lease spoof rejection and fragment fail-closed; new exact SOURCE GitHub Linux race and Windows native Go unit, no driver active yet. Only later do generation-bound bounded cache, native system TCP redirector + underlay-bound sockets/UDP mapping and replace huge complement FIB routes transactionally; do not change Windows live routing before native Actions. N2 real mixed TCP+UDP independent 10ms noHOL still NOT_RUN (Go noHOL/race scoped only), C04/C05 grade FAIL and C10 long p99 OPEN; N3 AES record real AES128/256 lossless scoped PASS, N6 three-target package pending; physical NOT_RUN; never deploy or move qualification ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n3-winforms-aes-three-native-273-pass-n4-first-classifier-candidate.md",
+  "next_task": "N4 bounded pure TUN classifier first exact SOURCEb67523546c61f77797d49da963088fa494f6731b Action38283726245 Linux job114926954555 FAILED at `tun_classifier_test.go:73 short IPv4 options <nil>` because test set packet[0]=0x46 (IHL24) with 28B actual packet, still valid; DNS-first/direct/proxy and embedded China interval tests passed. Windows job114926954806 still running when recorded; preserve both exact conclusions later. Minimal test-only fix IHL=0x48 (32 > actual28), no runtime/classifier/policy changes. New SOURCE GitHub N4 Linux race/Windows actual Go classifier tests and full foundation, evidence and hash. This classifier is not yet wired to Windows native N4 direct TCP/UDP/route plans, Wintun physical NOT_RUN. N3 real AES128/256 and WinForms 273 checks scoped PASS, N2 real mixed TCP+UDP 10ms still NOT_RUN, C04/C05 grade FAIL, C10 GE severe p99 old OPEN; no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n4-pure-classifier-first-invalid-ihl-test-fail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "af228675af68d9ea5f682604dbfa9fa5cf33c661",
   "last_tested_scope": "N3_V3_AUTH_REAL_AES256_100S_LOSSLESS_NORMAL_AUTO_300MS_BOTH_FIRSTUNIQUE_246711OF246711_PROBE100OF100_P99_ONEWAY_301MS_SCOPED_PASS_NOT_GE_OR_HARDWARE",
