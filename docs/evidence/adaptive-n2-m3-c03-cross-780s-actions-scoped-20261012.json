@@ -1,0 +1,183 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N2_M3_C03_FULL_780S_CROSS_SCOPED_DELIVERY_PROTECTION_AND_RECOVER5_EFFICIENCY_PASS_NOT_FULL_N2",
+  "source_sha": "272deba91faebb024079f153559726cda45df6e3",
+  "run_id": 38224570563,
+  "job_id": 114728796855,
+  "artifact_id": 11736832008,
+  "archive_sha256": "0691c234efd1533ab3d0d788070761af92ab154fb7c1f2485b715d44bd91ac48",
+  "summary_sha256": "90f6ad0b66ad071a89ae09352e40a085e9f5a6c3a2c1eefcf0fcc46ec9f16ce2",
+  "cross_gate_sha256": "be456761b4cb942eb33873c8d08b8d25e0fd6cab681acbfc443ad0839c351086",
+  "serial_gate_sha256": "ffd594304a8ed0009e6ed565d53afb30271beab8f7bc29063fabc6880568cf06",
+  "manifest_sha256": "56282de986d1010737a6ec0bcc459ada07fb65906298f2ebc474816e1375dad2",
+  "prep_sha256": "d7eeec2f7325dcf69d9d5785381737e622db29a549e46153855459c6ae0620a4",
+  "stage_events_sha256": "897944ef258e8a3176ba0d56fd0c1fd7fde5ff6ad245720f75b53bfc3e6ed25e",
+  "resource_samples_sha256": "3d0a4f9c33efac02f1aef98008a4532f30bd8e3a94309dd402de0950a18619ce",
+  "client_diag_sha256": "d1500601809d5a99981b20b571f6ff3de0a70c452d92ae76f099cb07acdf8d36",
+  "server_diag_sha256": "7e419f136a08c1ecfcac8bad4016d33c6478a858afc190b396ed165a7a047894",
+  "frozen_reference_model": "n2-independent-iid-timeband-v1",
+  "frozen_reference_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "helper_hashes_from_prep": {
+    "analyzer": "b7accb8bd0383e84ef60473cea314b4b75cff312179088aab63287476096eb3c",
+    "stage": "59ee4b3fa8359ac6c903453aae47e0ee23f39b4ffc8a49c0cd048d413efbb7f6",
+    "derived_script": "eec4f940e4b3bc7ed77140bb8714cea661ef5285ebc7a850702be7c89472d860",
+    "source_template": "3f18f70de2610f0185bb1309822486b1276e2ebdfca7725fe92f7ccbb37575a3"
+  },
+  "scenario": "C03 one single 780s wave 0->1->5->20->5->0 pct +10s drain; Normal auto initial20 floor4 max20, ChaCha, MTU1400, 300ms one-way, 10Mbps each direction, kernel tc RNG UNSEEDED, seeds2026092201/2026092202, diagnostics ON, one performance job",
+  "workflow_outcome": "SUCCESS",
+  "original_analyzer": "SCOPED_WAVEFORM_CONTROL_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE",
+  "serial_first_delivery_gate": "SCOPED_C03_LONG_LIVED_FIRST_DELIVERY_AND_GRADE_PASS",
+  "new_cross_recover5_gate": "C03_RECOVER5_SCOPED_GRADE_SCREEN_PASS",
+  "actual_modelled_grade_last60": {
+    "clean0": {
+      "c2s": 0.9,
+      "s2c": 0.7666666666666667
+    },
+    "loss1": {
+      "c2s": 1,
+      "s2c": 1
+    },
+    "loss5": {
+      "c2s": 1,
+      "s2c": 1
+    },
+    "loss20": {
+      "c2s": 1,
+      "s2c": 1
+    },
+    "recover5": {
+      "c2s": 0.95,
+      "s2c": 1
+    },
+    "recover0": {
+      "c2s": 1,
+      "s2c": 1
+    }
+  },
+  "recover5_actual_r": {
+    "c2s": [
+      8,
+      10,
+      12
+    ],
+    "s2c": [
+      8,
+      10
+    ]
+  },
+  "other_expected_bands": {
+    "loss20": [
+      16,
+      20
+    ],
+    "recover0": [
+      4,
+      8
+    ],
+    "recover5": [
+      8,
+      10
+    ]
+  },
+  "independent_B_upper_s": 140.4,
+  "recover5_stage_s": 120,
+  "must_settle_in_original_reference": false,
+  "source_segregated_delivery": {
+    "c2s": {
+      "sent": 1924344,
+      "first_unique": 1923924,
+      "missing": 420,
+      "missing_loss5": 13,
+      "missing_loss20": 407,
+      "missing_recover5": 0,
+      "missing_recover0": 0,
+      "p99_delivered_oneway_ms": 314.5,
+      "continuous_no_first_delivery_s": 0,
+      "encoder_source_bytes": 1206076616,
+      "encoder_parity_bytes": 965901136,
+      "full20_groups": 96244,
+      "partial_groups": 85
+    },
+    "s2c": {
+      "sent": 1924344,
+      "first_unique": 1924031,
+      "missing": 313,
+      "missing_loss5": 5,
+      "missing_loss20": 308,
+      "missing_recover5": 0,
+      "missing_recover0": 0,
+      "p99_delivered_oneway_ms": 315.5,
+      "continuous_no_first_delivery_s": 0,
+      "encoder_source_bytes": 1206065760,
+      "encoder_parity_bytes": 947081424,
+      "full20_groups": 96245,
+      "partial_groups": 22
+    }
+  },
+  "probe": {
+    "returned": 780,
+    "missing": 0,
+    "returned_rtt_p99_ms": 620.5
+  },
+  "netem_measured_fraction": {
+    "clean0": [
+      0,
+      0
+    ],
+    "loss1": [
+      0.009913673922799782,
+      0.010190709263914773
+    ],
+    "loss5": [
+      0.049681088002718796,
+      0.049715895305843194
+    ],
+    "loss20": [
+      0.2003840673391777,
+      0.1998674638942803
+    ],
+    "recover5": [
+      0.04987972316307034,
+      0.04979374127752042
+    ],
+    "recover0": [
+      0,
+      0
+    ]
+  },
+  "wire": {
+    "qdisc_stage_total_bytes": 4936764434,
+    "business_generated_bytes": 1950001920,
+    "stage_wire_to_business_ratio": 2.531671575995166,
+    "remark": "sum of stage tc byte counter deltas, includes headers/control/parity; do not attribute all to FEC"
+  },
+  "resource": {
+    "client_cpu_diag_on_s": 443.79,
+    "server_cpu_diag_on_s": 445.33,
+    "resource_samples": 161,
+    "raw_kernel_capture_drops": 0,
+    "cap_flags": [],
+    "cpu_cross_VM": "not comparable",
+    "CPU_quota": "not fully verified",
+    "diagnostics": "ON"
+  },
+  "cross_comparison": {
+    "previous_C03_source": "08e63965dd9b2910e2e8ea073a22bbc3d0032db6",
+    "previous_C03_recover5_c2s_fraction": 0,
+    "previous_C03_recover5_s2c_fraction": 1,
+    "current_C03_recover5_c2s_fraction": 0.95,
+    "current_C03_recover5_s2c_fraction": 1,
+    "limitation": "old and new were separate Action/VMS and loss RNG unseeded; only scoped convergence improvement, not paired CPU improvement"
+  },
+  "limits": [
+    "C03 clean0 S2C last60 allowed R4-R8 only 76.7%; original must_settle false; startup resource efficiency observation limitation remains",
+    "Original C03 recover5 must_settle false and 120s stage < independent B upper140.4+60s, pass is observed grade screen not universal convergence guarantee",
+    "Distinct runner and stochastic unseeded tc damage cannot prove CPU improvement",
+    "No product mixed TCP/UDP 10ms first arrival, GE bursts, blackholes, feedback loss, sparse, idle, rotation, MTU edge, Game fixed or off start new source",
+    "History M3 offProof32 regression only unit/race until C04 full off start cross Actions",
+    "Physical NOT_RUN, N3-N6 not started, legacy2.73s tail and 80s S2C history OPEN"
+  ],
+  "overall_n2": "OPEN",
+  "physical": "NOT_RUN"
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M3_R1_SCOPED_PASS_C03_FULLWAVE_NEW_SOURCE_CROSS_CHECK_PENDING",
+    "phase": "N2_M3_C03_CROSS_SCOPED_GRADE_AND_FIRST_DELIVERY_PASS_C04_OFFSTART_CROSS_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1201,7 +1201,7 @@
       "physical": "NOT_RUN"
     },
     "n2_m3": {
-      "status": "TWO_TIER_CORE_RACE_AND_FIRST_SINGLE_REALPATH_SCOPED_PASS_NOT_FULL_N2",
+      "status": "CORE_RACE_M3_R1_AND_C03_CROSS_ALL_SCOPED_PASS_C04_OFF_START_NOT_YET_CROSS_CHECKED",
       "first_failed_source": "b5f6047be2b1cc2f52c400f8defba3d73915ecdf",
       "first_fail": {
         "foundation_run": 38219612120,
@@ -1342,7 +1342,7 @@
         }
       },
       "c03_cross": {
-        "status": "NEW_FULL_C03_CROSS_WORKFLOW_CANDIDATE_NOT_YET_ACTIONS",
+        "status": "REALPATH_ACTION_SUCCESS_ORIGINAL_C03_GRADE_RECOVER5_C2S95PCT_S2C100PCT_AND_FIRST_DELIVERY_PASS",
         "independent_input": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
         "model_version": "n2-independent-iid-timeband-v1",
         "model_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
@@ -1372,15 +1372,47 @@
         "performance_run": "NOT_RUN_AT_COMMIT",
         "one_source_config_scenario_job": true,
         "physical": "NOT_RUN",
-        "N2": "OPEN"
+        "N2": "OPEN",
+        "source_sha": "272deba91faebb024079f153559726cda45df6e3",
+        "run_id": 38224570563,
+        "job_id": 114728796855,
+        "artifact_id": 11736832008,
+        "artifact_sha256": "0691c234efd1533ab3d0d788070761af92ab154fb7c1f2485b715d44bd91ac48",
+        "summary_sha256": "90f6ad0b66ad071a89ae09352e40a085e9f5a6c3a2c1eefcf0fcc46ec9f16ce2",
+        "serial_gate_sha256": "ffd594304a8ed0009e6ed565d53afb30271beab8f7bc29063fabc6880568cf06",
+        "cross_grade_gate_sha256": "be456761b4cb942eb33873c8d08b8d25e0fd6cab681acbfc443ad0839c351086",
+        "recover5_actual_last60_fraction": {
+          "c2s": 0.95,
+          "s2c": 1
+        },
+        "initial_clean0_actual_last60_fraction": {
+          "c2s": 0.9,
+          "s2c": 0.7666666666667
+        },
+        "business": {
+          "c2s_sent": 1924344,
+          "c2s_unique": 1923924,
+          "c2s_missing": 420,
+          "s2c_sent": 1924344,
+          "s2c_unique": 1924031,
+          "s2c_missing": 313,
+          "max_zero_first_delivery_s": 0,
+          "return_p99_ms": {
+            "c2s": 314.5,
+            "s2c": 315.5
+          }
+        },
+        "gross_outer_over_business": 2.531671575995166,
+        "evidence": "docs/evidence/adaptive-n2-m3-c03-cross-780s-actions-scoped-20261012.json",
+        "qualification": "SCOPED_C03_PASS_NOT_FULL_N2_CPU_DIAG_ON_ONLY"
       }
     }
   },
-  "next_task": "C03 cross run after M3-R1 Action38222552651 scoped single-wave protection+R8 recovery PASS, but cumulative parity/source near100% and gross wire2.779x; do not declare full N2. New C03 780s old frozen waveform, one SOURCE/config/scenario/job, exact current two-tier History16/OffProof32. Gate original longserial no 41/46s holes, plus independent recover5 last60 [R8,R10] fraction report and screen >=90%; original C03 flag must_settle:false because B upper140.4+60 >120, so if fail characterize observational resource efficiency limitation not absolute violation. Preflight new gate tests+Go core/race before netem. Only after C03 result, sequential C04 cross off start and GE burst/asym, mixed/MTU/Game before N2 qualified; N3–N6 pending, physical NOT_RUN, legacy2.73s/80s OPEN; no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-m3-cross-c03-fullwave-predeclared-qualifying-check.md",
+  "next_task": "M3 C03 cross Action38224570563 job114728796855 artifact11736832008 same old frozen780s actual recover5 last60 R8-10 C2S95% S2C100%, high20/finalclean 100%, no delivery blackout, real missing420/313, gross wire2.532x, clean0 S2C startup grade76.7% observation limitation. Next only C04 off-start full840s separate SOURCE/config/scenario/one measurement job with exact existing frozen C04 [0,4],[8,10],[16,20], [0,4] and actual off before drain, plus first unique/CPU/parity, check M3 offProof32 not stuck; test independent gate units in Action before real load. No concurrent performance. Then asymmetric, GE burst, blackhole, jitter/reorder, feedback loss, sparse idle/rotation, mix TCP/UDP 10ms noHOL, MTU/Game fixed before N2 declared reasonable. N3-N6 not started, physical NOT_RUN, legacy2.73s/80s OPEN; do not deploy/merge/ref.",
+  "latest_log": "docs/devlog/20261012-n2-m3-c03-780s-cross-scoped-pass-c04-next.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "56da540d27eb8526de24cbb0df48a2203df0aa3c",
-  "last_tested_scope": "M3_R1_SINGLE_330S_20PCT_120S_RECOVER5_210S_SOURCE56DA540D_BOTH_FEC_R20_HIGH60_R8_RECOVER_LAST60_BUSINESS_814146OF814146_P99_321_5MS_WIRE2_779X_CPU_DIAG_ON_SCOPED_ONLY",
+  "last_tested_source_sha": "272deba91faebb024079f153559726cda45df6e3",
+  "last_tested_scope": "M3_C03_780S_ACTION38224570563_FIRST_UNIQUE_C2S1923924OF1924344_S2C1924031OF1924344_GAP0_LOSS20_R16_20_100PCT_RECOVER5_R8_10_C2S95PCT_S2C100PCT_FINAL0_R4_BOTH_DIAG_ON_2_532X_SCOPED_PASS",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
