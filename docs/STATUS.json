@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C10_TRUE_KERNEL_1MS_EVENTMAP_CAPABILITY_SCOPED_PASS_FULL_GE_PROTECTED_REALPATH_NEXT",
+    "phase": "N2_C10_EXACT_GE_CTMC_REALPATH_SINGLE_240S_PREDECLARED_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1824,11 +1824,52 @@
           "no_real_GE_product_measurement": true,
           "evidence": "docs/evidence/adaptive-n2-c10-eventmap-native-bpf-capability-actions-20261012.json"
         }
+      },
+      "realpath": {
+        "status": "FROZEN_NEW_SINGLE_240S_REALPATH_CANDIDATE_NOT_RUN_YET",
+        "workflow": ".github/workflows/next-adaptive-n2-c10-ge-ctmc-time-single.yml",
+        "helper": "tools/adaptive_n2_c10_ge_realpath.py",
+        "preflight_unit": "tools/test_adaptive_n2_c10_ge_realpath.py",
+        "frozen_trace": "docs/evidence/adaptive-n2-c10-ctmc-event-trace-freeze-v1.json",
+        "model_version": "n2-ge-ctmc-event-trace-v1",
+        "trace_sha256": "5fcfe423903d5b7665eb8bb341170e901757b5e6def4af1ba4ca242670237aec",
+        "mean_good_ms": 450,
+        "mean_bad_ms": 50,
+        "bad_drop_pct": 50,
+        "fixed_trace_seed": 2026101210,
+        "transitions": 900,
+        "bad_state_ms": 23249,
+        "configuration": {
+          "normal_auto_initial": 20,
+          "min": 4,
+          "max": 20,
+          "cipher": "chacha20-poly1305",
+          "mtu": 1400,
+          "one_way_each_ms": 300,
+          "app_mbps_each": 10,
+          "active_seconds": 240,
+          "drain_seconds": 10
+        },
+        "kernel_clock_reference": "Same original business START_NS from 5-netns formal fixture, two router tc egress maps have exact trace and same epoch read-back",
+        "qualification": {
+          "correctness": "no bad/duplicate/send errors",
+          "first_unique_ratio_each_min": 0.9,
+          "no_first_unique_gap_ge_5s": true,
+          "actual_ge_bad_erase_pct_each": [
+            40,
+            60
+          ],
+          "frozen_C10_R8_grade_screen": "NOT_APPLICABLE_CTMC_R20_STILL_UNATTAINABLE_TARGET_IN_REFERENCE",
+          "CPU_comparison": "ON_ONLY_NOT_BENCHMARK"
+        },
+        "single_source_configuration_scenario_job": true,
+        "product_run_id": "NOT_YET_STARTED_AT_CANDIDATE",
+        "physical": "NOT_RUN"
       }
     }
   },
-  "next_task": "C10 second time-driven BPF event-map capability Action38248104193/job114807018445/source41063b/archive11746299495 SUCCESS actual 2 maps same epoch, 64 boundaries, 32/32 GOOD delivered, BAD 15/32 received and kernel bad drops17/32; original first Action38247690639 bpftool package FAIL preserved. ORIGINAL real CTMC 900 events seed2026101210 full240s freeze hash5fcfe, mean GOOD450ms BAD50ms, bad packet0.5 and good0, remains NOT_RUN. Next derive one C10 protected five-netns Normal auto initial20/floor4 max20 240s business each direction10Mbps 300ms one-way and 10s drain, same 900 event trace loaded to router rsrv/rcli egress maps using real generator START_NS with 12s slack, preserve exact trace/map kernel bad packet counters (not tc netem counters), first unique/missing/p99/queue, parity/wire/CPU, compare to independent CTMC model. One SOURCE/config/scenario/performance job only; Go unit/race/model/preflight before network. No packet-driven gemodel/CPU noisy tc replacers. Keep C04/C05 efficiency failures and historical probe/80s OPEN. N2 OPEN N3-N6 NOT_STARTED physical NOT_RUN no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-c10-native-eventmap-smoke-pass-real-ctmc-next.md",
+  "next_task": "C10 GE frozen candidate: exact source on new push, one 240s protected 5netns product business Action, true exponential GOOD450ms BAD50ms seed2026101210 trace SHA5fcfe423 900 boundaries/23249ms BAD, both router rsrv/rcli tc egress BPF map synchronized with actual generator START_NS, conditional bad50pct via kernel random and no per-packet state transition. Preflight GH Go unit/race, independent CTMC MDS/reference and freeze hash/derived script before formal binaries & 240s job. If model/program/solver preflight FAIL, preserve exact logs and no perf; if actual run measure both BPF maps good/bad/drop, firstunique/p99/missing/gap, parity/wire/capture/CPU/queue and qualified source, never call this all N2 PASS. Capability-only Action38248104193 source41063b full eventmap PASS, model-only GE Action38217981601 PASS. C05 high10pct S2C grade70pct FAIL and C04 recover5 S2C78.3pct FAIL remain; N2 OPEN N3-N6 NOT_STARTED, physical NOT_RUN, historical2.73s/80s OPEN. No deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-c10-real-time-ctmc-900-event-one-realpath-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
   "last_tested_scope": "C06_REAL240S_DIRECTION_C2S10PCT_TRUE_NETEM10_0023_FEC_R10_LAST60_100PCT_S2C1PCT_TRUE_NETEM1_0172_FEC_R4_LAST60_100PCT_FIRST_UNIQUE592100_592107_AND592107_592107_P99_313_5_302MS_NO_GAP_WIRE2_8202X_DIAG_ON",
