@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "N3_AES_PROTECTED_TLS_AUTH_ADMISSION_AND_LANE_HANDOFF_SCOPED_PASS",
+  "source_sha": "16517ff09a980391e083b4144bcaa9133087e25e",
+  "run_id": 38267871609,
+  "job_id": 114874521000,
+  "artifact_id": 11755447591,
+  "artifact_sha256": "da34f0f056071c024af07df147d588feef739569ec13cf1b986a61eb09875dbf",
+  "test_success": [
+    "TLS-protected admission client/server suite 2 AES128 and 3 AES256, exporter C2S/S2C distinct and equal between peers",
+    "wrong suite/downgrade reply rejection and invalid suites",
+    "explicit cipher policy defaults preserve legacy no migration",
+    "full real datapath AES fixed/off/auto/auto with initial off/auto-aggressive first packet both ways",
+    "full Go datapath/tlsrecord/realityfront/runtimeowner/linkdata/adaptivefec unit tests",
+    "Go race realityfront/datapath/tlsrecord/runtimeowner",
+    "Go vet datapath/tlsrecord",
+    "cross-build Windows AMD64 client and Linux ARM64 server"
+  ],
+  "prior_failed_action": {
+    "source_sha": "53f473d4eb0d2fa1125f4d5d49524c3c7afe6c8f",
+    "run_id": 38267370589,
+    "job_id": 114872802118,
+    "reason": "preexisting N2 unit assumed AES unsupported; fixed by replacing obsolete assertion with malformed cipher9 negative and AES2/3 positive",
+    "old_run_retained": true
+  },
+  "scope": "UNIT_RACE_AUTH_TLS_PROTECTED_NO_REAL_AES_NETWORK",
+  "N3_public_product_network": "NOT_RUN",
+  "AES_CLI": "NOT_YET_EXPOSED",
+  "AES_GUI": "NOT_ADVERTISED",
+  "physical": "NOT_RUN"
+}

@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_C_PROTECTED_AES_AUTH_HADNDOFF_TESTS_PASS_PREEXISTING_N2_ASSERTION_FAIL_FIX",
+    "phase": "N3_C_AES128_AES256_REAL_TLS_PROTECTED_ADMISSION_AND_FEC_HANDOFF_GITHUB_SCOPED_PASS_REAL_AES_NETWORK_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -23,7 +23,7 @@
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
-      "N3_aes": "IN_PROGRESS_AES128_AES256_RECORD_CORE_ACTION38263629068_AND_AUTH_V3_LANE_UNIT_RACE_BUILD_ACTION38266249189_SCOPED_PASS_PUBLIC_POLICY_NEGOTIATION_AND_REAL_NET_NOT_YET_TESTED",
+      "N3_aes": "IN_PROGRESS_AES_RECORD_CORE_ACTION38263629068_V3_LANE_ACTION38266249189_TLS_AUTH_AND_FEC_HANDOFF_ACTION38267871609_ALL_SCOPED_PASS_REAL_AES128_AES256_FIVE_NETNS_AND_UI_CONFIG_PENDING",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "SCOPED_GUI_N2_FEC_CONFIG_AND_QUALITY_TRANSPORT_PAGE_IMPLEMENTED_WINDOWS_NATIVE_258_TESTS_PASS_N3_AES_SELECTOR_NOT_YET_ADVERTISED_PHYSICAL_NOT_RUN",
       "N6_actions_packages": "NOT_STARTED"
@@ -2159,7 +2159,7 @@
       "action_status": "SUCCESS"
     },
     "n3_aes_admission": {
-      "status": "FIRST_GITHUB_ACTION_FAIL_PREEXISTING_N2_TEST_AES_PREMATURE_ASSUMPTION_TEST_ONLY_FIX",
+      "status": "GITHUB_SUCCESS_N3_AES128_AES256_ACTUAL_TLS_POLICY_HANDSHAKE_AND_V3_OFF_FIXED_AUTO_FEC_LANE_HANDoFF_UNIT_RACE",
       "workflow": ".github/workflows/next-adaptive-n3-aes-protected-admission-gate.yml",
       "supported_suites": [
         "V3 ChaCha",
@@ -2187,12 +2187,26 @@
         "root": "A previously correct test still assumes AES cannot be supported even after N3 V3 AEAD/HP and authenticated lane wiring",
         "artifact_ids": [],
         "network_measurement": "NOT_RUN",
-        "fix_scope": "remove AES128/256 from invalid policies, use malformed cipher 9, add positive test N3 accepted auto; preserve Game/Quality/initial/non-FEC negative guards"
+        "fix_scope": "remove AES128/256 from invalid policies, use malformed cipher 9, add positive test N3 accepted auto; preserve Game/Quality/initial/non-FEC negative guards",
+        "failure_preserved": true
+      },
+      "final_action": {
+        "source_sha": "16517ff09a980391e083b4144bcaa9133087e25e",
+        "run_id": 38267871609,
+        "job_id": 114874521000,
+        "artifact_id": 11755447591,
+        "artifact_sha256": "da34f0f056071c024af07df147d588feef739569ec13cf1b986a61eb09875dbf",
+        "go_unit": "PASS_REAL_TLS_AES128_AES256_REPLY_MISMATCH_GUARD_V3_LANE_HANDOFF",
+        "go_race": "PASS",
+        "go_vet": "PASS_DATAPATH_TLSRECORD",
+        "win_amd64_client_and_linux_arm64_server": "CROSSBUILD_PASS",
+        "real_net_performance": "NOT_RUN",
+        "UI_AES": "NOT_ADVERTISED"
       }
     }
   },
-  "next_task": "N3-C Action38267370589 Source53f473d FAILED at pre-existing N2 TestN2ProtectedAutoCandidateRejectsGameMissingQualityAndUnimplementedCipher: old test assumes AES suite2/3 unsupported, but real N3 record and lane are wired. Protected TLS handshake AES128/AES256 and actual datapath fixed/off/auto/auto-from-off/aggressive bidirectional tests PASS before full package failure. Keep first action FAIL, no artifact uploaded, no product network load. Patch only old test: remove AES as negative, malformed cipher9 remains negative, add both positive AES N2 preparation; do NOT modify product code/model/GUI. Run next exact SOURCE Go full unit/race/vet and builds in Github. Then separate real AES128/256 performance scenarios, CLI/config/GUI Transport after proved. N2 noHOL Go scoped PASS and GUI 258 pass, N2 C04/C05 eff FAIL GE p99 OPEN. physical NOT_RUN no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n3-protected-aes-first-old-n2-test-assertion-fail.md",
+  "next_task": "N3 protected policy and real encrypted V3 AES128/256 entry + lane Action38267871609/source16517ff/job114874521000/artifact11755447591 SHAda34f0f SUCCESS; first SOURCE53f473 Action38267370589 obsolete N2 rejected-AES test FAIL preserved. Next add explicit, default-safe record cipher client configuration flag and mapping `PolicyForClientWithInitialAndCipher` to production client Linux/Windows (server stays protected policy accept, no plaintext decoy lie), Go unit and Win client cmd build in GitHub, then run AES128 and AES256 each distinct true protected 5netns one SOURCE/config/scenario/job, analyze actual cryptographic/auth/full unique/latency CPU flags. Only after scoped network success expose AES128/256 as choices in GUI Transport with bound imported config/save/export/native screenshot, ChaCha default; then N4 Wintun Windows TUN, N5 GUI closure N6 three target builds. N2 noHOL targeted scoped and FEC GUI258 native PASS, C04/C05 grade failures and GE p99 open physical NOT_RUN; no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n3-protected-aes-admission-two-actions-scoped-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
