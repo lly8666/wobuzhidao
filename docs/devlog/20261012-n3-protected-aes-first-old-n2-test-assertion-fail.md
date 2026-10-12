@@ -1,0 +1,5 @@
+# 2026-10-12 N3-C 第一Action：实际TLS AES入场/双向lane定向通过，但旧N2前提测试报FAIL
+
+唯一SOURCE `53f473d4eb0d2fa1125f4d5d49524c3c7afe6c8f` [Action38267370589](https://github.com/lly8666/wobuzhidao/actions/runs/38267370589) job114872802118 **FAIL**，在Go包整体回归阶段；新实际TLS admission AES128/256 protected双方suite与HKDF校验、wrong suite/downgrade拒绝测试全部PASS，新datapath Lane AES128/256 x off/fixed/auto/auto R0起步/auto-aggressive十组合双向首包通过。**Action不因新目标测试通过而改写成功，Go race/build因fail没有执行，且artifacts为空。** 没有真实性能load或客户端GUI AES操作。
+
+错误精确定位在旧`internal/datapath/n2_protected_policy_candidate_test.go:133`，旧测试`TestN2ProtectedAutoCandidateRejectsGameMissingQualityAndUnimplementedCipher`把AES128/256视为应拒绝的“尚未实现套件”，与已经接好的N3 record+认证V3 lane路径矛盾，报 `Cipher:2 accepted, err <nil>`。修复严格只改该测试断言：非法Cipher9保留负测，旧Game非法/缺少N1质量反馈/不允许初始R4/非法最小档/fixed误注入auto等仍必须拒；另对真实合法AES128/256 Normal auto加明确正测。生产密码记录、AdmissionPolicy、FEC、控制器、model/seed/GUI配置都不改。重新在Github跑同SOURCE锁定的新完整Go unit/race/vet和Win/Linux跨编译；下阶段待通过再分别测AES128、AES256保护实网，之后才会开放配置文件/Windows GUI传输页AES，不能假称已经产品可用。旧C04/C05自适应效率FAIL/C10 GE p99长尾和2.73秒/80秒事件保持OPEN，physical NOT_RUN，不操作机器、qualification ref/mainline。

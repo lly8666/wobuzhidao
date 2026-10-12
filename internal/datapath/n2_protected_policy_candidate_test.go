@@ -116,13 +116,12 @@ func TestN2ProtectedPerClientPolicyCandidatePreservesWireBudgetAndLateMixedDeliv
 	}
 }
 
-func TestN2ProtectedAutoCandidateRejectsGameMissingQualityAndUnimplementedCipher(t *testing.T) {
+func TestN2ProtectedAutoCandidateRejectsGameMissingQualityInvalidCipher(t *testing.T) {
 	base:=n2V3CandidatePolicy(realityfront.FECAuto,4)
 	for _,modify:=range []func(*realityfront.AdmissionPolicy){
 		func(p *realityfront.AdmissionPolicy){p.Transport=realityfront.TransportGame;p.DesiredLanes=4},
 		func(p *realityfront.AdmissionPolicy){p.Quality=0},
-		func(p *realityfront.AdmissionPolicy){p.Cipher=realityfront.CipherAES128},
-		func(p *realityfront.AdmissionPolicy){p.Cipher=realityfront.CipherAES256},
+		func(p *realityfront.AdmissionPolicy){p.Cipher=9},
 		func(p *realityfront.AdmissionPolicy){p.InitialParity=4},
 		func(p *realityfront.AdmissionPolicy){p.MinParity=3},
 		func(p *realityfront.AdmissionPolicy){p.FECMode=realityfront.FECFixed;p.FixedParity=4;p.InitialParity=0;p.MinParity=0;p.MaxParity=0},
@@ -131,6 +130,14 @@ func TestN2ProtectedAutoCandidateRejectsGameMissingQualityAndUnimplementedCipher
 		modify(&p)
 		if _,err:=N2PreparedPolicyForTests(p);!errors.Is(err,ErrAdmissionHandoff) {
 			t.Fatalf("invalid or unimplemented policy accepted: %+v, err %v",p,err)
+		}
+	}
+	// N3 wires authenticated V3 AES record TX/RX, so both AES policies now
+	// retain exactly the same Normal auto bounded-controller semantics.
+	for _,cipher:=range []uint8{realityfront.CipherAES128,realityfront.CipherAES256} {
+		ok:=base;ok.Cipher=cipher
+		if _,err:=N2PreparedPolicyForTests(ok);err!=nil {
+			t.Fatalf("N3 protected AES%d auto incorrectly rejected: %v",cipher,err)
 		}
 	}
 	// An unprotected V2, even with something resembling an auto policy,

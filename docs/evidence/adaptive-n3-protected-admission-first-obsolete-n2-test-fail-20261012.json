@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "source_sha": "53f473d4eb0d2fa1125f4d5d49524c3c7afe6c8f",
+  "run_id": 38267370589,
+  "job_id": 114872802118,
+  "action_conclusion": "FAIL",
+  "failure": "TestN2ProtectedAutoCandidateRejectsGameMissingQualityAndUnimplementedCipher: old invalid suite expectation now obsolete for authenticated N3 AES128/256",
+  "original_error": "n2_protected_policy_candidate_test.go:133: invalid or unimplemented policy accepted Cipher:2, err <nil>",
+  "pre_failure_real_TLS_admission_new_AES128_AES256_tests": "PASS",
+  "pre_failure_real_bidirectional_V3_AES_lane_handoff_new_tests": "PASS",
+  "full_go_datapath_regression": "FAIL_ON_OBSOLETE_EXPECTATION",
+  "product_real_AES_performance": "NOT_RUN",
+  "artifacts": [],
+  "minimal_fix": "n2_protected_policy_candidate_test.go only: reject malformed cipher9, confirm N3 suite2/3 accepted; keep other invalid N2 policy cases",
+  "N3": "IN_PROGRESS",
+  "physical": "NOT_RUN"
+}
