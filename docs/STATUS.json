@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C06_REVERSE_ASYM_SCOPED_PROTECTION_GRADE_PASS_C05_10PCT_RESIDUAL_EFFICIENCY_FAIL_OPEN_GE_BURST_NEXT",
+    "phase": "N2_C10_KERNEL_MONOTONIC_TIME_BPF_CAPABILITY_ONLY_SMOKE_PREACTION",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1714,10 +1714,32 @@
       },
       "qualification": "SCOPED_PASS_NOT_FULL_N2_C05_FAIL_PRESERVED",
       "evidence": "docs/evidence/adaptive-n2-c06-asym10-1-realpath-actions-scoped-pass-20261012.json"
+    },
+    "n2_c10": {
+      "status": "PREDECLARED_CAPABILITY_ONLY_NO_GE_PRODUCT_PERFORMANCE",
+      "independent_frozen_ctmc": "docs/evidence/adaptive-n2-ge-ctmc-freeze-v1.json",
+      "independent_model_version": "n2-independent-ge-ctmc-v1",
+      "independent_model_run_id": 38217981601,
+      "ge_theory": {
+        "good_mean_ms": 450,
+        "bad_mean_ms": 50,
+        "good_drop_prob": 0,
+        "bad_drop_prob": 0.5,
+        "stationary_mean_loss": 0.05
+      },
+      "time_kernel_smoke_source": "tools/adaptive_n2_ge_time_smoke.c",
+      "time_probe": "tools/adaptive_n2_ge_time_probe.py",
+      "capability_workflow": ".github/workflows/next-adaptive-n2-ge-kernel-time-capability-only.yml",
+      "smoke_only_100ms_good_bad_full_drop_cycles": 16,
+      "smoke_network": "two isolated temporary Linux netns and 32 tagged UDP packets, not product client/server",
+      "smoke_gate": "Good-phase >=12/16 first arrivals; bad-phase 0/16 arrivals; independent sender monotonic phase labels verified",
+      "not_ge_ctmc": "Time kernel capability smoke is deterministic 100ms alternating 0/100pct; NOT exponential450/50ms 0/50pct; only checks BPF kernel clock and netns privileges",
+      "GE_product_realpath": "NOT_RUN",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "C06 Action38242922144 job114789708409 SOURCE1e0fe4b artifact11743737321 ZIP893a07a SUMMARYb12da06 real C2S10pct/S2C1pct grade last60 R10/R4 both100% and business stable firstunique592100/592107,592107/592107; overall SCOPED_PASS. DO NOT clear independent C05 valid 10pct S2C grade70pct FAIL, C04 recover5 S2C78.3pct FAIL, historic540 up overprotect FAIL. Next N2 P2 C10 time-driven Gilbert Elliott correlated burst with frozen GE CTMC theory model Actions38217981601 and declared mean-good450ms mean-bad50ms loss good0/bad50% expected5%. FIRST assess runnable true wall-clock packet filter: do not substitute per-packet Linux netem gemodel or slow tc qdisc shell updates for time-driven 1ms GE; model/driver unit/permission support first, mark UNSUPPORTED if impossible in Actions. ONE SOURCE/config/scenario/measurement job when supported; actual burst timing/firstunique/wire/CPU and grade retention. Then bounded blackhole, feedback isolation, sparse/mixed/MTU/Game and diag-OFF matched resource before N2 graded; prioritize N3 AES/N4 Windows TUN/N5 GUI/N6 packaging after bounded N2, no endless seed tuning. N2 OPEN, N3-N6 NOT_STARTED physical NOT_RUN, old2.73s/80s OPEN no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-c06-reversed-realpath-grade-scoped-pass-c05-fail-preserved.md",
+  "next_task": "C06 Action38242922144/source1e0fe4 scoped PASS recorded; C05 high-loss S2C 70% grade FAIL and C04 recover5 S2C78.3% FAIL remain. First C10 verification action: no product/performance load. GitHub-only kernel BPF classifier bpf_ktime_get_ns time-based 100ms pass/drop, two isolated netns, 16 GOOD+16 BAD tagged UDP source emissions against monotonic clock; check receiver >=12 good and zero bad, verification fail closed, exact hash/source artifact; this validates only kernel clock and permission, NOT GE 450/50ms 50% bad correlated-loss model. If capability passes, plan proper bounded CTMC trace loader and real protected 240-300s one config one scenario one perf job with observable state/drop counters; if eBPF clang/kernel/NET_ADMIN fails, preserve UNSUPPORTED exact evidence, no tc per-packet gemodel substitution. N2 OPEN, N3–N6 NOT_STARTED, physical NOT_RUN, historical2.73s/80s OPEN, no deploy/qualification ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-c10-kernel-time-capability-smoke-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
   "last_tested_scope": "C06_REAL240S_DIRECTION_C2S10PCT_TRUE_NETEM10_0023_FEC_R10_LAST60_100PCT_S2C1PCT_TRUE_NETEM1_0172_FEC_R4_LAST60_100PCT_FIRST_UNIQUE592100_592107_AND592107_592107_P99_313_5_302MS_NO_GAP_WIRE2_8202X_DIAG_ON",

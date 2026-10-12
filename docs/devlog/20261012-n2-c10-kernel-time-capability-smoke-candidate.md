@@ -1,0 +1,11 @@
+# 2026-10-12 C10 Gilbert–Elliott：先验证Linux内核单调时钟损伤能力，非产品性能
+
+当前准确远端HEAD `ae89b4594259d836adf0d1cf9f1e22824615003e`，C06逆向10%/1%真实 [Action38242922144](https://github.com/lly8666/wobuzhidao/actions/runs/38242922144) / job114789708409 / artifact11743737321 真实业务和双向档位限定通过，仍保留 C05 10% S2C R8..R10末60秒只有70%及 C04 S2C恢复5% 78.3% 两项工程效率FAIL，不能以C06单次通过消除。N2整体 OPEN，N3–N6未开始。
+
+下一个C10原始**独立理论已测前冻结** `docs/evidence/adaptive-n2-ge-ctmc-freeze-v1.json` v`n2-independent-ge-ctmc-v1`，原Github数学-only Actions38217981601 SUCCESS。其GOOD状态指数平均450ms，BAD状态指数平均50ms，GOOD丢包0、BAD每包独立50%丢包，稳态平均5%；状态转换应按墙钟时间而不是看了多少packet才转。标准`tc netem loss gemodel`基于包状态转移，不能冒充时间驱动GE；1ms反复shell`tc qdisc replace`会严重污染Linux调度/CPU和WAN延迟，因此不得冒充网络真实性能结果。
+
+本次候选新增独立**内核时间驱动能力smoke**，不是GE状态采样、更不是N2产品基准：`tools/adaptive_n2_ge_time_smoke.c`的tc direct-action BPF程序用`bpf_ktime_get_ns()` 依Linux CLOCK_MONOTONIC每100ms交替正常放行/100%丢弃；两个临时netns独立veth装clsact+一条egress filter；`tools/adaptive_n2_ge_time_probe.py`的Python发送端用同CLOCK_MONOTONIC在每轮良好phase35ms及坏phase135ms的安全中央时间各发一份带G/B标签短UDP，16轮共32包，接收方单独命名空间接收5.5秒，验证>=12个G且0个B，和发送时钟phase标签一致才算**权限+编译+内核时间状态切换 CAPABILITY PASS**。不跑正式client/server、no Chacha/AEAD业务、不注入真实GE、不跑任何吞吐测量，业务perf jobs=0。部署所需root权限及clang/libbpf/目标BPF编译从GitHub Ubuntu 24.04真正预检，不在沙盒模拟伪装。模型freeze完全保持无变化，原旧netem工作流未改。当前仅提交候选，绝不预填pass/action号。
+
+Github `.github/workflows/next-adaptive-n2-ge-kernel-time-capability-only.yml` 一个非性能job，先check_repository/check_performance_workflow_policy及Python无流量静态unit；安装clang/llvm/libbpf/iproute2，compile`classifier` BPF，单独用临时两个netns+32短探针验证真正per-kernel-monotonic时间周期误差，将编译物、tc加载/计数、sender/receiver JSON、实际SOURCE/helper/hash做小artifact；任何clang BPF backend/kernel capability缺失或偏差须显式FAIL和留证，分类`UNSUPPORTED_OR_TIME_PHASE_MISMATCH`而不是转成弱网PASS。网络所有资源仅probe job临时owned namespace，trap清理；不借真实产品传输，不涉及物理设备。
+
+如果能力通过，**还缺关键GE产品夹具**：需要独立冻结CTMC具体事件列表，按秒/毫秒事件时间驱动两转发口并有界加载到kernel eBPF状态表（不让产品看真值）；BAD状态50% erasure概率，GOOD 0%，同时对systematic和parity独立放弃，日志/哈希真实状态停留时带及实际drop-burst，严格测前确认class是否截断事件、时间对齐和反馈路径。然后**另外一个独立 SOURCE/config/scenario/性能job**跑真正300ms/双向10Mbps Normal auto 240–300s场景，观察group k/r与GE MDS残余、首达p99/HOL、parity/wire/CPU；不能先把本能力probe SUCCESS写成该目标PASS。若kernel loader/权限未具备，标成`C10_UNSUPPORTED_GITHUB_RUNNER`并在有界N2条件里明确风险，优先推进有价值的N3 AES。旧2.73s probe多秒尾/80s S2C历史OPEN，physical NOT_RUN；不部署、移资格ref、合主线。
