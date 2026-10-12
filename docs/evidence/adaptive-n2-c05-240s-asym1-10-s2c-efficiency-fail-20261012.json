@@ -1,0 +1,191 @@
+{
+  "schema": 1,
+  "kind": "N2_C05_REALPATH_ASYMMETRIC_C2S1_S2C10_BUSINESS_SCOPED_PASS_GRADE_S2C_FAIL",
+  "date": "2026-10-12",
+  "source_sha": "758f310b005a26f2610d721f8877a8a13c5f521c",
+  "workflow": ".github/workflows/next-adaptive-n2-c05-asym1-10-single.yml",
+  "run_id": 38241759581,
+  "job_id": 114785832142,
+  "artifact_id": 11744115276,
+  "artifact_name": "adaptive-n2-c05-asym1-10-758f310b005a26f2610d721f8877a8a13c5f521c",
+  "artifact_sha256": "c89feaa2223c338a13d7295f2df3b1b9b9c9da247fe9b23003ab03b089e853ff",
+  "summary_sha256": "af9f1c11a51bcd8368b02f31340230e09ad5813c8c24a3d3a5dcc4be35a89b51",
+  "manifest_sha256": "99794720ba0db74744d198457c75079c312979d23df3f858fff22f3db50e7121",
+  "prep_sha256": "73a0984b6ae1ce75855430d08db6fa511dbd4bbcff3d5fe461c696fdfa3424c5",
+  "client_diag_sha256": "c9289f4cee6ea3912a202a77fc2adbedef486da72b123d84b3103e55fa8dbf33",
+  "server_diag_sha256": "20e7866aaf6aa5a1568eba461750f4b369896ae2937acd7f708003ca644ddc29",
+  "resource_samples_sha256": "fd34b770594cf0b7b13f8b037348bdd2d103229c0ec078c1d78735849e79e786",
+  "frozen_model_version": "n2-asymmetric-iid-timeband-v1",
+  "frozen_model_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+  "source_assumptions": "FULL k20 IID p=1percent theoretical minR4, p=10percent theoretical minR8, actual partial and confidence separate",
+  "workflow_conclusion": "failure",
+  "single_performance_job_outcome": "success",
+  "analyzer_outcome": "failure",
+  "analyzer_classification": "FAIL_N2_C05_ADAPTIVE_EFFICIENCY",
+  "analyzer_errors": [
+    "C05 frozen last60 directional grade bands [4,8]/[8,10] failed >=90pct screen"
+  ],
+  "measurement_invalid": [],
+  "capacity_flags": [],
+  "one_source_config_scenario_measurement_job": true,
+  "configuration": {
+    "mode": "Normal auto",
+    "initial_parity": 20,
+    "min_parity": 4,
+    "max_parity": 20,
+    "cipher": "chacha20-poly1305",
+    "mtu": 1400,
+    "duration_active_s": 240,
+    "drain_s": 10,
+    "app_mbps_each_direction": 10,
+    "delay_oneway_each_ms": 300,
+    "loss_pct": {
+      "c2s": 1,
+      "s2c": 10
+    },
+    "router_direction": {
+      "rsrv": "c2s",
+      "rcli": "s2c"
+    },
+    "netem_rng": "UNSEEDED_TC_UNSUPPORTED",
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ],
+    "diagnostics": "ON"
+  },
+  "qdisc_actual": {
+    "c2s_rsrv": {
+      "actual_loss_pct": 0.9837807733400014,
+      "tx_packets": 1742329,
+      "drops": 17311,
+      "outer_wire_bytes": 781246912,
+      "overlimits_delta": 0,
+      "requeues_delta": 0,
+      "post_backlog": 0
+    },
+    "s2c_rcli": {
+      "actual_loss_pct": 10.029651425495253,
+      "tx_packets": 1664599,
+      "drops": 185565,
+      "outer_wire_bytes": 905288803,
+      "overlimits_delta": 0,
+      "requeues_delta": 0,
+      "post_backlog": 0
+    }
+  },
+  "directional": {
+    "c2s": {
+      "sent": 592107,
+      "received_first_unique": 592107,
+      "missing": 0,
+      "first_unique_bytes": 300000880,
+      "goodput_mbps": 10.000029333333334,
+      "delivered_oneway_p99_ms": 301.5,
+      "longest_wall_second_without_first_delivery": 0,
+      "stage_last60_grade_fraction": 1,
+      "last60_grade": [
+        4
+      ],
+      "frozen_allowed": [
+        4,
+        8
+      ],
+      "source_bytes_encoder": 371108736,
+      "parity_bytes_encoder": 259468952,
+      "partial_fec_groups": 69,
+      "full_k20_fec_groups": 29611,
+      "final_observed_lower_gate": "AT_FLOOR"
+    },
+    "s2c": {
+      "sent": 592107,
+      "received_first_unique": 592099,
+      "missing": 8,
+      "first_unique_bytes": 299997328,
+      "goodput_mbps": 9.999910933333334,
+      "delivered_oneway_p99_ms": 310.5,
+      "longest_wall_second_without_first_delivery": 0,
+      "stage_last60_grade_fraction": 0.7,
+      "grade_last60_snapshot_count": 60,
+      "grade_R10_seconds": 42,
+      "grade_R12_seconds": 18,
+      "grade_switches_last60": [
+        {
+          "second": 195,
+          "to_R": 10
+        },
+        {
+          "second": 237,
+          "to_R": 12
+        }
+      ],
+      "frozen_allowed": [
+        8,
+        10
+      ],
+      "source_bytes_encoder": 371097880,
+      "parity_bytes_encoder": 436866808,
+      "partial_fec_groups": 9,
+      "full_k20_fec_groups": 29611,
+      "final_source_confidence_upper": 0.10534922885006162,
+      "final_grade_reason": "HOLD_UNQUALIFIED_FIRST_ATTEMPT",
+      "last60_lower_gate_counts": {
+        "CONFIDENCE_RESIDUAL": 29,
+        "WAIT_STABLE": 15,
+        "WAIT_SAMPLES": 8,
+        "LOWERED": 5,
+        "RAISED": 3
+      },
+      "last60_reason_counts": {
+        "HOLD_UNQUALIFIED_FIRST_ATTEMPT": 25,
+        "HOLD_WIDE_FIRST_ATTEMPT_INTERVAL": 15,
+        "HOLD_STABILITY_OR_CONFIDENCE": 14,
+        "LOWER_ONE": 2,
+        "HOLD_INSUFFICIENT_512": 2,
+        "RAISE": 2
+      }
+    }
+  },
+  "probe": {
+    "sent": 240,
+    "returned": 240,
+    "miss": 0,
+    "return_only_rtt_p99_ms": 616
+  },
+  "capture_all_4_kernel_drops": 0,
+  "gross_outer_to_business": 2.8108846130718015,
+  "gross_outer_qdisc_bytes": 1686535715,
+  "generated_business_bytes": 600001760,
+  "cpu_diagnostic_on": {
+    "client_s": 103.09,
+    "server_s": 100.96,
+    "samples": 53,
+    "diagnostic_off_CPU_comparison": "NOT_RUN"
+  },
+  "initial_C05_premeasurement_failure": {
+    "source_sha": "4aaeaef984f60229eada301bb048bbca5a2b41f4",
+    "run_id": 38241338957,
+    "job_id": 114784421949,
+    "artifact_id": 11742454692,
+    "artifact_sha256": "0381302d13293bda15506a85651ebfde982d7acde1c681cad80903fa96b351df",
+    "status": "FAIL_MISSING_WORKFLOW_INLINE_IMPORT_BEFORE_TRAFFIC"
+  },
+  "qualified": {
+    "actual_directional_impairment": "PASS",
+    "business_no_multi_second_blackout": "PASS",
+    "business_integrity_and_send": "PASS",
+    "c2s_1pct_grade": "PASS",
+    "s2c_10pct_grade": "FAIL_OBSERVED_LAST60_70PCT_NOT_90",
+    "overall_n2": "OPEN",
+    "N3_N6": "NOT_STARTED",
+    "physical": "NOT_RUN"
+  },
+  "limits": [
+    "S2C 10pct transient R12 occurs 18/60 seconds, at t195 lower to R10 then t237 raise R12; do not claim persistent under-protection from R12",
+    "10pct genuine qdisc observed 10.03%, conservative first-attempt confidence upper 10.53% and 32/16 window shape uncertainty; no host capacity flags so cannot dismiss failure as runner saturation",
+    "No true 10ms independent small TCP/UDP HOL mixed test, GE burst, isolated feedback loss, reorder, sparse, idle, Game or MTU here",
+    "CPU is diagnostic ON and cross runner, cannot prove CPU optimization",
+    "No same SOURCE reversed C06 yet; must remain separate one performance Action",
+    "Old 2.73s probe long-tail and 80s S2C interruption OPEN; no deployment/ref/mainline"
+  ]
+}

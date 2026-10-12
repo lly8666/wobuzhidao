@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C05_ASYM_SECOND_SINGLE_ACTION38241759581_REALPATH_IN_PROGRESS",
+    "phase": "N2_C05_ASYM_MEASURED_S2C_10PCT_GRADE_EFFICIENCY_FAIL_C06_REVERSE_SINGLE_CASE_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1535,7 +1535,7 @@
       "evidence": "docs/evidence/adaptive-n2-c05-c06-asym-theory-actions-20261012.json"
     },
     "n2_c05": {
-      "status": "FIRST_SOURCE_ACTION_FAIL_MODULE_IMPORT_BEFOR_REALPATH_CANDIDATE_FIX_READY",
+      "status": "REALPATH_VALID_BUSINESS_SCOPED_PASS_DIRECTIONAL_S2C_HIGHLOSS_EFFICIENCY_FAIL",
       "model_version": "n2-asymmetric-iid-timeband-v1",
       "model_freeze": "docs/evidence/adaptive-n2-c05-c06-asym-model-freeze-v1.json",
       "model_freeze_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
@@ -1591,23 +1591,85 @@
         "source_sha": "758f310b005a26f2610d721f8877a8a13c5f521c",
         "run_id": 38241759581,
         "job_id": 114785832142,
-        "status": "IN_PROGRESS_ONE_240S_REALPATH_NOT_YET_ANALYZED",
-        "old_preflight_issue": "RESOLVED_INLINE_IMPORT_IN_ACTIONS",
-        "go_unit_race": "PASS",
+        "status": "ACTION_FAILURE_EFFICIENCY_ONLY_WITH_VALID_REALPATH",
+        "artifact_id": 11744115276,
+        "artifact_sha256": "c89feaa2223c338a13d7295f2df3b1b9b9c9da247fe9b23003ab03b089e853ff",
+        "summary_sha256": "af9f1c11a51bcd8368b02f31340230e09ad5813c8c24a3d3a5dcc4be35a89b51",
+        "Go_unit_race": "PASS",
         "python_preflight": "PASS",
-        "five_netns_deps": "PASS",
-        "binary_build": "PASS",
-        "measurement": "RUNNING",
-        "artifact_id": null,
-        "qualification": "PENDING"
+        "measurement_validity": "PASS",
+        "capacity_flags": [],
+        "netem_actual": {
+          "c2s_pct": 0.9837807733400014,
+          "s2c_pct": 10.029651425495253
+        },
+        "first_unique": {
+          "c2s_sent": 592107,
+          "c2s_recv": 592107,
+          "c2s_missing": 0,
+          "s2c_sent": 592107,
+          "s2c_recv": 592099,
+          "s2c_missing": 8
+        },
+        "first_unique_max_blackout_s": 0,
+        "business_return_only_p99_ms": {
+          "c2s": 301.5,
+          "s2c": 310.5
+        },
+        "frozen_last60_Rband_fraction": {
+          "c2s": 1,
+          "s2c": 0.7
+        },
+        "s2c_grade_last60": {
+          "R10_seconds": 42,
+          "R12_seconds": 18,
+          "gate_limit": "70pct_below90pct"
+        },
+        "wire_over_business": 2.8108846130718015,
+        "cpu_diag_on_s": {
+          "client": 103.09,
+          "server": 100.96
+        },
+        "evidence": "docs/evidence/adaptive-n2-c05-240s-asym1-10-s2c-efficiency-fail-20261012.json",
+        "qualification": "FAIL_N2_C05_ADAPTIVE_EFFICIENCY_S2C_10PCT_70PCT_LAST60",
+        "physical": "NOT_RUN"
       }
+    },
+    "n2_c06": {
+      "status": "NEW_REVERSED_10PCT_C2S_1PCT_S2C_SINGLE_PERFORMANCE_CANDIDATE_NOT_YET_ACTIONS",
+      "frozen_model_version": "n2-asymmetric-iid-timeband-v1",
+      "frozen_manifest_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+      "model_only_success_run_id": 38232373616,
+      "C2S_line_loss_pct": 10,
+      "S2C_line_loss_pct": 1,
+      "router_rs_rv": "rsrv=10pct",
+      "router_rcli": "rcli=1pct",
+      "frozen_allowed_last60": {
+        "c2s": [
+          8,
+          10
+        ],
+        "s2c": [
+          4,
+          8
+        ]
+      },
+      "fraction_min": 0.9,
+      "duration_s": 240,
+      "drain_s": 10,
+      "workflow": ".github/workflows/next-adaptive-n2-c06-asym10-1-single.yml",
+      "helper": "tools/adaptive_n2_c06_asym10_1.py",
+      "test": "tools/test_adaptive_n2_c06_asym_preflight.py",
+      "single_source_config_scenario_job": true,
+      "performance_run_id": "PENDING_SOURCE_PUSH",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "C05 second Action38241759581/job114785832142 exact SOURCE758f310b (not current docs HEAD) has passed Go unit/race, two Python preflight units and corrected inline import, Linux five-netns deps, binary build; ONE 240s C2S1%/S2C10% realpath is RUNNING. When complete obtain exact artifact id/digest and summarize actual qdisc loss rsrv/rcli, C2S grade last60 [4,8] and S2C [8,10] >=90%, source/first unique and throughput/p99, missing/capacity queue/CPU/parity. Original C05 preflight failure SOURCE4aaeaef run38241338957 archive11742454692 preserved. Do not launch C06 or any other perf until C05 final analyzed. N2 OPEN N3–N6 not started physical NOT_RUN old2.73s/80s OPEN no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-c05-second-action-realpath-running.md",
+  "next_task": "C05 valid 240s realpath SOURCE758f310b run38241759581 job114785832142 artifact11744115276 ZIPc89feaa summaryaf9f1c: actual rsrv1pct .9838, rcli10pct10.02965, business 592107/592107 c2s,592099/592107 s2c, no blackout, p99 301.5/310.5ms, no capacity; last60 C2S R4 100% [4,8] PASS, S2C R10 42s/R12 18s =>70% <90%, Action FAIL. Do not retune to one seed. Separate reversed C06 pre-frozen C2S10 S2C1 240s / one new exact SOURCE/config/scenario/job with Go core/race+helper preflight before load; check actual rsrv10/rcli1, C2S[R8,R10] S2C[R4,R8] 90% screen, source/MR, business/parity/wire/CPU. If C06 demonstrates 10pct issue both directions, characterize generic confidence/shape and protect vs efficiency; later finite GE/burst/blackhole/feedback/idle/mixed. N2 still OPEN, N3–N6 NOT_STARTED physical NOT_RUN, legacy2.73s/80s OPEN, no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-c05-240s-asym-efficiency-fail-c06-reverse-predeclared.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "0e3daca5e26a8487b0d0e1c94b67a3959deb791d",
-  "last_tested_scope": "M3_C04_FULL840S_HIGH20_BOTH_GOOD_INITIAL_AND_FINAL_OFF_REAL_BOTH_FIRSTUNIQUE_NO_BLACKOUT_C2S_RECOVER5_R8_R10_96_7PCT_PASS_S2C_78_3PCT_FAIL_GROSS_WIRE2_162X_CPU_ON",
+  "last_tested_source_sha": "758f310b005a26f2610d721f8877a8a13c5f521c",
+  "last_tested_scope": "C05_ASYM_REAL240S_C2S_1PCT_NT_R4_60OF60_BUSINESS_ALL592107_S2C10PCT_R8_R10_42OF60_70PCT_FAIL_MISSING8_P99_310_5MS_WIRE2_811X_NO_CAPACITY_DIAG_ON",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [
