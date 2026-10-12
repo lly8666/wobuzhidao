@@ -178,3 +178,15 @@ func PolicyForClientWithInitialAndCipher(lanes int, mode string, parity, minimum
     if err:=p.SupportedNow();err!=nil { return AdmissionPolicy{},err }
     return p,nil
 }
+
+// ParseRecordCipherName accepts exact operator configuration tokens only.
+// The outer TLS camouflage cipher is independent of this protected record
+// AEAD; never silently map an unknown string to ChaCha.
+func ParseRecordCipherName(name string) (uint8,error) {
+    switch name {
+    case "chacha20-poly1305": return CipherChaCha,nil
+    case "aes-128-gcm": return CipherAES128,nil
+    case "aes-256-gcm": return CipherAES256,nil
+    default: return 0,ErrAdmissionParams
+    }
+}

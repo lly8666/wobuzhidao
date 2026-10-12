@@ -76,6 +76,7 @@ func runWindows() error {
 		fecMode            = flag.String("fec-mode", "legacy", "FEC: legacy (existing fixed/off), fixed, off, auto, auto-aggressive; auto Normal only")
 		fecMinParity       = flag.Int("fec-min-parity", 4, "Normal auto minimum parity: 0=off or 4,8,10,12,16,20")
 		fecStartParity     = flag.Int("fec-start-parity", 20, "explicit Normal ordinary auto start: 20 default, or 0 only with --fec-min-parity=0")
+		recordCipher       = flag.String("record-cipher", "chacha20-poly1305", "V3 protected record AEAD (not outer TLS): chacha20-poly1305, aes-128-gcm, aes-256-gcm; AES must be explicitly chosen and peer upgraded")
 		adapterAlias       = flag.String("adapter", "WBD", "Wintun adapter alias")
 		dnsText            = flag.String("dns4", "1.1.1.1,8.8.8.8", "primary,backup IPv4 DNS; Windows resolver performs failover")
 		directText         = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
@@ -126,7 +127,9 @@ func runWindows() error {
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
 		return err
 	}
-	requestedPolicy, err := realityfront.PolicyForClientWithInitial(*lanes, *fecMode, *fecParity, *fecMinParity, *fecStartParity)
+	suite, err := realityfront.ParseRecordCipherName(*recordCipher)
+	if err != nil { return err }
+	requestedPolicy, err := realityfront.PolicyForClientWithInitialAndCipher(*lanes, *fecMode, *fecParity, *fecMinParity, *fecStartParity, suite)
 	if err != nil { return err }
 	// Use one maximum permitted profile for BOTH directions' record budget.
 	// An auto lane may later run off; it never changes the TUN or peer MSS.

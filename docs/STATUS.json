@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_C_AES128_AES256_REAL_TLS_PROTECTED_ADMISSION_AND_FEC_HANDOFF_GITHUB_SCOPED_PASS_REAL_AES_NETWORK_NEXT",
+    "phase": "N3_D_EXPLICIT_CLIENT_CIPHER_CONFIG_AND_GUI_TRANSPORT_SAFE_PLACEHOLDER_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2203,10 +2203,30 @@
         "real_net_performance": "NOT_RUN",
         "UI_AES": "NOT_ADVERTISED"
       }
+    },
+    "n3_cipher_client_config": {
+      "status": "PREDECLARED_NOT_ACTIONS_TESTED",
+      "flag": "record-cipher",
+      "default": "chacha20-poly1305",
+      "valid": [
+        "chacha20-poly1305",
+        "aes-128-gcm",
+        "aes-256-gcm"
+      ],
+      "linux": "cmd/wbd-client/main_linux.go",
+      "windows": "cmd/wbd-client/main_windows.go",
+      "strict_json": "same CLI flag namespace, no duplicate config layer",
+      "policy": "explicit AES only and reject legacy-mode implicit cipher migration",
+      "gui_section": "传输",
+      "gui_state": "Chacha only as selectable until real AES network verified; AES candidate annotated",
+      "workflow": ".github/workflows/next-adaptive-n3-explicit-record-cipher-config.yml",
+      "real_AES128_Actions": "NOT_RUN",
+      "real_AES256_Actions": "NOT_RUN",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "N3 protected policy and real encrypted V3 AES128/256 entry + lane Action38267871609/source16517ff/job114874521000/artifact11755447591 SHAda34f0f SUCCESS; first SOURCE53f473 Action38267370589 obsolete N2 rejected-AES test FAIL preserved. Next add explicit, default-safe record cipher client configuration flag and mapping `PolicyForClientWithInitialAndCipher` to production client Linux/Windows (server stays protected policy accept, no plaintext decoy lie), Go unit and Win client cmd build in GitHub, then run AES128 and AES256 each distinct true protected 5netns one SOURCE/config/scenario/job, analyze actual cryptographic/auth/full unique/latency CPU flags. Only after scoped network success expose AES128/256 as choices in GUI Transport with bound imported config/save/export/native screenshot, ChaCha default; then N4 Wintun Windows TUN, N5 GUI closure N6 three target builds. N2 noHOL targeted scoped and FEC GUI258 native PASS, C04/C05 grade failures and GE p99 open physical NOT_RUN; no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n3-protected-aes-admission-two-actions-scoped-pass.md",
+  "next_task": "N3-C TLS authenticated AES128/256 record suite+off/fixed/auto handoff Action38267871609 source16517ff artifact11755447591 SHAda34f0 success. NEXT N3-D explicit --record-cipher Linux/Windows client and strict JSON key; names chacha20-poly1305/aes-128-gcm/aes-256-gcm, old ChaCha default, wrong/legacy implicit AES reject, no outer TLS cipher confusion. Windows GUI Transmission page includes cipher catalog field but currently only ChaCha selectable until separate real AES128 and AES256 five-netns Action results; run Github Go unit/race and WinForms native catalog/screenshot. Then separate AES128 and AES256 one source/config/scenario/measurement job, record cryptographic correctness/first unique/CPU/wire; if qualified add GUI AES choices and proceed N4 Win TUN, N5 GUI N6 packaging. N2 noHOL scoped PASS; C04/C05 FEC efficiency red/GE p99 long-tail OPEN, physical NOT_RUN, no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n3-explicit-record-cipher-config-gui-gated-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",

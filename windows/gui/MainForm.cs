@@ -105,7 +105,7 @@ namespace Wbd.Gui {
                     bar.Controls.Add(reveal); AddWide(fields, bar);
                 }
                 if (section == "传输") {
-                    AddWide(fields, Note("固定冗余只用于兼容/固定模式；普通 Normal 自动可设置最低 R0 并显式从 R0 起步。其他自动默认从 R20 起步，最大 R20；Game 只允许固定或关闭。AES 尚未完成 N3，不能选择未实现的密码算法。"));
+                    AddWide(fields, Note("固定冗余只用于兼容/固定模式；普通 Normal 自动可设置最低 R0 并显式从 R0 起步。其他自动默认从 R20 起步，最大 R20；Game 只允许固定或关闭。AES-128/256 的TLS认证与Lane收发单元已通过，但真实网络/资源未验收，GUI暂不开放；默认 ChaCha，记录加密与外层TLS伪装密码套件相互独立。"));
                 }
                 if (section == "网络") {
                     var bar = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill };
@@ -161,8 +161,9 @@ namespace Wbd.Gui {
         }
         Control Editor(Field f) {
             if (f.Kind == "Bool") return new CheckBox { Text = "启用", AutoSize = true };
-            if (f.Key == "route-mode" || f.Key == "fec-parity" || f.Key == "fec-mode" || f.Key == "fec-min-parity" || f.Key == "fec-start-parity" || f.Key == "lanes") {
+            if (f.Key == "route-mode" || f.Key == "fec-parity" || f.Key == "fec-mode" || f.Key == "fec-min-parity" || f.Key == "fec-start-parity" || f.Key == "record-cipher" || f.Key == "lanes") {
                 var c = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
+                if (f.Key == "record-cipher") c.Items.Add(new Choice("chacha20-poly1305", "ChaCha20-Poly1305（已验默认）"));
                 if (f.Key == "route-mode") c.Items.AddRange(new[] { new Choice("bypass-lan-cn", "局域网与中国 IPv4 直连"), new Choice("bypass-lan", "仅局域网直连"), new Choice("all", "全部 IPv4 经隧道") });
                 if (f.Key == "lanes") c.Items.AddRange(new[] { new Choice("1", "Normal · 单 lane"), new Choice("2", "Game · 2 lanes"), new Choice("3", "Game · 3 lanes"), new Choice("4", "Game · 4 lanes") });
                 if (f.Key == "fec-parity") c.Items.AddRange(new[] { new Choice("0", "关闭"), new Choice("4", "20:4"), new Choice("8", "20:8"), new Choice("10", "20:10"), new Choice("12", "20:12"), new Choice("16", "20:16"), new Choice("20", "20:20") });

@@ -1,0 +1,87 @@
+name: next-adaptive-n3-explicit-record-cipher-config
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n3-explicit-record-cipher-config.yml"
+      - "internal/realityfront/policy_v3.go"
+      - "internal/realityfront/n3_record_cipher_config_test.go"
+      - "cmd/wbd-client/main_linux.go"
+      - "cmd/wbd-client/main_windows.go"
+permissions:
+  contents: read
+jobs:
+  one-source-CLI-config-only-before-real-AES-performance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact source and Go policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          echo "N3_CONFIG_SOURCE=$GITHUB_SHA"
+      - name: Exact suite names, protected default and existing policy/record tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -count=1 -v ./internal/realityfront -run '^TestN3'
+          go test -count=1 ./internal/realityfront ./internal/tlsrecord ./internal/datapath ./internal/runtimeowner ./internal/configfile
+          python3 - <<'PY'
+          from pathlib import Path
+          for p in (Path("cmd/wbd-client/main_linux.go"),Path("cmd/wbd-client/main_windows.go")):
+            s=p.read_text()
+            assert s.count('flag.String("record-cipher", "chacha20-poly1305"')==1
+            assert s.count("realityfront.ParseRecordCipherName(*recordCipher)")==1
+            assert s.count("realityfront.PolicyForClientWithInitialAndCipher(")==1
+            assert "realityfront.PolicyForClientWithInitial(*lanes" not in s
+          print("WBD_N3_CONFIG_CLIENT_EXACT_BOTH_FLAGS_PROTECTED_GATE_PASS")
+          PY
+      - name: Race and Go vet for changed crypto/config code
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race -count=1 ./internal/realityfront ./internal/tlsrecord ./internal/datapath ./internal/configfile
+          go vet ./internal/tlsrecord ./internal/datapath ./internal/configfile
+      - name: Linux and Windows real product binary cross-build
+        shell: bash
+        run: |
+          set -euo pipefail
+          go build -o /tmp/n3-client-linux ./cmd/wbd-client
+          GOOS=windows GOARCH=amd64 go build -o /tmp/n3-client-windows.exe ./cmd/wbd-client
+          GOOS=linux GOARCH=arm64 go build -o /tmp/n3-server-linux-arm64 ./cmd/wbd-server
+      - name: Explicitly scoped receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/n3-config
+          python3 - <<'PY'
+          import json,os,pathlib,hashlib
+          files=["internal/realityfront/policy_v3.go","internal/realityfront/n3_record_cipher_config_test.go",
+                 "cmd/wbd-client/main_linux.go","cmd/wbd-client/main_windows.go"]
+          out={"schema":1,"source_sha":os.environ["GITHUB_SHA"],"run_id":os.environ["GITHUB_RUN_ID"],
+            "scope":"N3_EXPLICIT_CLI_CONFIG_ONLY_NO_AES_NETWORK",
+            "client_default_cipher":"chacha20-poly1305",
+            "explicit_suites":["aes-128-gcm","aes-256-gcm"],
+            "real_AES128_network":"NOT_RUN","real_AES256_network":"NOT_RUN",
+            "GUI_AES":"NOT_YET_ADVERTISED","performance_jobs":0,
+            "file_hashes":{p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in files}}
+          pathlib.Path("artifacts/n3-config/receipt.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n3-explicit-config-${{ github.sha }}
+          path: artifacts/n3-config/
+          retention-days: 30
+          if-no-files-found: warn
