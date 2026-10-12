@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N3_D_AUTHORITY_CATALOG_AND_WINDOWS_NATIVE_GUI_SCOPED_PASS_REAL_AES_NETWORK_NOT_RUN",
+  "source_sha": "f5d8b8f4d04276fcdcb83e918bad9d85070a96a9",
+  "lifecycle_run_id": 38271632307,
+  "lifecycle_job_id": 114887028342,
+  "lifecycle_result": "SUCCESS",
+  "gui_run_id": 38271632294,
+  "gui_job_id": 114887027760,
+  "gui_artifact_id": 11756898284,
+  "gui_artifact_sha256": "98cff39c43a0e56e2e55333888822476b9d4962b3977b85697e4c766b0473ae7",
+  "gui_result": "PASS",
+  "native_checks": 267,
+  "has_transport_screenshot": true,
+  "cipher_default": "chacha20-poly1305",
+  "gui_cipher_enabled": [
+    "chacha20-poly1305"
+  ],
+  "gui_cipher_not_advertised": [
+    "aes-128-gcm",
+    "aes-256-gcm"
+  ],
+  "catalog_fields_linux_windows": "record-cipher exact default String in docs/PARAMETERS.json",
+  "catalog_source": "tools/parameter_catalog.py validated next-lifecycle",
+  "previous_failures": [
+    {
+      "run_id": 38269196268,
+      "reason": "parameter authority stale record-cipher"
+    },
+    {
+      "run_id": 38269196184,
+      "artifact_id": 11756475913,
+      "artifact_sha256": "50620ba9d538b086e10a567ae88ecf70d80cfe3bc2667f3c5a07a217f5fdedd4",
+      "reason": "strict PortableStore GUI/catalog field mismatch"
+    }
+  ],
+  "N2_nohol": "SCOPED_GO_UNIT_AND_RACE_PASS_REAL_INDEPENDENT_MIXED_TCP_UDP_10MS_NOT_RUN",
+  "real_AES128": "NOT_RUN",
+  "real_AES256": "NOT_RUN",
+  "physical": "NOT_RUN"
+}

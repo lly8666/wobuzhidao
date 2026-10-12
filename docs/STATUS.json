@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_D_EXPLICIT_CIPHER_PARAM_CATALOG_GUI_NATIVE_TEST_REGRESSION_FIXED_CANDIDATE",
+    "phase": "N3_E_REAL_AES128_AES256_SINGLE_SCENARIO_ACTIONS_NEXT_GUI_NATIVE_RECORD_CIPHER_CATALOG_SCOPED_PASS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -25,7 +25,7 @@
       "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
       "N3_aes": "IN_PROGRESS_AES_RECORD_CORE_ACTION38263629068_V3_LANE_ACTION38266249189_TLS_AUTH_AND_FEC_HANDOFF_ACTION38267871609_ALL_SCOPED_PASS_REAL_AES128_AES256_FIVE_NETNS_AND_UI_CONFIG_PENDING",
       "N4_windows_tun": "NOT_STARTED",
-      "N5_gui_catalog": "SCOPED_GUI_N2_FEC_CONFIG_AND_QUALITY_TRANSPORT_PAGE_IMPLEMENTED_WINDOWS_NATIVE_258_TESTS_PASS_N3_AES_SELECTOR_NOT_YET_ADVERTISED_PHYSICAL_NOT_RUN",
+      "N5_gui_catalog": "SCOPED_GUI_N2_AUTOFEC_AND_AUTH_QUALITY_N3_CHACHA_RECORD_CIPHER_TRANSPORT_NATIVE_267_TESTS_GH_ACTIONS_PASS_AES_CHOICES_WAIT_REAL_AES128_AES256_PHYSICAL_NOT_RUN",
       "N6_actions_packages": "NOT_STARTED"
     },
     "decisions": {
@@ -2083,7 +2083,7 @@
         "physical": "NOT_RUN",
         "evidence": "docs/evidence/adaptive-n2-windows-gui-transport-tab-native-actions-pass-20261012.json"
       },
-      "fourth_native_regression": "LATEST_56C170_SOURCE_FAIL_CATALOG_STALE_RECORD_CIPHER; FIX_CANDIDATE_PEND_ACTION"
+      "fourth_native_regression": "PASSED_ON_SOURCE_F5D8_GUI_267_WITH_RECORD_CIPHER_CHACHA_ONLY_AND_TRANSPORT_SCREENSHOT"
     },
     "n3_aes": {
       "status": "N3_AES_GCM_RECORD_CORE_STD_LIB_GITHUB_GO_TEST_RACE_VET_CROSS_BUILD_SCOPED_PASS_NOT_FULL_N3",
@@ -2206,7 +2206,7 @@
       }
     },
     "n3_cipher_client_config": {
-      "status": "CLI_GO_UNIT_RACE_CROSSBUILD_SUCCESS_CATALOG_AND_GUI_DRIFT_FAILURE_FIXED_SOURCE_CANDIDATE",
+      "status": "GITHUB_CLI_LIFECYCLE_AND_NATIVE_WINFORMS_267_SCOPED_PASS_REAL_AES_NETWORK_NOT_RUN",
       "flag": "record-cipher",
       "default": "chacha20-poly1305",
       "valid": [
@@ -2268,11 +2268,34 @@
         "native_current_source_validation": "PENDING_GITHUB_ACTION",
         "record_cipher_AES_GUI_choices": "NOT_ADVERTISED",
         "physical": "NOT_RUN"
+      },
+      "catalog_fix_validation": {
+        "source_sha": "f5d8b8f4d04276fcdcb83e918bad9d85070a96a9",
+        "status": "PASS",
+        "lifecycle": {
+          "run_id": 38271632307,
+          "job_id": 114887028342,
+          "conclusion": "SUCCESS"
+        },
+        "foundation": "SOURCE_F5D8_FOUNDATION_IN_PROGRESS_OR_MULTI_JOB_NOT_FINAL_AT_RECEIPT",
+        "windows_native": {
+          "run_id": 38271632294,
+          "job_id": 114887027760,
+          "artifact_id": 11756898284,
+          "zip_sha256": "98cff39c43a0e56e2e55333888822476b9d4962b3977b85697e4c766b0473ae7",
+          "conclusion": "SUCCESS",
+          "native_WinForms_selftest": "PASS",
+          "checks": 267,
+          "record_cipher": "CHACHA_ONLY_GUI_TRANSPORT",
+          "screenshot": "gui-screenshot.png",
+          "physical": "NOT_RUN"
+        },
+        "evidence": "docs/evidence/adaptive-n3-d-record-cipher-catalog-gui-native-scoped-pass-20261012.json"
       }
     }
   },
-  "next_task": "N2 noHOL current-source Go concurrency/race Action38257097791 PASS scoped; independent mixed TCP/UDP 10ms true realpath NOT_RUN (do not claim full physical noHOL). N2 Windows FEC config/quality native WinForms 258 checks and transport screenshot last PASS Action38260818090 SOURCE78a2dee. N3-D exact source56c170 CLI `record-cipher` unit/race/crossbuild Action38269196238 PASS, AES TLS unit Action38269196217 PASS; but latest lifecycle38269196268 FAIL because authoritative docs/PARAMETERS.json not regenerated, and native GUI Action38269196184 FAIL strict PortableStore field equality before selftest because record-cipher missing in catalog. New minimal catalog/docs + GuiTests record-cipher mutation/transport default fix should be tested by GH foundation+lifecycle+native Windows GUI, no network. Preserve failing prior Actions. Once green, N3-E each AES128 then AES256 separate one source/config/scenario/perf GH realpath, AES selectable in GUI ONLY after both actual success; then N4 Win TUN N5 GUI N6 packaging. Keep C04/C05 efficiency FAIL/GE high p99 OPEN, physical NOT_RUN no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n3-d-catalog-authority-native-gui-drift-fail-corrected.md",
+  "next_task": "N3-D last SOURCE f5d8b8f4d04276fcdcb83e918bad9d85070a96a9: authoritative docs/PARAMETERS.json catalog sync and Go policy lifecycle Action38271632307 PASS; Windows native WinForms Action38271632294/job114887027760 artifact11756898284 ZIP98cff... screenshot, exact SOURCE PASS 267 checks. Prior catalog drift Actions38269196268 and38269196184 FAIL preserved; AES Go core/admission/lane scoped PASS, real AES128/AES256 network NOT_RUN. NEXT N3-E predeclare separate lossless 300ms each direction 10Mbps/100s real five-netns AES-128-GCM then AES-256-GCM; each one SOURCE/config/scenario/measurement job with proper protected client --record-cipher suite, server suite derived only via authenticated V3 policy, full firstunique/integrity/p99/CPU/wire and packet provenance. Only after both real successes allow AES dropdown in Transmission; still keep old ChaCha default and legacy rejection. Then N4 Win TUN/N5 GUI/N6 build packaging. N2 scoped noHOL Go/race passed but distinct real mixed TCP/UDP multi-flow 10ms NOT_RUN; C04/C05 auto efficiency failures and GE p99 OPEN; physical NOT_RUN no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n3-d-catalog-native-gui-267-scoped-pass-aes-realpath-next.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
