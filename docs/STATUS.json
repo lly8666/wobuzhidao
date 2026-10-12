@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M3_R1_FIRST_ACTION_FAIL_HELPER_PATH_FIX_PENDING_SECOND_SINGLE_SOURCE_ACTION",
+    "phase": "N2_M3_R1_SCOPED_HIGH20_TO5_FIRST_DELIVERY_GRADE_PASS_C03_C04_CROSS_CONDITIONS_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_C03_C04_SOURCE_AND_OFF_STEADY_SCOPED_PASS_RECOVER5_ALL_DIRECTIONS_OVERPROTECTION_OPEN_M3_GENERIC_16_HISTORY_UNTESTED",
+      "N2_normal_auto": "IN_PROGRESS_M3_R1_REALPATH_SCOPED_20TO5_BOTH_R8_LAST60_AND_DELIVERY_PASS_C03_C04_OLD_RECOVER5_EFFICIENCY_FAILS_REQUIRE_SAME_SOURCE_CROSS_CASE",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -1201,7 +1201,7 @@
       "physical": "NOT_RUN"
     },
     "n2_m3": {
-      "status": "TWO_TIER_GO_CORE_RACE_FOUNDATION_LIFECYCLE_SUCCESS_NEW_M3_R1_MEASUREMENT_PENDING",
+      "status": "TWO_TIER_CORE_RACE_AND_FIRST_SINGLE_REALPATH_SCOPED_PASS_NOT_FULL_N2",
       "first_failed_source": "b5f6047be2b1cc2f52c400f8defba3d73915ecdf",
       "first_fail": {
         "foundation_run": 38219612120,
@@ -1246,8 +1246,8 @@
           "conclusion": "success"
         }
       },
-      "validation": "GITHUB_ACTIONS_UNIT_AND_RACE_SUCCESS_PERFORMANCE_NOT_RUN",
-      "measured_realpath": "NOT_RUN_AT_FREEZE_COMMIT",
+      "validation": "GITHUB_CORE_RACE_PASS_M3_R1_REALPATH_SCOPED_PASS_RESOURCE_NOT_QUALIFIED",
+      "measured_realpath": "M3_R1_ACTION38222552651_JOB114722069059_SOURCE56DA540D_SCOPED_HIGH20_RECOVER5_R8_BOTH",
       "m3_r1": {
         "scenario": "M3-R1",
         "source_to_be_exact_push_sha": "NEXT_COMMIT_GITHUB_SHA",
@@ -1313,15 +1313,41 @@
           "fix_scope": "tools/adaptive_n2_m3_recovery.py only: change 2 stage helper path references and analyzer path 1 reference",
           "theory_changed": false
         },
-        "second_run": "PENDING_CORRECTED_SOURCE_PUSH"
+        "second_run": {
+          "source_sha": "56da540d27eb8526de24cbb0df48a2203df0aa3c",
+          "run_id": 38222552651,
+          "job_id": 114722069059,
+          "artifact_id": 11735176697,
+          "artifact_sha256": "3bc6d70945f5d74204c75a1bd5f521cc439a99f82d94dacd616edb7feb47c9db",
+          "summary_sha256": "8eaf6906bb1265791f1f18b954c613cdd8790af0d1838d03ba7a4fdc1a0b7a16",
+          "gate_sha256": "eab14956a7556af4c191a8a301b4596e88295028c0ddb9eb617755afdf9ef78c",
+          "conclusion": "SUCCESS",
+          "grade_high20_last60_c2s_s2c": "R20_100PCT",
+          "grade_recover5_last60_c2s_s2c": "R8_100PCT",
+          "time_to_first_R8_since_recovery_s": {
+            "c2s": 58.04,
+            "s2c": 65
+          },
+          "max_first_unique_blackout_s": 0,
+          "first_unique_missing_both": 0,
+          "total_wire_over_business": 2.7792153425507413,
+          "cpu_s_diag_on": {
+            "client": 145.46,
+            "server": 144.51
+          },
+          "cpu_quota": "UNKNOWN_NO_DIAG_OFF_MATCHED_COMPARISON",
+          "scope": "SCOPED_PASS_NOT_FULL_N2",
+          "evidence": "docs/evidence/adaptive-n2-m3-r1-high20-to5-realpath-scope-actions-20261012.json",
+          "physical": "NOT_RUN"
+        }
       }
     }
   },
-  "next_task": "M3-R1 first Action38222199128 SOURCE82e84b8 job114720895289 artifact11734239704 FAIL before measuring (wrong prepared stage path; Python FileNotFoundError); Go N2 unit/race and frozen preflight PASS. Exact helper reference fixed to adaptive_n2_m3_recovery_stage.py (2 occurrences) and analyzer hash to adaptive_n2_m3_recovery.py (1). Preserve original failure receipt and hash, re-run GitHub same one 330s config/scenario/job on fresh SOURCE only; if second same failure no new evidence narrow, do not keep long reruns. M3 two-tier core/race remains successful, N2 product efficiency OPEN, GE only theory PASS. N3-N6 pending physical NOT_RUN, legacy2.73s/80s OPEN.",
-  "latest_log": "docs/devlog/20261012-n2-m3-r1-first-action-helper-fail-path-fix.md",
+  "next_task": "M3-R1 SOURCE56da540d Action38222552651 job114722069059 artifact11735176697 PASS limited full-k20 high20 protection, on active recovery 5% 58/65s to R8, last60 R8 100% both; first unique 814146/814146 each, p99 321.5ms, no blackouts, wire2.779x, CPUdiagON quota unknown. Preserve initial run38222199128 premeasurement helper FAIL and earlier M3 global16 OFF Wilson FAIL. Next CROSS-CONDITION same M3 code independent full C03 780s initial20/floor4 and C04 840s initial0/floor0, one performance SOURCE/config/scenario/job per Action, with frozen recover5 band explicitly enforced; no simultaneous load. If cross-condition limited/fails examine source acceptance and extra parity, don't overfit to one short wave. Then asymmetric C05/C06, GE C10, blackhole/reorder/feedback/sparse/idle/mixedTCPUDP MTU/Game and baseline diagnosticOFF CPU, at reasonable bounded N2 proceed N3–N6. Legacy2.73s and80s S2C OPEN; physical NOT_RUN; no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-m3-r1-single-realpath-scoped-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
-  "last_tested_scope": "C04_840S_OFFSTART_SOURCE_C835C6D_HIGH20_BOTH_R16_20_RETURN_OFF_BOTH_CLEAN_LAST60_FIRST_UNIQUE_BOTH_NO_GAP_MISSING894_1077_SCOPED_PASS_RECOVER5_BOTH_LT90PCT_FAIL",
+  "last_tested_source_sha": "56da540d27eb8526de24cbb0df48a2203df0aa3c",
+  "last_tested_scope": "M3_R1_SINGLE_330S_20PCT_120S_RECOVER5_210S_SOURCE56DA540D_BOTH_FEC_R20_HIGH60_R8_RECOVER_LAST60_BUSINESS_814146OF814146_P99_321_5MS_WIRE2_779X_CPU_DIAG_ON_SCOPED_ONLY",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

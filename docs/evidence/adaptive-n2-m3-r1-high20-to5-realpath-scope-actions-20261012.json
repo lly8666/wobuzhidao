@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "kind": "N2_M3_R1_TWO_TIER_HISTORY_SCOPED_REALPATH_PROTECTION_RECOVERY_FIRST_UNIQUE_PASS",
+  "date": "2026-10-12",
+  "source_sha": "56da540d27eb8526de24cbb0df48a2203df0aa3c",
+  "workflow": ".github/workflows/next-adaptive-n2-m3-20to5-realpath-single.yml",
+  "run_id": 38222552651,
+  "job_id": 114722069059,
+  "artifact_id": 11735176697,
+  "artifact_name": "adaptive-n2-m3-20to5-realpath-single-330s-56da540d27eb8526de24cbb0df48a2203df0aa3c",
+  "artifact_zip_sha256": "3bc6d70945f5d74204c75a1bd5f521cc439a99f82d94dacd616edb7feb47c9db",
+  "summary_sha256": "8eaf6906bb1265791f1f18b954c613cdd8790af0d1838d03ba7a4fdc1a0b7a16",
+  "gate_sha256": "eab14956a7556af4c191a8a301b4596e88295028c0ddb9eb617755afdf9ef78c",
+  "manifest_sha256": "36184cb4e038f73cee295a7acecb39d7ba98365cc391442a10f34d5ff5a86e85",
+  "harness_prep_sha256": "65cf2e4ba67b6d5d8f0300b5301fbd33ce7e6a11be41ffac463dc69ea80ca493",
+  "stage_events_sha256": "0a0f9439e21e9d371b9fc14a523d6fa6f1c7657a48db379b494d554e122b54e3",
+  "resource_sample_sha256": "7080e47fd7d0c97018e600ac9b808161b96984a6254ac2289c384791ea08133d",
+  "client_diag_sha256": "f91cd14364cd801c55ef4c438caa2b4d537430febb170b99b19978a5baa8215f",
+  "server_diag_sha256": "414399306fb9ac919af1573e7ff24a53100c196882e4d399c1f6b6798b4c878d",
+  "independent_frozen_model_sha256": "1ce8b9da16d637fc7c40acca20241b249480e083c4eb9001964e78d3aca8d141",
+  "original_C03_C04_model_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "model_version": "n2-m3-iid-recover-high20-to5-v1",
+  "gate_version": "n2-m3-recovery-active-grade-and-first-delivery-v1",
+  "helper_sha256_from_action": "f6b69716bf7e5993ff2ac91b69637f5f3b91334bdaba5d5718fa09cc63a8ae7c",
+  "stage_helper_sha256_from_action": "704c7d3d9eabf624b32da3695fde48af6b4b4af3d056addb6ec3bf1b371ea07f",
+  "derived_script_sha256": "566ead01f8edb56014638200c21cc3abefb47a55d6fbff4d8e52743c32d81c4c",
+  "template_sha256": "3f18f70de2610f0185bb1309822486b1276e2ebdfca7725fe92f7ccbb37575a3",
+  "action": "SUCCESS",
+  "analyzer": "SCOPED_M3_RECOVERY_STAGE_GRADE_OBSERVED_NOT_FULL_N2",
+  "independent_gate": "SCOPED_M3_FROZEN_PROTECTION_RECOVERY_FIRST_UNIQUE_PASS",
+  "errors": [],
+  "capacity_flags": [],
+  "original_first_premeasurement_failure": {
+    "source": "82e84b89ba278bd1ac4b4738a7aa4a2695c79f39",
+    "run_id": 38222199128,
+    "job_id": 114720895289,
+    "artifact_id": 11734239704,
+    "sha256": "abbce5f55469dbbca0fd7cfcda39849d6e991443fcdcebcd8c34904924b80c00",
+    "classification": "FAIL_HELPER_PATH_NO_REAL_NETEM"
+  },
+  "config": {
+    "normal_auto_start": 20,
+    "floor": 4,
+    "max": 20,
+    "record_cipher": "chacha20-poly1305",
+    "mtu": 1400,
+    "record_cap": 0,
+    "oneway_ms_each": 300,
+    "rate_mbps_each": 10,
+    "active_s": 330,
+    "drain_s": 10,
+    "waveform": [
+      {
+        "loss_pct": 20,
+        "active_s": 120
+      },
+      {
+        "loss_pct": 5,
+        "active_s": 210
+      }
+    ],
+    "biz_seeds": [
+      2026092201,
+      2026092202
+    ],
+    "netem_rng": "UNSEEDED_KERNEL_TC_NOT_SUPPORT",
+    "diagnostics": "ON"
+  },
+  "damage_actual": {
+    "loss20": {
+      "c2s_pct": 20.025731407056664,
+      "s2c_pct": 20.0537614845811
+    },
+    "recover5": {
+      "c2s_pct": 5.003517694973891,
+      "s2c_pct": 4.9988060279454
+    }
+  },
+  "business": {
+    "c2s": {
+      "sent": 814146,
+      "received_first_unique": 814146,
+      "missing": 0,
+      "bytes": 412500640,
+      "first_unique_goodput_mbps": 10.0000155,
+      "p99_delivered_oneway_ms": 321.5,
+      "max_contiguous_no_first_unique_s": 0,
+      "send_failures": 0,
+      "corrupt": 0,
+      "duplicates": 0
+    },
+    "s2c": {
+      "sent": 814146,
+      "received_first_unique": 814146,
+      "missing": 0,
+      "bytes": 412500640,
+      "first_unique_goodput_mbps": 10.0000155,
+      "p99_delivered_oneway_ms": 321.5,
+      "max_contiguous_no_first_unique_s": 0,
+      "send_failures": 0,
+      "corrupt": 0,
+      "duplicates": 0
+    }
+  },
+  "probe": {
+    "sent": 330,
+    "returned": 330,
+    "missing": 0,
+    "returned_only_rtt_p99_ms": 622
+  },
+  "controller": {
+    "c2s": {
+      "high20_last60": {
+        "profile": [
+          20
+        ],
+        "fraction_within_frozen_band": 1
+      },
+      "recover5_last60": {
+        "profile": [
+          8
+        ],
+        "fraction_within_frozen_band": 1
+      },
+      "change_grade_times_from_t0_s": {
+        "R16": 128.04,
+        "R12": 155.04,
+        "R10": 166.04,
+        "R8": 178.04
+      },
+      "recover5_time_to_R8_s": 58.04,
+      "active_recover5_seconds_above_R10_approx": 46,
+      "profile_switches": 4,
+      "source_report_seq": 194,
+      "qualified_history_windows_last": 16,
+      "encoder": {
+        "source_shards": 814536,
+        "source_bytes": 510269920,
+        "parity_shards": 549611,
+        "parity_bytes": 507616648,
+        "full20_groups": 40720,
+        "partial_groups": 67
+      }
+    },
+    "s2c": {
+      "high20_last60": {
+        "profile": [
+          20
+        ],
+        "fraction_within_frozen_band": 1
+      },
+      "recover5_last60": {
+        "profile": [
+          8
+        ],
+        "fraction_within_frozen_band": 1
+      },
+      "change_grade_times_from_t0_s": {
+        "R16": 126,
+        "R12": 150,
+        "R10": 172,
+        "R8": 185
+      },
+      "recover5_time_to_R8_s": 65,
+      "active_recover5_seconds_above_R10_approx": 52,
+      "profile_switches": 4,
+      "source_report_seq": 195,
+      "qualified_history_windows_last": 16,
+      "encoder": {
+        "source_shards": 814476,
+        "source_bytes": 510258880,
+        "parity_shards": 549516,
+        "parity_bytes": 510363440,
+        "full20_groups": 40720,
+        "partial_groups": 7
+      }
+    }
+  },
+  "wire": {
+    "qdisc_total_both_outer_bytes": 2292856215,
+    "business_bytes_total": 825001280,
+    "gross_outer_to_business_bytes": 2.7792153425507413,
+    "stage_only_outer_wire_bytes": 2290494743,
+    "stage_only_ratio": 2.776352956688746,
+    "qdisc_overlimits": 0,
+    "requeues": 0,
+    "final_backlog": 0,
+    "all_four_capture_kernel_drop": 0,
+    "parity_to_source_bytes_c2s": 0.9948002578713635,
+    "parity_to_source_bytes_s2c": 1.000204915591082,
+    "parity_source_bytes_aggregate": "Actual cumulative encoder FEC payload counters, not netem-only or non-FEC traffic; no exact per-record extra parity audit"
+  },
+  "resource": {
+    "runner_cpu_model": "AMD EPYC 9V74 80-Core Processor",
+    "vcpus": 4,
+    "hypervisor": "Microsoft",
+    "quota": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+    "psi_cpu_some_avg10_preflight": 1.01,
+    "psi_cpu_full_avg10_preflight": 0,
+    "client_cpu_s_diag_on": 145.46,
+    "server_cpu_s_diag_on": 144.51,
+    "samples": 71,
+    "normal_diag_off_cpu_qualification": "NOT_RUN"
+  },
+  "qualified": {
+    "high20_protection": "SCOPED_PASS",
+    "recover5_timely_grade": "SCOPED_PASS",
+    "first_arrival_liveness": "SCOPED_PASS",
+    "memory_bound_change": "GO_CORE_RACE_PASS",
+    "full_n2_auto_efficiency": "OPEN",
+    "asym_burst_sparse_feedback_idle_game_mixed_mtu": "NOT_RUN",
+    "physical": "NOT_RUN"
+  },
+  "limits": [
+    "This is first real 20%->5% run on M3, not a strict matched same-VM CPU/seed regression vs C03/C04",
+    "20% stage happens to have no first unique missing; not a universal weak-network zero loss requirement",
+    "Only last60 active grade screen and observed time-to-target establish scoped efficiency; large cumulative parity and wire amplification remain",
+    "CPU ON and different model/quota unknown preclude CPU improvement claim",
+    "Independent k/R model for full20 plus real partial/shards 67/7; cropped PN windows still conservative",
+    "No ongoing first-arrival p99/millisecond independent HOL for mixed TCP/UDP; only UDP first unique and returned p99",
+    "M3 offProof32 only unit/race, C04 full off after change NOT_RUN",
+    "Legacy 2.73s and 80s S2C open",
+    "No deployment, qualification ref movement or physical test"
+  ]
+}
