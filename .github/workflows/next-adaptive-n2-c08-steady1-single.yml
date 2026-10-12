@@ -48,6 +48,26 @@ jobs:
           set -euo pipefail
           go test -count=1 ./internal/adaptivefec
           go test -race -count=1 ./internal/adaptivefec ./internal/datapath ./internal/runtimeowner ./internal/linkdata
+      - name: C08 early-null server lane regression and helper syntax (no netem)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/adaptive_n2_c08_steady1.py
+          python3 - <<'PY'
+          import json, tempfile, sys
+          from pathlib import Path
+          sys.path.insert(0, "tools")
+          from adaptive_n2_c08_steady1 import grades
+          with tempfile.TemporaryDirectory() as td:
+              p=Path(td)/"early.jsonl"
+              for server in (False,True):
+                  event={"unix_ns":123, "product":(
+                      {"present":True,"tunnel":{"lanes":None}} if server
+                      else {"lanes":None})}
+                  p.write_text(json.dumps(event)+"\n")
+                  out=grades(Path(td),p.name,server,123)
+                  assert out["active"]==0 and out["stable_active"]==0, out
+          PY
       - name: Install five-netns kernel prerequisites
         run: |
           sudo apt-get update
@@ -70,6 +90,8 @@ jobs:
           python3 tools/adaptive_n2_c08_steady1.py prepare \
             --root . --script "$ART/n2-c08-derived.sh" --receipt "$ART/harness-prep.json"
           bash -n "$ART/n2-c08-derived.sh"
+          grep -q 'strict_resource_sampler.py' "$ART/n2-c08-derived.sh"
+          grep -q 'resource-samples.jsonl' "$ART/n2-c08-derived.sh"
       - name: One exact SOURCE C08 steady1pct 240s 300ms one-way Normal auto 10Mbps each, actively evaluate frozen last60 grades
         id: sample
         continue-on-error: true

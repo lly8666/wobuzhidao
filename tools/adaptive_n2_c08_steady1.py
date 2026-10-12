@@ -44,6 +44,23 @@ def prepare(root,script,receipt):
     s=exact(s,'"loss_percent": 0','"loss_percent": 1')
     marker='printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"'
     s=exact(s,marker,marker+'\ndate +%s%N > "$ART/start-wall-ns.txt"')
+    # Same bounded, read-only CPU/queue sampler already used by the 540s
+    # real-path fixture. Do not add per-business-packet diagnostic overhead.
+    sample = (
+        '\npython3 "$GITHUB_WORKSPACE/tools/strict_resource_sampler.py" \\'
+        '\n  --process "client=$CLIENT_PID" --process "server=$SERVER_PID" \\'
+        '\n  --namespace "router=$RTR" --interval 5'
+        ' --output "$ART/resource-samples.jsonl" \\'
+        '\n  > "$ART/resources.log" 2>&1 &'
+        '\nRESOURCE_PID="$!"'
+    )
+    s=exact(s,'date +%s%N > "$ART/start-wall-ns.txt"',
+            'date +%s%N > "$ART/start-wall-ns.txt"'+sample)
+    s=exact(s,'wait "$TGT_PID"\nTGT_PID=""',
+            'wait "$TGT_PID"\nTGT_PID=""'
+            '\nkill -TERM "$RESOURCE_PID" 2>/dev/null || true'
+            '\nwait "$RESOURCE_PID" || true'
+            '\nRESOURCE_PID=""')
     script.write_text(s)
     frozen=json.loads((root/FROZEN).read_text())
     scenario=next(x for x in frozen["scenarios"] if x["id"]=="C08")
@@ -92,15 +109,17 @@ def actual_loss(art,dev):
 
 def grades(art,name,server,start_ns):
     rows=[]
+    last_encoder={}
     for line in (art/name).read_text().splitlines():
         if not line.strip():continue
         ev=json.loads(line)
         prod=ev.get("product") or {}
         if server:
             prod=prod.get("tunnel") or ((prod.get("tunnels") or [{}])[0])
-        for lane in (prod or {}).get("lanes",[]):
+        for lane in ((prod or {}).get("lanes") or []):
             c=lane.get("control") or {}
             if not c.get("n2_controller_enabled"):continue
+            last_encoder=(((lane.get("lane") or {}).get("TxPath") or {}).get("Encoder") or {})
             r=lane.get("actual_tx_parity")
             if r not in (0,4,8,10,12,16,20):
                 raise ValueError("invalid actual TX profile "+str(r))
@@ -118,7 +137,8 @@ def grades(art,name,server,start_ns):
     # No drain minutes or idle traffic can improve the final60s denominator.
     eligible=len(stable)>=45
     within=len(protected)/len(stable) if stable else None
-    return {"snapshots_total":len(rows),"active":len(active),
+    return {"encoder_cumulative":last_encoder,
+            "snapshots_total":len(rows),"active":len(active),
             "stable_active":len(stable),"final60_in_frozen_grade_range_fraction":within,
             "final60_grade_screen":[4,8],"stable_window_adequate":eligible,
             "stable_meets_90pct_screen":bool(eligible and within>=.9),
@@ -217,6 +237,8 @@ def check(art,source,output):
         if not ctrls[direction]["stable_window_adequate"]:
             invalid.append(direction+" incomplete active final60 diagnostic")
     delivered=sum(x["first_unique_bytes"] for x in payload.values())
+    if not (art/"resource-samples.jsonl").is_file():
+        invalid.append("resource sampler data missing; no CPU utilization qualification")
     cpu=resource_evidence(art/"resource-samples.jsonl",delivered,errors)
     protected=all(c["stable_meets_90pct_screen"] for c in ctrls.values())
     if not protected and not invalid:
@@ -225,12 +247,18 @@ def check(art,source,output):
        "CAPACITY_LIMITED" if capacity else
        "C08_SCOPED_GRADE_SCREEN_PASS_NOT_FULL_N2" if protected and not errors else
        "FAIL_N2_C08_ADAPTIVE_EFFICIENCY")
+    total_qdisc_bytes=sum(x["wire_bytes"] for x in qdisc.values())
+    total_business_sent_bytes=sum(x["sent_bytes"] for x in payload.values())
+    gross_qdisc_amplification=(total_qdisc_bytes/total_business_sent_bytes
+                              if total_business_sent_bytes else None)
     result={"schema":1,"source_sha":source,"scenario":"C08_300ms_each_way_10mbps_each_steady_1pct_240s",
             "model_version":prep["frozen_model_version"],"model_freeze_sha256":prep["frozen_manifest_sha256"],
             "classification":classification,"errors":errors,"measurement_invalid":invalid,
             "capacity_flags":capacity,"scoped_grade_screen_pass":protected and not errors and not invalid and not capacity,
             "not_full_n2_pass":True,"config":cfg,"helper":prep,
             "qdisc_actual_injection":qdisc,"business_first_unique":payload,
+            "gross_qdisc_byte_amplification_over_generated_business":
+                gross_qdisc_amplification,
             "probe":probes,"directional_controller":ctrls,
             "cpu_diagnostic_on":cpu,"captured_raw_pcap_deleted_after_hash":pcap_hashes,
             "capture_kernel_drop":captures,"limitations":[

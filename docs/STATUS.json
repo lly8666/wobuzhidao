@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C08_240S_REAL_MEASURED_ANALYZER_NULL_LANES_FAIL_FIX_PENDING",
+    "phase": "N2_C08_ANALYZER_NULL_LANE_FIX_AND_REAL_CPU_SAMPLER_FRESH_RUN_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -885,7 +885,7 @@
     },
     "n2_c08": {
       "id": "C08",
-      "status": "FIRST_REALPATH_ACTION_FAILED_ANALYZER_NULL_LANES",
+      "status": "FIRST_RUN_FAIL_PRESERVED_SECOND_FRESH_SOURCE_AFTER_HELPER_FIX_PENDING",
       "frozen_model": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
       "exact_config": "Normal Auto initial20 floor4 max20 ChaCha 300ms each-way, 10Mbps each-way, real five-netns, MTU1400, steady1percent random netem 240s plus10s drain",
       "helper": "tools/adaptive_n2_c08_steady1.py",
@@ -898,7 +898,7 @@
       "stable_active_last_s": 60,
       "grade_within_fraction_min": 0.9,
       "product_original_540_source": "90925f81cfb16e8435c238b060c46492eef017ea",
-      "new_real_measurement": "NOT_RUN_AT_COMMIT",
+      "new_real_measurement": "NEXT_GITHUB_PUSH_SINGLE_C08_PERF_ACTION",
       "cpu": "DIAG_ON_NOT_CPU_OPT_PROOF",
       "quality": "NOT_QUALIFIED_PRODUCT_EFFICIENCY_OPEN",
       "physical": "NOT_RUN",
@@ -908,11 +908,13 @@
       "first_artifact_id": 11726706308,
       "first_archive_sha256": "dc92606858bcee76565e3258f5d3d40d49bac00b8e7907b901a7d30cbf25e962",
       "first_result": "GITHUB_ACTION_FAIL_ANALYZER_TYPEERROR_RAW_BUSINESS_COMPLETE_BOTH_LAST60_R4_DIAG_ON_CPU_MISSING",
-      "first_evidence": "docs/evidence/adaptive-n2-c08-first-analyzer-fail-20261012.json"
+      "first_evidence": "docs/evidence/adaptive-n2-c08-first-analyzer-fail-20261012.json",
+      "next_helper_change": "null lanes are skipped; collect bounded 5s client/server/router process CPU/queues and real parity counters; pre-measurement Actions regression; frozen C08 threshold unchanged",
+      "qualification": "FIRST_ACTION_FAIL_SECOND_PENDING_NO_N2_PASS"
     }
   },
-  "next_task": "C08 Action38203559446 job114661980342 raw business measured both first-unique592107/592107, qdisc about1%, both last60 R4, but workflow FAIL TypeError on early null server lanes in new Python analyzer; CPU sampler missing. Preserve original FAIL with exact artifact11726706308/sha. Fix only helper null lanes and add bounded resource sampler then re-run fresh SOURCE core/race+one C08 real scenario. Do not revise frozen screen. After C08 verify window/parity/wire/CPU/capacity, move to C03/C04/asym/burst etc; N2 OPEN, 2.73s/80s OPEN, N3-N6 not started, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261012-n2-c08-first-realpath-analyzer-failure.md",
+  "next_task": "Re-run predeclared C08 240s steady1% only once on new exact SOURCE with fixed nullable lanes, Actions deterministic regression before netem, and resource sampler; compare real unit/race/fixture, source-correlated grade and encoder parity/byte counters, injection, business first-unique p99/missing, CPU/PSI/quota and queues. Preserve first FAIL run38203559446 artifact11726706308. If new run FAIL, identify new evidence vs same failure, no blind repeat. If C08 measured scoped qualified, proceed predeclared C03/C04 then asym burst feedback sparse etc, each separate performance Action. Do not conflate diagnostic ON CPU or guessed k with product qualification; legacy 2.73s/80s open, N3-N6 not started, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261012-n2-c08-null-lane-sampler-fix-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
   "last_tested_scope": "READ_ONLY_RECEIPT_RECOVER540_BOTH_OFFSTART_RAISE_C2S_NO_LOWER_IN_240S_ACTIVE_CLEAN_DRAIN16_S2C_OFF_NOT_FULL_N2_PASS_FOUNDATION_7_ENABLED_PASS",
