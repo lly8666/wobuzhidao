@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "model_version": "n2-independent-ge-ctmc-v1",
+  "frozen_on_utc": "2026-10-12",
+  "measurement_status": "MODEL_ONLY_NOT_RUN",
+  "reference_use": "offline acceptance reference only; source/time-damage truth never given to product controller",
+  "target_source_residual": 0.001,
+  "stationary_mean_loss": 0.05,
+  "ge": {
+    "good_mean_ms": 450,
+    "bad_mean_ms": 50,
+    "good_loss": 0,
+    "bad_loss": 0.5,
+    "interpretation": "continuous-time 2-state Markov, generator rates good->bad 1/0.45s, bad->good 1/0.05s; conditional shard losses independently sampled given GE state, not packet-transition-driven",
+    "time_driven_fault_version": "PLANNED_C10_1MS_CLOCK_TRACE_NOT_BUILT",
+    "real_damage_requirement": "Record actual time traces/hash/phase counts and drop burst lengths, not just nominal mean5%"
+  },
+  "assumptions": [
+    {
+      "id": "FULL_K20_REALTIME_10MBPS",
+      "label": "IID-format full k20 boundary sensitivity, actual group shape later",
+      "groups": [
+        {
+          "k": 20,
+          "count": 1000
+        }
+      ],
+      "timing_ms": {
+        "source_spacing": 0.42,
+        "parity_spacing": 0.1
+      },
+      "not_actual_timing": true
+    },
+    {
+      "id": "K20_LONGER_INTERSHARD",
+      "label": "same FEC profile under slower systematic packets",
+      "groups": [
+        {
+          "k": 20,
+          "count": 1000
+        }
+      ],
+      "timing_ms": {
+        "source_spacing": 2,
+        "parity_spacing": 0.1
+      },
+      "not_actual_timing": true
+    },
+    {
+      "id": "PARTIAL_K5_MIX",
+      "label": "hypothetical 10pct of source groups k5; not measured group mix",
+      "groups": [
+        {
+          "k": 20,
+          "count": 90
+        },
+        {
+          "k": 5,
+          "count": 10
+        }
+      ],
+      "timing_ms": {
+        "source_spacing": 0.42,
+        "parity_spacing": 0.1
+      },
+      "not_actual_timing": true
+    },
+    {
+      "id": "SPARSE_K1",
+      "label": "all k1 partial, demonstrates unreachable protection",
+      "groups": [
+        {
+          "k": 1,
+          "count": 100
+        }
+      ],
+      "timing_ms": {
+        "source_spacing": 100,
+        "parity_spacing": 0
+      },
+      "not_actual_timing": true
+    }
+  ],
+  "C10_predeclared_single_performance_scenario": {
+    "id": "C10",
+    "network": "both 300ms one-way; each 10Mbps; MTU1400; Normal default initial20 floor4; ChaCha; one SOURCE/config/scenario/job",
+    "fault": "GE time-driven with 1ms clock or equivalent state-event trace",
+    "freeze_before_run": true,
+    "required_first_delivery": [
+      "source+tagged group shape independent MDS residual reference",
+      "actual first unique bytes/goodput, p99/missing/max gap",
+      "source/local/raw/drop/queue/CPU capacity",
+      "parity bytes/gross outer wire amplification",
+      "R vs group/uncertainty; unattainable target is not force max20"
+    ],
+    "interpretation": "Correlated state affects all packets while bad including parity; cannot demand zero missing or salvage all-blackout"
+  },
+  "limits": [
+    "Assumptions are not measured closed group timestamps",
+    "Correlated erasures affect parity and systematic; cannot reuse IID20:8 for 5%",
+    "Target may be unattainable even at R20 and must be labeled",
+    "Different VMs cannot compare CPU seconds; diagnostic ON is localization only"
+  ]
+}

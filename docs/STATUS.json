@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C03_LONGSERIAL_DELIVERY_SCOPED_PASS_C04_OFFSTART_FROZEN_840S_PENDING_ACTIONS",
+    "phase": "N2_C04_OFFSTART_REALPATH_ACTION_RUNNING_GE_CORRELATED_INDEPENDENT_MODEL_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1055,7 +1055,7 @@
       }
     },
     "n2_c04": {
-      "status": "SINGLE_SCENARIO_HELPER_AND_INDEPENDENT_GATE_CANDIDATE_ACTIONS_NOT_YET_STARTED",
+      "status": "ACTION38217154364_JOB114704454429_IN_PROGRESS_PREMEASUREMENT_UNIT_RACE_AND_FREEZE_PASS",
       "frozen_model": "n2-independent-iid-timeband-v1",
       "frozen_manifest": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
       "phase_offsets": [
@@ -1129,11 +1129,28 @@
       "require_actual_off_observed_final_last60": true,
       "full_n2_qualification": false,
       "perf_action": "NOT_RUN_AT_THIS_COMMIT",
+      "physical": "NOT_RUN",
+      "source_sha": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
+      "run_id": 38217154364,
+      "job_id": 114704454429,
+      "performance_stage": "ONE_840S_NETEM_WAVE_RUNNING"
+    },
+    "n2_ge_m2": {
+      "status": "INDEPENDENT_CTMC_MODEL_CANDIDATE_NOT_ACTIONS_VALIDATED_NOT_PERFORMANCE",
+      "reference_version": "n2-independent-ge-ctmc-v1",
+      "reference_file": "tools/adaptive_n2_ge_reference.py",
+      "unit_file": "tools/test_adaptive_n2_ge_reference.py",
+      "freeze": "docs/evidence/adaptive-n2-ge-ctmc-freeze-v1.json",
+      "workflow": ".github/workflows/next-adaptive-n2-ge-theory-only.yml",
+      "GE": "time-driven stationary G450ms/B50ms, Gp0 Bp0.5, mean 5%; systematic source-first, parity after group closure",
+      "unit": "PENDING_GITHUB_ACTION",
+      "not_yet_actual": "Actual source/parity packet timestamps and qualified GE injection not measured; cannot assert 5% correlated FEC target achievable",
+      "measurements": 0,
       "physical": "NOT_RUN"
     }
   },
-  "next_task": "C03 longserial Action38212621418 scoped correctness PASS no 41/46s blackout, but recover5 C2S last60 R12-R20 vs frozen R8-R10 FAIL. C04 explicit offstart/floor0, one 840s SOURCE/config/scenario/measurement job next; verify frozen C04 initial0 through CLI/manifest and 0/1/5/20/5/0 (5*120+240 clean) with >=90% last120 first unique and no >=5s empty, 20% last60 [16,20], clean last60 [0,4], actual off observed. Run model/gate unit and Go core/race in GitHub before sample. If FAIL pin job/artifact/causal classification, no blind duplicate; compare C03/C04 decline age and M/R before generic soft tweak. N2 OPEN, historical 2.73s/80s OPEN, N3–N6 NOT_STARTED, physical NOT_RUN, no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-c04-offstart-840s-frozen-dispatch-candidate.md",
+  "next_task": "C04 action38217154364 job114704454429 SOURCEc835c6d9986a is actively running EXACT off-start 840s one-config waveform; query final job/summary/gate/actual qdisc/CPU/parity/missing and freeze before any new performance, record exact artifact hash and failures; no concurrent performance. Pure GE M2 independent offline CTMC reference on new push must complete GitHub Actions unit and frozen outputs; it is not product performance. After C04 compare overprotection C03/C04, do not tune one direction/seed, next 1/10 asym and time-correlated burst after independent model validation. N2 OPEN, N3–N6 unfinished, historical2.73s/80s OPEN, physical NOT_RUN, no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-ge-independent-ctmc-model-candidate-while-c04-running.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "08e63965dd9b2910e2e8ea073a22bbc3d0032db6",
   "last_tested_scope": "C03_780S_SOURCE08E63965_SCOPE_FIRST_DELIVERY_C2S_MISSING579_S2C_MISSING142_MAX_GAP0_PROBE780OF780_STABLE20_R16_20_STABLE0_R4_C2S_RECOVER5_OVERPROTECTION_FAIL",
