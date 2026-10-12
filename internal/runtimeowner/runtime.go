@@ -408,6 +408,27 @@ func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, de
 	}, nil
 }
 
+// A steady TCP-like seq is 32 bit, and seqLT is only meaningful when
+// operands are less than half the serial space apart. The handshake's
+// initial ReceiveNext is an authentication/admission lower bound, but cannot
+// remain the receive lower bound forever: a fully valid long-lived stream
+// eventually advances more than 2^31 bytes from it and is misclassified
+// as pre-handshake replay. Keep an advancing numeric replay floor anchored
+// to the gap-free receive cursor. One GiB trailing history exceeds the
+// bounded 4096-record/3-second repair horizon without retaining any packets.
+// This never advances recvNext, re-emits payload, or weakens record auth.
+const steadyReceiveSerialHistoryBytes uint32 = 1 << 30
+
+// Called with t.mu held. Keep the serial comparison against the moving
+// receive cursor within half a sequence-space. The old origin is never
+// accepted again merely because the uint32 send sequence wraps.
+func (t *laneTransport) receiveSequenceFloorLocked() uint32 {
+    if uint32(t.recvNext-t.recvStart) > steadyReceiveSerialHistoryBytes {
+        t.recvStart = t.recvNext - steadyReceiveSerialHistoryBytes
+    }
+    return t.recvStart
+}
+
 func (t *laneTransport) matches(seg faketcp.Segment) bool {
 	return seg.SrcIP == t.cfg.PeerIP && seg.DstIP == t.cfg.LocalIP &&
 		seg.SrcPort == t.cfg.PeerPort && seg.DstPort == t.cfg.LocalPort
@@ -630,7 +651,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	}
 
 	if (len(seg.Payload) != 0 || seg.Flags&(faketcp.FlagFIN|faketcp.FlagRST) != 0) &&
-		seqLT(seg.Seq, t.recvStart) {
+		seqLT(seg.Seq, t.receiveSequenceFloorLocked()) {
 		ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 		if observeTiming {
 			t.timing.lockHeld.observe(time.Since(lockHeldStarted))
@@ -1317,7 +1338,7 @@ func (r *Runtime) steadyOwnsSegment(ref logicaltunnel.LaneRef, seg faketcp.Segme
 		return true
 	}
 	transport.mu.Lock()
-	start := transport.recvStart
+	start := transport.receiveSequenceFloorLocked()
 	transport.mu.Unlock()
 	return !seqLT(seg.Seq, start)
 }

@@ -1,0 +1,9 @@
+# 2026-10-12 N2 C03 780s 无交付 41/46秒：runtimeowner TCP样32位序号半区间修复候选
+
+审计SOURCE `6d6a19abb011c9d4479ca1161d7cf9d8449def11` 的 ACTION38208649752/job114677666815/artifact11729226256。**原始绿色工作流但产品交付FAIL** 已在 `docs/evidence/adaptive-n2-c03-780s-delivery-outage-20261012.json` 和上轮devlog永久保留，不能把CAPACITY_LIMITED_REVIEW改成PASS。净损伤最后180s真实0%，业务发送持续、kernel raw RX增长，但client/server lane接收分别约诊断相对747/756秒后冻结，business实测C2S41s/S2C46s no first delivery，103705/116514 missing；client 751s后大批ACK exceeds steady send sequence。原始累计真实encoder源约1.206GB+parity约0.949/0.960GB，加每条TLS/TCP-like record framing开销会在该时间附近越过从初始TCP seq算起2³¹字节的32位serial半区间。源码直接证据：`internal/runtimeowner/runtime.go` 初始化`recvStart=cfg.ReceiveNext`不更新、`Runtime.steadyOwnsSegment`与`laneTransport.handleSegment`判断`seqLT(seg.Seq, recvStart)`，`seqLT`是`int32(a-b)<0`。超过半区间，合法fresh源会被看作握手前replay；此解释与观察一致，但必须由定向单元和真实复测确认。
+
+本轮代码最小通用修复是新增 `receiveSequenceFloorLocked`：握手初期保留原初始`recvStart`门，只在`recvNext-recvStart > 1GiB`时更新floor到`recvNext-1GiB`，确保两个原比较位置始终在32位合法半区间，原seq wrap安全，额外内存为0。1GiB只是数字replay受理界，远大于4096记录/3s实际维修历史，**不通过超额排队等待ACK，不主动丢fresh**。不会让旧replay通过`floor-1`，也不会修改AEAD/重传密文/PN generation/auth/MTU、FEC 20:20 SIMD/immediate systematic/partial min(k,R)、记录索引或稳定期控制。旧包超出足够历史/原受理窗口仍可拒绝；新payload还必须通过原端到端认证。
+
+新增 `internal/runtimeowner/steady_long_lived_serial_test.go`：对两种初始seq（包含接近u32满值）以1MiB数学步长跨2³¹、2³²，遍历**真实生产 steadyOwnsSegment 判定**，要求fresh持续可接受、floor-1旧序号仍拒绝、4MiB内合法迟到片可接受；另独立断言连接初期不会提前打开握手准入门。没有用产品控制器充当理论答案，没有用netem阶段选择生产发送档。并且将通过GitHub完整 Go unit/race、Windows/Linux基础验证；**本提交时核心/性能均未验证，不能写PASS**。原 `next-foundation`对该分支push自动覆盖Go unit/race，必须等绿色再安排一条真正跨2³¹的新SOURCE最小C03实网反例。
+
+此修复由独立真实多分钟业务损坏触发，高优先级先于其余N2曲线和N3 AES；N2仍IN_PROGRESS，C08只scoped IID稳定1%，旧540 C2S慢降、2.73s探针尾和80s S2C断流继续OPEN。每个性能Action仍严格单SOURCE/config/scenario/measurement job；不并行、不挑runner/seed、不部署/不合并/不移动qualification ref。physical NOT_RUN。
