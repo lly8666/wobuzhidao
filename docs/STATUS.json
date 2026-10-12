@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M1_CORE_RACE_PASS_C08_STEADY1_SINGLE_SOURCE_REALPATH_MEASUREMENT_PENDING",
+    "phase": "N2_C08_240S_REAL_MEASURED_ANALYZER_NULL_LANES_FAIL_FIX_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -885,7 +885,7 @@
     },
     "n2_c08": {
       "id": "C08",
-      "status": "WORKFLOW_TO_BE_DISPATCHED_BY_WORKFLOW_FILE_PUSH_ONLY",
+      "status": "FIRST_REALPATH_ACTION_FAILED_ANALYZER_NULL_LANES",
       "frozen_model": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
       "exact_config": "Normal Auto initial20 floor4 max20 ChaCha 300ms each-way, 10Mbps each-way, real five-netns, MTU1400, steady1percent random netem 240s plus10s drain",
       "helper": "tools/adaptive_n2_c08_steady1.py",
@@ -900,12 +900,19 @@
       "product_original_540_source": "90925f81cfb16e8435c238b060c46492eef017ea",
       "new_real_measurement": "NOT_RUN_AT_COMMIT",
       "cpu": "DIAG_ON_NOT_CPU_OPT_PROOF",
-      "quality": "UNQUALIFIED_UNTIL_ACTIONS",
-      "physical": "NOT_RUN"
+      "quality": "NOT_QUALIFIED_PRODUCT_EFFICIENCY_OPEN",
+      "physical": "NOT_RUN",
+      "first_source_sha": "251b6225c1d5df8fd7f1110b04b296075d4b1f60",
+      "first_run_id": 38203559446,
+      "first_job_id": 114661980342,
+      "first_artifact_id": 11726706308,
+      "first_archive_sha256": "dc92606858bcee76565e3258f5d3d40d49bac00b8e7907b901a7d30cbf25e962",
+      "first_result": "GITHUB_ACTION_FAIL_ANALYZER_TYPEERROR_RAW_BUSINESS_COMPLETE_BOTH_LAST60_R4_DIAG_ON_CPU_MISSING",
+      "first_evidence": "docs/evidence/adaptive-n2-c08-first-analyzer-fail-20261012.json"
     }
   },
-  "next_task": "M1 core/race Actions38203279239 is PASS; run and audit first predeclared C08 steady1 240s one measurement job on exact C08 workflow SOURCE after fresh core/race. Inspect tc qdisc netem real loss, CPU/ISA/quota/PSI, socket/raw/queue capture drops, first unique goodput/p99/missing/continuous gaps, last60s grade<=8 at least90%, source/closed partial k and ambiguous R-only repairs. If Action red or capacity limited record exact job/hashes and narrow diagnose; do not change theoretical screen post-measurement. After C08 scoped result, sequentially C03/C04 and cross-condition burst/feedback/asym etc. N2 OPEN, N3-N6 unfinished, legacy2.73s/80s OPEN, physical NOT_RUN; do not merge/ref/deploy.",
-  "latest_log": "docs/devlog/20261012-n2-c08-one-source-steady1pct-240s-dispatch.md",
+  "next_task": "C08 Action38203559446 job114661980342 raw business measured both first-unique592107/592107, qdisc about1%, both last60 R4, but workflow FAIL TypeError on early null server lanes in new Python analyzer; CPU sampler missing. Preserve original FAIL with exact artifact11726706308/sha. Fix only helper null lanes and add bounded resource sampler then re-run fresh SOURCE core/race+one C08 real scenario. Do not revise frozen screen. After C08 verify window/parity/wire/CPU/capacity, move to C03/C04/asym/burst etc; N2 OPEN, 2.73s/80s OPEN, N3-N6 not started, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261012-n2-c08-first-realpath-analyzer-failure.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
   "last_tested_scope": "READ_ONLY_RECEIPT_RECOVER540_BOTH_OFFSTART_RAISE_C2S_NO_LOWER_IN_240S_ACTIVE_CLEAN_DRAIN16_S2C_OFF_NOT_FULL_N2_PASS_FOUNDATION_7_ENABLED_PASS",

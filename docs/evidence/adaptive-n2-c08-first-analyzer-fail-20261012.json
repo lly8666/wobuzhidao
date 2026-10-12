@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "kind": "C08_FIRST_REALPATH_RUN_ANALYZER_FAIL_PRESERVED",
+  "measured_at_utc": "2026-10-12T04:24:19Z",
+  "source_sha": "251b6225c1d5df8fd7f1110b04b296075d4b1f60",
+  "workflow": ".github/workflows/next-adaptive-n2-c08-steady1-single.yml",
+  "run_id": 38203559446,
+  "job_id": 114661980342,
+  "artifact_id": 11726706308,
+  "artifact_archive_sha256": "dc92606858bcee76565e3258f5d3d40d49bac00b8e7907b901a7d30cbf25e962",
+  "config": "V3 Normal auto initial20 min4 max20 ChaCha, 300ms each-way, each-way10Mbps, 240s steady random loss1%, MTU1400, diagnostics ON, kernel loss unseeded, biz seeds 2026092201/2026092202",
+  "helper_sha256": "413cd0ebe194df4a514b9b32eb1efe58b331263293b66183220ba920c505dc50",
+  "source_template_sha256": "3f18f70de2610f0185bb1309822486b1276e2ebdfca7725fe92f7ccbb37575a3",
+  "derived_script_sha256": "cc11d5a0528330b3e9315424380e80f8752baa8c3d44c920334fed006a57f926",
+  "frozen_manifest_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "model_version": "n2-independent-iid-timeband-v1",
+  "steps": {
+    "repository_policy": "PASS",
+    "fresh_exact_source_unit_race": "PASS",
+    "five_netns_business": "PASS",
+    "independent_analyzer": "FAIL",
+    "artifact_cleanup": "PASS",
+    "overall": "FAIL"
+  },
+  "fail": {
+    "error": "TypeError: 'NoneType' object is not iterable",
+    "file": "tools/adaptive_n2_c08_steady1.py",
+    "line": 101,
+    "trigger": "initial server diagnostic product.tunnel.lanes null (before lane provision), used .get('lanes',[]) without `or []`",
+    "classification": "ANALYZER_ONLY_NO_C08_QUALIFICATION"
+  },
+  "actual_qdisc": {
+    "rsrv": {
+      "transmitted_packets": 1614317,
+      "dropped_packets": 16149,
+      "loss_percent": 0.990453,
+      "wire_bytes": 742520185,
+      "overlimits": 0,
+      "requeues": 0
+    },
+    "rcli": {
+      "transmitted_packets": 1614192,
+      "dropped_packets": 16387,
+      "loss_percent": 1.00498,
+      "wire_bytes": 753213065,
+      "overlimits": 0,
+      "requeues": 0
+    },
+    "packet_capture_kernel_drops_all_four": 0
+  },
+  "payload": {
+    "c2s": {
+      "sent": 592107,
+      "first_unique": 592107,
+      "source_bytes": 300000880,
+      "first_unique_bytes": 300000880,
+      "oneway_p99_ms": 302,
+      "send_failures": 0,
+      "corrupt": 0,
+      "duplicates": 0
+    },
+    "s2c": {
+      "sent": 592107,
+      "first_unique": 592107,
+      "source_bytes": 300000880,
+      "first_unique_bytes": 300000880,
+      "oneway_p99_ms": 302,
+      "send_failures": 0,
+      "corrupt": 0,
+      "duplicates": 0
+    }
+  },
+  "probe": {
+    "sent": 240,
+    "received": 240,
+    "missing": 0,
+    "returned_only_rtt_p99_ms": 603
+  },
+  "active_grade_minute_bins": {
+    "c2s_first30": "20 (30 samples)",
+    "s2c_first30": "20 (29 samples)",
+    "c2s_at90s": "4",
+    "s2c_at120s": "4",
+    "c2s_final60": "60/60 R4",
+    "s2c_final60": "60/60 R4",
+    "frozen_screen": "R4..R8 for >=90% of last60 active; snapshot observed YES but verifier failed"
+  },
+  "encoder_cumulative": {
+    "c2s": {
+      "source_shards": 592406,
+      "source_bytes": 371108736,
+      "parity_shards": 211157,
+      "parity_bytes": 232818488,
+      "full_blocks": 29614,
+      "partial_blocks": 67
+    },
+    "s2c": {
+      "source_shards": 592347,
+      "source_bytes": 371097880,
+      "parity_shards": 234133,
+      "parity_bytes": 243649336,
+      "full_blocks": 29615,
+      "partial_blocks": 8
+    }
+  },
+  "resource": {
+    "cpu_process_sampler": "NOT_PRESENT_IN_ORIGINAL_C08_HARNESS",
+    "quota": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+    "diagnostics": "ON",
+    "cross_vm_cpu_comparison": "NOT_PERMITTED",
+    "wire_qdisc_aggregate_bytes": 1495733250,
+    "strict_wire_attribution": "NOT_AVAILABLE"
+  },
+  "limits": [
+    "Full successful business delivery and grade snapshots do not make failed Action pass",
+    "No exact stage-sensitive parity-byte time series",
+    "No CPU seconds, queue/socket lifecycle breakdown or diagnostic-OFF comparison",
+    "k distribution mostly full20, but cropped source qualification remains conservative",
+    "P99 from delivered business and returned probes; no 10ms HOL proof",
+    "No burst/asymmetric/sparse/mixedTCPUDP/MTU/fixed/Game qualification",
+    "Historic 2.73s off tail/80s S2C remain OPEN"
+  ],
+  "physical": "NOT_RUN",
+  "N2": "IN_PROGRESS"
+}

@@ -1,0 +1,9 @@
+# 2026-10-12 C08 首轮真实240秒：业务完整，分析器空lane失败（必须保留FAIL）
+
+SOURCE `251b6225c1d5df8fd7f1110b04b296075d4b1f60`；Action [38203559446](https://github.com/lly8666/wobuzhidao/actions/runs/38203559446)，job `114661980342`，artifact `11726706308`，archive SHA256 `dc92606858bcee76565e3258f5d3d40d49bac00b8e7907b901a7d30cbf25e962`。同一SOURCE/unit/race/privileged五netns构建/真实240s测量均成功，独立C08 Python分析器在server最初未建lane的诊断快照中抛 `TypeError: 'NoneType' object is not iterable`，`Enforce functional result` FAIL。**原工作流不能重标绿；没有summary.json，N2资格仍OPEN。** pcap在owned路径hash/delete；压缩产物约470KB，不在GitHub放正文/密钥。
+
+归档只读统计：Normal auto initial20/min4，双向各10Mbps、各300ms、240秒稳定内核随机loss1%（tc seed不支持；业务seeds 2026092201/2026092202）。真实qdisc `rsrv=16149/(1614317+16149)=0.99045%`、`rcli=16387/(1614192+16387)=1.00498%`，overlimit/requeue=0，四抓包的kernel drop=0，源发送故障/重复/坏包=0。两向各发送/首次唯一收齐592107、字节300000880，one-way业务p99=302ms；probe240/240、returned-only RTT p99=603ms。活跃末60s两端一秒诊断各60/60为R4，达到预冻结完整k20 IID C08理论R4、普通屏幕R4..R8的**观察值**，但分析器出错且缺CPU不称整场或N2 PASS。降档：C2S 90s后R4，S2C 120s后R4；并非仅结束drain切换。
+
+生产encoder累计C2S源592406个/371108736字节，parity211157个/232818488字节，完整组29614/partial67；S2C源592347/371097880，parity234133/243649336，完整组29615/partial8。累计parity/source字节比约62.7%/65.7%，不能拿末60秒R4假装全场仅20%开销。两条tc qdisc累计bytes为742520185/753213065，合计1495733250，含外层反馈/repair/headers，不能全部归FEC。原C08没有进程CPU资源sampler，quota不可见，诊断ON；**CPU效率不可判**，不同VM秒数不能证明优化。没有独立混合TCP/UDP和10ms无HOL证据。
+
+修复计划严格只动C08夹具：空lane用 `get("lanes") or []`；把已使用的有界资源采样器接入真实活跃阶段并在drain后终止，保留CPU/ISA/PSI/quota分层以及业务源/队列/drop；C08未改任何冻结理论档/容差、产品控制器或底层security/fresh/FEC语义。后一条新SOURCE真实测量仍是每Action一个固定配置/场景/job，先unit/race。无第二次同类失败而无新证据重复跑；若再失败缩小定位。N3-N6尚未开始；2.73s尾部/80s S2C OPEN；physical NOT_RUN。
