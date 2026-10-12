@@ -1,0 +1,5 @@
+# 2026-10-12 M3-C04 off-start跨工况单测已登记，尚未出性能结果
+
+候选原子提交 SOURCE `0e3daca5e26a8487b0d0e1c94b67a3959deb791d`， [Action38231341392](https://github.com/lly8666/wobuzhidao/actions/runs/38231341392) 仅一个性能测量job `114751294469`，固定配置Normal auto initial0/floor0、最大R20、ChaCha MTU1400、each10Mbps/300ms，固定单波形0/1/5/20/5/0共840秒活跃+10秒drain、diagnostic ON，tc RNG UNSEEDED。预冻结档位/余量已在旧 `docs/evidence/adaptive-n2-curve-freeze-v1.json` SHA256`288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f`。本条不会为了结果修改理论或测试seed，生产程序不能读netem真值。本次先在 Actions 执行C04静态freeze与阶段校验、原off/首次交付Python gate单元、cross recover5 gate单元及Go N2 core/race，然后构建正式二进制，才运行唯一真实负载；截至此登记前三项 Python/模型检查已PASS，Go unit/race在执行中。**没有给出性能结论**，Job还在跑，产物id/hash/summary尚未产生，绝不能预填。
+
+后续按冻结独立双向计算：高损末60s TX档R16..20；5%恢复末60s[540,600)允许R8..R10命中>=90%（原冻`must_settle=false`、B140.4s上界不足全120+60s，故不达仅算工程效率限制）；0%恢复最后240s必须在业务仍活跃时见真实R0，末60s允许[0,4]，最后120s业务首次交付>=90%且不连续>=5s全空；报真实netem qdisc、源M/R/partial、lost/missing/p99、parity与全wire、CPU/ISA/quota/PSI和队列。每性能Action一个SOURCE/config/scenario/job，不混C03。Action绿色不等于总体N2/物理全通过，历史FAIL保留、N3–N6未开始，physical NOT_RUN，2.73s尾/80s S2C问题OPEN，不自动部署/移ref/合mainline。

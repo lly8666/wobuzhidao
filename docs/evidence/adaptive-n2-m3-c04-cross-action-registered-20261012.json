@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "status": "ACTION_IN_PROGRESS_NOT_MEASURED_YET",
+  "exact_source_sha": "0e3daca5e26a8487b0d0e1c94b67a3959deb791d",
+  "run_id": 38231341392,
+  "job_id": 114751294469,
+  "workflow": ".github/workflows/next-adaptive-n2-m3-c04-cross-fullwave-single.yml",
+  "config": "Normal auto explicit initial0/floor0/max20 ChaCha MTU1400; 10Mbps each way, 300ms each direction; six loss stages 0/1/5/20/5/0, 840s business active plus 10s drain, diagnostics ON",
+  "freeze": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+  "model_version": "n2-independent-iid-timeband-v1",
+  "freeze_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "preflight_at_registration": [
+    "C04 independent freeze and stage validation PASS",
+    "Original first-delivery/off proof gate Python unit PASS",
+    "New C04 recover5 cross-gate Python unit PASS",
+    "N2 Go unit/race RUNNING"
+  ],
+  "original_c03_result": {
+    "source_sha": "272deba91faebb024079f153559726cda45df6e3",
+    "run_id": 38224570563,
+    "scoped_recover5_band_c2s": 0.95,
+    "s2c": 1
+  },
+  "artifact_id": null,
+  "artifact_sha256": null,
+  "product_performance_verdict": "NOT_YET_AVAILABLE",
+  "overall_n2": "OPEN",
+  "physical": "NOT_RUN"
+}
