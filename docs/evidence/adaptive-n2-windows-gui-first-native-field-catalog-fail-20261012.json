@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "WINDOWS_GUI_FIRST_NATIVE_CATALOG_STRICT_SET_MISMATCH_ACTION_FAIL",
+  "source_sha": "a79af61e6685f1c3e62354f5f25e593eaaa51ded",
+  "run_id": 38258825007,
+  "job_id": 114843769751,
+  "artifact_id": 11752130767,
+  "artifact_sha256": "7703397c514e3f2fa70ae0c0a50fa871a1281dc223f25990a164c9983ca3a9cb",
+  "native_windows_2022": true,
+  "passed": [
+    "Windows Go product runtimeentry/realityfront/configfile/wbd-client unit and compile",
+    "p6_build_release.py actual native Go exe plus .NET Framework4.8 WinForms compilation",
+    "check_p6_release.py exact manifest pass physical NOT_RUN"
+  ],
+  "failed": "GuiTests PortableStore constructor rejects unequal exact client CLI/GUI field sets",
+  "catalog_actual_Windows_client_keys": 43,
+  "gui_fields_before_fix": 41,
+  "missing_gui_keys": [
+    "control-padding",
+    "control-padding-max"
+  ],
+  "extra_gui_keys": [],
+  "root": "preexisting authenticated control-padding flags not yet in gui/fields.json; new N2 3 auto flags were added but uncovered preexisting 2",
+  "fix_scope": "only add existing control-padding Bool and control-padding-max Int to GUI labels/GuiTests, keep strict exact set equal and native Go flag validation; do not alter controller, crypto, product or loosen contract",
+  "real_network_business_executed": false,
+  "physical": "NOT_RUN",
+  "N2": "OPEN"
+}

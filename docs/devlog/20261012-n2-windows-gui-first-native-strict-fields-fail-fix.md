@@ -1,0 +1,9 @@
+# 2026-10-12 N2 Windows GUI第一次原生Action：严格字段一致性门红，补齐两个既有CLI字段
+
+候选GUI/质量轻状态 SOURCE `a79af61e6685f1c3e62354f5f25e593eaaa51ded`，[Action38258825007](https://github.com/lly8666/wobuzhidao/actions/runs/38258825007) job114843769751最终**FAIL**，小artifact11752130767 ZIP SHA256`7703397c514e3f2fa70ae0c0a50fa871a1281dc223f25990a164c9983ca3a9cb`。GitHub Windows2022 `go test ./internal/runtimeentry ./internal/realityfront ./internal/configfile ./cmd/wbd-client` PASS，真实Go正式Windows exe/.NET Framework4.8 WinForms编译、portable/P6 manifest校验全PASS，未执行任何物理驱动/网络操作。唯独WinForms启动自测 `PortableStore`对`docs/PARAMETERS.json` client-windows exact keys 与 `windows/gui/fields.json` exact keys对比即FAIL，抛出 `GUI 参数清单与客户端不一致，请重新下载完整版本`，selftest没有进入控件/真实check-config的功能loop、没有screenshots。**这不是N2功能/质控状态实现本身已FAIL的证明，更不能据编译过就标GUI PASS。**严格catalog全字段相等门必须继续保留。
+
+通过读取远端冻结参数目录得出client-windows共**43**配置/管理键、第一次GUI fields仅**41**，差集恰为已有生产`control-padding`和`control-padding-max`，无GUI多余键；新增3个`fec-mode`/`fec-min-parity`/`fec-start-parity`是同步的，但旧的控制加密健康/质量padding参数一直没有可编辑标签。根因是此前Windows GUI参数catalog落后于该source，而非应删减真实客户端或绕开严格清单。
+
+按最小修复：只向`windows/gui/fields.json`传输页`tls-startup-padding`附近增加两项，`control-padding`布尔默认true（已认证低频健康/质量消息保护），`control-padding-max`0默认依实际协商outer record空间、上限16384（只是控制包，不提升MTU）；`windows/gui/GuiTests.cs`每字段真实Go校验mutation加入false/16。**不动** `cmd/wbd-client/main_windows.go`、`internal/runtimeentry/gui_quality_brief.go`、FEC控制器/最小档/安全门、真实cipher policy，也不关闭`HashSet.SetEquals`核验。新SOURCE须GH Windows原生重新完整selftest、保存结果/screenshot/hash，不能用旧Action的P6/Go编译成功冒称原GUI功能完成。
+
+已有当前N2无HOL源码unit/race [Action38257097791](https://github.com/lly8666/wobuzhidao/actions/runs/38257097791) scoped PASS，真实混合TCP+UDP每流10ms HOL仍NOT_RUN；C10真实GE p99过高OPEN、C04/C05旧降档效率FAIL均保留。N2整体OPEN，N3 AES/N4 Windows TUN/N5 GUI/N6打包未全完成，physical NOT_RUN；不部署、不移动qualification-ref或合正式主线。
