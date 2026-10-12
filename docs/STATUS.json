@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M3_C04_CROSS_ACTION38231341392_IN_PROGRESS",
+    "phase": "N2_M3_C04_CROSS_RESTORE_OFF_SCOPED_PASS_RECOVER5_S2C_EFFICIENCY_FAIL_C05_ASYM_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1407,7 +1407,7 @@
         "qualification": "SCOPED_C03_PASS_NOT_FULL_N2_CPU_DIAG_ON_ONLY"
       },
       "c04_cross": {
-        "status": "ACTION38231341392_JOB114751294469_PREMEASUREMENT_GO_UNIT_RACE_IN_PROGRESS",
+        "status": "ACTION_FAIL_NEW_CROSS_GATE_ONLY_S2C_RECOVER5_78_3PCT_BELOW_90;_ORIGINAL_REALPATH_AND_OFF_PASS",
         "original_reference": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
         "original_model_version": "n2-independent-iid-timeband-v1",
         "frozen_model_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
@@ -1460,12 +1460,33 @@
         "core_race": "REQUIRED_IN_THIS_NEW_GITHUB_ACTION_BEFORE_NETWORK",
         "single_source_configuration_scenario_measurement_job": true,
         "run_id": "NOT_RUN_AT_THIS_COMMIT",
-        "performance_verdict": "IN_PROGRESS_NOT_PRODUCT_PASS",
+        "performance_verdict": "FAIL_S2C_RECOVER5_OBSERVATIONAL_RESOURCE_EFFICIENCY_NOT_AN_UNACHIEVABLE_B_BOUND_VIOLATION",
         "physical": "NOT_RUN",
         "performance_run_id": 38231341392,
         "performance_job_id": 114751294469,
         "source_sha": "0e3daca5e26a8487b0d0e1c94b67a3959deb791d",
-        "registration_evidence": "docs/evidence/adaptive-n2-m3-c04-cross-action-registered-20261012.json"
+        "registration_evidence": "docs/evidence/adaptive-n2-m3-c04-cross-action-registered-20261012.json",
+        "artifact_id": 11739481919,
+        "artifact_sha256": "04cf8570bbc2a62530c0a3138b7b72aa9aeb3556bf6c0a0b937bb134255865b9",
+        "summary_sha256": "5d30fc93d43c9571dbd42d1a0fc1c868b3c5cb4efc49411bb55408f01e0ac7ae",
+        "original_gate_sha256": "7299f8f196848617d87a58ca4576e928ca59afd87131e38cacc930de4b08ebca",
+        "cross_grade_gate_sha256": "83668e55f225eeb2b9c6af623710549020f90e989468944eff6714aebe9f5007",
+        "recover5_last60_in_frozen_R8_R10": {
+          "c2s": 0.9666666667,
+          "s2c": 0.7833333333
+        },
+        "last60_recover0_both_actual_off": true,
+        "max_first_delivery_gap_s": 0,
+        "missing_first_unique": {
+          "c2s": 818,
+          "s2c": 654
+        },
+        "returned_business_p99_ms": {
+          "c2s": 315.5,
+          "s2c": 315.5
+        },
+        "gross_wire_to_business": 2.162067886995896,
+        "evidence": "docs/evidence/adaptive-n2-m3-c04-cross-840s-actions-s2c-grade-fail-20261012.json"
       }
     },
     "n2_asym_model": {
@@ -1514,11 +1535,11 @@
       "evidence": "docs/evidence/adaptive-n2-c05-c06-asym-theory-actions-20261012.json"
     }
   },
-  "next_task": "FIRST finish pending real C04 Action38231341392 job114751294469 SOURCE0e3daca5, inspect actual off, recover5 R8-R10 last60, first unique, p99, missing, parity, CPU, qdisc and preserve artifact/hash. In parallel model ONLY C05/C06 Action38232373616 SOURCEdb1cb7f job114754697105 artifact11739206328 succeeded 0 performance jobs, independent B latest 122.4/107.4s at 1/10pct; this is NOT C05/C06 product test. After C04 result and no other perf, C05 and C06 separate 240s independent perf Actions; then GE burst, blackhole/reorder/feedback, sparse, mixedTCPUDP, MTU/Game. N2 OPEN N3-N6 not started physical NOT_RUN, legacy2.73s/80s OPEN, no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-c05-c06-asymmetric-theory-model-actions-pass.md",
+  "next_task": "C04 Action38231341392 job114751294469 artifact11739481919 verification: original summary+off first delivery PASS, but independent cross grade S2C recover5 last60 R8-R10 78.3% <90% so Action FAIL; C2S96.7%; both return actual off active last60, no blackout, missing818/654. Preserve evidence no blind same-C04 rerun or postfit B/model. C05 pre-frozen C2S1% vs S2C10% steady240s only NEXT performance Action, exact one SOURCE/config/scenario/job; helper adapted from C08 netem per direction, verify actual qdisc and proper source/target orientation. Core/race and separate gate unit first, then single realpath, followed C06 reverse separately, then GE bursts/blackhole/reorder/feedback/sparse/idle/mixedTCPUDP MTU Game. N2 remains OPEN, N3-N6 NOT_STARTED physical NOT_RUN, 2.73s/80s OPEN no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-m3-c04-cross840s-s2c-efficiency-fail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "272deba91faebb024079f153559726cda45df6e3",
-  "last_tested_scope": "M3_C03_780S_ACTION38224570563_FIRST_UNIQUE_C2S1923924OF1924344_S2C1924031OF1924344_GAP0_LOSS20_R16_20_100PCT_RECOVER5_R8_10_C2S95PCT_S2C100PCT_FINAL0_R4_BOTH_DIAG_ON_2_532X_SCOPED_PASS",
+  "last_tested_source_sha": "0e3daca5e26a8487b0d0e1c94b67a3959deb791d",
+  "last_tested_scope": "M3_C04_FULL840S_HIGH20_BOTH_GOOD_INITIAL_AND_FINAL_OFF_REAL_BOTH_FIRSTUNIQUE_NO_BLACKOUT_C2S_RECOVER5_R8_R10_96_7PCT_PASS_S2C_78_3PCT_FAIL_GROSS_WIRE2_162X_CPU_ON",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

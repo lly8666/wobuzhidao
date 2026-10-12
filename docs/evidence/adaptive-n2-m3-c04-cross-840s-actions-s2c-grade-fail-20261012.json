@@ -1,0 +1,249 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "M3_C04_CROSS_REALPATH_PROTECTION_AND_FINAL_OFF_SCOPED_PASS_RECOVER5_S2C_EFFICIENCY_SCREEN_FAIL",
+  "source_sha": "0e3daca5e26a8487b0d0e1c94b67a3959deb791d",
+  "workflow": ".github/workflows/next-adaptive-n2-m3-c04-cross-fullwave-single.yml",
+  "action_run_id": 38231341392,
+  "job_id": 114751294469,
+  "artifact_id": 11739481919,
+  "archive_sha256": "04cf8570bbc2a62530c0a3138b7b72aa9aeb3556bf6c0a0b937bb134255865b9",
+  "summary_sha256": "5d30fc93d43c9571dbd42d1a0fc1c868b3c5cb4efc49411bb55408f01e0ac7ae",
+  "cross_grade_gate_sha256": "83668e55f225eeb2b9c6af623710549020f90e989468944eff6714aebe9f5007",
+  "longserial_off_gate_sha256": "7299f8f196848617d87a58ca4576e928ca59afd87131e38cacc930de4b08ebca",
+  "manifest_sha256": "310761fdb282dc7a6aa07fb26a99d06f7a699dd6b32075ea4f316d40491bdac5",
+  "harness_prep_sha256": "cc6fd73d79843d51ffb2778c41fbf7386f9d55936f64c28ff7f680d3ef1cc76f",
+  "stage_events_sha256": "f209a6ff2d5cdc9eeafd0adf55f1df9b4a66d1b3ae787e268104c3efd118c77a",
+  "resource_samples_sha256": "6f2894b5eee179df8d222ba8dc1c702e5545c4477af07e26acd316e6939d5b33",
+  "client_diag_sha256": "9ed5de531655f6dc4434e5cd92f74745aaff5a114249d7b4270ae45f21113f9d",
+  "server_diag_sha256": "c1895a15038045386d9b2949a1ebf00c502d64a3c4278a2cb7dafd146fd8bb6d",
+  "model_reference": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+  "model_version": "n2-independent-iid-timeband-v1",
+  "model_reference_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+  "workflow_conclusion": "FAILURE_Enforce functional result",
+  "step_outcomes": {
+    "one_realpath_performance": "SUCCESS",
+    "original_summary": "SUCCESS",
+    "original_serial_and_off_first_delivery_gate": "SUCCESS",
+    "cross_recover5_grade_gate": "FAILURE",
+    "final_enforce": "FAILURE"
+  },
+  "specific_cross_fail": "s2c_RECOVER5_GRADE_SCREEN_UNMET",
+  "original_summary_classification": "SCOPED_WAVEFORM_CONTROL_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE",
+  "longserial_first_delivery_gate": "SCOPED_C04_LONG_LIVED_FIRST_DELIVERY_AND_GRADE_PASS",
+  "cross_grade_gate": "C04_RECOVER5_GRADE_SCREEN_LIMITED",
+  "original_errors": [],
+  "capacity_flags": [],
+  "cross_hard_errors": [],
+  "realpath_scenario": {
+    "config": "V3 Normal auto initial0/floor0/max20 ChaCha MTU1400; each direction 10Mbps, 300ms oneway; diagnostics ON; 840s active plus10s drain",
+    "waveform": "0_1_5_20_5_0_PCT",
+    "phase_times": [
+      0,
+      120,
+      240,
+      360,
+      480,
+      600,
+      840
+    ],
+    "netem_rng": "KERNEL_TC_UNSEEDED",
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ]
+  },
+  "actual_netem_pct": {
+    "clean0": [
+      0,
+      0
+    ],
+    "loss1": [
+      0.993,
+      0.989
+    ],
+    "loss5": [
+      4.998,
+      5.007
+    ],
+    "loss20": [
+      20.056,
+      20.005
+    ],
+    "recover5": [
+      5.021,
+      5.012
+    ],
+    "recover0": [
+      0,
+      0
+    ]
+  },
+  "business": {
+    "c2s": {
+      "sent": 2072370,
+      "first_unique": 2071552,
+      "missing": 818,
+      "missing_phases": {
+        "clean0": 0,
+        "loss1": 191,
+        "loss5": 23,
+        "loss20": 604,
+        "recover5": 0,
+        "recover0": 0
+      },
+      "max_contiguous_no_first_unique_s": 0,
+      "return_only_oneway_p99_ms": 315.5,
+      "encoder_source_bytes": 849810256,
+      "encoder_parity_bytes": 720280376,
+      "full_k20_blocks": 67814,
+      "partial_blocks": 19
+    },
+    "s2c": {
+      "sent": 2072370,
+      "first_unique": 2071716,
+      "missing": 654,
+      "missing_phases": {
+        "clean0": 0,
+        "loss1": 240,
+        "loss5": 10,
+        "loss20": 404,
+        "recover5": 0,
+        "recover0": 0
+      },
+      "max_contiguous_no_first_unique_s": 0,
+      "return_only_oneway_p99_ms": 315.5,
+      "encoder_source_bytes": 840380952,
+      "encoder_parity_bytes": 704854200,
+      "full_k20_blocks": 67066,
+      "partial_blocks": 10
+    }
+  },
+  "probe": {
+    "sent": 840,
+    "returned": 840,
+    "missing": 0,
+    "return_only_rtt_p99_ms": 620.5
+  },
+  "frozen_last60_grade": {
+    "clean0": {
+      "c2s": 1,
+      "s2c": 1,
+      "allowed": [
+        0,
+        4
+      ]
+    },
+    "loss1": {
+      "c2s": 1,
+      "s2c": 1,
+      "allowed": [
+        4,
+        8
+      ]
+    },
+    "loss5": {
+      "c2s": 1,
+      "s2c": 1,
+      "allowed": [
+        8,
+        10
+      ]
+    },
+    "loss20": {
+      "c2s": 1,
+      "s2c": 1,
+      "allowed": [
+        16,
+        20
+      ]
+    },
+    "recover5": {
+      "c2s": 0.9666666667,
+      "s2c": 0.7833333333,
+      "allowed": [
+        8,
+        10
+      ],
+      "minimum": 0.9,
+      "observed_profiles": {
+        "c2s": [
+          8,
+          10,
+          12
+        ],
+        "s2c": [
+          8,
+          10,
+          12
+        ]
+      }
+    },
+    "recover0": {
+      "c2s": 1,
+      "s2c": 1,
+      "allowed": [
+        0,
+        4
+      ],
+      "actual_off_last60": {
+        "c2s": true,
+        "s2c": true
+      },
+      "observed_profiles": {
+        "c2s": [
+          0
+        ],
+        "s2c": [
+          0
+        ]
+      }
+    }
+  },
+  "original_B_upper_s": 140.4,
+  "recover5_stage_duration_s": 120,
+  "grade_screen_interpretation": "below 90% S2C is observed ordinary auto resource inefficiency, not violation of guaranteed complete convergence bound because original must_settle false and stage is shorter than B_upper+60",
+  "previous_C04_same_policy_source": "c835c6d9986a1a5ce7838c4bb63e1dbcb169c8e0",
+  "previous_C04_recover5_fraction": {
+    "c2s": 0.5833333333,
+    "s2c": 0.4166666667
+  },
+  "current_C04_recover5_fraction": {
+    "c2s": 0.9666666667,
+    "s2c": 0.7833333333
+  },
+  "wire": {
+    "qdisc_stage_outer_bytes_both_directions": 4540346022,
+    "business_generated_bytes": 2100001600,
+    "gross_outer_wire_over_business": 2.162067886995896,
+    "parity_bytes_c2s": 720280376,
+    "parity_bytes_s2c": 704854200,
+    "limitation": "cumulative FEC-active source/parity exclude off periods and wire includes transport framing/control"
+  },
+  "resource": {
+    "samples": 173,
+    "cpu_diag_on_client_s": 296.8,
+    "cpu_diag_on_server_s": 295.18,
+    "host_machine_identity_comparable": false,
+    "cpu_optimization": "NOT_QUALIFIED_DIAG_ON_RUNNER_AND_UNKNOWN_QUOTA",
+    "netem_backpressure": "CAPACITY_FLAGS_EMPTY"
+  },
+  "qualifications": {
+    "source_and_business_first_delivery": "SCOPED_PASS",
+    "long_serial_2_31": "SCOPED_PASS",
+    "high20_protection": "SCOPED_PASS",
+    "return_to_actual_off_before_drain": "SCOPED_PASS",
+    "recover5_grade_c2s": "OBSERVED_SCREEN_PASS",
+    "recover5_grade_s2c": "FAIL_78_3_PCT_BELOW_90_PCT",
+    "overall_N2": "OPEN",
+    "N3_N6": "NOT_STARTED",
+    "physical": "NOT_RUN"
+  },
+  "limits": [
+    "No rerun or widened window just for S2C, original failure must remain",
+    "Different Actions/VMs and unseeded tc cannot support strict same-CPU optimization comparison",
+    "No GE correlated loss, blackhole/reorder, feedback isolated loss, sparse/idle/rotation, mixed independent TCP/UDP 10ms HOL, MTU/Game on this same SOURCE",
+    "Old 2.73s late-probe and 80s S2C interruption remain OPEN",
+    "No automatic deployment/qualification ref/mainline change"
+  ]
+}
