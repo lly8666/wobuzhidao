@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends clang llvm libbpf-dev bpftool iproute2 iputils-ping
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends clang llvm libbpf-dev iproute2 iputils-ping
           clang -O2 -g -target bpf -I "/usr/include/$(uname -m)-linux-gnu" \
             -c tools/adaptive_n2_ge_eventmap.c \
             -o artifacts/n2-c10-eventmap-preflight/ge-eventmap.o
@@ -78,7 +78,8 @@ jobs:
           sudo ip netns exec "$B" tc qdisc add dev vethGEb clsact
           sudo ip netns exec "$A" tc filter add dev vethGEa egress pref 1 bpf da obj "$ART/ge-eventmap.o" sec classifier
           sudo ip netns exec "$B" tc filter add dev vethGEb egress pref 1 bpf da obj "$ART/ge-eventmap.o" sec classifier
-          sudo bpftool -j map show > "$ART/map-list.json"
+          # Native bpf() map enumeration/load/readback; no Ubuntu 24.04
+          # virtual bpftool package or kernel-version-specific wrapper.
           # Shared exact epoch; 12s budget includes BPF map update/readback, Python startup.
           START_NS="$(python3 - <<'PY'
           import time

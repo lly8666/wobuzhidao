@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C10_EXACT_240S_CTMC_EVENT_TRACE_AND_KERNEL_MAP_CAPABILITY_CANDIDATE",
+    "phase": "N2_C10_EVENTMAP_FIRST_CAPABILITY_ACTION_FAIL_BPFTool_VIRTUAL_PACKAGE_FIX_BPF_SYSCALL",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1757,7 +1757,7 @@
       },
       "full_ge_trace_work": "NEXT_PREDECLARE_AND_PROVE_TWO_EGRESS_BPF_MAPS_1MS_CTMC_BEFORE_FULLSTACK",
       "eventmap_preflight": {
-        "status": "DECLARED_NOT_YET_RUN",
+        "status": "FIRST_GITHUB_ACTION_FAIL_BEFORE_BPF_COMPILE_NO_PERF_NATIVE_BPF_SYSCALL_FIX_CANDIDATE",
         "frozen_trace_manifest": "docs/evidence/adaptive-n2-c10-ctmc-event-trace-freeze-v1.json",
         "model_version": "n2-ge-ctmc-event-trace-v1",
         "seed": 2026101210,
@@ -1781,12 +1781,25 @@
         "performance_jobs": 0,
         "real_product": "NOT_RUN",
         "fail_closed": "Any map or eBPF verifier unsupported must be recorded as unsupported, do not run fake packet-level gemodel",
-        "physical": "NOT_RUN"
+        "physical": "NOT_RUN",
+        "first_action": {
+          "source_sha": "f3031cff9359ca40fb5df5834df19d9f6927764f",
+          "run_id": 38247690639,
+          "job_id": 114805623773,
+          "artifact_id": 11746073837,
+          "artifact_sha256": "3797a5662191d7b060c894b04452e4afd980834d91e7e9a70d56bebbda4a6a90",
+          "conclusion": "FAIL_BEFORE_KERNEL_LOAD",
+          "root": "Ubuntu24.04 apt bpftool is a virtual package with no installation candidate",
+          "model_units": "PASS_FROZEN_900_TRANSITIONS_AND_SHA256_5FCFE",
+          "no_real_performance": true,
+          "first_artifact_small": true,
+          "fix": "No apt bpftool: use bpf syscall BPF_MAP_GET_NEXT_ID 12, BPF_MAP_GET_FD_BY_ID 14, BPF_OBJ_GET_INFO_BY_FD15, BPF_MAP_UPDATE_ELEM2, BPF_MAP_LOOKUP_ELEM1 to verify two maps; keep frozen source model and event trace unchanged"
+        }
       }
     }
   },
-  "next_task": "C10 exact eventmap capability Action: predeclare freeze n2-ge-ctmc-event-trace-v1 seed2026101210 240s,900 monotonic ms transitions,bad dwell23249ms,canonical hash5fcfe423.. BPF tc 2048-entry bounded array-value8232 bytes binary-search time state, same monotonic START_NS on two egress maps, 50pct independent bad packets, never model input to controller. First Github kernel preflight nonproduct Action with two netns and 32G/32B tagged packets, verify maps actually loaded/read back/clock synced, evidence and hash; only after preflight success build a single SOURCE/config/scenario/job true GE protected realpath. Prior simple 16G/16B monotonic smoke run38246235063 SUCCESS but is only deterministic 100ms 0/100% capability. C05 S2C10pct efficiency70% FAIL and C04 5pct recover5 S2C78.3pct FAIL remain. N2 OPEN, N3-N6 pending physical NOT_RUN, 2.73s/80s historical OPEN, no deploy/merge/qualification ref.",
-  "latest_log": "docs/devlog/20261012-n2-c10-frozen-ctmc-epoch-map-preflight-candidate.md",
+  "next_task": "C10 original time-driven kernel BPF 16G/16B Action38246235063 PASS; C10 dynamic 2048 event map first Action38247690639/sourcef3031cf job114805623773 artifact11746073837 SHA3797a5 FAIL at `apt install bpftool` (virtual Ubuntu24.04 package) BEFORE BPF compile or product traffic. Freeze canonical trace hash5fcfe, 900 transitions, packing8232 bytes Python units PASS, no measurement. Fix only remove bpftool install/CLI and use native Linux bpf syscall to enumerate C10 maps and verify exact 2 loaded identity/value_size/boundaries/epoch. Re-run capability-only one nonperformance GH Action. If map verifier/syscall permission fails, preserve exact failure and decide bounded fallback; DO NOT claim full C10 or use tc gemodel. N2 OPEN N3-N6 pending physical NOT_RUN legacy2.73s/80s OPEN, no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-c10-eventmap-first-virtual-bpftool-fail-native-bpf-syscall-fix.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
   "last_tested_scope": "C06_REAL240S_DIRECTION_C2S10PCT_TRUE_NETEM10_0023_FEC_R10_LAST60_100PCT_S2C1PCT_TRUE_NETEM1_0172_FEC_R4_LAST60_100PCT_FIRST_UNIQUE592100_592107_AND592107_592107_P99_313_5_302MS_NO_GAP_WIRE2_8202X_DIAG_ON",

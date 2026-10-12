@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "source_sha": "f3031cff9359ca40fb5df5834df19d9f6927764f",
+  "run_id": 38247690639,
+  "job_id": 114805623773,
+  "artifact_id": 11746073837,
+  "archive_sha256": "3797a5662191d7b060c894b04452e4afd980834d91e7e9a70d56bebbda4a6a90",
+  "classification": "FAIL_GITHUB_TOOLCHAIN_BEFORE_BPF_MAP_LOAD",
+  "error": "E: Package 'bpftool' has no installation candidate",
+  "freeze_model_version": "n2-ge-ctmc-event-trace-v1",
+  "model_unit": "PASS",
+  "smoke_gate_unit": "PASS",
+  "frozen_trace_sha256": "5fcfe423903d5b7665eb8bb341170e901757b5e6def4af1ba4ca242670237aec",
+  "before_failure": [
+    "repo/perf policy PASS",
+    "Python frozen model hash900 events bad23249ms PASS",
+    "Python 8232-byte map packing and 32x2 probe gate unit PASS"
+  ],
+  "real_network_probe_executed": false,
+  "real_business_executed": false,
+  "overall_N2": "OPEN",
+  "physical": "NOT_RUN",
+  "fix": "Replace virtual package/ bpftool CLI with native syscalls for map GET_NEXT_ID, GET_FD_BY_ID, OBJ_GET_INFO_BY_FD, UPDATE_ELEM, LOOKUP_ELEM. Same exact frozen trace and 240s C10 plan, no grade or true damage changes."
+}

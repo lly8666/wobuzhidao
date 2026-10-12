@@ -115,13 +115,53 @@ def bpf_elem(fd,write,data=None):
     bpf_syscall(BPF_UPDATE if write else BPF_LOOKUP,a)
     return val.raw
 
+def next_map_id(start):
+    # BPF_MAP_GET_NEXT_ID = 12, global registry; ENOENT means end.
+    attr=(ctypes.c_uint32*3)(start,0,0)
+    bpf_syscall(12,attr)
+    return int(attr[1])
+
+def map_info(fd):
+    # BPF_OBJ_GET_INFO_BY_FD = 15, bpf_map_info stable first 40 bytes:
+    # type,id,key_size,value_size,max_entries,map_flags,name[16].
+    buf=ctypes.create_string_buffer(256)
+    class InfoAttr(ctypes.Structure):
+        _fields_=[("bpf_fd",ctypes.c_uint32),("info_len",ctypes.c_uint32),
+                  ("info",ctypes.c_uint64)]
+    attr=InfoAttr(fd,ctypes.sizeof(buf),ctypes.addressof(buf))
+    bpf_syscall(15,attr)
+    kind,identity,key_size,val_size,max_entries,flags,name=struct.unpack_from(
+        "<IIIIII16s",buf.raw)
+    return {"id":identity,"name":name.rstrip(bytes([0])).decode("ascii"),
+            "type":kind,"key_size":key_size,"value_size":val_size,
+            "max_entries":max_entries,"flags":flags}
+
 def maps():
-    entries=json.loads(subprocess.check_output(["bpftool","-j","map","show"]))
-    selected=[e for e in entries if e.get("name")==NAME and
-              e.get("type")=="array" and e.get("value_size")==VALUE_SIZE and
-              e.get("max_entries")==1]
-    if len(selected)!=2:raise ValueError(f"Expected exactly 2 attached C10 GE maps, got {selected!r}")
-    return sorted(int(e["id"]) for e in selected)
+    # Enumerate existing kernel BPF maps via native bpf() syscalls. Neither
+    # kernel-version-specific bpftool nor uname-specific apt packages needed.
+    selected=[]
+    ident=0
+    for _ in range(4096):
+        try:
+            ident=next_map_id(ident)
+        except OSError as ex:
+            if ex.errno==2:
+                break
+            raise
+        fd=mapfd(ident)
+        try:
+            info=map_info(fd)
+        finally:
+            os.close(fd)
+        if (info["name"]==NAME and info["type"]==2 and
+            info["key_size"]==4 and info["value_size"]==VALUE_SIZE and
+            info["max_entries"]==1):
+            selected.append(info)
+    else:
+        raise ValueError("Excessive BPF map registry, fail closed")
+    if len(selected)!=2:
+        raise ValueError(f"Expected exactly 2 native C10 GE map identities, got {selected!r}")
+    return sorted(x["id"] for x in selected)
 
 def run(mode,trace,start_ns,output):
     ids=maps()
