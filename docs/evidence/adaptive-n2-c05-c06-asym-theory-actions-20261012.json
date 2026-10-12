@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N2_C05_C06_ASYM_INDEPENDENT_IID_MODEL_ONLY_ACTIONS_PASS_NOT_PRODUCT_PERFORMANCE",
+  "source_sha": "db1cb7f4cce5882ebef553eccc8bdb80df2800d6",
+  "run_id": 38232373616,
+  "job_id": 114754697105,
+  "artifact_id": 11739206328,
+  "artifact_zip_sha256": "7e0c3e96b14458938f3db1402288e4c6a4b473d8e2eaf57095ee91870bbc33c1",
+  "model_output_sha256": "0480a100841e976885f5baa3807b328f36cdbf9196040e8358238e6da0b5c778",
+  "receipt_sha256": "ef2070b5f2e2270d2a562c2b4b2091128512a91776246747548d429ad2c725fb",
+  "freeze_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+  "helper_sha256": "fbfc1406c75de5f7d6f7107a491485f5a39caccdc427b72f48f41f2574302532",
+  "unit_sha256": "a6328e41b42b37cd18aad7568f6b845bf968c4c2f460641f35f7efe143a43ec3",
+  "model_version": "n2-asymmetric-iid-timeband-v1",
+  "performance_measurement_jobs": 0,
+  "actions_unit": "PASS",
+  "C05": {
+    "loss_pct": {
+      "c2s": 1,
+      "s2c": 10
+    },
+    "full20_target_parity": {
+      "c2s": 4,
+      "s2c": 8
+    },
+    "allowed_grade_last60": {
+      "c2s": [
+        4,
+        8
+      ],
+      "s2c": [
+        8,
+        10
+      ]
+    }
+  },
+  "C06": {
+    "loss_pct": {
+      "c2s": 10,
+      "s2c": 1
+    },
+    "full20_target_parity": {
+      "c2s": 8,
+      "s2c": 4
+    },
+    "allowed_grade_last60": {
+      "c2s": [
+        8,
+        10
+      ],
+      "s2c": [
+        4,
+        8
+      ]
+    }
+  },
+  "frozen_independent_B_timebands_from_initial20": {
+    "p1": {
+      "earliest_s": 79.6,
+      "expected_s": 81.6,
+      "latest_screen_s": 122.4
+    },
+    "p10": {
+      "earliest_s": 69.6,
+      "expected_s": 71.6,
+      "latest_screen_s": 107.4
+    }
+  },
+  "planned_separate_realpath": {
+    "each_active_s": 240,
+    "drain_s": 10,
+    "diagnostics": "ON",
+    "first_unique_last60_s": [
+      180,
+      240
+    ],
+    "one_source_config_scenario_job_per_Action": true
+  },
+  "limits": [
+    "No source group shape of future actual C05/C06, only full20 IID; partial min(k,R) after-run recompute",
+    "No product network test and neither C05 nor C06 per-direction isolation certified",
+    "N2 ongoing M3 C04 realpath Action38231341392 is independent ongoing, do not conflate Sources",
+    "MODEL SUCCESS IS NOT AUTO FEC PRODUCT PASS",
+    "C2S/S2C loss RNG unseeded future actual qdisc/drop must be checked",
+    "Physical NOT_RUN"
+  ]
+}

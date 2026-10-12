@@ -1469,7 +1469,7 @@
       }
     },
     "n2_asym_model": {
-      "status": "PREDECLARED_INDEPENDENT_MODEL_C05_C06_NO_NETWORK_TESTS_NOT_ACTIONS_VALIDATED",
+      "status": "GITHUB_MODEL_ONLY_UNIT_REFERENCE_SUCCESS_NO_REAL_NETWORK_MEASUREMENT",
       "model_version": "n2-asymmetric-iid-timeband-v1",
       "model_file": "tools/adaptive_n2_asym_reference.py",
       "model_unit": "tools/test_adaptive_n2_asym_reference.py",
@@ -1502,12 +1502,20 @@
         180,
         240
       ],
-      "qualification": "MODEL_ONLY_PENDING_GITHUB_UNIT_NOT_PRODUCT_PERFORMANCE",
-      "physical": "NOT_RUN"
+      "qualification": "THEORY_UNIT_ONLY_C05_C06_PERFORMANCE_NOT_RUN",
+      "physical": "NOT_RUN",
+      "model_source_sha": "db1cb7f4cce5882ebef553eccc8bdb80df2800d6",
+      "model_run_id": 38232373616,
+      "model_job_id": 114754697105,
+      "model_artifact_id": 11739206328,
+      "model_artifact_sha256": "7e0c3e96b14458938f3db1402288e4c6a4b473d8e2eaf57095ee91870bbc33c1",
+      "model_output_sha256": "0480a100841e976885f5baa3807b328f36cdbf9196040e8358238e6da0b5c778",
+      "freeze_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+      "evidence": "docs/evidence/adaptive-n2-c05-c06-asym-theory-actions-20261012.json"
     }
   },
-  "next_task": "FIRST finish currently running M3 C04 Action38231341392 job114751294469 SOURCE0e3daca5 (no other perf). Check real action/summary/gates actual off return while active and recover5 last60 grade, record failure/limits/hash. In parallel only MODEL-ONLY Action for prospective C05/C06 asymmetric 1vs10pct IID reference n2-asymmetric-iid-timeband-v1 (240s, history16, p1 full20 R4, p10 R8) to freeze BEFORE each separate future real measurement. Model action is zero performance jobs, not C05/C06 measured. C04 final status first; if okay one C05 then C06 separate performance Action; later GE correlated bursts, feedback, blackhole/reorder, sparse, mixedTCPUDP and Game/MTU. Do not CPU compare across VMs or claim N2 full PASS. physical NOT_RUN N3–N6 NOT_STARTED old2.73s/80s OPEN no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n2-c05-c06-asymmetric-independent-iid-reference-candidate.md",
+  "next_task": "FIRST finish pending real C04 Action38231341392 job114751294469 SOURCE0e3daca5, inspect actual off, recover5 R8-R10 last60, first unique, p99, missing, parity, CPU, qdisc and preserve artifact/hash. In parallel model ONLY C05/C06 Action38232373616 SOURCEdb1cb7f job114754697105 artifact11739206328 succeeded 0 performance jobs, independent B latest 122.4/107.4s at 1/10pct; this is NOT C05/C06 product test. After C04 result and no other perf, C05 and C06 separate 240s independent perf Actions; then GE burst, blackhole/reorder/feedback, sparse, mixedTCPUDP, MTU/Game. N2 OPEN N3-N6 not started physical NOT_RUN, legacy2.73s/80s OPEN, no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-c05-c06-asymmetric-theory-model-actions-pass.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "272deba91faebb024079f153559726cda45df6e3",
   "last_tested_scope": "M3_C03_780S_ACTION38224570563_FIRST_UNIQUE_C2S1923924OF1924344_S2C1924031OF1924344_GAP0_LOSS20_R16_20_100PCT_RECOVER5_R8_10_C2S95PCT_S2C100PCT_FINAL0_R4_BOTH_DIAG_ON_2_532X_SCOPED_PASS",
