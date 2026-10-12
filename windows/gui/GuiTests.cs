@@ -28,6 +28,14 @@ namespace Wbd.Gui {
             public Task StopAsync() { Events.Add("stop"); if (FailStop) throw new IOException("test cleanup unfinished"); Active = false; return Task.FromResult(0); }
             public void Dispose() { }
         }
+        static TabControl FindTabControl(Control c) {
+            if (c is TabControl) return (TabControl)c;
+            foreach (Control child in c.Controls) {
+                TabControl found = FindTabControl(child);
+                if (found != null) return found;
+            }
+            return null;
+        }
         static void Wait(Task task) { while (!task.IsCompleted) { Application.DoEvents(); System.Threading.Thread.Sleep(5); } task.GetAwaiter().GetResult(); }
         static Dictionary<string, object> Wait(Task<Dictionary<string, object>> task) { Wait((Task)task); return task.Result; }
         public static int Run(string root) {
@@ -160,6 +168,16 @@ namespace Wbd.Gui {
                     Assert(!form.Redact(" not-real-password ").Contains("not-real-password"), "GUI secret redaction");
                     Wait(form.UpdateChinaAsync());
                     Assert(File.ReadAllLines(store.InRoot("data/china-ipv4.txt")).Length>100 && Convert.ToString(second.Values["china-ip-file"])=="data/china-ipv4.txt", "GUI manual China list update writes and selects portable validated list");
+                    // Visually audit the user's requested placement: the
+                    // native screenshot must show the "传输" page with the
+                    // new FEC controls and read-only UNKNOWN quality line.
+                    TabControl actualTabs = FindTabControl(form);
+                    Assert(actualTabs != null,"native WinForms main tabs exist");
+                    var transfer = actualTabs.TabPages.Cast<TabPage>().FirstOrDefault(x=>x.Text=="传输");
+                    Assert(transfer != null,"native WinForms Transport settings tab exists");
+                    actualTabs.SelectedTab=transfer;
+                    Application.DoEvents();
+                    Assert(form.QualityText.Contains("实际发送 FEC：未知"),"disconnected Transport quality is UNKNOWN");
                     form.Capture(store.InRoot("gui-screenshot.png"));
                 }
                 store.Save(); var reopened = new PortableStore(root); Assert(reopened.Book.Profiles.Count >= 2, "server profiles persist after reopening");

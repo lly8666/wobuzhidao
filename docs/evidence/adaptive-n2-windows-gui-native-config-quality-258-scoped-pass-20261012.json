@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N2_WINDOWS_GUI_FEC_CONFIG_AND_SCALAR_QUALITY_GITHUB_WINDOWS_NATIVE_FUNCTIONAL_258_SCOPED_PASS_NOT_PHYSICAL",
+  "source_sha": "bb24268b62a254651edc3a1404698c383e2486aa",
+  "run_id": 38259485234,
+  "job_id": 114846030632,
+  "artifact_id": 11751308548,
+  "artifact_zip_sha256": "33aac4a323f2215f40ee58f51f9d05c7dedcc95f1ba2e87460c438bfee0c924c",
+  "workflow": ".github/workflows/next-adaptive-n2-windows-gui-config-native.yml",
+  "host": "Windows2022 with native .NET Framework4.8 compiler and Go1.23.12",
+  "results": {
+    "Go_windows_core_tests": "PASS",
+    "Go_native_binary": "PASS",
+    "WinForms_native_compiler": "PASS",
+    "portable_manifest_exact_SOURCE": "PASS_BUILD_ONLY",
+    "GUI_selftest": "PASS_258_CHECKS",
+    "fields": "PASS_43_KEYS_STRICT_EQUALITY",
+    "real_client_check_config": "PASS_EXACT_POLICY_FLAGS_AND_GAME_INVALID_CASES",
+    "secret_redaction": "PASS",
+    "portable_save_import_switch": "PASS",
+    "quality_synthetic_event": "PASS_UNKNOWN_NOT_ZERO_AND_ACTUAL_R8_WITH_VALID_UPPER"
+  },
+  "screenshot": "gui-screenshot.png exists but shows default Server tab; follow-up selects Transport for visual placement evidence",
+  "Go_status_source": "internal/runtimeentry/gui_quality_brief.go",
+  "quality_scope": "2s owned CLI stdout; no default heavy diagnostic JSONL, no extra listener; RTT recent transport SRTT, loss conservative upper first-attempt qualified authenticated only, FEC actual new TX parity Normal",
+  "unsupported": {
+    "N3_AES": "NOT_ENABLED",
+    "Windows_real_driver_physical": "NOT_RUN",
+    "full_N2": "OPEN",
+    "real_TCP_UDP_10ms_ledger": "NOT_RUN"
+  },
+  "previous_native_fail": {
+    "source_sha": "a79af61e6685f1c3e62354f5f25e593eaaa51ded",
+    "run_id": 38258825007,
+    "artifact_id": 11752130767,
+    "archive_sha256": "7703397c514e3f2fa70ae0c0a50fa871a1281dc223f25990a164c9983ca3a9cb",
+    "root": "GUI 41 labels vs43 Windows CLI flags; missing control-padding and control-padding-max"
+  },
+  "physical": "NOT_RUN"
+}

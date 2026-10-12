@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_NOHOL_ACTIONS_SCOPED_PASS_N5_WINFORMS_FIRST_NATIVE_FIELD_CONSISTENCY_FAIL_NARROW_CATALOG_FIX",
+    "phase": "N2_NOHOL_SCOPED_PASS_WIN_GUI_NATIVE_258_CHECKS_PASS_TRANSPORT_SCREENSHOT_FOLLOWUP_N3_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2010,7 +2010,7 @@
       "evidence": "docs/evidence/adaptive-n2-current-source-nohol-unit-race-actions-pass-20261012.json"
     },
     "n2_windows_gui_config": {
-      "status": "FIRST_NATIVE_WINFORMS_ACTION_FAIL_MISSING_TWO_EXISTING_CLIENT_FLAGS_FIX_CANDIDATE",
+      "status": "GITHUB_NATIVE_WIN_FORMS_258_CHECKS_SOURCE_EXACT_SCOPED_PASS_FINAL_PHYSICAL_NOT_RUN",
       "config_source": "docs/PARAMETERS.json exact same existing product Go flags: fec-mode legacy/fixed/off/auto/auto-aggressive, fec-min-parity 0/4/8/10/12/16/20, fec-start-parity 0/20",
       "ui": "windows/gui/fields.json and MainForm.cs: Transmission FEC mode/legacy fixed/min/initial selects, no AES until N3",
       "status_event": "WBD_CLIENT_QUALITY_V1 rtt_ms=x|UNKNOWN loss_pct=x|UNKNOWN fec_tx=r|UNKNOWN",
@@ -2045,11 +2045,33 @@
         "minimal_fix": "Add both already-production Windows CLI flags to GUI Transport labels; control-padding bool default true and control-padding-max int default 0, cover Go validator mutation for both; no weakening of strict catalogue set equality",
         "no_physical_driver_install_or_real_connection": true,
         "first_evidence": "docs/evidence/adaptive-n2-windows-gui-first-native-field-catalog-fail-20261012.json"
-      }
+      },
+      "second_native_action": {
+        "source_sha": "bb24268b62a254651edc3a1404698c383e2486aa",
+        "run_id": 38259485234,
+        "job_id": 114846030632,
+        "artifact_id": 11751308548,
+        "artifact_zip_sha256": "33aac4a323f2215f40ee58f51f9d05c7dedcc95f1ba2e87460c438bfee0c924c",
+        "status": "SUCCESS",
+        "gui_checks": 258,
+        "result_json": "PASS",
+        "result_source_matches_exact": true,
+        "native_windows_go_unit": "PASS",
+        "native_winforms_compile": "PASS",
+        "p6_build_and_manifest": "PASS_BUILD_TEST_ONLY_NOT_RELEASE_QUALIFICATION",
+        "actual_config_roundtrip": "PASS_NORMAL_AUTO_AND_AGGRESSIVE_OFF_START_VALID_ALL_INVALID_GAME_AUTO_REJECTED",
+        "quality_test": "PASS_SCALAR_OR_UNKNOWN_FORMAT_AND_DISCONNECTED_UNKNOWN",
+        "portable_profile_switch_cleanup": "PASS_GUI_SELF_TEST",
+        "screenshot": "EXISTED_INITIAL_DEFAULT_SERVER_TAB; FOLLOWUP_MOVE_SELFTEST_SCREENSHOT_TO_TRANSPORT",
+        "physical": "NOT_RUN",
+        "evidence": "docs/evidence/adaptive-n2-windows-gui-native-config-quality-258-scoped-pass-20261012.json"
+      },
+      "docs": "docs/WINDOWS_GUI.md updated for new FEC mode configs/quality limitations",
+      "next_action": "Selftest select actual Transport tab for visual screenshot, no product/control change, rerun native GitHub Actions, then N3 independent AES core stage"
     }
   },
-  "next_task": "GitHub Windows2022 native GUI first Action38258825007/sourcea79af61 job114843769751 failed at PortableStore strict 43 client-windows keys vs only 41 GUI labels: missing EXISTING control-padding and control-padding-max, P6 real Go binary/WinForms compile/manifest and native Go tests all PASS. Exact archive11752130767 SHA770339 preserved. Only add two labels (Transport low-frequency authenticated control padding enabled true and safe byte max0) + GuiTests mutations, DO NOT relax strict catalog. New exact SOURCE rerun one Windows native Actions GUI selftest, require new artifact result/screenshots, validation of Normal auto/fixed/off/game-invalid and quality UNKNOWN/real bounded scalar. On success record scoped native UI and config acceptance, no physical driver. Then N3 AES design/implementation with bounded Actions unit/race and realpath, N4 Win TUN route split, N5 quality final, N6 three targets. N2 underlying C04/C05 efficiency and C10 long p99 remain OPEN, 10ms true multi TCP/UDP not yet measured, physical NOT_RUN no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-windows-gui-first-native-strict-fields-fail-fix.md",
+  "next_task": "CURRENT USER REQUEST N2 noHOL Go concurrent targeted source55a156 Run38257097791 PASS scoped, no new real mixed TCP/UDP HOL performance. GUI fixed SOURCEbb24268 Run38259485234 Job114846030632 artifact11751308548 zipSHA33aac4a323f 258 native WinForms/config checks PASS; old SOURCEa79af61 Run38258825007 artifact11752130767 STRICT GUI catalog 43vs41 fail retained, two existing control padding fields added. GUI source quality event 2s authenticated SRTT/fresh first-attempt upper loss/actual TX FEC, UNKNOWN on no data; FEC mode legacy/fixed/off/auto/auto-aggressive with R0/4..20 min and initialR20/R0 shown in Transport, no AES offered. Next GitHub native UI screenshot explicit Transfer page and doc update SOURCE push; if success register with hash, then N3 AES128/256 protected record and suite-specific HP/KDF unit/race and realpath, no fake TLS cipher/decoy alignment and no early GUI AES until product supported. N2 OPEN C04/C05 auto efficiency FAIL and GE tail p99/older80s unresolved, physical NOT_RUN, no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-win-gui-258-native-config-checks-pass-transport-screenshot-followup.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",
