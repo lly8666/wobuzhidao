@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C06_REVERSE_C2S10_S2C1_REALPATH_ACTION38242922144_IN_PROGRESS",
+    "phase": "N2_C06_REVERSE_ASYM_SCOPED_PROTECTION_GRADE_PASS_C05_10PCT_RESIDUAL_EFFICIENCY_FAIL_OPEN_GE_BURST_NEXT",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_M3_R1_REALPATH_SCOPED_20TO5_BOTH_R8_LAST60_AND_DELIVERY_PASS_C03_C04_OLD_RECOVER5_EFFICIENCY_FAILS_REQUIRE_SAME_SOURCE_CROSS_CASE",
+      "N2_normal_auto": "IN_PROGRESS_M3_C03_HIGHLOSS_AND_RECOVER5_SCOPED_PASS_C04_S2C_RECOVER5_78_3PCT_FAIL_C05_S2C10PCT_LAST60_70PCT_FAIL_C06_REVERSED_C2S10PCT_S2C1PCT_GRADE100PCT_SCOPED_PASS_RESOURCE_AND_BURST_MATRIX_OPEN",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -1636,7 +1636,7 @@
       }
     },
     "n2_c06": {
-      "status": "ACTION38242922144_JOB114789708409_GITHUB_PREMEASUREMENT_IN_PROGRESS",
+      "status": "GITHUB_ACTION_SUCCESS_REALPATH_10PCT_C2S_GRADE_R10_60OF60_1PCT_S2C_R4_60OF60_SCOPED_PASS_NOT_FULL_N2",
       "frozen_model_version": "n2-asymmetric-iid-timeband-v1",
       "frozen_manifest_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
       "model_only_success_run_id": 38232373616,
@@ -1666,15 +1666,61 @@
       "source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
       "run_id": 38242922144,
       "job_id": 114789708409,
-      "product_result": "NOT_YET_MEASURED",
-      "action_registration_evidence": "docs/evidence/adaptive-n2-c06-asym-single-action-registered-20261012.json"
+      "product_result": "SCOPED_C06_DIRECTIONAL_ADAPTIVE_GRADE_AND_FIRST_DELIVERY_PASS_NOT_FULL_N2",
+      "action_registration_evidence": "docs/evidence/adaptive-n2-c06-asym-single-action-registered-20261012.json",
+      "artifact_id": 11743737321,
+      "archive_sha256": "893a07a5bfb020627cadedd846a3aadb424c008233cf4eb9443b7d4855b251d2",
+      "summary_sha256": "b12da0658bd837408f783f7c575d5ec34346b369587b915dd99d62e12d885621",
+      "model_version": "n2-asymmetric-iid-timeband-v1",
+      "netem_actual": {
+        "c2s_pct": 10.00232423009878,
+        "s2c_pct": 1.0172197362151416
+      },
+      "business": {
+        "c2s_sent": 592107,
+        "c2s_unique": 592100,
+        "c2s_missing": 7,
+        "s2c_sent": 592107,
+        "s2c_unique": 592107,
+        "s2c_missing": 0,
+        "no_first_unique_blackout_s": 0,
+        "return_only_p99_ms": {
+          "c2s": 313.5,
+          "s2c": 302
+        }
+      },
+      "grade_last60": {
+        "c2s_allowed": [
+          8,
+          10
+        ],
+        "c2s_actual": [
+          10
+        ],
+        "c2s_within": 1,
+        "s2c_allowed": [
+          4,
+          8
+        ],
+        "s2c_actual": [
+          4
+        ],
+        "s2c_within": 1
+      },
+      "qdisc_wire_over_business": 2.82022903066151,
+      "cpu_diag_on_s": {
+        "client": 147.07,
+        "server": 153.53
+      },
+      "qualification": "SCOPED_PASS_NOT_FULL_N2_C05_FAIL_PRESERVED",
+      "evidence": "docs/evidence/adaptive-n2-c06-asym10-1-realpath-actions-scoped-pass-20261012.json"
     }
   },
-  "next_task": "C06 reverse asymmetric action38242922144 job114789708409 SOURCE1e0fe4baeec2 in premeasure Go N2 unit/race as last read. Fixed one C2S10% (rsrv)/S2C1% (rcli), Normal auto initial20 floor4 max20 240s 300ms one-way each 10Mbps, separate from C05. First verify no preflight errors, sample actual one performance job; then artifact inspect netem rsrv10/rcli1, firstunique/missing/p99/source recovery, last60 C2S[R8,R10],S2C[R4,R8] >=90% both, source confident samples M/R and parity/bytes wire CPU/capacity. C05 run38241759581 realpath valid but S2C10% grade70% FAIL preserved. If C06 10% side similar FAIL generic confidence limitation; do not use fault true p to controller, do not blindly retune for seed. N2 OPEN, N3-N6 pending, physical NOT_RUN, old2.73s/80s OPEN, no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-c06-reverse-action-registered.md",
+  "next_task": "C06 Action38242922144 job114789708409 SOURCE1e0fe4b artifact11743737321 ZIP893a07a SUMMARYb12da06 real C2S10pct/S2C1pct grade last60 R10/R4 both100% and business stable firstunique592100/592107,592107/592107; overall SCOPED_PASS. DO NOT clear independent C05 valid 10pct S2C grade70pct FAIL, C04 recover5 S2C78.3pct FAIL, historic540 up overprotect FAIL. Next N2 P2 C10 time-driven Gilbert Elliott correlated burst with frozen GE CTMC theory model Actions38217981601 and declared mean-good450ms mean-bad50ms loss good0/bad50% expected5%. FIRST assess runnable true wall-clock packet filter: do not substitute per-packet Linux netem gemodel or slow tc qdisc shell updates for time-driven 1ms GE; model/driver unit/permission support first, mark UNSUPPORTED if impossible in Actions. ONE SOURCE/config/scenario/measurement job when supported; actual burst timing/firstunique/wire/CPU and grade retention. Then bounded blackhole, feedback isolation, sparse/mixed/MTU/Game and diag-OFF matched resource before N2 graded; prioritize N3 AES/N4 Windows TUN/N5 GUI/N6 packaging after bounded N2, no endless seed tuning. N2 OPEN, N3-N6 NOT_STARTED physical NOT_RUN, old2.73s/80s OPEN no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-c06-reversed-realpath-grade-scoped-pass-c05-fail-preserved.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "758f310b005a26f2610d721f8877a8a13c5f521c",
-  "last_tested_scope": "C05_ASYM_REAL240S_C2S_1PCT_NT_R4_60OF60_BUSINESS_ALL592107_S2C10PCT_R8_R10_42OF60_70PCT_FAIL_MISSING8_P99_310_5MS_WIRE2_811X_NO_CAPACITY_DIAG_ON",
+  "last_tested_source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
+  "last_tested_scope": "C06_REAL240S_DIRECTION_C2S10PCT_TRUE_NETEM10_0023_FEC_R10_LAST60_100PCT_S2C1PCT_TRUE_NETEM1_0172_FEC_R4_LAST60_100PCT_FIRST_UNIQUE592100_592107_AND592107_592107_P99_313_5_302MS_NO_GAP_WIRE2_8202X_DIAG_ON",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

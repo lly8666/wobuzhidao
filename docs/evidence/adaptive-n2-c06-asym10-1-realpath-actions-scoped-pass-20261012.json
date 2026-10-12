@@ -1,0 +1,176 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "N2_C06_REALPATH_REVERSE_C2S10_S2C1_DIRECTIONAL_PROTECTION_AND_GRADE_SCOPED_PASS_NOT_FULL_N2",
+  "source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
+  "run_id": 38242922144,
+  "job_id": 114789708409,
+  "artifact_id": 11743737321,
+  "artifact_name": "adaptive-n2-c06-asym10-1-1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
+  "zip_sha256": "893a07a5bfb020627cadedd846a3aadb424c008233cf4eb9443b7d4855b251d2",
+  "summary_sha256": "b12da0658bd837408f783f7c575d5ec34346b369587b915dd99d62e12d885621",
+  "manifest_sha256": "ba996316928b73bbe10755b479ff2df390e9fedd4050f6327051a80108c47d62",
+  "harness_prep_sha256": "e2f508b2a16900a68314f66600aae1c4a88756d5e081bcd3d8c1b8f778ea785e",
+  "client_diag_sha256": "e59465f2de57c6ae76acf64aef77c20bdd3f7a703243365eece809f23ee6bf7a",
+  "server_diag_sha256": "1b917aa34323360133d49832b04103262328be774af1060b8edba078542e2f6d",
+  "resource_sha256": "025c0c02f3e65ac581863d9c66702ae78ac043d5108ee5dfff13a86e5e064e29",
+  "frozen_model": "n2-asymmetric-iid-timeband-v1",
+  "frozen_sha256": "7907824169a16565ca705bb4d10c72de377c164f56de232e1e51181680ecaec8",
+  "action": "SUCCESS",
+  "analyzer": "C06_SCOPED_GRADE_SCREEN_PASS_NOT_FULL_N2",
+  "errors": [],
+  "measurement_invalid": [],
+  "capacity_flags": [],
+  "scenario": {
+    "normal_auto_initial20_min4_max20": true,
+    "cipher": "ChaCha20-Poly1305",
+    "outer_mtu": 1400,
+    "each_way_app_mbps": 10,
+    "each_direction_one_way_delay_ms": 300,
+    "active_seconds": 240,
+    "drain_seconds": 10,
+    "netem_c2s_router_rsrv_loss_pct": 10,
+    "netem_s2c_router_rcli_loss_pct": 1,
+    "netem_random_seed": "UNSEEDED_UNSUPPORTED_BY_TC",
+    "business_seeds": [
+      2026092201,
+      2026092202
+    ],
+    "diagnostics": "ON",
+    "one_source_configuration_scenario_measurement_job": true
+  },
+  "qdisc": {
+    "c2s": {
+      "interface": "rsrv",
+      "actual_drop_pct": 10.00232423009878,
+      "packets_forwarded": 1703746,
+      "drops": 189354,
+      "outer_bytes": 905195783,
+      "overlimits_delta": 0,
+      "requeues_delta": 0,
+      "post_backlog_bytes": 54,
+      "post_qlen": 1
+    },
+    "s2c": {
+      "interface": "rcli",
+      "actual_drop_pct": 1.0172197362151416,
+      "packets_forwarded": 1784419,
+      "drops": 18338,
+      "outer_bytes": 786946599,
+      "overlimits_delta": 0,
+      "requeues_delta": 0,
+      "post_backlog_bytes": 0,
+      "post_qlen": 0
+    }
+  },
+  "first_unique": {
+    "c2s": {
+      "sent": 592107,
+      "received": 592100,
+      "missing": 7,
+      "first_unique_bytes": 299997584,
+      "goodput_mbps": 9.999919466666666,
+      "returned_onway_p99_ms": 313.5,
+      "max_consecutive_zero_business_first_unique_s": 0,
+      "corrupt": 0,
+      "duplicates": 0,
+      "source_send_failures": 0
+    },
+    "s2c": {
+      "sent": 592107,
+      "received": 592107,
+      "missing": 0,
+      "first_unique_bytes": 300000880,
+      "goodput_mbps": 10.000029333333334,
+      "returned_onway_p99_ms": 302,
+      "max_consecutive_zero_business_first_unique_s": 0,
+      "corrupt": 0,
+      "duplicates": 0,
+      "source_send_failures": 0
+    }
+  },
+  "probe": {
+    "sent": 240,
+    "returned": 240,
+    "returned_only_rtt_p99_ms": 607.5
+  },
+  "frozen_grade_last60": {
+    "c2s": {
+      "allowed": [
+        8,
+        10
+      ],
+      "observed_r": [
+        10
+      ],
+      "fraction": 1,
+      "snapshots": 60,
+      "encoder_source_bytes": 371108920,
+      "encoder_parity_bytes": 433957184,
+      "full_k20_groups": 29614,
+      "partial_groups": 67,
+      "latest_confidence_upper": 0.10534922885006162,
+      "latest_control_lower_gate": "CONFIDENCE_RESIDUAL",
+      "latest_reason": "HOLD_WIDE_FIRST_ATTEMPT_INTERVAL"
+    },
+    "s2c": {
+      "allowed": [
+        4,
+        8
+      ],
+      "observed_r": [
+        4
+      ],
+      "fraction": 1,
+      "snapshots": 60,
+      "encoder_source_bytes": 371097880,
+      "encoder_parity_bytes": 261350496,
+      "full_k20_groups": 29615,
+      "partial_groups": 8,
+      "latest_confidence_upper": 0.012989060005347827,
+      "latest_control_lower_gate": "AT_FLOOR"
+    }
+  },
+  "wire": {
+    "gross_qdisc_both_outer_bytes": 1692142382,
+    "generated_business_bytes": 600001760,
+    "gross_qdisc_amplification": 2.82022903066151,
+    "qualification": "Total outer wire includes headers/AEAD/quality/repair/parity; not all overhead attributed to FEC"
+  },
+  "resources": {
+    "cpu_client_diag_on_seconds": 147.07,
+    "cpu_server_diag_on_seconds": 153.53,
+    "samples": 53,
+    "capture_four_kernel_drops": 0,
+    "CPU_diag_off_same_vm_comparison": "NOT_RUN"
+  },
+  "cross_condition": {
+    "c05_source": "758f310b005a26f2610d721f8877a8a13c5f521c",
+    "c05_run_id": 38241759581,
+    "c05_action": "FAIL",
+    "c05_10pct_direction": "s2c",
+    "c05_grade_10pct_last60": 0.7,
+    "c05_10pct_R10_seconds": 42,
+    "c05_10pct_R12_seconds": 18,
+    "c06_10pct_direction": "c2s",
+    "c06_grade_10pct_last60": 1,
+    "c06_10pct_R10_seconds": 60,
+    "interpretation": "Asym source-side assignment is exercised both directions; 10pct side auto grade efficiency not robust across two different unseeded netem samples/hosts. C05 failure not negated by C06 pass. No claim of strict paired CPU improvements or proof of direction-bias absence."
+  },
+  "status": {
+    "directional_liveness_and_highloss": "SCOPED_PASS",
+    "directional_grade_C06": "SCOPED_PASS",
+    "C05_recover5_grade_fail": "OPEN",
+    "overall_N2": "OPEN",
+    "N3_N6": "NOT_STARTED",
+    "physical": "NOT_RUN"
+  },
+  "limitations": [
+    "C06 qdisc rsrv has 54B/one-packet residual post-backlog, capacity flags empty; don't label all queue metrics exact zero",
+    "End-to-end CPU/GiB diagnosis ON, no same-host OFF baseline",
+    "No time-correlated GE trace or isolated feedback loss/blackhole/reorder/sparse/idle/rotation/mixedTCP+UDP/MTU/Game functional qualification",
+    "No 10ms independent HOL instrument; only wall-second no gap for sustained source",
+    "Old 2.73s probe long-tail and 80s S2C incident remain OPEN",
+    "Do not move qualification ref, deploy physical host or merge mainline"
+  ]
+}
