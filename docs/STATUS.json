@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_CURRENT_SOURCE_NOHOL_RELEASE_GATE_BEFORE_GUI_CONFIG",
+    "phase": "N2_NOHOL_CURRENT_SOURCE_SCOPED_GITHUB_ACTIONS_PASS_N5_CONFIG_WINFORMS_LIGHT_QUALITY_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1992,24 +1992,40 @@
       }
     },
     "n2_nohol_release": {
-      "status": "GITHUB_RECHECK_NEW_WORKFLOW_CANDIDATE_NOT_YET_EXECUTED",
+      "status": "CURRENT_SOURCE_GITHUB_TARGETED_GO_NOHOL_AND_RACE_SUCCESS_SCOPED_NOT_REAL_MIXED_TCP_UDP",
+      "source_sha": "55a156489b0855b4e73f85964849427079c73ad9",
+      "run_id": 38257097791,
+      "job_id": 114837855080,
+      "artifact_id": 11750249279,
+      "artifact_zip_sha256": "f44ac8d7910d87ba4978574948baebe98fc3bce645a4cd17e646af8edc93b7b9",
       "workflow": ".github/workflows/next-adaptive-n2-nohol-release-gate.yml",
-      "scope": "Existing authenticated concurrent noHOL Go test cases on current product SOURCE with race, no real mixed TCP/UDP 10ms performance and no physical",
-      "tests": [
-        "RuntimeNormalNoHOLRepairReplacementAndGenerationFence",
-        "ACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK",
-        "SteadyRepairReserveBoundedWithoutFreshHOL",
-        "N2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock",
-        "CrossInnerMTUTinyTailFECRecoveryDoesNotHOLSmallDatagram",
-        "DecoderNoHOLAndMultiRecord"
+      "targeted_tests_count": 6,
+      "go_concurrency_race": "PASS_IN_SAME_GITHUB_ACTION",
+      "retained_historical_nohol": "2026-10-08 unit/race noHOL scoped Actions already accepted",
+      "limitations": [
+        "Not a new real multi-flow TCP/UDP 10ms isolated stream loss/HOL Action",
+        "C10 GE 1.8-1.95s first unique p99 and probing max3.405s remain OPEN",
+        "No physical native Windows evidence, physical NOT_RUN"
       ],
-      "results": "PENDING_GITHUB_ACTIONS",
-      "old_nohol_reference": "2026-10-08 Actions noHOL acceptance scoped; newer N2 source requires independent rerun",
+      "evidence": "docs/evidence/adaptive-n2-current-source-nohol-unit-race-actions-pass-20261012.json"
+    },
+    "n2_windows_gui_config": {
+      "status": "CODE_CANDIDATE_NOT_YET_VALIDATED_BY_NATIVE_WINDOWS_ACTIONS",
+      "config_source": "docs/PARAMETERS.json exact same existing product Go flags: fec-mode legacy/fixed/off/auto/auto-aggressive, fec-min-parity 0/4/8/10/12/16/20, fec-start-parity 0/20",
+      "ui": "windows/gui/fields.json and MainForm.cs: Transmission FEC mode/legacy fixed/min/initial selects, no AES until N3",
+      "status_event": "WBD_CLIENT_QUALITY_V1 rtt_ms=x|UNKNOWN loss_pct=x|UNKNOWN fec_tx=r|UNKNOWN",
+      "status_producer": "cmd/wbd-client/main_windows.go owned control-stdin, every2s",
+      "status_source": "internal/runtimeentry/gui_quality_brief.go bounded single active Normal lane snapshot, transport srtt if recent, authenticated N2 qualified source upper loss if recent, actual TX parity; UNKNOWN on unqualified/stale/offline/multiple lanes",
+      "status_test": "internal/runtimeentry/gui_quality_brief_test.go",
+      "native_windows_workflow": ".github/workflows/next-adaptive-n2-windows-gui-config-native.yml",
+      "native_gui_test_source": "windows/gui/GuiTests.cs",
+      "workflows": "pending: no Windows compile/UI screenshots or config validation outcomes yet",
+      "cipher_AES": "UNSUPPORTED_NOT_ADVERTISED",
       "physical": "NOT_RUN"
     }
   },
-  "next_task": "NEW USER PRIORITY: verify noHOL on current N2 branch through separate GitHub exact-SOURCE focused Go runtimeowner/linkdata/tlsrecord six tests plus race (0 performance jobs); preserve noHOL label SCOPED_GITHUB_UNIT_ONLY, independent multi-TCP/UDP 10ms realpath STILL NOT_RUN unless additional single config Action. Once current noHOL gate passes, wire currently implemented FEC mode legacy/fixed/off/auto/auto-aggressive, min parity 0/4/8/10/12/16/20, start parity 0/20 into docs/PARAMETERS.json-aligned windows/gui/fields.json and GUI Transport tab, keep legacy fixed FEC presets and Game auto invalid. Include lightweight GUI status RTT/estimated line loss/actual FEC with unknown not zero, avoid heavyweight diagnostic file and public ports; only after native GH Windows UI/API acceptance qualify config/GUI. N3 AES remains UNSUPPORTED until implemented, do not advertise. Follow N4 Windows TUN split and N6 packages. N2 overall OPEN due C04 S2C recover5 78.3pct FAIL, C05 S2C10pct 70pct FAIL, C10 GE business p99 1.83-1.95s and probe RTT p99 2.441s, legacy2.73s/80s OPEN. physical NOT_RUN, no deployment, qualification ref or merge.",
-  "latest_log": "docs/devlog/20261012-n2-nohol-source-gate-before-config-gui.md",
+  "next_task": "USER requested current N2 noHOL then wire already implemented Normal adaptive FEC into portable JSON and Windows GUI, position controls and lightweight RTT/first-attempt upper loss/current actual FEC status appropriately, then N3 AES/N4 Windows TUN/N5 UI quality/N6 P6 packages with GitHub Actions gates. Current-source noHOL Go targeted tests/race passed Action38257097791 source55a156 artifact11750249279 (scope only, NOT real mixed TCP UDP). New native Windows GUI config candidate SOURCE on next push to test via workflow next-adaptive-n2-windows-gui-config-native.yml; ensure catalog equals fields.json, native Go check-config allows Normal auto aggressive and ordinary off start only, Game auto invalid, Mode legacy backward compatible, UI note AES unavailable, UNKNOWN not zero, 2s own stdout status no secrets/no heavy diag, full native GUI self-test screenshot and artifact. If fail preserve exact evidence and minimal patch before any release. Do NOT deploy or mark Win driver physical PASS. Mixed TCP+UDP isolated 10ms real traffic remains unmeasured despite noHOL Go PASS, C10 GE long p99 and C04/C05 efficiency FAIL remain OPEN. N2 OPEN N3 AES NOT_STARTED physical NOT_RUN no qualification/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-github-nohol-scoped-pass-winforms-auto-fec-config-status-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",

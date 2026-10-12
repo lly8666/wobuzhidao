@@ -42,7 +42,7 @@ namespace Wbd.Gui {
                         {"server-ip","203.0.113.18"},{"server-port",8443},{"source-port",42000},{"account","another-account"},{"server-name","cdn.example.com"},{"username","another-user"},
                         {"password","different-secret"},{"route-key-hex","aabbccddeeff00112233445566778899"},{"tunnel-id","22223333444455556666777788889999"},{"installation-id","aaaabbbbccccddddeeeeffff00001111"},{"lease4","10.66.0.8/32"},
                         {"mtu",1280},{"client-record-limit",1250},{"adapter","WBD Test"},{"dns-hijack",false},{"dns4","9.9.9.9,1.0.0.1"},{"direct4","203.0.113.0/24"},{"route-mode","bypass-lan"},
-                        {"lanes",4},{"fec-parity",20},{"tls-startup-padding",true},{"keepalive-interval","10s"},{"dead-after","120s"},{"reconnect-min","2s"},{"reconnect-max","45s"},{"idle-dormant","15m"},{"rotate-min","30m"},{"rotate-max","60m"}, {"china-ip-file", "data/china-test.txt"}, {"diagnostic-jsonl","logs/diagnostic.jsonl"}, {"diagnostic-interval","2s"}
+                        {"lanes",4},{"fec-mode","legacy"},{"fec-parity",20},{"fec-min-parity",4},{"fec-start-parity",20},{"tls-startup-padding",true},{"keepalive-interval","10s"},{"dead-after","120s"},{"reconnect-min","2s"},{"reconnect-max","45s"},{"idle-dormant","15m"},{"rotate-min","30m"},{"rotate-max","60m"}, {"china-ip-file", "data/china-test.txt"}, {"diagnostic-jsonl","logs/diagnostic.jsonl"}, {"diagnostic-interval","2s"}
                     };
                     store.WriteAtomic("data/china-test.txt", "1.0.1.0/24\n");
                     using (var configForm = new MainForm(store, new FakeSession(), () => new DependencyState { Admin=true, Npcap=true, Wintun=true, NpcapVersion="config-test" }))
@@ -68,6 +68,39 @@ namespace Wbd.Gui {
                         Assert(Convert.ToInt32(result["fec-parity"]) == fec && Convert.ToInt32(result["lanes"]) == lane, "FEC/lane selector core acceptance " + fec + "/" + lane);
                     }
                     p.Values["fec-parity"] = 0; p.Values["lanes"] = 1;
+                    // Native Go admission is the only source of truth: the GUI
+                    // writes the exact same fields for Normal V3 auto, with
+                    // no hidden fixed FEC or unsupported Game policy.
+                    foreach (string mode in new[] {"auto", "auto-aggressive"}) {
+                        p.Values["fec-mode"]=mode;
+                        p.Values["fec-min-parity"]=4;
+                        p.Values["fec-start-parity"]=20;
+                        store.WriteAtomic("data/auto.json",store.Json.Serialize(store.Effective(p)));
+                        var effectiveAuto=Wait(real.ValidateAsync(store.InRoot("data/auto.json")));
+                        Assert(Convert.ToString(effectiveAuto["fec-mode"])==mode &&
+                               Convert.ToInt32(effectiveAuto["fec-start-parity"])==20,
+                               "GUI Normal validated auto mode " + mode);
+                    }
+                    p.Values["fec-mode"]="auto";p.Values["fec-min-parity"]=0;p.Values["fec-start-parity"]=0;
+                    store.WriteAtomic("data/auto.json",store.Json.Serialize(store.Effective(p)));
+                    var offStart=Wait(real.ValidateAsync(store.InRoot("data/auto.json")));
+                    Assert(Convert.ToInt32(offStart["fec-start-parity"])==0 && Convert.ToInt32(offStart["fec-min-parity"])==0,
+                           "GUI Normal explicit ordinary auto off-start supported");
+                    foreach (var badPolicy in new[] {
+                        new object[] {"auto",2,0,4,20},new object[] {"auto-aggressive",1,0,0,0},
+                        new object[] {"auto",1,4,4,20},new object[] {"off",1,4,4,20},
+                        new object[] {"auto",1,0,4,0}
+                    }) {
+                        p.Values["fec-mode"]=(string)badPolicy[0];p.Values["lanes"]=badPolicy[1];
+                        p.Values["fec-parity"]=badPolicy[2];p.Values["fec-min-parity"]=badPolicy[3];
+                        p.Values["fec-start-parity"]=badPolicy[4];
+                        store.WriteAtomic("data/invalid-policy.json",store.Json.Serialize(store.Effective(p)));
+                        bool rejected=false;
+                        try {Wait(real.ValidateAsync(store.InRoot("data/invalid-policy.json")));} catch {rejected=true;}
+                        Assert(rejected,"GUI rejects invalid FEC mode/lanes/initial/min combination "+string.Join("-",badPolicy));
+                    }
+                    p.Values["fec-mode"]="legacy";p.Values["lanes"]=1;p.Values["fec-parity"]=0;
+                    p.Values["fec-min-parity"]=4;p.Values["fec-start-parity"]=20;
                     foreach (var pair in new Dictionary<string, object> { {"lanes",5},{"fec-parity",7},{"mtu",90},{"source-port",65000},{"client-record-limit",30},{"dns4","::1"},{"keepalive-interval","0.1s"},{"dead-after","1s"},{"idle-dormant","-1s"},{"direct4","wrong"},{"route-key-hex","xyz"} }) {
                         object previous = p.Values[pair.Key]; p.Values[pair.Key] = pair.Value; bool denied = false;
                         store.WriteAtomic("data/invalid.json", store.Json.Serialize(store.Effective(p))); try { Wait(real.ValidateAsync(store.InRoot("data/invalid.json"))); } catch { denied = true; }
@@ -96,6 +129,16 @@ namespace Wbd.Gui {
                 var fake = new FakeSession();
                 using (var form = new MainForm(store, fake, () => new DependencyState { Admin = true, Npcap = true, Wintun = true, NpcapVersion = "test environment" })) {
                     form.Show(); form.LoadEditor(); Application.DoEvents(); form.SaveEditor();
+                    Assert(form.QualityText.Contains("RTT：未知") && form.QualityText.Contains("实际发送 FEC：未知"),
+                           "GUI quality must be UNKNOWN by default");
+                    Assert(form.ApplyQualityLine("WBD_CLIENT_QUALITY_V1 rtt_ms=83 loss_pct=1.26 fec_tx=8"),
+                           "GUI structured quality status consumed");
+                    Assert(form.QualityText.Contains("83ms") && form.QualityText.Contains("1.3%") && form.QualityText.Contains("R8"),
+                           "GUI shows source-qualified RTT, upper loss and actual TX FEC");
+                    form.ApplyQualityLine("WBD_CLIENT_QUALITY_V1 rtt_ms=UNKNOWN loss_pct=UNKNOWN fec_tx=UNKNOWN");
+                    Assert(form.QualityText.Contains("RTT：未知") && form.QualityText.Contains("实际发送 FEC：未知"),
+                           "GUI never treats absent/stale signal as zero quality");
+                    Assert(!form.ApplyQualityLine("not a quality control event"),"GUI ignores unrelated logs");
                     Assert((string)p.Values["password"] == " not-real-password ", "password whitespace preserved by editor");
                     foreach (var pair in new Dictionary<string, object> {{"server-port",8443},{"mtu",1280},{"tls-startup-padding",true},{"dns-hijack",false},{"route-mode","all"},{"fec-parity",20},{"lanes",4},{"idle-dormant","15m"}}) form.SetEditor(pair.Key, pair.Value);
                     form.SaveEditor(); Assert(Convert.ToString(p.Values["mtu"]) == "1280" && Convert.ToBoolean(p.Values["tls-startup-padding"]), "GUI widgets save typed config");

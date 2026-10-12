@@ -423,6 +423,23 @@ func runWindows() error {
 		}
 	}()
 	fmt.Println("WBD_WINDOWS_CLIENT_READY")
+	// GUI-owned, opt-in to the existing stdout control channel (no network
+	// listener or qualification JSONL). One bounded normal-lane snapshot per
+	// two seconds; stale or unqualified values are explicitly UNKNOWN.
+	if *controlStdin {
+		go func() {
+			ticker := time.NewTicker(2*time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					fmt.Println(runtimeentry.FormatGUIQualityBrief(client.GUIQualitySnapshot(time.Now())))
+				}
+			}
+		}()
+	}
 
 	tunInput := windowsclient.NewTUNInput(router)
 	errCh := make(chan error, 3)

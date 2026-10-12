@@ -1,0 +1,67 @@
+name: next-adaptive-n2-windows-gui-config-native
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n2-windows-gui-config-native.yml"
+      - "windows/gui/**"
+      - "cmd/wbd-client/main_windows.go"
+      - "internal/runtimeentry/gui_quality_brief*.go"
+      - "docs/PARAMETERS.json"
+permissions:
+  contents: read
+jobs:
+  windows-native-config-ui-without-physical-driver:
+    runs-on: windows-2022
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Exact SOURCE and Go policy/quality tests
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) { throw 'SOURCE mismatch' }
+          python tools/check_repository.py
+          if ($LASTEXITCODE -ne 0) { throw 'repo policy failed' }
+          python tools/check_performance_workflow_policy.py
+          if ($LASTEXITCODE -ne 0) { throw 'workflow policy failed' }
+          go test -count=1 ./internal/runtimeentry ./internal/realityfront ./internal/configfile ./cmd/wbd-client
+          if ($LASTEXITCODE -ne 0) { throw 'Windows policy/status Go unit test failed' }
+      - name: Build native Windows Go client and original WinForms GUI into disposable test bundle
+        shell: pwsh
+        run: |
+          $v = 'n2-gui-test-' + $env:GITHUB_SHA.Substring(0,12)
+          python tools/p6_build_release.py --source-sha $env:GITHUB_SHA --version $v --target-os windows --target-arch amd64 --output-dir artifacts/n2-gui-test
+          if ($LASTEXITCODE -ne 0) { throw 'Windows native build failed' }
+          python tools/check_p6_release.py --bundle-dir artifacts/n2-gui-test --source-sha $env:GITHUB_SHA --target-os windows --target-arch amd64 --run-native
+          if ($LASTEXITCODE -ne 0) { throw 'Native manifest/Go client failed' }
+      - name: Go client effective FEC config and genuine .NET Framework WinForms selftest
+        shell: pwsh
+        run: |
+          $testRoot = Join-Path $env:GITHUB_WORKSPACE 'artifacts\界面 FEC 验证'
+          Copy-Item -LiteralPath artifacts/n2-gui-test -Destination $testRoot -Recurse
+          $p = Start-Process -FilePath (Join-Path $testRoot 'WBD.exe') -ArgumentList '--self-test' -WorkingDirectory $env:RUNNER_TEMP -WindowStyle Hidden -Wait -PassThru
+          $result = Join-Path $testRoot 'gui-test-result.json'
+          Get-Content -LiteralPath $result -Raw | Write-Host
+          if ($p.ExitCode -ne 0) { throw "WinForms regression failed: $($p.ExitCode)" }
+          $x = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json
+          if ($x.result -ne 'PASS' -or $x.source_sha -ne $env:GITHUB_SHA) { throw 'GUI source/outcome mismatch' }
+          if ($x.physical -ne 'NOT_RUN') { throw 'native GUI test cannot claim physical' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n2-gui-native-functional-${{ github.sha }}
+          path: |
+            artifacts/界面 FEC 验证/gui-test-result.json
+            artifacts/界面 FEC 验证/gui-screenshot.png
+          if-no-files-found: warn
+          retention-days: 30

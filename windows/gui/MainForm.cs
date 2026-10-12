@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,8 @@ namespace Wbd.Gui {
         readonly Dictionary<string, Control> editors = new Dictionary<string, Control>();
         readonly RichTextBox activity = new RichTextBox();
         readonly Label state = new Label(), dependencies = new Label();
+        readonly Label quality = new Label();
+        DateTime lastQuality = DateTime.MinValue;
         readonly Button connect, stop, save;
         readonly Queue<string> messages = new Queue<string>();
         readonly Timer timer = new Timer { Interval = 250 };
@@ -81,6 +84,14 @@ namespace Wbd.Gui {
                 var fields = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, Padding = new Padding(0, 0, 16, 12) };
                 fields.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 155)); fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); scroll.Controls.Add(fields);
                 if (section == "服务器") AddRow(fields, "服务器名称", name, "方便识别，例如 香港 · 主用；不影响协议。");
+                if (section == "传输") {
+                    quality.Text = "运行质量（当前连接）  ·  RTT：未知  ·  首发损失上界：未知  ·  实际发送 FEC：未知";
+                    quality.AutoSize = true;
+                    quality.ForeColor = Color.FromArgb(37, 99, 235);
+                    quality.Font = new Font(Font.FontFamily, 10.0F, FontStyle.Bold);
+                    AddWide(fields, quality);
+                    AddWide(fields, Note("质量状态每 2 秒轻量刷新；无可信新样本显示“未知”，不把缺数据当成零丢包。仅当前 Normal 单 lane 显示实际发送档位；Game 无自动FEC。"));
+                }
                 foreach (Field f in store.Fields.Where(f => f.Section == section)) {
                     Control c = Editor(f); editors.Add(f.Key, c); AddRow(fields, f.Label, c, f.Hint);
                 }
@@ -92,6 +103,9 @@ namespace Wbd.Gui {
                     var reveal = new CheckBox { Text = "显示密钥 / 密码", AutoSize = true, Margin = new Padding(8, 9, 0, 0) };
                     reveal.CheckedChanged += (sender, e) => { foreach (Field f in store.Fields.Where(f => f.Secret)) ((TextBox)editors[f.Key]).UseSystemPasswordChar = !reveal.Checked; };
                     bar.Controls.Add(reveal); AddWide(fields, bar);
+                }
+                if (section == "传输") {
+                    AddWide(fields, Note("固定冗余只用于兼容/固定模式；普通 Normal 自动可设置最低 R0 并显式从 R0 起步。其他自动默认从 R20 起步，最大 R20；Game 只允许固定或关闭。AES 尚未完成 N3，不能选择未实现的密码算法。"));
                 }
                 if (section == "网络") {
                     var bar = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill };
@@ -147,11 +161,26 @@ namespace Wbd.Gui {
         }
         Control Editor(Field f) {
             if (f.Kind == "Bool") return new CheckBox { Text = "启用", AutoSize = true };
-            if (f.Key == "route-mode" || f.Key == "fec-parity" || f.Key == "lanes") {
+            if (f.Key == "route-mode" || f.Key == "fec-parity" || f.Key == "fec-mode" || f.Key == "fec-min-parity" || f.Key == "fec-start-parity" || f.Key == "lanes") {
                 var c = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
                 if (f.Key == "route-mode") c.Items.AddRange(new[] { new Choice("bypass-lan-cn", "局域网与中国 IPv4 直连"), new Choice("bypass-lan", "仅局域网直连"), new Choice("all", "全部 IPv4 经隧道") });
                 if (f.Key == "lanes") c.Items.AddRange(new[] { new Choice("1", "Normal · 单 lane"), new Choice("2", "Game · 2 lanes"), new Choice("3", "Game · 3 lanes"), new Choice("4", "Game · 4 lanes") });
                 if (f.Key == "fec-parity") c.Items.AddRange(new[] { new Choice("0", "关闭"), new Choice("4", "20:4"), new Choice("8", "20:8"), new Choice("10", "20:10"), new Choice("12", "20:12"), new Choice("16", "20:16"), new Choice("20", "20:20") });
+                if (f.Key == "fec-mode") c.Items.AddRange(new[] {
+                    new Choice("legacy", "兼容旧配置 · 固定或关闭"),
+                    new Choice("fixed", "固定 FEC"),
+                    new Choice("off", "关闭 FEC"),
+                    new Choice("auto", "Normal 自动 · 保守"),
+                    new Choice("auto-aggressive", "Normal 自动 · 激进")
+                });
+                if (f.Key == "fec-min-parity") c.Items.AddRange(new[] {
+                    new Choice("0", "关闭 R0（仅普通自动）"), new Choice("4", "R4（默认）"),
+                    new Choice("8", "R8"), new Choice("10", "R10"), new Choice("12", "R12"),
+                    new Choice("16", "R16"), new Choice("20", "R20")
+                });
+                if (f.Key == "fec-start-parity") c.Items.AddRange(new[] {
+                    new Choice("20", "R20（默认保护）"), new Choice("0", "R0（需普通自动 + 最低R0）")
+                });
                 return c;
             }
             return new TextBox { UseSystemPasswordChar = f.Secret, MaxLength = f.Key == "direct4" ? 16000 : 4096 };
@@ -217,7 +246,7 @@ namespace Wbd.Gui {
             connectedId = editing.Id; ShowState("正在建立连接 · " + editing.Name); servers.Invalidate();
             await session.StartAsync(store.InRoot("data/active.json"));
         }
-        public async Task DisconnectAsync() { leaseRestart = false; if (session.Active) ShowState("正在断开并清理网络状态…"); await session.StopAsync(); Drain(); leaseRestart = false; connectedId = null; ShowState("未连接"); servers.Invalidate(); }
+        public async Task DisconnectAsync() { leaseRestart = false; if (session.Active) ShowState("正在断开并清理网络状态…"); await session.StopAsync(); Drain(); leaseRestart = false; connectedId = null; ClearQuality(); ShowState("未连接"); servers.Invalidate(); }
         async Task ImportDialogAsync() {
             using (var dialog = new OpenFileDialog { Filter = "客户端配置 (*.json)|*.json", Title = "导入客户端 JSON 配置", RestoreDirectory = true }) if (dialog.ShowDialog(this) == DialogResult.OK) await ImportAsync(dialog.FileName);
         }
@@ -283,11 +312,45 @@ namespace Wbd.Gui {
             foreach (Profile p in store.Book.Profiles) foreach (string k in new[] { "password", "route-key-hex" }) { object v; if (p.Values.TryGetValue(k, out v) && !string.IsNullOrEmpty(Convert.ToString(v))) text = text.Replace(Convert.ToString(v), "[已隐藏]"); }
             return new string(text.Take(2000).Where(c => !char.IsControl(c) || c == '\t').ToArray());
         }
+        public string QualityText { get { return quality.Text; } }
+        void ClearQuality() {
+            lastQuality = DateTime.MinValue;
+            quality.Text = "运行质量（当前连接）  ·  RTT：未知  ·  首发损失上界：未知  ·  实际发送 FEC：未知";
+        }
+        // Internal versioned one-line status from the owned client, not a
+        // diagnostic JSONL file or public local listener. No secrets or packet bodies.
+        public bool ApplyQualityLine(string line) {
+            const string prefix = "WBD_CLIENT_QUALITY_V1 ";
+            if (line == null || !line.StartsWith(prefix, StringComparison.Ordinal)) return false;
+            var kv = new Dictionary<string,string>();
+            foreach (string item in line.Substring(prefix.Length).Split(' ')) {
+                var pair = item.Split(new[] {'='}, 2);
+                if (pair.Length != 2 || kv.ContainsKey(pair[0])) return true;
+                kv[pair[0]] = pair[1];
+            }
+            if (!kv.ContainsKey("rtt_ms") || !kv.ContainsKey("loss_pct") || !kv.ContainsKey("fec_tx")) return true;
+            int rtt, fec;
+            double loss;
+            string rttText = int.TryParse(kv["rtt_ms"], NumberStyles.None, CultureInfo.InvariantCulture, out rtt) &&
+                rtt > 0 && rtt <= 60000 ? rtt.ToString(CultureInfo.InvariantCulture) + "ms" : "未知";
+            string lossText = double.TryParse(kv["loss_pct"], NumberStyles.Float, CultureInfo.InvariantCulture, out loss) &&
+                !double.IsNaN(loss) && !double.IsInfinity(loss) && loss >= 0 && loss <= 100 ?
+                    loss.ToString("F1", CultureInfo.InvariantCulture) + "%（上界）" : "未知";
+            string fecText = int.TryParse(kv["fec_tx"], NumberStyles.None, CultureInfo.InvariantCulture, out fec) &&
+                new[] {0,4,8,10,12,16,20}.Contains(fec) ?
+                (fec == 0 ? "R0 · 关闭" : "R" + fec.ToString(CultureInfo.InvariantCulture)) : "未知";
+            quality.Text = "运行质量（当前连接）  ·  RTT：" + rttText +
+                "  ·  首发损失上界：" + lossText + "  ·  实际发送 FEC：" + fecText;
+            lastQuality = DateTime.UtcNow;
+            return true;
+        }
         void Enqueue(string line) { lock (messages) { if (messages.Count >= 256) messages.Dequeue(); messages.Enqueue(line); } }
         void Drain() {
+            if (lastQuality != DateTime.MinValue && (DateTime.UtcNow-lastQuality).TotalSeconds > 8) ClearQuality();
             for (int i = 0; i < 32; i++) {
                 string line; lock (messages) { if (messages.Count == 0) break; line = messages.Dequeue(); }
 				if (line.Contains("WBD_CLIENT_LEASE_CHANGED")) leaseRestart = true;
+                if (ApplyQualityLine(line)) continue;
                 if (line == "WBD_WINDOWS_CLIENT_READY") { if (connectedId!=null && session.Active) ShowState("已连接 · " + (store.Book.Profiles.FirstOrDefault(p => p.Id == connectedId)?.Name ?? "服务器")); line = "隧道已就绪，网络配置已应用。"; }
                 line = Redact(line); store.AppendLog(line); activity.AppendText(DateTime.Now.ToString("HH:mm:ss ") + line + Environment.NewLine);
                 if (activity.Lines.Length > 400) activity.Lines = activity.Lines.Skip(activity.Lines.Length - 300).ToArray(); activity.SelectionStart = activity.TextLength; activity.ScrollToCaret();

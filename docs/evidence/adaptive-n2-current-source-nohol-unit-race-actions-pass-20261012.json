@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N2_CURRENT_SOURCE_GITHUB_TARGETED_NOHOL_UNIT_AND_CONCURRENCY_RACE_SCOPED_PASS",
+  "source_sha": "55a156489b0855b4e73f85964849427079c73ad9",
+  "run_id": 38257097791,
+  "job_id": 114837855080,
+  "artifact_id": 11750249279,
+  "zip_sha256": "f44ac8d7910d87ba4978574948baebe98fc3bce645a4cd17e646af8edc93b7b9",
+  "workflow": ".github/workflows/next-adaptive-n2-nohol-release-gate.yml",
+  "Go_functional": "PASS_TARGETED_6_GO_NOHOL_AND_N2_GENERATION_BARRIER_TESTS",
+  "Go_race": "PASS_RUNTIMEOWNER_LINKDATA_TLSRECORD_ADAPTIVEFEC_DATAPATH",
+  "checks": [
+    "TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence",
+    "TestACKFeedbackBlockedWriteKeepsNoHOLAndOnlyLatestACK",
+    "TestSteadyRepairReserveBoundedWithoutFreshHOL",
+    "TestN2GenerationPinnedNormalTXProposalOnlyChangesNewFECBlock",
+    "TestCrossInnerMTUTinyTailFECRecoveryDoesNotHOLSmallDatagram",
+    "TestDecoderNoHOLAndMultiRecord"
+  ],
+  "perf_jobs": 0,
+  "limits": [
+    "No real 10ms independently identified mixed TCP/UDP first delivery on this specific SOURCE",
+    "C10 GE previous measured first-unique p99 1.833/1.9475s and returned probe max3.405s OPEN",
+    "Does not mean full N2 or Windows native GUI PASS",
+    "Physical NOT_RUN"
+  ],
+  "overall_N2": "OPEN"
+}
