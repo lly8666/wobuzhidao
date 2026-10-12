@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "WINDOWS_NATIVE_WINFORMS_AES128_AES256_THREE_RECORD_CIPHER_CONFIG_SCOPED_PASS",
+  "source_sha": "eb3d766c0e75d4ccd7f37137457cf3fca05d0c4a",
+  "run_id": 38283111076,
+  "job_id": 114924911975,
+  "artifact_id": 11761868940,
+  "archive_sha256": "ce564ae804bb49a8acded981f09b9d50bcaa58954295cf2b0a4b56e23208ec4d",
+  "selftest_json_sha256": "f1cf9e70174a5083c7f9d2de965bde7adcc42fffa8520fba309c5907d4851795",
+  "screenshot_png_sha256": "6a1d74a6b95b77d30bbb1b9c1652d887de1b0df9e5283bf583d4305babd02eb7",
+  "workflow": ".github/workflows/next-adaptive-n2-windows-gui-config-native.yml",
+  "native_windows_Go_tests": "PASS",
+  "WinForms_dotNet_Framework48_compilation": "PASS",
+  "manifest_bundle_readonly_check": "PASS",
+  "native_gui_selftest": "PASS",
+  "native_checks_count": 273,
+  "protected_legacy_default": "chacha20-poly1305",
+  "explicit_record_cipher_options": [
+    "chacha20-poly1305",
+    "aes-128-gcm",
+    "aes-256-gcm"
+  ],
+  "transport_tab_registered": true,
+  "real_Windows_client_check_config_each_option": true,
+  "portable_profile_save_and_validation": true,
+  "FEC_controls_same_transport_page": [
+    "fec-mode",
+    "fec-parity",
+    "fec-min-parity",
+    "fec-start-parity"
+  ],
+  "status_line": "RTT, qualified conservative first-attempt loss upper, actual TX FEC; UNKNOWN if stale/offline",
+  "actual_screenshot": "gui-screenshot.png",
+  "supporting_true_AES128_run_id": 38273052020,
+  "supporting_true_AES256_run_id": 38281815825,
+  "first_native_GUI_failure": {
+    "source_sha": "6cede2383a7184be68978d101d4a5170797d4f00",
+    "run_id": 38282576154,
+    "job_id": 114923148217,
+    "error": "CS0103 prior configForm lifetime wrong",
+    "artifact": null
+  },
+  "foundation_same_source_run_id": 38283111103,
+  "limitations": [
+    "GUI Actions uses Windows2022 hosted UI and true Windows Go config, not connected Wintun driver",
+    "No Windows native TCP redirector or direct UDP mixed routing, N4 NOT_DONE",
+    "No user physical machine changed",
+    "N2 targeted Go noHOL/race passed, isolated real TCP+UDP 10ms multi-flow HOL still NOT_RUN",
+    "N3 lossless real AEAD suites not hardware AES CPU benchmark or GE weaknet proof"
+  ],
+  "N5_status": "SCOPED_NATIVE_GUI_CONFIG_PASS",
+  "physical": "NOT_RUN"
+}

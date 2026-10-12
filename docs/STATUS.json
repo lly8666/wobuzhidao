@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N5_GUI_AES_NATIVE_FIRST_ACTION_COMPILATION_SCOPE_FAIL_MINIMAL_FIX_CANDIDATE",
+    "phase": "N5_GUI_AES_273_NATIVE_WINFORMS_SCOPED_PASS_N4_TUN_CLASSIFIER_SAFE_CORE_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -24,8 +24,8 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
       "N3_aes": "SCOPED_COMPLETE_GO_STD_AES_GCM_CIPHER_RECORD_ADMISSION_LANE_AND_INDEPENDENT_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_FUNCTIONAL_PASS_WITH_HARD_OPEN_DAMAGE_CPU_WIN_TUN",
-      "N4_windows_tun": "NOT_STARTED",
-      "N5_gui_catalog": "N2_AUTOFEC_QUALITY_NATIVE_267_PASS_N3_TRANSPORT_AES128_AES256_CHOICES_COMMITTED_PENDING_FRESH_WINDOWS_NATIVE_GUI_ACTIONS",
+      "N4_windows_tun": "IN_PROGRESS_NEXT_CANDIDATE_PURE_IPV4_CLASSIFIER_UNIT_ONLY_NO_NETWORK_ROUTE_OR_NATIVE_DIRECT_PRODUCT_YET",
+      "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINDOWS2022_WINFORMS_273_REAL_CLIENT_CONFIG_TESTS_AES128_AES256_GUI_TRANSPORT_AND_N2_AUTO_QUALITY_UNKNOWN_SOURCE_EB3D_DRIVERS_NETWORK_NOT_RUN",
       "N6_actions_packages": "NOT_STARTED"
     },
     "decisions": {
@@ -2020,7 +2020,7 @@
       "native_windows_workflow": ".github/workflows/next-adaptive-n2-windows-gui-config-native.yml",
       "native_gui_test_source": "windows/gui/GuiTests.cs",
       "workflows": "pending: no Windows compile/UI screenshots or config validation outcomes yet",
-      "cipher_AES": "THREE_CHOICES_SOURCE_CANDIDATE_PENDING_NEW_GITHUB_NATIVE_UI",
+      "cipher_AES": "SCOPED_PASS_REAL_AES128_AES256_AND_NATIVE_3_SUITE_GUI_CONFIG;_HARDWARE_NOT_RUN",
       "physical": "NOT_RUN",
       "first_native_action": {
         "source_sha": "a79af61e6685f1c3e62354f5f25e593eaaa51ded",
@@ -2103,6 +2103,26 @@
         "source_AEAD_Go_unit": "PASS_BOTH_REAL_AES_NETWORK_PRIOR_SCOPED_SUCCESS",
         "new_gui_evidence": "docs/evidence/adaptive-n3-winforms-aes-first-build-cs0103-fail-20261012.json",
         "physical": "NOT_RUN"
+      },
+      "aes_gui_native_second_action": {
+        "source_sha": "eb3d766c0e75d4ccd7f37137457cf3fca05d0c4a",
+        "run_id": 38283111076,
+        "job_id": 114924911975,
+        "artifact_id": 11761868940,
+        "zip_sha256": "ce564ae804bb49a8acded981f09b9d50bcaa58954295cf2b0a4b56e23208ec4d",
+        "gui_result_sha256": "f1cf9e70174a5083c7f9d2de965bde7adcc42fffa8520fba309c5907d4851795",
+        "screenshot_sha256": "6a1d74a6b95b77d30bbb1b9c1652d887de1b0df9e5283bf583d4305babd02eb7",
+        "status": "SUCCESS_NATIVE_WINDOWS2022_WINFORMS_GO_CONFIG_273_CHECKS_PASS",
+        "record_ciphers": [
+          "chacha20-poly1305",
+          "aes-128-gcm",
+          "aes-256-gcm"
+        ],
+        "default_record_cipher": "chacha20-poly1305",
+        "on_Go_client_real_check_config_each": true,
+        "Native_Wintun_driver_network": "NOT_RUN",
+        "physical": "NOT_RUN",
+        "evidence": "docs/evidence/adaptive-n3-winforms-aes-three-suites-273-native-actions-scoped-pass-20261012.json"
       }
     },
     "n3_aes": {
@@ -2331,7 +2351,7 @@
         "job_id": 114891765713,
         "evidence": "docs/evidence/adaptive-n3-aes128-first-action-registered-20261012.json"
       },
-      "gui_aes_choices": "GUI_THREE_CIPHERS_COMMITTED_FIRST_NATIVE_WINFORMS_COMPILER_SCOPE_FAIL_CANDIDATE_FIX"
+      "gui_aes_choices": "GITHUB_NATIVE_WINDOWS_GUI_273_CHECKS_PASS_ALL_3_CIPHER_CHOICES_DEFAULT_CHACHA"
     },
     "n3_aes_realpath": {
       "aes128": {
@@ -2388,10 +2408,23 @@
         "limits": "ONE lossless sample only; not GE/CPU/hardware WinTUN/mixed TCP+UDP noHOL qualification",
         "physical": "NOT_RUN"
       }
+    },
+    "n4_tun_classifier": {
+      "status": "PURE_BOUNDED_IPV4_DST_INTERVAL_CLASSIFIER_CANDIDATE_NOT_YET_GITHUB_TESTED",
+      "files": [
+        "internal/windowsclient/tun_classifier.go",
+        "internal/windowsclient/tun_classifier_test.go"
+      ],
+      "workflow": ".github/workflows/next-adaptive-n4-tun-classifier-core.yml",
+      "design": "Use immutable sorted/merged IPv4 direct intervals from splitroute, O(log N) destination classifier, DNS UDP/TCP53 priority, owned underlay mandatory direct; source lease strict fence, packet length, nonfirst or any fragments rejected until per-flow generation-scoped association implemented",
+      "touched_live_Windows_route_plan": false,
+      "added_native_Direct_TCP_UDP": false,
+      "no_Wintun_actual_load": true,
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "First Windows native AES-choice GUI source6cede238 Action38282576154/job114923148217 FAILED at C# compile GuiTests.cs lines104-106 unresolved configForm outside its preceding using foreach scope; Windows Go policy+quality passed, Go native build was interrupted at GUI compile, no selftest/artifact. Preserve exact FAIL. Minimal fix only GuiTests AES suite loop with distinct owned `using (var cipherForm = new MainForm(...))` and `cipherForm.LoadEditor/SetEditor/SaveEditor`, never change actual MainForm AES 3 choices / Go/config/catalog/default. New Windows 2022 Actions build/selftest screenshot and lifecycle required; N3 AES128+AES256 real five-netns tests already scoped PASS, physical NOT_RUN. After N5 UI green begin bounded N4 Windows TUN in-route classification and owned direct route replacement; no early deployment/ref move/mainline. N2 mixed TCP/UDP real 10ms independent HOL still NOT_RUN; C04/C05 grade FAIL and GE p99 old OPEN.",
-  "latest_log": "docs/devlog/20261012-n3-gui-aes-first-native-compiler-scope-fail-fix.md",
+  "next_task": "Windows native GUI AES three option Action38283111076/job114924911975 SOURCEeb3d766c artifact11761868940 ZIP ce564ae8 sha, 273 WinForms .NET4.8 native selftest checks PASS with real Windows Go --check-config per AES128/AES256/ChaCha and transport screenshot. First source6cede GUI CS0103 FAIL preserved. Now start bounded N4 pure TUN classifier/flow boundaries: immutable CN/LAN/direct IPv4 intervals O(logN), DNS TCP/UDP53 precedence, lease spoof rejection and fragment fail-closed; new exact SOURCE GitHub Linux race and Windows native Go unit, no driver active yet. Only later do generation-bound bounded cache, native system TCP redirector + underlay-bound sockets/UDP mapping and replace huge complement FIB routes transactionally; do not change Windows live routing before native Actions. N2 real mixed TCP+UDP independent 10ms noHOL still NOT_RUN (Go noHOL/race scoped only), C04/C05 grade FAIL and C10 long p99 OPEN; N3 AES record real AES128/256 lossless scoped PASS, N6 three-target package pending; physical NOT_RUN; never deploy or move qualification ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n3-winforms-aes-three-native-273-pass-n4-first-classifier-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "af228675af68d9ea5f682604dbfa9fa5cf33c661",
   "last_tested_scope": "N3_V3_AUTH_REAL_AES256_100S_LOSSLESS_NORMAL_AUTO_300MS_BOTH_FIRSTUNIQUE_246711OF246711_PROBE100OF100_P99_ONEWAY_301MS_SCOPED_PASS_NOT_GE_OR_HARDWARE",

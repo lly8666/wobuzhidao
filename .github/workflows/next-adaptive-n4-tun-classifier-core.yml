@@ -1,0 +1,50 @@
+name: next-adaptive-n4-tun-classifier-core
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-tun-classifier-core.yml"
+      - "internal/windowsclient/tun_classifier.go"
+      - "internal/windowsclient/tun_classifier_test.go"
+permissions:
+  contents: read
+jobs:
+  linux-classifier-unit-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE/branch policy and bounded classifier unit/race
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          go test -count=1 -v ./internal/windowsclient -run '^TestN4TUNClassifier'
+          go test -race -count=1 ./internal/windowsclient ./internal/splitroute
+  windows-native-classifier-core-no-driver:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Actual Windows Go classifier and plan unit tests without Wintun install
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) { throw "source mismatch" }
+          go test -count=1 ./internal/windowsclient ./internal/splitroute
+          if ($LASTEXITCODE -ne 0) { throw "N4 native Go classification failed" }
+          Write-Output "N4_SCOPED_TUN_CLASSIFIER_ONLY_WINDOWS_UNIT_PASS_SOURCE=$env:GITHUB_SHA"
