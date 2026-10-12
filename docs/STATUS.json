@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_M3_C03_CROSS_SCOPED_GRADE_AND_FIRST_DELIVERY_PASS_C04_OFFSTART_CROSS_NEXT",
+    "phase": "N2_M3_C03_CROSS_SCOPED_PASS_C04_OFFSTART_CROSS_FROZEN_ACTION_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1405,11 +1405,68 @@
         "gross_outer_over_business": 2.531671575995166,
         "evidence": "docs/evidence/adaptive-n2-m3-c03-cross-780s-actions-scoped-20261012.json",
         "qualification": "SCOPED_C03_PASS_NOT_FULL_N2_CPU_DIAG_ON_ONLY"
+      },
+      "c04_cross": {
+        "status": "ONE_840S_WAVE_PREDECLARED_NOT_RUN",
+        "original_reference": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+        "original_model_version": "n2-independent-iid-timeband-v1",
+        "frozen_model_sha256": "288d005f6b419d41071648dd778191e8236fdc9abe2fa07d64cb0f0086262a8f",
+        "waveform": "0_1_5_20_5_0_PCT",
+        "stage_offsets_s": [
+          0,
+          120,
+          240,
+          360,
+          480,
+          600,
+          840
+        ],
+        "normal_auto_min_parity": 0,
+        "normal_auto_initial_parity": 0,
+        "normal_auto_max_parity": 20,
+        "rtt_s": 0.6,
+        "app_mbps_each_direction": 10,
+        "mtu": 1400,
+        "recover5_stage_seconds": [
+          480,
+          600
+        ],
+        "recover5_last60_seconds": [
+          540,
+          600
+        ],
+        "recover5_frozen_allowed": [
+          8,
+          10
+        ],
+        "recover5_last60_target_fraction": 0.9,
+        "recover5_must_settle_in_original_freeze": false,
+        "recover5_B_upper_s": 140.4,
+        "final_clean_last120_business_active_seconds": [
+          720,
+          840
+        ],
+        "final_clean_last60_frozen_allowed": [
+          0,
+          4
+        ],
+        "require_actual_off_while_business_active": true,
+        "require_final_first_unique_ge_90pct_and_no_ge5s_blackout": true,
+        "workflow": ".github/workflows/next-adaptive-n2-m3-c04-cross-fullwave-single.yml",
+        "new_grade_gate": "tools/adaptive_n2_m3_c04_cross_gate.py",
+        "new_gate_unit": "tools/test_adaptive_n2_m3_c04_cross_gate.py",
+        "realpath_helper": "tools/adaptive_n2_c04_wave.py",
+        "independent_off_gate": "tools/adaptive_n2_c04_longserial_gate.py",
+        "core_race": "REQUIRED_IN_THIS_NEW_GITHUB_ACTION_BEFORE_NETWORK",
+        "single_source_configuration_scenario_measurement_job": true,
+        "run_id": "NOT_RUN_AT_THIS_COMMIT",
+        "performance_verdict": "NOT_RUN",
+        "physical": "NOT_RUN"
       }
     }
   },
-  "next_task": "M3 C03 cross Action38224570563 job114728796855 artifact11736832008 same old frozen780s actual recover5 last60 R8-10 C2S95% S2C100%, high20/finalclean 100%, no delivery blackout, real missing420/313, gross wire2.532x, clean0 S2C startup grade76.7% observation limitation. Next only C04 off-start full840s separate SOURCE/config/scenario/one measurement job with exact existing frozen C04 [0,4],[8,10],[16,20], [0,4] and actual off before drain, plus first unique/CPU/parity, check M3 offProof32 not stuck; test independent gate units in Action before real load. No concurrent performance. Then asymmetric, GE burst, blackhole, jitter/reorder, feedback loss, sparse idle/rotation, mix TCP/UDP 10ms noHOL, MTU/Game fixed before N2 declared reasonable. N3-N6 not started, physical NOT_RUN, legacy2.73s/80s OPEN; do not deploy/merge/ref.",
-  "latest_log": "docs/devlog/20261012-n2-m3-c03-780s-cross-scoped-pass-c04-next.md",
+  "next_task": "M3 C03 cross scoped PASS recorded SOURCE272deba Action38224570563 job114728796855 artifact11736832008, recover5 last60 C2S95% S2C100%, good business but startup clean0 S2C76.7% and diagON gross wire2.532x, N2 OPEN. C04 independent cross next: normal auto initial0/floor0, 840s 0/1/5/20/5/0 single SOURCE/config/scenario/job. Before load frozen reference and cross gate model unit, Go N2 unit/race in GitHub; measure real recover5 last60 R8-R10 fraction >=90% both, verify actual off in final clean business-active last60, original C04 protection/delivery off-gate, bounded resource/queue and first delivery; if fail preserve original outcome, no blindly repeated performance. Then GE temporal burst, asym, blackhole/reorder/feedback/sparse/idle/rotation/mixedTCPUDP/MTU Game, CPU diagOFF baseline; N3-N6 not started, physical NOT_RUN, 2.73s/80s OPEN no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n2-m3-c04-offstart-cross-840s-predeclared.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "272deba91faebb024079f153559726cda45df6e3",
   "last_tested_scope": "M3_C03_780S_ACTION38224570563_FIRST_UNIQUE_C2S1923924OF1924344_S2C1924031OF1924344_GAP0_LOSS20_R16_20_100PCT_RECOVER5_R8_10_C2S95PCT_S2C100PCT_FINAL0_R4_BOTH_DIAG_ON_2_532X_SCOPED_PASS",
