@@ -1,3 +1,11 @@
+## 2026-10-12 N3 GUI AES128/AES256 传输页候选开放（待本次 Windows 原生 Actions）
+
+两个分别单SOURCE、单场景、单性能Job的真实受保护 V3 100秒五netns无损功能测试均已通过：[AES-128 Action38273052020](https://github.com/lly8666/wobuzhidao/actions/runs/38273052020) source `52651945e68513655f1d3601530829e869f21422`、[AES-256 Action38281815825](https://github.com/lly8666/wobuzhidao/actions/runs/38281815825) source `af228675af68d9ea5f682604dbfa9fa5cf33c661`。两次各双向246711/246711首次唯一交付、100/100 RTT探针返回、无坏包/重复/发送失败，lossless 300ms单程10Mbps每向；AES-128 RTTp99 601.84064ms、AES-256 601.285635ms。仅为AES真实无损记录加密的限定功能证据，不能声称有损、跨CPU性能改善、Windows原生Wintun或混合TCP/UDP多流HOL全部合格。
+
+基于这两条证据，本次在 WinForms **“传输”→“记录加密套件”** 下拉明确提供 `ChaCha20-Poly1305`（原默认）、`AES-128-GCM`、`AES-256-GCM`。原`docs/PARAMETERS.json`与真正Windows/Linux `record-cipher` CLI/JSON均已支持三种值，本轮**不新增第二套配置键、不改默认、不自动改写旧Profile**；GUI会为三种值分别通过正式 Windows客户端`--check-config`及便携JSON来验证，并在此代码SOURCE的原生 Actions 生成传输页截图。自动FEC仍在同一传输页设置`fec-mode`/`fec-parity`/`fec-min-parity`/`fec-start-parity`，质量显示用新鲜认证RTT/保守首发损失上界/实际TX冗余，UNKNOWN仍显示“未知”，断开清空。
+
+**本段是GUI代码候选，不是已经通过本次原生Windows Actions**。原生Wintun/驱动与物理真实机器测试依旧NOT_RUN；C04/C05效率FAIL及GE p99长尾OPEN。本开发线程不部署、不移动qualification ref、不合主线。
+
 ## 2026-10-12 N3-D：在“传输”页接入新 record cipher 与自动 FEC
 
 新版客户端 Linux/Windows `--record-cipher` / JSON `"record-cipher"` **默认 ChaCha20-Poly1305**。受保护 V3 能识别 `aes-128-gcm` 和 `aes-256-gcm`，但 **两个真实 AES 单场景五 netns 收发/CPU/资源证据未过前，WinForms GUI 的“记录加密套件”下拉只列 ChaCha**，不得将 Go 认证单元测试等同产品资格。这个字段位于“传输”，紧邻 Normal/Game、FEC 模式与固定/最小/起步保护，避免用户在 TLS 伪装、安全或网络路由页误配。新增字段在统一 `PARAMETERS.json` 中存在，与 `gui-fields.json` 完全等键，GUI 自测对每字段均经真实 Windows 客户端 `--check-config` 校验；不重复单独维护另一套 AES 选项。诊断状态仅显示已认证且新鲜的 RTT/损失估计/实际发送 FEC，未知保留 UNKNOWN。旧已保存的配置缺少该字段时使用默认 ChaCha，旧固定模式不自动迁移至 AES。物理 Npcap/Wintun 驱动安装仍未测试、不得宣告完成。N3/N4/N6 以 STATUS 的真实 Actions 为准。

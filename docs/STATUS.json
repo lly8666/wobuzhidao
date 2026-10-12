@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_AES128_REAL_SCOPED_PASS_AES256_SINGLE_REALPATH_FROZEN_ACTION_CANDIDATE",
+    "phase": "N3_AES128_AES256_REAL_LOSSLESS_SCOPED_PASS_N5_WINDOWS_GUI_AES_CHOICES_NATIVE_ACTION_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -23,9 +23,9 @@
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
-      "N3_aes": "IN_PROGRESS_AES128_REAL_5NETNS_SCOPED_PASS_ACTION38273052020_FIRSTUNIQUE_100PCT_GO_UNIT_RACE_AND_V3_ADMISSION_AES256_SEPARATE_ACTION_CANDIDATE",
+      "N3_aes": "SCOPED_COMPLETE_GO_STD_AES_GCM_CIPHER_RECORD_ADMISSION_LANE_AND_INDEPENDENT_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_FUNCTIONAL_PASS_WITH_HARD_OPEN_DAMAGE_CPU_WIN_TUN",
       "N4_windows_tun": "NOT_STARTED",
-      "N5_gui_catalog": "SCOPED_GUI_N2_AUTOFEC_AND_AUTH_QUALITY_N3_CHACHA_RECORD_CIPHER_TRANSPORT_NATIVE_267_TESTS_GH_ACTIONS_PASS_AES_CHOICES_WAIT_AES256_REAL_QUALIFICATION_PHYSICAL_NOT_RUN",
+      "N5_gui_catalog": "N2_AUTOFEC_QUALITY_NATIVE_267_PASS_N3_TRANSPORT_AES128_AES256_CHOICES_COMMITTED_PENDING_FRESH_WINDOWS_NATIVE_GUI_ACTIONS",
       "N6_actions_packages": "NOT_STARTED"
     },
     "decisions": {
@@ -2020,7 +2020,7 @@
       "native_windows_workflow": ".github/workflows/next-adaptive-n2-windows-gui-config-native.yml",
       "native_gui_test_source": "windows/gui/GuiTests.cs",
       "workflows": "pending: no Windows compile/UI screenshots or config validation outcomes yet",
-      "cipher_AES": "UNSUPPORTED_NOT_ADVERTISED",
+      "cipher_AES": "THREE_CHOICES_SOURCE_CANDIDATE_PENDING_NEW_GITHUB_NATIVE_UI",
       "physical": "NOT_RUN",
       "first_native_action": {
         "source_sha": "a79af61e6685f1c3e62354f5f25e593eaaa51ded",
@@ -2221,8 +2221,8 @@
       "gui_section": "传输",
       "gui_state": "Chacha only as selectable until real AES network verified; AES candidate annotated",
       "workflow": ".github/workflows/next-adaptive-n3-explicit-record-cipher-config.yml",
-      "real_AES128_Actions": "NOT_RUN",
-      "real_AES256_Actions": "NOT_RUN",
+      "real_AES128_Actions": "SCOPED_PASS_RUN38273052020",
+      "real_AES256_Actions": "SCOPED_PASS_RUN38281815825",
       "physical": "NOT_RUN",
       "cli_actions": {
         "source_sha": "56c170dfd20cc78d859a7f5c50866af81da24603",
@@ -2310,7 +2310,8 @@
         "run_id": 38273052020,
         "job_id": 114891765713,
         "evidence": "docs/evidence/adaptive-n3-aes128-first-action-registered-20261012.json"
-      }
+      },
+      "gui_aes_choices": "THREE_CHOICES_NOW_SOURCE_CANDIDATE_FRESH_NATIVE_ACTION_NOT_YET_RUN"
     },
     "n3_aes_realpath": {
       "aes128": {
@@ -2340,30 +2341,40 @@
         "limitations": "lossless only, diag ON, CPU quota unknown; mixed TCP+UDP 10ms independent HOL NOT_RUN and native Windows Wintun physical NOT_RUN"
       },
       "aes256": {
-        "status": "PREDECLARED_SEPARATE_100S_SINGLE_SOURCE_CONFIG_MEASUREMENT_JOB_NOT_RUN",
-        "workflow": ".github/workflows/next-adaptive-n3-aes256-lossless-single.yml",
-        "freeze": "docs/evidence/adaptive-n3-aes256-lossless-realpath-frozen-20261012.json",
-        "suite": "aes-256-gcm",
-        "source_template": "scripts/realpath_calibration.sh",
-        "helper": "tools/adaptive_n3_aes_realpath.py",
-        "duration_s": 100,
-        "drain_s": 10,
-        "oneway_each_ms": 300,
-        "mbps_each_direction": 10,
-        "loss_pct": 0,
-        "initial_R": 20,
-        "min_R": 4,
+        "source_sha": "af228675af68d9ea5f682604dbfa9fa5cf33c661",
+        "run_id": 38281815825,
+        "job_id": 114920640258,
+        "artifact_id": 11760904463,
+        "zip_sha256": "aab047ae958c80eb781ca9f92042ca72357293380dbc80249cd38bc720e8f57b",
+        "summary_sha256": "0380a59619feb254c3078b6f268da8a7a970f5d1ba1c567abda193910d1d9be4",
+        "manifest_sha256": "bd6f7670857a2491e71cbc9e2c63d1c8bfc9a5bbc94fe9b3ecfc57989b088195",
+        "status": "GITHUB_ACTION_SUCCESS_AES256_100S_5NETNS_LOSSLESS_BOTH_FIRST_UNIQUE_PASS",
+        "sent_each_direction": 246711,
+        "first_unique_each_direction": 246711,
+        "duplicates": 0,
+        "corrupt": 0,
+        "send_failures": 0,
+        "probe_sent": 100,
+        "probe_returned": 100,
+        "oneway_p99_ms": {
+          "c2s": 301,
+          "s2c": 301
+        },
+        "rtt_p99_ms": 601.285635,
         "diagnostics": "ON",
-        "performance_run_id": "NOT_RUN_AT_THIS_STATUS",
+        "exact_authenticated_suite": "aes-256-gcm",
+        "actual_auto_lower_to_R4_both": true,
+        "evidence": "docs/evidence/adaptive-n3-aes256-realpath-100s-scoped-pass-20261012.json",
+        "limits": "ONE lossless sample only; not GE/CPU/hardware WinTUN/mixed TCP+UDP noHOL qualification",
         "physical": "NOT_RUN"
       }
     }
   },
-  "next_task": "AES128 100s real Action38273052020 job114891765713 exact SOURCE52651945e68513655f1d3601530829e869f21422 artifact11757344960 ZIPd30affd5 analyzer PASS: C2S/S2C sent and first-unique246711/246711, no corruption/dup/fail, probe100/100, p99 oneway301.5ms, real V3 AES128 and auto R4 both; N3 scoped only, no mixed independent TCP+UDP 10ms noHOL proof, CPU quota unknown. NOW single predeclared AES256 exact configuration separate SOURCE/Action workflow next-adaptive-n3-aes256-lossless-single.yml same 100s 300ms lossless Normal-auto V3 Go unit/race; after its result preserve hash, then update Windows GUI `record-cipher` three choices only when both AES realpath have passed + rerun native GUI 267+ tests. Next N4 Windows native route/TUN plan and N6 packages via Actions, physical NOT_RUN. Historic C04/C05 grade failures and C10 tail remain OPEN, N2 mixed real HOL NOT_RUN despite unit/race scoped PASS; no qualification ref/mainline or deployment.",
-  "latest_log": "docs/devlog/20261012-n3-aes128-real-lossless-scoped-pass-aes256-predeclared.md",
+  "next_task": "N3 AES128 and AES256 each complete separate real 100s V3 authenticated five-netns Actions and 100% first-unique/probe: AES128 SOURCE52651945 Action38273052020 artifact11757344960; AES256 SOURCEaf228675 Action38281815825 artifact11760904463, both standalone functional scoped PASS, not damaged/CPU physical. NOW new GUI-only commit adds three values in WinForms '传输 / 记录加密套件' combobox, native WinForms configuration roundtrip and Windows Go --check-config for all three, default stays chacha; docs/PARAMETERS.json existing flag catalog unchanged, update GUI/parameters documentation only. Check new native Windows GUI workflow next-adaptive-n2-windows-gui-config-native and lifecycle Actions, download screenshot/artifact and preserve any failures; DO NOT call Windows Wintun native or physical PASS. After GUI successful start bounded N4 Windows TUN classifier/owned routes/direct TCP UDP implementation and N6 packaging via Actions. N2 Go noHOL/race scoped PASS but real independent mixed TCP+UDP 10ms still NOT_RUN; C04/C05 grade efficiency and C10 p99 OPEN; physical NOT_RUN; no auto deploy/qualification ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n3-aes256-scoped-pass-winforms-three-ciphers-pending-native.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "52651945e68513655f1d3601530829e869f21422",
-  "last_tested_scope": "N3_AES128_GCM_V3_AUTH_NORMAL_AUTO_100S_300MS_LOSSLESS_BOTH_FIRSTUNIQUE_246711_OF246711_NO_CORRUPT_DUP_SENDF_FAIL_PROBE100_100_RTT_P99_601_84MS_WIRE2_774X_DIAG_ON_SCOPED_PASS",
+  "last_tested_source_sha": "af228675af68d9ea5f682604dbfa9fa5cf33c661",
+  "last_tested_scope": "N3_V3_AUTH_REAL_AES256_100S_LOSSLESS_NORMAL_AUTO_300MS_BOTH_FIRSTUNIQUE_246711OF246711_PROBE100OF100_P99_ONEWAY_301MS_SCOPED_PASS_NOT_GE_OR_HARDWARE",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [],
   "in_progress": [

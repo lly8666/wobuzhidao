@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N3_AES256_AUTHENTICATED_V3_5NETNS_100S_LOSSLESS_FUNCTIONAL_SCOPED_PASS_NOT_FULL_N3",
+  "source_sha": "af228675af68d9ea5f682604dbfa9fa5cf33c661",
+  "run_id": 38281815825,
+  "job_id": 114920640258,
+  "artifact_id": 11760904463,
+  "archive_sha256": "aab047ae958c80eb781ca9f92042ca72357293380dbc80249cd38bc720e8f57b",
+  "summary_sha256": "0380a59619feb254c3078b6f268da8a7a970f5d1ba1c567abda193910d1d9be4",
+  "manifest_sha256": "bd6f7670857a2491e71cbc9e2c63d1c8bfc9a5bbc94fe9b3ecfc57989b088195",
+  "prep_sha256": "15505436ae18c1784ce8c486c0a9d5df89323d08bca4cfba83e1eccb49975a27",
+  "business_sender_sha256": "c83982de1234e2a82ee86c88f145698d46e0aa624b2b3be78ea5901e8a7df81d",
+  "business_target_sha256": "829295f0f26e42f521e772e96cf400d0ef89164e6ef83c41ce6cdd2de6279859",
+  "workflow": ".github/workflows/next-adaptive-n3-aes256-lossless-single.yml",
+  "model_freeze": "docs/evidence/adaptive-n3-aes256-lossless-realpath-frozen-20261012.json",
+  "same_source_go_unit_race": "PASS",
+  "derived_exact_AES256_preflight": "PASS",
+  "auth_V3_record": "PASS_CODEPATH",
+  "one_source_configuration_scenario_measurement_job": true,
+  "scenario": "Normal auto initialR20/floorR4, Server fixedR20, explicit record cipher aes-256-gcm, ChaCha default unaffected, MTU1400 300ms one-way both 10Mbps each, 100s active +10s drain, 0% kernel tc loss, bounded diagnostic ON",
+  "run_result": "SUCCESS",
+  "analyzer": "N3_AES_REALPATH_LOSSLESS_FIRST_UNIQUE_SCOPED_PASS_NOT_FULL_N3",
+  "directional": {
+    "c2s": {
+      "sent": 246711,
+      "unique": 246711,
+      "unique_bytes": 125000240,
+      "missing": 0,
+      "corrupt": 0,
+      "duplicates": 0,
+      "send_failures": 0,
+      "oneway_p99_ms": 301
+    },
+    "s2c": {
+      "sent": 246711,
+      "unique": 246711,
+      "unique_bytes": 125000240,
+      "missing": 0,
+      "corrupt": 0,
+      "duplicates": 0,
+      "send_failures": 0,
+      "oneway_p99_ms": 301
+    }
+  },
+  "probe": {
+    "sent": 100,
+    "returned": 100,
+    "returned_only_rtt_p99_ms": 601.285635
+  },
+  "N2_auto_both_direction_actual_lower_to_R4": true,
+  "capture_kernel_drop_total": 0,
+  "limitations": [
+    "Only one true lossless 100s AES256 sample, not GE/1%/5%/20% damaged traffic",
+    "N2 independent mixed TCP+UDP multi-flow 10ms HOL NOT_RUN despite scoped Go unit/race PASS",
+    "No independent encrypted raw PCAP oracle; production authenticated policy and Go crypto tests cover suite",
+    "Diagnostic ON and CPU quota/cross VM incomparability; no AES vs ChaCha same-runner CPU benefit claim",
+    "Windows native Wintun functional/physical and final cross-target release NOT_RUN",
+    "Original C04 and C05 overprotection grade FAIL, GE severe p99 and old 80s S2C remain OPEN"
+  ],
+  "overall_N3": "SCOPED_AES128_AND_AES256_REAL_LOSSLESS_PASS_GUI_NATIVE_PENDING",
+  "physical": "NOT_RUN"
+}

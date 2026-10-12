@@ -1,3 +1,7 @@
+## 2026-10-12 N3 AES GCM 正式配置与 GUI 三选一（最新阶段候选）
+
+实际客户端Linux/Windows CLI和扁平JSON统一使用 `record-cipher=chacha20-poly1305|aes-128-gcm|aes-256-gcm`，**默认值不变**为`chacha20-poly1305`，旧无该字段文件继续ChaCha且不自动迁移。保护V3 admission/每lane记录AEAD与FEC已经由Go unit/race和两个单独真实五netns无损100秒双向Actions覆盖：AES128 Run38273052020、AES256 Run38281815825，全部业务首达246711/246711每方向；这只支持有条件地在Windows GUI“传输”区域开放两个手动AES值，不代表真实Windows Wintun、GE有损性能或独立混合TCP/UDP noHOL都PASS。本轮GUI下拉/配置Go只读校验和截图须等当前原生Windows Actions，源SHA独立记录。以下旧记录保留历史阶段时的“尚未开放”措辞，当前状态请优先以本段和`docs/STATUS.json`为准。
+
 ## 2026-10-12 N3-D 记录加密套件显式配置（候选；GUI 真实 AES 测试前不开放选择）
 
 Linux 和 Windows **客户端** `--record-cipher` 及同名扁平 JSON 字段默认仍为 `chacha20-poly1305`；只接受精确 `chacha20-poly1305`、`aes-128-gcm`、`aes-256-gcm` 三种拼写。AES 必须显式选用，结合受保护 V3 admission 协商；不允许旧 `legacy` FEC 配置无意升级 AES，也不与外层 TLS 伪装的密码套件混淆。CLI 优先于 JSON，已有未指定字段的配置保持原 ChaCha 语义。**参数目录 `docs/PARAMETERS.json` 本次由实际 Linux/Windows flag 声明同步，`tools/parameter_catalog.py` 在 GitHub Actions 阻止字段漂移。**

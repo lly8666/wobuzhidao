@@ -95,6 +95,23 @@ namespace Wbd.Gui {
                     var offStart=Wait(real.ValidateAsync(store.InRoot("data/auto.json")));
                     Assert(Convert.ToInt32(offStart["fec-start-parity"])==0 && Convert.ToInt32(offStart["fec-min-parity"])==0,
                            "GUI Normal explicit ordinary auto off-start supported");
+                    // Native WinForms Transport select -> portable JSON -> actual
+                    // Windows Go --check-config for each explicitly supported
+                    // record suite. Do not switch the legacy default away from ChaCha.
+                    foreach (string suite in new[] { "chacha20-poly1305", "aes-128-gcm", "aes-256-gcm" }) {
+                        p.Values["lanes"]=1; p.Values["fec-parity"]=0;
+                        p.Values["fec-mode"]="auto"; p.Values["fec-min-parity"]=4; p.Values["fec-start-parity"]=20;
+                        configForm.LoadEditor();
+                        configForm.SetEditor("record-cipher", suite);
+                        configForm.SaveEditor();
+                        Assert(Convert.ToString(p.Values["record-cipher"]) == suite,
+                               "Transport UI saved actual record cipher " + suite);
+                        store.WriteAtomic("data/aes-gui-check.json", store.Json.Serialize(store.Effective(p)));
+                        var actualSuite = Wait(real.ValidateAsync(store.InRoot("data/aes-gui-check.json")));
+                        Assert(Convert.ToString(actualSuite["record-cipher"]) == suite,
+                               "Windows Go --check-config accepts explicit V3 suite " + suite);
+                    }
+                    p.Values["record-cipher"]="chacha20-poly1305";
                     foreach (var badPolicy in new[] {
                         new object[] {"auto",2,0,4,20},new object[] {"auto-aggressive",1,0,0,0},
                         new object[] {"auto",1,4,4,20},new object[] {"off",1,4,4,20},
