@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_E_AES128_REAL_PROTECTED_FIVE_NETNS_SINGLE_SOURCE_FROZEN_CANDIDATE",
+    "phase": "N3_E_AES128_REAL_V3_SINGLE_ACTION38273052020_PREMEASUREMENT_IN_PROGRESS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2293,7 +2293,7 @@
         "evidence": "docs/evidence/adaptive-n3-d-record-cipher-catalog-gui-native-scoped-pass-20261012.json"
       },
       "aes128_realpath": {
-        "status": "PREDECLARED_SINGLE_100S_FIRST_AES_REALPATH_NOT_YET_ACTIONS",
+        "status": "GITHUB_AES128_ACTION38273052020_JOB114891765713_IN_PROGRESS_NO_NETWORK_VERDICT",
         "source_path": "tools/adaptive_n3_aes_realpath.py",
         "workflow": ".github/workflows/next-adaptive-n3-aes128-lossless-single.yml",
         "source_scenario": "N3 AES128-GCM protected V3 Normal auto min4 initial20 server fixed FEC20; true Linux 5netns TPROXY/TUN, lossless 300ms one-way each, UDP bidir10Mbps each, 100s active+10s drain",
@@ -2303,14 +2303,18 @@
         "go_unit_race_crypto_before_realpath": true,
         "proof": "strict derived shell requires one --record-cipher aes-128-gcm and matched manifest, authorized V3 admission and default-policy protections, both first unique all delivered for lossless, capture pcap netem delay and probes, CPU scope/ISA cgroup preflight",
         "cpu_qualification": "DESCRIPTIVE_DIAG_ON_ONLY_NO_MATCHED_OFF_BASELINE",
-        "product_measurement": "NOT_RUN_AT_CANDIDATE_COMMIT",
+        "product_measurement": "IN_PROGRESS_FIRST_SOURCE_NO_FINAL_ARTIFACT",
         "AES256_realpath": "SEPARATE_ACTION_AFTER_AES128_RESULT",
-        "physical": "NOT_RUN"
+        "physical": "NOT_RUN",
+        "source_sha": "52651945e68513655f1d3601530829e869f21422",
+        "run_id": 38273052020,
+        "job_id": 114891765713,
+        "evidence": "docs/evidence/adaptive-n3-aes128-first-action-registered-20261012.json"
       }
     }
   },
-  "next_task": "N3-D config and Windows native GUI f5d8b8 lifecycle38271632307 PASS, GUI38271632294 artifact11756898284 ZIP98cff39c 267 native tests PASS, original 56c catalog/GUI failures preserved. AES128 protected real five-netns NEXT in one separate performance Action: helper tools/adaptive_n3_aes_realpath.py explicitly adds client --record-cipher aes-128-gcm to Normal auto min4, updates V3 manifest, server matches via authenticated admission; expected lossless 300ms one-way each, 10Mbps bidir, 100s active+10 drain. Go AES TLS admission unit/race and helper derived shell preflight first, then one real network job and independent firstunique/integrity/qdisc/probes/CPU results. If fail preserve exact source/log and narrow issue. Separate AES256 Action only after AES128 analyzed. GUI stays ChaCha-only until BOTH real AES suites scope PASS then native WinForms encrypted choice/invalid guards; N4 Win TUN/N5 GUI/N6 packaging afterward. N2 noHOL unit/race scoped PASS, true isolated mixed TCP/UDP 10ms NOT_RUN; C04/C05 efficiency and C10 p99 historical remain OPEN; physical NOT_RUN no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261012-n3-e-aes128-authenticated-single-realpath-predeclared.md",
+  "next_task": "First finish N3 AES128 real GH Action38273052020/job114891765713 exact SOURCE52651945e68513655f1d3601530829e869f21422. One lossless 100s protected real client/server AES128 Normal auto source. As of registration source policy/perf sample claim passed; same-SOURCE Go AES/N2 unit/race in progress, no final summary yet. Check preflight and actual sample; if fail preserve original Action reason/hash, no blind reruns. When realpath finishes download artifact, verify exact AES128 CLI and V3 manifest/one source, both business directions first unique 100%, no corrupt/dup, probe returned, 300ms tc delay, capacity, CPU/ISA quota and parity/wire, then scoped verdict. Next only after result run AES256 separately one performance Action, and after both real qualify enable Windows GUI AES choices and native screenshot config tests. N2 scoped Go/race noHOL PASS but actual independent mixed TCP+UDP 10ms HOL still NOT_RUN; C04/C05 grade/p99 GE old OPEN. N4 Win TUN/N6 build not done; physical NOT_RUN no deploy/qualification-ref/mainline.",
+  "latest_log": "docs/devlog/20261012-n3-e-aes128-first-real-network-action-registered.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",

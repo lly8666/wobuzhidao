@@ -1,0 +1,5 @@
+# 2026-10-12 N3 AES128 五netns真实业务唯一Action启动登记（暂不结论）
+
+唯一测量SOURCE `52651945e68513655f1d3601530829e869f21422`，[Action38273052020](https://github.com/lly8666/wobuzhidao/actions/runs/38273052020) job114891765713，正式`next-adaptive-n3-aes128-lossless-single.yml`，唯一固定Normal V3自动FEC initial20/min4、显式AES-128-GCM record AEAD、Server用Protected V3 admission衍生对称suite、五netns真实业务双向各10Mbps、300ms单程、tc丢包0、业务100s活跃+10s drain、诊断ON。业务payload/密钥/大PCAP不上传。冻结工况`docs/evidence/adaptive-n3-aes128-lossless-realpath-frozen-20261012.json`，预先要求lossless全送全首达、无坏包/dup/send fail、probe全回、双向网口300ms传播符合预冻范围。本SOURCE新增`tools/adaptive_n3_aes_realpath.py`仅从前一Clean300真实成功的正式五netns模板衍生，添加且只添加一次客户端`--record-cipher aes-128-gcm`，manifest同步准确suite，其他FEC/基础设施规则保留。独立preflight检查helper产物、正式Go AEAD/N2 unit/race，再真正build及执行一次业务，任何FAIL均上传可复核小summary/日志。
+
+截至本登记正式performance guard/policy source PASS，AES TLS authenticated、N2 unit/race正在GitHub Actions执行。**没有实际首次唯一交付/p99/CPU或网络结果，严禁宣布AES128成功**。此后必须等这次Action artifact与source/hash/双向网络符合后，才能单独跑AES256；GUI只开放Chacha并注明AES真实网测未完成。N2单测noHOL scoped PASS≠混合TCP/UDP独立10ms真实验收，C04/C05资源效率与C10 p99历史仍OPEN。physical NOT_RUN，不部署/移动qualification ref/合mainline。

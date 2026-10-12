@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "status": "AES128_V3_PROTECTED_REALPATH_ACTION_RUNNING_NOT_MEASURED_YET",
+  "source_sha": "52651945e68513655f1d3601530829e869f21422",
+  "run_id": 38273052020,
+  "job_id": 114891765713,
+  "workflow": ".github/workflows/next-adaptive-n3-aes128-lossless-single.yml",
+  "suite": "aes-128-gcm",
+  "one_source_one_configuration_one_scenario_one_measurement_job": true,
+  "scenario": "Normal auto initial20 min4, V3 protected explicit AES128 record cipher, 5 native Linux netns, each 10Mbps/300ms one-way lossless, 100s business plus 10s drain",
+  "preflight_when_registered": [
+    "repository performance policy and exactly one sample guard claim PASS",
+    "AES TLS record/protected policy/N2 concurrent unit/race currently in progress"
+  ],
+  "real_product_performance": "NOT_YET_VERIFIED",
+  "artifact_id": null,
+  "hardware_or_Windows_TUN": "NOT_RUN",
+  "related_N3_D": {
+    "source_sha": "f5d8b8f4d04276fcdcb83e918bad9d85070a96a9",
+    "native_gui_action": 38271632294,
+    "checks": 267,
+    "artifact_id": 11756898284,
+    "artifact_sha256": "98cff39c43a0e56e2e55333888822476b9d4962b3977b85697e4c766b0473ae7",
+    "gui_AES_choices": "NOT_ADVERTISED"
+  },
+  "physical": "NOT_RUN"
+}
