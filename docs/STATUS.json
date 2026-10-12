@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C10_REALPATH_ACTION38249347023_PRETRAFFIC_UNIT_ASSERTION_FAIL_NARROW_TEST_ONLY_FIX",
+    "phase": "N2_C10_GE_CROSS_TIME_TRACE_ACTION38250711104_IN_PROGRESS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1826,7 +1826,7 @@
         }
       },
       "realpath": {
-        "status": "FIRST_ACTION_FAILED_GITHUB_PREFLIGHT_BEFORE_PRODUCT_BINARY_BUILD_AND_GE_TRAFFIC",
+        "status": "CORRECTED_PREMEASUREMENT_UNIT_PASS_PRODUCT_BINARY_BUILD_IN_PROGRESS_ACTION38250711104",
         "workflow": ".github/workflows/next-adaptive-n2-c10-ge-ctmc-time-single.yml",
         "helper": "tools/adaptive_n2_c10_ge_realpath.py",
         "preflight_unit": "tools/test_adaptive_n2_c10_ge_realpath.py",
@@ -1882,12 +1882,27 @@
           "actual_product_performance": "NOT_RUN",
           "first_action_evidence": "docs/evidence/adaptive-n2-c10-realpath-first-unit-premeasurement-fail-20261012.json"
         },
-        "next_fix": "ONLY test expectation: fixed server fec parity 20 exactly once and adaptive client --fec-mode auto --fec-min-parity 4 exactly once; frozen CTMC trace/model/client/helper/workflow unchanged"
+        "next_fix": "ONLY test expectation: fixed server fec parity 20 exactly once and adaptive client --fec-mode auto --fec-min-parity 4 exactly once; frozen CTMC trace/model/client/helper/workflow unchanged",
+        "second_action": {
+          "source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
+          "run_id": 38250711104,
+          "job_id": 114815961958,
+          "status": "IN_PROGRESS_NO_REAL_PRODUCT_VERDICT",
+          "go_unit_race": "PASS",
+          "original_CTMC_model_tests": "PASS_6_OF_6",
+          "true_ctmc_frozen_trace_and_derived_script_preflight": "PASS",
+          "linux_five_netns_prerequisites": "PASS",
+          "product_and_kernel_binaries": "IN_PROGRESS_AS_REGISTERED",
+          "business_active_s": 240,
+          "artifact_id": null,
+          "product_perf_verdict": "NOT_YET_AVAILABLE",
+          "evidence": "docs/evidence/adaptive-n2-c10-real-ctmc-second-action-running-20261012.json"
+        }
       }
     }
   },
-  "next_task": "C10 first real product-source Action38249347023 job114811301934 SOURCE7dafa8c06ea2 FAIL at GitHub premeasurement new Python assertion: expecting 2 occurrences --fec-parity20, actual only SERVER uses fixed parity; CLIENT V3 auto flags --fec-mode auto --fec-min-parity4. Go unit/race and 6 independent GE model tests passed, no full binaries/GE load/business run; artifact11747216632 zip SHA d9329f.. and INVALID missing summary preserved. Minimal test-only fix then allow new exact SOURCE Action to run full 240s 900-boundary original GE, one config/single-scenario/measurement job; verify actual BPF map count/drop and firstunique, statuses, CPU/wire, 5netns. If actual fails preserve raw. Frozen trace sha5fcfe423 unchanged. C04/C05 confidence efficiency historical FAIL OPEN, physical NOT_RUN N2 OPEN N3-6 NOT_STARTED no ref/deploy/merge.",
-  "latest_log": "docs/devlog/20261012-n2-c10-first-realpath-preflight-parity-count-fail.md",
+  "next_task": "C10 single exact SOURCE96e6bc21675ebb0cdf3e1582e072a80359ba1205 Action38250711104 Job114815961958. As of registration Go adaptivefec unit/race PASS; frozen six GE CTMC reference tests+900 event trace, client-auto/server-fixed assertions PASS, Linux prereqs PASS; binary build IN_PROGRESS. First Action38249347023/source7dafa8 FAIL premeasurement bad parity-count test, no GE traffic, artifact11747216632 SHA d9329f preserved. Do not assume second Action success until completion: sample must load identical 900 GE boundaries with one START_NS on rsrv/rcli, run ONE 240s each-way10Mbps 300ms one-way real business and 10s drain, audit BPF good/bad/drop both maps, actual first unique/p99/no >=5s gaps/parity/wire CPU quota/capture. If fail keep exact original evidence, do not label N2 PASS. C04/C05 S2C grades 78.3% and70% fail OPEN; N2 OPEN N3–N6 NOT_STARTED physical NOT_RUN old2.73s/80s OPEN, no deploy/ref/merge.",
+  "latest_log": "docs/devlog/20261012-n2-c10-second-real-ctmc-action-registered-running.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
   "last_tested_scope": "C06_REAL240S_DIRECTION_C2S10PCT_TRUE_NETEM10_0023_FEC_R10_LAST60_100PCT_S2C1PCT_TRUE_NETEM1_0172_FEC_R4_LAST60_100PCT_FIRST_UNIQUE592100_592107_AND592107_592107_P99_313_5_302MS_NO_GAP_WIRE2_8202X_DIAG_ON",
