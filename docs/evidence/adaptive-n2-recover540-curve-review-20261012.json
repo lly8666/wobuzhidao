@@ -1,0 +1,78 @@
+{
+  "schema": "wbd-adaptive-n2-readonly-curve-review-v1",
+  "review_date": "2026-10-12",
+  "source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
+  "run": 38161148715,
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38161148715",
+  "job": 114534148614,
+  "workflow_conclusion": "success",
+  "artifact_id": 11710956407,
+  "artifact_name": "adaptive-n2-offstart-recover540-540s-90925f81cfb16e8435c238b060c46492eef017ea",
+  "artifact_sha256_github_metadata": "090a5bd2d5e4fda32309a5f37dc616c836c526c71b3adf7eddc3e87d7900ad3f",
+  "artifact_archive_locally_rehashed": false,
+  "downloaded_summary_sha256": "85163b36ba051a76adf33fef5d748e8a224e0e8d5fac2003270d5aa52bfc8450",
+  "original_classification_preserved": "SCOPED_OFF_START_BOTH_DIRECTION_RAISE_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE",
+  "original_not_full_n2_pass": true,
+  "review_verdict": "FUNCTIONAL_RISE_SCOPED_EVIDENCE_POST_DAMAGE_DOWNSHIFT_EFFICIENCY_OPEN",
+  "curve_contract_version": "adaptive-fec-curve-v1-planned",
+  "new_curve_analyzer_implemented": false,
+  "new_contract_applied_retroactively": false,
+  "configuration": {
+    "mode": "Normal-auto", "lanes": 1, "cipher": "chacha20-poly1305",
+    "initial_parity": 0, "min_parity": 0, "max_parity": 20,
+    "business_mbps_each_direction": 10, "delay_ms_each_direction": 300,
+    "duration_seconds": 540, "drain_seconds": 10,
+    "outer_mtu": 1400, "record_caps": "auto-both", "diagnostic": "ON",
+    "netem_rng": "UNSEEDED",
+    "stages": [
+      {"loss_percent": 0, "seconds": 60}, {"loss_percent": 1, "seconds": 60},
+      {"loss_percent": 5, "seconds": 60}, {"loss_percent": 20, "seconds": 60},
+      {"loss_percent": 5, "seconds": 60}, {"loss_percent": 0, "seconds": 240}
+    ]
+  },
+  "c2s": {
+    "sent_packets": 1332237, "first_unique_packets": 1331848,
+    "missing_packets": 389, "first_unique_bytes": 674782112,
+    "all_missing_in_stage": "loss1", "other_stages_missing": 0,
+    "corrupt": 0, "duplicate_delivery": 0,
+    "maximum_wall_seconds_without_delivery": 0,
+    "returned_only_one_way_delivery_p99_ms": 318,
+    "injury_applied_profiles": [0, 4, 20], "recover0_240s_profiles": [20],
+    "after_drain_final_profile": 16, "committed_switches_including_drain": 3,
+    "end_recover0_confidence_lost_upper": 15, "end_recover0_confidence_sent": 8192,
+    "end_recover0_confidence_windows": 32,
+    "after_drain_lower_gate": "WAIT_STABLE", "after_drain_next_candidate": 12
+  },
+  "s2c": {
+    "sent_packets": 1332237, "first_unique_packets": 1331965,
+    "missing_packets": 272, "first_unique_bytes": 674874144,
+    "all_missing_in_stage": "loss1", "other_stages_missing": 0,
+    "corrupt": 0, "duplicate_delivery": 0,
+    "maximum_wall_seconds_without_delivery": 0,
+    "returned_only_one_way_delivery_p99_ms": 318,
+    "injury_applied_profiles": [0, 4, 20],
+    "recover0_observed_profiles_sorted": [0, 4, 8, 10, 12, 16, 20],
+    "final_profile": 0, "committed_switches": 8
+  },
+  "probe": {"sent": 540, "returned": 539, "missing": 1, "returned_only_rtt_p99_ms": 621},
+  "original_errors": [], "original_capacity_flags": [], "original_correctness_errors": [],
+  "resource": {
+    "client_cpu_seconds": 308.65, "server_cpu_seconds": 312.62,
+    "comparison": "OBSERVATION_ONLY_DIAGNOSTIC_ON_NO_CROSS_CPU_OR_OFF_CLAIM"
+  },
+  "foundation": {
+    "run": 38161148682, "source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
+    "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38161148682",
+    "enabled_jobs_pass": 7, "other_jobs_skipped": true,
+    "scope": "FOUNDATION_NOT_FULL_N2_OR_PACKAGE_OR_PHYSICAL"
+  },
+  "limitations": [
+    "Returned-only p99 does not include the missing probe.",
+    "No whole-second delivery gap does not prove millisecond no-HOL.",
+    "Initial off adaptation loss is retained; long clean stages do not erase it.",
+    "C2S drain downshift is not timely downshift within 240s active recovery.",
+    "Single unseeded impairment sample; no deterministic same-loss-trace claim.",
+    "No new product, curve generator, analyzer, performance run or physical deployment in this documentation change."
+  ],
+  "physical": "NOT_RUN_NEW_SOURCE"
+}

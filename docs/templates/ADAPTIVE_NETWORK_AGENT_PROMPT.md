@@ -4,6 +4,8 @@
 
 先读 `AGENTS.md`、`PROJECT_CHARTER.md`、`docs/STATUS.json`、`docs/ADAPTIVE_NETWORK_PLAN.md`、`docs/AGENT_CONTINUITY.md`。按需读 WIRE_SPEC、MODULE_MAP、PARAMETERS、ACCEPTANCE 和 REALPATH_TEST_FIXTURE_GUIDE。完整方案已经确定，不另做多种架构/密码/FEC算法比赛。旧计划/完整状态已归档到 `docs/history/20261010-adaptive-network-parent/`；它们和 old 的提示词都是历史来源，禁止执行旧“下一步”。
 
+**2026-10-12当前优先级覆盖下方初始步骤**：再读 `docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md`。V3/N1与Normal auto live已有实现，不重复N0；先N2独立理论/可实现曲线与真实工况预声明，合理时间/档位允许带同时考核保护和开销，再单条Actions验证并修复。600ms RTT clean100双向20→4已scoped PASS；90925f81 recover540双向从off升20，但C2S240s恢复业务内仍20、drain才16，S2C降off。不能只找一次LOWER或继续把尾段翻倍。允许有反例后调整统计/控制软参数，不能变更运输/认证/MTU/资源硬门。完整组1%理论4、5%理论8只是IID例子，真实partial/突发/不确定性单列，不能冗余比例强行等于线路loss，也不能无限保守后宣布自动省资源PASS。新SOURCE资格与参考曲线实现目前未跑，不继承旧PASS。
+
 永久目标：真实业务首次到达效率第一，低 p99、无跨业务 HOL、突发稳定和低 CPU/带宽；有界内存可以换 CPU，额外安全等级最后。认证、payload完整性、账号/地址隔离、同Seq同wire、generation、统一MTU与资源有界不变。后到完整record/systematic/独立业务立即交付；4096只是可放弃shadow备份，fresh不等ACK。保留已有SIMD FEC、partial min(k,R)、长度分类、32ms/3s和迟到首次交付。Game竞速去重及A→A+B→B换代不改。
 
 按 N0→N6 做原子开发和验收：
@@ -25,4 +27,4 @@
 
 每轮同一提交新增详细 `docs/devlog`、更新唯一STATUS并留evidence；每个新增参数同步全部入口，记录精确SOURCE/helper/config/seed/run/job/artifact/hash和实际失败/限制。原约80秒S2C中断和多秒late保持OPEN，按用户安排本轮后单独定位，遇到重现如实留痕，不能猜WAN或FEC。不自动部署用户现有机器、不移动旧qualification ref、不合并主线。凭据/密钥/ticket/业务正文不上传，不持久大pcap，清owned大raw保留摘要/hash。
 
-最初计划提交只有文档，本轮产品尚未实现/未测；现在接手必须重新读取STATUS确认后续是否已有进度，按当前next_task继续，而不是重复N0或继承父分支PASS。
+本模板最初来源是文档计划，后来N0/N1及部分N2已有实现和scoped验收；现在接手必须重新读取STATUS确认精确SOURCE与当前next_task，不重复N0、不继承父分支PASS、不把文末或历史日志当实时待办。

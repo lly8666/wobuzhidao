@@ -1,6 +1,8 @@
 # Normal 自动 FEC、可选 AES、TUN 分流与线路质量显示
 
-状态：**N0已完成，N1已具备受保护关联反馈和有界成熟窗口，但全受损网络/配置性能未资格化；N2～N6未开始。** e5638253 SOURCE的定向-race、lifecycle、Linux/Windows foundation及三客户端原生功能通过Actions；Normal/off/lossless单工况10Mbps基线/候选各一条独立单样本同夹具PASS_SCREEN，非完整性能资格。2026-10-11追加轻量成熟状态诊断及640PN高周转测试属于Actions待验。**唯一实时结论看 docs/STATUS.json**，下文原“尚未实现”描述是撰写时的历史基线分析，不应用作当前验收。
+状态（2026-10-12）：**N0/N1已有scoped资格，N2已接入生产路径，干净600ms RTT双向20→4、off起步双向升档已有Actions证据；弱网恢复降档效率与整体N2仍未收口。N3–N6未开始。** 90925f81的540s样本C2S在240s干净业务内未降、drain才降16，S2C降off；数据功能与自动省资源分别判断。**唯一实时结论看 docs/STATUS.json**；文末日期追加是历史来源，不是当前待办。
+
+**当前N2验收权威补充**：[ADAPTIVE_FEC_CURVE_ACCEPTANCE.md](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md)。先规划真实工况与独立理论/可实现曲线，再冻结有余量的时间与档位范围；不能只验曾RAISE/LOWER、不断延长干净尾段、或把实现的每个HOLD都当合理。用户允许依据跨工况证据修订统计/控制软参数，永久运输/认证/资源硬门不变。新方案尚未实现/验收，不冒写PASS。
 
 工作分支：`next/adaptive-fec-aes-tun-20261010`。父文档 HEAD `a8913e3b651413b6d37c3a7732a0baa375009da0`，继承 FEC 优化产品 SOURCE `7fb98fab79834a351a1dbe04eebb207f66bea28b`。不要把历史 SIMD/物理试用成绩当成本分支资格。
 
@@ -86,6 +88,8 @@ PN 可能因编码/发送失败跳号，记录还包含 control；最后一段�
 不启用 diagnostic-jsonl/ReadMemStats/逐包墙钟计时来驱动常驻显示。两个方向的 writer 状态独立，摘要发布不可持 RX 锁等待 TX/Npcap；无新全局大锁、每包 goroutine 或无限异步队列。
 
 ## 5. N2：Normal 自动档控制器
+
+**2026-10-12用户修订优先**：本节原规则是实现起点，不是不能调整的硬门；曲线工况、保护/开销双目标和合理验收以 [ADAPTIVE_FEC_CURVE_ACCEPTANCE](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md) 为准。当前已实现V3 Normal auto、双向独立切档、显式 `fec-start-parity=0`（仅普通auto、min0，默认20保持）。先完成理论参考/预声明容差与旧540s反例定位，再作必要最小修复，不重复N0或恢复旧“自动模式尚未启用”的历史任务。
 
 ### 5.1 借用什么、自己补什么
 
@@ -213,6 +217,8 @@ DNS劫持优先于CN/LAN普通分流，明确dns-hijack=false能走system direct
 实际普通UDP尺寸96/256/512/1000/内层MTU附近，大包单独包含inner-1/inner/inner+1、1500/2000/4096/9000 IPv4及合法65507 UDP经OS分片；TCP长/短流、TLS小请求、多个并发stream混合。outer MTU1280/1400/1500至少有效组合，低端边界用功能测试；auto/off转换不得改变已配置TUN MTU或超外层预算。高丢包最大UDP不要求100%恢复，完整小包不得因其等待；受控无损大包须正确恢复或明确API/MTU拒绝，无静默截断。
 
 ### 9.3 硬门与合理性能门分开
+
+**2026-10-12 N2追加验收**：[自动FEC理论曲线与真实工况](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md) 同时评价首次交付/延迟、实际稳态档位、过度保护持续时间/多余parity、恢复曲线和CPU。普通档有有限余量，理论与真实不一律强行一致；质量不足/不可达/容量受限分层，不能全都追认为自动PASS。所有性能Action仍一SOURCE/配置/场景、一测量job。该文档覆盖旧的只找切档事件或不断延长尾段方式，不改变FEC off弱网政策、固定Game保护和历史FAIL。
 
 **2026-10-11用户修订**：FEC off弱网性能以 [FEC_OFF_PERFORMANCE_ACCEPTANCE](FEC_OFF_PERFORMANCE_ACCEPTANCE.md) 的 `off-weaknet-v2` 为准。取消套用loss<=线路p及goodput>=(1-p)*99%的off受损绝对门，明确实际分片加权参考、相对pre5恢复、可比基线和证据不足不PASS。lossless/非off/formal20与历史FAIL不变。先完成当前冻结Actions收尾，再迁移分析器；本次仅文档生效，运行实现NOT_IMPLEMENTED。
 

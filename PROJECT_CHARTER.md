@@ -32,7 +32,9 @@ DNS默认1.1.1.1/8.8.8.8互备，IPv6默认捕获丢弃，已有LAN/CN/all语义
 
 新增Normal fixed/off/auto/auto-aggressive、每客户端FEC/三密码一次协商、双向低频quality feedback；AES128/256使用成熟跨平台标准库，独立记录不引入有序解密。TLS/借用站cipher一致尽力而为，站不支持时允许不同，但日志记录实际值。证书≠cipher支持，fallback不伪造握手。
 
-新增中文GUI两秒近似RTT/丢包显示。普通auto初始20:20/最低20:4，可设off；激进在普通建议档上+1，最高20:20。旧fixed配置不隐式迁移auto。实现参数尚未生效，当前能力以catalog/源码为准。
+新增中文GUI两秒近似RTT/丢包显示。普通auto初始20:20/最低20:4，可设off；激进在普通建议档上+1，最高20:20。旧fixed配置不隐式迁移auto。计划能力是否生效以catalog/源码/STATUS为准。
+
+2026-10-12用户修订：Normal auto及显式普通off-start已有生产实现，具体资格仍按精确SOURCE/STATUS，不重复历史尚未实现任务。N2以 docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md 的独立理论/可实现时间带和真实工况验收保护与开销：有可信数据时避免长期不必要高档。统计/控制软参数可凭跨工况反例最小修订，不能把原默认阈值变成永久硬门；运输/认证/隔离/完整性/same-wire/generation/MTU/资源与首次业务交付原则不变。
 
 ## 验收与协作
 

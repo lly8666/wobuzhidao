@@ -6,7 +6,9 @@
 
 先读 PROJECT_CHARTER.md、docs/STATUS.json、docs/ADAPTIVE_NETWORK_PLAN.md、docs/AGENT_CONTINUITY.md。接手提示词在 docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md。只有 STATUS.active_work / next_task / latest_log 是当前进度。历史 FEC SIMD Q2、E0..E7、旧模板的下一步不是本轮任务。
 
-本轮 N0..N6：一次受保护协商每客户端FEC/密码；低开销质量反馈；Normal自动/激进自动档；AES128/256；Windows少量路由+TUN分流；中文GUI两秒显示；Actions集成与打包。Game只固定档。新参数当前尚未实现，不能把方案默认值当运行值。完整设计、初始阈值、字段/MTU/迟到包边界及合理验收已确定，不另开算法比赛。
+本轮 N0..N6：一次受保护协商每客户端FEC/密码；低开销质量反馈；Normal自动/激进自动档；AES128/256；Windows少量路由+TUN分流；中文GUI两秒显示；Actions集成与打包。Game只固定档。V3质量/Normal自动已有实现，AES/TUN新方案等不能把计划值当运行值；以SOURCE/catalog/STATUS为准，不重复N0。
+
+2026-10-12用户修订N2：必读 docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md。先冻结真实工况、独立理论档/可实现检测曲线和有余量允许带，再单条Actions验证。数据交付好不等于自动省资源有效；长期不必要高档、过慢降档需要定位，不能只延长尾段。统计/控制软参数允许有反例后最小修订，永久硬门不变，不另开算法比赛、不给生产输入netem真值、UNKNOWN不当0。
 
 ## 永久不能负向优化
 

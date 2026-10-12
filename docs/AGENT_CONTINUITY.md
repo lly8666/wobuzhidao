@@ -24,7 +24,9 @@ N0→N6 按当前 `STATUS.active_work/next_task/latest_log` 连续开发，每�
 
 ## 当前产品事实与新任务
 
-当前admission没有FEC策略/密码，server仍固定本机FEC；tlsrecord只ChaCha。本轮先一次受保护V3协商，server per-Tunnel支持不同客户，第一S2C包就正确，不靠首个业务包猜配置。
+2026-10-12接手事实：V3 admission、per-Tunnel FEC policy、104/128B质量反馈、Normal双向auto live切档已实现；tlsrecord实际仍只ChaCha，AES/N4新TUN分流/N5/N6尚未完成。不要按旧计划“无admission/auto未开始”重复开发。真实600ms RTT clean100s已经双向20→4；off-start损伤波形双向0→4→20。90925f81 recover540s的C2S240s干净业务内仍20、drain才16，S2C降off，整体N2未合格。
+
+当前新增任务读 [ADAPTIVE_FEC_CURVE_ACCEPTANCE](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md)：独立理论/检测曲线→预声明允许带→真实工况单条Actions→必要修复。有限过保护余量、升降时延、parity/CPU/业务首交付/p99共同验收，不能只看业务0loss；30s/60s/512/32窗口等软参数可有证据地小改，永久硬门保持。质量报告是双端对齐统计的必要反馈，不是额外主动业务探针，fixed/off不运行auto。
 
 auto仅Normal，上下行分别根据RX反馈决策；初始20:20/最低20:4/最高20:20，可设min off；aggressive在普通建议上+1。质量估计不是业务残余loss，也不是重传比例；无反馈UNKNOWN/HOLD。切档不重置PN/BlockID/MTU、不抛旧组、不形成业务等待。
 
