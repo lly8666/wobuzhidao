@@ -40,7 +40,12 @@ class C10TrueGEPreflight(unittest.TestCase):
             script=Path(td)/"derived.sh"
             prepare(Path("."),script,Path(td)/"prep.json")
             data=script.read_text()
-            self.assertEqual(data.count('--fec-parity 20'),2)
+            # The formal V3 client uses adaptive mode/min4, while only
+            # the server advertises a fixed fec-parity 20 CLI argument.
+            # Counting two fixed arguments would misclassify a healthy
+            # client auto policy as invalid before any real GE traffic.
+            self.assertEqual(data.count('--fec-parity 20'),1)
+            self.assertEqual(data.count('--fec-mode auto --fec-min-parity 4'),1)
             self.assertNotIn('--ge-time-truth',data)
             self.assertNotIn('--loss-percent',data)
 

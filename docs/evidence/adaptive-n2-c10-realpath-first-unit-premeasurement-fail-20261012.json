@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "classification": "N2_C10_FIRST_REALPATH_ACTION_PREMEASUREMENT_TEST_ASSERTION_FAIL",
+  "source_sha": "7dafa8c06ea2338c31f287791d8049c54d3f5743",
+  "action_run_id": 38249347023,
+  "job_id": 114811301934,
+  "artifact_id": 11747216632,
+  "artifact_zip_sha256": "d9329fdf9f896ab17e46aa19b6098e6b53eb5fc4f2a924bd2af8d7b64f01914c",
+  "summary_sha256": "e8634da243494c5f6ad9de9d357cfbabd9cd79ca990956c91a88f5d0c27a007d",
+  "summary_classification": "INVALID_C10_MISSING_EVIDENCE",
+  "failed_step": "C10 frozen 900-boundary CTMC truth-independent model and formal-script preflight",
+  "exact_fail": "test_absent_contaminating_source_truth AssertionError: 1 != 2",
+  "test_file": "tools/test_adaptive_n2_c10_ge_realpath.py",
+  "root": "Derived client uses --fec-mode auto --fec-min-parity 4, server uses --fec-parity 20; assertion erroneously expects both fixed.",
+  "preflight_prior_pass": [
+    "repository and performance policy",
+    "single exact SOURCE claim",
+    "N2 Go unit and race",
+    "6 independent CTMC MDS oracle tests",
+    "C10 frozen model/epoch derivation first unit"
+  ],
+  "config_changed_by_narrow_fix": false,
+  "standalone_workflow_run_failed": true,
+  "full_realpath_executed": false,
+  "GE_packet_loss_executed": false,
+  "business_stats_missing_true": [
+    "manifest.json",
+    "harness-prep.json",
+    "ge-maps-loaded.json",
+    "ge-maps-audited.json",
+    "biz.json",
+    "target.json",
+    "start-wall-ns.txt",
+    "resource-samples.jsonl"
+  ],
+  "artifact_cpu_quota": "UNKNOWN_CGROUP_V2_CPU_MAX_NOT_VISIBLE",
+  "frozen_trace_sha256": "5fcfe423903d5b7665eb8bb341170e901757b5e6def4af1ba4ca242670237aec",
+  "test_only_fix": "expect exactly one fixed server --fec-parity 20 and one client --fec-mode auto --fec-min-parity 4",
+  "verdict": "FAIL_PREMEASUREMENT_NOT_PRODUCT_OR_GE_PERFORMANCE",
+  "N2": "OPEN",
+  "physical": "NOT_RUN"
+}

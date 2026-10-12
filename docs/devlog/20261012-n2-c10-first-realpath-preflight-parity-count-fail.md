@@ -1,0 +1,9 @@
+# 2026-10-12 C10 正式产品GE测试首条Source测前单元FAIL与最小断言修复
+
+上一准确产品和夹具SOURCE `7dafa8c06ea2338c31f287791d8049c54d3f5743`、[Action38249347023](https://github.com/lly8666/wobuzhidao/actions/runs/38249347023) job114811301934，最终FAIL；GitHub原始artifact11747216632 zip SHA256 `d9329fdf9f896ab17e46aa19b6098e6b53eb5fc4f2a924bd2af8d7b64f01914c`，summary SHA256 `e8634da243494c5f6ad9de9d357cfbabd9cd79ca990956c91a88f5d0c27a007d` 严格分类 `INVALID_C10_MISSING_EVIDENCE`，manifest、正式map load/audit、实际biz/target全不存在。这一轮**根本未编译本次正式二进制，未启动五netns业务，未运行GE性能场景**，故不能当作产品在GE中故障，更不能填实际loss/CPU/p99。
+  
+准确的GitHub日志：repo/performance policy、单SOURCE sample claim、Go `adaptivefec` unit/race均PASS，原独立时间相关GE参考六项test也PASS，C10 helper第一条真实epoch/900事件冻结单元PASS。第二条 `test_absent_contaminating_source_truth` 错写 `self.assertEqual(data.count('--fec-parity 20'),2)`，真实派生五netns当前产品配置客户端 **`--fec-mode auto --fec-min-parity 4`**，服务端唯一 **`--fec-parity 20`**。所以预检的错误期望为2，实际为1，造成 `AssertionError: 1 != 2`，GitHub Workflow按fail-closed红并仍上传小artifact。绝不能修改生产client/server让它们都用fixed parity来满足误写断言。
+
+本次修复**只改测试**`tools/test_adaptive_n2_c10_ge_realpath.py`，改为精确检查服务端fixed `--fec-parity 20`出现一次且客户端自动 `--fec-mode auto --fec-min-parity 4`一次，并继续禁止任何`--ge-time-truth`/读取netem或`--loss-percent`源真值。正式产品代码、衍生脚本、900次事件GE原冻结`n2-ge-ctmc-event-trace-v1` seed2026101210/bad驻留23249ms/canonical SHA256 `5fcfe423903d5b7665eb8bb341170e901757b5e6def4af1ba4ca242670237aec`、两个router egress BPF同步时钟、各10Mbps/300ms/240s、诊断ON、准入身份、最后判定均不变。
+
+新SOURCE应重新走Github同样硬门/唯一240秒单配置单场景性能job，之后必须独立分析实际GOOD/BAD kernel map包和drop、业务首次唯一/无HOL连续性/p99/缺失、FEC真实k/M/R与模型不可达性、qdisc outer wire、CPU/ISA/quota/PSI、捕获drop和所有资格限制。只要任何门失败应留存小原始hash不频繁同工况盲重跑。此前C04恢复5% S2C78.3%及C05高损10% S2C70%过保护工程效率FAIL始终OPEN；N2 overall OPEN、N3 AES /N4 Win TUN/N5 GUI/N6 packaging NOT_STARTED、physical NOT_RUN，历史探针2.73s及80s S2C失交仍OPEN，不部署/移qualification ref/合mainline。

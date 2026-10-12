@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C10_EXACT_GE_CTMC_REALPATH_SINGLE_240S_PREDECLARED_CANDIDATE",
+    "phase": "N2_C10_REALPATH_ACTION38249347023_PRETRAFFIC_UNIT_ASSERTION_FAIL_NARROW_TEST_ONLY_FIX",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -1826,7 +1826,7 @@
         }
       },
       "realpath": {
-        "status": "FROZEN_NEW_SINGLE_240S_REALPATH_CANDIDATE_NOT_RUN_YET",
+        "status": "FIRST_ACTION_FAILED_GITHUB_PREFLIGHT_BEFORE_PRODUCT_BINARY_BUILD_AND_GE_TRAFFIC",
         "workflow": ".github/workflows/next-adaptive-n2-c10-ge-ctmc-time-single.yml",
         "helper": "tools/adaptive_n2_c10_ge_realpath.py",
         "preflight_unit": "tools/test_adaptive_n2_c10_ge_realpath.py",
@@ -1864,12 +1864,30 @@
         },
         "single_source_configuration_scenario_job": true,
         "product_run_id": "NOT_YET_STARTED_AT_CANDIDATE",
-        "physical": "NOT_RUN"
+        "physical": "NOT_RUN",
+        "first_action": {
+          "source_sha": "7dafa8c06ea2338c31f287791d8049c54d3f5743",
+          "run_id": 38249347023,
+          "job_id": 114811301934,
+          "artifact_id": 11747216632,
+          "artifact_sha256": "d9329fdf9f896ab17e46aa19b6098e6b53eb5fc4f2a924bd2af8d7b64f01914c",
+          "summary_sha256": "e8634da243494c5f6ad9de9d357cfbabd9cd79ca990956c91a88f5d0c27a007d",
+          "conclusion": "FAIL_C10_GITHUB_PREFLIGHT_MISCOUNT_FIXED_PARITY",
+          "root": "test_absent_contaminating_source_truth assumed --fec-parity 20 occurs twice; real formal V3 client uses --fec-mode auto --fec-min-parity 4 and server alone fixed --fec-parity 20",
+          "go_n2_unit_race": "PASS",
+          "independent_CTMC_oracle_six_units": "PASS",
+          "C10_preflight_test_first": "PASS",
+          "C10_preflight_test_second": "FAIL_EXPECTED_2_FIXED_ACTUAL_1",
+          "actual_kernel_ge_load": "NOT_RUN",
+          "actual_product_performance": "NOT_RUN",
+          "first_action_evidence": "docs/evidence/adaptive-n2-c10-realpath-first-unit-premeasurement-fail-20261012.json"
+        },
+        "next_fix": "ONLY test expectation: fixed server fec parity 20 exactly once and adaptive client --fec-mode auto --fec-min-parity 4 exactly once; frozen CTMC trace/model/client/helper/workflow unchanged"
       }
     }
   },
-  "next_task": "C10 GE frozen candidate: exact source on new push, one 240s protected 5netns product business Action, true exponential GOOD450ms BAD50ms seed2026101210 trace SHA5fcfe423 900 boundaries/23249ms BAD, both router rsrv/rcli tc egress BPF map synchronized with actual generator START_NS, conditional bad50pct via kernel random and no per-packet state transition. Preflight GH Go unit/race, independent CTMC MDS/reference and freeze hash/derived script before formal binaries & 240s job. If model/program/solver preflight FAIL, preserve exact logs and no perf; if actual run measure both BPF maps good/bad/drop, firstunique/p99/missing/gap, parity/wire/capture/CPU/queue and qualified source, never call this all N2 PASS. Capability-only Action38248104193 source41063b full eventmap PASS, model-only GE Action38217981601 PASS. C05 high10pct S2C grade70pct FAIL and C04 recover5 S2C78.3pct FAIL remain; N2 OPEN N3-N6 NOT_STARTED, physical NOT_RUN, historical2.73s/80s OPEN. No deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n2-c10-real-time-ctmc-900-event-one-realpath-candidate.md",
+  "next_task": "C10 first real product-source Action38249347023 job114811301934 SOURCE7dafa8c06ea2 FAIL at GitHub premeasurement new Python assertion: expecting 2 occurrences --fec-parity20, actual only SERVER uses fixed parity; CLIENT V3 auto flags --fec-mode auto --fec-min-parity4. Go unit/race and 6 independent GE model tests passed, no full binaries/GE load/business run; artifact11747216632 zip SHA d9329f.. and INVALID missing summary preserved. Minimal test-only fix then allow new exact SOURCE Action to run full 240s 900-boundary original GE, one config/single-scenario/measurement job; verify actual BPF map count/drop and firstunique, statuses, CPU/wire, 5netns. If actual fails preserve raw. Frozen trace sha5fcfe423 unchanged. C04/C05 confidence efficiency historical FAIL OPEN, physical NOT_RUN N2 OPEN N3-6 NOT_STARTED no ref/deploy/merge.",
+  "latest_log": "docs/devlog/20261012-n2-c10-first-realpath-preflight-parity-count-fail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "1e0fe4baeec285ce12ced3bb289bbc89c9a1cb7a",
   "last_tested_scope": "C06_REAL240S_DIRECTION_C2S10PCT_TRUE_NETEM10_0023_FEC_R10_LAST60_100PCT_S2C1PCT_TRUE_NETEM1_0172_FEC_R4_LAST60_100PCT_FIRST_UNIQUE592100_592107_AND592107_592107_P99_313_5_302MS_NO_GAP_WIRE2_8202X_DIAG_ON",
