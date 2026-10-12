@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_C08_SCOPED_IID_1PCT_GRADE_PASS_C03_WAVE_HIGH_LOSS_AND_OVERHEAD_OPEN",
+    "phase": "N2_C03_FROZEN_780S_WAVE_SINGLE_REALPATH_ACTION_CANDIDATE_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -919,10 +919,86 @@
       "summary_sha256": "f5a0b0dcdba2ed24d715cd0399f2dcf3c39378c71f0bc4ec7d41a2a0a183b7f1",
       "actual_result": "C2S_S2C_EACH_592107_OF_592107_BUSINESS_MISSING0_P99_302_5MS_PROBE240_OF_240_P99_608_5MS_R4_FINAL60_100PCT_CUM_PARITY_SOURCE_65_8_69_4PCT_GROSS_WIRE_2_5477",
       "evidence": "docs/evidence/adaptive-n2-c08-scope-actions-20261012.json"
+    },
+    "n2_c03": {
+      "status": "PREDECLARED_FREEZE_MATCH_AND_HELPER_CANDIDATE_NOT_YET_ACTIONS",
+      "source_baseline": "cb7bfa0860cf14f31c25f9667ab01a8cf951f057",
+      "waveform": "0_1_5_20_5_0_PCT",
+      "phase_offsets_seconds": [
+        0,
+        120,
+        240,
+        360,
+        480,
+        600,
+        780
+      ],
+      "phase_loss_percent": [
+        0,
+        1,
+        5,
+        20,
+        5,
+        0
+      ],
+      "total_active_s": 780,
+      "drain_s": 10,
+      "normal_initial20_min4": true,
+      "directional_oneway_delay_ms": 300,
+      "directional_application_mbps": 10,
+      "business_seeds": [
+        2026092201,
+        2026092202
+      ],
+      "tc_loss_rng": "UNSEEDED_KERNEL_TC_OPTION_UNSUPPORTED",
+      "independent_reference": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+      "model_version": "n2-independent-iid-timeband-v1",
+      "iid_full20_ideal": [
+        4,
+        4,
+        8,
+        16,
+        8,
+        4
+      ],
+      "ordinary_allowable": [
+        [
+          4,
+          8
+        ],
+        [
+          4,
+          8
+        ],
+        [
+          8,
+          10
+        ],
+        [
+          16,
+          20
+        ],
+        [
+          8,
+          10
+        ],
+        [
+          4,
+          8
+        ]
+      ],
+      "target_full_business_after_fec": "REPORT_ACTUAL_NO_ZERO_LOSS_ASSUMPTION",
+      "helper": "tools/adaptive_n2_c03_wave.py",
+      "stage_helper": "tools/adaptive_n2_c03_stage.py",
+      "performance_workflow": ".github/workflows/next-adaptive-n2-c03-wave780.yml",
+      "performance_action": "NOT_RUN_AT_CANDIDATE_COMMIT",
+      "core_race": "REQUIRED_IN_GITHUB_ACTION_BEFORE_PERF",
+      "physical": "NOT_RUN",
+      "overall_n2": "OPEN"
     }
   },
-  "next_task": "C08 exact SOURCE2aa03ae1 Action38207388447/job114673789091/artifact11728240325 scoped steady1 PASS both R4 final60; cumulative parity/source65.8/69.4%, gross qdisc/business2.55x, CPU152.28/153.08s diagnostic ON quota unknown. Preserve original analyzer FAIL Action38203559446. Next C03 independent frozen model and 780s default initial20/min4 0→1→5→20→5→0 waveform: 120s first five, last180s clean (10s drain outside active). Never reuse old420s fixture as C03. One exact SOURCE/config/scenario/measurement Action, first core/race and detailed per-stage line damage, real k/partial, M/R, overprotection byte/CPU,p99,middle burst, and real loss/missing; if enough proceed C04 then asym/GE/feedback/sparse/MTU/Game. No postfit theory changes. N2 overall OPEN, N3-N6 not started, physical NOT_RUN, 2.73s tail/80s S2C remain OPEN.",
-  "latest_log": "docs/devlog/20261012-n2-c08-240s-scoped-actions-pass.md",
+  "next_task": "C03 frozen waveform helper candidate on 780s 0/1/5/20/5/0, default Normal initial20/floor4, actual source-correlated shapes, per-stage netem, last60 highloss and recover grade screens. Check exact C03 Action created by push and first check repo/core/race/freeze/stage preflight; do not claim test PASS on docs-only or stage green. One SOURCE/config/scenario/measurement job only. If Action FAIL inspect job/analyzer/artifact; correct with precise reason, no repeated blind 13min run. C08 scoped PASS evidence preserved, 540 C2S excessive protection and historical2.73s/80s OPEN. After C03 evaluate N2 then C04 explicit off-start and asym/GE/burst/feedback/sparse/mixedGame guards; N3-N6 not started, physical NOT_RUN, no deployment or ref/mainline changes.",
+  "latest_log": "docs/devlog/20261012-n2-c03-frozen-wave780-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "2aa03ae1a181e630a974d164e22bec302ad7f251",
   "last_tested_scope": "C08_240S_STEADY1PCT_300MS_10MBPS_EACH_SOURCE_2AA03AE1_BOTH_R4_FINAL60_FIRST_UNIQUE_COMPLETE_CPU_DIAG_ON_QUOTA_UNKNOWN_NOT_FULL_N2_OR_PHYSICAL",
