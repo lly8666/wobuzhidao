@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_AES128_AES256_REAL_LOSSLESS_SCOPED_PASS_N5_WINDOWS_GUI_AES_CHOICES_NATIVE_ACTION_PENDING",
+    "phase": "N5_GUI_AES_NATIVE_FIRST_ACTION_COMPILATION_SCOPE_FAIL_MINIMAL_FIX_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2083,7 +2083,27 @@
         "physical": "NOT_RUN",
         "evidence": "docs/evidence/adaptive-n2-windows-gui-transport-tab-native-actions-pass-20261012.json"
       },
-      "fourth_native_regression": "PASSED_ON_SOURCE_F5D8_GUI_267_WITH_RECORD_CIPHER_CHACHA_ONLY_AND_TRANSPORT_SCREENSHOT"
+      "fourth_native_regression": "PASSED_ON_SOURCE_F5D8_GUI_267_WITH_RECORD_CIPHER_CHACHA_ONLY_AND_TRANSPORT_SCREENSHOT",
+      "aes_gui_native_first_action": {
+        "source_sha": "6cede2383a7184be68978d101d4a5170797d4f00",
+        "run_id": 38282576154,
+        "job_id": 114923148217,
+        "conclusion": "FAIL_NATIVE_CSHARP_SCOPE_COMPILE_BEFORE_SELFTEST",
+        "failed_step": "Build native Windows Go client and original WinForms GUI into disposable test bundle",
+        "go_config_quality_tests": "PASS",
+        "compile_errors": [
+          "windows/gui/GuiTests.cs(104,25) CS0103 configForm not in current context",
+          "windows/gui/GuiTests.cs(105,25) CS0103 configForm not in current context",
+          "windows/gui/GuiTests.cs(106,25) CS0103 configForm not in current context"
+        ],
+        "root": "New suite loop is outside old using(var configForm ...) foreach scope. Must use separate owned form inside suite test.",
+        "raw_artifact": "NONE_UPLOAD_SKIPPED_DUE_BUILD_FAILURE",
+        "native_gui_selftest": "NOT_RUN",
+        "P6_build": "FAILED_CSHARP_GUI_ONLY",
+        "source_AEAD_Go_unit": "PASS_BOTH_REAL_AES_NETWORK_PRIOR_SCOPED_SUCCESS",
+        "new_gui_evidence": "docs/evidence/adaptive-n3-winforms-aes-first-build-cs0103-fail-20261012.json",
+        "physical": "NOT_RUN"
+      }
     },
     "n3_aes": {
       "status": "N3_AES_GCM_RECORD_CORE_STD_LIB_GITHUB_GO_TEST_RACE_VET_CROSS_BUILD_SCOPED_PASS_NOT_FULL_N3",
@@ -2311,7 +2331,7 @@
         "job_id": 114891765713,
         "evidence": "docs/evidence/adaptive-n3-aes128-first-action-registered-20261012.json"
       },
-      "gui_aes_choices": "THREE_CHOICES_NOW_SOURCE_CANDIDATE_FRESH_NATIVE_ACTION_NOT_YET_RUN"
+      "gui_aes_choices": "GUI_THREE_CIPHERS_COMMITTED_FIRST_NATIVE_WINFORMS_COMPILER_SCOPE_FAIL_CANDIDATE_FIX"
     },
     "n3_aes_realpath": {
       "aes128": {
@@ -2370,8 +2390,8 @@
       }
     }
   },
-  "next_task": "N3 AES128 and AES256 each complete separate real 100s V3 authenticated five-netns Actions and 100% first-unique/probe: AES128 SOURCE52651945 Action38273052020 artifact11757344960; AES256 SOURCEaf228675 Action38281815825 artifact11760904463, both standalone functional scoped PASS, not damaged/CPU physical. NOW new GUI-only commit adds three values in WinForms '传输 / 记录加密套件' combobox, native WinForms configuration roundtrip and Windows Go --check-config for all three, default stays chacha; docs/PARAMETERS.json existing flag catalog unchanged, update GUI/parameters documentation only. Check new native Windows GUI workflow next-adaptive-n2-windows-gui-config-native and lifecycle Actions, download screenshot/artifact and preserve any failures; DO NOT call Windows Wintun native or physical PASS. After GUI successful start bounded N4 Windows TUN classifier/owned routes/direct TCP UDP implementation and N6 packaging via Actions. N2 Go noHOL/race scoped PASS but real independent mixed TCP+UDP 10ms still NOT_RUN; C04/C05 grade efficiency and C10 p99 OPEN; physical NOT_RUN; no auto deploy/qualification ref/mainline.",
-  "latest_log": "docs/devlog/20261012-n3-aes256-scoped-pass-winforms-three-ciphers-pending-native.md",
+  "next_task": "First Windows native AES-choice GUI source6cede238 Action38282576154/job114923148217 FAILED at C# compile GuiTests.cs lines104-106 unresolved configForm outside its preceding using foreach scope; Windows Go policy+quality passed, Go native build was interrupted at GUI compile, no selftest/artifact. Preserve exact FAIL. Minimal fix only GuiTests AES suite loop with distinct owned `using (var cipherForm = new MainForm(...))` and `cipherForm.LoadEditor/SetEditor/SaveEditor`, never change actual MainForm AES 3 choices / Go/config/catalog/default. New Windows 2022 Actions build/selftest screenshot and lifecycle required; N3 AES128+AES256 real five-netns tests already scoped PASS, physical NOT_RUN. After N5 UI green begin bounded N4 Windows TUN in-route classification and owned direct route replacement; no early deployment/ref move/mainline. N2 mixed TCP/UDP real 10ms independent HOL still NOT_RUN; C04/C05 grade FAIL and GE p99 old OPEN.",
+  "latest_log": "docs/devlog/20261012-n3-gui-aes-first-native-compiler-scope-fail-fix.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "af228675af68d9ea5f682604dbfa9fa5cf33c661",
   "last_tested_scope": "N3_V3_AUTH_REAL_AES256_100S_LOSSLESS_NORMAL_AUTO_300MS_BOTH_FIRSTUNIQUE_246711OF246711_PROBE100OF100_P99_ONEWAY_301MS_SCOPED_PASS_NOT_GE_OR_HARDWARE",

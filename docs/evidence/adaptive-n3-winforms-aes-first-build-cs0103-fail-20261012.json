@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "N3_WINDOWS_GUI_AES_THREE_SUITE_FIRST_NATIVE_COMPILATION_FAIL",
+  "source_sha": "6cede2383a7184be68978d101d4a5170797d4f00",
+  "run_id": 38282576154,
+  "job_id": 114923148217,
+  "workflow": ".github/workflows/next-adaptive-n2-windows-gui-config-native.yml",
+  "result": "FAIL_BUILD_BEFORE_NATIVE_GUI_SELFTEST",
+  "go_policy_and_quality": "PASS",
+  "windows_build": "FAIL_GUI_CSHARP_COMPILER",
+  "error": "windows/gui/GuiTests.cs(104-106): error CS0103 name configForm does not exist in the current context",
+  "root": "Earlier using(var configForm) bound just prior per-field foreach, new AES matrix used name outside lifetime",
+  "artifact_id": null,
+  "artifact_sha256": null,
+  "artifact_unavailable_reason": "upload-artifact found no gui-test-result.json or gui-screenshot.png because WinForms didn't compile",
+  "fix_scope": "ONLY GuiTests AES matrix introduces separately owned cipherForm and uses it for three suite UI edits, keep Go product/MainForm/fields/catalog/AEAD/source flags unchanged",
+  "N3_real_AES128_run": 38273052020,
+  "N3_real_AES256_run": 38281815825,
+  "not_real_Wintun": true,
+  "overall_N5": "PENDING_FIX_AND_NATIVE_UI_TEST",
+  "physical": "NOT_RUN"
+}

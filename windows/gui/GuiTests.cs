@@ -98,18 +98,23 @@ namespace Wbd.Gui {
                     // Native WinForms Transport select -> portable JSON -> actual
                     // Windows Go --check-config for each explicitly supported
                     // record suite. Do not switch the legacy default away from ChaCha.
+                    // Keep native AES choice checks scoped to an owned WinForms
+                    // instance; the earlier field-by-field form is disposed.
+                    using (var cipherForm = new MainForm(store, new FakeSession(),
+                        () => new DependencyState { Admin=true, Npcap=true, Wintun=true, NpcapVersion="suite-config-test" })) {
                     foreach (string suite in new[] { "chacha20-poly1305", "aes-128-gcm", "aes-256-gcm" }) {
                         p.Values["lanes"]=1; p.Values["fec-parity"]=0;
                         p.Values["fec-mode"]="auto"; p.Values["fec-min-parity"]=4; p.Values["fec-start-parity"]=20;
-                        configForm.LoadEditor();
-                        configForm.SetEditor("record-cipher", suite);
-                        configForm.SaveEditor();
+                        cipherForm.LoadEditor();
+                        cipherForm.SetEditor("record-cipher", suite);
+                        cipherForm.SaveEditor();
                         Assert(Convert.ToString(p.Values["record-cipher"]) == suite,
                                "Transport UI saved actual record cipher " + suite);
                         store.WriteAtomic("data/aes-gui-check.json", store.Json.Serialize(store.Effective(p)));
                         var actualSuite = Wait(real.ValidateAsync(store.InRoot("data/aes-gui-check.json")));
                         Assert(Convert.ToString(actualSuite["record-cipher"]) == suite,
                                "Windows Go --check-config accepts explicit V3 suite " + suite);
+                    }
                     }
                     p.Values["record-cipher"]="chacha20-poly1305";
                     foreach (var badPolicy in new[] {
