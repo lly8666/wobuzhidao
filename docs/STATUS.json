@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N3_AES128_AES256_GCM_RECORD_CORE_SOURCE_F321_ACTION_SUCCESS_ADMISSION_LANE_NOT_YET_CONNECTED",
+    "phase": "N3_AES_V3_AUTHENTICATED_LANE_SELECTOR_PREDECLARED_UNIT_RACE_NOT_RUN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2136,10 +2136,25 @@
         "actual_product_encrypted_AES_link": "NOT_RUN",
         "physical": "NOT_RUN"
       }
+    },
+    "n3_aes_lane": {
+      "status": "PREDECLARED_INTERNAL_V3_LANE_CIPHER_SUITE_ROUTING_CANDIDATE_PENDING_GITHUB_ACTIONS",
+      "file_sources": [
+        "internal/datapath/lane.go",
+        "internal/datapath/handoff.go",
+        "internal/datapath/n3_aes_lane_test.go"
+      ],
+      "workflow": ".github/workflows/next-adaptive-n3-aes-authenticated-lane-core.yml",
+      "behavior": "Legacy/V2 lane 0/0 => original ChaCha constructors; authenticated V3 lane must carry suite1/2/3; per-role C2S/S2C keys select sealer/decoder for ChaCha/AES128/AES256; wrong or unattached version/cipher fail closed; parity0/4/20 first datagram both directions",
+      "full_public_AES_admission": "UNSUPPORTED_UNTIL_N3_COMPLETE",
+      "configured_AES_CLI": "NOT_ENABLED",
+      "gui_AES": "NOT_ADVERTISED",
+      "real_AES_network": "NOT_RUN",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "N2 Go concurrent noHOL Action38257097791 and follow-up35ce7df/action38263051747 PASS_SCOPED, Windows GUI actual Transmission tab 258 native checks source78a2dee/action38260818090 PASS_SCOPED. N3 CORE SOURCEf321e671c546b1ee5cc4e239ce7f462e7d02f90b Action38263629068 job114860157436 artifact11753995512 SHA6e1f860... SUCCESS: AES128/256 separate GCM AEAD, per-lane AES PN HP and independent golden oracle, tamper/noHOL/legacy ChaCha, Go unit/race/vet and Windows AMD64 client/Linux arm64 server builds. Previous first Action38263051774 source35ce7df FAIL pre-existing realityfront test go vet unrelated documented. NEXT N3-B: plumb V3 authenticated cipher policy into datapath LaneConfig (both fixed/off and auto), require authenticated effective suite, per-lane constructor selects exact suite for TX/RX; preserve V2 default ChaCha and 31B wire/MTU, route change through N0 admission and source identity tests, and single-source Go unit/race first. Do not open AES in GUI or advertise SupportedNow until full protected data path and exact cross-version negative/auto/legacy tests; then independent one source/scenario/perf Actions and quality/CPU, and N4 Win TUN etc. No deploy/qualification ref/mainline, physical NOT_RUN, N2 C04/C05 grade red and C10 long p99 OPEN.",
-  "latest_log": "docs/devlog/20261012-n3-aes-record-core-github-unit-race-crossbuild-scoped-pass.md",
+  "next_task": "N2 scoped noHOL Go/action38257097791+38263051747 PASS; Windows GUI Transport/connection page 258 native checks + screenshot Action38260818090 PASS, no early GUI AES. N3 AES record core sourcef321e671 Action38263629068 unit/race/vet/cross build PASS, but not connected to authenticated product Lane. NEW candidate N3-B adds V3 lane cipher selector from admission session and internal parity0/4/20 bidirectional actual sealer/decoder tests, still public SupportedNow AES UNSUPPORTED, preserves V2 original ChaCha. Run exact SOURCE GitHub unit/race/vet and Win/Linux builds, inspect failures and original artifact. After this scoped PASS, N3-C policy allow and authenticated client/server negotiation/AES wrong-suite reject; real5netns one SOURCE/config/scenario/performance job for AES128 then separate AES256; only then UI cipher selector Transport page and genuine packaging. Keep N2 C04/C05 auto grade FAIL, C10 true GE p99 1.8-1.95s OPEN, physical NOT_RUN, no ref/mainline/deploy.",
+  "latest_log": "docs/devlog/20261012-n3-aes-lane-authenticated-v3-selector-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "96e6bc21675ebb0cdf3e1582e072a80359ba1205",
   "last_tested_scope": "C10_TRUE_900_EVENT_TIME_GE_240S_SOURCE96e6bc_ACTION38250711104_REAL_CLIENT_SERVER_BOTH_GE_MAPS_BAD_ERASURE50_05_49_76PCT_C2S_FIRSTUNIQUE581281_OF592107_S2C579563_OF592104_ZERO_FULL_SECOND_GAPS_GOODPUT9_82_9_79_P99_1833_1947_5MS_OPEN_CPU_ON_WIRE2_6787X_SCOPED_FUNCTIONAL_PASS_NOT_FULL_N2",

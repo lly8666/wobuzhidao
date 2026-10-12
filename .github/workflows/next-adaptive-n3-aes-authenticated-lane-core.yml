@@ -1,0 +1,77 @@
+name: next-adaptive-n3-aes-authenticated-lane-core
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n3-aes-authenticated-lane-core.yml"
+      - "internal/datapath/lane.go"
+      - "internal/datapath/handoff.go"
+      - "internal/datapath/n3_aes_lane_test.go"
+permissions:
+  contents: read
+jobs:
+  one-source-aes-lane-functional-unit-race-no-performance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE and immutable policy guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          python3 tools/check_performance_workflow_policy.py
+          echo "N3_LANE_SOURCE=$GITHUB_SHA"
+          echo "AES remains public admission UNSUPPORTED until both peer handshake and product realpath qualify"
+      - name: Actual AES normal lane V3 per-direction TX/RX and legacy regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -count=1 -v ./internal/datapath -run '^TestN3'
+          go test -count=1 ./internal/datapath ./internal/tlsrecord ./internal/realityfront ./internal/runtimeowner ./internal/linkdata ./internal/adaptivefec
+      - name: Race/ownership/PN record noHOL guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race -count=1 ./internal/datapath ./internal/tlsrecord ./internal/realityfront ./internal/runtimeowner
+      - name: AES lane packages vet and Linux Windows build only
+        shell: bash
+        run: |
+          set -euo pipefail
+          go vet ./internal/datapath ./internal/tlsrecord
+          GOOS=windows GOARCH=amd64 go build -o /tmp/n3-lane-windows.exe ./cmd/wbd-client
+          GOOS=linux GOARCH=arm64 go build -o /tmp/n3-lane-arm64 ./cmd/wbd-server
+      - name: Scoped source receipt with no performance claims
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/n3-lane
+          python3 - <<'PY'
+          import os,json,pathlib,hashlib
+          files=["internal/datapath/lane.go","internal/datapath/handoff.go",
+                 "internal/datapath/n3_aes_lane_test.go","internal/tlsrecord/suite.go"]
+          out={"schema":1,"source_sha":os.environ["GITHUB_SHA"],
+            "run_id":os.environ["GITHUB_RUN_ID"],
+            "scope":"N3_AES_V3_LANE_AUTHENTICATED_SELECTOR_INTERNAL_UNIT_RACE_ONLY",
+            "files_sha256":{p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in files},
+            "public_AES_admission":"UNSUPPORTED_STILL",
+            "AES_real_network":"NOT_RUN","GUI_AES_selector":"NOT_ADVERTISED",
+            "legacy_V2":"UNCHANGED","product_performance_jobs":0,
+            "N3_full_completion":False}
+          pathlib.Path("artifacts/n3-lane/receipt.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n3-aes-lane-source-${{ github.sha }}
+          path: artifacts/n3-lane/
+          retention-days: 30
+          if-no-files-found: warn

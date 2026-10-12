@@ -38,6 +38,10 @@ type LaneConfig struct {
 	ClientRecordLimit int
 	ServerRecordLimit int
 	Keys              tlsrecord.KeyPair
+	// RecordVersion/Cipher are populated only from the already-authenticated
+	// V3 admission result. Both zero preserve legacy/V2 ChaCha wire bytes.
+	RecordVersion uint16
+	RecordCipher  uint8
 
 	// ParityShards is immutable for one lane incarnation. Zero means FEC off;
 	// otherwise it must be one of the live fixed 20:R profiles.
@@ -203,6 +207,22 @@ func NewN2AdaptiveLaneForTests(cfg LaneConfig) (*Lane, error) {
 }
 
 func newLaneWithN2TestPath(cfg LaneConfig, adaptive bool) (*Lane, error) {
+	// A suite cannot be selected by an unauthenticated legacy/V2 lane.
+	// V3 record suite is immutable for one lane incarnation and must agree
+	// with the exact authenticated auto policy when auto is attached.
+	switch cfg.RecordVersion {
+	case 0:
+		if cfg.RecordCipher != 0 { return nil, ErrConfigMismatch }
+	case realityfront.RecordVersionV3:
+		if cfg.RecordCipher < tlsrecord.RecordCipherChaCha || cfg.RecordCipher > tlsrecord.RecordCipherAES256 {
+			return nil, ErrConfigMismatch
+		}
+		if cfg.N2Policy.Schema != 0 && cfg.N2Policy.Cipher != cfg.RecordCipher {
+			return nil, ErrConfigMismatch
+		}
+	default:
+		return nil, ErrConfigMismatch
+	}
 	txLimit, rxLimit, txKeys, rxKeys, err := directionParams(cfg)
 	if err != nil {
 		return nil, err
@@ -264,14 +284,20 @@ func newLaneWithN2TestPath(cfg LaneConfig, adaptive bool) (*Lane, error) {
 	if err != nil {
 		return nil, err
 	}
-	sealer, err := tlsrecord.NewSealer(txKeys, txBudget.RecordWireMTU)
-	if err != nil {
-		return nil, err
+	var sealer *tlsrecord.Sealer
+	var decoder *tlsrecord.Decoder
+	if cfg.RecordVersion == realityfront.RecordVersionV3 {
+		sealer, err = tlsrecord.NewSealerForCipher(txKeys, txBudget.RecordWireMTU, cfg.RecordCipher)
+	} else {
+		sealer, err = tlsrecord.NewSealer(txKeys, txBudget.RecordWireMTU)
 	}
-	decoder, err := tlsrecord.NewDecoder(rxKeys, rxBudget.RecordWireMTU)
-	if err != nil {
-		return nil, err
+	if err != nil { return nil, err }
+	if cfg.RecordVersion == realityfront.RecordVersionV3 {
+		decoder, err = tlsrecord.NewDecoderForCipher(rxKeys, rxBudget.RecordWireMTU, cfg.RecordCipher)
+	} else {
+		decoder, err = tlsrecord.NewDecoder(rxKeys, rxBudget.RecordWireMTU)
 	}
+	if err != nil { return nil, err }
 
 	cfg.TunnelID = append([]byte(nil), cfg.TunnelID...)
 	return &Lane{

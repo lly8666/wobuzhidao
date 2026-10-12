@@ -117,6 +117,8 @@ func ClientLaneConfigFromAdmission(session *realityfront.ClientAdmissionSession,
 		Keys:              n.Keys,
 		ParityShards:      params.ParityShards,
 		N2Policy:          n2AdmittedAutoPolicy(n),
+		RecordVersion:     admittedV3RecordVersion(n),
+		RecordCipher:      admittedV3RecordCipher(n),
 		FlushAfter:        params.FlushAfter,
 		MaxBlocks:         params.MaxBlocks,
 		TxMTU:             tx,
@@ -211,6 +213,8 @@ func ServerLaneConfigFromAdmission(session *realityfront.ServerAdmissionSession,
 		Keys:              n.Keys,
 		ParityShards:      params.ParityShards,
 		N2Policy:          n2AdmittedAutoPolicy(n),
+		RecordVersion:     admittedV3RecordVersion(n),
+		RecordCipher:      admittedV3RecordCipher(n),
 		FlushAfter:        params.FlushAfter,
 		MaxBlocks:         params.MaxBlocks,
 		TxMTU:             tx,
@@ -242,6 +246,19 @@ func (l *Lane) InboundTransition(packets []faketcp.TransitionPacket, now time.Ti
 		out.PathErrors = append(out.PathErrors, item.PathErrors...)
 	}
 	return out, nil
+}
+
+// Never use a user-provided cipher name from the lane configuration: only
+// the authenticated V3 admission result may select a record suite.
+// An absent V3 policy remains legacy/ChaCha (0/0 config).
+func admittedV3RecordVersion(n realityfront.AdmissionResult) uint16 {
+	if n.RecordVersion == realityfront.RecordVersionV3 { return n.RecordVersion }
+	return 0
+}
+
+func admittedV3RecordCipher(n realityfront.AdmissionResult) uint8 {
+	if n.RecordVersion == realityfront.RecordVersionV3 { return n.Policy.Cipher }
+	return 0
 }
 
 // Immutable, authenticated V3 policy is only attached to a Normal adaptive
