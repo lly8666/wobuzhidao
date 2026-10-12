@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "kind": "C10_KERNEL_MONOTONIC_BPF_CAPABILITY_ONLY_SUCCESS_NO_GE_PRODUCT",
+  "source_sha": "04f26bca317f16067961dcdb27be9a73211a9046",
+  "run_id": 38246235063,
+  "job_id": 114800690941,
+  "artifact_id": 11746231211,
+  "archive_sha256": "b9b30311088e131bec7b5e8498ac219405c2ec7e53c5bc6fb233d2871589c7fa",
+  "result_file_sha256": "35947f4fe0e576f5920c7e947a6aed2f306cdc33922af26f4a4190c8cc08b90e",
+  "artifact_receipt_sha256": "694a89d480a36d79ca325cb59d72083049cce709bf964b9d65e569b09810b1ba",
+  "source_model_freeze_sha256": "04f2edbbc1ea2195b8051b262318a73f454d20517c2d40181bb98d21b451f47c",
+  "compiled_elf_sha256": "c51bdb6bb0bfd39fef6c4e29d5b1430fb6b787e31eba7d3d86ce52c1bdf203b2",
+  "bpf_source_sha256": "c7b12051fc17f81cbd178231fe7136d52f8859bf966134f362ff29df85ea7e0e",
+  "probe_source_sha256": "6e4bfe01bef11cc0a85aa9895d704a8f9e128bc58e5f02b1e7b270749fbcca3b",
+  "model_only_version": "n2-independent-ge-ctmc-v1",
+  "backend": "tc egress clsact BPF direct-action jited",
+  "kernel_helper": "bpf_ktime_get_ns",
+  "true_smoke_scenario": "Independent 2 netns 32 UDP tags, 100ms periods monotonic continuous clock. Not CTMC. GOOD=0 loss, BAD=100pct loss. 16 cycles G/B each.",
+  "observed": {
+    "good_sent": 16,
+    "good_received": 16,
+    "bad_sent": 16,
+    "bad_received": 0,
+    "sender_phase_mismatches": []
+  },
+  "workflow": "SUCCESS",
+  "classification": "KERNEL_TIME_PHASE_EGRESS_VERIFIED",
+  "performance_measurement_jobs": 0,
+  "real_product": "NOT_RUN",
+  "real_GE_state_trace": "NOT_BUILT",
+  "physical": "NOT_RUN",
+  "limits": [
+    "The egress classifier has no committed exponential GE event timestamps, no dual-direction synchronized CTMC state maps, no bad=50pct erasure, no actual first-unique/p99/FEC resource evidence",
+    "Does not prove map loader and dynamic GE binary search verifier are supported",
+    "No source product data, only tiny UDP capability smoke",
+    "C05 10pct S2C 70pct grade fail and C04 recover5 S2C78.3pct fail remain"
+  ]
+}
