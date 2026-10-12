@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_THEORY_CURVE_REALISTIC_SCENARIOS_AND_OVERPROTECTION_PLAN_READY_NOT_IMPLEMENTED",
+    "phase": "N2_INDEPENDENT_REFERENCE_AND_RECOVER540_READONLY_AUDIT_M0_CANDIDATE_PENDING_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -22,7 +22,7 @@
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_SCOPED_RISE_AND_CLEAN300_LOWER_PASS_RECOVER540_C2S_240S_ACTIVE_HOLD_DRAIN16_S2C_OFF_THEORY_CURVE_CONTRACT_PLANNED_NOT_IMPLEMENTED",
+      "N2_normal_auto": "IN_PROGRESS_PRIOR_RISE_SCOPED_C2S_CLEAN_RECOVERY_EFFICIENCY_OPEN_M0_REFERENCE_AND_540_AUDIT_CANDIDATE_NOT_TESTED",
       "N3_aes": "NOT_STARTED",
       "N4_windows_tun": "NOT_STARTED",
       "N5_gui_catalog": "NOT_STARTED",
@@ -838,10 +838,24 @@
       "soft_parameters": "User permits evidence-based minimal statistical/control revisions; hard transport/authentication/integrity/generation/MTU/resource/fresh gates unchanged.",
       "performance_policy": "ONE_SOURCE_CONFIG_SCENARIO_ONE_MEASUREMENT_JOB_PER_ACTION",
       "physical": "NOT_RUN_NEW_SOURCE"
+    },
+    "m0_reference": {
+      "status": "CANDIDATE_NOT_TESTED_IN_ACTIONS",
+      "reference_model": "tools/adaptive_n2_curve_reference.py",
+      "reference_version": "n2-independent-iid-timeband-v1",
+      "audit": "tools/adaptive_n2_curve_audit.py",
+      "audit_version": "n2-evidence-audit-v1",
+      "frozen_input": "docs/evidence/adaptive-n2-curve-freeze-v1.json",
+      "preliminary_readonly_evidence": "docs/evidence/adaptive-n2-recover540-diagnostic-audit-candidate-20261012.json",
+      "workflow": ".github/workflows/next-adaptive-n2-theory-audit.yml",
+      "old_product_source": "90925f81cfb16e8435c238b060c46492eef017ea",
+      "actions_result": "NOT_RUN_AT_COMMIT_TIME",
+      "new_performance_run": "NOT_RUN",
+      "physical": "NOT_RUN"
     }
   },
-  "next_task": "Read docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md (user 2026-10-12). First freeze realistic network/business scenarios, independent ideal FEC grade table and attainable detection/controller timeline plus reasonable grade/time bands; implement reference and analyzer only in Actions, never feed netem truth to product. Audit exact 90925f81 run38161148715 (artifact11710956407) against this reference: C2S stayed20 throughout240s active clean and lowered16 only in drain; S2C loweredoff; keep initial389/272 missing, probe539/540621ms and original scoped rise-only verdict. Separate successful delivery from adaptive overhead effectiveness. Diagnose bounded source accept rate, source/block edge geometry, old history age, M/R first-loss uncertainty, slow/confidence blockers; minimally fix proven inefficiency and permit evidence-based revision of statistical/control SOFT parameters without weakening authentication/integrity/generation/MTU/same-wire/fresh/bounded resources. After each code change Actions core/race plus ONE SOURCE/config/scenario measurement per performance run; then asymmetric, aggressive, sparse/feedback/idle/rotation, mixedTCPUDP/MTU and fixed/off/Game guards. No seed chasing, no indefinite final-clean extension, no automatic PASS from HOLD or workflow green; quality/capacity limits explicit. Settle N2 then N3-N6, final physical only after full Actions and same-source packages; off2.73s tail/80sS2C remain OPEN.",
-  "latest_log": "docs/devlog/20261012-n2-curve-contract-and-recover540-readonly-receipt.md",
+  "next_task": "Audit new HEAD model-only Actions next-adaptive-n2-theory-audit: verify independent binomial/timeband unit, freeze, prior run38161148715 read-only summaries, and artifact hashes. On FAIL fix and rerun before claiming model verified. Then compare 540s directional confidence history/edge cropping/R-only upper spikes to frozen oracle, diagnose false-positive same-wire repair vs real loss without netem truth fed to product; only with cross-scenario evidence consider minimal time-window/qualified-source/soft gate changes. For any PRODUCT change, first Actions core/race, then exactly one SOURCE/config/scenario/measurement job in each performance Action; expand per acceptance C01–C20, continue N3–N6 only after reasonable N2 closure. Original 80s S2C/2.73s tail OPEN; no physical/deploy/merge/ref move.",
+  "latest_log": "docs/devlog/20261012-n2-m0-independent-reference-and-recover540-audit-candidate.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "90925f81cfb16e8435c238b060c46492eef017ea",
   "last_tested_scope": "READ_ONLY_RECEIPT_RECOVER540_BOTH_OFFSTART_RAISE_C2S_NO_LOWER_IN_240S_ACTIVE_CLEAN_DRAIN16_S2C_OFF_NOT_FULL_N2_PASS_FOUNDATION_7_ENABLED_PASS",

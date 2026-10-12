@@ -1,0 +1,256 @@
+{
+  "schema": 1,
+  "model_version": "n2-independent-iid-timeband-v1",
+  "frozen_at_utc": "2026-10-12",
+  "measurement_status": "PREDECLARED_NOT_RUN",
+  "policy": "independent oracle; never deployed into product; ranges not fit to output",
+  "record_fec_profiles": [
+    0,
+    4,
+    8,
+    10,
+    12,
+    16,
+    20
+  ],
+  "residual_target": 0.001,
+  "lower_target_margin": 0.0005,
+  "shape_assumption": {
+    "label": "IID full systematic k20 reference only, NOT an assertion about native partial groups",
+    "groups": [
+      {
+        "k": 20,
+        "count": 100
+      }
+    ],
+    "actual_group_rule": "After-run actual completed k/length mix must be computed under this frozen formula; cropped 256-PN reports do not equal unprotected source",
+    "unobserved_shape": "SHAPE_UNKNOWN"
+  },
+  "timing": {
+    "report_s": 2,
+    "maturity_s": 3,
+    "effective_reports_per_s": 0.5,
+    "history_windows": 32,
+    "min_records": 512,
+    "pn_window": 256,
+    "fast_tau_s": 2,
+    "slow_tau_s": 15,
+    "stable_s": 30,
+    "off_stable_s": 60,
+    "cooldown_s": 10
+  },
+  "timing_assumptions": {
+    "nominal_report_interval_s": 2,
+    "predeclared_effective_qualified_reports_per_s": 0.5,
+    "explanation": "One independent <=256 PN window per ~2s control tick, two windows for 512 records; 32-window history 64s at nominal accepted rate; not an empirical C2S fit",
+    "note": "False-positive repair bounds, burst or low feedback can invalidate attainable band; must report QUALITY_LIMITED not retroactively expand accepted band",
+    "time_latest_screen_rule": "max(1.5*T_ref,T_ref+max(10s,4*RTT))",
+    "design_screens_after_first_trusted_clean_report_s": [
+      90,
+      180,
+      240
+    ]
+  },
+  "performance_acceptance": {
+    "stable_window_final_s": 60,
+    "within_range_min_active_seconds_fraction": 0.9,
+    "normal_high_extra_rungs": 1,
+    "aggressive": "ordinary recommendation +1, ceiling20",
+    "overprotection": "rank-seconds, continuous excess, parity bytes, wire amplification and CPU/GiB",
+    "new_performance_runs_started": false,
+    "diagnostic_on_not_ordinary_cpu": true
+  },
+  "scenarios": [
+    {
+      "id": "C03",
+      "description": "Normal default initial20 floor4, 0→1→5→20→5→0%, each10Mbps 300ms one-way, MTU1400; one predeclared waveform in one Action",
+      "min_parity": 4,
+      "initial_parity": 20,
+      "rtt_s": 0.6,
+      "stages": [
+        {
+          "name": "clean0",
+          "loss_percent": 0,
+          "duration_s": 120,
+          "frozen_ideal_parity": 4,
+          "frozen_grade_screen": [
+            4,
+            8
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "loss1",
+          "loss_percent": 1,
+          "duration_s": 120,
+          "frozen_ideal_parity": 4,
+          "frozen_grade_screen": [
+            4,
+            8
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "loss5",
+          "loss_percent": 5,
+          "duration_s": 120,
+          "frozen_ideal_parity": 8,
+          "frozen_grade_screen": [
+            8,
+            10
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "loss20",
+          "loss_percent": 20,
+          "duration_s": 120,
+          "frozen_ideal_parity": 16,
+          "frozen_grade_screen": [
+            16,
+            20
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "recover5",
+          "loss_percent": 5,
+          "duration_s": 120,
+          "frozen_ideal_parity": 8,
+          "frozen_grade_screen": [
+            8,
+            10
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "recover0",
+          "loss_percent": 0,
+          "duration_s": 180,
+          "frozen_ideal_parity": 4,
+          "frozen_grade_screen": [
+            4,
+            8
+          ],
+          "must_settle": true
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "description": "Explicit off-start initial0 floor0; separate Action otherwise same",
+      "min_parity": 0,
+      "initial_parity": 0,
+      "rtt_s": 0.6,
+      "stages": [
+        {
+          "name": "clean0",
+          "loss_percent": 0,
+          "duration_s": 120,
+          "frozen_ideal_parity": 0,
+          "frozen_grade_screen": [
+            0,
+            4
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "loss1",
+          "loss_percent": 1,
+          "duration_s": 120,
+          "frozen_ideal_parity": 4,
+          "frozen_grade_screen": [
+            4,
+            8
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "loss5",
+          "loss_percent": 5,
+          "duration_s": 120,
+          "frozen_ideal_parity": 8,
+          "frozen_grade_screen": [
+            8,
+            10
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "loss20",
+          "loss_percent": 20,
+          "duration_s": 120,
+          "frozen_ideal_parity": 16,
+          "frozen_grade_screen": [
+            16,
+            20
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "recover5",
+          "loss_percent": 5,
+          "duration_s": 120,
+          "frozen_ideal_parity": 8,
+          "frozen_grade_screen": [
+            8,
+            10
+          ],
+          "must_settle": false
+        },
+        {
+          "name": "recover0",
+          "loss_percent": 0,
+          "duration_s": 240,
+          "frozen_ideal_parity": 0,
+          "frozen_grade_screen": [
+            0,
+            4
+          ],
+          "must_settle": true
+        }
+      ]
+    },
+    {
+      "id": "C08",
+      "description": "Steady 1% regression; one Action (later), must check actual partial group shape",
+      "min_parity": 4,
+      "initial_parity": 20,
+      "rtt_s": 0.6,
+      "stages": [
+        {
+          "name": "steady1",
+          "loss_percent": 1,
+          "duration_s": 240,
+          "frozen_ideal_parity": 4,
+          "frozen_grade_screen": [
+            4,
+            8
+          ],
+          "must_settle": true
+        }
+      ]
+    },
+    {
+      "id": "C09",
+      "description": "Steady 5% regression; separate Action and actual k verification",
+      "min_parity": 4,
+      "initial_parity": 20,
+      "rtt_s": 0.6,
+      "stages": [
+        {
+          "name": "steady5",
+          "loss_percent": 5,
+          "duration_s": 240,
+          "frozen_ideal_parity": 8,
+          "frozen_grade_screen": [
+            8,
+            10
+          ],
+          "must_settle": true
+        }
+      ]
+    }
+  ],
+  "remaining_scenarios": "Other P1/P2/P3 scenario acceptance contract stays frozen in docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md section 5; not measured by this model-only stage"
+}

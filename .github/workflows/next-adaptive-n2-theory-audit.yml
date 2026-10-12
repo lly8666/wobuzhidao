@@ -1,0 +1,107 @@
+name: next-adaptive-n2-independent-reference-audit
+
+on:
+  push:
+    branches:
+      - next/adaptive-fec-aes-tun-20261010
+    paths:
+      - "tools/adaptive_n2_curve_reference.py"
+      - "tools/adaptive_n2_curve_audit.py"
+      - "tools/test_adaptive_n2_curve_reference.py"
+      - "docs/evidence/adaptive-n2-curve-freeze-v1.json"
+      - ".github/workflows/next-adaptive-n2-theory-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  independent-reference-and-readonly-recover540-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check the exact checkout (one model, no performance measurement)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "MODEL_SOURCE=$(git rev-parse HEAD)"
+          git status --porcelain=v1
+          python3 --version
+          echo "Original SOURCE=90925f81cfb16e8435c238b060c46492eef017ea"
+          echo "Original run=38161148715 job=114534148614 artifact=11710956407"
+      - name: Independent binomial and timeline unit tests (never product Step)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tools -p 'test_adaptive_n2_curve_reference.py' -v
+      - name: Generate predeclared frozen IID/model timing reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/curve"
+          python3 tools/adaptive_n2_curve_reference.py \
+            --manifest docs/evidence/adaptive-n2-curve-freeze-v1.json \
+            --output "$RUNNER_TEMP/curve/frozen-model-output.json"
+      - name: Retrieve exact PRIOR Action artifact for offline diagnostics only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/original"
+          gh run download 38161148715 --repo lly8666/wobuzhidao \
+            --name adaptive-n2-offstart-recover540-540s-90925f81cfb16e8435c238b060c46492eef017ea \
+            --dir "$RUNNER_TEMP/original"
+          printf '%s  %s\n' 85163b36ba051a76adf33fef5d748e8a224e0e8d5fac2003270d5aa52bfc8450 "$RUNNER_TEMP/original/summary.json" > "$RUNNER_TEMP/summary-check.sha256"
+          sha256sum --check "$RUNNER_TEMP/summary-check.sha256"
+      - name: Read-only bounded actual diagnostic audit; never reclassify original
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          from zipfile import ZipFile, ZIP_DEFLATED
+          root = Path(os.environ["RUNNER_TEMP"])
+          keep = ("summary.json", "manifest.json", "harness-prep.json",
+                  "stage-events.jsonl", "client-diag.jsonl", "server-diag.jsonl")
+          with ZipFile(root / "curve"/ "diagnostics-only.zip", "w", ZIP_DEFLATED) as z:
+              for filename in keep:
+                  z.write(root / "original" / filename, filename)
+          PY
+          python3 tools/adaptive_n2_curve_audit.py \
+            --zip "$RUNNER_TEMP/curve/diagnostics-only.zip" \
+            --output "$RUNNER_TEMP/curve/recover540-readonly-audit.json"
+          rm -f "$RUNNER_TEMP/curve/diagnostics-only.zip"
+          rm -rf "$RUNNER_TEMP/original"
+          sha256sum "$RUNNER_TEMP/curve/"*.json
+      - name: Record exact CI identity without secrets or business data
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, os, hashlib
+          d=Path(os.environ["RUNNER_TEMP"])/"curve"
+          files={f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in d.glob("*.json")}
+          receipt={"schema":1,"kind":"N2_MODEL_ONLY_AND_PRIOR_ARTIFACT_READONLY_AUDIT",
+                   "source_sha":os.environ["GITHUB_SHA"],"run_id":os.environ["GITHUB_RUN_ID"],
+                   "run_attempt":os.environ["GITHUB_RUN_ATTEMPT"],
+                   "original_product_source":"90925f81cfb16e8435c238b060c46492eef017ea",
+                   "original_run_id":38161148715,"original_job_id":114534148614,
+                   "original_artifact_id":11710956407,"outputs_sha256":files,
+                   "performance_measurements_started":0,"N2_pass":False}
+          (d/"receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+          PY
+      - name: Save model output and only bounded audit summaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: adaptive-n2-m0-reference-audit-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/curve/frozen-model-output.json
+            ${{ runner.temp }}/curve/recover540-readonly-audit.json
+            ${{ runner.temp }}/curve/receipt.json
+          retention-days: 30
