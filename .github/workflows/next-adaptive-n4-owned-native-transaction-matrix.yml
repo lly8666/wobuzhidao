@@ -14,6 +14,8 @@ on:
       - "internal/windowsclient/native_unified_network_owner_windows_test.go"
       - "internal/windowsclient/native_orphan_empty_wal_windows.go"
       - "internal/windowsclient/native_orphan_empty_wal_windows_test.go"
+      - "internal/windowsclient/native_orphan_owned_guard_windows.go"
+      - "internal/windowsclient/native_orphan_owned_guard_windows_test.go"
       - "internal/windowsclient/native_unified_assembly_windows.go"
       - "internal/windowsclient/native_unified_assembly_windows_test.go"
       - "internal/windowsclient/native_unified_stage_guard_lease_windows.go"
