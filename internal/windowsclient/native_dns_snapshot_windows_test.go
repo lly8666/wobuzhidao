@@ -50,3 +50,15 @@ func TestN4NativeDNSListParser(t *testing.T){
   if _,err:=parseN4DNSNameserverList(s);err==nil{t.Fatalf("unsafe DNS accepted %q",s)}
  }
 }
+
+func TestN4NativeDNSReadbackFlagsZeroStillParsesRawStaticNameServer(t *testing.T){
+ raw:="1.1.1.1,8.8.8.8"
+ addresses,err:=parseN4DNSNameserverList(raw)
+ if err!=nil || len(addresses)!=2 ||
+  addresses[0]!=netip.MustParseAddr("1.1.1.1") ||
+  addresses[1]!=netip.MustParseAddr("8.8.8.8"){
+  t.Fatalf("Windows Flags=0 raw DNS must parse: %v %v",addresses,err)
+ }
+ // Native reader must use the nonempty NameServer, not the Flags bitmap.
+ // The system's other DNS fields remain immutable under owned stage CAS.
+}

@@ -110,10 +110,12 @@ func (N4NativeDNSReader) Read(ctx context.Context,index uint32)(N4DNSBaseline,er
  if out.RawSearchList,err=n4DNSSafeUTF16(native.SearchList);err!=nil{return N4DNSBaseline{},err}
  if out.RawNameServer,err=n4DNSSafeUTF16(native.NameServer);err!=nil{return N4DNSBaseline{},err}
  if out.RawProfileNameServer,err=n4DNSSafeUTF16(native.ProfileNameServer);err!=nil{return N4DNSBaseline{},err}
- // Strict interpretation of comma or whitespace separated adapter servers
- // is only needed when a static nameserver flag is set. Other historical
- // resolver states may be obtained by DHCP and must NOT be misread as static.
- if out.Flags&n4DNSSettingNameServer!=0 && out.RawNameServer!="" {
+ // GetInterfaceDnsSettings may return Flags=0 even immediately after
+ // a successful static Set on a newly created Wintun (Win2022/Win2025).
+ // Flags are an UPDATE selector, not a reliable current-state indicator.
+ // Always parse an actual nonempty IPv4 NameServer string; the caller's
+ // owned WAL + exact other-fields CAS determines whether it is ours.
+ if out.RawNameServer!="" {
   addrs,parseErr:=parseN4DNSNameserverList(out.RawNameServer)
   if parseErr!=nil{return N4DNSBaseline{},parseErr}
   out.NameServers=addrs

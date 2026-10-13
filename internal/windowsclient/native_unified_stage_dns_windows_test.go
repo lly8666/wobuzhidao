@@ -38,7 +38,13 @@ func TestN4WindowsDNSStageClassifiesOnlyExactStaticOverride(t *testing.T){
  now.RawDomain="";now.NameServers[0]=netip.MustParseAddr("9.9.9.9")
  if got:=n4DNSClassifyState(now,rec);got!=N4UnifiedForeign{t.Fatal("foreign resolver changed")}
  now.NameServers=rec.Servers;now.Flags=0
- if got:=n4DNSClassifyState(now,rec);got!=N4UnifiedForeign{t.Fatal("unflagged resolver mismatch")}
+ if got:=n4DNSClassifyState(now,rec);got!=N4UnifiedOwned{
+  t.Fatal("real Windows Get Flags=0 must still classify exact raw static DNS as owned")
+ }
+ now.RawNameServer=""
+ if got:=n4DNSClassifyState(now,rec);got!=N4UnifiedForeign{
+  t.Fatal("parsed entries without a real native nameserver string are not owned")
+ }
 }
 func TestN4WindowsDNSStageDeniedBeforeNativeAPIsOnBorrowedOrTampered(t *testing.T){
  stage,id,rec:=n4DNSStageTestFixture()

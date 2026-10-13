@@ -1,3 +1,7 @@
+## 2026-10-13 Windows 真实 DNS 读回 Flags=0 的定点修复（新源码 Actions 待验）
+
+`a5222dc` Real Windows Action38383677149 双 Win 结果 FAIL，但原生 Wintun 创建、/32+DAD、MTU Set/Restore 已实际成功，真实 `SetInterfaceDnsSettings` 返回成功，`GetInterfaceDnsSettings` 的 RawNameServer 明确返回 `1.1.1.1,8.8.8.8` 而 Flags=0。过去 Go 只按 Flags 的 NameServer 位解析，以致未填 NameServers、误报静态写失败。新补丁根据实际返回的非空 NameServer 字符串解析，仅完整匹配 WAL 中配置的服务器才视为 owned；不修改外来 DNS 搜索域/Profile/LLMNR 等 CAS，也不放松创建 Wintun 归属校验。原 FAIL 留存，真实 DNS Clear/Get/Delete 尚未执行，正式 PowerShell/WFP crash 未收口，N6/physical NOT_RUN。
+
 ## 2026-10-13 real Wintun MTU 设置已成功，恢复原值 65535 被误判；限缩修正候选
 
 SOURCE `30426a6436857e03bad4a31760c015ffaf86f1cc` 的 Win2022/25 实网卡隔离 Action38383227355 两端均真实完成 /32 Create+DAD Preferred、MTU SetIpInterfaceEntry(1249)，Restore 因将原始 Wintun MTU65535 按新配置目标≤9000 校验而 ErrNetworkPlan，DNS 未运行。这是已证实的旧逻辑错误，新代码仅在 Restore 内仍以已配置的1249做 owner/Guard 校验，再通过整行 CAS恢复日志记录的原值65535；**不允许用户设置 >9000 的新MTU**。原 FAIL 不变，必须新 SOURCE Win2022/25 再跑真实 DNS/lease 完整回滚。正式网络控制面 PowerShell 仍活动，生产 WFP/崩溃属主与 N6 开放，physical NOT_RUN。

@@ -61,8 +61,12 @@ func n4DNSClassifyState(now N4DNSBaseline,rec n4DNSStageBaseline)N4UnifiedState{
  if !n4DNSExceptStaticEqual(now,rec.Before){return N4UnifiedForeign}
  if now.Flags&n4DNSOwnedStaticMask==0 && now.RawNameServer=="" &&
   len(now.NameServers)==0{return N4UnifiedAbsent}
- if now.Flags&n4DNSOwnedStaticMask!=0 && now.RawNameServer!="" &&
-  slices.Equal(now.NameServers,rec.Servers){return N4UnifiedOwned}
+ // Live Get may report Flags=0 even for a just-set NameServer.
+ // Ownership is inferred only from exact parsed static addresses under
+ // the independently verified created-Wintun identity and WAL baseline.
+ if now.RawNameServer!="" && slices.Equal(now.NameServers,rec.Servers){
+  return N4UnifiedOwned
+ }
  return N4UnifiedForeign
 }
 func(s n4WindowsDNSStage) Inspect(ctx context.Context,id N4UnifiedIdentity,b json.RawMessage)(N4UnifiedState,error){
