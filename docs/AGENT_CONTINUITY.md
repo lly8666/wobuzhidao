@@ -1,3 +1,7 @@
+## 2026-10-13 真 Wintun MTU 失败已精确定位，修正 Win32 传参而不放松外来状态 CAS
+
+`1b75cdfa` 真实 Windows2022/25 Action38382355741 两端原生日志：真实新建 Wintun /32 地址 DAD Preferred，完整 MTU 基线字段与即时读回均一致、当前句柄归属 true，但 AF_INET `GetIpInterfaceEntry` 的 `SitePrefixLength=64`。源码误把读取值非零判为 foreign；微软要求传给 `SetIpInterfaceEntry` 的 IPv4 行将 SitePrefixLength 设为0。这次代码仅在**准备原生 SET 输入**时规范化该字段，原有 Metric/MTU/Connected/WeakHost/AutomaticMetric 等严格 CAS 保持不变，Apply 与 Restore 均受同一修正规则。新 SOURCE Win2022/25 真实写入/回滚 Actions 待验。历史两个 FAIL 和文档收据留存，不提前宣称 DNS Set/Clear PASS，正式客户端仍 PowerShell，N4/N6/physical 未完成。
+
 ## 2026-10-13 真 Wintun 隔离实写首轮：/32+DAD 到达，MTU CAS 拒绝外来变化（原 FAIL 保留）
 
 SOURCE `4d9a2da` Action38381916177 真 Win2022/25 两端均 FAIL：新 Wintun LUID/DNS/MTU 只读 PASS，IPv4 /32 Create 与 DAD Preferred 已完成，接着 native MTU `SetIpInterfaceEntry` **写前**完整行 CAS 报 ErrN4ForeignRoute；此时没有进入 DNS 实写。严格保留原 FAIL 和系统拒绝，没有放宽 CAS/删除外来状态。下个代码只增加 hosted test 的 native MTU 前后行/ SitePrefixLength/ owner 日志，需新 SOURCE Actions 定位，实际产品 PowerShell 仍在，N6/physical NOT_RUN。

@@ -5,6 +5,7 @@ package windowsclient
 import (
  "context"
  "errors"
+ "reflect"
  "testing"
 
  "golang.org/x/sys/windows"
@@ -80,4 +81,24 @@ func TestN4NativeMTUSnapshotExactAndWindowsReadOnly(t *testing.T){
   t.Fatalf("zero interface row read accepted: %v",err)
  }
  // This test invokes GetIpInterfaceEntry only, never SetIpInterfaceEntry.
+}
+
+func TestN4NativeMTUSetterNormalizesOnlyIPv4SitePrefixLength(t *testing.T){
+ original:=windows.MibIpInterfaceRow{
+  Family:windows.AF_INET,InterfaceIndex:31,
+  SitePrefixLength:64,NlMtu:65535,Metric:5,
+  Connected:1,UseAutomaticMetric:1,DisableDefaultRoutes:1,
+ }
+ normalized:=original
+ n4PrepareIPv4MTUSetRow(&normalized,1249)
+ if normalized.SitePrefixLength!=0 || normalized.NlMtu!=1249{
+  t.Fatalf("invalid SetIpInterfaceEntry IPv4 input: %+v",normalized)
+ }
+ original.SitePrefixLength=0
+ original.NlMtu=1249
+ if !reflect.DeepEqual(normalized,original) {t.Fatal("input normalization changed foreign row fields")}
+ n4PrepareIPv4MTUSetRow(&normalized,65535)
+ if normalized.SitePrefixLength!=0 || normalized.NlMtu!=65535{
+  t.Fatal("MTU restore did not normalize IPv4 Set input")
+ }
 }

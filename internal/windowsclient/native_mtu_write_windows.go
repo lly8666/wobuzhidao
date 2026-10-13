@@ -72,6 +72,15 @@ func n4GetIPv4InterfaceRow(ctx context.Context,index uint32)(windows.MibIpInterf
  return row,nil
 }
 
+// The IPv4 Get API may return SitePrefixLength=64 on a newly created
+// Wintun despite Family=AF_INET. Per the Win32 SetIpInterfaceEntry ABI,
+// IPv4 SitePrefixLength MUST be 0 on INPUT, even if the read row differs.
+// Only the original CAS-confirmed NlMtu is intentionally changed.
+func n4PrepareIPv4MTUSetRow(row *windows.MibIpInterfaceRow,target uint32){
+ row.SitePrefixLength=0
+ row.NlMtu=target
+}
+
 // Apply changes ONLY the MTU in the entire OS-read interface row. Microsoft
 // requires IPv4 SitePrefixLength=0 on SetIpInterfaceEntry. Any deviation
 // from the snapshotted baseline is foreign mutation, and must halt.
@@ -82,10 +91,14 @@ func (w n4WindowsMTUWriter) Apply(ctx context.Context,old N4InterfaceIPv4Snapsho
  row,err:=n4GetIPv4InterfaceRow(ctx,old.Index)
  if err!=nil{return receipt,err}
  if !n4SameInterfaceBaseline(old,n4MTUSnapshotFromRow(row)) {return receipt,ErrN4ForeignRoute}
- if row.SitePrefixLength!=0{return receipt,ErrN4ForeignRoute}
+ // Wintun GetIpInterfaceEntry may return SitePrefixLength=64 even for
+ // AF_INET. Microsoft's SetIpInterfaceEntry contract requires the INPUT
+ // SitePrefixLength to be zero for IPv4. The complete tracked interface
+ // state was already CAS-checked above; this is a required input-only
+ // normalization, not a permission to overwrite foreign interface state.
  if err:=ctx.Err();err!=nil{return receipt,err}
  if err:=n4SetIPInterface.Find();err!=nil{return receipt,err}
- row.NlMtu=target
+ n4PrepareIPv4MTUSetRow(&row,target)
  rc,_,_:=n4SetIPInterface.Call(uintptr(unsafe.Pointer(&row)))
  if rc!=0{return receipt,fmt.Errorf("SetIpInterfaceEntry: %w",syscall.Errno(rc))}
  // If a post-write read fails, ownership is ambiguous; the caller's
@@ -103,10 +116,10 @@ func (w n4WindowsMTUWriter) Restore(ctx context.Context,receipt n4MTUWriteReceip
  if err:=w.preflight(ctx,cur,receipt.before.MTU);err!=nil{return err}
  row,err:=n4GetIPv4InterfaceRow(ctx,receipt.index)
  if err!=nil{return err}
- if !n4SameInterfaceBaseline(cur,n4MTUSnapshotFromRow(row)) || row.SitePrefixLength!=0{return ErrN4ForeignRoute}
+ if !n4SameInterfaceBaseline(cur,n4MTUSnapshotFromRow(row)){return ErrN4ForeignRoute}
  if err:=ctx.Err();err!=nil{return err}
  if err:=n4SetIPInterface.Find();err!=nil{return err}
- row.NlMtu=receipt.before.MTU
+ n4PrepareIPv4MTUSetRow(&row,receipt.before.MTU)
  rc,_,_:=n4SetIPInterface.Call(uintptr(unsafe.Pointer(&row)))
  if rc!=0{return fmt.Errorf("Restore SetIpInterfaceEntry: %w",syscall.Errno(rc))}
  return nil
