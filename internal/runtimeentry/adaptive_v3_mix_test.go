@@ -126,6 +126,10 @@ func TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation(t *testing.T) {
         addr,err:=lease.Config.LeaseIPv4();if err!=nil{t.Fatal(err)}
         if _,ok:=seenAddresses[lease.Config.Address4];ok{t.Fatal("leases crossed")}
         seenAddresses[lease.Config.Address4]=struct{}{}
+        // Admission may finish just after the client's own lease has bound.
+        // Wait for the existing authenticated server-ready gate before
+        // observing byTunnel; otherwise the assertion races registration.
+        waitLifecycle(t,5*time.Second,func()bool{return server.TunnelQualified(lease.Config.TunnelID)})
         server.mu.Lock()
         tunnel:=server.byTunnel[lease.Config.TunnelID]
         var policy realityfront.AdmissionPolicy
@@ -135,7 +139,6 @@ func TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation(t *testing.T) {
 
         // A transport heartbeat may qualify the authenticated lane, but no
         // client business has been sent. S2C must arrive as first business.
-        waitLifecycle(t,5*time.Second,func()bool{return server.TunnelQualified(lease.Config.TunnelID)})
         clientObserved:=c.DiagnosticSnapshot(time.Now())
         serverObserved,ok:=server.TunnelDiagnosticSnapshot(lease.Config.TunnelID,time.Now())
         if !ok {t.Fatal("server diagnostic missing for active tunnel")}

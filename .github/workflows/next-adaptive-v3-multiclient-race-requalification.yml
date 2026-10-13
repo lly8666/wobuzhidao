@@ -1,0 +1,56 @@
+name: next-adaptive-v3-multiclient-race-requalification
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-v3-multiclient-race-requalification.yml"
+      - "internal/runtimeentry/adaptive_v3_mix_test.go"
+      - "internal/runtimeentry/**"
+      - "go.mod"
+      - "go.sum"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  v3-multiclient-timing:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Verify SOURCE and repeat real TLS FakeTCP V3 three-client interleavings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly ./internal/runtimeentry \
+            -run '^TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation$' \
+            -count=20 -timeout=10m -v
+  v3-multiclient-linux-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Race repeat V3 same-source mixed lanes and rotation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly -race ./internal/runtimeentry \
+            -run '^TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation$' \
+            -count=8 -timeout=12m -v

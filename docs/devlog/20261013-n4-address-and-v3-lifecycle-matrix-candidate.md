@@ -1,0 +1,14 @@
+# N4 native IPv4 lease preflight and V3 multiclient repeated requalification — 2026-10-13
+
+## Exact prior source
+Parent HEAD 02f815b9c9c429ab0c51f514ef01ede7ed68f163. Dedicated Actions38346361538 finalized SUCCESS all four jobs (Linux race, Windows2022, Windows2025, scoped receipt), testing journal integrity/exclusive transactions, crash window safe halt, foreign route preservation, bounded route cap, cancellation and duplicate Apply. Core lifecycle Actions38346361497 SUCCESS. Foundation38346361555 FINAL FAILURE only Linux active-go-tests TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation: policy observed zero; test reads server.byTunnel immediately after client lease before existing 'TunnelQualified' wait. This is a real CI failure to preserve, not a product PASS. The test already required server qualified before first business, so moving that existing wait before inspecting the server's policy improves deterministic test ordering without weakening any assertion.
+
+## New code
+- New Windows-only `N4WindowsAddressSnapshot.IPv4` reads `GetUnicastIpAddressTable(AF_INET)` and frees its MIB buffer via native Windows `FreeMibTable`; nil/invalid interface fail closed; unsafe table layout bounded. **Read-only**.
+- `N4VerifyExclusivePreferredLease` preflight accepts only exact lease IPv4 on the target index in DAD Preferred, rejects foreign APIPA/LAN addresses, duplicate lease rows and tentative lease (no delete). It is not the DHCP configuration or native lease creation yet.
+- New Windows-only tests verify native MIB_IPADDR row ABI + hosted read-only address-table query, negative invalid inputs, wrong interface, APIPA, duplicate, DAD tentative, plus previously gated Win32 route strict ownership mismatch tests.
+- Previously existing runtimeentry V3 multiclient test synchronization moved existing 5s `waitLifecycle(TunnelQualified)` before checking server.byTunnel rather than afterwards. Dedicated Action runs Linux/Windows repeated 20x + Linux race 8x over real TLS/FakeTCP deterministic in-memory transport.
+- Expanded N4 owned Windows2022/2025 matrix includes new native address tests; no admin rights or real Wintun/physical path assumed.
+
+## Remaining hard boundary
+Go Windows native route/txn primitives and active userland TCP stack are still NOT WIRED into production CLI. The current Windows runtime still calls `powershell.exe` + .ps1 and constructs complement capture routes; user requires final without those. Do not remove existing DNS/IPv6 leak guard prematurely. Need full native Wintun-owned DHCP/address lifecycle + native DNS strategy/version, crash-persistent WFP IPv6 & physical DNS protections, owned journal and Action admin real Wintun tests before enabling /1 capture. N2 efficiency/GE/80s residual and N6 NOT_STARTED/physical NOT_RUN, no deploy/merge.
