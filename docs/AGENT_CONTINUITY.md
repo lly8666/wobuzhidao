@@ -1,3 +1,7 @@
+## 2026-10-13 N4 新 lease owner gate 候选
+
+上一源码 `1eeb847f` 的 WFP partial Disarm scoped Foundation/WFP TEST-NET PASS；原工作流 YAML 两次解析 FAIL 均记录，`cfeacdb` 的专项 Action38359183134 三平台（Win2022/25、Linux race）确认全 PASS、显式两个新测试 each x3，Foundation38359183166 最终状态以 STATUS/实时 Actions 为准。当前新增 `N4WindowsLeaseWriter` 受当前进程创建的 live Wintun 句柄索引归属保护，和 DNS/MTU 一致；候选提交后仍须新 SOURCE Actions。尚未完成 crash-durable DHCP/lease/MTU/DNS/WFP 总事务、PowerShell 去除或 N6，physical NOT_RUN。
+
 ## 最新 N4 工作流 YAML 修复（2026-10-13）
 
 `decb79c` Action38358853661 和 `987ec105` Action38359000016 均为解析阶段 FAIL/零 job。第一次缺闭合测试命令，第二次远端文件仍有行125—164的重复旧 job 片段。当前仅截断至首份合法124行工作流，不动 Go 代码；必须新 SOURCE 确认 Windows2022/2025/Linux-race 真启动且显式执行两个新增测试。原 FAIL 全留。仍非 N4 Windows 真 Wintun/最终生产资格，N6/physical NOT_RUN。

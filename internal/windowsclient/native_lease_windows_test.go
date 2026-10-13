@@ -73,3 +73,49 @@ func TestN4NativeLeaseReadOnlyWin32MissingInterface(t *testing.T){
  if err!=nil{t.Logf("Windows rejects nonexistent interface with error (safe): %v",err);return}
  if found{t.Fatal("unexpected address exists on impossible interface")}
 }
+
+type n4LeaseFakeOwner struct{
+ owned bool
+ err error
+ calls int
+}
+func(f *n4LeaseFakeOwner) IsCurrentOwnedWintun(_ context.Context,index uint32)(bool,error){
+ f.calls++
+ if index==0{return false,ErrNetworkPlan}
+ if f.err!=nil{return false,f.err}
+ return f.owned,nil
+}
+func TestN4NativeLeaseWriterRequiresLiveProcessCreatedWintun(t *testing.T){
+ l:=n4LeaseTestIntent()
+ active:=&n4FakeGuard{durable:true,active:true}
+ w:=N4WindowsLeaseWriter{Guard:active}
+ if _,err:=w.Create(context.Background(),l);!errors.Is(err,ErrN4NativeGuard){
+  t.Fatalf("DNS/WFP guard alone must not allow lease create: %v",err)
+ }
+ owner:=&n4LeaseFakeOwner{}
+ w.Adapter=owner
+ if _,err:=w.Create(context.Background(),l);!errors.Is(err,ErrN4ForeignRoute){
+  t.Fatalf("borrowed adapter allowed lease create: %v",err)
+ }
+ token:=n4NativeLeaseOwnerToken{intent:l,created:true}
+ if err:=w.DeleteConfirmed(context.Background(),token);!errors.Is(err,ErrN4ForeignRoute){
+  t.Fatalf("in-memory token allowed foreign adapter delete: %v",err)
+ }
+ if owner.calls!=2{t.Fatalf("expected owner proof for create/delete, got %d",owner.calls)}
+ stale:=errors.New("stale generation")
+ owner.err=stale
+ if _,err:=w.Create(context.Background(),l);!errors.Is(err,stale){t.Fatalf("owner error lost: %v",err)}
+ if err:=w.DeleteConfirmed(context.Background(),token);!errors.Is(err,stale){t.Fatalf("owner error lost on delete: %v",err)}
+ owner.err=nil
+ owner.owned=true
+ if err:=w.preflight(context.Background(),l);err!=nil{t.Fatalf("valid current owner + persistent guard rejected: %v",err)}
+ active.active=false
+ if err:=w.preflight(context.Background(),l);!errors.Is(err,ErrN4NativeGuard){t.Fatalf("inactive WFP guard accepted: %v",err)}
+ active.active=true
+ ctx,cancel:=context.WithCancel(context.Background());cancel()
+ calls:=owner.calls
+ if _,err:=w.Create(ctx,l);!errors.Is(err,context.Canceled){t.Fatalf("cancelled owner lease create: %v",err)}
+ if err:=w.DeleteConfirmed(ctx,token);!errors.Is(err,context.Canceled){t.Fatalf("cancelled owner lease delete: %v",err)}
+ if owner.calls!=calls{t.Fatal("canceled operation queried owner or touched Windows state")}
+ // Positive checks stop at preflight; no real unicast Create/Delete executed.
+}

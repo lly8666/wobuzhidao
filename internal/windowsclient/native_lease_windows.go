@@ -92,13 +92,19 @@ func N4NativeLeaseDADGate(row windows.MibUnicastIpAddressRow,l N4NativeLeaseInte
 type n4NativeLeaseOwnerToken struct{ intent N4NativeLeaseIntent; created bool }
 type N4WindowsLeaseWriter struct {
  Guard CrashPersistentGuard
+ // The current handle owner must be proven independently of alias, address
+ // contents and a caller-held lease token, just like DNS/MTU writers.
+ Adapter n4OwnedInterfaceProof
  Snapshot N4WindowsAddressSnapshot
 }
 
 func (w N4WindowsLeaseWriter) preflight(ctx context.Context,l N4NativeLeaseIntent)error {
  if err:=ctx.Err();err!=nil{return err}
  if err:=n4ValidateLeaseIntent(l);err!=nil{return err}
- if w.Guard==nil || !w.Guard.Durable(){return ErrN4NativeGuard}
+ if w.Guard==nil || !w.Guard.Durable() || w.Adapter==nil{return ErrN4NativeGuard}
+ owned,err:=w.Adapter.IsCurrentOwnedWintun(ctx,l.InterfaceIndex)
+ if err!=nil{return err}
+ if !owned{return ErrN4ForeignRoute}
  ok,err:=w.Guard.Verify(ctx)
  if err!=nil{return fmt.Errorf("%w: %v",ErrN4NativeGuard,err)}
  if !ok{return ErrN4NativeGuard}
