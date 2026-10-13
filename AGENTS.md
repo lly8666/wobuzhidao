@@ -1,5 +1,14 @@
 # WBD：新agent唯一开发入口
 
+## 2026-10-13 最新接手令：N4 原生 Windows 网络管理仍需最终接线
+
+用户已明确：Windows 不向路由表导入海量国内外 IP 段，只用少量固定捕获路由；TUN 内存中分类 LAN/CN/Other，Direct TCP 可使用旧项目 tun2socks/gVisor 本机双 TCP leg（物理网卡 ifIndex 绑定），Direct UDP 复用新 NativeUDPDirect；**最终 Windows 运行时不能有 powershell.exe 依赖、活动 .ps1 网络脚本**。旧 WinDivert IfIdx 快捷方案的 NO-GO 已是历史，不再等待选择。
+
+SOURCE `243da7bf` 已有未接线的用户态 Direct TCP、有界队列、精简 /1 规划、Windows IP Helper 路由严格构造/归属判断、SHA256+O_EXCL owned journal、防误删的崩溃意图窗口处理、原生 Wintun IPv4 地址只读/APIPA/DAD 前置检查、Windows10 build19041+ 原生 DNS/WFP API capability；新增 WFP V4/V6 过滤层读取能力（不会安装规则）。Action38347526977 N4 owned matrix Win2022/Win2025/Linux race PASS；旧 a455 Foundation38347146586 SUCCESS。当前 `243da` Foundation38347526964/lifecycle38347527006 以最新 STATUS 收据为准。
+
+**严禁把这称作生产脚本已去除或完整 N4**：现有正式 `cmd/wbd-client/main_windows.go` 仍启用 PowerShell/补集海量路由。持久 WFP DNS/IPv6 guard、Wintun DHCP/租约地址管理、DNS Set/Get/owned journal、管理员端到端 Apply/Stop/崩溃恢复未完成；新 TCP 路径故意禁用。下一步先完成这些 Windows 原生操作并在 Actions 验证，再替换/删除非 old/ 活动脚本、启用精简 /1 路由、完成 N6。N2 C04/C05/C10/80s 残余仍 OPEN，物理 NOT_RUN，无部署/合并。权威状态见 docs/STATUS.json 的 active_work/next_task/latest_log。
+
+
 ## 当前接手边界：N4 用户态 Direct + 无 PowerShell 产品（2026-10-13）
 
 用户已明确变更 N4 目标：**Windows 路由表不导入数千条国内 IP 网段**，允许沿用旧项目的 tun2socks/gVisor 用户态 TCP 直连（二段 TCP，直接走物理网卡），并要求**最终 Windows 产品不依赖 PowerShell，也不保留活动 .ps1 网络脚本**。无需再等待用户选择 WinDivert/WFP；WinDivert-only IfIdx 不可选结论在历史 devlog 保留。

@@ -1,5 +1,14 @@
 # 新agent十分钟接手摘要
 
+## 2026-10-13 最新续作边界：无 PowerShell 的 N4 最后一段
+
+用户当前硬要求为 Windows 仅少量 /1 系统捕获路由，国内/外国 IP 在 Go 内存分类；允许 tun2socks/gVisor 用户态 Direct TCP 两段本机物理绑定连接，UDP 维持新原生 socket；最终产品不能依赖 powershell.exe 或活动 .ps1。历史 WinDivert-only IfIdx NO-GO 已不阻止用户批准的新路径。
+
+SOURCE `243da7bf`：原生 Win32 IP Helper 严格路由归属、崩溃 journal 和取消/并发/外国路由保护 matrix Win2022/Win2025/Linux race Action38347526977 SUCCESS；WFP 官方 IPv4/IPv6 过滤层原生读取入口实现但**只读，非防泄漏生效**。SRC `a4558ce9` NativeDNS API Win10 Build19041+ fail-closed version/export gate Action38347146604 PASS、Foundation38347146586 PASS；V3 多客户端真实性能/首包/旋转 20x Win/Linux+race8x SRCb7 Action38346699603 PASS。早期 132e/4fd/50172/b7 Actions FAIL 由测试断言、静态检查、Windows ABI 类型/route 初始化错误造成，**必须保留原始失败记录**。最新完整 SOURCE CI 38347526964 以 STATUS 结果为准。
+
+未完成：持久 WFP IPv6 + 物理 DNS 守卫、原生 DNS 设置/恢复、Wintun 地址/DHCP、路线的 owned Apply/Cleanup 与崩溃恢复、正式 CLI 脚本去除及 TCP direct 接线、真正 Actions 管理员 Wintun 网络测试、N6 三目标产物。旧工程只允许只读参考，不能直接运行 old/。物理测试仍 NOT_RUN，不提前发包/部署/移动 refs。
+
+
 ## 最新接手令：N4 小路由、用户态 Direct TCP、无 PowerShell 版本迁移
 
 用户已授权旧 `old/internal/tunsplit` 的设计方向：Wintun 一律先捕获公网上行，两条 /1（以及有限 DNS/underlay 例外），进程内按 LAN/CN/Other IP 前缀分类，国内 TCP 走 tun2socks v2.6.0/gVisor + 物理 InterfaceIndex 绑定的新 Windows socket；国内 UDP 保留 NativeUDPDirect。与上一版要求不同，允许双 TCP leg 的本地直连，但不允许大规模系统路由和**产品运行时 PowerShell/.ps1**。

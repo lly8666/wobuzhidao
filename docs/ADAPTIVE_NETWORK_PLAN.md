@@ -1,5 +1,14 @@
 # Normal 自动 FEC、可选 AES、TUN 分流与线路质量显示
 
+## 2026-10-13 N4 当前状态：小路由与 Go Win32 原生可观测层完成，活动脚本仍未替换
+
+用户明确放宽原先 Direct TCP 原生同一段约束，优先不让 Windows 系统路由表塞入国内 IP 区间，允许旧 tun2socks/gVisor 用户态本机双 TCP leg 物理直连。**最终必须移除活动 powershell.exe/.ps1 运行时依赖**。Go 计划仅两条 IPv4 /1 + underlay /32 + 有界 DNS 例外；中国/IP 分类在内存，不写几千条路由。
+
+SOURCE `243da7bf` 已分别实现为**禁用中的部件**：Win32 DirectTCP 处理、普通 UDP Direct、/1 网络 Plan，防误删 NativeRouteBackend+SHA256 owned journal、客户端租约地址只读/APIPA/DAD 检验、原生 DNS API/Win10 19041+ 版本否决、WFP 引擎 IPv4/IPv6 ALE 过滤层只读探测；Actions N4 source scope Win2022/Win2025+Linux race 38347526977 PASS，SOURCE a455 Foundation38347146586 PASS。本源码 Foundation38347526964 以最新 STATUS 收据为准。运行期 WFP 持久防漏规则和 DNS/IPv6 真正防护尚未安装；管理员真实 Wintun 地址/路由创建删除 NOT_RUN，物理 NOT_RUN。
+
+继续工程：先完成 Windows Go-native WFP crash-persistent owned filtering（IPv6 全漏防护、物理 DNS 53 的非 Wintun 禁止），native Set/GetInterfaceDnsSettings 与恢复、DHCP/leased IPv4 + MTU/physical ifIndex/underlay escape 的受保护 transaction；Windows Actions 管理员执行可观察真实 owned Apply/Stop/重复/崩溃检验。然后一次性切换客户端至 BuildCompactNetworkPlan 和用户态 TCP、删除活动非归档 .ps1/PowerShell flag 和打包依赖，才能 N4 PASS。N2 残余、N6 未启动；禁止提前物理机、部署或合并。
+
+
 ## 2026-10-13 N4 最新产品方向：TUN 内存分流 + Go 原生 Windows 网络配置
 
 **目标转向已获用户明确许可：** 不为中国/外国 IPv4 区段批量写 Windows 系统路由；采用固定两条 /1 公网捕获、必要服务器物理 underlay /32 和有限 DNS 例外，LAN/CN/Other 前缀排序合并于 Go 分类器内。用户接受历史 `old/internal/tunsplit/direct_windows.go` 的 tun2socks/gVisor 两段本地 TCP 直连，经 `InterfaceIndex` 绑定真实物理接口，而非 WinDivert/WFP 内核 redirect；禁止最终 Windows 程序依赖 PowerShell 或携带活动 .ps1 网络脚本。历史 WinDivert-only IfIdx 方案 Action38341416320 NO-GO 保留，现已不阻塞这条新架构。

@@ -1,5 +1,12 @@
 # 全新agent长期接手提示词
 
+## 2026-10-13 最新工作硬门：无 PowerShell Windows N4 的剩余原生安全路径
+
+用户授权在进程内处理中国/非中国 IP（不批量写 Win 路由），旧项目 tun2socks/gVisor 用户态两段 TCP 直连可行，绑定实体网卡 InterfaceIndex，UDP Direct 已有新实现；**最终 Windows 运行时绝不依赖 PowerShell 或活动脚本**，旧历史程序/脚本只读保留在 old/。后续不是 WinDivert/WFP TCP Redirect 路线；WFP 仅用于 IPv6/DNS 防泄漏。
+
+到源码 `243da7bf`：N4 DirectTCP 及紧凑 /1 Plan、原生 IP Helper、路由事务 journal/foreign/partial/crash tests、Wintun 租约地址表只读、Win10 Build19041+ 原生 DNS/持久 WFP 出口探测均有代码与对应限定 Actions。Action38347526977 N4矩阵 Win2022/25+Linux race SUCCESS；SOURCE a455 Foundation38347146586 SUCCESS。当前 `243da` Foundation38347526964 以 STATUS 为准。历史失败绝不改写。**脚本尚未删除！** 活动 cmd/wbd-client 依旧运行 PowerShell，必须先完成并在 Actions 证明 Go 原生 DNS/IPv6 WFP crash-persistent owned filter、Wintun DHCP/IP 与 MTU/路由 Admin Apply/Recover，然后切换正式 N4 TCP/精简路由，移除非 old/ .ps1，才可以进行 N6 三目标同源打包与后续物理机验收。不要宣称当前已有真实 Wintun/管理员外网验证，N2效率/GE/tail OPEN。
+
+
 ## 2026-10-13 最新用户任务更新——解除 WinDivert 等待；Windows 产品无 PowerShell
 
 用户已批准 N4 改为历史 `old/internal/tunsplit` 的 in-TUN CN/LAN/Other 分类（中国 IP 列表仅在用户态内存），Windows host 只需两条 /1 捕获 + 必要 DNS/underlay 小路由；允许 tun2socks v2.6.0/gVisor 在本机做 Direct TCP 用户态会话与物理 ifIndex 绑定外联。用户要求**开发成最终不含活动 PowerShell 网络脚本、不运行 powershell.exe**，兼容无 PowerShell 的 Windows 版本（按 API 版本实际能力 fail closed，不伪称旧系统已支持）。原 WinDivert-only NO-GO 是历史结论，当前路线不依赖那项假设。
