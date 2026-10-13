@@ -58,3 +58,63 @@ func TestN4WindowsProductionPersistedOriginalRollbackNeedsPnPPin(t *testing.T){
   t.Fatalf("malformed PnP identity accepted for production rollback: %v",err)
  }
 }
+
+func TestN4WindowsPinnedOriginalPnPGenerationBindingRejectsForeign(t *testing.T){
+ id:=n4GuardOwnedOrphanID()
+ original:=strings.Repeat("a",64)
+ observed:=n4OriginalPnPProbe{State:"EXACT_DEVNODE_NO_PROBLEM",InstanceSHA256:original}
+ if err:=n4RequireOriginalPnPBinding(id,observed);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("legacy WAL acquired PnP orphan authority: %v",err)
+ }
+ id.PnPInstanceSHA256=original
+ for _,state:=range []string{"EXACT_DEVNODE_NO_PROBLEM","EXACT_DEVNODE_PROBLEM","EXACT_PNP_DEVNODE_GONE_13"}{
+  observed.State=state
+  if err:=n4RequireOriginalPnPBinding(id,observed);err!=nil{
+   t.Fatalf("same pinned original PnP identity state=%s rejected: %v",state,err)
+  }
+ }
+ for _,other:=range []string{strings.Repeat("b",64),strings.Repeat("A",64),"",strings.Repeat("g",64)}{
+  observed.InstanceSHA256=other
+  if err:=n4RequireOriginalPnPBinding(id,observed);err==nil{
+   t.Fatal("foreign or malformed instance fingerprint was accepted")
+  }
+ }
+ observed.InstanceSHA256=original
+ observed.State="UNKNOWN"
+ if err:=n4RequireOriginalPnPBinding(id,observed);!errors.Is(err,ErrN4NativeGuard){
+  t.Fatalf("unrecognized SetupAPI state became deletion authority: %v",err)
+ }
+}
+
+func TestN4WindowsPinnedPnPBindingDurableInOriginalWAL(t *testing.T){
+ id:=n4GuardOwnedOrphanID()
+ id.PnPInstanceSHA256=strings.Repeat("c",64)
+ path:=filepath.Join(t.TempDir(),"original-pnp-bound.json")
+ j:=n4UnifiedJournal{Schema:n4UnifiedSchema,Identity:id,Phase:"applying"}
+ if err:=n4UnifiedWrite(path,j,true);err!=nil{t.Fatal(err)}
+ read,err:=n4UnifiedRead(path)
+ if err!=nil || read.Identity!=id{
+  t.Fatalf("original instance SHA not sealed in same generation WAL: %v",err)
+ }
+ foreign:=read
+ foreign.Identity.PnPInstanceSHA256=strings.Repeat("d",64)
+ if err:=n4UnifiedWrite(path,foreign,false);err!=nil{t.Fatal(err)}
+ updated,err:=n4UnifiedRead(path)
+ if err!=nil{t.Fatal(err)}
+ if updated.Identity==id {t.Fatal("test failed to modify the identity")}
+ if err:=n4RequireOriginalPnPBinding(updated.Identity,n4OriginalPnPProbe{
+  State:"EXACT_PNP_DEVNODE_GONE_13",InstanceSHA256:id.PnPInstanceSHA256,
+ });!errors.Is(err,ErrN4ForeignRoute){
+  t.Fatalf("checksum-valid foreign fingerprint was accepted: %v",err)
+ }
+ if _,err:=os.Stat(path);err!=nil{t.Fatal(err)}
+ for _,bad:=range []string{"","A"+strings.Repeat("a",63),strings.Repeat("f",63),strings.Repeat("z",64)}{
+  modified:=id
+  modified.PnPInstanceSHA256=bad
+  if bad==""{
+   if n4ValidPinnedPnPHash(bad){t.Fatal("legacy missing pin accepted as new authority")}
+   continue
+  }
+  if modified.valid(){t.Fatalf("malformed original PnP fingerprint accepted: %s",bad)}
+ }
+}
