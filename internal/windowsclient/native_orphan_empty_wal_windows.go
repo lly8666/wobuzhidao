@@ -73,6 +73,19 @@ func n4OriginalWintunAbsent(ctx context.Context,id N4UnifiedIdentity)error{
 // setters or OpenTUN. A nonempty/ambiguous WAL is deliberately retained;
 // later production recovery must resolve all five stages separately.
 func N4WindowsRetireEmptyOrphanWAL(ctx context.Context,path string,id N4UnifiedIdentity)error{
+ return n4WindowsRetireBeforeFirstOSWrite(ctx,path,id,false)
+}
+
+// N4WindowsRetireGuardIntentOrphanWAL is a deliberately narrower extension
+// for a crash AFTER persisting guard intent but BEFORE confirmation. It is
+// not native five-stage crash recovery, and can ONLY remove the WAL if the
+// guard was never installed (including partial owned WFP objects).
+// A lease/MTU/DNS/route intent or an owned guard is never discarded.
+func N4WindowsRetireGuardIntentOrphanWAL(ctx context.Context,path string,id N4UnifiedIdentity)error{
+ return n4WindowsRetireBeforeFirstOSWrite(ctx,path,id,true)
+}
+
+func n4WindowsRetireBeforeFirstOSWrite(ctx context.Context,path string,id N4UnifiedIdentity,guardIntent bool)error{
  if err:=ctx.Err();err!=nil{return err}
  if path=="" || !id.valid() || id.WintunGUID=="" || id.AdapterAlias==""{
   return ErrN4JournalConflict
@@ -83,9 +96,21 @@ func N4WindowsRetireEmptyOrphanWAL(ctx context.Context,path string,id N4UnifiedI
  j,err:=n4UnifiedRead(path)
  if errors.Is(err,os.ErrNotExist){return nil} // repeated Stop is idempotent
  if err!=nil{return err}
- if j.Identity!=id || j.Phase!="applying" || len(j.Records)!=0{
+ if j.Identity!=id || j.Phase!="applying" {return ErrN4JournalConflict}
+ switch len(j.Records){
+ case 0: // fsynced WAL, no stage intent, no OS mutation
+ case 1:
+  if !guardIntent || j.Records[0].Name!="guard" ||
+   j.Records[0].State!="intent" ||
+   string(j.Records[0].Before)!=`{"absent":true}` {return ErrN4JournalConflict}
+ default:
   return ErrN4JournalConflict
  }
+ // Even an empty parent WAL must not discard evidence of an independent
+ // per-route write-ahead journal: its presence always makes the host
+ // network state ambiguous. Do not inspect/delete that sidecar here.
+ if _,err:=os.Lstat(path+".routes");err==nil{return ErrN4JournalConflict
+ }else if !errors.Is(err,os.ErrNotExist){return err}
  if err:=n4OriginalWintunAbsent(ctx,id);err!=nil{return err}
  // ExclusiveSingleWintun is NOT a caller assertion here: this locally
  // constructed value selects an existing rule PLAN for read-only inspection.

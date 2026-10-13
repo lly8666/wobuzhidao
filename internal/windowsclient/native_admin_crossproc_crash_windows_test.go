@@ -30,7 +30,11 @@ func n4HostedCrashChild(t *testing.T){
  if _,err:=rand.Read(ins[:]);err!=nil{t.Fatal(err)}
  if _,err:=rand.Read(gen[:]);err!=nil{t.Fatal(err)}
  id:=N4UnifiedIdentity{Installation:ins,Generation:gen,WintunIndex:live.Index,WintunLUID:live.LUID,WintunGUID:guid.String(),AdapterAlias:alias}
- if err:=n4UnifiedWrite(wal,n4UnifiedJournal{Schema:n4UnifiedSchema,Identity:id,Phase:"applying"},true);err!=nil{t.Fatal(err)}
+ records:=[]n4UnifiedRecord(nil)
+ if os.Getenv("WBD_N4_CRASH_GUARD_INTENT")=="1"{
+  records=[]n4UnifiedRecord{{Name:"guard",State:"intent",Before:json.RawMessage(`{"absent":true}`)}}
+ }
+ if err:=n4UnifiedWrite(wal,n4UnifiedJournal{Schema:n4UnifiedSchema,Identity:id,Phase:"applying",Records:records},true);err!=nil{t.Fatal(err)}
  if err:=os.WriteFile(ready,[]byte("WAL_SYNCED\n"),0600);err!=nil{t.Fatal(err)}
  // No Wintun.Close: parent intentionally kills the process.
  for{time.Sleep(time.Second)}
@@ -149,4 +153,95 @@ func TestN4WindowsOpenExistingRequiresExplicitAlias(t *testing.T){
    t.Fatalf("unsafe alias %q not refused before Win32: %v",name,err)
   }
  }
+}
+
+func TestN4WindowsHostedRealGuardIntentOnlyCrashRecovery(t *testing.T){
+ if os.Getenv("WBD_N4_ADMIN_GUARD_CRASH_PROBE")!="1"||os.Getenv("GITHUB_ACTIONS")!="true"{
+  t.Skip("NOT_RUN: hosted real child Wintun crash guard-intent-only probe")
+ }
+ report:=map[string]string{
+  "schema":"wbd-n4-crash-guard-intent-only/v1",
+  "source_sha":os.Getenv("GITHUB_SHA"),"runner":os.Getenv("RUNNER_OS"),
+  "result":"FAIL_UNFINISHED","live_refusal":"NOT_RUN",
+  "child_crash":"NOT_RUN","guard_intent_retire":"NOT_RUN",
+  "route_sidecar":"NOT_RUN","wfp":"READONLY_ABSENCE_ONLY",
+  "route_write":"NOT_RUN","dns_write":"NOT_RUN",
+  "full_crash_recover":"NOT_RUN","physical":"NOT_RUN",
+ }
+ defer func(){
+  path:=os.Getenv("WBD_N4_ADMIN_GUARD_CRASH_PROBE_REPORT")
+  if path==""{t.Error("missing guard intent report path");return}
+  b,err:=json.MarshalIndent(report,"","  ");if err!=nil{t.Error(err);return}
+  if err:=os.MkdirAll(filepath.Dir(path),0700);err!=nil{t.Error(err);return}
+  if err:=os.WriteFile(path,append(b,'\n'),0600);err!=nil{t.Error(err)}
+ }()
+ if report["source_sha"]==""||report["runner"]!="Windows"{t.Fatal("missing exact GitHub SOURCE/Windows host")}
+ var salt [8]byte
+ if _,err:=rand.Read(salt[:]);err!=nil{t.Fatal(err)}
+ alias:="WBDN4-GIN-"+hex.EncodeToString(salt[:])
+ dir:=t.TempDir()
+ wal,ready:=filepath.Join(dir,"guard-intent.json"),filepath.Join(dir,"ready")
+ child:=exec.Command(os.Args[0],"-test.run=^TestN4WindowsHostedCrossProcessCrashReadOnlyIdentity$","-test.timeout=3m")
+ child.Env=append(os.Environ(),"WBD_N4_CRASH_CHILD=1","WBD_N4_CRASH_GUARD_INTENT=1",
+  "WBD_N4_CRASH_ALIAS="+alias,"WBD_N4_CRASH_WAL="+wal,"WBD_N4_CRASH_READY="+ready)
+ child.Stdout,child.Stderr=io.Discard,io.Discard
+ if err:=child.Start();err!=nil{t.Fatal(err)}
+ done:=false
+ defer func(){if !done{_ =child.Process.Kill();_ =child.Wait()}}()
+ deadline:=time.Now().Add(25*time.Second)
+ for {
+  if b,err:=os.ReadFile(ready);err==nil{
+   if string(b)!="WAL_SYNCED\n"{t.Fatal("bad guard child readiness")}
+   break
+  }
+  if time.Now().After(deadline){t.Fatal("child failed to commit guard-intent WAL")}
+  time.Sleep(100*time.Millisecond)
+ }
+ j,err:=n4UnifiedRead(wal)
+ if err!=nil||len(j.Records)!=1||j.Records[0].Name!="guard"||j.Records[0].State!="intent"{
+  t.Fatalf("child guard intent not durably recorded: %+v %v",j,err)
+ }
+ ctx,cancel:=context.WithTimeout(context.Background(),15*time.Second)
+ err=N4WindowsRetireGuardIntentOrphanWAL(ctx,wal,j.Identity)
+ cancel()
+ if !errors.Is(err,ErrN4ForeignRoute){t.Fatalf("live original Wintun incorrectly retired: %v",err)}
+ if _,err:=os.Stat(wal);err!=nil{t.Fatalf("guard-intent WAL lost while child alive: %v",err)}
+ report["live_refusal"]="PASS_NATIVE_ORIGINAL_ADAPTER_LIVE_REFUSED"
+ if err:=child.Process.Kill();err!=nil{t.Fatal(err)}
+ if err:=child.Wait();err==nil{t.Fatal("child did not terminate abruptly")}
+ done=true
+ report["child_crash"]="PASS_REAL_TERMINATEPROCESS_AFTER_GUARD_INTENT_FSYNC"
+ limit:=time.Now().Add(5*time.Second)
+ for{
+  reopened,openErr:=OpenExistingTUN(alias)
+  if openErr==nil {
+   _=reopened.Close()
+   if time.Now().After(limit){
+    report["result"]="UNSUPPORTED_ORIGINAL_ADAPTER_PERSISTED"
+    t.Skip("UNSUPPORTED: old adapter still present; no owner takeover")
+   }
+   time.Sleep(100*time.Millisecond)
+   continue
+  }
+  if time.Now().Before(limit){
+   // Wait until the OS has completed tearing down the adapter; an
+   // OpenExisting failure alone is NOT sufficient absence proof.
+   time.Sleep(100*time.Millisecond)
+   continue
+  }
+  break
+ }
+ ctx,doneCtx:=context.WithTimeout(context.Background(),15*time.Second)
+ err=N4WindowsRetireGuardIntentOrphanWAL(ctx,wal,j.Identity)
+ doneCtx()
+ if err!=nil{
+  report["result"]="UNSUPPORTED_SAFE_RETIRE_UNPROVEN"
+  t.Skipf("UNSUPPORTED: guard-only WAL retained when identity proof fails: %v",err)
+ }
+ if _,err:=os.Stat(wal);!errors.Is(err,os.ErrNotExist){t.Fatalf("guard-intent WAL still present: %v",err)}
+ if _,err:=os.Stat(wal+".routes");!errors.Is(err,os.ErrNotExist){t.Fatalf("unrelated route receipt unexpected: %v",err)}
+ report["route_sidecar"]="PASS_NONE_PRESENT"
+ report["guard_intent_retire"]="PASS_ONLY_GUARD_INTENT_WITH_WFP_ABSENT"
+ report["result"]="SCOPED_GUARD_INTENT_ONLY_ORPHAN_RETIRE_PASS"
+ t.Log("native guard-intent-only checksum WAL retired after real process crash and absent original Wintun; full network crash recovery remains NOT_RUN")
 }
