@@ -626,27 +626,11 @@ func applyOwnedNetworkWith(ctx context.Context, plan windowsclient.NetworkPlan, 
 func runNetworkActionContext(ctx context.Context, plan windowsclient.NetworkPlan, action, script string) error {
 	if ctx == nil { return windowsclient.ErrNetworkPlan }
 	if err := ctx.Err(); err != nil { return err }
-	if len(plan.CaptureRoutes) > 8 {
-		if err := os.MkdirAll(filepath.Dir(plan.StatePath), 0700); err != nil {
-			return err
-		}
-		f, err := os.CreateTemp(filepath.Dir(plan.StatePath), "wbd-capture-*.txt")
-		if err != nil {
-			return err
-		}
-		defer os.Remove(f.Name())
-		var b strings.Builder
-		for _, r := range plan.CaptureRoutes {
-			fmt.Fprintln(&b, r.Prefix.String())
-		}
-		if _, err = f.WriteString(b.String()); err != nil {
-			f.Close()
-			return err
-		}
-		if err = f.Close(); err != nil {
-			return err
-		}
-		plan.CapturePrefixFile4 = f.Name()
+	// The compatibility shell must NEVER take the old massive-CIDR path.
+	// Native compact capture and per-flow CN/LAN classification are now the
+	// only admitted product policy. Fail before spawning any child process.
+	if len(plan.CaptureRoutes)>8 || len(plan.DirectRoutes)!=0 || plan.CapturePrefixFile4!="" {
+		return windowsclient.ErrNetworkPlan
 	}
 	args, err := plan.PowerShellArgs(action, script)
 	if err != nil {

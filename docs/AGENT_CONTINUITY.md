@@ -1,3 +1,7 @@
+## 2026-10-13 N4 当前小范围收口：正式 CLI 两 /1 + 双 direct 路径后再拒绝历史巨大路由文件（Actions 待新源验）
+
+Source `ac7be190b3fcbbfa5828eee1b4e11497bc7b4156` 已接 live Direct TCP+UDP 并简化捕获路由，首批 N4/Userspace/Lifecycle SUCCESS。本补丁只改 legacy shell 子进程启动前上限：超过8条/有 DirectRoutes/传大 capture file 全部拒绝，不再产生 huge CIDR 文件；新的 CLI AST/Win 测试必须通过。仍 PowerShell 控制面，native scriptless 未完，N6/physical NOT_RUN。唯一 next_task 见 STATUS。
+
 ## 2026-10-13 更直接的 N4 功能收口：正式 CLI 紧凑 /1 + userspace Direct TCP/Native UDP 候选
 
 用户要求不要再叠加框架；本轮以实用功能接线代替仅新建底层抽象。源前HEAD `3ed3e25a3b365d74cd84e446c1c3df43812aac4d`，上次 `ff525c0` N4/Found/Lifecycle 限定 PASS。这次 **正式** `cmd/wbd-client/main_windows.go` 将 host routes 改为 `BuildCompactNetworkPlan`（server物理/32逃逸、两/1 捕获、DNS /32，CN/LAN在内存中选择）并激活已有 `UserspaceTCPDirect` gVisor物理绑定直连与 `NativeUDPDirect` 双协议分派，受限 TCP 输入满队列按 local drop 而非中断整个客户端。新增实际 userspace TCP stack 构造测试 + windows cmd compile/Actions；**提交时新 SOURCE 尚未验，不能标 PASS**。现有 control plane 仍通过原 PowerShell/.ps1 owned 脚本，禁止声称已 scriptless/全N4。之后仅保留必要的原生 lease/MTU/DNS/WFP/route 替换和最终 Actions/P6 收口；N2 OPEN、physical NOT_RUN。

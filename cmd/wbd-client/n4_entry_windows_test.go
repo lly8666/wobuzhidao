@@ -3,10 +3,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"testing"
+
+	"github.com/lly8666/wobuzhidao/internal/windowsclient"
 )
 
 // The Windows entry must never pre-seal an IPv4 packet in Router then pass
@@ -32,12 +36,28 @@ func TestN4WindowsEntryUsesSingleProtectedSenderAndNativeDirectIngress(t *testin
 		}
 		return true
 	})
-	for _,name:=range []string{"NewTUNClassifier","NewTUNScopedFlows",
-		"NewNativeUDPDirect","NewTUNPacketDispatcher","ForwardOrProxy"} {
+	for _,name:=range []string{"BuildCompactNetworkPlan","NewTUNClassifier","NewTUNScopedFlows",
+		"NewUserspaceTCPDirect","NewNativeUDPDirect","NewN4NativeDirect",
+		"NewTUNPacketDispatcher","ForwardOrProxy"} {
 		if calls[name]!=1 {t.Fatalf("actual entry missing or duplicates %s: %d",name,calls[name])}
 	}
 	if calls["RouteFromTUN"]!=0 || calls["SendPacket"]!=1 {
 		t.Fatalf("double-seal or protected send missing: route=%d sends=%d",
 			calls["RouteFromTUN"],calls["SendPacket"])
 	}
+}
+
+func TestN4WindowsLegacyNetworkRunnerNeverExpandsCaptureCIDRs(t *testing.T){
+ for _,tc:=range []struct{name string;plan windowsclient.NetworkPlan}{
+  {"capture-explosion",windowsclient.NetworkPlan{CaptureRoutes:make([]windowsclient.OwnedRoute,9)}},
+  {"direct-host-routes",windowsclient.NetworkPlan{DirectRoutes:[]windowsclient.OwnedRoute{{Kind:"direct"}}}},
+  {"capture-file-bypass",windowsclient.NetworkPlan{CapturePrefixFile4:"huge-capture-cidrs.txt"}},
+ }{
+  t.Run(tc.name,func(t *testing.T){
+   // The guard is evaluated before script arguments or PowerShell execution.
+   if err:=runNetworkActionContext(context.Background(),tc.plan,"Apply","network.ps1");!errors.Is(err,windowsclient.ErrNetworkPlan){
+    t.Fatalf("unsafe route explosion was not rejected: %v",err)
+   }
+  })
+ }
 }
