@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_WIN_UDP_ENTRY_SCOPED_PASS_OWNED_APPLY_CANCEL_ROLLBACK_CANDIDATE",
+    "phase": "N4_WINTUN_UNOWNED_IPV4_DHCP_TRANSACTION_GUARD_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "49adb276f4065795a79a3082f452a2361e43e71a",
+    "new_product_source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
     "implementation": "N4_UDP_NATIVE_WINTUN_ENTRY_WIRED_SCOPED_HOSTED_ACTIONS_PASS;CANCELLABLE_OWNED_APPLY_CLEANUP_CANDIDATE_ACTIONS_PENDING;TCP_DIRECT_DRIVER_AND_FEW_ROUTES_OPEN",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
       "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
-      "N4_windows_tun": "ENTRY_N4_ACTION38337768067_AND_CLASSIFIER_ACTION38337768029_WINDOWS_LINUX_SCOPED_PASS;FOUNDATION38337768007_AND_LIFECYCLE38337767972_AND_AES_GUI_REGRESSIONS_SUCCESS;OWNED_APPLY_CANCEL_AND_PARTIAL_ROLLBACK_CANDIDATE_ACTIONS_NOT_RUN;TCP_REDIRECT_AND_FEW_ROUTES_NOT_DONE",
+      "N4_windows_tun": "WIN_ENTRY_49ADB_AND_CANCELLABLE_APPLY_67B7_ACTION38338092331_SCOPE_PASS_WITH_FOUNDATION_GUI_AES_LIFECYCLE;NOW_OWNED_UNOWNED_IPV4_DHCP_GUARD_CANDIDATE_ACTIONS_NOT_RUN;REAL_TCP_DIRECT_AND_FEW_ROUTES_NOT_DONE",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2668,18 +2668,18 @@
       "execution_rule": "Do not endlessly retest the same scenario or reopen completed AES/GUI. Advance N4; changed modules/new reproducible hard-gate failures require immediate scoped repair. Before final qualification explicitly resolve or report every residual, never turn OPEN into PASS."
     }
   },
-  "next_task": "Run exact new SOURCE GitHub Actions N4 owned-network cancellation plus foundation/lifecycle/native entry tests; fix any failing/unstable cancellation case on new SOURCE. For hosted Windows verify PowerShell process stops and mock transaction rolls back once using independent bounded context. Admin Apply, real Windows Wintun and large owned route cleanup stay NOT_RUN in hosted runners. Next real missing N4 TCP WFP/driver redirect and small capture routes; no physical trial/deploy/mainline. Preserve N2 residual qualification.",
-  "latest_log": "docs/devlog/20261013-n4-owned-apply-cancel-rollback-candidate.md",
+  "next_task": "Verify new N4 ownership guard exact SOURCE unit/race and Windows PowerShell Render Actions; fix any failure on changed SOURCE. Runtime/elevated Windows native Wintun actual route/owned cleanup UNSUPPORTED/NOT_RUN in hosted Actions; no physical interim trial. Then advance missing real Windows TCP transparent redirect WFP signed/loaded driver/capability and few capture routes after UDP/TCP truly work. N6 final packages NOT_STARTED; no deployment/mainline.",
+  "latest_log": "docs/devlog/20261013-n4-wintun-foreign-ipv4-and-dhcp-owned-guard.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "49adb276f4065795a79a3082f452a2361e43e71a",
-  "last_tested_scope": "N4_NATIVE_WINDOWS_ENTRY_N4_CLASSIFIER_LINUX_RACE_WIN_HOSTED_UNIT_BUILD_AND_N3_GUI_CONFIG_REGRESSION_SCOPED_PASS_SOURCE_49ADB;NO_WINTUN_DRIVER_EXTERNAL_ROUTE_OR_PERFORMANCE",
+  "last_tested_source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
+  "last_tested_scope": "N4_APPLY_CANCEL_REAL_WINDOWS_POWERSHELL_CHILD_PLUS_MOCK_OWNED_ROLLBACK_SCOPED_PASS_ACTION38338092331_SOURCE_67B7;WIN_ENTRY_FOUNDATION_GUI_AES_PASS_NO_ADMIN_APPLY",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification."
   ],
   "in_progress": [
-    "N4 UDP real Windows entry scoped PASS on 49adb; N4 GUI Stop/Apply cancellation and owned failure rollback candidate awaiting new exact-source Actions",
-    "N4 transparent TCP/direct routing small routes/full owned Windows driver hardware NOT_RUN; N6 packages NOT_STARTED"
+    "N4 Windows UDP entry scoped PASS; cancellable Apply/rollback hosted Actions scoped PASS, foreign IPv4/DHCP journal safety candidate awaiting Actions",
+    "N4 actual Windows native Wintun/elevated Apply and real TCP WFP redirect/few capture routes NOT_RUN; N6 NOT_STARTED"
   ],
   "actions": [
     {
@@ -3752,6 +3752,60 @@
       "scope": "N4_ENTRY_TOUCH_GUI_CONFIG_REGRESSION",
       "status": "PASS",
       "cause": "Job115101644588 completed success; artifact11785835175 sha256:86cf55780ce561c54a5c0751ec54b37efedec55f430f75a903944c1f81304974. No real GUI/Wintun physical effect."
+    },
+    {
+      "run_id": 38338092331,
+      "name": "next-adaptive-n4-owned-network-cancel",
+      "source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338092331",
+      "scope": "N4_OWNED_APPLY_CANCEL_NATIVE_WINDOWS_CHILD_AND_MOCK_ROLLBACK",
+      "status": "PASS",
+      "cause": "Windows job115102670511 success, raw log four tests RUN PASS; PowerShell child terminated under context in 1.51s. NOT admin Apply or actual Wintun."
+    },
+    {
+      "run_id": 38338092356,
+      "name": "next-adaptive-n4-windows-entry",
+      "source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338092356",
+      "scope": "N4_OWNED_CANCEL_SOURCE_WINDOWS_CLI_ENTRY_REGRESSION",
+      "status": "PASS",
+      "cause": "Linux dispatch race115102670490 and Windows CLI 115102670669 both success. No real driver."
+    },
+    {
+      "run_id": 38338092255,
+      "name": "next-foundation",
+      "source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338092255",
+      "scope": "N4_OWNED_CANCEL_SOURCE_FOUNDATION",
+      "status": "PASS",
+      "cause": "All required non-skipped jobs success (Linux+Windows Go, race, privileged P2/P4, contract); P5/P6 skipped. p2 artifact11785606196 sha256:32fc0cfa4c2f106248b87dc60c2f203d61177dedd5ada10d41f62f09d51b4749."
+    },
+    {
+      "run_id": 38338092267,
+      "name": "next-lifecycle",
+      "source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338092267",
+      "scope": "N4_OWNED_CANCEL_SOURCE_LIFECYCLE",
+      "status": "PASS",
+      "cause": "core job115102670129 success."
+    },
+    {
+      "run_id": 38338092266,
+      "name": "next-adaptive-n3-explicit-record-cipher-config",
+      "source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338092266",
+      "scope": "N4_OWNED_CANCEL_SOURCE_AES_CONFIG_REGRESSION",
+      "status": "PASS",
+      "cause": "job115102670288 success, artifact11785795816 sha256:5db40f17bccd84509324d3c20230246f659e60be28f6b507a24f13b0083fa1d9."
+    },
+    {
+      "run_id": 38338092261,
+      "name": "next-adaptive-n2-windows-gui-config-native",
+      "source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338092261",
+      "scope": "N4_OWNED_CANCEL_SOURCE_GUI_REGRESSION",
+      "status": "PASS",
+      "cause": "job115102670057 success, artifact11785970641 sha256:80beb3ffa28f930ddb2fc8d78cbe934aec99655ebdc0cb93a94c23c49e650d2b."
     }
   ],
   "required_read_set": [

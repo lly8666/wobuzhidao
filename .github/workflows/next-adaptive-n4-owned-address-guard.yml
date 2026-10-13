@@ -1,0 +1,52 @@
+name: next-adaptive-n4-owned-address-guard
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-owned-address-guard.yml"
+      - "scripts/windows_client_network.ps1"
+      - "internal/windowsclient/owned_network_preflight_test.go"
+permissions:
+  contents: read
+jobs:
+  linux-owned-script-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE, repository contract and non-destructive owned guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          go test -count=1 -v ./internal/windowsclient -run '^TestN4OwnedWindowsScript'
+          go test -race -count=1 ./internal/windowsclient ./internal/splitroute
+  windows-powershell-render-no-admin:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Native Windows PowerShell parse and route Render, no network writes
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) { throw "SOURCE mismatch" }
+          go test -count=1 ./internal/windowsclient
+          if ($LASTEXITCODE -ne 0) { throw "Windows owned script core regression failed" }
+          $output = & .\scripts\windows_client_network.ps1 -Action Render -AdapterAlias WBD -TunnelAddress4 10.66.0.7/32 -Underlay4 198.51.100.10 -PhysicalInterfaceIndex 12 -PhysicalNextHop4 192.0.2.1 -StatePath "$env:RUNNER_TEMP\wbd-render-only.json" -TunnelMTU 1249
+          if ($LASTEXITCODE -ne 0 -or ($output -join " ") -notmatch "WBD_WINDOWS_CLIENT_PLAN") { throw "PowerShell Render failed" }
+          Write-Output "N4_OWNED_SCRIPT_SOURCE=$env:GITHUB_SHA ELEVATED_APPLY=NOT_RUN WINDOWS_WINTUN=NOT_RUN"

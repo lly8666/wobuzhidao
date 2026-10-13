@@ -132,12 +132,36 @@ function Remove-OwnedState($State) {
     }
     if ($State.PSObject.Properties.Name -contains 'Addresses') {
         foreach ($addr in @($State.Addresses)) {
-            Remove-NetIPAddress -InterfaceIndex ([uint32]$addr.InterfaceIndex) `
-                -IPAddress ([string]$addr.IPAddress) -Confirm:$false -ErrorAction SilentlyContinue
+            $found = @(Get-NetIPAddress -InterfaceIndex ([uint32]$addr.InterfaceIndex) `
+                -IPAddress ([string]$addr.IPAddress) -AddressFamily IPv4 -ErrorAction SilentlyContinue)
+            if ($found.Count -gt 0) {
+                Remove-NetIPAddress -InterfaceIndex ([uint32]$addr.InterfaceIndex) `
+                    -IPAddress ([string]$addr.IPAddress) -Confirm:$false -ErrorAction Stop
+            }
         }
+    }
+    # DHCP is altered only if the pre-change snapshot was safely journaled.
+    # Restore only on the identical Wintun and if the current value is still
+    # the value WBD applied (never overwrite a later administrator change).
+    if ($State.PSObject.Properties.Name -contains 'DHCPState' -and $null -ne $State.DHCPState) {
+        Restore-OwnedTunnelDHCP $State.DHCPState
     }
     Remove-WBDIPv6Rules
     Remove-WBDDNSRules
+}
+
+function Restore-OwnedTunnelDHCP($DHCPState) {
+    $current = @(Get-NetIPInterface -InterfaceIndex ([uint32]$DHCPState.InterfaceIndex) `
+        -AddressFamily IPv4 -PolicyStore ActiveStore -ErrorAction Stop)
+    if ($current.Count -ne 1) { throw 'owned Wintun DHCP restore interface is ambiguous' }
+    if ([string]$current[0].InterfaceAlias -ne [string]$DHCPState.AdapterAlias) {
+        throw 'owned Wintun DHCP restore interface identity changed'
+    }
+    if ([string]$current[0].Dhcp -eq [string]$DHCPState.Applied) {
+        Set-NetIPInterface -InterfaceIndex ([uint32]$DHCPState.InterfaceIndex) `
+            -AddressFamily IPv4 -Dhcp ([string]$DHCPState.Previous) `
+            -PolicyStore ActiveStore -ErrorAction Stop
+    }
 }
 
 function Restore-OwnedTunnelMTU($MTUState) {
@@ -234,6 +258,13 @@ $ifIndex = [uint32]$adapter.ifIndex
 if ($ifIndex -eq $PhysicalInterfaceIndex) {
     throw 'physical underlay interface resolved to Wintun; refusing recursive capture'
 }
+# Never destroy third-party or administrator IPv4 addresses on an existing
+# Wintun adapter. No owned journal can reconstruct their full provenance.
+$foreignIPv4 = @(Get-NetIPAddress -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+    Where-Object { $_.IPAddress -ne $lease.IP })
+if ($foreignIPv4.Count -gt 0) {
+    throw 'Wintun contains non-owned IPv4 addresses; refusing destructive takeover'
+}
 $dnsUnderlay = $null
 if ($dnsServers.Count -gt 0) {
     $physicalAdapters = @(Get-NetAdapter -ErrorAction Stop | Where-Object { [uint32]$_.ifIndex -eq $PhysicalInterfaceIndex })
@@ -256,6 +287,7 @@ $state = [ordered]@{
     CaptureRoutes6 = @()
     NRPTRuleName = ''
     TunnelMTUState = $null
+    DHCPState = $null
 }
 Save-State $state
 
@@ -308,10 +340,18 @@ try {
         }
     }
 
-    Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -Dhcp Disabled -ErrorAction Stop
     $beforeMTU = @(Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -PolicyStore ActiveStore -ErrorAction Stop)
     if ($beforeMTU.Count -ne 1 -or $beforeMTU[0].InterfaceAlias -ne $AdapterAlias) {
         throw 'Wintun MTU interface identity is ambiguous'
+    }
+    if ($null -eq $beforeMTU[0].Dhcp) { throw 'Wintun DHCP status is unavailable; refusing mutation' }
+    if ([string]$beforeMTU[0].Dhcp -ne 'Disabled') {
+        $state.DHCPState = [ordered]@{
+            InterfaceIndex=$ifIndex; AdapterAlias=$AdapterAlias
+            Previous=[string]$beforeMTU[0].Dhcp; Applied='Disabled'
+        }
+        Save-State $state
+        Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -Dhcp Disabled -ErrorAction Stop
     }
     if ([uint32]$beforeMTU[0].NlMtu -ne $TunnelMTU) {
         $state.TunnelMTUState = [ordered]@{
@@ -324,11 +364,11 @@ try {
     }
     $actualMTU = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -PolicyStore ActiveStore -ErrorAction Stop
     if ([uint32]$actualMTU.NlMtu -ne $TunnelMTU) { throw 'Wintun supported MTU did not take effect' }
-    @(Get-NetIPAddress -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue |
-        Where-Object { $_.IPAddress -ne $lease.IP }) | ForEach-Object {
-            Remove-NetIPAddress -InterfaceIndex $ifIndex -IPAddress ([string]$_.IPAddress) `
-                -Confirm:$false -ErrorAction Stop
-        }
+    $unexpectedIPv4 = @(Get-NetIPAddress -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+        Where-Object { $_.IPAddress -ne $lease.IP })
+    if ($unexpectedIPv4.Count -gt 0) {
+        throw 'non-owned Wintun IPv4 address appeared during Apply; refusing deletion'
+    }
     $existingLease = Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress $lease.IP `
         -AddressFamily IPv4 -ErrorAction SilentlyContinue
     if (-not $existingLease) {
@@ -376,7 +416,13 @@ try {
     Write-Output "WBD_WINDOWS_CLIENT_TUN_MTU ipv4=$TunnelMTU outer_budget_separate=1"
     if ($dnsServers.Count -gt 0) { Write-Output "WBD_WINDOWS_CLIENT_DNS_UNDERLAY_GUARD ifindex=$PhysicalInterfaceIndex ready=1" }
 } catch {
-    try { Remove-OwnedState ([pscustomobject]$state) } catch { }
-    Remove-Item -LiteralPath $StatePath -Force -ErrorAction SilentlyContinue
-    throw
+    $applyFailure = $_
+    try {
+        Remove-OwnedState ([pscustomobject]$state)
+        Remove-Item -LiteralPath $StatePath -Force -ErrorAction Stop
+    } catch {
+        # Never destroy the only journal when any rollback operation failed.
+        throw "WBD owned Apply failed; rollback incomplete, state journal retained at $StatePath; apply=$applyFailure rollback=$_"
+    }
+    throw $applyFailure
 }
