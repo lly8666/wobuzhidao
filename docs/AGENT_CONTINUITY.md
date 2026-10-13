@@ -1,3 +1,7 @@
+## 2026-10-13 N4 真正 Wintun 创建/LUID 原生只读 Windows 2022/2025 PASS；下一个实写候选
+
+测试 CODE SOURCE `d6f04989ffe1a9ad14db0466c4b3a870eea18c68`：真实 Wintun 0.14.1 在 Win2022/25 两个 Actions runner 都成功创建、NET_LUID/接口索引与 generation owner Hold PASS，IPv4/MTU/DNS 三项原生只读 PASS；Action38380735721 两端明确输出 SCOPED_CREATED_WINTUN_READ_ONLY_PASS，N4 Action38380735783、Foundation38380735890 七必需、Lifecycle38380735773 最终 SUCCESS；原 fbf9252 错导出失败保留。下一新源码的 CI 隔离**实际网卡**写/恢复测试将只碰随机新建 Wintun 的 /32、MTU、DNS，不碰物理 NIC、全局 WFP 和捕获路由，所用 guard 明确 TEST_ONLY_FAKE，绝不冒称产品防漏 PASS。Windows 正式 CLI 仍旧 PowerShell；N4/N6 不完整，physical NOT_RUN。
+
 ## 2026-10-13 real Wintun Actions 暴露 DLL 导出拼写错误（保留 FAIL）
 
 FBF9252 REAL Win2022/25 Action38380068603 初次 FAIL：官方固定 SHA256 下载 PASS、实际隔离 Wintun 新建成功，NativeIdentity 因将 SDK 的 `WintunGetAdapterLUID` 误写为 `WintunGetAdapterLuid` 找不到函数。新代码仅修正导出名称，必须等新精确 SOURCE 的真实 Win2022/25 探测结果；旧 FAIL 不能被清掉。整体 N4 仍缺真正 DNS/地址/MTU/路由写入和 WFP guard 安全、crash 跨进程恢复、正式客户端移除 PowerShell；N6 和物理 NOT_RUN，next_task 唯一以 STATUS 为准。
