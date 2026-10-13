@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_NATIVE_OWNED_ROUTE_TRANSACTION_MATRIX_ASSERTION_FIX_ACTIONS_PENDING",
+    "phase": "N4_GO_NATIVE_OWNED_ROUTE_MATRIX_SCAN_FIX_AND_WIN32_BACKEND_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_NATIVE_OWNED_ROUTE_JOURNAL_SOURCE132E_MATRIX_FAIL_WRONG_MAP_ASSERTION;SAME_PRODUCT_TXN_NOT_YET_QUALIFIED;FIXED_TEST_PENDING",
+    "implementation": "N4_JOURNAL_LINUX_RACE_PASS_SOURCE4FD6;WIN_MATRIX_GO_TEST_PASS_BUT_STATIC_GREP_COMMENT_FALSE_POSITIVE_FAIL;NEW_WIN32_ROUTE_BACKEND_WITH_FOREIGN_IDENTITY_GUARD_PENDING",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "SOURCE132e80 Actions38345945687 native owned transaction matrix FAILED on Linux race and Windows2022/2025 due test line99 reading Go map as 'found,match := m[k]' rather than 'match,found'. Correct assertion in new SOURCE, rerun all 3 matrix runners, plus exact-source Foundation and lifecycle. Don't claim receipt GO until final. Preserve FAIL. Continue Go native owned DNS/IPv6 WFP guard and Wintun address parity, no live route or physical until complete. Product powershell.exe remains active and must eventually be removed; N6 NOT_STARTED.",
-  "latest_log": "docs/devlog/20261013-n4-native-owned-route-matrix-assertion-fix.md",
+  "next_task": "Run Actions Windows2022/2025 + Linux race N4 native owned transaction matrix with corrected no-shell executable scan and new real Win32 IP Helper route backend matching route interface/prefix/nexthop/metric/attributes but never mutating runner. Foundation and lifecycle exact-source. Keep SOURCE132e FAIL reversed map assertion and SOURCE4fd6 matrix FAIL due overbroad 'powershell' text scan, preserve. Next implement actual crash-persistent WFP DNS/IPv6 guard and Win32 Wintun owned static address + DHCP/MTU + rollback so product can remove PowerShell runtime. Do NOT activate small capture routes or standalone TCP until scriptless guard, app connection and Action admin Wintun qualify. No physical until N6 all 3 same source.",
+  "latest_log": "docs/devlog/20261013-n4-native-owned-route-backend-matrix-repair.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "f70e6ec0b76364d124f02b4f68d4c091ea90a18d",
   "last_tested_scope": "N4_SCRIPTLESS_NATIVE_ROUTE_ABI_WINDOWS_READ_ONLY_AND_USERSPACE_TCP_QUEUE_PASS_ACTION38344213692;FOUNDATION38344213720_ALL_7_REQUIRED_JOBS_PASS;LIFECYCLE38344213683_PASS;PRODUCTION_RUNTIME_STILL_POWERSHELL_INCOMPLETE",
@@ -2694,8 +2694,8 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "N4 matrix initial Action38345945687 FAIL: TestN4NativeTxnForeignPreexistingNeverDeleted test has reversed Go map (value,bool) assignment. Fix test assertion only; no actual OS/network touched. Re-run 2022/2025/Linux-race.",
-    "N4 route transaction backend still injectable only, not wired into CLI. Crash-persistent DNS/IPv6 WFP not implemented. PowerShell active product still incomplete; physical/N6 NOT_RUN."
+    "Source4fd6 N4 owned route transaction Linux race4x successful; Windows2022/2025 Go tests pass but static grep 'powershell' unexpectedly matched benign 'No PowerShell' code comment -> overall matrix Actions38346113126 FAIL, receipt skipped. Fix scanner to executable calls only and rerun; original FAIL preserved.",
+    "NativeRouteBackend Windows Go wrapper now candidate with strict matching of interface, prefix, nextHop, metric, non-loopback/non-published route, cancel-before-syscall, no route creation or removal on hosted runner. Production CLI still script-based, network-guard and Wintun lease API pending; N6/physical NOT_RUN."
   ],
   "actions": [
     {
@@ -3995,6 +3995,15 @@
       "scope": "N4_SIMULATED_NATIVE_OWNED_TXN_TEST_ASSERTION_FAIL_INITIAL",
       "status": "FAIL",
       "cause": "Linux race job115127273709 FAIL TestN4NativeTxnForeignPreexistingNeverDeleted: source test incorrectly assigns Go map return (value,bool) to found,match. Windows2022 job115127273666 same failure. Preserve original failure; correct assertion and re-run; does not indicate driver/network mutation."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38346113126,
+      "source_sha": "4fd6e6d67b3a087d76c9c56d884e2d56d9c9495d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38346113126",
+      "scope": "N4_NATIVE_GO_TXN_WINDOWS_STATIC_TEXT_SCAN_FALSE_POSITIVE",
+      "status": "FAIL",
+      "cause": "Linux race job115127810185 SUCCESS; Windows2022/2025 core tests finished PASS then 'Verify no shell dependency' static grep matched literal 'No PowerShell' comment (pattern powershell too broad), each job FAIL. Receipt skipped. Correct scan to actual execution references; don't erase FAIL."
     }
   ],
   "required_read_set": [

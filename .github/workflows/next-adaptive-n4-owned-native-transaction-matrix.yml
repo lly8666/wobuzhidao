@@ -8,6 +8,8 @@ on:
       - "internal/windowsclient/native_owned_transaction_test.go"
       - "internal/windowsclient/compact_plan.go"
       - "internal/windowsclient/native_route_windows.go"
+      - "internal/windowsclient/native_route_backend_windows.go"
+      - "internal/windowsclient/native_route_backend_windows_test.go"
       - "internal/windowsclient/userspace_tcp_direct_windows.go"
       - "go.mod"
       - "go.sum"
@@ -58,9 +60,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ! grep -iE 'powershell|exec\\.Command|\.ps1' \
+          ! grep -iE 'powershell\\.exe|exec\\.Command|\\.ps1' \
             internal/windowsclient/native_owned_transaction.go \
             internal/windowsclient/native_route_windows.go \
+            internal/windowsclient/native_route_backend_windows.go \
             internal/windowsclient/userspace_tcp_direct_windows.go
   receipt:
     needs: [owned-transaction-linux-race, owned-transaction-windows]
