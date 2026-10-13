@@ -1,0 +1,5 @@
+# N4 owned-route transaction matrix correction: map assertion reversal (2026-10-13)
+
+SOURCE132e80d5a1d175637bec5c3a553721d62890c71d introduced Go fail-closed native-route journal and multi-run Linux race/Windows2022/2025 hosted test matrix. Its first Action38345945687 ran real Go unit/race tests. Linux-race job115127273709 FAILED 4/4 repeated runs at TestN4NativeTxnForeignPreexistingNeverDeleted line99. Windows2022 job115127273666 FAILED similarly. Cause: Go map read is `value,exists := m[key]`; test mistakenly used `found,match := m[key]`. This was a mistaken test assertion; the fake router's pre-existing foreign route was never mutated and RemoveOwned was not invoked. Preserve action as FAIL and don't claim positive result until retest.
+
+Fix only the assertion to `match,found := r.existing[key]`. Repeat entire matrix on exact new SOURCE; Windows2025 job and Foundation/lifecycle statuses must be checked independently. Implementation still disabled, no real Wintun/admin/physical or shell-free mainline claim. Need next native-owned DNS/IPv6 WFP and address parity before activation.

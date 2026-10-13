@@ -96,7 +96,7 @@ func TestN4NativeTxnForeignPreexistingNeverDeleted(t *testing.T){
  if err:=n.ApplyRoutes(context.Background(),keys);!errors.Is(err,ErrN4ForeignRoute){t.Fatalf("unexpected error: %v",err)}
  if !g.active {t.Fatal("crash-persistent guard disengaged before recovery")}
  if err:=n.Recover(context.Background());err!=nil{t.Fatal(err)}
- if found,match:=r.existing[keys[0]];!found || match {t.Fatal("foreign route was overwritten/deleted")}
+ if match,found:=r.existing[keys[0]];!found || match {t.Fatal("foreign route was overwritten/deleted")}
  if r.removed!=0 {t.Fatal("foreign route deletion attempted")}
 }
 func TestN4NativeTxnCrashWindowAmbiguousIntentNeverDeletes(t *testing.T){
