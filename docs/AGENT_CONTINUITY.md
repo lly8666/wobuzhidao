@@ -1,3 +1,7 @@
+## 2026-10-13 real Wintun Actions 暴露 DLL 导出拼写错误（保留 FAIL）
+
+FBF9252 REAL Win2022/25 Action38380068603 初次 FAIL：官方固定 SHA256 下载 PASS、实际隔离 Wintun 新建成功，NativeIdentity 因将 SDK 的 `WintunGetAdapterLUID` 误写为 `WintunGetAdapterLuid` 找不到函数。新代码仅修正导出名称，必须等新精确 SOURCE 的真实 Win2022/25 探测结果；旧 FAIL 不能被清掉。整体 N4 仍缺真正 DNS/地址/MTU/路由写入和 WFP guard 安全、crash 跨进程恢复、正式客户端移除 PowerShell；N6 和物理 NOT_RUN，next_task 唯一以 STATUS 为准。
+
 ## 2026-10-13 N4 五阶段 scoped PASS；下一步真实 hosted Wintun driver 能力门
 
 已核 `ccf504f1cb83e1e77973c83a7702f7d4022997ca` N4 Win2022/25 + Linux race Action38373415662 最终 SUCCESS，Foundation38373416090 七必需 SUCCESS，Lifecycle38373416166 SUCCESS；原 `5b41f685` N4 Action38372921051/Foundation38372921090 Windows 次序 FAIL 保留不改。**代码的五阶段实现不等于正式 CLI 可用**：Active `cmd/wbd-client` 仍 PowerShell/.ps1，真实管理员 Wintun、DNS 清理读回、WFP 全局 DNS/IPv6 独占和 crash 后属主恢复均未跑。用户要求功能完成再跑整体 Actions，本次只增加真实 Win2022/2025 hosted Wintun 随机专用适配器**只读**能力探测：官方 DLL 版本 0.14.1 固定 archive SHA256，对 live createdByProcess/NET_LUID/ifIndex/租约/MTU/DNS 做原生读，缺 DLL/驱动/admin 明记 UNSUPPORTED，绝不写 OS DNS/route/WFP；不把测试工作流绿色当成驱动 PASS。按新 SOURCE Actions 得证据后推进管理员正向隔离安全门、产品去脚本，再跨功能及 N6 三目标 P6；N2 遗留 OPEN、physical NOT_RUN。

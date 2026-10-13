@@ -10,7 +10,7 @@ import (
 )
 
 var (
- n4WintunGetAdapterLuid=wintunDLL.NewProc("WintunGetAdapterLuid")
+ n4WintunGetAdapterLuid=wintunDLL.NewProc("WintunGetAdapterLUID")
  n4ConvertInterfaceLuidIndex=n4Iphlpapi.NewProc("ConvertInterfaceLuidToIndex")
 )
 
