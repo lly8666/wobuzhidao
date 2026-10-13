@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_NATIVE_WINTUN_IPV4_LEASE_CREATE_GET_DELETE_LOWLEVEL_CANDIDATE_ACTIONS_PENDING_PRODUCT_SCRIPTLESS_NOT_READY",
+    "phase": "N4_WINDOWS_NATIVE_MTU_SET_RESTORE_OWNED_GUARD_CAS_CANDIDATE_ACTIONS_PENDING_NO_LIVE_WRITE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_UNCONNECTED_NATIVE_WFP_PERSISTENT_GUARD_AND_OWNED_ROUTE_TXN_SCOPED_PASS;NATIVE_INTERFACE_MTU_READONLY_SOURCEE754_ACTIONS_PASS;NEW_IPV4_WIN_UNICAST_LEASE_DAD_ABI_SCOPED_PENDING;PRODUCTION_CLI_STILL_POWERSHELL",
+    "implementation": "N4_NATIVE_IPV4_LEASE_ABI_AND_GUARD_ACTIONS_A6EE_SCOPED_PASS;NEW_GUARDED_MTU_SET_RESTORE_LIVE_OS_BASELINE_CAS_UNWIRED_PENDING;CLI_STILL_POWERSHELL",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Run scoped Windows2022 and Windows2025 native IPv4 unicast lease Create/Get/Delete ABI and bad-input/cancel/no-durable-WFP-guard refusal tests; new writer is unconnected and all successful test operations MUST be read-only, no Create or Delete. Run N4 Linux race+Foundation/lifecycle exact source. New low-level writer requires current owner proof/journal before activation, does NOT prove adapter ownership or crash recovery by itself. After PASS build full journaled Wintun static lease/DHCP + MTU native Set/restore under persistent WFP, native DNS Set/verified restore, multi-Wintun-safe WFP or explicitly fail-closed exclusive mode and admin isolated Action network tests. Only then remove PowerShell runtime+active .ps1, wire compact 2x/1 and userspace TCP Direct; complete N2 OPEN residuals then N6 same-source 3-target artifacts. No local builds, no physical/merge/deploy.",
-  "latest_log": "docs/devlog/20261013-n4-native-unicast-lease-api-safety-candidate.md",
+  "next_task": "Run Windows2022/25 native MTU SetIpInterfaceEntry low-level guarded writer fail-closed tests: deny missing/volatile/unverified WFP, wrong Wintun ownership, stale OS MTU/metric/flags, cancellation, invalid bounds; ensure no successful OS mutation on Actions. Sourcea6ee native IPv4 address lease/DAD/foreign guard matrix38352058023 and Foundation38352058035 final SUCCESS. After scoped PASS, journal original DNS, DHCP/lease address, interface MTU and route state for crash-safe native transactions with real verified Wintun owner; WFP durable filter guard exclusive multi-tunnel policy unresolved; admin isolated real network Apply/Cleanup Actions required before production switch. Final Windows no PowerShell/.ps1 and compact 2x/1 host route not achieved. N2 remaining Open and N6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261013-n4-native-mtu-owned-cas-safety-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "e754857035a92814f6d0630da332cbf796cb1faf",
-  "last_tested_scope": "SOURCEE754_N4_NATIVE_MTU_WIN2022_WIN2025_LINUX_RACE_ACTION38351451182_SUCCESS_FOUNDATION38351451270_ALL7_SUCCESS_LIFECYCLE38351451111_SUCCESS;REAL_WINTUN_MUTATION_NOT_RUN",
+  "last_tested_source_sha": "a6ee98c31a87761b4ec4bc18cc18505fd193862c",
+  "last_tested_scope": "SOURCEA6EE N4_WINTUN_IPV4_HOST_LEASE_WIN2022_WIN2025_LINUXRACE_ACTION38352058023_PASS;FOUNDATION38352058035_ALL7_PASS;LIFECYCLE38352058045_PASS;ALL_OS_SET_DELETE_NOT_RUN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,9 +2694,9 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "SOURCEe754 N4 native IPv4 Interface GetIpInterfaceEntry MTU read-only Win2022/Win2025 and Linux race Action38351451182 FINAL SUCCESS, artifact11790822647; Foundation38351451270 final SUCCESS all seven required, artifact11790822525; Lifecycle38351451111 final SUCCESS. No host Set/physical.",
-    "Native Windows MIB_UNICASTIPADDRESS_ROW IPv4 lease low-level Create/Get/Delete code CANDIDATE: strict /32 host WBD lease, durable verified WFP before OS-write, refuse any preexisting APIPA/foreign address, DAD preferred gate, limited successful-create owner token for delete; all Actions test calls read-only/invalid/guard-denied, NO actual Windows lease mutation. Parent persistent journal still not wired, thus candidate disabled.",
-    "Final Windows product still uses powershell.exe/.ps1 and host complement routes; real native DHCP/lease/MTU/DNS owned journal and WFP multitum semantics unresolved, true capture/physical N4 NOT_RUN; N6 NOT_STARTED; N2 efficiency/GE/80s OPEN."
+    "SOURCEa6ee Go-native IPv4 lease row Get/Initialize/Create/Delete low-level ABI, strict /32 and native DAD Preferred scope with foreign APIPA/lease refusal, durable guard required for write; all hosted tests are non-mutation, Actions38352058023 Win2022/25 Linux race PASS artifact11790848634; Foundation38352058035 all seven PASS artifact11791690418; lifecycle38352058045 PASS.",
+    "New Win32 SetIpInterfaceEntry low-level MTU writer candidate uses full live GetIpInterfaceEntry row and strict snapshot compare incl metric, weak host, auto metric, connected; requires verified Wintun owned index + durable verified WFP; sets only NlMtu and SitePrefixLength=0. In-process receipt is NOT crash-proof; no product callsite or admin OS-write tests. Action pending.",
+    "Critical no-PowerShell product requirement still unmet: cmd/wbd-client uses active PowerShell and complement routes; N4 durable native DNS/WFP exclusive multi-Wintun and DHCP/leased-IP+MTU owned lifecycle and full Actions Apply/Cleanup incomplete. N2 GE/tail, N6 not started; physical NOT_RUN."
   ],
   "actions": [
     {
@@ -4374,6 +4374,33 @@
       "scope": "N4_NATIVE_IPINTERFACE_MTU_SOURCE_LIFECYCLE",
       "status": "PASS",
       "cause": "Core job final SUCCESS. No real host write."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38352058023,
+      "source_sha": "a6ee98c31a87761b4ec4bc18cc18505fd193862c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38352058023",
+      "scope": "N4_NATIVE_WINTUN_IPV4_UNICAST_ROW_DAD_SAFETY_WIN22_WIN25_LINUX_RACE",
+      "status": "PASS",
+      "cause": "All four jobs FINAL SUCCESS Windows2022/Windows2025 native IPv4 lease ABI + DAD/invalid/guard denial, Linux race and receipt. Artifact11790848634 sha256:f3b0849ac01208062caffd6e9a03acd15125ab7e79924e7e6c3904e28318819f. No Create/Delete called with valid write conditions, no real Wintun."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38352058035,
+      "source_sha": "a6ee98c31a87761b4ec4bc18cc18505fd193862c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38352058035",
+      "scope": "N4_IPV4_LEASE_NATIVE_SOURCE_FOUNDATION",
+      "status": "PASS",
+      "cause": "All seven mandatory jobs FINAL SUCCESS Win/Linux Go/race P2 P4 repo contract; P5/P6 extended skipped NOT_RUN. Artifact11791690418 sha256:ffe05a301029d1dd15a7593a062a1fcf5bdc97425900cf091ccc42c5ed905854."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38352058045,
+      "source_sha": "a6ee98c31a87761b4ec4bc18cc18505fd193862c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38352058045",
+      "scope": "N4_NATIVE_IPV4_LEASE_SOURCE_LIFECYCLE",
+      "status": "PASS",
+      "cause": "Core job FINAL SUCCESS. Native address Create/Delete not executed."
     }
   ],
   "required_read_set": [
