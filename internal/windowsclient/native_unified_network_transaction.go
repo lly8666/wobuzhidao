@@ -36,6 +36,13 @@ type N4UnifiedOwner interface {
  // Verify fresh live process-created adapter, LUID, installation, generation.
  Verify(context.Context,N4UnifiedIdentity) error
 }
+// Implementations with a live Wintun handle SHOULD also implement Hold:
+// ownership must not lapse after preflight and before stage writes complete.
+// Hold reserves the current adapter/session until the returned release.
+type N4UnifiedOwnerReservation interface {
+ N4UnifiedOwner
+ Hold(context.Context,N4UnifiedIdentity)(release func(),err error)
+}
 type N4UnifiedState string
 const (
  N4UnifiedAbsent N4UnifiedState = "absent"
@@ -158,14 +165,23 @@ func n4UnifiedWrite(path string,j n4UnifiedJournal,newFile bool)error{
 func(n *N4NativeUnifiedTxn) withGate(ctx context.Context)(func(),error){
  if err:=n.preflight();err!=nil{return nil,err}
  if err:=ctx.Err();err!=nil{return nil,err}
- release,err:=n.Gate.Acquire(ctx)
+ gateRelease,err:=n.Gate.Acquire(ctx)
  if err!=nil{return nil,err}
- if release==nil{return nil,ErrN4NativeGuard}
+ if gateRelease==nil{return nil,ErrN4NativeGuard}
+ if holder,ok:=n.Owner.(N4UnifiedOwnerReservation);ok{
+  ownerRelease,err:=holder.Hold(ctx,n.Identity)
+  if err!=nil || ownerRelease==nil{
+   gateRelease()
+   if err!=nil{return nil,err}
+   return nil,ErrN4NativeGuard
+  }
+  return func(){ownerRelease();gateRelease()},nil
+ }
  if err:=n.Owner.Verify(ctx,n.Identity);err!=nil{
-  release()
+  gateRelease()
   return nil,err
  }
- return release,nil
+ return gateRelease,nil
 }
 func(n *N4NativeUnifiedTxn) Apply(ctx context.Context)error{
  n.mu.Lock();defer n.mu.Unlock()

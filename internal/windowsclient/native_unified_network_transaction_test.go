@@ -217,3 +217,56 @@ func TestN4NativeTxnUnifiedExistingJournalRejectedBeforeSnapshots(t *testing.T){
  }
  if err:=tx.Recover(context.Background());err!=nil{t.Fatal(err)}
 }
+
+
+type n4UnifiedTestHeldOwner struct{
+ n4UnifiedTestOwner
+ held bool
+ acquireCount,releaseCount int
+}
+func(o *n4UnifiedTestHeldOwner) Hold(ctx context.Context,id N4UnifiedIdentity)(func(),error){
+ if err:=ctx.Err();err!=nil{return nil,err}
+ if err:=o.Verify(ctx,id);err!=nil{return nil,err}
+ o.acquireCount++;o.held=true
+ return func(){o.releaseCount++;o.held=false},nil
+}
+type n4UnifiedHoldCheckedStage struct{
+ *n4UnifiedTestStage
+ owner *n4UnifiedTestHeldOwner
+}
+func(s *n4UnifiedHoldCheckedStage) verifyHold()error{
+ if !s.owner.held{return ErrN4NativeGuard}
+ return nil
+}
+func(s *n4UnifiedHoldCheckedStage) Snapshot(ctx context.Context,id N4UnifiedIdentity)(json.RawMessage,error){
+ if err:=s.verifyHold();err!=nil{return nil,err}
+ return s.n4UnifiedTestStage.Snapshot(ctx,id)
+}
+func(s *n4UnifiedHoldCheckedStage) Apply(ctx context.Context,id N4UnifiedIdentity,v json.RawMessage)error{
+ if err:=s.verifyHold();err!=nil{return err}
+ return s.n4UnifiedTestStage.Apply(ctx,id,v)
+}
+func(s *n4UnifiedHoldCheckedStage) Inspect(ctx context.Context,id N4UnifiedIdentity,v json.RawMessage)(N4UnifiedState,error){
+ if err:=s.verifyHold();err!=nil{return "",err}
+ return s.n4UnifiedTestStage.Inspect(ctx,id,v)
+}
+func(s *n4UnifiedHoldCheckedStage) Undo(ctx context.Context,id N4UnifiedIdentity,v json.RawMessage)error{
+ if err:=s.verifyHold();err!=nil{return err}
+ return s.n4UnifiedTestStage.Undo(ctx,id,v)
+}
+func TestN4NativeTxnUnifiedHoldsGenerationFromSnapshotThroughUndo(t *testing.T){
+ tx,st,_,_:=n4UnifiedTestTxn(t)
+ owner:=&n4UnifiedTestHeldOwner{}
+ tx.Owner=owner
+ for i:=range tx.Stages{
+  tx.Stages[i]=&n4UnifiedHoldCheckedStage{n4UnifiedTestStage:st[i],owner:owner}
+ }
+ if err:=tx.Apply(context.Background());err!=nil{t.Fatal(err)}
+ if owner.held || owner.acquireCount!=1 || owner.releaseCount!=1{
+  t.Fatalf("owner pin leaked across Apply %+v",owner)
+ }
+ if err:=tx.Recover(context.Background());err!=nil{t.Fatal(err)}
+ if owner.held || owner.acquireCount!=2 || owner.releaseCount!=2{
+  t.Fatalf("owner pin leaked across Recover %+v",owner)
+ }
+}
