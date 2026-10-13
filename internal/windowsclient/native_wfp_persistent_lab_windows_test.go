@@ -32,13 +32,12 @@ func n4WFPTestGUID(t *testing.T) windows.GUID {
   Data4:[8]byte(b[8:16]),
  }
 }
-func n4LabRulePresent(s *wf.Session,id wf.RuleID) (bool,error) {
+func n4LabRulePresent(s *wf.Session,want *wf.Rule) (bool,error) {
  rules,err:=s.Rules();if err!=nil{return false,err}
  for _,r:=range rules{
-  if r.ID==id {
-   if !r.Persistent || r.Action!=wf.ActionBlock ||
-    r.Layer!=wf.LayerALEAuthConnectV4 {
-    return false,errors.New("WFP LAB filter found but persistent/action/layer wrong")
+  if r.ID==want.ID {
+   if !n4WFPRuleEqual(r,want) {
+    return false,errors.New("WFP LAB rule found but owner/conditions/persistence differ")
    }
    return true,nil
   }
@@ -95,7 +94,7 @@ func TestN4WindowsWFPPersistentFilterHostLab(t *testing.T) {
  if err:=setup.Close();err!=nil{t.Fatal(err)}
  reopened,err:=wf.New(&wf.Options{Dynamic:false})
  if err!=nil{t.Fatal(err)}
- found,err:=n4LabRulePresent(reopened,ruleID)
+ found,err:=n4LabRulePresent(reopened,rule)
  if err!=nil{reopened.Close();t.Fatal(err)}
  if !found{reopened.Close();t.Fatal("CI scoped persistent rule vanished across WFP engine reopen")}
  if err:=reopened.Close();err!=nil{t.Fatal(err)}

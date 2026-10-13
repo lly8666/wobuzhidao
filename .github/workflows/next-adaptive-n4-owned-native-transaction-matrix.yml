@@ -18,6 +18,8 @@ on:
       - "internal/windowsclient/native_wfp_readonly_windows_test.go"
       - "internal/windowsclient/native_wfp_guard_plan_windows.go"
       - "internal/windowsclient/native_wfp_guard_plan_windows_test.go"
+      - "internal/windowsclient/native_wfp_guard_windows.go"
+      - "internal/windowsclient/native_wfp_guard_windows_test.go"
       - "internal/windowsclient/native_dns_snapshot_windows.go"
       - "internal/windowsclient/native_dns_snapshot_windows_test.go"
       - "internal/windowsclient/native_dns_write_windows.go"
@@ -81,6 +83,7 @@ jobs:
             internal/windowsclient/native_dns_capability_windows.go \
             internal/windowsclient/native_wfp_readonly_windows.go \
             internal/windowsclient/native_wfp_guard_plan_windows.go \
+            internal/windowsclient/native_wfp_guard_windows.go \
             internal/windowsclient/native_dns_snapshot_windows.go \
             internal/windowsclient/native_dns_write_windows.go \
             internal/windowsclient/native_dns_parse.go \

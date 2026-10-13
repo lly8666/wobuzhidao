@@ -7,6 +7,8 @@ on:
       - "internal/windowsclient/native_wfp_persistent_lab_windows_test.go"
       - "internal/windowsclient/native_wfp_guard_plan_windows.go"
       - "internal/windowsclient/native_wfp_guard_plan_windows_test.go"
+      - "internal/windowsclient/native_wfp_guard_windows.go"
+      - "internal/windowsclient/native_wfp_guard_windows_test.go"
       - "go.mod"
       - "go.sum"
   workflow_dispatch:
@@ -36,7 +38,7 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           go test -mod=readonly ./internal/windowsclient \
-            -run '^Test(N4WindowsWFPPersistentFilterHostLab|N4WFPGuardPlan)' -count=1 -timeout=8m -v
+            -run '^Test(N4WindowsWFPPersistentFilterHostLab|N4WFPGuardPlan|N4WFPGuard)' -count=1 -timeout=8m -v
       - name: Record WFP persistence scope (never production guard)
         shell: bash
         run: |
