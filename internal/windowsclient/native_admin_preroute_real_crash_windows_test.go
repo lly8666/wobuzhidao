@@ -135,6 +135,11 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
  }
  j,err:=n4UnifiedRead(wal)
  if err!=nil || len(j.Records)!=4 || j.Records[3].State!="owned"{t.Fatalf("real child WAL not fully committed: %+v %v",j,err)}
+ liveProbe,probeErr:=n4ProbeOriginalIPRows(context.Background(),j.Identity)
+ if probeErr!=nil{t.Fatalf("real live Wintun native family probe failed: %v",probeErr)}
+ if liveProbe.IPv4!="PRESENT"{t.Fatalf("new live Wintun without IPv4 row: %s",liveProbe.IPv4)}
+ report["ipv4_row_live"]=liveProbe.IPv4
+ report["ipv6_row_live"]=liveProbe.IPv6
  report["real_wintun"]="PASS_CHILD_CREATED_ORIGINAL_GUID_LUID_INDEX"
  report["lease_mtu_dns"]="PASS_REAL_NATIVE_WRITES_FSYNCED"
  g:=&n4OwnedOrphanFakeGuard{state:N4UnifiedOwned}
@@ -202,6 +207,16 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
      if err:=n4OriginalWintunPersistedExact(context.Background(),j.Identity);err!=nil{
       t.Fatalf("native exact Wintun identity changed during missing-row classification: %v",err)
      }
+     // OS capability evidence from the ORIGINAL persisted adapter,
+     // read-only; no alias reopening or guess that missing MIB=removed.
+     ghostProbe,probeErr:=n4ProbeOriginalIPRows(context.Background(),j.Identity)
+     if probeErr!=nil{t.Fatalf("exact original native family probe inconclusive: %v",probeErr)}
+     if ghostProbe.IPv4!="MISSING_1168"{
+      t.Fatalf("GetIpInterfaceEntry missing-row sentinel disagrees with independent family probe: %s",ghostProbe.IPv4)
+     }
+     report["ipv4_row_after"]=ghostProbe.IPv4
+     report["ipv6_row_after"]=ghostProbe.IPv6
+     t.Logf("N4_POSTCRASH_NATIVE_ROWS original=EXACT_TRIPLE ipv4=%s ipv6=%s guard=FAKE_ARMED wal=RETAINED",ghostProbe.IPv4,ghostProbe.IPv6)
      report["result"]="UNSUPPORTED_EXACT_ORIGINAL_IPV4_ROW_UNAVAILABLE"
      report["original_retired"]="UNSUPPORTED_SAME_ORIGINAL_TRIPLE_WITHOUT_IPV4_ROW"
      t.Skip("UNSUPPORTED: real child crash left exact original Win32 Wintun but no native IPv4 interface row; parent WAL retained, WFP FAKE remains armed")

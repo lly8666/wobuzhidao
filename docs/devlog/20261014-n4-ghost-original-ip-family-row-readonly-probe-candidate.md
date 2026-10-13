@@ -1,0 +1,24 @@
+# N4 real Windows crash: original ghost Wintun IPv4/IPv6 interface-row read-only capability gate — 2026-10-14
+
+Repository `lly8666/wobuzhidao`, branch `next/adaptive-fec-aes-tun-20261010`; parent exact HEAD `88f11820f7d9107f876fed2fc90419d76725c1cb`. This next code commit is NOT Actions-qualified until its own terminal jobs and artifacts have been inspected. No local build, deployment or physical device test was performed.
+
+## Rechecked baseline; no duplicate dispatch
+
+- Exact code SOURCE `c5a9dead1e4b2df97863a5ebbf25a406b2720d5b`: [N4Matrix38430403386](https://github.com/lly8666/wobuzhidao/actions/runs/38430403386) FINAL SUCCESS Win2022/2025 and Linux race; [Foundation38430403380](https://github.com/lly8666/wobuzhidao/actions/runs/38430403380) all seven required SUCCESS; [Lifecycle38430403367](https://github.com/lly8666/wobuzhidao/actions/runs/38430403367) SUCCESS. [Real Wintun38430403388](https://github.com/lly8666/wobuzhidao/actions/runs/38430403388) both Windows workflow jobs SUCCESS **but real IP-written child-crash rollback subtests SKIPPED/UNSUPPORTED**: exact original GUID+NET_LUID+ifIndex persisted, native GetIpInterfaceEntry(AF_INET) returned 1168 (no MIB row); original lease already Absent and DNS still Owned. Parent WAL and fake persistent WFP remained armed; this is NOT rollback PASS. Prior SOURCES 8c74/c77/acd/d475 real Wintun FAIL remain FAIL. See `docs/devlog/20261013-n4-ghost-ipv4-row-action-final-blockers.md` for exact job IDs and ZIP digests.
+- HEAD `88f11820f7d9107f876fed2fc90419d76725c1cb` is a documentation receipt; [Foundation38431259834](https://github.com/lly8666/wobuzhidao/actions/runs/38431259834) FINAL SUCCESS. Do not inherit a new product qualification from a docs-only source.
+- The user's final physical host may be assumed to have no unrelated Wintun, but this permission does not waive Actions, original generation ownership, persistent guard, WAL hard gates, or justify global route/WFP writes on shared Windows runner.
+
+## New atomic change
+
+- Adds `n4ReadIPFamilyState` and `n4ProbeOriginalIPRows` as **read-only** Windows IP Helper API capability probes. The full original interface GUID+LUID+IPv4 ifIndex must match before and after probing. The only emitted classifications are `PRESENT` and `MISSING_1168` for each of AF_INET and AF_INET6. Native unexpected error, invalid family, canceled context, index mismatch, or changed/foreign adapter identity FAILS CLOSED; no OS writes and no alias-opening.
+- An isolated real Win2022/Win2025 test obtains both family-row states while the disposable child-created Wintun is ALIVE after real lease/DAD, MTU and DNS writes (IPv4 row must be PRESENT). After TerminateProcess, only if exact original triple persists and the existing native MTU CAS returns missing IPv4 row, it probes independently again. The structured report and workflow assert native IPv4 `MISSING_1168`, record the IPv6 family state without claiming DNS or device cleanup, and leave checksum WAL + fake guard intact. This distinguishes an IPv4-specific row loss from broader protocol-family state loss to guide subsequent exact-owned device lifecycle code. Reporting never includes actual IP/DNS values, account IDs, packet payloads, keys or raw pcap.
+- Unit tests reject invalid family/index/canceled probes before OS interaction; add both paths to N4 Windows/Linux-race and real Wintun workflow triggers. Existing protected server /32 and two /1, host-global WFP and physical traffic remain untouched. No performance sample.
+- This probe intentionally cannot itself fix the ghost adapter, restore missing MTU, remove the device, disarm WFP or mark a recovery PASS. A genuine exact-generation-owned, fail-closed native PnP lifecycle correction or restoration of the original MIB row needs independent proof and real Win2022/25 Actions before product wiring.
+
+## Mandatory OPEN scope
+
+Production Windows native `Arm` still disabled; five-stage transaction still `assemblyOnly`; official cmd/wbd-client still uses PowerShell and legacy many-CIDR routes; full route-stage crash recovery, direct TCP/UDP return path and N5 integrated Actions, N6 same exact CODE SOURCE P6 three-target builds/package manifests/SHA256 incomplete. Host-global WFP + two /1 capture require a genuinely isolated Actions Windows network environment, currently not established; no mock/Linux substitution. `ACTIONS_READY_FOR_PHYSICAL` unset, physical `NOT_RUN`. N2 C04/C05 efficiency FAIL, C10 GE p99, about 80s S2C and multi-second late remain OPEN. No deployment, mainline merge, qualification ref movement or credentials/large pcap uploads.
+
+## New SOURCE results
+
+PENDING: check Win2022/Win2025 N4 real-Wintun logs and result JSON, N4 Win2022/Win2025/Linux race, Foundation seven and Lifecycle. Record exact run/job/artifact ZIP digest and any failure without relabeling SKIP as PASS.
