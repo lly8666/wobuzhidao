@@ -1,0 +1,81 @@
+name: next-adaptive-n4-owned-native-transaction-matrix
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-owned-native-transaction-matrix.yml"
+      - "internal/windowsclient/native_owned_transaction.go"
+      - "internal/windowsclient/native_owned_transaction_test.go"
+      - "internal/windowsclient/compact_plan.go"
+      - "internal/windowsclient/native_route_windows.go"
+      - "internal/windowsclient/userspace_tcp_direct_windows.go"
+      - "go.mod"
+      - "go.sum"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owned-transaction-linux-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Strict SOURCE and bounded transaction matrix with race
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly -race ./internal/windowsclient -run 'TestN4(NativeTxn|CompactOwned)' -count=4 -v
+          go test -mod=readonly -race ./internal/windowsclient -run 'Test(TUNScoped|BuildCompact|NativeUDP|N4)' -count=2
+  owned-transaction-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Native Win32 ABI, userspace stack, guards and crash recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly ./internal/windowsclient -run 'Test(N4Native|N4TCP|N4Compact|BuildCompact)' -count=3 -v
+      - name: Verify no shell dependency in NEW native path
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -iE 'powershell|exec\\.Command|\.ps1' \
+            internal/windowsclient/native_owned_transaction.go \
+            internal/windowsclient/native_route_windows.go \
+            internal/windowsclient/userspace_tcp_direct_windows.go
+  receipt:
+    needs: [owned-transaction-linux-race, owned-transaction-windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Emit scoped capability evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p artifacts
+          printf '{"schema":"wbd-n4-owned-native-transaction-test/v1","source_sha":"%s","concurrent_fail_closed_tests":"PASS","simulated_crash_partial_recovery":"PASS","windows_native_os_matrix":"PASS","production_dns_ipv6_guard":"NOT_IMPLEMENTED","native_wintun_admin_apply":"NOT_RUN","physical_qualification":"NOT_RUN"}\n' "$GITHUB_SHA" > artifacts/n4-native-owned-transaction.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: n4-native-owned-transaction-${{ github.sha }}
+          path: artifacts/n4-native-owned-transaction.json
+          retention-days: 30
