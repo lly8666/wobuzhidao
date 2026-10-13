@@ -72,3 +72,44 @@ func (d *TUNPacketDispatcher) Dispatch(packet []byte, interfaceIndex uint32, gen
 		return TUNDispatchResult{}, ErrTUNClassifier
 	}
 }
+
+// ForwardOrProxy is the Windows CLI ingress boundary. Protected traffic stays
+// on the existing TunnelClient.SendPacket path (which owns wake, lane
+// generation and sealing). Calling Dispatch then SendPacket would seal twice.
+// Direct traffic is sent only to the physical-interface-bound backend; an
+// unavailable or unsupported Direct path NEVER falls back to protected.
+func (d *TUNPacketDispatcher) ForwardOrProxy(packet []byte, interfaceIndex uint32,
+	generation uint64, now time.Time, sendProtected func([]byte) error) (TUNDecision, error) {
+	if d == nil || d.router == nil || d.flows == nil || sendProtected == nil {
+		return 0, ErrInvalidBinding
+	}
+	// Validate before either backend to keep the Router's authenticated lease
+	// boundary for both native and tunnel outbound paths.
+	if err := d.router.ValidateFromTUN(packet); err != nil {
+		return 0, err
+	}
+	decision, err := d.flows.Classify(packet, interfaceIndex, generation, now)
+	if err != nil {
+		return 0, err
+	}
+	switch decision {
+	case TUNDirect:
+		if d.direct == nil {
+			return 0, ErrTUNDirectBackendUnavailable
+		}
+		// Never let the native socket retain a borrowed Wintun ring buffer.
+		owned := append([]byte(nil), packet...)
+		if err := d.direct.ForwardDirectIPv4(owned, interfaceIndex, generation); err != nil {
+			return 0, err
+		}
+	case TUNProtected, TUNDNSProtected:
+		// It is the caller's responsibility to send exactly once; unlike
+		// Dispatch(), this method does not call Router.RouteFromTUN.
+		if err := sendProtected(packet); err != nil {
+			return 0, err
+		}
+	default:
+		return 0, ErrTUNClassifier
+	}
+	return decision, nil
+}

@@ -1,0 +1,54 @@
+name: next-adaptive-n4-windows-entry
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-windows-entry.yml"
+      - "cmd/wbd-client/main_windows.go"
+      - "cmd/wbd-client/n4_entry_windows_test.go"
+      - "internal/windowsclient/tun_packet_dispatch.go"
+      - "internal/windowsclient/tun_packet_dispatch_test.go"
+permissions:
+  contents: read
+jobs:
+  linux-dispatch-unit-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE plus N4 one-seal direct ingress guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          go test -count=1 -v ./internal/windowsclient -run '^TestN4(WindowsIngress|PacketDispatcher)'
+          go test -race -count=1 ./internal/windowsclient ./internal/splitroute
+  windows-entry-native-no-wintun:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Hosted Windows CLI routing and generation wiring, no Wintun
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) { throw "SOURCE mismatch" }
+          go test -count=1 ./internal/windowsclient ./cmd/wbd-client
+          if ($LASTEXITCODE -ne 0) { throw "native Windows entry tests failed" }
+          go build ./cmd/wbd-client
+          if ($LASTEXITCODE -ne 0) { throw "native Windows CLI build failed" }
+          Write-Output "N4_WINDOWS_ENTRY_SOURCE=$env:GITHUB_SHA DRIVER=NOT_RUN EXTERNAL_DIRECT=NOT_RUN"

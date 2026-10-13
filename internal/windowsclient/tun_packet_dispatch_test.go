@@ -145,3 +145,64 @@ func TestN4PacketDispatcherRejectsClassifierOwnerLeaseMismatch(t *testing.T) {
 		t.Fatalf("two different /32 leases accepted across native route boundary: %v", err)
 	}
 }
+
+func TestN4WindowsIngressForwardOrProxyDoesNotSealProtectedTwice(t *testing.T) {
+	sink := &fakeTUNDirectSink{mutateInput:true}
+	d, owner := n4TestDispatcher(t,sink)
+	now := time.Unix(1700001200,0)
+	protectedCalls := 0
+	protected := func(p []byte) error {
+		protectedCalls++
+		if len(p)<20 {t.Fatal("missing original IPv4 packet")}
+		return nil
+	}
+	for _,tc:=range []struct{dst string;port uint16;want TUNDecision;protectedCount int;directCount int}{
+		{"8.8.8.8",443,TUNProtected,1,0},
+		{"10.3.4.5",53,TUNDNSProtected,2,0},
+		{"10.3.4.5",443,TUNDirect,2,1},
+	} {
+		p:=n4TestIPv4("10.66.0.2",tc.dst,17,tc.port,0)
+		original:=append([]byte(nil),p...)
+		decision,err:=d.ForwardOrProxy(p,8,11,now,protected)
+		if err!=nil || decision!=tc.want ||
+			protectedCalls!=tc.protectedCount || sink.calls!=tc.directCount ||
+			owner.normalCalls!=0 || !bytes.Equal(p,original) {
+			t.Fatalf("dst=%s decision=%d err=%v cb=%d direct=%d ownerSeals=%d",
+				tc.dst,decision,err,protectedCalls,sink.calls,owner.normalCalls)
+		}
+	}
+	// The production CLI must not call both Router.RouteFromTUN and
+	// TunnelClient.SendPacket; no Router/owner sealing happened above.
+}
+
+func TestN4WindowsIngressDirectErrorsNoProxyFallbackOrCrossGeneration(t *testing.T) {
+	sink:=&fakeTUNDirectSink{fail:errors.New("bound UDP kernel failure")}
+	d,owner:=n4TestDispatcher(t,sink)
+	now:=time.Unix(1700001300,0)
+	count:=0
+	proxy:=func([]byte) error {count++;return nil}
+	p:=n4TestIPv4("10.66.0.2","10.4.5.6",17,443,0)
+	_,err:=d.ForwardOrProxy(p,8,13,now,proxy)
+	if !errors.Is(err,sink.fail) || count!=0 || owner.normalCalls!=0 {
+		t.Fatalf("failed native direct was tunneled err=%v count=%d",err,count)
+	}
+	_,err=d.ForwardOrProxy(p,0,13,now,proxy)
+	if !errors.Is(err,ErrTUNFlowScope) {t.Fatalf("unbound iface err=%v",err)}
+	p=n4TestIPv4("10.66.0.3","8.8.8.8",17,443,0)
+	_,err=d.ForwardOrProxy(p,8,14,now,proxy)
+	if err==nil || count!=0 {t.Fatalf("lease spoof passed err=%v",err)}
+	if _,err=d.ForwardOrProxy(p,8,14,now,nil);!errors.Is(err,ErrInvalidBinding) {
+		t.Fatalf("nil protected transport err=%v",err)
+	}
+	p=n4TestIPv4("10.66.0.2","8.8.8.8",17,443,0)
+	sentErr:=errors.New("protected wake failed")
+	_,err=d.ForwardOrProxy(p,8,14,now,func([]byte)error{return sentErr})
+	if !errors.Is(err,sentErr) || owner.normalCalls!=0 {
+		t.Fatalf("protected send error not propagated or double sealed: %v",err)
+	}
+	d2,owner2:=n4TestDispatcher(t,nil)
+	_,err=d2.ForwardOrProxy(n4TestIPv4("10.66.0.2","10.4.5.6",17,443,0),8,14,now,proxy)
+	if !errors.Is(err,ErrTUNDirectBackendUnavailable)||owner2.normalCalls!=0||count!=0 {
+		t.Fatalf("unavailable Direct leaked to proxy err=%v",err)
+	}
+}

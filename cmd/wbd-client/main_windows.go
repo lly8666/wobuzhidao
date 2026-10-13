@@ -425,6 +425,37 @@ func runWindows() error {
 			log.Printf("Windows cleanup: %v", err)
 		}
 	}()
+	// A TUN session is one owner generation, independent of rotating FakeTCP
+	// lane incarnations. One physical-interface-bound UDP sink lives for this
+	// session; Close is registered after network Cleanup so sockets close first.
+	const tunSessionGeneration uint64 = 1
+	directPrefixes := append(append([]netip.Prefix(nil), bypass...), direct...)
+	policy, err := windowsclient.NewTUNClassifier(windowsclient.TUNClassifierConfig{
+		Lease4: leasePrefix.Addr(), Underlay4: serverIP,
+		Direct4: directPrefixes, DNSHijack: *dnsHijack,
+	})
+	if err != nil {
+		return err
+	}
+	flowClassifier, err := windowsclient.NewTUNScopedFlows(policy)
+	if err != nil {
+		return err
+	}
+	nativeUDP, err := windowsclient.NewNativeUDPDirect(
+		leasePrefix.Addr(), underlay.Source4, underlay.InterfaceIndex,
+		tunSessionGeneration, tunMTU, tunWriter,
+	)
+	if err != nil {
+		return err
+	}
+	defer nativeUDP.Close()
+	ingress, err := windowsclient.NewTUNPacketDispatcher(router, flowClassifier, nativeUDP)
+	if err != nil {
+		return err
+	}
+	// Legacy system routes remain until transparent TCP and owned network
+	// transitions are implemented. This wires the actual Wintun UDP return
+	// writer; it does not assert external NIC/Wintun qualification.
 	fmt.Println("WBD_WINDOWS_CLIENT_READY")
 	// GUI-owned, opt-in to the existing stdout control channel (no network
 	// listener or qualification JSONL). One bounded normal-lane snapshot per
@@ -471,6 +502,7 @@ func runWindows() error {
 	}
 	go func() {
 		buf := make([]byte, 65535)
+		var directRejects uint64
 		for {
 			n, err := tun.ReadPacket(buf)
 			if err != nil {
@@ -489,17 +521,33 @@ func runWindows() error {
 				continue
 			}
 			packet := append([]byte(nil), buf[:n]...)
-			wakeCtx, wakeCancel := context.WithTimeout(ctx, 15*time.Second)
-			err = client.SendPacket(wakeCtx, packet, time.Now())
-			wakeCancel()
+			_, err = ingress.ForwardOrProxy(packet, underlay.InterfaceIndex,
+				tunSessionGeneration, time.Now(), func(protected []byte) error {
+					// The protected path remains the single existing sender with
+					// wake/backoff, rotation and its own record sealing. The
+					// dispatcher MUST NOT pre-seal or route this packet first.
+					wakeCtx, wakeCancel := context.WithTimeout(ctx, 15*time.Second)
+					defer wakeCancel()
+					return client.SendPacket(wakeCtx, protected, time.Now())
+				})
 			if err != nil {
 				if runtimeentry.RetryableBusinessWake(err) {
-					// The tunnel remains dormant after a failed wake. Keep reading
-					// demand so a later packet can retry after existing backoff;
-					// never queue/replay this packet or hide an actual wire error.
+					continue // don't replay a failed dormant wake
+				}
+				if errors.Is(err, windowsclient.ErrN4UDPUnsupported) ||
+					errors.Is(err, windowsclient.ErrN4UDPInvalid) ||
+					errors.Is(err, windowsclient.ErrTUNFragmentUnmapped) ||
+					errors.Is(err, windowsclient.ErrInvalidIPv4) {
+					// A direct packet cannot leak into the protected lane.
+					// Local unsupported/invalid packets are dropped, boundedly
+					// reported, and never abort independent protected traffic.
+					directRejects++
+					if directRejects <= 3 || directRejects%1000 == 0 {
+						log.Printf("WBD_TUN_NATIVE_DIRECT_REJECT count=%d error=%v", directRejects, err)
+					}
 					continue
 				}
-				errCh <- err
+				errCh <- err // physical bind failure and real wire errors are fatal
 				return
 			}
 		}
