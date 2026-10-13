@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_CRASH_PERSISTENT_WFP_GUARD_BACKEND_GO_ACTIONS_PENDING_NOT_PRODUCTION_ENABLED",
+    "phase": "N4_NATIVE_WIN_INTERFACE_MTU_READONLY_ACTIONS_PENDING_AFTER_WFP_GUARD_BACKEND_SCOPED_PASS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_SOURCE2644_WFP_NON_TUNNEL_TESTNET_LAB_WIN2022_2025_PASS;3_RULE_PERSISTENT_WFP_POLICY_BUILDER_WIN_UNIT_ACTIONS_PASS;NEW_GO_ARM_VERIFY_DISARM_BACKEND_DISABLED_CANDIDATE_ACTIONS_PENDING;CLI_STILL_POWERSHELL",
+    "implementation": "SOURCE404_WFP_GUARD_ARM_VERIFY_DISARM_GO_BACKEND_SCOPED_WIN2022_WIN2025_PASS_AND_TESTNET_STRICT_MATCH_PASS_FOUNDATION_PASS;NEW_NATIVE_IPINTERFACE_MTU_READONLY_GO_CANDIDATE_PENDING;PRODUCT_CLI_POWERSHELL",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "On new SOURCE run GitHub Win2022/Win2025 WFP guarded backend tests and TEST-NET lab strict full rule ownership/condition decode+cleanup, N4 native transaction Linux race, Foundation/lifecycle. New unconnected n4WindowsPersistentWFPGuard implements CrashPersistentGuard with non-dynamic engine, deterministic per-installation WFP sublayer+3 rules, exact persistence/ActionBlock/layer/interface LUID/port53 match and foreign-key refusal; DOES NOT support multiple Wintun simultaneously: ExclusiveSingleWintun=false must fail closed. No production broad filters installed by Actions. If success proceed real hosted isolated WFP verification of generated product rules with TEST-NET scope, implement Wintun native address/DHCP/MTU, DNS owned journal/restore and multi-tunnel shared guard design, then integrate cmd/wbd-client compact routes/tun2socks Direct and eliminate active PowerShell scripts/flags. N2 residual OPEN, N6/physical NOT_RUN; no deploy/merge.",
-  "latest_log": "docs/devlog/20261013-n4-wfp-persistent-guard-backend-candidate.md",
+  "next_task": "Run source-scoped GH Actions Windows2022/2025 real system read-only GetIpInterfaceEntry/InitializeIpInterfaceEntry IPv4 MTU and interface properties with invalid-index/cancel/owned MTU bounds, plus Linux race N4 native owned transaction, Foundation and lifecycle. SOURCE404 native persistent WFP Guard disabled Arm/Verify/Disarm backend tests, strict full TEST-NET rule conditions after reopen passed Windows2022/25, Foundation all 7. Need next do native Wintun own lease/DHCP/MTU SET journal/rollback, DNS settings owned Set/recovery, and product persistent DNS/IPv6 leak guard with correct multi-Wintun shared allowlist or exclusive-only supported mode. Only after GH Actions real admin Apply/Stop/Cleanup safe, integrate compact 2x/1 route & tun2socks TCP Direct and remove active PowerShell. N6/physical NOT_RUN, N2 efficiencies/GE and 80s tail OPEN; never auto deploy/merge/qualification ref.",
+  "latest_log": "docs/devlog/20261013-n4-native-interface-mtu-readonly-and-wfp-guard-actions-receipt.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "2644f3999e85df1116368768be313b2a75e3fb71",
-  "last_tested_scope": "N4_WFP_TESTNET_IFACE_NOT_EQUAL_WIN2022_25_ACTION38350578305_SUCCESS_NATIVE_MATRIX38350578274_SUCCESS_FOUNDATION38350578259_ALL7_SUCCESS_LIFECYCLE38350578298_SUCCESS",
+  "last_tested_source_sha": "404403c195ea8a2ac3398debcb292a5b1e87f104",
+  "last_tested_scope": "SOURCE404_WFP_TESTNET_PERSISTENCE_STRICT_FULL_CONDITION_WIN2022_WIN2025_ACTION38351024667_SUCCESS_NATIVE_MATRIX38351024676_WIN_LINUXRACE_SUCCESS_FOUNDATION38351024665_ALL7_SUCCESS_LIFECYCLE38351024715_SUCCESS",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,9 +2694,9 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "Source2644 WFP TEST-NET 203.0.113.254:65530 with WFP non-tunnel interface field NotEqual dummy LUID in actual Windows2022/2025 hosted WFP engine Action38350578305 SUCCESS; exact sublayer/rule cleaned. N4 matrix38350578274 Foundation38350578259 seven required jobs and lifecycle38350578298 all SUCCESS. This is isolated API/persistence proof NOT product block policies.",
-    "New Windows-only n4WindowsPersistentWFPGuard Arm/Verify/Disarm candidate uses stable per-installation rule GUIDs, non-dynamic persistent session, readback exact condition/action/layer/sub-layer check and foreign object non-deletion. Multi-Wintun safety guarded by explicit exclusive-only opt-in. Tests check canceled calls and read-only absent installation, no real blanket anti-leak block installed. ACTIONS PENDING.",
-    "CLI still calls powershell.exe and has legacy complement routes; native Wintun lease/MTU/DHCP and DNS owned snapshot/restore/wall WFP guard not wired; N6 and physical NOT_RUN. N2 C04/C05/C10/80s residual open."
+    "SOURCE404 WFP TEST-NET isolated persistence Action38351024667 Windows2022/25 SUCCESS; strict filter full-condition, interface LUID NotEqual, exact user-owned GUID roundtrip and cleanup. Native N4 matrix38351024676 Linux -race/Win2022/25 SUCCESS; Foundation38351024665 all 7 SUCCESS; lifecycle38351024715 SUCCESS. Does NOT install production IPv6/DNS WFP rules.",
+    "Unconnected native persistent WFP Guard Arm/Verify/Disarm code now exists in internal/windowsclient, stable install GUIDs, refuses foreign filters, multi-Wintun requires exclusive-only safety. Product entry not wired. New Go-only native IPv4 interface GetIpInterfaceEntry read-only MTU snapshot and strict bounds staged for Windows2022/25 Actions, no Set/native network mutation; Actions pending.",
+    "User no PowerShell + compact host routing product requirement still UNMET: active CLI runs old PowerShell/complement routes, native Wintun DHCP/lease/MTU and DNS restoration under firewall not implemented or admin-tested. N6/physical NOT_RUN, N2 longtail OPEN."
   ],
   "actions": [
     {
@@ -4311,6 +4311,42 @@
       "scope": "N4_WFP_NON_TUNNEL_MATCH_LIFECYCLE",
       "status": "PASS",
       "cause": "Core job final SUCCESS. No N4 real Wintun/IP traffic."
+    },
+    {
+      "name": "next-adaptive-n4-wfp-persistent-isolated-lab",
+      "run_id": 38351024667,
+      "source_sha": "404403c195ea8a2ac3398debcb292a5b1e87f104",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38351024667",
+      "scope": "N4_WFP_PERSISTENCE_FULL_RULE_IDENTITY_SERIALIZATION_HOSTED_TESTNET",
+      "status": "PASS",
+      "cause": "Windows2022/2025 BOTH SUCCESS. After engine reopen, strict decoded layer/sublayer/action/persistent/field/compare op/local interface LUID condition/destAddr+port65530 match via n4WFPRuleEqual, then GUID-owned filter+sublayer cleaned. Artifacts11790692380 sha256:ccedbe6d23a78bb12ff8aaf8fe3cdf7166528ed0215568596a17ca9b629f6e7a and11790154612 sha256:1340a545b06a5f39e8e08934a3bdeb393aeb9c8112e16accc6e5eef1dfcf4e71. Not production IPv6/DNS guard."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38351024676,
+      "source_sha": "404403c195ea8a2ac3398debcb292a5b1e87f104",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38351024676",
+      "scope": "N4_WFP_GUARD_BACKEND_GO_OWNER_ANTI_FOREIGN_FENCE_WIN2022_WIN2025_LINUXRACE",
+      "status": "PASS",
+      "cause": "Four jobs SUCCESS Windows2022, Windows2025, Linux race and receipt; unconnected WFP Guard Verify absent owner, strict foreign mutation tests, owned transaction fault injection. Artifact11790239497 sha256:36d97f0418cb10e4538a61cfdae3732c2d3bfc24fd868e4c8599211252e6e290."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38351024665,
+      "source_sha": "404403c195ea8a2ac3398debcb292a5b1e87f104",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38351024665",
+      "scope": "N4_STRICT_WFP_PERSISTENT_GUARD_SOURCE_FULL_FOUNDATION",
+      "status": "PASS",
+      "cause": "All seven mandatory non-skipped jobs SUCCESS: repo contract, Windows/Linux Go/race, P2, P4. P5/P6 extended skipped/not run. Artifact11790478834 sha256:b2df460279aefab293fc24011f0903bd441a2b09758f04b0a9fd6322e8de52a3."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38351024715,
+      "source_sha": "404403c195ea8a2ac3398debcb292a5b1e87f104",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38351024715",
+      "scope": "N4_WFP_GUARD_SOURCE_LIFECYCLE",
+      "status": "PASS",
+      "cause": "Core lifecycle job SUCCESS; no actual N4 user NIC or physical."
     }
   ],
   "required_read_set": [
