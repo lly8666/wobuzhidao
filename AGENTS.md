@@ -6,14 +6,14 @@
 
 先读 PROJECT_CHARTER.md、docs/STATUS.json、docs/ADAPTIVE_NETWORK_PLAN.md、docs/AGENT_CONTINUITY.md。接手提示词在 docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md。只有 STATUS.active_work / next_task / latest_log 是当前进度。历史 FEC SIMD Q2、E0..E7、旧模板的下一步不是本轮任务。
 
-本轮 N0..N6：一次受保护协商每客户端FEC/密码；低开销质量反馈；Normal自动/激进自动档；AES128/256；Windows少量路由+TUN分流；中文GUI两秒显示；Actions集成与打包。Game只固定档。2026-10-13审计：V3质量/Normal自动、AES128/256及GUI均已有实现和限定Actions证据；TUN分类/缓存/分派已有单测，真实Windows Direct TCP/UDP后端与入口接入未完成。以SOURCE/catalog/STATUS为准，不重复N0、AES核心或GUI配置开发。
+本轮 N0..N6：一次受保护协商每客户端FEC/密码；低开销质量反馈；Normal自动/激进自动档；AES128/256；Windows少量路由+TUN分流；中文GUI两秒显示；Actions集成与打包。Game只固定档。2026-10-13审计：V3质量/Normal自动、AES128/256及GUI均已有实现和限定Actions证据；TUN分类/缓存/分派已有单测；Windows真实绑定物理接口的UDP socket后端与返回IPv4/UDP格式通过hosted Windows同机socket限定Actions验证（SOURCE 1b3e923，Action38333124333），但仍未连正式Wintun入口，TCP内核redirect与小路由/清理未完成。以SOURCE/catalog/STATUS为准，不重复N0、AES核心或GUI配置开发。
 
 ## 防止接手记忆倒退
 
 - 先核远端HEAD、源码和Actions最终结果，再读STATUS；文档写“运行中”但Action已结束时，先下载产物核验并留痕，不重新dispatch或重开发。
 - STATUS的steps记录限定完成范围，next_task只写下一项原子工作。OPEN遗留不是自动重开阶段的指令；没有新反例、改动或必要回归时，不重跑已通过样本。
 - 阶段交接同步本入口、AGENT_CONTINUITY、方案当前摘要和长期提示词，删除过时的当前态假设；历史日志/FAIL及其精确SOURCE保持原样。
-- N2混合TCP/UDP单场景已限定通过，GE长尾和档位效率失败仍OPEN；当前开发重点是N4真实Direct后端及返回路径，不能把纯分类器或模拟sink当已接入Windows。新agent不另建第二套进度系统。
+- N2混合TCP/UDP单场景已限定通过，GE长尾和档位效率失败仍OPEN；当前开发重点是N4正式入口/真实TCP redirect和有界返回路径、小路由/owned事务，不能把UDP同机socket+模拟PacketWriter当实际Wintun端到端资格。新agent不另建第二套进度系统。
 
 2026-10-12用户修订N2：必读 docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md。先冻结真实工况、独立理论档/可实现检测曲线和有余量允许带，再单条Actions验证。数据交付好不等于自动省资源有效；长期不必要高档、过慢降档需要定位，不能只延长尾段。统计/控制软参数允许有反例后最小修订，永久硬门不变，不另开算法比赛、不给生产输入netem真值、UNKNOWN不当0。
 

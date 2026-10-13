@@ -28,7 +28,7 @@ N0→N6 按当前 `STATUS.active_work/next_task/latest_log` 连续开发，每�
 
 N2 noHOL Go/race Action38257097791限定PASS；更正TCP种子/目标listener后，SOURCE ee4424223401e5b5ea0aec68e0caf28897408bb0 的Action38326649686完成真实120s混合TCP/UDP、每向10Mbps/300ms/约1%损伤限定PASS。快速UDP C2S12000/12000、S2C11900/11900，p99 308.50/307.58ms，最长空槽10ms；四个长TCP流各67帧完整、120条短TCP首达和CRC检查通过。它不是全工况无HOL或GE低延迟资格；首轮Action38326041291的夹具FAIL保留。
 
-N4已有纯IPv4/DNS分类、512flow/256fragment缓存及受认证Router/Direct分派边界，Action38289962670两平台限定PASS。`TUNDirectSink`尚无真实Windows TCP/UDP直连与返回包实现，正式入口仍是`NewTUNInput(router)`；这表示尚未接线，不是把新架构回滚。下一项是实现有界的真实Direct后端、underlay绑定/防回环/回注与可逆owned网络事务，再接入入口并验收。N6最终三目标同源发行包未开始，physical NOT_RUN。
+N4已有纯IPv4/DNS分类、512flow/256fragment缓存及受认证Router/Direct分派边界，Action38289962670两平台限定PASS。Windows UDP物理接口绑定socket与回包IPv4/UDP重构核已在SOURCE 1b3e923、Action38333124333完成hosted原生Windows同机UDP echo+Linux race限定PASS（实际执行，非SKIP；PacketWriter仍模拟）。正式入口仍是`NewTUNInput(router)`，尚无真实Wintun回注/外部物理绕回避资格。TCP内核redirect后端、少量捕获路由、owned事务取消与清理仍缺。下一项从正式接线和TCP/路由能力边界推进，不能重新实现已通过的UDP核。N6最终三目标同源发行包未开始，physical NOT_RUN。
 
 当前新增任务读 [ADAPTIVE_FEC_CURVE_ACCEPTANCE](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md)：独立理论/检测曲线→预声明允许带→真实工况单条Actions→必要修复。有限过保护余量、升降时延、parity/CPU/业务首交付/p99共同验收，不能只看业务0loss；30s/60s/512/32窗口等软参数可有证据地小改，永久硬门保持。质量报告是双端对齐统计的必要反馈，不是额外主动业务探针，fixed/off不运行auto。
 
@@ -36,7 +36,7 @@ auto仅Normal，上下行分别根据RX反馈决策；初始20:20/最低20:4/最
 
 AES用Go标准库，AEAD/HP每lane预建、独立nonce/方向密钥，AES HP不再每包建ChaCha；同Seq保持原wire。TLS1.3不能靠Config.CipherSuites设置，uTLS实际CH协商与decoy best-effort明确分开。
 
-Windows少量系统路由捕获，TUN内有界flow缓存/区间查表，direct使用内核TCP重定向+native物理绑定socket和UDPmapping；不是原包盲注网卡。代理业务仍原数据面，Linux/OpenWrt保留nft分流。DNS优先/IPv6/休眠/退出清理不得丢。
+Windows目标少量系统路由捕获，TUN内有界flow缓存/区间查表，direct必须使用内核TCP重定向+native物理绑定socket和UDPmapping；UDP socket核已限定验证但入口和路由未切换，不能把已存在的Go组件解释为完整产品路径；不是原包盲注网卡。代理业务仍原数据面，Linux/OpenWrt保留nft分流。DNS优先/IPv6/休眠/退出清理不得丢。
 
 ## 未解决问题与防回退
 
