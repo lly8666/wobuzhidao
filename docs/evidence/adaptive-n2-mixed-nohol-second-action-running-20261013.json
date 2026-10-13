@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "date": "2026-10-13",
+  "status": "SECOND_REAL_MIXED_TCP_UDP_ACTION_RUNNING_NOT_A_VERDICT",
+  "source_sha": "ee4424223401e5b5ea0aec68e0caf28897408bb0",
+  "run_id": 38326649686,
+  "job_id": 115066757593,
+  "first_failed_source": "014177a20e48bccf7d8bab8090b774f92dfb9847",
+  "first_failed_run_id": 38326041291,
+  "first_failed_artifact_id": 11780558764,
+  "first_failed_zip_sha256": "a01dd8f973db9429b1db0bed4464d1feeb28eac5fee8401e34f292095ff4ce2f",
+  "correction": "same per-peer TCP CRC seed2026092202 and 20s listener drain, active case unchanged 120s 1pct both 300ms each 10Mbps each",
+  "prior_hard_gates": [
+    "Go unit+race PASSED",
+    "Python CRC/FEC exact scenario and 10ms gap PASS",
+    "five netns apt deps PASS"
+  ],
+  "action_status_at_registration": "BUILD_CURRENT_SOURCE_BINARIES",
+  "artifact_id": null,
+  "performance_verdict": "PENDING",
+  "overall_N2": "OPEN",
+  "physical": "NOT_RUN"
+}

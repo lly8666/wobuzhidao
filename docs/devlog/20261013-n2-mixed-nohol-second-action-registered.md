@@ -1,0 +1,7 @@
+# 2026-10-13 真TCP+UDP五netns无HOL复验（只修过夹具种子/结束listener，运行中）
+
+原SOURCE014177a [Action38326041291](https://github.com/lly8666/wobuzhidao/actions/runs/38326041291) job115064818885 FAILURE，实际artifact11780558764 ZIP SHA256 `a01dd8f973db9429b1db0bed4464d1feeb28eac5fee8401e34f292095ff4ce2f` 已严格留存在`docs/evidence/adaptive-n2-mixed-nohol-first-realpath-fail-seed-and-server-20261013.json`：原biz/target采用不同的TCP业务CRC seed，一切TCP帧都判bad，原目标listener仅3s drain导致目标关闭后server重试连接拒绝并退出，主脚本没完成after-qdisc/摘要；fast10ms业务C2S仅244/12000首收到target，对向11884/11900，真实异常未归因到产品或夹具。一份不可用的完整NoHOL资格，不能覆盖为PASS。
+
+下一来源提交 `ee4424223401e5b5ea0aec68e0caf28897408bb0`，[Action38326649686](https://github.com/lly8666/wobuzhidao/actions/runs/38326649686) job115066757593 正式运行中。GitHub源码pin/perf单例claim、Go N2 core/race、Python三项纯单元都PASS；原件派生五netns相同真正Linux kernel TCP/UDP业务生成器与正式Go client/server build尚在执行/即将负载。仅修改目标业务seed统一为2026092202+2026092202(而不是旧2026092201/2026092202)，以及业务目标listener进程结束后的drain从3到20秒，承认这是**额外17s收尾**、不延长正式原120秒活跃计分，不调整1%未seed tc随机、300ms单程、各10Mbps、Normal auto initial20 floor4、4条长TCP/每秒一条短TCP/独立100Hz快UDP；此前预冻每向fast首达>=96%、received only单向p99<=900ms、最长无交付连续10ms桶≤30、独立短TCP每向首收>=25、源调度误差/采集drop规则不改。
+
+等待真实到达证据，如仍出现C2S fast大量丢或产品server提前退，必须把它作为正式问题留下source/hash/原始错误；**不许扩大界限或无限挑seed求绿**。GUI 已在Windows“传输”区放FEC/三套加密并通过native 273项，N3两个AES real lossless限定PASS；N4原生Windows Direct系统栈TCP/UDP及N6包仍需要行动。历史C04/C05资源效率/GE严重p99/2.73s探针与80s S2C中断OPEN；物理NOT_RUN，不部署或改变qualification ref/mainline。
