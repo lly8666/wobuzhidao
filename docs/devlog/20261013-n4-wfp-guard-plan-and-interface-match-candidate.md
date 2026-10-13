@@ -1,0 +1,16 @@
+# N4 stable-owned WFP guard plan and non-tunnel field LAB follow-up (2026-10-13)
+
+## Exact SOURCE previous Actions final success
+Incoming HEAD 4f7be9025e4181913ad70648bb69af57d6197b3e.
+- Isolated WFP persistent TEST-NET rule Action38350108935 Windows2022/2025 BOTH SUCCESS, actually installing persistent WFP sublayer+rule scoped only to documentation IPv4 203.0.113.254 and destport65530. Verified survival after engine close/reopen and exact GUID filter+sublayer removal. Artifact11791015735 sha256:02cb335436385f5bffbb98d0f37ced173e48695fb5ded0c2393eb282ea5e93ca; artifact11790502231 sha256:f16ef3f46f76ad26b6bae6afda33e9654bf2663381274b602832ba018f034723.
+- Source4f7 N4 native journal/race Windows2022/2025/Linux matrix38350108878 all SUCCESS, artifact11790826836 sha256:43ec45245a04d969b8c21889ee8633f66c4a93886ee9eb30d06c96c61a1cbd16; Foundation38350108841 all seven mandatory SUCCESS, artifact11791140374 sha256:cdc3bb72156ea58ba0dda27c5398067231ac172fd3b29092249b399c5d5fa44a; Lifecycle38350108864 success; V3 20x Win+Linux and -race8x Actions38350108911 SUCCESS; userspace Windows native ABI Actions38350108870 SUCCESS. P5/P6 extended skipped/not run.
+- IMPORTANT these isolated/Go tests are NOT actual production IPv6+DNS block policy installed or proven to block leaks on an owned Wintun and not evidence scriptless CLI.
+- Original SRC54be fail Windows undefined strings, SRC71f2 fixed and source 4f7 fully requalified; original fails preserved.
+
+## Current candidate
+`internal/windowsclient/native_wfp_guard_plan_windows.go` constructs three **uninstalled** persistent WFP Block rules with deterministic per-installation stable SHA256-derived unique GUIDs, one persistent sublayer, and a non-tunnel interface LUID condition for IPv6 outgoing/incoming ALE and IPv4 DNS destport53 outgoing ALE. Explicit construction rejects zero installation ID/LUID, wrong fields/actions/persistence, wrong DNS port53, unintentional permits, duplicate GUIDs. No dynamic sessions are used by this plan but it does NOT yet implement an effective Guard. Source-only Windows tests verify crash-stable IDs, tenant isolation and negative rule changes. **Multiple simultaneous Wintun adapters require a global/shared allowlist or fail closed:** separate non-tunnel blocks can interfere with each other's TUN; do not silently enable this policy for multi-tunnel product.
+
+The scoped GitHub WFP LAB now adds `FieldIPLocalInterface != (dummy LUID)` to its already doubly TEST-NET-limited IPv4/port65530 Block. This validates the actual native field type and condition encoding without installing a broad DNS/IPv6 block or blocking normal traffic. Run exact SOURCE Windows2022/2025 and Linux-race/whole Foundation; preserve any failure.
+
+## Still critical blocking work
+Must build durable production WFP Guard with correct multi-tunnel and leak semantics, owned policy verification after engine restart and filter rollback, Wintun address/MTU/DHCP ownership, DNS Set/verified restore under WFP guard and crash-safe journal, real hosted admin Apply/Stop, then switch cmd/wbd-client to 2 /1 + in-TUN CN classification and gVisor Direct TCP while deleting active PowerShell script and packaging refs. N2 efficiency/GE/80s open, N6 NOT_STARTED, physical NOT_RUN. No deploy/merge.

@@ -85,6 +85,9 @@ func TestN4WindowsWFPPersistentFilterHostLab(t *testing.T) {
   Conditions:[]*wf.Match{
    {Field:wf.FieldIPRemoteAddress,Op:wf.MatchTypeEqual,Value:netip.MustParseAddr("203.0.113.254")},
    {Field:wf.FieldIPRemotePort,Op:wf.MatchTypeEqual,Value:uint16(65530)},
+   // Exercise the native non-tunnel interface condition without affecting
+   // real destinations: the rule still requires TEST-NET+port65530.
+   {Field:wf.FieldIPLocalInterface,Op:wf.MatchTypeNotEqual,Value:uint64(0xA11CE)},
   },
  }
  if err:=setup.AddRule(rule);err!=nil{setup.Close();t.Fatal(err)}

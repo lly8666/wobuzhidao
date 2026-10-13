@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_SIGNEDLESS_GO_WFP_PERSISTENCE_ISOLATED_ACTIONS_LAB_PENDING_SCRIPTLESS_RUNTIME_INCOMPLETE",
+    "phase": "N4_GO_WFP_STABLE_OWNER_GUID_DNS_IPV6_RULE_PLAN_ACTIONS_PENDING_SCRIPTLESS_MAIN_STILL_OPEN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_NATIVE_DNS_MINIMAL_SET_WRITER_GUARD_TEST_71F2_ACTIONS_PASS;NEW_BSD3_PINNED_TAILSCALE_WF_PERSISTENT_TESTNET_FILTER_GITHUB_HOSTED_LAB_PENDING;NO_PRODUCT_PERSISTENT_DNS_IPV6_GUARD_OR_POWERSHELL_REMOVAL",
+    "implementation": "SOURCE4F7_PERSISTENT_WFP_TESTNET_LAB_WIN22_WIN25_PASS_ALL_ACTIONS;NEW_OWNED_INSTALLATION_SCOPED_IPV6_OUT_IN_DNS_V4_WFP_RULE_PLANNER_AND_TESTNET_NON_TUNNEL_INTERFACE_MATCH_CANDIDATE;NO_PRODUCTION_FILTERS",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Run new exact-source GitHub-hosted Windows2022/2025 isolated WFP persistence/owned-cleanup lab using pinned BSD-3-Clause github.com/tailscale/wf module v0.0.0-20240214030419-6fbb0a674ee6. Only block TEST-NET 203.0.113.254:65530 with unique randomly generated persistent sublayer and rule GUID; verify after closing/reopening native WFP engine then remove both GUIDs. If Actions fail, preserve logs and correct safely; do not install broad IPv6/DNS rules or touch user PC. Once lab passes, develop product native persistently owned IPv6/out-of-Wintun DNS filters, verified install and crash recovery; native Wintun owned lease/DHCP/MTU + DNS Set/restore journal, production PowerShell removal and compact /1 + tun2socks Direct wiring; then N6 exact-source artifacts and physical only afterward. N2 efficiency/GE/80s remains OPEN.",
-  "latest_log": "docs/devlog/20261013-n4-wfp-persistent-isolated-lab-candidate.md",
+  "next_task": "Run SOURCE-scoped Windows2022/2025 WFP TEST-NET persistence host Action with extra FieldIPLocalInterface NotEqual(uint64(0xA11CE)) while still restricted to 203.0.113.254 port65530; run typed deterministic per-installation 3-rule WFP policy constructor validation in Win Actions, Linux race, Foundation/lifecycle and V3 20x. If passes, create REAL N4WindowsPersistentGuard implementing CrashPersistentGuard with non-dynamic persistent WFP sublayer and rules, strict stable owner GUID validation and crash recovery; test production WFP block policy only under explicitly hosted isolated Actions with safe constraints before system-wide rollout. Must support multiple Wintun/tunnel ownership (or explicitly fail closed instead of silently breaking other tunnels). Wintun DNS Set/owned journal, leased DHCP/MTU, physical route, exact-source Action admin Apply/Cleanup, route/TCP wiring and active PowerShell removal still OPEN. N2 residual OPEN N6/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261013-n4-wfp-guard-plan-and-interface-match-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "71f2b60bec8d36da36b8695e638e4a69fc30fb85",
-  "last_tested_scope": "SOURCE71F2_NATIVE_DNS_WRITE_GUARD_NO_MUTATION_WIN2022_WIN2025_LINUXRACE_ACTION38349702619_SUCCESS_FOUNDATION38349702604_ALL7_SUCCESS_LIFECYCLE38349702558_SUCCESS",
+  "last_tested_source_sha": "4f7be9025e4181913ad70648bb69af57d6197b3e",
+  "last_tested_scope": "WFP_TESTNET_PERSISTENT_FILTER_HOST_WIN2022_2025_ACTION38350108935_PASS;N4_MATRIX38350108878_PASS;FOUNDATION38350108841_PASS;LIFECYCLE38350108864_PASS;V3_20X_AND_RACE_ACTION38350108911_PASS",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,9 +2694,10 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "Recovered source ef9afb native DNS baseline Win2022/25 read-only, Foundation/lifecycle PASS. Source54be initial native DNS test Windows compile FAIL (orphaned strings), FIXED source71f2 N4 matrix Actions38349702619 SUCCESS all 4, Foundation38349702604 SUCCESS all 7, lifecycle38349702558 SUCCESS. Original FAIL retained.",
-    "New pinned BSD-3-Clause tailscale/wf Go package WFP isolated lab candidate: persistent filter narrowly targeting non-routable 203.0.113.254 port65530, random owned GUIDs; Actions Windows2022/2025 will test reopen and cleanup. Never run on real user machine, not a functional leak guard; new dependency provenance pinned.",
-    "Main client still calls PowerShell/old complement routes; Go guarded native DNS set is unconnected, Wintun DHCP/lease, persistent production WFP IPv6/DNS guard, native DNS restoration missing. N6 NOT_STARTED/physical NOT_RUN."
+    "Source4f7 pinned BSD3 tailscale/wf WFP experimental persistent TEST-NET 203.0.113.254:65530 owner GUID created/reopened/cleaned correctly in Windows2022+Windows2025 Action38350108935 SUCCESS, artifact11791015735/11790502231; only hosted ephemeral TEST-NET filter, not product anti-leak.",
+    "Source4f7 N4 Linux-race/Windows 22/25 Action38350108878 PASS; Foundation38350108841 all required PASS; lifecycle38350108864 PASS; V3 repeated Windows/Linux + Linux race Action38350108911 PASS; userspace feasibility38350108870 PASS. Proven Go source/isolated lab only.",
+    "New Windows-only WFP rule plan generates stable installation-scoped GUIDs and three persistent non-tunnel guard candidates (IPv6 outbound/inbound and IPv4 port53). Unit tests verify no accidental permit or incorrect match. TEST-NET LAB next checks WFP FieldIPLocalInterface NotEqual acceptance. NOT YET INSTALLED IN PRODUCT, not multi-tunnel-safe.",
+    "Production CLI STILL invokes PowerShell and hosts thousands of route complements; real owned native Wintun address/DHCP/MTU and DNS restore/WFP filters not implemented. N6/physical NOT_RUN."
   ],
   "actions": [
     {
@@ -4221,6 +4222,60 @@
       "scope": "N4_GUARDED_DNS_WRITER_LIFECYCLE",
       "status": "PASS",
       "cause": "Core job FINAL SUCCESS; no Wintun/physical."
+    },
+    {
+      "name": "next-adaptive-n4-wfp-persistent-isolated-lab",
+      "run_id": 38350108935,
+      "source_sha": "4f7be9025e4181913ad70648bb69af57d6197b3e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38350108935",
+      "scope": "N4_PERSISTENT_WFP_TESTNET_SCOPED_RANDOM_GUID_CREATE_REOPEN_DELETE_HOSTED",
+      "status": "PASS",
+      "cause": "Windows2022 and Windows2025 jobs both SUCCESS; persistent WFP TEST-NET IPv4 addr203.0.113.254 destport65530 action Block installed, visible after non-dynamic WFP engine close/reopen, removed exact random GUID and sublayer. Artifacts11791015735 sha256:02cb335436385f5bffbb98d0f37ced173e48695fb5ded0c2393eb282ea5e93ca and11790502231 sha256:f16ef3f46f76ad26b6bae6afda33e9654bf2663381274b602832ba018f034723. Not production DNS/IPv6 anti-leak."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38350108878,
+      "source_sha": "4f7be9025e4181913ad70648bb69af57d6197b3e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38350108878",
+      "scope": "N4_SAFETY_ROUTE_JOURNAL_DNS_NO_MUTATION_WITH_PINNED_WF_GO_DEP",
+      "status": "PASS",
+      "cause": "Windows2022 Windows2025 Linux-race and receipt all SUCCESS. Artifact11790826836 sha256:43ec45245a04d969b8c21889ee8633f66c4a93886ee9eb30d06c96c61a1cbd16."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38350108841,
+      "source_sha": "4f7be9025e4181913ad70648bb69af57d6197b3e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38350108841",
+      "scope": "N4_PINNED_WF_MODULE_FULL_SOURCE_FOUNDATION",
+      "status": "PASS",
+      "cause": "Seven required Windows/Linux Go/race P2/P4 repo contract jobs all SUCCESS; P5/P6 extended SKIPPED/NOT_RUN. Artifact11791140374 sha256:cdc3bb72156ea58ba0dda27c5398067231ac172fd3b29092249b399c5d5fa44a."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38350108864,
+      "source_sha": "4f7be9025e4181913ad70648bb69af57d6197b3e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38350108864",
+      "scope": "N4_PINNED_WF_GO_LIFECYCLE",
+      "status": "PASS",
+      "cause": "Core lifecycle SUCCESS. No network routes or user physical."
+    },
+    {
+      "name": "next-adaptive-v3-multiclient-race-requalification",
+      "run_id": 38350108911,
+      "source_sha": "4f7be9025e4181913ad70648bb69af57d6197b3e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38350108911",
+      "scope": "N4_PINNED_WF_DEP_V3_MULTICLIENT_REPEAT_REGRESSION",
+      "status": "PASS",
+      "cause": "Linux/Windows 20x and Linux race8x V3 multi-client first bidirectional business/generation rotation qualified scoped SUCCESS."
+    },
+    {
+      "name": "next-adaptive-n4-userspace-no-powershell-feasibility",
+      "run_id": 38350108870,
+      "source_sha": "4f7be9025e4181913ad70648bb69af57d6197b3e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38350108870",
+      "scope": "N4_PINNED_WF_DEP_WINDOWS_TCP_AND_NATIVE_API_EXPORTS",
+      "status": "PASS",
+      "cause": "Windows Go native exports/traffic software-scoped success; no admin Wintun/PowerShell removal."
     }
   ],
   "required_read_set": [
