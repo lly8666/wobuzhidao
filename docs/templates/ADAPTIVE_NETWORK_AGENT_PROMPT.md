@@ -1,6 +1,6 @@
-## 2026-10-13 N4 原 Wintun 销毁后、进入 route 前 lease/MTU/DNS WAL 安全清退候选
+## 2026-10-13 N4 原 Wintun 销毁后 pre-route WAL 恢复限定 Actions PASS，正式产品仍未 READY
 
-最新 CODE SOURCE 的原生 N4 `N4WindowsRetirePreRouteOrphanWAL` 新候选：WAL 严格只有 guard:owned + lease/MTU/DNS 2..4 顺序记录且 applying、全部基线绑定原 GUID/LUID/ifIndex，绝对未开始 routes、没有任何 `.routes` sidecar；真实 Windows 全接口枚举证明旧网卡三项身份消失，owned WFP 精确清理核销后才**仅**删除 parent WAL，无法证明就拒绝。候选 Actions Win2022/25、Linux race、Foundation、Lifecycle、真实 Wintun 回归未验；测试使用 fake WFP，**真实生产 WFP Arm 仍 disabled、native assembler assemblyOnly、官方 Windows CLI 仍 PowerShell**。用户许可最终实机假设仅一个 Wintun，但共享 Actions 不能 host-global WFP/two /1；完整带路由崩溃恢复/N5/N6及物理 NOT_RUN。唯一 next_task 见 STATUS，N2 C04/C05 FAIL、C10 GE、约80s S2C 保留 OPEN，不自动部署合并。
+代码 SOURCE `a3bcd3bc786a09d3437437bcbc9f4e588ffb7340`：N4Matrix38420306021 Windows2022/2025 + Linux race、真实 Wintun38420306011 双版本、Foundation38420306239 全7、Lifecycle38420306112 均最终 SUCCESS。新增 `N4WindowsRetirePreRouteOrphanWAL` 仅当 WAL 2..4 条记录、原 GUID/LUID/index 已从 Windows 全接口表消失、没有 route 阶段与任何 sidecar、lease/MTU/DNS 原始基线严格匹配且 owned WFP 安全清理后仅删除 parent WAL；单元测试为 fake WFP+真实 Win32 只读枚举，不冒称真实持久生产 WFP 或真实 staged IP 写后崩溃 PASS。官方 Windows CLI 仍 PowerShell、native assembler assemblyOnly、production WFP Arm hard-disabled，服务器 /32 + 两 /1 缺隔离 Windows Actions 实测。**N4/N5/N6 未完成，不得标 `ACTIONS_READY_FOR_PHYSICAL`；physical NOT_RUN**。用户允许最终实机仅项目一个 Wintun，但仍不对共享 CI 主机安装全局 WFP。N2 C04/C05 FAIL、C10 GE、约80s S2C 留 OPEN；唯一接手 next_task 看 STATUS，不部署/合并/移动 qualification ref。
 
 ## 2026-10-13 N4 真实 Win2022/Win2025 TEST-NET WFP 精确清理限定 PASS；产品仍未实机 READY
 
