@@ -6,6 +6,7 @@ on:
       - ".github/workflows/next-adaptive-n4-real-wintun-admin-capability.yml"
       - "internal/windowsclient/native_admin_created_wintun_windows_test.go"
       - "internal/windowsclient/native_admin_created_wintun_mutation_windows_test.go"
+      - "internal/windowsclient/native_admin_unified_wal_windows_test.go"
       - "internal/windowsclient/tun_windows.go"
       - "internal/windowsclient/native_wintun_owner_windows.go"
       - "internal/windowsclient/native_unified_network_owner_windows.go"
@@ -107,6 +108,31 @@ jobs:
                   assert j[k].startswith("PASS"),k
           print("N4_REAL_WINTUN_MUTATION="+j["result"])
           PY
+      - name: Real Wintun unified WAL Apply/Recover (fake WFP and routes)
+        shell: bash
+        env:
+          WBD_N4_ADMIN_UNIFIED_WAL: "1"
+          WBD_N4_ADMIN_UNIFIED_WAL_REPORT: "artifacts/n4-driver-probe/unified-wal.json"
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          ./artifacts/n4-driver-probe/n4-probe.test.exe -test.v -test.run TestN4WindowsHostedUnifiedWALRealLeaseMTUDNS -test.timeout=8m
+          test -s "$WBD_N4_ADMIN_UNIFIED_WAL_REPORT"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads(Path("artifacts/n4-driver-probe/unified-wal.json").read_text())
+          assert r["source_sha"]==os.environ["GITHUB_SHA"] and r["runner"]=="Windows"
+          assert r["physical"]=="NOT_RUN" and r["cross_process_crash"]=="NOT_RUN"
+          assert r["guard"]=="TEST_ONLY_FAKE_NOT_PRODUCTION_WFP"
+          assert r["routes"]=="TEST_ONLY_FAKE_NO_CAPTURE_ROUTES"
+          assert r["result"] in ("SCOPED_REAL_WINTUN_NATIVE_WAL_APPLY_RECOVER_PASS",
+            "UNSUPPORTED_DRIVER_OR_ADMIN","UNSUPPORTED_FRESH_DNS_BASELINE")
+          if r["result"]=="SCOPED_REAL_WINTUN_NATIVE_WAL_APPLY_RECOVER_PASS":
+              for key in ("adapter","lease","mtu","dns"):
+                  assert r[key].startswith("PASS"),key
+          print("N4_HOSTED_REAL_WAL="+r["result"])
+          PY
       - name: Publish honest limited driver evidence (no binary/DLL)
         uses: actions/upload-artifact@v4
         if: always()
@@ -115,5 +141,6 @@ jobs:
           path: |
             artifacts/n4-driver-probe/capability.json
             artifacts/n4-driver-probe/mutation.json
+            artifacts/n4-driver-probe/unified-wal.json
           if-no-files-found: warn
           retention-days: 30

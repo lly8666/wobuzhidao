@@ -1,3 +1,7 @@
+## 2026-10-13 N4 单一 WAL 真 Wintun 集成测试候选（不动系统默认路由/WFP）
+
+前一代码 `5b96405` 真 Wintun /32+DAD、MTU、DNS、TEST-NET /32 独立操作已 Win2022/25 scoped PASS；文档 HEAD `318d31e13d5b42935bce8f3982eab57267f17e21` Foundation38386382673 SUCCESS。新候选在临时随机 Wintun 上用真实 Win32 全局互斥和创建句柄 LUID/generation Hold，使单个五阶段 N4NativeUnifiedTxn 真正顺序运行 native lease、native MTU、native DNS 并以同一 WAL 逆序 Get/Restore/Stop 两次。**WFP和 routes 在本试验仍是假阶段，绝不触及共享 runner 的全局 IPv6/DNS 或两条 /1 生产捕获路由**，不能宣称 N4 产品已通过。等新 SOURCE 两代 Win Actions 返回，再解决安全 WFP 多Wintun/崩溃旧句柄归属，然后正式 Windows 客户端去 PowerShell 与 N6 全量验收。N2 遗留 OPEN；physical NOT_RUN。
+
 ## 2026-10-13 N4 SDK 真 Windows 最小能力完成：IP、DNS、MTU、TEST-NET 路由均限定 PASS
 
 最新代码 SOURCE `5b96405b362edbba0f96665270aa8a609da81df7` 的 [真实新建 Wintun Action38385692671](https://github.com/lly8666/wobuzhidao/actions/runs/38385692671) 两代 Win2022/25 最终 SUCCESS：临时本进程 Wintun 创建与 LUID/ifIndex、/32地址/DAD Preferred、MTU修改与原始65535 Restore、DNS静态Set/Clear/Get动态回滚、TEST-NET保留网段孤立 /32 native Route Create/Get/Owned Delete、/32地址删除都实际执行；Win2022 artifact11805477071、Win2025 artifact11805561978。Foundation38385692793七必需及Lifecycle38385692652均 SUCCESS。**仍未安装真正保护全局的 WFP 或真实两 /1 捕获（生产网络路由=NOT_RUN）**。当前 N4 的核心阻塞是全局/多Wintun WFP防泄漏安全与崩溃跨进程 adapter 归属，才能将这些原生 API 装配到正式客户端并删除活动 PowerShell/.ps1；N6 三目标同源 P6、物理 NOT_RUN。N2 C04/C05/C10及80秒遗留 OPEN。不要重复上述已 PASS 的单独功能，只推进最后这几个生产硬门。
