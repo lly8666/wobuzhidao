@@ -23,6 +23,10 @@ type N4UnifiedIdentity struct {
  Generation [16]byte `json:"generation"`
  WintunLUID uint64 `json:"wintun_luid"`
  WintunIndex uint32 `json:"wintun_index"`
+ // Optional v1 local WAL identity extension. Production adoption must
+ // explicitly require BOTH; legacy journals never become owner proof.
+ WintunGUID string `json:"wintun_guid,omitempty"`
+ AdapterAlias string `json:"adapter_alias,omitempty"`
 }
 func (v N4UnifiedIdentity) valid() bool {
  return v.Installation!=([16]byte{}) && v.Generation!=([16]byte{}) &&

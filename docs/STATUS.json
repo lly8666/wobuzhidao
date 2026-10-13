@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_HOSTED_REQUESTED_GUID_NATIVE_ID_SCOPED_ACTIONS_PASS_JOURNAL_CRASH_WFP_CLI_OPEN",
+    "phase": "N4_GUID_GENERATION_CHECKSUM_WAL_REAL_WINTUN_READONLY_OWNER_GATE_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "459fe064a63da41e09ac9ab8ebc330238fbb9011",
-    "implementation": "SOURCE_459FE_GUID_RANDOM_REQUESTED_GUID_EQUALS_NATIVE_IFACE_GUID_WIN2022_WIN2025_SCOPED_PASS;N4_MATRIX_LIFECYCLE_FOUNDATION_ALL_PASS;C6D7_COMPILE_FAILURE_REPAIRED_PRESERVED;GLOBAL_WFP_ARM_DISABLED_FIVE_STAGE_DRY_ONLY_CRASH_OWNER_SCRIPTLESS_CLI_OPEN",
+    "implementation": "SOURCE_459FE_REQUESTEDGUID_REAL_WINTUN_OS_NATIVE_MATCH_SCOPED_PASS;NEW_LOCAL_WAL_GUID_GENERATION_ALIAS_LUID_INDEX_READONLY_CORROBORATION_PROBE_WIN2022_WIN2025_ACTIONS_PENDING;WFP_ARM_DISABLED_COMPOSER_DRY_CROSSPROCESS_CRASH_RECOVERY_NOT_IMPLEMENTED_CLI_PS_ACTIVE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "N4 next: leverage SCOPED Win2022/25 RequestedGUID==native GUID readback ONLY as one input toward bounded journal-bound GUID+generation owner proof and real cross-process crash/restart no-foreign-alias recovery. Add OS-native adapter identity CAS / durable WAL generation and Actions across Win2022/25, carefully refuse legacy WAL or modified foreign adapter. Independently implement production-safe coexistent persistent WFP DNS/IPv6 or externally continuous OS-exclusive fail closed; unsafe global Arm currently DISABLED, five-stage composer DRY. Then official cmd/wbd-client native Apply/Stop/Recover without .ps1, isolated capable Windows actual guarded /32+two /1+bounded DNS /32 tests, N5 cross-feature, N6 P6 three-target same SOURCE packages/manifest/hash; physical NOT_RUN. Preserve C04/C05 FAIL, C10 GE p99 and 80s S2C OPEN; no deploy, merge or refs.",
-  "latest_log": "docs/devlog/20261013-n4-requested-guid-native-readback-final-scoped-actions.md",
+  "next_task": "Verify exact SOURCE hosted Win2022/25 read-only GUID+generation/alias/LUID/index bounded checksum WAL corroboration and foreign/legacy/corrupt negative gates by Actions; it DOES NOT grant native Apply/Recover ownership nor test process kill/restart. If scoped PASS, next validate real cross-process crash orphan and OS owner recovery with fail-closed foreign/ACL/CAS, then safe multi-Wintun WFP policy, scriptless official cmd/wbd-client native five-stage Apply/Stop/Recover, real protected /32+two /1+bounded DNS /32 isolated Actions, N5 integration, N6 P6 same-SOURCE three targets manifest/hash; physical NOT_RUN. N2 C04/C05, C10 GE and 80s S2C OPEN, no mainline/physical/deploy/qualification ref.",
+  "latest_log": "docs/devlog/20261013-n4-guid-generation-checksum-wal-readonly-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "459fe064a63da41e09ac9ab8ebc330238fbb9011",
   "last_tested_scope": "SOURCE_459FE_REAL_WIN2022_2025_REQUESTEDGUID_OS_NATIVE_LUID_INDEX_GUID_SCOPED_ACTION38393086100_PASS_N4_MATRIX38393086600_LINUX_RACE_WIN2022_2025_PASS_LIFECYCLE38393086299_PASS_FOUNDATION38393086310_ALL_SEVEN_PASS;REAL_WINTUN_LEASE_MTU_DNS_WAL_SCOPED_PASS_WFP_ROUTES_FAKE;CRASH_ORPHAN_NOT_RUN_PRODUCTION_WFP_NOT_IMPLEMENTED_P6_PHYSICAL_NOT_RUN",

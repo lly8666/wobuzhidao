@@ -1,3 +1,7 @@
+## 2026-10-13 N4 真实 Wintun + 原单 WAL GUID/generation 校验候选（Actions 待核）
+
+继精确 SOURCE `459fe064a63da41e09ac9ab8ebc330238fbb9011` Win2022/25 RequestedGUID OS 读回限定 PASS 后，本候选只扩展现有 `N4UnifiedIdentity` 本地 WAL 可选 `wintun_guid` / `adapter_alias`，并增加只读 OS live Wintun+唯一完整性哈希 WAL 四元校验；旧 WAL、错代、异 GUID、foreign alias 和篡改均拒绝。真实 Win2022/25 Actions 会执行，而不会触碰 production WFP/routes/DNS 或赋予新 adapter takeover 权。**非跨进程 crash 恢复，非真实网络恢复，非 N4 完成**。下一任务只看 STATUS，N2 残留 OPEN，P6/physical NOT_RUN。
+
 ## 2026-10-13 N4 Win2022/25 RequestedGUID 原生 LUID/Index/GUID 一致性限定 PASS；跨进程恢复 OPEN
 
 精确已验代码 SOURCE `459fe064a63da41e09ac9ab8ebc330238fbb9011`：真实临时 Win2022/25 Wintun RequestedGUID→LUID→Index→OS GUID 一致性 [Action38393086100](https://github.com/lly8666/wobuzhidao/actions/runs/38393086100) SUCCESS，N4 matrix [38393086600](https://github.com/lly8666/wobuzhidao/actions/runs/38393086600) SUCCESS，Lifecycle [38393086299](https://github.com/lly8666/wobuzhidao/actions/runs/38393086299) SUCCESS，Foundation [38393086310](https://github.com/lly8666/wobuzhidao/actions/runs/38393086310) 七必需 SUCCESS。**初始源码 `c6d7d74f` 重复 native 函数导致四项工作流 FAIL**（见新 devlog），已定点修复并在新 SOURCE 复验；历史 FAIL 绝不抹除。当前 GUID 一致不等于 crash owner proof，WFP 仍禁 Arm、正式 CLI 仍 PowerShell、真实 /1 WFP 保护与 P6 未跑，物理 NOT_RUN。STATUS 是唯一下一步，不能部署、合并或动资格 ref。
