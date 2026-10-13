@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_REAL_MIXED_KERNEL_TCP_UDP_10MS_PER_FLOW_NOHOL_SINGLE_ACTION_CANDIDATE_N4_NATIVE_DIRECT_STILL_OPEN",
+    "phase": "N2_REAL_MIXED_TCP_UDP_10MS_ACTION38326041291_GITHUB_BUILD_BEFORE_TRAFFIC",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2501,7 +2501,7 @@
       }
     },
     "n2_real_mixed_nohol": {
-      "status": "PREDECLARED_FORMAL_FIVE_NETNS_REALPATH_NOT_YET_RUN",
+      "status": "RUN38326041291_JOB115064818885_GITHUB_UNIT_RACE_AND_PREP_PASS_BINARY_BUILD_IN_PROGRESS_NO_PRODUCT_RESULT",
       "workflow": ".github/workflows/next-adaptive-n2-mixed-tcp-udp-nohol-single.yml",
       "business_helper": "tools/adaptive_n2_mixed_nohol_business.py",
       "realpath_helper": "tools/adaptive_n2_mixed_nohol_realpath.py",
@@ -2537,11 +2537,18 @@
         "physical NOT_RUN"
       ],
       "sample_run_id": "NOT_DISPATCHED",
-      "physical": "NOT_RUN"
+      "physical": "NOT_RUN",
+      "exact_source_sha": "014177a20e48bccf7d8bab8090b774f92dfb9847",
+      "action_run_id": 38326041291,
+      "action_job_id": 115064818885,
+      "model_and_python_units": "PASS",
+      "go_unit_race": "PASS",
+      "real_performance": "NOT_YET_OBSERVED",
+      "actual_artifact_id": null
     }
   },
-  "next_task": "User explicitly prioritizes verifying mixed TCP+UDP noHOL then finishing already present GUI config and continuing N4/N6. Current Windows GUI 273 native tests scoped PASS and AES128/AES256 realpath lossless individually scoped PASS, NOT need reimplement; N4 classifer/dispatcher native and race scoped PASS but true direct system stack TCP/UDP remains OPEN. Now one SOURCE/config/scenario/job GitHub Action candidate `.github/workflows/next-adaptive-n2-mixed-tcp-udp-nohol-single.yml`: actual formal five-netns with 4 long kernel TCP streams, 1 new short TCP per second, bulk UDP and separate 100Hz 96-byte UDP first arrivals each direction for 120s, 1pct tc netem each direction, 300ms one-way, total 10Mbps each, Normal auto. Preflight Go race and Python pure units then real binaries; analyze independent fast-UDP oneway p99 and 10ms gaps vs real short TCP first arrivals and source/backpressure; no mock API. Preserve any FAIL or capacity as evidence, no blind rerun. Next N4 native Direct TCP+UDP/or defer unsupported in Actions before N6 formal packages; N2 C04/C05 grade efficiency FAIL, C10 p99, legacy2.73s/80s OPEN, physical NOT_RUN no deploy/ref/mainline.",
-  "latest_log": "docs/devlog/20261013-n2-mixed-kernel-tcp-udp-10ms-nohol-candidate.md",
+  "next_task": "Current exact SOURCE014177a20e48bccf7d8bab8090b774f92dfb9847 one true five-netns mixed TCP/UDP noHOL Action38326041291 job115064818885. GitHub Go adaptivefec/datapath/runtime/linkdata unit+race PASS and new three Python 10ms/five-netns derivation, CRC and gap parser unit PASS, 5netns prereqs PASS, build current source IN_PROGRESS. ONE 120s Normal auto 1% each/300ms each-way/10Mbps each direction mixed 4 long TCP, short TCP 1/s, UDP bulk and fast 100Hz independent UDP must run next; source SHA not docs-only HEAD. Inspect artifact exact fields, actual qdisc loss, first unique fast UDP p99 and 10ms gap, short TCP flows in both directions, kernel capture/capacity/CPU; preserve FAIL if any. GUI FEC and AES native Windows 273 PASS already, N4 true direct native Windows TCP/UDP pending, N6 packages pending. N2 C04/C05 efficiency FAIL C10 severe tail and 2.73s/80s OPEN; physical NOT_RUN no deployment ref merge.",
+  "latest_log": "docs/devlog/20261013-n2-mixed-nohol-first-action-registered.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "a4689a48e5bbafba05e8759be9b2ef4405770854",
   "last_tested_scope": "N4_PURE_WINDOWSCLIENT_TUN_CLASSIFIER_LINUX_GO_UNIT_RACE_AND_WINDOWS_NATIVE_GO_UNIT_SCOPED_PASS_NOT_REAL_ROUTER",
