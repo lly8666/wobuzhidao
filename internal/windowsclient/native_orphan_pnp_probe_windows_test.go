@@ -6,6 +6,9 @@ import (
  "context"
  "errors"
  "testing"
+ "strings"
+ "path/filepath"
+ "os"
 )
 
 func TestN4WindowsOriginalPnPProbeRejectsMissingOwnerAndCancel(t *testing.T){
