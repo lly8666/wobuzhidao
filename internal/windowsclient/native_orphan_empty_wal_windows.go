@@ -11,29 +11,55 @@ import (
  "golang.org/x/sys/windows"
 )
 
-// n4OriginalWintunAbsent never interprets conversion error 87 as proof
-// of absence: ConvertInterfaceGuidToLuid may report INVALID_PARAMETER after
-// removal. A complete read-only GetIfTable2Ex snapshot independently
-// enumerates GUID, LUID and index for every live OS network interface.
+// n4OriginalWintunAbsent enumerates all adapters with the existing
+// GetAdaptersAddresses Win32 binding in the pinned x/sys version. The newer
+// Go GetIfTable2Ex wrappers are NOT present in pinned x/sys v0.33.0.
+// No GUID conversion error (especially 87) is evidence of OS absence.
 func n4OriginalWintunAbsent(ctx context.Context,id N4UnifiedIdentity)error{
  if err:=ctx.Err();err!=nil{return err}
  if !id.valid() || id.AdapterAlias=="" || len(id.AdapterAlias)>128 ||
   id.WintunGUID=="" || len(id.WintunGUID)>64{return ErrN4JournalConflict}
  guid,err:=windows.GUIDFromString(id.WintunGUID)
  if err!=nil || guid.String()!=id.WintunGUID{return ErrN4JournalConflict}
- var table *windows.MibIfTable2
- if err:=windows.GetIfTable2Ex(0,&table);err!=nil{return errors.Join(ErrN4NativeGuard,err)}
- if table==nil{return ErrN4NativeGuard}
- defer windows.FreeMibTable(unsafe.Pointer(table))
- // An implausibly large or uninspectable native table is not proof that a
- // crashed NIC vanished. Bound this read-only scan, never truncate it.
- if table.NumEntries>4096{return ErrN4NativeGuard}
- for _,row:=range unsafe.Slice(&table.Table[0],int(table.NumEntries)){
+ // GAA_FLAG_INCLUDE_ALL_INTERFACES plus skip optional address lists. Do not
+ // skip down/unbound interfaces which might be the original Wintun.
+ const flags uint32=0x100 | 0x1 | 0x2 | 0x4 | 0x8 | 0x20
+ const maxBytes=1024*1024
+ buf:=make([]byte,16*1024)
+ for attempt:=0;attempt<3;attempt++{
   if err:=ctx.Err();err!=nil{return err}
-  if row.InterfaceGuid==guid || row.InterfaceLuid==id.WintunLUID ||
-   row.InterfaceIndex==id.WintunIndex {return ErrN4ForeignRoute}
+  size:=uint32(len(buf))
+  first:=(*windows.IpAdapterAddresses)(unsafe.Pointer(&buf[0]))
+  err:=windows.GetAdaptersAddresses(0,flags,0,first,&size)
+  if errors.Is(err,windows.ERROR_BUFFER_OVERFLOW){
+   if size>maxBytes || int(size)<=len(buf){return ErrN4NativeGuard}
+   buf=make([]byte,int(size))
+   continue
+  }
+  if err!=nil{return errors.Join(ErrN4NativeGuard,err)}
+  count:=0
+  for row:=first;row!=nil;row=row.Next{
+   if err:=ctx.Err();err!=nil{return err}
+   count++
+   if count>4096{return ErrN4NativeGuard}
+   if row.IfIndex==id.WintunIndex || row.Ipv6IfIndex==id.WintunIndex ||
+    row.Luid==id.WintunLUID{return ErrN4ForeignRoute}
+   if row.AdapterName==nil{return ErrN4NativeGuard}
+   name:=""
+   foundEnd:=false
+   for i:=uintptr(0);i<128;i++{
+    ch:=*(*byte)(unsafe.Add(unsafe.Pointer(row.AdapterName),i))
+    if ch==0{foundEnd=true;break}
+    name+=string(ch)
+   }
+   if !foundEnd{return ErrN4NativeGuard}
+   adapterGUID,parseErr:=windows.GUIDFromString(name)
+   if parseErr!=nil{return ErrN4NativeGuard}
+   if adapterGUID==guid{return ErrN4ForeignRoute}
+  }
+  return ctx.Err()
  }
- return ctx.Err()
+ return ErrN4NativeGuard
 }
 
 // N4WindowsRetireEmptyOrphanWAL handles ONLY the crash gap after an empty,

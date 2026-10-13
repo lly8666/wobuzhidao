@@ -1,3 +1,7 @@
+## 2026-10-13 N4 固定 Go x/sys Windows SDK 编译阻塞，原生 GetAdaptersAddresses 候选待 Actions
+
+SOURCE `442201542310d1531e8db8fc3e8acaff46cf12af` 原想 GetIfTable2Ex 全表枚举，但仓库 pinned x/sys v0.33.0 不含对应 Go wrapper：Lifecycle38400869750、N4Matrix38400869989、real Wintun38400870088 均 FAIL，Foundation38400869862 Windows FAIL，原记录保留。新候选使用该版本已支持的 Windows GetAdaptersAddresses(ALL_INTERFACES) 读出每个活接口的 GUID/NET_LUID/IPv4+IPv6 index，明确有冲突拒绝；完整枚举/名字解析失败也拒绝。新增真实 Win child 存活时禁止清退 WAL，死亡后仅空 WAL/owned WFP absent 情况允许仅清 journal。需新 SOURCE Win2022/25/N4 Linux race/Foundation/Lifecycle Actions。上一 810eb 真实 crashed orphan OS GUID conversion=87，不能当 absence PASS。N4 WFP 多 Wintun 保护/非空 crash/去 PowerShell 生产 CLI、两/1 全 OPEN；N6/physical NOT_RUN，N2 C04/C05/C10及80秒尾部 OPEN；唯一 next_task 看 STATUS。
+
 ## 2026-10-13 N4 真 child crash GUID 返回87，原生全接口表只读修复候选待 Actions
 
 精确上一代码 SOURCE `810eb5182f323fa17b7b5a292fe7d98ce0a2b333`：N4 matrix38399936484、Foundation38399936453 全7、Lifecycle38399936465 均 SUCCESS，真实 Win2022/25 38399936566 两 job SUCCESS，**但真实 child TerminateProcess 后旧 Wintun 消失，空 WAL cleanup 两端均因 GUID->LUID 状态87 未被证明而 UNSUPPORTED/测试 SKIP，不能当 crash Recover PASS**。新候选不用87解释不存在，改完整 Win32 GetIfTable2Ex 原生只读枚举 GUID/LUID/ifIndex：原 NIC 活着拒绝删除，死后只有三键全不存在、无 owned WFP、WAL 空/校验和正确才删除 journal，仍不动 OS 网络/新建旧别名。新 CODE SOURCE 仍须 Actions Win2022/25 + N4 race/Foundation/Lifecycle 验证。非空 WAL/WFP 共存/无脚本 CLI/两条/1/N6/physical OPEN；N2 C04/C05/C10及80s 遗留 OPEN，next_task 只看 STATUS。

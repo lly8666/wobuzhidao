@@ -1,0 +1,11 @@
+# N4 native MIB_IF_ROW2 unavailable in pinned x/sys: reuse GetAdaptersAddresses — candidate 2026-10-13
+
+Repo `lly8666/wobuzhidao`; branch next/adaptive-fec-aes-tun-20261010. Parent CODE SOURCE `442201542310d1531e8db8fc3e8acaff46cf12af` attempted Win32 GetIfTable2Ex through Go x/sys wrapper; compiler in live Actions proves pinned x/sys 0.33.0 lacks `windows.MibIfTable2`, `windows.GetIfTable2Ex`, and `windows.FreeMibTable`:
+- [Lifecycle38400869750](https://github.com/lly8666/wobuzhidao/actions/runs/38400869750) FINAL FAIL at Windows build, three undefined symbols.
+- [N4 matrix38400869989](https://github.com/lly8666/wobuzhidao/actions/runs/38400869989) FINAL FAIL, Windows compilation; [real Wintun38400870088](https://github.com/lly8666/wobuzhidao/actions/runs/38400870088) FINAL FAIL same build, no real driver result for this SOURCE.
+- [Foundation38400869862](https://github.com/lly8666/wobuzhidao/actions/runs/38400869862) Windows active-Go FAILED; remaining jobs' completion scope to verify by final job records, never rewrite failures.
+- Prior CODE SOURCE `810eb5182f323fa17b7b5a292fe7d98ce0a2b333` compiled and all scoped workflows SUCCESS but crash empty-WAL test **SKIPPED/UNSUPPORTED_OS_ABSENCE_UNPROVEN** on both real Win2022/25 because `ConvertInterfaceGuidToLuid` status 87 cannot prove absence. That remains UNKNOWN, not PASS.
+
+Current atomic candidate uses the EXISTING x/sys Windows `GetAdaptersAddresses` interface, with `GAA_FLAG_INCLUDE_ALL_INTERFACES`, bounded <=1MiB buffers, <=4096 full-interface scan, native adapter GUID parsed from AdapterName plus live LUID, IPv4 and IPv6 ifIndex; any match refuses journal delete, any unexpected GUID/OS/error/overcapacity refuses, no 'error 87 = absent'. Real child test explicitly checks currently LIVE adapter causes foreign refusal and WAL retained before TerminateProcess, then original retired adapter may permit **EMPTY WAL ONLY** cleanup if WFP sublayer separately absent. No OS networking mutation, no global WFP, no two /1 routes, no cross-process full native Recover. Win2022/Win2025/N4 race/Foundation/Lifecycle new exact SOURCE Actions required.
+
+Production coexistent WFP Arm disabled and cmd/wbd-client PowerShell still active; N6 same-SOURCE three targets, physical NOT_RUN; N2 C04/C05 efficiency FAIL, C10 GE and ~80s S2C OPEN. No deployment or mainline merge.
