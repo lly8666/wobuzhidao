@@ -1,3 +1,7 @@
+## 2026-10-13 N4 guard-intent-only 真 child crash scoped PASS；生产 WFP/无脚本/隔离 Actions 阻塞
+
+CODE SOURCE `6676fe49416ddff291e2941f24c860f9e729001a` N4 matrix38405817018 Win2022/25+Linux race、Foundation38405817041 全7、Lifecycle38405817392 PASS；该 SOURCE 真实 Wintun workflow38405814495 **FAIL**（YAML，零 jobs）保留。修复 workflow 后 `199219c21aa2c955adcdc802a065ad14460257eb` Go 代码不变，真实 Win2022/25 Wintun38406319452 两 job 实际 `TestN4WindowsHostedRealGuardIntentOnlyCrashRecovery` PASS、Foundation38406319462 全7 PASS；但不是一个 SHA 上的所有工作流。只证明崩溃发生于首项 OS 修改前的空/单 guard-intent WAL，在原 Wintun 被 Windows 移除且无 owned WFP/路由 sidecar 的情况下清 journal，完整跨进程五阶段恢复仍 UNSUPPORTED/NOT_RUN。**WFP LUID!=own 规则会阻断其他独立 Wintun，Arm 仍禁，正式 CLI PowerShell 未删，真实保护 /32+两 /1 需可信隔离 Windows Actions 环境，当前 hosted runner 未执行。** N6 同源 P6 三目标包/hash 未跑、physical NOT_RUN，N2 C04/C05 FAIL、C10 GE 和 80s 尾部 OPEN。next_task 和唯一状态以 STATUS 为准。
+
 ## 2026-10-13 N4 guard-intent crash Actions 工作流 YAML 错误修复候选
 
 上一 CODE SOURCE `6676fe49416ddff291e2941f24c860f9e729001a` 已提交 guard-intent-only 空副作用 WAL 回收与侧路由日志否决，但真实 Wintun workflow38405814495 因新步骤错误插入 YAML 被 GitHub 在 job 调度前判 FAIL（0 jobs），绝不是实测驱动失败或通过。Lifecycle38405817392 SUCCESS，N4 matrix38405817018/Foundation38405817041 仍须查最终状态。此候选从上次有效 workflow 355bd64 重建，保证 Win2022/25 真 child fsync guard intent → 前杀拒清 → TerminateProcess 后仅 journal 清退 scoped 报告。新 SOURCE 四组 Actions 才能确证，不能继承旧绿；WFP Arm 仍禁、非空五阶段 crash、正式 CLI PowerShell、真实 /32+两/1/N6/physical 全 OPEN。N2 C04/C05/C10和80s 尾部 OPEN；next_task 唯一取 STATUS。
