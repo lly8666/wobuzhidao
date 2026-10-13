@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "date": "2026-10-13",
+  "classification": "N2_REAL_MIXED_TCP_UDP_10MS_FIRST_SOURCE_GITHUB_WORKFLOW_FAIL_FIXTURE_SEED_MISMATCH_SERVER_EARLY_EXIT_NO_PRODUCT_HOL_QUALIFICATION",
+  "source_sha": "014177a20e48bccf7d8bab8090b774f92dfb9847",
+  "run_id": 38326041291,
+  "job_id": 115064818885,
+  "artifact_id": 11780558764,
+  "artifact_zip_sha256": "a01dd8f973db9429b1db0bed4464d1feeb28eac5fee8401e34f292095ff4ce2f",
+  "biz_json_sha256": "0e21d0af211712d5970e2dab47835b98cd678d2f45b8924604c7907f973570d6",
+  "target_json_sha256": "bc9bc27a69c7421ab023766fefbb5f544c489b21a3e2dcfc42eb27e4b5c5bd5c",
+  "server_log_sha256": "177581c72cefba7d6ec0a107cbf78a30380f6f3c75ee62be9e732eb543d614fd",
+  "client_log_sha256": "39cdb9495671343b215f68a6dfcf3d5ea05960c4fb198fe8a2f2a096075d69a6",
+  "harness_prep_sha256": "47f0f8c1dbdc48b3b528c5585e6aceda4839693ab0acfc25b6eaa8c1edcc908e",
+  "process_state_sha256": "0772619011136194c005a41c53f4cca19d8f65e21cc76547f90bf4128a36fa17",
+  "resource_samples_sha256": "4576c29b3d499f2adb383f9d3399aade25d5176e61d3bb30ae9368111d023648",
+  "runner_cpu_scope_sha256": "816a86b1eaf2168995e4aafbbf5dd9ff8fb805e67b5c7c6cda0cf05a8abbc13b",
+  "derived_script_sha256": "77e82ce06d394fb57b16a28453be5ec3fbb75e8f927237bee7dffe1e61d73965",
+  "first_failing_step": "One SOURCE single 120s mixed Linux TCP+UDP four long plus short TCP streams ...",
+  "final_outcomes": {
+    "sample": "failure",
+    "verify": "failure",
+    "enforce": "failure",
+    "artifact_uploaded": true
+  },
+  "valid_preflight": [
+    "repo/performance policy",
+    "one SOURCE/config/scenario claim",
+    "Go N2 unit/race",
+    "3 Python mixed source/CRC/timebin unit",
+    "real Go client/server binaries and five-netns"
+  ],
+  "exact_prod_server_stderr": "WBD_SERVER_STOPPED cleanup=owned-only lanes=1; runtimeentry: published lane 1/1 segment: dial tcp4 10.50.0.2:18081: connect: connection refused; cleanup net.ipv6.conf.wbdg0.disable_ipv6 missing after device exit",
+  "actual_source_behavior": {
+    "app_active_seconds": 120,
+    "old_target_process_drain_seconds": 3,
+    "source_biz_tcp_seed": 2026092202,
+    "target_tcp_seed": 2026092201,
+    "short_tcp_biz_created": 120,
+    "target_tcp_sessions_at_exit_approx": 6
+  },
+  "actual_probe": {
+    "C2S": {
+      "fast_sent": 12000,
+      "first_unique_received": 244,
+      "received_only_p99_ms": 1155.76436,
+      "short_tcp_written": 120,
+      "short_tcp_rx_accepted0": 0
+    },
+    "S2C": {
+      "fast_sent": 11900,
+      "first_unique_received": 11884,
+      "received_only_p99_ms": 984.443616,
+      "short_tcp_written": 2
+    }
+  },
+  "confirmed_fixture_defect": [
+    "TCP shared stream frame sender receiver seeds differed by one, so whole application payload checks fail on good transport bytes",
+    "Native target TCP listener stops at +3s despite late transparent TCP connections arriving after application active phase; server propagated refusal and exited"
+  ],
+  "not_proven": [
+    "Actual tc qdisc dropout fraction: AFTER qdisc not collected",
+    "No valid TCP CRC or TCP short-flow bidirectional first delivery",
+    "No validated independent mixed 10ms noHOL pass",
+    "Not enough causal evidence to attribute C2S asymmetry to product vs invalid seed/early backend shutdown"
+  ],
+  "frozen_next_action": {
+    "network_active_s": 120,
+    "loss_pct_each_way": 1,
+    "each_way_delay_ms": 300,
+    "each_way_total_mbps": 10,
+    "new_shared_tcp_seed_both_roles": 2026092202,
+    "new_app_listener_drain_s": 20,
+    "same_screens": {
+      "fast_unique_fraction_at_least": 0.96,
+      "fast_oneway_p99_max_ms": 900,
+      "fast_gap_10ms_bins_max": 30,
+      "short_tcp_first_received_per_direction_min": 25
+    }
+  },
+  "preserved_prior_failures": [
+    "C04 S2C recover5 78.3% / 90%",
+    "C05 10% S2C grade70% /90%",
+    "C10 GE p99 1833/1947.5ms; probes max 3.405s and 6 missing",
+    "Legacy 2.73s probe long-tail, 80s S2C interruption"
+  ],
+  "N2": "OPEN",
+  "N3_GUI": "SCOPED_PASS_EXISTING",
+  "N4_native_direct": "NOT_RUN",
+  "physical": "NOT_RUN"
+}

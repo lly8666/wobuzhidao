@@ -14,6 +14,11 @@ class FrozenMixedNoHOLFixture(unittest.TestCase):
             self.assertEqual(s.count("--workload mixed"),2)
             self.assertEqual(s.count("--duration-s 120"),2)
             self.assertEqual(s.count("--rate-mbps 10"),2)
+            # TCP receive must verify the same shared seed as its peer.
+            self.assertEqual(s.count('--seed 2026092202'),2)
+            self.assertEqual(s.count('--seed 2026092201'),0)
+            self.assertEqual(s.count('"drain_s": 20'),1)
+            self.assertEqual(business.DRAIN_S,20)
             self.assertEqual(s.count('GEN="$GITHUB_WORKSPACE/tools/adaptive_n2_mixed_nohol_business.py"'),1)
             self.assertEqual(s.count('--fec-mode auto --fec-min-parity 4'),1)
             self.assertEqual(s.count('--fec-parity 20'),1)

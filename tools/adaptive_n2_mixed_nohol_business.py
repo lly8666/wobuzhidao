@@ -28,7 +28,7 @@ assert len(BOUNDARY)==100
 TCP_WRITES = (256, 4096, 65536, 1048576)
 PROBE_BYTES_PER_SECOND = 96*5
 SHORT_BYTES_PER_SECOND = 24576
-DRAIN_S = 3
+DRAIN_S = 20
 
 def ns():
     return time.monotonic_ns()

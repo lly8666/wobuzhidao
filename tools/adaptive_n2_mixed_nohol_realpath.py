@@ -25,6 +25,13 @@ def prepare(root,out,receipt):
     s=exact(s,'--role target --bind 10.50.0.2:18080',
             '--role target --bind 10.50.0.2:18080 --peer 10.40.0.2:28080')
     s=exact(s,'"duration_s": 100','"duration_s": 120')
+    # Unlike realpath_udp_duplex, mixed kernel TCP frames check a shared
+    # directional seed at BOTH endpoints. The original unequal role seeds
+    # made all legitimate TCP frames fail the business CRC check.
+    s=exact(s,'--seed 2026092201','--seed 2026092202')
+    # The target native TCP listener must stay alive during delayed TCP
+    # connection establishment and application drain. Active load remains120s.
+    s=exact(s,'"drain_s": 10','"drain_s": 20')
     s=exact(s,'"loss_percent": 0','"loss_percent": 1')
     s=exact(s,'printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"',
         'printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"'+
@@ -52,7 +59,7 @@ def prepare(root,out,receipt):
       "realpath_helper_sha256":digest(root/"tools/adaptive_n2_mixed_nohol_realpath.py"),
       "generated_script_sha256":digest(out),
       "scenario":"one 120s continuous 10Mbps each direction mixed kernel TCP+UDP, separate 10ms 96B UDP, 300ms each-way, 1pct tc random each direction, Normal auto initial20 floor4, diagnostics ON",
-      "netem_rng":"UNSEEDED", "performance_cases":1},indent=2,sort_keys=True)+"\n")
+      "netem_rng":"UNSEEDED", "business_seeds_both_roles":[2026092202,2026092202], "drain_seconds":20, "performance_cases":1},indent=2,sort_keys=True)+"\n")
 
 def percentile(values,p):
     if not values:return None

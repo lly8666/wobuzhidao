@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_REAL_MIXED_TCP_UDP_10MS_ACTION38326041291_GITHUB_BUILD_BEFORE_TRAFFIC",
+    "phase": "N2_REAL_MIXED_TCP_UDP_FIRST_SOURCE_FAILURE_AUTHENTIC_HOL_UNQUALIFIED_FIX_DETERMINISTIC_TCP_SEED_AND_TARGET_DRAIN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2501,7 +2501,7 @@
       }
     },
     "n2_real_mixed_nohol": {
-      "status": "RUN38326041291_JOB115064818885_GITHUB_UNIT_RACE_AND_PREP_PASS_BINARY_BUILD_IN_PROGRESS_NO_PRODUCT_RESULT",
+      "status": "ACTION38326041291_REAL_NET_TCP_SEED_FIXTURE_INVALID_AND_SERVER_EARLY_EXIT_FAIL_NOHOL_NOT_QUALIFIED",
       "workflow": ".github/workflows/next-adaptive-n2-mixed-tcp-udp-nohol-single.yml",
       "business_helper": "tools/adaptive_n2_mixed_nohol_business.py",
       "realpath_helper": "tools/adaptive_n2_mixed_nohol_realpath.py",
@@ -2544,11 +2544,65 @@
       "model_and_python_units": "PASS",
       "go_unit_race": "PASS",
       "real_performance": "NOT_YET_OBSERVED",
-      "actual_artifact_id": null
+      "actual_artifact_id": null,
+      "first_action": {
+        "source_sha": "014177a20e48bccf7d8bab8090b774f92dfb9847",
+        "action_run_id": 38326041291,
+        "job_id": 115064818885,
+        "artifact_id": 11780558764,
+        "zip_sha256": "a01dd8f973db9429b1db0bed4464d1feeb28eac5fee8401e34f292095ff4ce2f",
+        "workflow_conclusion": "FAILURE",
+        "go_unit_race": "PASS",
+        "three_python_preflight_units": "PASS",
+        "binary_build": "PASS",
+        "real_network_120s": "RUN_DONE_BUT_EARLY_SERVER_EXIT_AND_BAD_TCP_SEED",
+        "root_1": "biz kernel TCP writer seed2026092202, target reader2026092201, all initial CRCs invalid; UDP frame format carries own seed so unaffected",
+        "root_2": "target native TCP listener closed after 3s drain even when delayed connections were still pending, server terminal dial tcp4 10.50.0.2:18081: connect refused",
+        "manifest_and_qdisc_after": "MISSING_DUE_EARLY_SERVER_EXIT",
+        "process_state_after_drain": {
+          "client_alive": 1,
+          "server_alive": 0
+        },
+        "fast_udp_c2s_sent": 12000,
+        "fast_udp_c2s_received_target": 244,
+        "fast_udp_c2s_return_only_p99_ms": 1155.76436,
+        "fast_udp_s2c_sent": 11900,
+        "fast_udp_s2c_received_biz": 11884,
+        "fast_udp_s2c_return_only_p99_ms": 984.443616,
+        "target_accepted_or_tcp_rx_flow_entries": 6,
+        "biz_tcp_sent_short_flows": 120,
+        "biz_tcp_recv_bad_frames": 5,
+        "target_tcp_recv_bad_frames": 6,
+        "evidence": "docs/evidence/adaptive-n2-mixed-nohol-first-realpath-fail-seed-and-server-20261013.json",
+        "meaning": "FIRST_SOURCE_NOHOL_UNQUALIFIED_NOT_PRODUCT_HOL_DIAGNOSED",
+        "prior_full_N2": "OPEN"
+      },
+      "narrow_fix_candidate": {
+        "touched_files": [
+          "tools/adaptive_n2_mixed_nohol_business.py",
+          "tools/adaptive_n2_mixed_nohol_realpath.py",
+          "tools/test_adaptive_n2_mixed_nohol.py"
+        ],
+        "changes": [
+          "same deterministic seed2026092202 both application roles for TCP frames",
+          "target TCP listener and both app generators stay alive 20s drain instead of3s",
+          "formal derived manifest drain_s becomes20 without changing 120s load or 1pct/300ms WAN",
+          "hard Python preflight assert both seeds, drain, native source"
+        ],
+        "no_changes_to": [
+          "product code",
+          "normal FEC soft/hard gates",
+          "netem loss level or per direction",
+          "120s active length",
+          "fast UDP 900ms p99/96pct unique/30bins/30short TCP frozen conditions"
+        ],
+        "note": "Extra 17s is listener drain only; product transport behavior must be re-evaluated and actual asymmetric first arrivals kept in the old source FAIL record",
+        "next_run_id": "NOT_YET_OBSERVED"
+      }
     }
   },
-  "next_task": "Current exact SOURCE014177a20e48bccf7d8bab8090b774f92dfb9847 one true five-netns mixed TCP/UDP noHOL Action38326041291 job115064818885. GitHub Go adaptivefec/datapath/runtime/linkdata unit+race PASS and new three Python 10ms/five-netns derivation, CRC and gap parser unit PASS, 5netns prereqs PASS, build current source IN_PROGRESS. ONE 120s Normal auto 1% each/300ms each-way/10Mbps each direction mixed 4 long TCP, short TCP 1/s, UDP bulk and fast 100Hz independent UDP must run next; source SHA not docs-only HEAD. Inspect artifact exact fields, actual qdisc loss, first unique fast UDP p99 and 10ms gap, short TCP flows in both directions, kernel capture/capacity/CPU; preserve FAIL if any. GUI FEC and AES native Windows 273 PASS already, N4 true direct native Windows TCP/UDP pending, N6 packages pending. N2 C04/C05 efficiency FAIL C10 severe tail and 2.73s/80s OPEN; physical NOT_RUN no deployment ref merge.",
-  "latest_log": "docs/devlog/20261013-n2-mixed-nohol-first-action-registered.md",
+  "next_task": "First true kernel mixed TCP/UDP 10ms source014177a run38326041291/job115064818885/artifact11780558764 ZIPa01dd8f FAILED: Go unit/race/preflight/build passed, product server exited before end due late dial TCP target10.50.0.2:18081 refused after target 3s drain, raw qdisc after/summary absent. Fixture invalid because biz/target used different TCP CRC seed2026092202 vs2026092201; ALL initial TCP rx bad, only 6 target sessions while 120 new biz short sessions; no credible noHOL. Existing GHA raw firstunique independent fast UDP C2S244/12000 vs S2C11884/11900 and oneway p99 C2S1155.8/S2C984.4ms retained as investigation, NOT mark noHOL PASS. Narrow correction under same fixed WAN active load 120s/1pct/300ms/10Mbps: use identical business seed2026092202 both roles, 20s listener/app drain and assert new shared seed in Github before real load, keep all frozen latency/capacity/flow screens. Re-run a new exact SOURCE once; if persistent huge fast-UDP C2S loss/delayed TCP, classify actual product or capacity issue not endless fixture adjustment. GUI FEC/AES already 273 native tests PASS and in 传输, N3 AES realpath scoped PASS; N4 native direct and N6 pending, N2 previous C04/C05 FAIL and C10 long-tail OPEN, physical NOT_RUN no deploy/ref/mainline.",
+  "latest_log": "docs/devlog/20261013-n2-mixed-nohol-first-realpath-server-exit-seed-crc-fail.md",
   "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
   "last_tested_source_sha": "a4689a48e5bbafba05e8759be9b2ef4405770854",
   "last_tested_scope": "N4_PURE_WINDOWSCLIENT_TUN_CLASSIFIER_LINUX_GO_UNIT_RACE_AND_WINDOWS_NATIVE_GO_UNIT_SCOPED_PASS_NOT_REAL_ROUTER",
