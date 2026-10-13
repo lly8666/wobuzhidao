@@ -140,6 +140,10 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
  if liveProbe.IPv4!="PRESENT"{t.Fatalf("new live Wintun without IPv4 row: %s",liveProbe.IPv4)}
  report["ipv4_row_live"]=liveProbe.IPv4
  report["ipv6_row_live"]=liveProbe.IPv6
+ livePnP,pnpErr:=n4ProbeOriginalWintunPnP(context.Background(),j.Identity)
+ if pnpErr!=nil{t.Fatalf("original live Win32 Wintun PnP GUID-to-devnode evidence unavailable: %v",pnpErr)}
+ report["pnp_state_live"]=livePnP.State
+ report["pnp_instance_live_sha256"]=livePnP.InstanceSHA256
  report["real_wintun"]="PASS_CHILD_CREATED_ORIGINAL_GUID_LUID_INDEX"
  report["lease_mtu_dns"]="PASS_REAL_NATIVE_WRITES_FSYNCED"
  g:=&n4OwnedOrphanFakeGuard{state:N4UnifiedOwned}
@@ -216,6 +220,20 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
      }
      report["ipv4_row_after"]=ghostProbe.IPv4
      report["ipv6_row_after"]=ghostProbe.IPv6
+     ghostPnP,pnpErr:=n4ProbeOriginalWintunPnP(context.Background(),j.Identity)
+     if pnpErr!=nil {
+      if _,e:=os.Stat(wal);e!=nil{t.Fatalf("unproven original PnP lost parent WAL: %v",e)}
+      if !fake.active || fake.disarmCount!=0{t.Fatal("unproven PnP disarmed guard")}
+      report["pnp_state_after"]="UNSUPPORTED_NATIVE_PNP_READBACK"
+      t.Logf("N4_POSTCRASH_PNP_READONLY=UNSUPPORTED err=%v WAL=RETAINED",pnpErr)
+     }else{
+      report["pnp_state_after"]=ghostPnP.State
+      report["pnp_instance_after_sha256"]=ghostPnP.InstanceSHA256
+      if livePnP.InstanceSHA256!=ghostPnP.InstanceSHA256{
+       t.Fatalf("original Wintun PnP device-instance hash changed across TerminateProcess: no takeover allowed")
+      }
+      t.Logf("N4_POSTCRASH_PNP_READONLY state=%s instance=EXACT_SAME guard=FAKE_ARMED wal=RETAINED",ghostPnP.State)
+     }
      t.Logf("N4_POSTCRASH_NATIVE_ROWS original=EXACT_TRIPLE ipv4=%s ipv6=%s guard=FAKE_ARMED wal=RETAINED",ghostProbe.IPv4,ghostProbe.IPv6)
      report["result"]="UNSUPPORTED_EXACT_ORIGINAL_IPV4_ROW_UNAVAILABLE"
      report["original_retired"]="UNSUPPORTED_SAME_ORIGINAL_TRIPLE_WITHOUT_IPV4_ROW"

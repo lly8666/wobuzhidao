@@ -1,0 +1,120 @@
+//go:build windows
+
+package windowsclient
+
+import (
+ "context"
+ "crypto/sha256"
+ "encoding/hex"
+ "errors"
+ "fmt"
+ "syscall"
+ "unsafe"
+
+ "golang.org/x/sys/windows"
+ "golang.org/x/sys/windows/registry"
+)
+
+var (
+ n4SetupAPI=windows.NewLazySystemDLL("setupapi.dll")
+ n4SetupClassDevs=n4SetupAPI.NewProc("SetupDiGetClassDevsW")
+ n4SetupEnumDevice=n4SetupAPI.NewProc("SetupDiEnumDeviceInfo")
+ n4SetupOpenDriverKey=n4SetupAPI.NewProc("SetupDiOpenDevRegKey")
+ n4SetupGetInstance=n4SetupAPI.NewProc("SetupDiGetDeviceInstanceIdW")
+ n4SetupDestroy=n4SetupAPI.NewProc("SetupDiDestroyDeviceInfoList")
+ n4CfgManager=windows.NewLazySystemDLL("cfgmgr32.dll")
+ n4CfgDevNodeStatus=n4CfgManager.NewProc("CM_Get_DevNode_Status")
+)
+
+type n4SPDevInfoData struct{
+ Size uint32
+ ClassGUID windows.GUID
+ DevInst uint32
+ Reserved uintptr
+}
+
+// n4OriginalPnPProbe never exposes raw PnP device IDs, aliases or registry
+// values. The hash is for correlating snapshots of a single test device,
+// NOT a generation-bound owner capability or permission to uninstall it.
+type n4OriginalPnPProbe struct{
+ State string
+ InstanceSHA256 string
+ ProblemCode uint32
+}
+
+func n4ProbeOriginalWintunPnP(ctx context.Context,id N4UnifiedIdentity)(n4OriginalPnPProbe,error){
+ var zero n4OriginalPnPProbe
+ if err:=ctx.Err();err!=nil{return zero,err}
+ if !id.valid() || id.WintunGUID=="" || id.AdapterAlias==""{
+  return zero,ErrN4JournalConflict
+ }
+ original,err:=windows.GUIDFromString(id.WintunGUID)
+ if err!=nil || original.String()!=id.WintunGUID{return zero,ErrN4JournalConflict}
+ if err:=n4OriginalWintunPersistedExact(ctx,id);err!=nil{return zero,err}
+ netClass,err:=windows.GUIDFromString("{4d36e972-e325-11ce-bfc1-08002be10318}")
+ if err!=nil{return zero,err}
+ enumerator,err:=windows.UTF16PtrFromString("SWD\\Wintun")
+ if err!=nil{return zero,err}
+ if err=n4SetupClassDevs.Find();err!=nil{return zero,err}
+ if err=n4SetupEnumDevice.Find();err!=nil{return zero,err}
+ if err=n4SetupOpenDriverKey.Find();err!=nil{return zero,err}
+ if err=n4SetupGetInstance.Find();err!=nil{return zero,err}
+ if err=n4SetupDestroy.Find();err!=nil{return zero,err}
+ if err=n4CfgDevNodeStatus.Find();err!=nil{return zero,err}
+ handle,_,callErr:=n4SetupClassDevs.Call(uintptr(unsafe.Pointer(&netClass)),uintptr(unsafe.Pointer(enumerator)),0,0)
+ if handle==^uintptr(0){return zero,fmt.Errorf("%w: Wintun PnP enumerate: %v",ErrN4NativeGuard,callErr)}
+ defer n4SetupDestroy.Call(handle)
+ count,found:=0,0
+ var out n4OriginalPnPProbe
+ for index:=uint32(0);index<256;index++{
+  if err:=ctx.Err();err!=nil{return zero,err}
+  row:=n4SPDevInfoData{Size:uint32(unsafe.Sizeof(n4SPDevInfoData{}))}
+  ok,_,lastErr:=n4SetupEnumDevice.Call(handle,uintptr(index),uintptr(unsafe.Pointer(&row)))
+  if ok==0{
+   if errors.Is(lastErr,syscall.Errno(259)){
+    if err:=n4OriginalWintunPersistedExact(ctx,id);err!=nil{return zero,err}
+    if found!=1{return zero,ErrN4NativeGuard}
+    return out,nil
+   }
+   return zero,fmt.Errorf("%w: Wintun PnP enumeration: %v",ErrN4NativeGuard,lastErr)
+  }
+  count++
+  key,_,keyErr:=n4SetupOpenDriverKey.Call(handle,uintptr(unsafe.Pointer(&row)),1,0,2,uintptr(windows.KEY_QUERY_VALUE))
+  if key==^uintptr(0){
+   return zero,fmt.Errorf("%w: Wintun driver registry key: %v",ErrN4NativeGuard,keyErr)
+  }
+  value,_,valueErr:=registry.Key(key).GetStringValue("NetCfgInstanceId")
+  closeErr:=registry.Key(key).Close()
+  if valueErr!=nil || closeErr!=nil{
+   return zero,fmt.Errorf("%w: Wintun instance registry evidence",ErrN4NativeGuard)
+  }
+  mapped,parseErr:=windows.GUIDFromString(value)
+  if parseErr!=nil{return zero,ErrN4NativeGuard}
+  if mapped!=original{continue}
+  found++
+  if found>1{return zero,ErrN4ForeignRoute}
+  // Device instance ID is read for a HASHED receipt, not used for alias
+  // reopening, SetupDiRemoveDevice, or any side effect.
+  var instance [512]uint16
+  var used uint32
+  ok,_,lastErr=n4SetupGetInstance.Call(handle,uintptr(unsafe.Pointer(&row)),
+   uintptr(unsafe.Pointer(&instance[0])),uintptr(len(instance)),uintptr(unsafe.Pointer(&used)))
+  if ok==0 || used==0 || used>uint32(len(instance)){
+   return zero,fmt.Errorf("%w: Wintun PnP instance ID: %v",ErrN4NativeGuard,lastErr)
+  }
+  raw:=windows.UTF16ToString(instance[:])
+  if raw==""{return zero,ErrN4NativeGuard}
+  sum:=sha256.Sum256([]byte(raw))
+  out.InstanceSHA256=hex.EncodeToString(sum[:])
+  var status,problem uint32
+  rc,_,_:=n4CfgDevNodeStatus.Call(uintptr(unsafe.Pointer(&status)),uintptr(unsafe.Pointer(&problem)),uintptr(row.DevInst),0)
+  if rc!=0{return zero,fmt.Errorf("%w: CM_Get_DevNode_Status result=%d",ErrN4NativeGuard,rc)}
+  out.ProblemCode=problem
+  // DN_HAS_PROBLEM (0x400) is only diagnostic; it does not authorize
+  // deleting even an exact-matched devnode or retiring the WAL.
+  if status&0x400!=0{out.State="EXACT_DEVNODE_PROBLEM"
+  }else{out.State="EXACT_DEVNODE_NO_PROBLEM"}
+ }
+ _=count
+ return zero,ErrN4NativeGuard // bounded enumeration exhausted
+}
