@@ -15,8 +15,16 @@ import (
 // MIB_IPFORWARD_ROW2 ABI. x/sys v0.33.0 includes the socket union but not
 // MIB_IPFORWARD_ROW2. Keep this independently layout-tested on Windows.
 // No route mutation is performed by construction or the ABI tests.
+// SOCKADDR_INET is a 28-byte union in the Windows SDK; this pinned
+// Go module predates the x/sys exported RawSockaddrInet helper.
+type n4SockaddrInet struct {
+    Family uint16
+    Port uint16
+    Data [6]uint32
+}
+
 type n4RoutePrefix struct {
-    Address windows.RawSockaddrInet
+    Address n4SockaddrInet
     Bits uint8
     _ [3]byte
 }
@@ -24,7 +32,7 @@ type n4ForwardRow struct {
     Luid uint64
     Index uint32
     Destination n4RoutePrefix
-    NextHop windows.RawSockaddrInet
+    NextHop n4SockaddrInet
     SitePrefixLength uint8
     _ [3]byte
     ValidLifetime uint32
@@ -48,13 +56,13 @@ var (
 )
 const n4ErrorNotFound syscall.Errno = 1168
 
-func n4NativeRouteIPv4(ip netip.Addr) windows.RawSockaddrInet {
-    var out windows.RawSockaddrInet
+func n4NativeRouteIPv4(ip netip.Addr) n4SockaddrInet {
+    var out n4SockaddrInet
     out.Family = windows.AF_INET
     copy(unsafe.Slice((*byte)(unsafe.Pointer(&out.Data[0])),4),ip.AsSlice())
     return out
 }
-func n4ReadSockaddrIPv4(s *windows.RawSockaddrInet) netip.Addr {
+func n4ReadSockaddrIPv4(s *n4SockaddrInet) netip.Addr {
     if s == nil || s.Family!=windows.AF_INET {return netip.Addr{}}
     var data [4]byte
     copy(data[:],unsafe.Slice((*byte)(unsafe.Pointer(&s.Data[0])),4))

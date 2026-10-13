@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_NATIVE_GO_IPHELPER_ROUTE_API_AND_USERSPACE_TCP_SCOPED_ACTIONS_PENDING_NO_POWERSHELL_RUNTIME_NOT_YET_REPLACED",
+    "phase": "N4_NATIVE_GO_IPHELPER_ABI_TYPE_COMPAT_FIX_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_USERSPACE_TCP_CANDIDATE_AND_COMPACT_ROUTE_PLANNER_D29D_ACTIONS_PASS;GO_NATIVE_WIN_ROUTE_API_ABI_WRAPPER_CANDIDATE_PENDING;ACTIVE_MAIN_STILL_POWERSHELL",
+    "implementation": "N4_USERSPACE_TCP_COMPACT_PLAN_D29D_ACTIONS_PASS;NATIVE_WIN_ROUTE_INITIAL_TYPE_MISSING_GH_ACTIONS_FAIL_50172;PINNED_XSYS_V033_LOCAL_WIN_SOCKADDR_UNION_COMPAT_FIX_CANDIDATE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Exact SOURCE test the Windows Go native IP Helper route ABI/lookup/Create/Delete (DO NOT execute Create/Delete until rollback+DNS/IPv6 guard are proven), active userspace TCP stack and bounded nonblocking queue, compact /1 route plan and Foundation. After PASS build fail-closed native owned journal for ALL network side effects: Wintun leased address/DHCP preflight, route Add/Remove only owned, physical underlay route, DNS native API or safe fallback for older Windows, IPv6 and underlay DNS WFP guards, dynamic rollback on crash/cancel. Only then remove old PowerShell flags/scripts from non-archived product and enable compact routing and TCP Direct in cmd/wbd-client. N4 physical/Wintun live not qualified; N6 not started. Tests Actions only, no physical/merge/deploy.",
-  "latest_log": "docs/devlog/20261013-n4-native-route-abi-candidate.md",
+  "next_task": "Re-run exact-source Windows N4 native-route Go ABI tests, Foundation and lifecycle after defining local Windows SOCKADDR_INET (x/sys v0.33.0 has no exported RawSockaddrInet). Original SOURCE50172e Actions38343998563 and Lifecycle38343998549 FAIL; Foundation38343998570 Windows job FAIL; preserve evidence. This is a type ABI fix only, not admin route create/delete. After PASS, implement safe Go owned lifecycle DNS/IPv6 guard/leased-IP state and remove PowerShell from active client and packaged artifacts before enabling compact /1 plan, old script still in product and N4 blocked. No local builds, no physical until N6.",
+  "latest_log": "docs/devlog/20261013-n4-native-route-abi-type-compat-fix.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "d29d8ab668690158020f90367e824a9627451570",
   "last_tested_scope": "USERSpace TCP CORE_AND_2X_SLASH1_COMPACT_ROUTING_STATIC_WINDOWS_ACTION38343552100_PASS_FOUNDATION38343552096_PASS_LIFECYCLE38343552106_PASS;NO_REAL_TUN_DRIVER_NO_ADMIN_NET_MUTATION",
@@ -2694,8 +2694,8 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "Actions SOURCEd29d userspace Windows gate 38343552100 PASS; Foundation38343552096 PASS; lifecycle38343552106 PASS. Direct TCP and compact plan still DISABLED in live CLI; no real TUN/physical.",
-    "Go native Win IP Helper row ABI/reading/route operations CANDIDATE under Windows-only file and hosted ABI/read-only tests; no production invocation/journal/DNS/IPv6 guard; no scripts added or invoked by new code."
+    "SOURCE50172 native route ABI candidate Windows compile FAIL: undefined windows.RawSockaddrInet in pinned x/sys v0.33.0; replaced by locally defined 28-byte Win32 sockaddr union and tests pending.",
+    "Legacy production still invokes powershell.exe and adds many route complements; N4 scriptless and physical NOT_RUN; N6 NOT_STARTED."
   ],
   "actions": [
     {
@@ -3932,6 +3932,33 @@
       "scope": "N4_ACTIVE_GO_USERSpace_LIFECYCLE_REGRESSION",
       "status": "PASS",
       "cause": "Core job completed success on exact source; no physical Wintun."
+    },
+    {
+      "name": "next-adaptive-n4-userspace-no-powershell-feasibility",
+      "run_id": 38343998563,
+      "source_sha": "50172e3362094431db950bfe9540729d8cc2d806",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38343998563",
+      "scope": "N4_NATIVE_ROUTE_ABI_XSYS_OLD_TYPE_UNAVAILABLE",
+      "status": "FAIL",
+      "cause": "Windows job115121094856 FINAL failure; new Windows n4 native route source uses missing windows.RawSockaddrInet type absent from pinned golang.org/x/sys v0.33.0. No driver/net changes. Fix defines local ABI union."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38343998549,
+      "source_sha": "50172e3362094431db950bfe9540729d8cc2d806",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38343998549",
+      "scope": "N4_NATIVE_ROUTE_ABI_COMPILE_REGRESSION",
+      "status": "FAIL",
+      "cause": "Core job115121094736 completed failure for same undefined windows.RawSockaddrInet, not a lifecycle semantic failure."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38343998570,
+      "source_sha": "50172e3362094431db950bfe9540729d8cc2d806",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38343998570",
+      "scope": "N4_NATIVE_ROUTE_ABI_COMPILE_WINDOWS_JOB_FAILURE",
+      "status": "FAIL",
+      "cause": "Windows active-go-tests job115121134248 completed failure (undefined windows.RawSockaddrInet). Other hosted jobs success/in-progress at receipt recording; final run to be checked. Preserve original failure."
     }
   ],
   "required_read_set": [
