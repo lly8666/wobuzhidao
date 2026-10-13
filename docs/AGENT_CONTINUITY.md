@@ -1,3 +1,7 @@
+## 2026-10-13 N4 精确 CODE SOURCE 11f708 Scoped Actions 最终收据；生产级 Windows WFP/CLI 未完成
+
+本轮直接远端分支代码 SOURCE `11f708f8f1c2afac3ed8f139fba11d7f41011a65`；N4 matrix [38391744029](https://github.com/lly8666/wobuzhidao/actions/runs/38391744029) 最终 SUCCESS（Win2022/25 x3 + Linux race），WFP TEST-NET lab [38391744191](https://github.com/lly8666/wobuzhidao/actions/runs/38391744191) 两端 SUCCESS，真实 Win2022/25 Wintun [38391743731](https://github.com/lly8666/wobuzhidao/actions/runs/38391743731) 两端 SUCCESS，Lifecycle [38391743815](https://github.com/lly8666/wobuzhidao/actions/runs/38391743815) SUCCESS，Foundation [38391743831](https://github.com/lly8666/wobuzhidao/actions/runs/38391743831) 七项必需 SUCCESS、历史 P5/P6 extended SKIPPED。已明确跑到新的 WFP caller-bool 禁止 Arm 与五阶段 DRY 非激活测试；真实 Wintun 独立测试依旧只有 lease/MTU/DNS 真实单 WAL，WFP/routes 为 FAKE 或 DRY，绝不宣称实际生产防漏/两条 /1/外网/跨进程 crash 资格。新提交为文档收据，CODE SOURCE 归属仍是 11f708；下一任务看 STATUS，N2 遗留 OPEN，N6/physical NOT_RUN，无部署/合并。
+
 ## 2026-10-13 N4 新候选待新 SOURCE Actions：全局 WFP 误激活拒绝 + 真实五阶段 DRY-only
 
 接手精确 HEAD `ad837c68131d758f8822a59ab7aab58bb1eb394b`；上一个已验 SOURCE `ff7df05a8901ff39beeec3d9089c4feae0d8f692`。当前仅安全收紧：`ExclusiveSingleWintun=true` 不是 OS 独占证据，禁止安装可能阻断其他 Wintun 的全局 DNS/IPv6 WFP；已装配五阶段仅 DRY、不可 Apply/Recover。真 Wintun lease/MTU/DNS 单 WAL 既有限定 PASS 不变；生产 WFP、crash orphan、CLI 去 PowerShell、真实两 /1、N6 依旧 OPEN；物理 NOT_RUN。新 Actions 结果以精确 SOURCE 为准，下一项只看 STATUS。
