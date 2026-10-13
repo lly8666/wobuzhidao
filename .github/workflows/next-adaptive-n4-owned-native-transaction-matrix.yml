@@ -14,6 +14,8 @@ on:
       - "internal/windowsclient/native_address_snapshot_windows_test.go"
       - "internal/windowsclient/native_ipinterface_windows.go"
       - "internal/windowsclient/native_ipinterface_windows_test.go"
+      - "internal/windowsclient/native_lease_windows.go"
+      - "internal/windowsclient/native_lease_windows_test.go"
       - "internal/windowsclient/native_dns_capability_windows.go"
       - "internal/windowsclient/native_dns_capability_windows_test.go"
       - "internal/windowsclient/native_wfp_readonly_windows.go"
@@ -83,6 +85,7 @@ jobs:
             internal/windowsclient/native_route_backend_windows.go \
             internal/windowsclient/native_address_snapshot_windows.go \
             internal/windowsclient/native_ipinterface_windows.go \
+            internal/windowsclient/native_lease_windows.go \
             internal/windowsclient/native_dns_capability_windows.go \
             internal/windowsclient/native_wfp_readonly_windows.go \
             internal/windowsclient/native_wfp_guard_plan_windows.go \
