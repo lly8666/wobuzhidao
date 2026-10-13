@@ -1,3 +1,7 @@
+## 2026-10-13 N4 专项 workflow parse FAIL 修复候选
+
+SOURCE `decb79c` N4 dedicated Action38358853661 在 GitHub workflow YAML 解析阶段失败，没有任何 job 执行。新增的显式测试选择行引号缺失；下一源码仅修此行并保留原 FAIL。需按新 SOURCE 验证两代 Windows Wintun/N4 纯软件覆盖；不冒充真实 driver。用户期望 native txn/N6/physical 仍未完成，按 STATUS。
+
 ## N4 2026-10-13 追加：精准 Actions 测试选取修正待验
 
 `1eeb847f` 修复 WFP 部分 Disarm 仅允许于空 owned-route journal，Foundation38358434476/Lifecycle38358434353 成功，WFP TEST-NET 隔离 Action38358434417 成功但**老 WFP 专项正则未包含新 TestN4WFPPartial...**。当前补丁明确添加 N4 Windows 两用例 x3 选取，并将 WFP 隔离 matcher 包括新测试，必须按新 SOURCE Actions 结果才记此部分的“专项覆盖” PASS。它仍不是正式 Windows DNS/IPv6 WFP 上线或真实 Wintun 管理员验收。N4 全 native 配置事务/N6/physical 仍未完成。最新 STATUS 为准。

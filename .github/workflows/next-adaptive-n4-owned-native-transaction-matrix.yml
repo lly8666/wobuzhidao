@@ -82,7 +82,7 @@ jobs:
           go test -mod=readonly ./internal/windowsclient -run 'Test(N4Native|N4Wintun|N4Scriptless|N4WFP|N4Windows|N4TCP|N4Compact|BuildCompact)' -count=3 -v
           # Explicit crash-route and partial-WFP deletion gates; never infer
           # coverage from a green workflow that did not select these tests.
-          go test -mod=readonly ./internal/windowsclient -run '^Test(N4NativeTxnPartialGuardFinalizeOnlyAfterEmptyJournal|N4WFPPartialGuardDeletePlanAfterRouteCleanup)
+          go test -mod=readonly ./internal/windowsclient -run 'TestN4NativeTxnPartialGuardFinalizeOnlyAfterEmptyJournal|TestN4WFPPartialGuardDeletePlanAfterRouteCleanup' -count=3 -v
       - name: Verify no shell dependency in NEW native path
         shell: bash
         run: |

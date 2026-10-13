@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_WFP_PARTIAL_GUARD_RECOVERY_SCOPED_CODE_PASS_EXPLICIT_TEST_SELECTION_CORRECTION_ACTIONS_PENDING",
+    "phase": "N4_WFP_EXPLICIT_ACTION_SELECTOR_YAML_FAILURE_TARGETED_REPAIR_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "First confirm new exact SOURCE after WFP/N4 workflow matcher correction: WFP isolated Windows2022/25 must explicitly run TestN4WFPPartialGuardDeletePlanAfterRouteCleanup, and N4 owned matrix must explicitly run both new recovery tests with Linux race; full Foundation/lifecycle too. Do not claim previous WFP lab selected missing test. Then implement complete native Windows Wintun lease/DHCP/MTU/DNS/WFP route owned Apply/Recover (no PowerShell, multi-tunnel guard or exclusive fail-closed) and real admin capability Actions, follow with N6 three-target package/hash. N2 efficiencies/GE/80s OPEN, physical NOT_RUN, no merge/deploy.",
-  "latest_log": "docs/devlog/20261013-n4-wfp-partial-disarm-qualifier-selection-correction.md",
+  "next_task": "Inspect exact new HEAD and Actions after fixing N4 native matrix YAML missing closing quote. Prior run38358853661 failed at workflow parse, no jobs (NOT product FAIL); record original failure, verify corrected run has Windows2022/25 explicitly selected N4NativeTxnPartialGuardFinalizeOnlyAfterEmptyJournal and N4WFPPartialGuardDeletePlanAfterRouteCleanup. WFP TEST-NET dedicated Action38358854944 verify final separately. Then full native Wintun lease/DHCP/MTU/DNS/WFP owned journal + scriptless CLI/N6; physical NOT_RUN. Do not deploy/merge.",
+  "latest_log": "docs/devlog/20261013-n4-explicit-matcher-yaml-parse-fail-targeted-fix.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "1eeb847f72a1a6662c11bf3b4fe75899be070bfb",
   "last_tested_scope": "1EEB_WFP_PARTIAL_SCOPED_FOUNDATION38358434476_ALL7_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_PASS_BUT_NEW_TEST_NOT_SELECTED_BY_LAB_REGEX",
@@ -2694,6 +2694,7 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "SOURCE decb79 workflow run38358853661 FAIL before job creation because new N4 go test line lost closing quote / YAML invalid; no product test performed in that run. Targeted workflow repair candidate, new exact SOURCE test pending; do not relabel original failure.",
     "Source1eeb WFP partial rule exact-owned finalizer after route cleanup: Foundation38358434476 SUCCESS (7 required), Lifecycle38358434353 SUCCESS, Windows WFP TEST-NET lab38358434417 SUCCESS but its old regex omitted TestN4WFPPartial...; explicit matcher correction awaiting new Actions. Never represent lab result as coverage of omitted test.",
     "Source908a guarded route-journal two crash windows FINAL scoped ACTIONS PASS (N4 38357895984, Foundation38357895969 7 jobs, Lifecycle38357895905). New WFP partial owned deletion only after routes cleared candidate awaiting separate new-source Actions.",
     "Candidate N4 route+guard crash-window recovery: full exact-owned guard installed before guard_armed marker and complete disarm before journal unlink can be reconciled only with zero route entries; missing/partial/foreign WFP or nonempty routes fail closed. 64KiB cap and impossible checksum-valid journal state rejection. Await new-source Actions; no real Wintun or product wiring.",
@@ -4583,6 +4584,15 @@
       "scope": "SOURCE1EEB_LIFECYCLE",
       "status": "PASS",
       "cause": "SUCCESS core lifecycle; no Windows real Wintun admin."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38358853661,
+      "source_sha": "decb79c68d69f7b155899cedc4dde931edf66b3e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38358853661",
+      "scope": "N4_EXPLICIT_TEST_SELECTOR_WORKFLOW_PARSE",
+      "status": "FAIL",
+      "cause": "GitHub Actions workflow invalid YAML due to truncated new -run line/unclosed quote. No job executed. Must fix and verify new exact SOURCE, retain original FAIL."
     }
   ],
   "required_read_set": [
