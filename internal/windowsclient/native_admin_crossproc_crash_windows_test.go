@@ -77,6 +77,19 @@ func TestN4WindowsHostedCrossProcessCrashReadOnlyIdentity(t *testing.T){
   if time.Now().After(deadline){t.Fatal("real child failed to commit WAL")}
   time.Sleep(100*time.Millisecond)
  }
+ // While the child and its original Wintun are still alive,
+ // enumeration must REFUSE journal retirement before the first OS write.
+ // This is a real positive test of the foreign/live GUID/LUID/index gate,
+ // not just an empty-table post-crash inference.
+ jBefore,readErr:=n4UnifiedRead(wal)
+ if readErr!=nil{t.Fatal(readErr)}
+ preCtx,stopPre:=context.WithTimeout(context.Background(),15*time.Second)
+ preErr:=N4WindowsRetireEmptyOrphanWAL(preCtx,wal,jBefore.Identity)
+ stopPre()
+ if !errors.Is(preErr,ErrN4ForeignRoute){
+  t.Fatalf("live child Wintun wrongly treated as retired: %v",preErr)
+ }
+ if _,err:=os.Stat(wal);err!=nil{t.Fatalf("active child WAL disappeared: %v",err)}
  if err:=child.Process.Kill();err!=nil{t.Fatal(err)}
  err:=child.Wait();done=true
  if err==nil{t.Fatal("expected abrupt child termination")}

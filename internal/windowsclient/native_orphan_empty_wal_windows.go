@@ -5,51 +5,34 @@ package windowsclient
 import (
  "context"
  "errors"
- "fmt"
  "os"
- "syscall"
  "unsafe"
 
  "golang.org/x/sys/windows"
 )
 
-var n4ConvertGUIDLUID=n4Iphlpapi.NewProc("ConvertInterfaceGuidToLuid")
-
-// n4OriginalWintunAbsent verifies absence of ALL three OS native identifiers
-// bound to the old, checksum-journaled created-Wintun. It never opens,
-// creates, modifies or adopts a network adapter. Reused ifIndex is FOREIGN.
-//
-// The conversion APIs may return a platform-specific error for a retired
-// interface; only documented not-found codes are treated as evidence.
+// n4OriginalWintunAbsent never interprets conversion error 87 as proof
+// of absence: ConvertInterfaceGuidToLuid may report INVALID_PARAMETER after
+// removal. A complete read-only GetIfTable2Ex snapshot independently
+// enumerates GUID, LUID and index for every live OS network interface.
 func n4OriginalWintunAbsent(ctx context.Context,id N4UnifiedIdentity)error{
  if err:=ctx.Err();err!=nil{return err}
  if !id.valid() || id.AdapterAlias=="" || len(id.AdapterAlias)>128 ||
   id.WintunGUID=="" || len(id.WintunGUID)>64{return ErrN4JournalConflict}
  guid,err:=windows.GUIDFromString(id.WintunGUID)
  if err!=nil || guid.String()!=id.WintunGUID{return ErrN4JournalConflict}
- for _,proc:=range []*windows.LazyProc{n4ConvertGUIDLUID,n4ConvertInterfaceLuidIndex,n4ConvertIndexLuid}{
-  if err:=proc.Find();err!=nil{return errors.Join(ErrN4NativeGuard,err)}
+ var table *windows.MibIfTable2
+ if err:=windows.GetIfTable2Ex(0,&table);err!=nil{return errors.Join(ErrN4NativeGuard,err)}
+ if table==nil{return ErrN4NativeGuard}
+ defer windows.FreeMibTable(unsafe.Pointer(table))
+ // An implausibly large or uninspectable native table is not proof that a
+ // crashed NIC vanished. Bound this read-only scan, never truncate it.
+ if table.NumEntries>4096{return ErrN4NativeGuard}
+ for _,row:=range unsafe.Slice(&table.Table[0],int(table.NumEntries)){
+  if err:=ctx.Err();err!=nil{return err}
+  if row.InterfaceGuid==guid || row.InterfaceLuid==id.WintunLUID ||
+   row.InterfaceIndex==id.WintunIndex {return ErrN4ForeignRoute}
  }
- absent:=func(rc uintptr)bool{
-  e:=syscall.Errno(rc)
-  return e==syscall.Errno(2) || e==syscall.Errno(1168)
- }
- var luid uint64
- rc,_,_:=n4ConvertGUIDLUID.Call(uintptr(unsafe.Pointer(&guid)),uintptr(unsafe.Pointer(&luid)))
- if rc==0{return ErrN4ForeignRoute}
- if !absent(rc){return fmt.Errorf("%w: OS GUID lookup status=%d",ErrN4NativeGuard,rc)}
- if err:=ctx.Err();err!=nil{return err}
- var index uint32
- rc,_,_=n4ConvertInterfaceLuidIndex.Call(uintptr(unsafe.Pointer(&id.WintunLUID)),uintptr(unsafe.Pointer(&index)))
- if rc==0{return ErrN4ForeignRoute}
- if !absent(rc){return fmt.Errorf("%w: OS LUID lookup status=%d",ErrN4NativeGuard,rc)}
- if err:=ctx.Err();err!=nil{return err}
- // An index occupied by any NIC (even a different GUID) is not retired:
- // never use old route receipts to mutate an index newly owned elsewhere.
- luid=0
- rc,_,_=n4ConvertIndexLuid.Call(uintptr(id.WintunIndex),uintptr(unsafe.Pointer(&luid)))
- if rc==0{return ErrN4ForeignRoute}
- if !absent(rc){return fmt.Errorf("%w: OS ifIndex lookup status=%d",ErrN4NativeGuard,rc)}
  return ctx.Err()
 }
 
