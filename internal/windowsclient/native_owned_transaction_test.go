@@ -271,3 +271,64 @@ func TestN4NativeTxnRejectsNoncompactRouteBatchBeforeGuard(t *testing.T){
   if _,err:=os.Stat(n.Path);!errors.Is(err,os.ErrNotExist) {t.Fatalf("journal unexpectedly created: %v",err)}
  })}
 }
+
+
+func TestN4NativeTxnCrashAfterGuardArmBeforeJournalMarker(t *testing.T){
+ n,r,g:=n4TestManager(t)
+ if err:=n4NewJournal(n.Path,n4Journal{Phase:"applying"});err!=nil{t.Fatal(err)}
+ if err:=g.Arm(context.Background());err!=nil{t.Fatal(err)}
+ fresh:=&N4OwnedRoutes{Path:n.Path,Route:r,Guard:g}
+ if err:=fresh.Recover(context.Background());err!=nil{t.Fatal(err)}
+ if g.active || g.disarmCount!=1 || r.removed!=0{t.Fatal("pre-marker recovery touched routes or leaked guard")}
+ if _,err:=os.Stat(n.Path);!errors.Is(err,os.ErrNotExist){t.Fatal(err)}
+ if err:=fresh.Recover(context.Background());err!=nil{t.Fatal(err)}
+}
+func TestN4NativeTxnUnverifiedPreArmGuardStillBlocksCleanup(t *testing.T){
+ n,r,g:=n4TestManager(t)
+ if err:=n4NewJournal(n.Path,n4Journal{Phase:"applying"});err!=nil{t.Fatal(err)}
+ if err:=n.Recover(context.Background());!errors.Is(err,ErrN4NativeGuard){t.Fatal(err)}
+ if g.disarmCount!=0 || r.removed!=0{t.Fatal("unverified WFP state discarded")}
+ if _,err:=os.Stat(n.Path);err!=nil{t.Fatal(err)}
+}
+func TestN4NativeTxnCrashAfterDisarmBeforeUnlink(t *testing.T){
+ n,r,g:=n4TestManager(t)
+ if err:=n.ApplyRoutes(context.Background(),n4TestKeys());err!=nil{t.Fatal(err)}
+ for _,key:=range n4TestKeys(){delete(r.existing,key)}
+ if err:=n4WriteJournal(n.Path,n4Journal{Phase:"cleaning",GuardArmed:true});err!=nil{t.Fatal(err)}
+ if err:=g.Disarm(context.Background());err!=nil{t.Fatal(err)}
+ if err:=(&N4OwnedRoutes{Path:n.Path,Route:r,Guard:g}).Recover(context.Background());err!=nil{t.Fatal(err)}
+ if g.active || r.removed!=0{t.Fatal("incorrect recovery after disarm")}
+ if _,err:=os.Stat(n.Path);!errors.Is(err,os.ErrNotExist){t.Fatal(err)}
+}
+func TestN4NativeTxnGuardLossWithRoutesFailsClosed(t *testing.T){
+ n,r,g:=n4TestManager(t)
+ if err:=n.ApplyRoutes(context.Background(),n4TestKeys());err!=nil{t.Fatal(err)}
+ g.active=false
+ if err:=n.Recover(context.Background());!errors.Is(err,ErrN4NativeGuard){t.Fatal(err)}
+ if len(r.existing)!=3 || g.disarmCount!=0{t.Fatal("routes deleted without guard")}
+ if _,err:=os.Stat(n.Path);err!=nil{t.Fatal(err)}
+}
+func TestN4NativeTxnEmptyCleanupRequiresSafeIdempotentDisarm(t *testing.T){
+ n,r,g:=n4TestManager(t)
+ if err:=n4NewJournal(n.Path,n4Journal{Phase:"applying"});err!=nil{t.Fatal(err)}
+ if err:=n4WriteJournal(n.Path,n4Journal{Phase:"cleaning",GuardArmed:true});err!=nil{t.Fatal(err)}
+ g.disarmErr=ErrN4ForeignRoute
+ if err:=n.Recover(context.Background());!errors.Is(err,ErrN4ForeignRoute){t.Fatal(err)}
+ if _,err:=os.Stat(n.Path);err!=nil{t.Fatal(err)}
+ if r.removed!=0{t.Fatal("removed unowned route")}
+}
+func TestN4NativeTxnJournalSizeAndImpossibleStateRejected(t *testing.T){
+ n,r,g:=n4TestManager(t)
+ if err:=os.WriteFile(n.Path,make([]byte,n4MaxJournalBytes+1),0600);err!=nil{t.Fatal(err)}
+ if err:=n.Recover(context.Background());!errors.Is(err,ErrN4JournalConflict){t.Fatal(err)}
+ for _,j:=range []n4Journal{
+  {Phase:"applying",GuardArmed:false,Entries:[]n4Entry{{Key:n4TestKeys()[0],State:"owned"}}},
+  {Phase:"active",GuardArmed:false},
+  {Phase:"active",GuardArmed:true,Entries:[]n4Entry{{Key:n4TestKeys()[0],State:"owned"}}},
+  {Phase:"cleaning",GuardArmed:true,Entries:[]n4Entry{{Key:NativeRouteKey{Prefix:netip.MustParsePrefix("203.0.113.0/24"),Interface:4,NextHop:netip.MustParseAddr("192.0.2.1"),Metric:5},State:"owned"}}},
+ }{
+  if err:=n4WriteJournal(n.Path,j);err!=nil{t.Fatal(err)}
+  if err:=n.Recover(context.Background());!errors.Is(err,ErrN4JournalConflict){t.Fatalf("accepted invalid journal %+v: %v",j,err)}
+ }
+ if r.removed!=0 || g.disarmCount!=0{t.Fatal("invalid journal caused side effects")}
+}

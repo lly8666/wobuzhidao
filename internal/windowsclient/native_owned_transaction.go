@@ -7,6 +7,7 @@ import (
  "encoding/json"
  "errors"
  "fmt"
+ "io"
  "net/netip"
  "os"
  "path/filepath"
@@ -22,6 +23,8 @@ var (
 )
 const n4JournalSchema = "wbd-n4-native-owned-routes/v1"
 const n4MaxNativeCaptureRoutes = 8
+// A bounded owned-state journal, never a route database or packet log.
+const n4MaxJournalBytes = 64 << 10
 
 type NativeRouteKey struct {
  Prefix netip.Prefix `json:"prefix"`
@@ -163,11 +166,41 @@ func n4Decode(raw []byte)(n4Journal,error){
   (e.Data.Phase!="applying"&&e.Data.Phase!="active"&&e.Data.Phase!="cleaning") {
   return n4Journal{},ErrN4JournalConflict
  }
- for _,v:=range e.Data.Entries {
-  if v.State!="intent"&&v.State!="owned" {return n4Journal{},ErrN4JournalConflict}
- }
+ if err:=n4ValidateJournal(e.Data);err!=nil{return n4Journal{},err}
  return e.Data,nil
 }
+// Check the decoded state even if its hash matches: the checksum is not an
+// authorization to delete unexpected routes or accept impossible phases.
+func n4ValidateJournal(j n4Journal)error{
+ if len(j.Entries)>n4MaxNativeCaptureRoutes+1 ||
+  (!j.GuardArmed && (j.Phase!="applying" || len(j.Entries)!=0)) ||
+  (j.Phase=="active" && !j.GuardArmed){return ErrN4JournalConflict}
+ seen:=make(map[netip.Prefix]bool,len(j.Entries))
+ keys:=make([]NativeRouteKey,0,len(j.Entries))
+ var captureIf uint32
+ for i,v:=range j.Entries{
+  k:=v.Key
+  if (v.State!="intent" && v.State!="owned") || k.Interface==0 ||
+   k.Metric!=5 || !k.Prefix.IsValid() || !k.Prefix.Addr().Is4() ||
+   k.Prefix!=k.Prefix.Masked() || !k.NextHop.Is4() ||
+   seen[k.Prefix]{return ErrN4JournalConflict}
+  seen[k.Prefix]=true
+  if i==0{
+   if k.Prefix.Bits()!=32 || k.NextHop==netip.IPv4Unspecified(){return ErrN4JournalConflict}
+  }else{
+   if k.NextHop!=netip.IPv4Unspecified() || k.Interface==j.Entries[0].Key.Interface ||
+    (k.Prefix!=netip.MustParsePrefix("0.0.0.0/1") &&
+     k.Prefix!=netip.MustParsePrefix("128.0.0.0/1") &&
+     k.Prefix.Bits()!=32){return ErrN4JournalConflict}
+   if captureIf==0{captureIf=k.Interface}
+   if captureIf!=k.Interface{return ErrN4JournalConflict}
+  }
+  keys=append(keys,k)
+ }
+ if j.Phase=="active" && n4ValidateRouteBatch(keys)!=nil{return ErrN4JournalConflict}
+ return nil
+}
+
 func n4WriteJournal(path string,j n4Journal)error{
  b,err:=n4Encode(j);if err!=nil{return err}
  dir:=filepath.Dir(path)
@@ -181,7 +214,11 @@ func n4WriteJournal(path string,j n4Journal)error{
  return os.Rename(f.Name(),path)
 }
 func n4ReadJournal(path string)(n4Journal,error){
- b,err:=os.ReadFile(path);if err!=nil{return n4Journal{},err}
+ f,err:=os.Open(path);if err!=nil{return n4Journal{},err}
+ defer f.Close()
+ b,err:=io.ReadAll(io.LimitReader(f,n4MaxJournalBytes+1))
+ if err!=nil{return n4Journal{},err}
+ if len(b)>n4MaxJournalBytes{return n4Journal{},ErrN4JournalConflict}
  return n4Decode(b)
 }
 func n4NewJournal(path string,j n4Journal)error{
@@ -234,14 +271,25 @@ func(n *N4OwnedRoutes) Recover(ctx context.Context)error{
  j,err:=n4ReadJournal(n.Path)
  if errors.Is(err,os.ErrNotExist){return nil}
  if err!=nil{return fmt.Errorf("%w: %v",ErrN4JournalConflict,err)}
- if !j.GuardArmed {
-  // Arm might have partially succeeded just before the process crashed.
-  // Only an independently proven safe native guard recovery is allowed to
-  // remove this journal. Never guess that the guard is absent.
-  return ErrN4NativeGuard
- }
+ if err:=ctx.Err();err!=nil{return err}
  ok,err:=n.Guard.Verify(ctx)
- if err!=nil || !ok{return errors.Join(ErrN4NativeGuard,err)}
+ if err!=nil{return errors.Join(ErrN4NativeGuard,err)}
+ if !j.GuardArmed {
+  // A journal is written before Arm; routes are never added until an armed
+  // marker is saved. With no route entries, only a freshly verified, FULL
+  // exact-owned persistent guard can be safely disarmed after this crash.
+  if !ok{return ErrN4NativeGuard}
+  if err:=n.Guard.Disarm(ctx);err!=nil{return err}
+  return os.Remove(n.Path)
+ }
+ if !ok {
+  // Power loss may follow Disarm but precede journal unlink. This is safe
+  // to complete ONLY when every route was already journaled as removed.
+  // The guard backend's idempotent Disarm must reject partial/foreign state.
+  if j.Phase!="cleaning" || len(j.Entries)!=0{return ErrN4NativeGuard}
+  if err:=n.Guard.Disarm(ctx);err!=nil{return err}
+  return os.Remove(n.Path)
+ }
  j.Phase="cleaning"
  if err:=n4WriteJournal(n.Path,j);err!=nil{return err}
  for i:=len(j.Entries)-1;i>=0;i-- {

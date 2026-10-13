@@ -1,0 +1,7 @@
+# N4 guarded route crash-window reconciliation candidate — 2026-10-13
+
+Parent HEAD `6c4a70992a0ac1accd9da815ebf5c00478473bf4`, branch next/adaptive-fec-aes-tun-20261010. Current task remains Windows native durable network transaction. Existing tests and current-source Foundation had SUCCESS before modification; new SOURCE untested at commit time. No local Go commands, no physical machine.
+
+Changes: bounded 64KiB journal read; verify checksum-valid journal state shape/ownership and reject bad phase/canonical routes before any OS recovery. In applying journal with guard_armed false and empty routes, independently Verify exact fully owned persistent guard and, only if verified, Disarm/unlink. If a crash after complete Disarm but before unlink leaves cleaning journal with zero entries, retry exact-owned idempotent Disarm then unlink. If WFP absent/partial/foreign while any route remains or Disarm refuses, preserve journal+fail-closed. Added six TestN4NativeTxn* simulator recovery and corruption regressions.
+
+Expected Actions on new SOURCE: next-adaptive-n4-owned-native-transaction-matrix (Linux race Windows2022/2025 three repetitions), next-foundation, next-lifecycle; record final run/job/artifact/hash at receipt. New code does NOT call real Windows APIs in these cases and is NOT native Wintun admin / DNS / DHCP / MTU validation. A single durable native parent transaction still missing; scriptless CLI not activated, N2 residual efficiency/GE p99/80s OPEN, N6 NOT_STARTED, physical NOT_RUN. No deployment/ref moves.
