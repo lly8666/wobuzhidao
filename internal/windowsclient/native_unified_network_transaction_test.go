@@ -204,3 +204,16 @@ func TestN4NativeTxnUnifiedRequiresGenerationGateAndAllStages(t *testing.T){
  if _,err:=os.Stat(tx.Path);!errors.Is(err,os.ErrNotExist){t.Fatal(err)}
  for _,s:=range st{if s.applyErr!=nil || s.undoCount!=0{t.Fatal("preflight mutated stage")}}
 }
+
+func TestN4NativeTxnUnifiedExistingJournalRejectedBeforeSnapshots(t *testing.T){
+ tx,_,trace,_:=n4UnifiedTestTxn(t)
+ if err:=tx.Apply(context.Background());err!=nil{t.Fatal(err)}
+ before:=len(*trace)
+ if err:=tx.Apply(context.Background());!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("second Apply should detect existing durable journal: %v",err)
+ }
+ if got:=len(*trace);got!=before{
+  t.Fatalf("existing transaction caused new state snapshot, before=%d after=%d",before,got)
+ }
+ if err:=tx.Recover(context.Background());err!=nil{t.Fatal(err)}
+}

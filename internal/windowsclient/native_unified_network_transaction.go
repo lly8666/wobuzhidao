@@ -171,6 +171,12 @@ func(n *N4NativeUnifiedTxn) Apply(ctx context.Context)error{
  n.mu.Lock();defer n.mu.Unlock()
  release,err:=n.withGate(ctx);if err!=nil{return err}
  defer release()
+ // A second Apply must reject the existing durable transaction BEFORE
+ // querying OS snapshots: existing owned state is not a new foreign baseline.
+ // This is an early, readable error only; O_EXCL at journal creation remains
+ // the authoritative cross-process create-conflict check.
+ if _,err:=os.Stat(n.Path);err==nil{return ErrN4JournalConflict
+ }else if !errors.Is(err,os.ErrNotExist){return err}
  // Obtain ALL immutable baselines before ANY mutation; no stale Wintun
  // handle or unexpected Windows setting may be silently overwritten.
  var before [5]json.RawMessage

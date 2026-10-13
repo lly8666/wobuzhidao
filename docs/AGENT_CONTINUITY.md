@@ -1,3 +1,7 @@
+## 2026-10-13 N4 新修复候选：统一 WAL 第二次 Apply 预检顺序
+
+新 `0ddcfef` 原子提交 N4 Linux race Action38362537980 已暴露确定 FAIL：第二个竞争 Apply 在检查旧 journal 前先做 Stage.Snapshot，故返回 Foreign 而非 JournalConflict；同一源码其余阶段回归在 Linux 日志 PASS，不能记该来源全 PASS。新小修在获得排他 Gate/Owner proof 后、读取任何基线前检查已有 journal，仍保留最末 O_EXCL 防并发；新增无快照访问测试，需严格核新 SHA Actions。产品实际 Win32 原生全事务接线仍缺，N6/physical 不变；原 FAIL 必留。
+
 ## 2026-10-13 N4 新候选：统一网络 WAL 编排（Actions 待验，禁止上线）
 
 远端上一 HEAD `30be21e2e6b25be4539f634bf19ea851b007a78f` 的 Foundation38360321097 最终 SUCCESS；上一真实 Go SOURCE `863e5584` N438359734786/Foundation38359735917/Lifecycle38359735012 已限定 PASS。本增量创建 **单个** 未接线的 `N4NativeUnifiedTxn`，固定 guard→lease→mtu→dns→routes，写前 checksummed durable O_EXCL journal、4KiB/阶段 receipt 与总64KiB限制、generation+Wintun LUID identity、强制跨进程独占 Gate/当前 owner Verify、逆序失败保留 journal。Guard 退役只在其它状态完成回收后，缺失完整防漏 guard 且仍有业务路由时拒绝；失败后若 OS 变更存在但未写成功 marker，保留 AMBIGUOUS 不误清 foreign。**仅 fake stage 自动测试候选**，尚没有真正 Win32 具体实现和排他 gate，产品 PowerShell+大路由仍在。任何新源 PASS 也只证明编排，不是 Windows 实机资格。N6/physical 依旧未执行。
