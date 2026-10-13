@@ -16,6 +16,11 @@ func TestN4WindowsNativeWALAssemblerRequiresOwnedWintunAndPersistentGuard(t *tes
   t.Fatalf("borrowed same-name Wintun accepted: %v",err)
  }
  tun.createdByProcess=true
+ // This legacy guard-negative case must satisfy the NEW earlier
+ // GUID/alias identity gate before it can exercise the absent WFP guard.
+ // Missing GUID/alias is tested independently as ErrN4JournalConflict.
+ id.WintunGUID="11111111-2222-3333-4444-555555555555"
+ id.AdapterAlias="WBD"
  if _,err:=n4AssembleWindowsNativeOwnedTxn(context.Background(),tun,
    NetworkPlan{AdapterAlias:"WBD"},id,nil);!errors.Is(err,ErrN4NativeGuard){
   t.Fatalf("unverified WFP guard accepted: %v",err)
