@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_REAL_MTU_SITEPREFIX_SET_ZERO_CODE_FIX_POSITIVE_WINDOWS2022_2025_DRIVER_ACTION_CANDIDATE",
+    "phase": "N4_REAL_WINTUN_MTU_APPLY_PASS_RESTORE_65535_INVALID_TARGET_FAIL_NEW_FIX_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE1B75_REAL_WIN2022_2025_LEASE_DAD_PASS_MTU_CAS_REFUSED_ONLY_SITEPREFIX64;MICROSOFT_IPV4_SETIPINTERFACEENTRY_INPUT_REQUIRES_SITEPREFIX0;FIX_INPUT_NORMALIZATION_BOTH_APPLY_RESTORE_WITH_EXISTING_SNAPSHOT_CAS_UNCHANGED;ACTUAL_NATIVE_DNS_CLEAR_YET_UNTESTED_PRODUCT_POWERSHELL_ACTIVE",
+    "implementation": "SOURCE30426A_REAL_WIN2022_2025_CREATED_WINTUN_LEASE_DAD_AND_MTU_SET_ACTUAL_PASS_RESTORE_BASELINE65535_FAIL_ERRNETWORKPLAN;RESTORE_NOW_VALIDATES_BOUNDED_CURRENT_TARGET_BUT_CAS_RESTORES_ORIGINAL65535;DNS_REAL_MUTATION_PENDING",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Inspect the exact next-source N4 isolated Windows2022/25 real /32 lease+DAD, SetIpInterfaceEntry SitePrefixLength 0 Apply+Restore, DNS Set/Clear/Get and DeleteConfirmed test (workflow must trigger on native_mtu_write_windows.go / native_dns_write_windows.go). Preserve 4d9a and 1b75 real MTU FAIL; on new API fail fix cause narrowly, never weaken strict foreign CAS or fake guard product protection. N4 official Windows still PowerShell, persistent global WFP DNS/IPv6 multiple-Wintun exclusivity/crash restart owner proof and integrated native Apply/Stop remain OPEN, so do NOT run full N6/P6 as complete. N2 C04/C05 efficiency FAIL C10 GE/80s OPEN, physical NOT_RUN, no deploy/merge/ref movements.",
-  "latest_log": "docs/devlog/20261013-n4-real-mtu-siteprefix-fix-positive-action-dispatch.md",
+  "next_task": "Verify corrected exact-source real disposable Wintun Win2022/25 test native /32 Create+DAD, actual MTU Set 1249 and CAS Restore ORIGINAL 65535, then DNS Set/Clear/Get and address Delete. Previous SOURCE30426a isolated real Action38383227355 FAIL both Windows due Restore calling target validator with genuine original Wintun default MTU65535 (new MTU max9000), although Set was successful. Preserve original FAIL. Fixed Restore preflight validates currently owned/Guard/after1249 and full-row CAS, allows EXACT journaled original65535 restore only; no new config >9000 accepted. On next real DNS failure fix narrowly. N4 production WFP global multi-Wintun exclusion, crash owner recovery, full native Apply/Stop/Recover official CLI replacing PowerShell still OPEN; full final Actions/P6 only after N4 complete. N2 C04/C05 and C10 GE/80s OPEN physical NOT_RUN no deploy/merge.",
+  "latest_log": "docs/devlog/20261013-n4-real-mtu-65535-native-restore-fix.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "d6f04989ffe1a9ad14db0466c4b3a870eea18c68",
   "last_tested_scope": "D6F049_REAL_WINTUN_CREATION_LUID_GENERATION_NATIVE_IP_DNS_READONLY_ACTION38380735721_WIN2022_WIN2025_SCOPED_PASS_N4_38380735783_WIN2022_2025_LINUX_RACE_PASS_FOUNDATION38380735890_ALL7_PASS_LIFECYCLE38380735773_PASS_NO_NATIVE_IP_MUTATION",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "SOURCE30426a Win2022/25 true disposable Wintun native Action38383227355 FINAL FAIL after /32 DAD and *successful* native SetIpInterfaceEntry MTU1249: Restore incorrectly used Wintun ORIGINAL MTU65535 as a fresh target max9000 and rejected ErrNetworkPlan, before DNS test. New source only fixes Restore preflight target to confirmed applied MTU1249; exact before-row restoration CAS still protects 65535 original.",
     "SOURCE 3f8d26 MTU native SET INPUT normalization SitePrefixLength=0 after full owned CAS; existing N4 matrix38382873245 and Foundation38382873272 Action pending, Lifecycle38382873265 success. Isolated real driver workflow was not triggered by MTU source path, so next commit updates workflow push paths for MTU/lease/DNS native modules to force exact new-source Windows2022/25 true write+restore. No admin result yet.",
     "SOURCE1b75 Action38382355741 FINAL FAIL real Windows 2022/2025: isolated new Wintun IPv4 /32+DAD Preferred PASS, before vs native observed IPv4 MTU snapshot identical (MTU65535, Metric5, Connected true, automatic metric true), live created Wintun owner true; only GetIpInterfaceEntry SitePrefixLength=64; MTU writer incorrectly rejects nonzero SitePrefixLength rather than setting input SitePrefixLength=0 as Windows requires. Minimal new-source setter ABI normalization Apply+Restore, no CAS loosening, new regression and real Actions pending.",
     "SOURCE4d9a real isolated Windows admin Action38381916177 FINAL FAIL: both Windows2022 job115244182685 and Win2025 job115244182370 passed real fresh Wintun read-only, created /32 and waited DAD Preferred, then n4WindowsMTUWriter.Apply refused ErrN4ForeignRoute before SetIPInterface. Native DNS untested due stop, no production WFP/route mutation. New-source instrumentation logs expected snapshot, live native observed row, SitePrefixLength, exact created handle owner before/after CAS; Actions PENDING, never loosen CAS.",
-    "SOURCE eca2d0d real Win32 isolated mutation test's Action38381597073 FINAL FAIL WITH ZERO JOBS: malformed YAML after automatic workflow insertion split quoted -test.run and duplicated upload config; no native OS calls from that Action. New workflow from last known-good d6f049 original with safe literal insertion, two separate opt-in real adapter tests, candidate new-source Actions pending.",
-    "SOURCE d6f049 Wintun 0.14.1 true Win2022/Win2025 random new adapters, live LUID, generation Hold, empty IPv4 snapshot, native MTU row and native DNS read-only result SCOPED_CREATED_WINTUN_READ_ONLY_PASS on BOTH. Actions38380735721 FINAL SUCCESS two jobs, artifacts11803308382 (Win2022) and11803565206 (Win2025) digests in devlog. N4 matrix38380735783, Foundation38380735890 all seven, Lifecycle38380735773 FINAL SUCCESS. No real Set/Clear or production guard."
+    "SOURCE eca2d0d real Win32 isolated mutation test's Action38381597073 FINAL FAIL WITH ZERO JOBS: malformed YAML after automatic workflow insertion split quoted -test.run and duplicated upload config; no native OS calls from that Action. New workflow from last known-good d6f049 original with safe literal insertion, two separate opt-in real adapter tests, candidate new-source Actions pending."
   ],
   "actions": [
     {
@@ -5114,6 +5114,15 @@
       "scope": "WIN2022_2025_REAL_MTU_CAS_SITEPREFIX64_DIAGNOSTIC",
       "status": "FAIL",
       "cause": "Both Win runners DAD Preferred, baseline and live owner exact; GetIpInterfaceEntry AF_INET returned SitePrefixLength=64, old writer rejected before Set. Microsoft requires 0 on SET input; targeted fix candidate."
+    },
+    {
+      "name": "next-adaptive-n4-real-wintun-admin-capability",
+      "run_id": 38383227355,
+      "source_sha": "30426a6436857e03bad4a31760c015ffaf86f1cc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38383227355",
+      "scope": "REAL_WIN2022_WIN2025_MTU_NATIVE_APPLY_AND_RESTORE",
+      "status": "FAIL",
+      "cause": "Both GH hosted Windows real /32 DAD and native SetIpInterfaceEntry target 1249 succeeded, but Restore erroneously validated original 65535 as NEW configured MTU and returned ErrNetworkPlan before DNS."
     }
   ],
   "required_read_set": [

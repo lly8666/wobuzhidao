@@ -113,7 +113,11 @@ func (w n4WindowsMTUWriter) Restore(ctx context.Context,receipt n4MTUWriteReceip
  if !receipt.confirmed || receipt.index==0 || receipt.index!=receipt.before.Index {return ErrN4ForeignRoute}
  cur:=receipt.before
  cur.MTU=receipt.after
- if err:=w.preflight(ctx,cur,receipt.before.MTU);err!=nil{return err}
+ // Verify the owned CURRENT post-Apply row and configured bounded MTU.
+ // The ORIGINAL Windows Wintun NlMtu can legitimately be 65535; it was
+ // captured before our write and is CAS-protected below. Do not reuse the
+ // 576..9000 NEW-config restriction on that original restoration value.
+ if err:=w.preflight(ctx,cur,receipt.after);err!=nil{return err}
  row,err:=n4GetIPv4InterfaceRow(ctx,receipt.index)
  if err!=nil{return err}
  if !n4SameInterfaceBaseline(cur,n4MTUSnapshotFromRow(row)){return ErrN4ForeignRoute}

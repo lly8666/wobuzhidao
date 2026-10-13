@@ -102,3 +102,19 @@ func TestN4NativeMTUSetterNormalizesOnlyIPv4SitePrefixLength(t *testing.T){
   t.Fatal("MTU restore did not normalize IPv4 Set input")
  }
 }
+
+func TestN4NativeMTURestoreOriginalWintun65535GuardWithoutOSWrite(t *testing.T){
+ baseline:=N4InterfaceIPv4Snapshot{Index:88,MTU:65535,Metric:5,Connected:true,AutomaticMetric:true}
+ after:=baseline
+ after.MTU=1249
+ guard:=&n4FakeGuard{durable:true,active:true}
+ owner:=&n4MTUFakeOwner{owned:true}
+ writer:=n4WindowsMTUWriter{Guard:guard,Adapter:owner}
+ // Restore must check the native current row using the bounded, actually
+ // applied MTU; it must not pass the 65535 original as a new target.
+ if err:=writer.preflight(context.Background(),after,1249);err!=nil{t.Fatalf("owned current state rejected: %v",err)}
+ if err:=writer.preflight(context.Background(),after,baseline.MTU);!errors.Is(err,ErrNetworkPlan){
+  t.Fatalf("unsafe NEW MTU 65535 should remain disallowed: %v",err)
+ }
+ if owner.calls!=1{t.Fatalf("foreign check moved behind invalid target: %d",owner.calls)}
+}

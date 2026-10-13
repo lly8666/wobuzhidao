@@ -1,3 +1,7 @@
+## 2026-10-13 real Wintun MTU 设置已成功，恢复原值 65535 被误判；限缩修正候选
+
+SOURCE `30426a6436857e03bad4a31760c015ffaf86f1cc` 的 Win2022/25 实网卡隔离 Action38383227355 两端均真实完成 /32 Create+DAD Preferred、MTU SetIpInterfaceEntry(1249)，Restore 因将原始 Wintun MTU65535 按新配置目标≤9000 校验而 ErrNetworkPlan，DNS 未运行。这是已证实的旧逻辑错误，新代码仅在 Restore 内仍以已配置的1249做 owner/Guard 校验，再通过整行 CAS恢复日志记录的原值65535；**不允许用户设置 >9000 的新MTU**。原 FAIL 不变，必须新 SOURCE Win2022/25 再跑真实 DNS/lease 完整回滚。正式网络控制面 PowerShell 仍活动，生产 WFP/崩溃属主与 N6 开放，physical NOT_RUN。
+
 ## 2026-10-13 MTU API 真实修正后补全 Actions 触发路径
 
 SOURCE `3f8d26c` 为微软 IPv4 `SetIpInterfaceEntry` 传入结构将 `SitePrefixLength` 设0，保留所有其他原行 CAS 和 generation/owner 校验。现有 N4/Found 行为在跑；原工作流只监控测试文件，漏掉真正 `native_mtu_write_windows.go` 修改。下一提交把 MTU/lease/DNS native 实现都加入 Win2022/25 **实写**能力工作流触发路径，确保真实创建 Wintun 的 /32 DAD + MTU Set/Restore + DNS Set/Clear/Get 同源可观察。不冒充生产 WFP 守卫，正式 CLI PowerShell/最终N4/N6仍未完成；physical NOT_RUN。
