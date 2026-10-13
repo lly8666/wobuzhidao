@@ -1,0 +1,54 @@
+name: next-adaptive-n4-native-udp-core
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-native-udp-core.yml"
+      - "internal/windowsclient/direct_udp_packet.go"
+      - "internal/windowsclient/direct_udp_packet_test.go"
+      - "internal/windowsclient/direct_udp_windows.go"
+      - "internal/windowsclient/direct_udp_windows_test.go"
+permissions:
+  contents: read
+jobs:
+  linux-packet-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE, repository contract and N4 UDP packet race
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          go test -count=1 -v ./internal/windowsclient -run '^TestN4NativeUDP'
+          go test -race -count=1 ./internal/windowsclient ./internal/splitroute
+  windows-native-udp-core-no-wintun:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Native Windows UDP socket binding compile and no-driver guards
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) { throw "source mismatch" }
+          go test -count=1 -v ./internal/windowsclient -run '^TestN4NativeUDP'
+          if ($LASTEXITCODE -ne 0) { throw "N4 native UDP tests failed" }
+          go build ./cmd/wbd-client
+          if ($LASTEXITCODE -ne 0) { throw "N4 Windows client build failed" }
+          Write-Output "N4_NATIVE_WINDOWS_UDP_CORE_ONLY_NO_WINTUN_HARDWARE_SOURCE=$env:GITHUB_SHA"
