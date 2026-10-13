@@ -50,6 +50,12 @@ const (
  N4UnifiedPartial N4UnifiedState = "partial"
  N4UnifiedForeign N4UnifiedState = "foreign"
 )
+// The compact Windows route stage reuses N4OwnedRoutes' separately fsynced
+// per-route receipts. Only that stage can reconcile an interrupted "intent"
+// safely; lease/MTU/DNS unconfirmed writes always remain ambiguous.
+type n4UnifiedRouteIntentReclaimer interface {
+ RecoverUnconfirmedRoutes(context.Context,N4UnifiedIdentity,json.RawMessage)error
+}
 type N4UnifiedStage interface {
  Name() string
  // Snapshot is READ-ONLY; include a bounded complete pre-mutation CAS
@@ -243,15 +249,28 @@ func(n *N4NativeUnifiedTxn) Recover(ctx context.Context)error{
   observed,err:=n.Stages[i].Inspect(ctx,n.Identity,rec.Before)
   if err!=nil{return err}
   if observed==N4UnifiedForeign{return ErrN4ForeignRoute}
+  // The last route stage has a second, per-route owned receipt with
+  // its own intent/confirmed bits. Let it resolve ONLY those entries after
+  // the parent has verified the full persistent WFP guard is still armed.
+  // A route with ambiguous ownership remains an error and retains both WALs.
+  routeReclaimer,routeStage:=n.Stages[i].(n4UnifiedRouteIntentReclaimer)
+  lastRoute:=i==len(n4UnifiedOrder)-1 && routeStage
+  if rec.State=="intent" && lastRoute {
+   if err:=routeReclaimer.RecoverUnconfirmedRoutes(ctx,n.Identity,rec.Before);err!=nil{return err}
+   j.Records=j.Records[:i]
+   if err:=n4UnifiedWrite(n.Path,j,false);err!=nil{return err}
+   continue
+  }
   if rec.State=="intent" && observed!=N4UnifiedAbsent{
-   // Only WFP guard itself can be retired after an interrupted Arm: it
-   // has deterministic installation-owned object IDs and no other stages
-   // could have been called prior to persisting its "owned" marker.
+   // Only exact-owned WFP guard itself may recover its interrupted Arm.
    if i!=0 || observed!=N4UnifiedOwned{return ErrN4RouteAmbiguous}
   }
-  if observed==N4UnifiedPartial && i!=0{return ErrN4NativeGuard}
+  if observed==N4UnifiedPartial && i!=0 && !(lastRoute && rec.State=="owned"){
+   return ErrN4NativeGuard
+  }
   if observed!=N4UnifiedAbsent {
-   if observed!=N4UnifiedOwned && !(i==0 && observed==N4UnifiedPartial){return ErrN4RouteAmbiguous}
+   if observed!=N4UnifiedOwned && !(i==0 && observed==N4UnifiedPartial) &&
+    !(lastRoute && rec.State=="owned" && observed==N4UnifiedPartial){return ErrN4RouteAmbiguous}
    if err:=n.Stages[i].Undo(ctx,n.Identity,rec.Before);err!=nil{return err}
   }
   j.Records=j.Records[:i]

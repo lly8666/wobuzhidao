@@ -1,3 +1,7 @@
+## 2026-10-13 N4 第五个原生后端候选：直接收口 compact routes（新 SOURCE Actions 待验）
+
+已有 CODE SOURCE `192c0c18bd0d486564afc7b062a05d273dc068ae` 的 WFP Guard、/32 Lease/DAD、MTU Set/Restore、DNS NameServer Set/Clear+读回四阶段，Win2022/25 + Linux race + Foundation/Lifecycle 均限定 PASS，但实际 Windows Wintun/管理员写入和 DNS 清理没有正向测通。本次只增加第五个 `routes` 具体阶段：物理 server /32 先走，Wintun 仅两 /1 + 有界 DNS /32；复用既有 N4OwnedRoutes 逐条 durable journal，不重复装卸 WFP Guard。上层统一 WAL 只在路由阶段允许根据精确子收据恢复未确认 Apply 和部分 Stop，其他阶段的模糊写入依旧拒绝。新增 Windows mock route 故障、外来状态、重新进入 Stop 测试。正式 GUI/CLI 网络配置 **仍 PowerShell 活动**；未实证跨进程 Wintun 驱动与独占 WFP 安全前禁止激活/打包，N2遗留 OPEN，physical NOT_RUN。
+
 ## 2026-10-13 N4 最小功能收口：DNS 是已有 WAL 的第四个 Win32 具体阶段（Actions 待验）
 
 之前 WFP、/32 Lease/DAD、MTU 都已软件+Win2022/25/Linux Actions 限定 PASS，最后已测 CODE SOURCE `535da7f03508e8f208aae491ebb5f5cbbd5e0ee2` 的 MTU N4 Action38371271535、Foundation38371271598、Lifecycle38371271589 全 SUCCESS。本新候选使用 Win32 DNS_INTERFACE_SETTINGS V1，仅配置 IPv4 NameServer，恢复时以 NameServer=NULL、Flags=DNS_SETTING_NAMESERVER 发出清除请求，必须再原生读回与原始动态 DNS 状态完全吻合才能注销 journal。微小额外副作用、借用网卡、异代或者无 Guard 都拒绝。**该 Windows 清除行为尚未做真实管理员 Wintun 正向验收**，绝不能把请求 ABI/负面测试当成可用的 DNS Restore。最后仍需受控两条 /1 的实际 Routes 阶段和排他 Wintun 能力，正式 CLI 仍 Powershell，不合格的前提下不部署/N6；physical NOT_RUN。
