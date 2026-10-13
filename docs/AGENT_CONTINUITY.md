@@ -1,5 +1,12 @@
 # 新agent十分钟接手摘要
 
+## 2026-10-13 最新 N4 接手摘要：Wintun handle 所有权再加一道闸门
+
+精确最新工程 SOURCE `153e33e0`：Windows Wintun `OpenTUN` 会先试图 OpenAdapter，若已有则视为**借用、非 owned**；只有本进程 CreateAdapter 成功且 handle/session 仍有效时，可借助官方 `WintunGetAdapterLuid` + `ConvertInterfaceLuidToIndex` 校验当前真实 NIC。Future native MTU backend 只能通过这个 owner proof，不能信任可变 alias。Windows Go-native /32 lease DAD(Preferred) and foreign APIPA guard SOURCE a6ee Action38352058023/Fdn38352058035 PASS；MTU full-row CAS guard/source9f Action38352420841/Fdn38352420896 PASS；SOURCE153e Wintun scoped Action38352792622 与 lifecycle38352792631 SUCCESS，Foundation38352792644 最终结论按 STATUS。原 first-pass N4 专项 `Test(...)` 名称漏了 `N4Wintun`，已补到下一 docs+workflow 提交；原第一轮并非该用例的专项证明，但 Foundation Windows 全量包含它。
+
+用户不容忍 Win 系统路由里批量 CN IP 或 Windows 产品 PowerShell，仍允许用户态 tun2socks 两条本地 TCP legs。实现可复用原旧模块原则，但 old/ 只读。当前新网络控制器没有上线：Native WFP 持久 guard 仅狭窄 TEST-NET/独占单 Wintun 闸门，DHCP/lease/MTU/DNS owned persistent transaction 与 Win admin real NIC Apply/Stop 未完成；正式 CLI 仍 PowerShell+补集路由。N2质量尾问题、N6/physical NOT_RUN。继续工作遵守无本地测试、所有 Action、无部署/合并/qualification ref 移动、无物理直到 N6。
+
+
 ## 2026-10-13 最新续作边界：无 PowerShell 的 N4 最后一段
 
 用户当前硬要求为 Windows 仅少量 /1 系统捕获路由，国内/外国 IP 在 Go 内存分类；允许 tun2socks/gVisor 用户态 Direct TCP 两段本机物理绑定连接，UDP 维持新原生 socket；最终产品不能依赖 powershell.exe 或活动 .ps1。历史 WinDivert-only IfIdx NO-GO 已不阻止用户批准的新路径。

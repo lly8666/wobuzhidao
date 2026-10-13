@@ -1,5 +1,14 @@
 # Normal 自动 FEC、可选 AES、TUN 分流与线路质量显示
 
+## 2026-10-13 最新 N4 验收边界：Native IPv4 lease/MTU + Wintun LUID ownership
+
+用户批准 Windows 大类分流改为内存政策而不是成千条 CN/Foreign 路由；TUN 公网捕获预期只用 `0.0.0.0/1` 和 `128.0.0.0/1`、有限物理服务器/DNS 主机例外。允许本机 tun2socks/gVisor 用户态 Direct TCP 外层物理绑定双腿；**正式 Windows CLI 不得要求 powershell.exe/.ps1**。
+
+`a6ee98c` 已加入 native IP Helper Initialize/Get/Create/Delete Unicast IPv4 /32（DAD 未 Preferred 拒绝使用、拒绝外来/APIPA、guard 必须持久）；`9f276f8` 增加 SetIpInterfaceEntry MTU 读全行、状态 CAS、防系统其他修改和 scoped restore；`153e33e0` 在 Wintun adapter handle 中标记仅本进程新建才属自己，通过 `WintunGetAdapterLuid` + ConvertInterfaceLuidToIndex 校验实际活句柄接口。上述均是**禁用中的 Go 原生底层模块**，Actions 只允许非突变 ABI/负例测试，不证明真机联网。WFP 独占单 Wintun 持久 block 后端在隔离 TEST-NET lab 通过，但未生产装载，multi-Wintun 共享策略尚未实现。N4 scoped Windows2022/2025+Linux race SOURCE153e Action38352792622 PASS；全仓 Foundation 38352792644 以 STATUS 最终收据为准。未来真正 Apply/DNS 设置/路由/MTU 写入和异常恢复前必须 durable transaction + exact owned state journal + Windows admin isolated Actions。
+
+现网 `cmd/wbd-client/main_windows.go` **还在执行旧 PowerShell、补集路由**，新 Direct TCP / 紧凑路由不得临时开启。原生 DNS+WFP IPv6 泄漏保护、DHCP/租约恢复、真实 driver/网卡管理、异常中断、同进程多 TUN 仍 OPEN。完成 N4 后 N6 三目标同源码产物和 SHA256，才可物理机测试；N2 C04/C05/C10/GE/80s 长尾 OPEN。保留原始 FAIL 与 skip/NOT_RUN。
+
+
 ## 2026-10-13 N4 当前状态：小路由与 Go Win32 原生可观测层完成，活动脚本仍未替换
 
 用户明确放宽原先 Direct TCP 原生同一段约束，优先不让 Windows 系统路由表塞入国内 IP 区间，允许旧 tun2socks/gVisor 用户态本机双 TCP leg 物理直连。**最终必须移除活动 powershell.exe/.ps1 运行时依赖**。Go 计划仅两条 IPv4 /1 + underlay /32 + 有界 DNS 例外；中国/IP 分类在内存，不写几千条路由。

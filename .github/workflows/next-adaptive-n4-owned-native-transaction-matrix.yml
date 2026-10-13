@@ -79,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          go test -mod=readonly ./internal/windowsclient -run 'Test(N4Native|N4Scriptless|N4WFP|N4Windows|N4TCP|N4Compact|BuildCompact)' -count=3 -v
+          go test -mod=readonly ./internal/windowsclient -run 'Test(N4Native|N4Wintun|N4Scriptless|N4WFP|N4Windows|N4TCP|N4Compact|BuildCompact)' -count=3 -v
       - name: Verify no shell dependency in NEW native path
         shell: bash
         run: |
@@ -93,6 +93,7 @@ jobs:
             internal/windowsclient/native_lease_windows.go \
             internal/windowsclient/native_mtu_write_windows.go \
             internal/windowsclient/native_wintun_owner_windows.go \
+            internal/windowsclient/tun_windows.go \
             internal/windowsclient/native_dns_capability_windows.go \
             internal/windowsclient/native_wfp_readonly_windows.go \
             internal/windowsclient/native_wfp_guard_plan_windows.go \

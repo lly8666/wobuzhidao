@@ -1,5 +1,12 @@
 # 全新agent长期接手提示词
 
+## 2026-10-13 即时续作最新指令——原生 Wintun 句柄所有权
+
+工作分支 next/adaptive-fec-aes-tun-20261010，当前产品未取得无 PowerShell 的 N4 资格。用户要求：Windows 仅固定两条 /1 + 有界主机例外，CN IP 数据进程内分类；用户批准旧 tun2socks/gVisor 本地双 TCP 会话绑定实体 NIC 直连，UDP 复用原生 Direct；**正式程序必须去除 PowerShell/.ps1**。SOURCE `a6ee98c` 安全封装 native /32 IPv4 地址 lease Get/Create/Delete + DAD 状态；SOURCE `9f276f8` native MTU SetIpInterfaceEntry CAS 条件和只能恢复自己更改的快照；SOURCE `153e33e0` 已给 Wintun Open/Create 分离拥有权，Create 路径下真实句柄 LUID -> ifIndex 才授予 future `n4OwnedInterfaceProof`。目前 N4 scoped GH Actions38352792622 PASS, lifecycle38352792631 PASS；Foundation38352792644 以 docs/STATUS.json 最终收据为准；专项 workflow 要显式包含 TestN4Wintun*。无任何真实管理员 NIC 变更或 WFP 生产防漏测试。
+
+下一步不是直接启动 /1 路由或假造全 N4 PASS：需完成 durable WFP/ DNS/ DHCP/lease/MTU/network journal 原生 Apply+Recover，Windows Actions 受控真实 Wintun 管理员测试，多 Wintun guard 独占或共享 allowlist 安全性；一口气移除活跃 PowerShell和多 CN route、接线 native DirectTCP，然后完成 N6 三同源 artifacts/hashes。保留旧失败和 N2 80s/tail OPEN，N6/physical NOT_RUN，禁止本地测试/部署/合并。
+
+
 ## 2026-10-13 最新工作硬门：无 PowerShell Windows N4 的剩余原生安全路径
 
 用户授权在进程内处理中国/非中国 IP（不批量写 Win 路由），旧项目 tun2socks/gVisor 用户态两段 TCP 直连可行，绑定实体网卡 InterfaceIndex，UDP Direct 已有新实现；**最终 Windows 运行时绝不依赖 PowerShell 或活动脚本**，旧历史程序/脚本只读保留在 old/。后续不是 WinDivert/WFP TCP Redirect 路线；WFP 仅用于 IPv6/DNS 防泄漏。

@@ -1,5 +1,12 @@
 # WBD：新agent唯一开发入口
 
+## 最新交接（2026-10-13）：N4 Wintun 句柄真实归属约束
+
+用户核心要求不变：国内/外国 IP 在 Go TUN 内存分类，Windows 路由仅两条 /1 + 必要有限例外，**最终 Windows 产品没有 powershell.exe 或活动 .ps1**。允许旧 tun2socks/gVisor 本机物理接口绑定的双 TCP leg。精确到源码 `153e33e0` 已有非产品连接的原生 IPv4 lease /32 Create/Get/Delete + DAD Preferred 栅栏、只读 interface MTU、SetIpInterfaceEntry guarded CAS/Restore、持久 WFP 独占单 Wintun guard、DNS Set 前置防漏、owned route journal；新增 `TUN.createdByProcess` + `WintunGetAdapterLuid`/`ConvertInterfaceLuidToIndex`，不能把打开已有同名适配器冒充创建所有权。SOURCE `a6ee98c` 与 `9f276f8` 限定 Actions 均 PASS；SOURCE `153e33e0` Wintun 专项 Action38352792622 PASS、lifecycle38352792631 PASS，Foundation38352792644 以 STATUS 最终收据为准。修正后的专项 workflow 必须显式运行 `TestN4Wintun*`，不能只靠全量 Foundation。
+
+**未完成，禁止产品激活：** 真正受保护的 native DNS、DHCP、租约、MTU、路由、IPv6 持久恢复事务及管理员 Wintun 测试尚未完成。正在使用的 Windows CLI 仍调用 PowerShell/大量补集路由；新 native 组件安全地未接线，CI 无管理员网络改写/真实 Wintun/物理测试。不要宣称 N4/N6 PASS；N2效率与80秒尾延迟未关闭。细节仅以 docs/STATUS.json 的最新 `active_work/next_task/latest_log` 和 devlog 为准。
+
+
 ## 2026-10-13 最新接手令：N4 原生 Windows 网络管理仍需最终接线
 
 用户已明确：Windows 不向路由表导入海量国内外 IP 段，只用少量固定捕获路由；TUN 内存中分类 LAN/CN/Other，Direct TCP 可使用旧项目 tun2socks/gVisor 本机双 TCP leg（物理网卡 ifIndex 绑定），Direct UDP 复用新 NativeUDPDirect；**最终 Windows 运行时不能有 powershell.exe 依赖、活动 .ps1 网络脚本**。旧 WinDivert IfIdx 快捷方案的 NO-GO 已是历史，不再等待选择。
