@@ -1,5 +1,10 @@
 # Normal 自动 FEC、可选 AES、TUN 分流与线路质量显示
 
+## 2026-10-13 N4 快速架构门槛——唯一最新判定
+
+WinDivert v2.2.2 固定官方源码文档 Git blob `85a870a9c501ea3e22fb0715903d667f14044353` 已在 SOURCE `086a9bd` 的专项 Action `38341416320` 验证：**`WinDivertSend` 出站忽略 `IfIdx/SubIfIdx`**；`NETWORK_FORWARD` 不直接覆盖本机应用生成的原生 TCP。故“WinDivert-only + 指定物理 IfIdx 发送”的**快捷方案 NO-GO**；这不否定 Npcap 二层发包/WFP 内核 callout 等其他架构（尚未测试）。Foundation `38341416272` PASS。按用户条件立即暂停 N4 TCP 编码，讨论替代路径后再做新的可证伪门槛；原 N4 UDP 软件限定 PASS 不变，真实驱动、N6、物理试验均未完成。
+
+
 状态快照（2026-10-13）：**N0/N1/Normal自动FEC已实现；N2当前Go并发/race及真实1%双向混合TCP/UDP单场景限定PASS，效率与GE长尾仍OPEN。N3 AES128/256已认证接线，各100s真实无损限定PASS；N5 GUI自动档/质量面板/三套件原生273项检查PASS。N4分类/flow-fragment缓存/分派边界、物理接口绑定UDP socket与反向IPv4格式已实现；SOURCE 49adb/Action38337768067将UDP Direct/单次保护流发送接上Windows正式Wintun入口，SOURCE 67b7/Action38338092331完成PowerShell Apply取消与有界owned回滚模拟，SOURCE ab2d/Action38338808653完成外国IPv4防删除/DHCP journal的hosted模拟限定PASS（725d失败保留）。TCP WFP内核重定向、少量路由及真实Wintun/管理员Apply仍OPEN；N6最终包未开始。** 下一项推进N4，不重新开发AES/GUI或盲重跑已完成N2。精确SOURCE、限制、下一原子任务以 **docs/STATUS.json** 为准；文末日期追加是历史来源。
 
 **N2验收权威补充**：[ADAPTIVE_FEC_CURVE_ACCEPTANCE.md](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md)。先规划真实工况与独立理论/可实现曲线，再冻结有余量的时间与档位范围；已有部分模型及实网验证，不能称整体PASS，也不能把它们写成全部未实现。C04恢复5%下行78.3%、C05下行10%档位70%效率FAIL、C10 GE尾延迟以及普通diag-OFF CPU资格继续记录；不把历史OPEN自动转成无期限当前阻断。用户允许依据新证据修订软参数，永久运输/认证/资源硬门不变。

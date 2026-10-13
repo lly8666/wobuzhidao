@@ -1,5 +1,10 @@
 # 全新agent长期接手提示词
 
+## 2026-10-13 即时停工闸门：N4 WinDivert-only NO-GO
+
+对 `WinDivertSend` 出站设置物理 `IfIdx` 的 N4 快捷设计在固定官方 v2.2.2 接口文档与 Action `38341416320` 核验下**NO-GO**（实际脚本成功运行，只证明已证伪）。同源 Foundation `38341416272` 成功。**当前 next_task 是等待与用户讨论替代架构，不准自动开工 TCP redirect 或少量路由**。未测试的 Npcap Ethernet send / signed WFP forward callout 不是已判死，也不是已通过；普通 WFP 本地代理违反原架构硬门，除非用户明确修改要求。完整记录见最新 `docs/STATUS.json` 与 `docs/devlog/20261013-n4-windivert-fastpath-no-go-actions-receipt.md`。
+
+
 接手 GitHub `lly8666/wobuzhidao` 的 `next/adaptive-fec-aes-tun-20261010` 分支，连续开发并通过 GitHub Actions 验收，直到本轮 N0..N6 完成或有必须如实交代的外部阻塞。先核当前精确远端 HEAD、工作区和 SOURCE，不能覆盖别人的修改；当前进度只看 `docs/STATUS.json` 的 active_work / next_task / latest_log，不按本文首次编写时的阶段假设开工。
 
 先读 `AGENTS.md`、`PROJECT_CHARTER.md`、`docs/STATUS.json`、`docs/ADAPTIVE_NETWORK_PLAN.md`、`docs/AGENT_CONTINUITY.md`。按需读 WIRE_SPEC、MODULE_MAP、PARAMETERS、ACCEPTANCE 和 REALPATH_TEST_FIXTURE_GUIDE。完整方案已经确定，不另做多种架构/密码/FEC算法比赛。旧计划/完整状态已归档到 `docs/history/20261010-adaptive-network-parent/`；它们和 old 的提示词都是历史来源，禁止执行旧“下一步”。

@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_WINDIVERT_ONLY_FASTPATH_FEASIBILITY_NO_GO_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N4_WINDIVERT_ONLY_PHYSICAL_EGRESS_NO_GO_ACTIONS_CONFIRMED_AWAIT_USER_DECISION",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_UDP_ENTRY_OWNED_SCOPED_PASS_TCP_WFP_MISSING;WINDIVERT_ONLY_FIXED_IFINDEX_OUTBOUND_GATE_SOURCE_PENDING_ACTIONS",
+    "implementation": "N4_NATIVE_UDP_ENTRY_AND_OWNED_HOSTED_SCOPED_PASS;WINDIVERT_ONLY_PHYSICAL_IFIDX_TCP_FASTPATH_NO_GO_ON_PINNED_OFFICIAL_ABI;TCP_ALTERNATIVE_NOT_SELECTED",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2666,21 +2666,36 @@
         }
       ],
       "execution_rule": "Do not endlessly retest the same scenario or reopen completed AES/GUI. Advance N4; changed modules/new reproducible hard-gate failures require immediate scoped repair. Before final qualification explicitly resolve or report every residual, never turn OPEN into PASS."
+    },
+    "n4_windivert_fastpath": {
+      "candidate": "WinDivert NETWORK capture plus WinDivertSend outbound IfIdx physical",
+      "upstream_tag": "v2.2.2",
+      "upstream_doc_git_blob_sha1": "85a870a9c501ea3e22fb0715903d667f14044353",
+      "gate_source_sha": "086a9bd27f9a275d0d3d40163cc0d0c5868c7e67",
+      "gate_action_run": 38341416320,
+      "gate_action_conclusion": "success",
+      "candidate_verdict": "NO_GO",
+      "foundation_run": 38341416272,
+      "foundation_conclusion": "success",
+      "driver_loaded": false,
+      "physical_route_test": "NOT_RUN",
+      "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Run ONLY the new pinned-upstream WinDivert 2.2.2 outbound interface contract gate in GitHub Actions. If it confirms NO_GO as documented (outbound WinDivertSend ignores IfIdx; NETWORK_FORWARD not local-origin), STOP route/TCP product coding and DISCUSS next architecture with user per request. Options for discussion: existing Npcap actual physical Ethernet frame injection with bounded TCP NAT+reverse Wintun (high complexity), dedicated signed WFP forward callout, or relax native TCP/no-proxy requirement. Do not claim other alternatives tested or driver loaded. Physical remains NOT_RUN, no deployment/merge. Preserve old N2 residual and historical failures.",
-  "latest_log": "docs/devlog/20261013-n4-windivert-fastpath-feasibility-candidate.md",
+  "next_task": "PAUSE IMPLEMENTATION UNTIL USER ARCHITECTURE DISCUSSION: WinDivert-only NETWORK capture+WinDivertSend(outbound,IfIdx=physical) NO_GO on fixed upstream v2.2.2 contract, because IfIdx is ignored outbound and FORWARD layer does not apply directly to local TCP. Gate Action38341416320 completed success verifying NO_GO, Foundation38341416272 completed success. Do NOT add code, change routes, install drivers, or try physical machine until user selects alternative and exact gate; alternatives NOT tested: (A) existing Npcap physical L2 frame injection plus bounded TCP NAT/reverse via Wintun and inbound interception; (B) vetted signed WFP packet/forward callout with explicitly specified egress physical ifIndex; (C) explicitly change no-second-TCP-proxy requirement to allow WFP ALE connect redirect. Keep old N4 TCP gap and N2 residual OPEN, N6 NOT_STARTED, physical NOT_RUN, no deploy/mainline.",
+  "latest_log": "docs/devlog/20261013-n4-windivert-fastpath-no-go-actions-receipt.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-  "last_tested_scope": "N4_WINDOWS_UDP_ENTRY_NATIVE_HOSTED_PLUS_OWNED_ROUTE_APPLY_CANCEL_AND_UNKNOWN_IPV4_DHCP_MOCK_SCOPED_PASS_EXACT_SOURCES_49ADB_67B7_AB2D;NO_ADMIN_OR_DRIVER_OR_PHYSICAL_QUALIFICATION",
+  "last_tested_source_sha": "086a9bd27f9a275d0d3d40163cc0d0c5868c7e67",
+  "last_tested_scope": "N4_WIN_DIVERT_V2_2_2_PINNED_ABI_PREFLIGHT_ACTION38341416320_GATE_EXEC_SUCCESS_CANDIDATE_VERDICT_NO_GO;FOUNDATION38341416272_PASS;NO_DRIVER_LOAD_OR_TCP_HARDWARE",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
-    "2026-10-13: N4 Windows UDP entry native Go software wiring PASS on 49adb, owned Apply cancellation scoped PASS 67b7, foreign IPv4/DHCP owned-hosted script mock PASS ab2d; full N4 not finished due WFP driver/capture routes; hardware NOT_RUN."
+    "2026-10-13: N4 Windows UDP entry native Go software wiring PASS on 49adb, owned Apply cancellation scoped PASS 67b7, foreign IPv4/DHCP owned-hosted script mock PASS ab2d; full N4 not finished due WFP driver/capture routes; hardware NOT_RUN.",
+    "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "N4 one-gate feasibility: WinDivert-only outbound fixed physical IfIdx predicted NO_GO from pinned upstream contract; exact SOURCE Actions NOT_RUN at commit creation, no driver loading, no network mutation; alternate designs not yet tested",
-    "Existing N4 signed TCP redirect and few routes unresolved; N6 NOT_STARTED; physical NOT_RUN"
+    "N4 WinDivert-only physical IfIdx fast-path feasibility specifically NO_GO based on official v2.2.2 pinned ABI; Action38341416320 successful verification, artifact11786094421; alternate implementations not tested, pending discussion with user",
+    "N4 true Direct TCP, few capture routes, elevated Wintun cleanup remain OPEN; N6 NOT_STARTED; physical NOT_RUN"
   ],
   "actions": [
     {
@@ -3854,6 +3869,24 @@
       "scope": "N4_DHCP_MOCK_CORRECTED_FOUNDATION",
       "status": "PASS",
       "cause": "All seven required non-skipped jobs success; Linux+Windows active Go, P2 and P4 privileged, repo contract. P5/P6 explicitly skipped. Foundation artifact11786370688 sha256:552ab3af791426fdeba6e9f677712037277593907c8611a83438acce7e2d8e31."
+    },
+    {
+      "name": "next-adaptive-n4-windivert-fastpath-gate",
+      "run_id": 38341416320,
+      "source_sha": "086a9bd27f9a275d0d3d40163cc0d0c5868c7e67",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38341416320",
+      "scope": "N4_WIN_DIVERT_ONLY_OUTBOUND_IFIDX_FEASIBILITY_NO_GO_ABI_SOURCE_ONLY",
+      "status": "PASS",
+      "cause": "Gate job115113021849 completed success with explicit N4_WINDIVERT_FASTPATH_GATE verdict=NO_GO; official v2.2.2 Git blob 85a870a9c501ea3e22fb0715903d667f14044353: IfIdx/SubIfIdx ignored outbound. Candidate rejected, NOT product PASS. Artifact11786094421 sha256:313f768e97fc8217fd5f2f6af7cfeaa2cc1afeb7f1be67e3dec1e6d870438c45. No SYS/DLL, driver, route, WinTun, or packet injections."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38341416272,
+      "source_sha": "086a9bd27f9a275d0d3d40163cc0d0c5868c7e67",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38341416272",
+      "scope": "N4_WIN_DIVERT_ONLY_GATE_SOURCE_NO_PRODUCT_CHANGE_FOUNDATION",
+      "status": "PASS",
+      "cause": "All seven required non-skipped jobs successful: repo, Linux/Win Go/race, P2 and P4. P5/P6 skipped NOT_RUN. Foundation artifact11787525173 sha256:3e5d333cbcf9f2a0bcc7e8fb711f0b8f2837c464a280dc30aec00177312f208e; does not change feasibility verdict NO_GO."
     }
   ],
   "required_read_set": [
@@ -3946,7 +3979,8 @@
     "N5 native GUI273 three-suite/FEC config scoped PASS, real physical quality stream and drivers not verified",
     "N4 classifier/UDP physical-bound hosted socket/actual Go Wintun entry wiring/owned cancellation and DHCP journal mock have limited Actions success on 49adb/67b7/ab2d; true signed Windows WFP TCP redirect driver, few routes, actual admin/Wintun/physical external path and complete owned clean teardown OPEN/NOT_RUN. Original 725d Windows mock FAIL retained.",
     "N6 final current-source three-target bundles and integrated Actions qualification not complete; physical NOT_RUN",
-    "Historical paired RTT/native/Q2 failures, MTU/PMTU/native capability gaps and approximately80s S2C interruption retained; no source inherits full qualification"
+    "Historical paired RTT/native/Q2 failures, MTU/PMTU/native capability gaps and approximately80s S2C interruption retained; no source inherits full qualification",
+    "2026-10-13 source086a WinDivert-only outbound pinned-IfIdx N4 shortcut explicitly NO_GO (gate Action38341416320 SUCCESS verifying failed prerequisite). Other architectures NOT_EVALUATED. Real driver load/WinTun/dual-NIC NOT_RUN. Stop for user choice; original TCP/few routes and N6 open."
   ],
   "nohol_qualification": {
     "state": "PASS_ACTIONS",

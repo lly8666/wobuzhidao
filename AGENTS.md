@@ -1,5 +1,10 @@
 # WBD：新agent唯一开发入口
 
+## 当前接手边界：N4 WinDivert 快速试验 NO-GO（2026-10-13）
+
+按 `docs/STATUS.json`：WinDivert-only 出站以 `WinDivertSend(IfIdx=物理网卡)` 绕开 Wintun 的方案已被官方 v2.2.2 API 合约否决，Action 38341416320 **门槛执行成功、候选方案 NO-GO**，不是 N4 PASS。Foundation 38341416272 成功，其他架构尚未测试。根据用户指令，**暂停 TCP/路由新实现，先与用户探讨下一架构**，不得自动改用 Npcap/WFP/普通 TCP 代理、加载驱动或要求临时物理试验。来源见最新 devlog。
+
+
 当前工作分支 `next/adaptive-fec-aes-tun-20261010`，从 FEC SIMD 分支最新文档头 a8913e3b 建立，继承产品 SOURCE 7fb98fab。规范主线仍 next/tlslike-dataplane，STATUS.branch 保持仓库契约，STATUS.working_branch 是实际工作线。不要改旧分支、移动qualification ref、合并主线或自动部署现有试用机器。
 
 ## 只按当前任务开工

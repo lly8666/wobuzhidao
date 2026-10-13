@@ -1,5 +1,10 @@
 # 新agent十分钟接手摘要
 
+## 最新接手令：N4 WinDivert-only 快捷路径被拒绝
+
+2026-10-13 独立 feasibility SOURCE `086a9bd27f9a275d0d3d40163cc0d0c5868c7e67` 的 Action `38341416320` 在官方 WinDivert `v2.2.2` 固定源码前提下准确报告 `NO_GO`：向外发送忽略 `IfIdx`，无法单靠 WinDivert 选择物理出口绕开 Wintun 路由。**Action SUCCESS 是门槛执行成功，不是方案通过**；Foundation `38341416272` SUCCESS；收据及 artifact 哈希在 `docs/devlog/20261013-n4-windivert-fastpath-no-go-actions-receipt.md`。用户明确要求方案不通过则再讨论，故下一动作是提出 Npcap 物理二层+有界 NAT、专用签名 WFP forward callout 或变更禁用 TCP 代理约束供用户选，绝不未经授权继续代码。其他路径 NOT_EVALUATED，实体网卡/驱动/物理 NOT_RUN。
+
+
 本轮任务只看STATUS；具体实现与验收见ADAPTIVE_NETWORK_PLAN。父分支完整状态与原方案在history/20261010-adaptive-network-parent/，是证据不是执行清单。
 
 ## 继承什么
