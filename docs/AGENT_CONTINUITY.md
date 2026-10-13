@@ -24,7 +24,11 @@ N0→N6 按当前 `STATUS.active_work/next_task/latest_log` 连续开发，每�
 
 ## 当前产品事实与新任务
 
-2026-10-12接手事实：V3 admission、per-Tunnel FEC policy、104/128B质量反馈、Normal双向auto live切档已实现；tlsrecord实际仍只ChaCha，AES/N4新TUN分流/N5/N6尚未完成。不要按旧计划“无admission/auto未开始”重复开发。真实600ms RTT clean100s已经双向20→4；off-start损伤波形双向0→4→20。90925f81 recover540s的C2S240s干净业务内仍20、drain才16，S2C降off，整体N2未合格。
+2026-10-13接手快照（后续实时任务仍以STATUS为准）：V3 admission、per-Tunnel FEC policy、低频质量反馈、Normal双向auto live切档已实现；ChaCha、AES-128-GCM、AES-256-GCM均已接入认证和Lane。AES128 Action38273052020、AES256 Action38281815825各自100s真实五netns无损双向业务限定PASS，不代表有损/CPU/ARMnative资格。Windows GUI已开放三套件和自动FEC，Action38283111076原生273项检查PASS；质量显示的物理网络效果未验。不要重复N0/N1、AES核心或GUI参数开发。
+
+N2 noHOL Go/race Action38257097791限定PASS；更正TCP种子/目标listener后，SOURCE ee4424223401e5b5ea0aec68e0caf28897408bb0 的Action38326649686完成真实120s混合TCP/UDP、每向10Mbps/300ms/约1%损伤限定PASS。快速UDP C2S12000/12000、S2C11900/11900，p99 308.50/307.58ms，最长空槽10ms；四个长TCP流各67帧完整、120条短TCP首达和CRC检查通过。它不是全工况无HOL或GE低延迟资格；首轮Action38326041291的夹具FAIL保留。
+
+N4已有纯IPv4/DNS分类、512flow/256fragment缓存及受认证Router/Direct分派边界，Action38289962670两平台限定PASS。`TUNDirectSink`尚无真实Windows TCP/UDP直连与返回包实现，正式入口仍是`NewTUNInput(router)`；这表示尚未接线，不是把新架构回滚。下一项是实现有界的真实Direct后端、underlay绑定/防回环/回注与可逆owned网络事务，再接入入口并验收。N6最终三目标同源发行包未开始，physical NOT_RUN。
 
 当前新增任务读 [ADAPTIVE_FEC_CURVE_ACCEPTANCE](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md)：独立理论/检测曲线→预声明允许带→真实工况单条Actions→必要修复。有限过保护余量、升降时延、parity/CPU/业务首交付/p99共同验收，不能只看业务0loss；30s/60s/512/32窗口等软参数可有证据地小改，永久硬门保持。质量报告是双端对齐统计的必要反馈，不是额外主动业务探针，fixed/off不运行auto。
 
@@ -42,4 +46,4 @@ Windows少量系统路由捕获，TUN内有界flow缓存/区间查表，direct�
 - 更大socket queue曾加1.5..1.9s延迟而没有收益；不要默认扩大buffer。4lane逻辑goodput不计副本。
 - 允许合理弱网残余loss，不允许payload损坏、fresh门控、无界state、全局HOL或owned清理破坏系统。
 
-接手N0→N6，每性能Action一条，使用真实夹具、先核CPU/配额/PSI/注入、失败分层。每轮devlog+STATUS同提交，catalog/GUI同步，未跑不写通过。不要把194KB父STATUS重新搬回当前进度或为简单任务造第二套交接文件。
+按STATUS当前next_task接续，不从N0重做。每性能Action一条，使用真实夹具、先核CPU/配额/PSI/注入、失败分层。每轮devlog+STATUS同提交，catalog/GUI同步，未跑不写通过。阶段交接刷新本摘要/方案/长期提示词；旧SOURCE失败仍原样保留，不能把OPEN一律当当前阻断。不要把194KB父STATUS重新搬回当前进度或为简单任务造第二套交接文件。

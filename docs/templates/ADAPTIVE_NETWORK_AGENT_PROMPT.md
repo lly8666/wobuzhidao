@@ -4,11 +4,13 @@
 
 先读 `AGENTS.md`、`PROJECT_CHARTER.md`、`docs/STATUS.json`、`docs/ADAPTIVE_NETWORK_PLAN.md`、`docs/AGENT_CONTINUITY.md`。按需读 WIRE_SPEC、MODULE_MAP、PARAMETERS、ACCEPTANCE 和 REALPATH_TEST_FIXTURE_GUIDE。完整方案已经确定，不另做多种架构/密码/FEC算法比赛。旧计划/完整状态已归档到 `docs/history/20261010-adaptive-network-parent/`；它们和 old 的提示词都是历史来源，禁止执行旧“下一步”。
 
-**2026-10-12当前优先级覆盖下方初始步骤**：再读 `docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md`。V3/N1与Normal auto live已有实现，不重复N0；先N2独立理论/可实现曲线与真实工况预声明，合理时间/档位允许带同时考核保护和开销，再单条Actions验证并修复。600ms RTT clean100双向20→4已scoped PASS；90925f81 recover540双向从off升20，但C2S240s恢复业务内仍20、drain才16，S2C降off。不能只找一次LOWER或继续把尾段翻倍。允许有反例后调整统计/控制软参数，不能变更运输/认证/MTU/资源硬门。完整组1%理论4、5%理论8只是IID例子，真实partial/突发/不确定性单列，不能冗余比例强行等于线路loss，也不能无限保守后宣布自动省资源PASS。新SOURCE资格与参考曲线实现目前未跑，不继承旧PASS。
+**接手防重复规则（2026-10-13修复）**：先核Actions最终状态和精确SOURCE。N0/N1/Normal自动FEC、AES128/256、GUI三套件及auto配置均已有实现与限定验收；不要按下方完整功能清单从零开发。当前N2混合TCP/UDP Action38326649686已完成限定PASS，不能再按旧“运行中”记录重dispatch。N4只有分类/缓存/分派边界，真实Windows Direct TCP/UDP后端、返回路径和正式入口接线尚未完成；当前next_task优先推进这一缺口，随后N5必要集成/N6包。若新HEAD已推进，以新STATUS和实码为准，不执行本快照的历史待办。
+
+`docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md`仍是N2验收契约：独立参考与允许带已有部分Actions验证，不是全部未实现，也不是N2全PASS。C04/C05档位效率FAIL、C10 GE约1.8–1.95s单向p99、普通diag-OFF成本与其余工况资格仍OPEN；列入有限遗留，不追单seed或为清空所有旧失败停住N4。修订统计软参数必须有新证据，硬门不变；真实partial/突发/未知不套完整k20 IID，不把UNKNOWN当0。当前或新增测试出现完整性、隔离、fresh门控/跨业务HOL、无界状态、MTU/清理硬门失败，立即定点修复，不以阶段推进跳过。
 
 永久目标：真实业务首次到达效率第一，低 p99、无跨业务 HOL、突发稳定和低 CPU/带宽；有界内存可以换 CPU，额外安全等级最后。认证、payload完整性、账号/地址隔离、同Seq同wire、generation、统一MTU与资源有界不变。后到完整record/systematic/独立业务立即交付；4096只是可放弃shadow备份，fresh不等ACK。保留已有SIMD FEC、partial min(k,R)、长度分类、32ms/3s和迟到首次交付。Game竞速去重及A→A+B→B换代不改。
 
-按 N0→N6 做原子开发和验收：
+以下是完整能力清单，**不是当前待办或要求重做**；只对照STATUS的缺口做原子开发和验收：
 
 1. 在真实TLS受保护admission里一次协商FEC模式/范围/初始档和record密码，服务器同端口per-Tunnel支持不同客户不同配置，双向第一包正确，不等首个业务包猜参数。V3协议/KDF/向量先明确；业务包不加mode/cipher字段，未知或旧版本明确拒绝。
 2. 建立有界低开销双向质量统计/反馈，约2秒一条摘要，允许重排成熟时间但不等待业务。估计外层丢包不冒充精确物理loss，不拿业务恢复后的loss或重传比例代替。UNKNOWN/过期/不足样本保持档位；PN跳号/发送失败/迟到/旧generation不能污染。health、quality与payload idle分开，Dormant不因刷新唤醒。
@@ -27,4 +29,4 @@
 
 每轮同一提交新增详细 `docs/devlog`、更新唯一STATUS并留evidence；每个新增参数同步全部入口，记录精确SOURCE/helper/config/seed/run/job/artifact/hash和实际失败/限制。原约80秒S2C中断和多秒late保持OPEN，按用户安排本轮后单独定位，遇到重现如实留痕，不能猜WAN或FEC。不自动部署用户现有机器、不移动旧qualification ref、不合并主线。凭据/密钥/ticket/业务正文不上传，不持久大pcap，清owned大raw保留摘要/hash。
 
-本模板最初来源是文档计划，后来N0/N1及部分N2已有实现和scoped验收；现在接手必须重新读取STATUS确认精确SOURCE与当前next_task，不重复N0、不继承父分支PASS、不把文末或历史日志当实时待办。
+阶段交接时同步STATUS的steps/next_task/latest_log/last_tested及本模板、AGENT_CONTINUITY、方案当前摘要。已完成Action不得长期保留为IN_PROGRESS/NOT_DISPATCHED；先核原产物再更新，失败不改名，未验范围不抹去。不要另建第二套交接文件；每个阶段限定PASS不继承为新源码全产品资格。

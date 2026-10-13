@@ -1,6 +1,6 @@
 # 自动 FEC：真实工况、理论曲线与有余量验收
 
-2026-10-12 用户修订。适用于 `next/adaptive-fec-aes-tun-20261010` 的 N2；与 `ADAPTIVE_NETWORK_PLAN.md` 合用。本文件覆盖旧文档只验“出现过 RAISE/LOWER”或持续延长干净阶段的 N2 性能收口方式。方案/阈值是待实现验收契约，不能冒充已通过结果；唯一实时进度仍在 STATUS。
+2026-10-12 用户修订。适用于 `next/adaptive-fec-aes-tun-20261010` 的 N2；与 `ADAPTIVE_NETWORK_PLAN.md` 合用。本文件覆盖旧文档只验“出现过 RAISE/LOWER”或持续延长干净阶段的 N2 性能收口方式。契约已有部分独立模型和实网验证，既不是全部未实现，也不是整体PASS；唯一实时进度仍在 STATUS。2026-10-13已完成真实1%双向混合TCP/UDP限定验收，后续按STATUS推进N4，不把下方历史接手点当当前任务。
 
 ## 1. 目标与不可改变的边界
 
@@ -12,13 +12,13 @@
 
 本轮只改必要 N2 统计/控制/夹具，不重构 RS、不加额外稳态每包字段或主动质量业务探针，不另开算法比赛。N3–N6 保留既定范围，收口后继续。全部构建和测试只在 Actions，最终统一物理验收，不提前部署。
 
-## 2. 已知事实与此次接手点
+## 2. 制定契约时的历史事实与接手点（2026-10-12）
 
 - 模型曾把窗口边缘 cropped parity 当成未保护业务 source，`e854b93c` 已修正：source/parity 分开，未知真实 source 仍保守，不能把它们全部当满组或删除。
 - 精确 SOURCE `3f5c7880679a1b982e29dd07333680fac2cfde03` 的 clean300 run [38160516630](https://github.com/lly8666/wobuzhidao/actions/runs/38160516630)：300ms 每方向、Normal 各10Mbps、100s，两方向实际20→16→12→10→8→4，246711/246711 首次业务交付，probe100/100，RTT p99 600.706428ms。仅该干净场景 scoped PASS。
 - SOURCE `90925f81cfb16e8435c238b060c46492eef017ea` 的 off-start recover540 run [38161148715](https://github.com/lly8666/wobuzhidao/actions/runs/38161148715)：0/1/5/20/5各60s，最后0%240s，300ms 每方向、各10Mbps；双向0→4→20。C2S 在240s干净业务阶段仍20，结束后10s drain才降16；S2C 在干净阶段逐步降至off。产物分类 `SCOPED_OFF_START_BOTH_DIRECTION_RAISE_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE`，`not_full_n2_pass=true`，不是完整自适应有效性 PASS。
 - 该540s样本各发1332237包，C2S缺389、S2C缺272，全部在初始1%适应段；其余阶段无缺包、无损坏/重复、无整秒零交付，probe539/540、返回者RTT p99 621ms；分析器无capacity flags。CPU 308.65/312.62s，诊断ON，不作跨CPU或诊断OFF优化证据。
-- 旧420s/360s不降档、off约2.73s尾部及约80s S2C历史问题保留。N3 AES、N4 Windows TUN、N5 GUI、N6包未开始，物理NOT_RUN。
+- 当时旧420s/360s不降档、off约2.73s尾部及约80s S2C历史问题保留，N3–N6尚未开始。此句仅是2026-10-12契约起点；当前AES/GUI和N4逻辑已推进，资格及下一步以STATUS为准，物理仍NOT_RUN。
 
 不要再只把干净阶段240s改480s来宣称成功。先把本次原始记录纳入 evidence，指出源窗口接受效率、M/R上下界、历史年龄、真实k分布和降档阻塞；排空后的切档不冒充负载内及时收敛。
 

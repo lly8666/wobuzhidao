@@ -5,27 +5,27 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-10-12",
+  "updated_at": "2026-10-13",
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N2_MIXED_TCP_UDP_NOHOL_SECOND_SOURCE_ACTION38326649686_PRELOAD_PASS_IN_PROGRESS",
+    "phase": "N4_REAL_NATIVE_DIRECT_BACKEND_NEXT_AFTER_N2_MIXED_SCOPED_PASS_AES_AND_GUI_IMPLEMENTED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "2aa03ae1a181e630a974d164e22bec302ad7f251",
-    "implementation": "V3_PER_TUNNEL_CHA_CHA_POLICY_QUALITY_AND_NORMAL_LIVE_AUTO_IMPLEMENTED_SCOPE_N2_NOT_COMPLETE",
-    "core": "NORMAL_DIRECTIONAL_LIVE_AUTO_CLEAN300_BOTH_LOWER_OFFSTART_BOTH_RAISE_POST_DAMAGE_C2S_EFFICIENCY_OPEN",
+    "new_product_source_sha": "ee4424223401e5b5ea0aec68e0caf28897408bb0",
+    "implementation": "AUTHENTICATED_V3_NORMAL_AUTO_CHACHA_AES128_AES256_AND_GUI_IMPLEMENTED_N4_LOGIC_ONLY_DIRECT_BACKEND_NOT_WIRED",
+    "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
     "steps": {
       "N0_admission": "PASS_N0_IMPLEMENTED_FIXED_OFF_CHACHA_ACTIONS_SCOPED_NATIVE_S2C_BEFORE_CLIENT_BUSINESS_UNTESTABLE_AS_UNSOLICITED_TPROXY_APP_DELIVERY",
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
-      "N2_normal_auto": "IN_PROGRESS_C10_TRUE_TIME_DRIVEN_GE_240S_FIRST_UNIQUE_SCOPED_PASS_98_17_97_88PCT_BUSINESS_P99_1833_1947_5MS_OPEN_C05_S2C10PCT_GRADE70PCT_FAIL_C04_RECOVER5_S2C_GRADE78_3PCT_FAIL_OTHER_N2_MATRIX_PENDING",
-      "N3_aes": "SCOPED_COMPLETE_GO_STD_AES_GCM_CIPHER_RECORD_ADMISSION_LANE_AND_INDEPENDENT_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_FUNCTIONAL_PASS_WITH_HARD_OPEN_DAMAGE_CPU_WIN_TUN",
+      "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
+      "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
       "N4_windows_tun": "IN_PROGRESS_PURE_IPV4_DNS_CLASSIFIER_AND_512FLOW_256FRAGMENT_AND_AUTH_ROUTER_DIRECT_BACKEND_DISPATCH_LINUX_RACE_NATIVE_WINDOWS_PASS_ACTION38289962670_NO_REAL_TCP_UDP_DIRECT_WINTUN_YET",
-      "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINDOWS2022_WINFORMS_273_REAL_CLIENT_CONFIG_TESTS_AES128_AES256_GUI_TRANSPORT_AND_N2_AUTO_QUALITY_UNKNOWN_SOURCE_EB3D_DRIVERS_NETWORK_NOT_RUN",
+      "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
     "decisions": {
@@ -46,7 +46,7 @@
       "existing_configs": "no silent fixed-to-auto migration"
     },
     "performance_policy": "One SOURCE/config/seed/scenario and one measurement job per Action; no inherited serial exception.",
-    "parameter_proposals": "Actual implemented options in PARAMETERS/catalog/source; AES/TUN/GUI/final package and new curve acceptance generator/analyzer remain planned; do not label planned defaults or tests as active/PASS.",
+    "parameter_proposals": "Actual FEC/control-padding/record-cipher options are in CLI/JSON/catalog and native GUI; do not reimplement. N4 real Direct backend/entry wiring and N6 final packages pending; scope per SOURCE evidence.",
     "acceptance_sequence": {
       "rule": "ACTIONS_FIRST_FINAL_PHYSICAL_ONLY",
       "applies_to": "N0 through N6 including integration and same-source P6",
@@ -829,9 +829,9 @@
     },
     "curve_acceptance_plan": "docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md",
     "curve_contract": {
-      "version": "adaptive-fec-curve-v1-planned",
+      "version": "adaptive-fec-curve-v1",
       "document": "docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md",
-      "state": "PLAN_READY_NOT_IMPLEMENTED_NOT_TESTED",
+      "state": "PARTIALLY_IMPLEMENTED_INDEPENDENT_MODELS_AND_REAL_CURVE_SAMPLES_TESTED_EFFICIENCY_FAILS_RETAINED_NOT_FULL_PASS",
       "user_date": "2026-10-12",
       "reference": "Independent ideal grade and attainable detection timeline before run; predeclared flexible grade/time envelope; no product oracle.",
       "effectiveness": "Delivery and adaptive resource saving graded separately; bounded ordinary safety margin; record overprotection duration/parity cost and p99.",
@@ -2501,7 +2501,7 @@
       }
     },
     "n2_real_mixed_nohol": {
-      "status": "ACTION38326041291_REAL_NET_TCP_SEED_FIXTURE_INVALID_AND_SERVER_EARLY_EXIT_FAIL_NOHOL_NOT_QUALIFIED",
+      "status": "SCOPED_MIXED_TCP_UDP_10MS_NOHOL_SCREEN_PASS_NOT_FULL_N2",
       "workflow": ".github/workflows/next-adaptive-n2-mixed-tcp-udp-nohol-single.yml",
       "business_helper": "tools/adaptive_n2_mixed_nohol_business.py",
       "realpath_helper": "tools/adaptive_n2_mixed_nohol_realpath.py",
@@ -2536,15 +2536,15 @@
         "Windows native direct TCP UDP and driver not tested",
         "physical NOT_RUN"
       ],
-      "sample_run_id": "NOT_DISPATCHED",
+      "sample_run_id": 38326649686,
       "physical": "NOT_RUN",
-      "exact_source_sha": "014177a20e48bccf7d8bab8090b774f92dfb9847",
-      "action_run_id": 38326041291,
-      "action_job_id": 115064818885,
+      "exact_source_sha": "ee4424223401e5b5ea0aec68e0caf28897408bb0",
+      "action_run_id": 38326649686,
+      "action_job_id": 115066757593,
       "model_and_python_units": "PASS",
       "go_unit_race": "PASS",
-      "real_performance": "NOT_YET_OBSERVED",
-      "actual_artifact_id": null,
+      "real_performance": "MEASURED_SCOPED_PASS_NOT_FULL_N2",
+      "actual_artifact_id": 11781520153,
       "first_action": {
         "source_sha": "014177a20e48bccf7d8bab8090b774f92dfb9847",
         "action_run_id": 38326041291,
@@ -2601,19 +2601,84 @@
         "source_sha": "ee4424223401e5b5ea0aec68e0caf28897408bb0",
         "job_id": 115066757593,
         "status": "CORRECTED_GO_UNIT_RACE_PY_PREP_PASS_BUILD_IN_PROGRESS_NO_NETWORK_VERDICT",
-        "evidence": "docs/evidence/adaptive-n2-mixed-nohol-second-action-running-20261013.json"
+        "evidence": "docs/evidence/adaptive-n2-mixed-nohol-second-action-running-20261013.json",
+        "is_historical_registration": true
+      },
+      "evidence": "docs/evidence/adaptive-n2-mixed-nohol-actions-scoped-pass-20261013.json",
+      "second_action": {
+        "source_sha": "ee4424223401e5b5ea0aec68e0caf28897408bb0",
+        "run_id": 38326649686,
+        "job_id": 115066757593,
+        "artifact_id": 11781520153,
+        "artifact_api_sha256": "432d8dad925e1e41903a3c03704a4e2970303178a295b7f8e6400d2b046a58f0",
+        "workflow_conclusion": "SUCCESS",
+        "summary_classification": "SCOPED_MIXED_TCP_UDP_10MS_NOHOL_SCREEN_PASS_NOT_FULL_N2",
+        "scope": "one exact 120s 300ms/way 1pct both netem, Normal auto, mixed true kernel TCP+UDP flows, fast UDP every 10ms",
+        "evidence": "docs/evidence/adaptive-n2-mixed-nohol-actions-scoped-pass-20261013.json",
+        "summary_sha256": "a0ab409fe693ac595f602432c9bc60bfe2ab2df235f81656e9560471c3774a68",
+        "fast_udp_sent_and_first_unique": {
+          "c2s": [
+            12000,
+            12000
+          ],
+          "s2c": [
+            11900,
+            11900
+          ]
+        },
+        "fast_udp_oneway_p99_ms": {
+          "c2s": 308.500855,
+          "s2c": 307.57639
+        },
+        "longest_empty_10ms_bins_steady": 1,
+        "tcp_corrupt_and_seq_errors": 0,
+        "physical": "NOT_RUN",
+        "full_N2": "OPEN"
       }
+    },
+    "n2_residual_work": {
+      "state": "OPEN_LIMITED_REGISTER_NOT_NEXT_DEVELOPMENT_TASK",
+      "items": [
+        {
+          "id": "C04_C05_AUTO_EFFICIENCY",
+          "state": "OPEN",
+          "facts": "S2C allowed-grade fractions 78.3pct and 70pct fail original90pct screen; no silent threshold waiver"
+        },
+        {
+          "id": "C10_GE_HIGH_TAIL",
+          "state": "OPEN",
+          "facts": "Business one-way p99 1833/1947.5ms; mixed1pct PASS does not close GE tail"
+        },
+        {
+          "id": "N2_OTHER_CONFIG_LIFECYCLE_GUARDS",
+          "state": "NOT_FULLY_QUALIFIED",
+          "facts": "Sparse/idle/rotation/feedback/MTU/Game current-source combination gaps remain; plan bounded integration with changed modules"
+        },
+        {
+          "id": "ORDINARY_DIAGNOSTIC_OFF_COST",
+          "state": "NOT_QUALIFIED",
+          "facts": "No CPU gain from diagnostic-ON cross-VM samples; bounded ordinary-cost comparison still needed"
+        },
+        {
+          "id": "HISTORICAL_2_73S_80S",
+          "state": "OPEN",
+          "facts": "Original source-scoped late probe and S2C outage unclosed; not presumed same as repaired32bit serial bug"
+        }
+      ],
+      "execution_rule": "Do not endlessly retest the same scenario or reopen completed AES/GUI. Advance N4; changed modules/new reproducible hard-gate failures require immediate scoped repair. Before final qualification explicitly resolve or report every residual, never turn OPEN into PASS."
     }
   },
-  "next_task": "True TCP/UDP noHOL first SOURCE014177a Action38326041291 fully FAILED; original artifact11780558764 zip SHA a01dd8f preserved, biz/target TCP CRC seeds mismatch and server early target TCP listener closed; observed fast UDP C2S244/12000 vs S2C11884/11900, do not classify noHOL. Fixed only shared TCP business seed2026092202 and listener drain20s, active120s/wire1pct/300ms/10Mbps/Normal auto unchanged. CORRECTED SOURCEee4424223401e5b5ea0aec68e0caf28897408bb0 Action38326649686/job115066757593 running; Go unit/race and Python mixed static/CRC/harness tests PASS, five netns Linux prereqs PASS, formal binary build next. Before any success claim inspect exact new artifact, qdisc actual loss, target and biz TCP CRC/number of short flows and fast100Hz UDP first arrival C2S and S2C 10ms gaps/p99, process lifetime, CPU/PSI; do not widen frozen screens after sample. Windows GUI FEC AES 273 tests already PASS native; N4 Direct Windows TCP/UDP real still missing, N6 packages not started. C04/C05 efficiency FAIL C10 p99/old2.73s/80s OPEN physical NOT_RUN no deploy/ref/merge.",
-  "latest_log": "docs/devlog/20261013-n2-mixed-nohol-second-action-registered.md",
-  "qualification_scope": "N0_FIXED_OFF_CHACHA_ACTIONS_SCOPED_PASS_NATIVE_3CLIENT_BIDIRECTIONAL_AND_INMEMORY_S2C_FIRST_AND_12_CONTROLLED_SAMESEQ_CIPHERTEXT_RACE_NO_NATIVE_UNSOLICITED_BUSINESS_OR_LOSS_PCAP",
-  "last_tested_source_sha": "a4689a48e5bbafba05e8759be9b2ef4405770854",
-  "last_tested_scope": "N4_PURE_WINDOWSCLIENT_TUN_CLASSIFIER_LINUX_GO_UNIT_RACE_AND_WINDOWS_NATIVE_GO_UNIT_SCOPED_PASS_NOT_REAL_ROUTER",
+  "next_task": "N4 first implement one real native UDP Direct round trip behind TUNDirectSink: bounded per-flow mapping, underlay/interface/source binding, reverse packet delivery and owned cancellation/cleanup; use existing classifier/512flow/256fragment and authenticated Router, then add actual native TCP forwarding per current plan and wire the Windows entry. Do not net.Dial raw TCP SYN or call a mock sink real Direct. Current entry NewTUNInput(router) has not migrated. Run relevant unit/race/native Windows Actions; unsupported real Wintun hardware explicitly UNSUPPORTED/NOT_RUN, no physical deployment. AES128/256 and GUI273 and mixed Action38326649686 already scoped PASS, no duplicate dispatch/development absent new changes or failures. Preserve N2 residual register, source-scoped FAIL and GE p99/2.73s/80s OPEN. Then N5 integration/N6 same-source final bundles. Each performance Action one source/config/scenario/measurement job; no mainline/ref/deploy.",
+  "latest_log": "docs/devlog/20261013-continuity-repair-and-mixed-actions-receipt.md",
+  "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
+  "last_tested_source_sha": "ee4424223401e5b5ea0aec68e0caf28897408bb0",
+  "last_tested_scope": "N2_MIXED_TCP_UDP_120S_1PCT_300MS_REAL_FIRST_UNIQUE_AND_10MS_CONTINUITY_SCOPED_PASS_NOT_FULL_N2",
   "physical_status": "NOT_RUN_NEW_SOURCE",
-  "completed": [],
+  "completed": [
+    "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification."
+  ],
   "in_progress": [
-    "N2 independent theory/attainable curve and realistic scenario contract planned; implement and validate in Actions, diagnose post-loss C2S downshift and low-loss overprotection, then remaining N2 guards; N3-N6 not started."
+    "N4 real Windows Direct TCP/UDP backend, reverse path, small capture routes and entry wiring; N2 bounded residual qualification OPEN; N6 final packages NOT_STARTED."
   ],
   "actions": [
     {
@@ -3564,6 +3629,15 @@
       "original_classification": "SCOPED_OFF_START_BOTH_DIRECTION_RAISE_OBSERVED_UNSEEDED_REVIEW_PERFORMANCE",
       "cause": "Both real TX rose; C2S active240s recovery never lowered and only drain16, S2C returnedoff. WorkflowSUCCESS is not fullN2PASS; no retrospective new-contract PASS.",
       "evidence": "docs/evidence/adaptive-n2-recover540-curve-review-20261012.json"
+    },
+    {
+      "name": "next-adaptive-n2-mixed-tcp-udp-nohol-single",
+      "source_sha": "ee4424223401e5b5ea0aec68e0caf28897408bb0",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38326649686",
+      "run_id": 38326649686,
+      "scope": "N2_MIXED_TCP_UDP_REAL_120S_1PCT_300MS_SINGLE_SAMPLE_NOT_FULL_N2",
+      "status": "PASS",
+      "evidence": "docs/evidence/adaptive-n2-mixed-nohol-actions-scoped-pass-20261013.json"
     }
   ],
   "required_read_set": [
@@ -3651,11 +3725,12 @@
     }
   ],
   "open_qualification": [
-    "N0 protected V3 and N1 targeted/native fixed20 screens done as exact-source scoped PASS; dedicated N1 1%/5%/one-way/sparse/low RTT/small MTU and complete current-source performance, N2 auto, N3 AES, N4 TUN, N5 GUI, N6 packaging and physical remain not fully qualified",
-    "Historical 11 paired RTT FAIL/native S01/S16/M03 late/missing retained in parent STATUS",
-    "Q2 old/new SIMD stress probes original FAIL retained; new rational contract does not rewrite them",
-    "MTU stress/PMTU/ICMP and Windows driver/ARMnative capability must be scoped",
-    "~80s S2C interruption deferred until this round completes; not presumed WAN/FEC/runner"
+    "N0/N1 protected policy/feedback implemented; N2 auto and real1pct mixed TCP/UDP scoped PASS but C04/C05 efficiency, C10 GE tail and remaining current-source guards OPEN",
+    "N3 AES128/256 authenticated record/admission and separate100s real lossless PASS; damaged network/ordinary CPU/native hardware not fully qualified",
+    "N5 native GUI273 three-suite/FEC config scoped PASS, real physical quality stream and drivers not verified",
+    "N4 classifier/cache/dispatcher logic PASS; real Windows Direct TCP/UDP backend, reverse path, small routes and owned cancellation/cleanup not implemented end-to-end",
+    "N6 final current-source three-target bundles and integrated Actions qualification not complete; physical NOT_RUN",
+    "Historical paired RTT/native/Q2 failures, MTU/PMTU/native capability gaps and approximately80s S2C interruption retained; no source inherits full qualification"
   ],
   "nohol_qualification": {
     "state": "PASS_ACTIONS",

@@ -1,8 +1,8 @@
 # Normal 自动 FEC、可选 AES、TUN 分流与线路质量显示
 
-状态（2026-10-12）：**N0/N1已有scoped资格，N2已接入生产路径，干净600ms RTT双向20→4、off起步双向升档已有Actions证据；弱网恢复降档效率与整体N2仍未收口。N3–N6未开始。** 90925f81的540s样本C2S在240s干净业务内未降、drain才降16，S2C降off；数据功能与自动省资源分别判断。**唯一实时结论看 docs/STATUS.json**；文末日期追加是历史来源，不是当前待办。
+状态快照（2026-10-13）：**N0/N1/Normal自动FEC已实现；N2当前Go并发/race及真实1%双向混合TCP/UDP单场景限定PASS，效率与GE长尾仍OPEN。N3 AES128/256已认证接线，各100s真实无损限定PASS；N5 GUI自动档/质量面板/三套件原生273项检查PASS。N4分类/flow-fragment缓存/分派边界已实现，真实Windows Direct后端与入口接线未完成；N6最终包未开始。** 下一项推进N4，不重新开发AES/GUI或盲重跑已完成N2。精确SOURCE、限制、下一原子任务以 **docs/STATUS.json** 为准；文末日期追加是历史来源。
 
-**当前N2验收权威补充**：[ADAPTIVE_FEC_CURVE_ACCEPTANCE.md](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md)。先规划真实工况与独立理论/可实现曲线，再冻结有余量的时间与档位范围；不能只验曾RAISE/LOWER、不断延长干净尾段、或把实现的每个HOLD都当合理。用户允许依据跨工况证据修订统计/控制软参数，永久运输/认证/资源硬门不变。新方案尚未实现/验收，不冒写PASS。
+**N2验收权威补充**：[ADAPTIVE_FEC_CURVE_ACCEPTANCE.md](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md)。先规划真实工况与独立理论/可实现曲线，再冻结有余量的时间与档位范围；已有部分模型及实网验证，不能称整体PASS，也不能把它们写成全部未实现。C04恢复5%下行78.3%、C05下行10%档位70%效率FAIL、C10 GE尾延迟以及普通diag-OFF CPU资格继续记录；不把历史OPEN自动转成无期限当前阻断。用户允许依据新证据修订软参数，永久运输/认证/资源硬门不变。
 
 工作分支：`next/adaptive-fec-aes-tun-20261010`。父文档 HEAD `a8913e3b651413b6d37c3a7732a0baa375009da0`，继承 FEC 优化产品 SOURCE `7fb98fab79834a351a1dbe04eebb207f66bea28b`。不要把历史 SIMD/物理试用成绩当成本分支资格。
 
@@ -23,7 +23,9 @@
 
 约 80 秒 S2C 中断继续 OPEN_DEFERRED，完成本轮后单独定位；遇到同类中断保留失败，不能为推进而归因给 FEC/WAN。已继承 MTU 改动，做集成压力验收，不重新设计。Windows 启动/断开清理卡住已定位到大型路由安装与非幂等取消，是本轮 TUN 网络事务必须覆盖的边界。
 
-## 2. 开工审计：以源码为准
+## 2. 建分支时的历史基线（不是当前源码状态）
+
+以下段落保留原开发起点。现有实现已包括V3策略、质量反馈、Normal自动和AES；接手不要根据“尚无/固定ChaCha”重做。当前N4正式入口尚未接入新dispatcher，Direct后端不能用模拟sink冒充。具体证据看STATUS和相应devlog。
 
 现有接入：`internal/realityfront/admission.go` 的 WBAD/WBAL 受 TLS 保护，已携带身份、lane、TunnelID、lease 和 record limits；尚无 FEC 模式或密码选择。
 

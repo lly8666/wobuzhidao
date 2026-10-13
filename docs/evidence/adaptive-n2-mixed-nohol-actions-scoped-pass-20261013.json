@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "date": "2026-10-13",
+  "source_sha": "ee4424223401e5b5ea0aec68e0caf28897408bb0",
+  "run_id": 38326649686,
+  "job_id": 115066757593,
+  "artifact_id": 11781520153,
+  "artifact_api_sha256": "432d8dad925e1e41903a3c03704a4e2970303178a295b7f8e6400d2b046a58f0",
+  "artifact_digest_verification": "GitHub API digest; extracted files locally rehashed, ZIP not independently rehashed",
+  "workflow_conclusion": "SUCCESS",
+  "summary_classification": "SCOPED_MIXED_TCP_UDP_10MS_NOHOL_SCREEN_PASS_NOT_FULL_N2",
+  "scope": "one exact 120s 300ms/way 1pct both netem, Normal auto, mixed true kernel TCP+UDP flows, fast UDP every 10ms",
+  "one_source_config_scenario_measurement_job": true,
+  "directional": {
+    "c2s": {
+      "fast_first_unique_received": 12000,
+      "fast_max_consecutive_empty_10ms_bins_steady": 1,
+      "fast_max_oneway_ms": 333.545311,
+      "fast_missing": 0,
+      "fast_p50_oneway_ms": 300.298435,
+      "fast_p99_oneway_ms": 308.500855,
+      "fast_return_fraction": 1.0,
+      "fast_send_errors": 0,
+      "fast_sent": 12000,
+      "fast_source_schedule_miss_gt10ms": 0,
+      "long_tcp_frames_received": {
+        "0": 67,
+        "1": 67,
+        "2": 67,
+        "3": 67
+      },
+      "long_tcp_frames_source": {
+        "0": 67,
+        "1": 67,
+        "2": 67,
+        "3": 67
+      },
+      "other_bulk_udp_unique": 138289,
+      "short_tcp_first_payload_p99_ms": 907.859094,
+      "short_tcp_received_first": 120,
+      "short_tcp_recorded_first_both_ways": true,
+      "short_tcp_sent_first": 120,
+      "tcp_connect_attempts": 124,
+      "tcp_connections_failed": 0,
+      "tcp_rx_corrupt": 0,
+      "tcp_rx_seq_errors": 0
+    },
+    "s2c": {
+      "fast_first_unique_received": 11900,
+      "fast_max_consecutive_empty_10ms_bins_steady": 1,
+      "fast_max_oneway_ms": 334.615183,
+      "fast_missing": 0,
+      "fast_p50_oneway_ms": 300.286644,
+      "fast_p99_oneway_ms": 307.57639,
+      "fast_return_fraction": 1.0,
+      "fast_send_errors": 0,
+      "fast_sent": 11900,
+      "fast_source_schedule_miss_gt10ms": 0,
+      "long_tcp_frames_received": {
+        "0": 67,
+        "1": 67,
+        "2": 67,
+        "3": 67
+      },
+      "long_tcp_frames_source": {
+        "0": 67,
+        "1": 67,
+        "2": 67,
+        "3": 67
+      },
+      "other_bulk_udp_unique": 138289,
+      "short_tcp_first_payload_p99_ms": 303.42782,
+      "short_tcp_received_first": 120,
+      "short_tcp_recorded_first_both_ways": true,
+      "short_tcp_sent_first": 120,
+      "tcp_connect_attempts": 0,
+      "tcp_connections_failed": 0,
+      "tcp_rx_corrupt": 0,
+      "tcp_rx_seq_errors": 0
+    }
+  },
+  "actual_netem": {
+    "rcli": {
+      "netem_drops": 10423,
+      "observed_drop_over_packets_plus_drops_pct": 1.003079588105091,
+      "overlimits_delta": 0,
+      "post_backlog": 0,
+      "post_queue_length": 0,
+      "requeues_delta": 0,
+      "semantics": "qdisc netem actual injection (not source first-loss proof)",
+      "tx_packets": 1028677,
+      "wire_bytes": 537319149
+    },
+    "rsrv": {
+      "netem_drops": 10445,
+      "observed_drop_over_packets_plus_drops_pct": 1.0060526903842746,
+      "overlimits_delta": 0,
+      "post_backlog": 509,
+      "post_queue_length": 1,
+      "requeues_delta": 0,
+      "semantics": "qdisc netem actual injection (not source first-loss proof)",
+      "tx_packets": 1027771,
+      "wire_bytes": 521937635
+    }
+  },
+  "errors": [],
+  "invalid": [],
+  "capacity": [],
+  "resources": {
+    "clock_ticks_per_second": 100,
+    "notice": "diagnostic ON; do not compare CPU seconds across different CPUs or OFF runs",
+    "products": {
+      "client": {
+        "cpu_s": 62.77,
+        "cpu_s_per_first_unique_gib_all_directions": 225.28718519012926,
+        "status": "OBSERVED_DIAGNOSTIC_ON"
+      },
+      "server": {
+        "cpu_s": 63.14,
+        "cpu_s_per_first_unique_gib_all_directions": 226.61514852484885,
+        "status": "OBSERVED_DIAGNOSTIC_ON"
+      }
+    },
+    "samples": 31
+  },
+  "file_sha256": {
+    "summary.json": "a0ab409fe693ac595f602432c9bc60bfe2ab2df235f81656e9560471c3774a68",
+    "manifest.json": "f3f1775bbe76dce91638e7d43d07d416f90d006f27b2b709682e1ad60983c171",
+    "biz.json": "d94601197593854153679b986d1705bf187906f861d85e7576941c69152db5fb",
+    "target.json": "81d20914ef010d49819ae7ffd2ac95f4877dd04712f14b3c156f74343e74d5e2",
+    "resource-samples.jsonl": "423342ca7edb7d944a383a03453c6b5521391d1f1ce31406eb06ec597006dbe7"
+  },
+  "limitations": [
+    "native Windows Wintun/TCP direct",
+    "all-flow per-packet latency",
+    "C10 GE p99",
+    "N2 C04/C05 grade FAIL",
+    "CPU OFF benchmark",
+    "physical",
+    "One 120s 1pct/300ms mixed sample, not all-condition/no-loss/GE p99 qualification",
+    "Short TCP C2S first-payload p99 907.859094ms includes connection lifecycle; not the fast UDP 308.500855ms metric",
+    "No product code, thresholds, workload, or new performance dispatch in this read-only receipt"
+  ],
+  "previous_failed_action_preserved": {
+    "run_id": 38326041291,
+    "source_sha": "014177a20e48bccf7d8bab8090b774f92dfb9847",
+    "evidence": "docs/evidence/adaptive-n2-mixed-nohol-first-realpath-fail-seed-and-server-20261013.json",
+    "state": "FAIL_NO_RETROACTIVE_PASS"
+  },
+  "overall_N2": "OPEN_WITH_SCOPED_MIXED_NOHOL_PASS",
+  "physical": "NOT_RUN"
+}
