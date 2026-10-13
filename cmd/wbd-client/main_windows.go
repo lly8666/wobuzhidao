@@ -402,7 +402,7 @@ func runWindows() error {
 	if err != nil {
 		return err
 	}
-	networkPlan, err := windowsclient.BuildNetworkPlan(windowsclient.Config{
+	networkPlan, err := windowsclient.BuildCompactNetworkPlan(windowsclient.Config{
 		AdapterAlias: *adapterAlias,
 		TunnelMTU:    uint32(tunMTU),
 		Lease4:       leasePrefix,
@@ -453,13 +453,27 @@ func runWindows() error {
 		return err
 	}
 	defer nativeUDP.Close()
-	ingress, err := windowsclient.NewTUNPacketDispatcher(router, flowClassifier, nativeUDP)
+	// Route capture is now fixed to the bounded two /1 halves (+ configured
+	// DNS /32s and underlay escape). CN/LAN decisions stay in the process,
+	// including Direct TCP's physically bound second connection.
+	nativeTCP, err := windowsclient.NewUserspaceTCPDirect(
+		underlay.InterfaceIndex, tunSessionGeneration, tunMTU, tunWriter,
+	)
 	if err != nil {
 		return err
 	}
-	// Legacy system routes remain until transparent TCP and owned network
-	// transitions are implemented. This wires the actual Wintun UDP return
-	// writer; it does not assert external NIC/Wintun qualification.
+	defer nativeTCP.Close()
+	nativeDirect, err := windowsclient.NewN4NativeDirect(nativeTCP, nativeUDP)
+	if err != nil {
+		return err
+	}
+	ingress, err := windowsclient.NewTUNPacketDispatcher(router, flowClassifier, nativeDirect)
+	if err != nil {
+		return err
+	}
+	// Control plane still uses legacy owned PowerShell until native
+	// lease/MTU/DNS/WFP/route Apply+Recover is fully qualified.
+	log.Printf("WBD_WINDOWS_CAPTURE compact_routes=%d direct_tcp=userspace_gvisor direct_udp=native network_control=legacy_powershell",len(networkPlan.CaptureRoutes))
 	fmt.Println("WBD_WINDOWS_CLIENT_READY")
 	// GUI-owned, opt-in to the existing stdout control channel (no network
 	// listener or qualification JSONL). One bounded normal-lane snapshot per
@@ -538,7 +552,9 @@ func runWindows() error {
 				if runtimeentry.RetryableBusinessWake(err) {
 					continue // don't replay a failed dormant wake
 				}
-				if errors.Is(err, windowsclient.ErrN4UDPUnsupported) ||
+				if errors.Is(err, windowsclient.ErrN4TCPQueueFull) ||
+					errors.Is(err, windowsclient.ErrN4TCPPacket) ||
+					errors.Is(err, windowsclient.ErrN4UDPUnsupported) ||
 					errors.Is(err, windowsclient.ErrN4UDPInvalid) ||
 					errors.Is(err, windowsclient.ErrTUNFragmentUnmapped) ||
 					errors.Is(err, windowsclient.ErrInvalidIPv4) {

@@ -1,3 +1,7 @@
+## 2026-10-13 更直接的 N4 功能收口：正式 CLI 紧凑 /1 + userspace Direct TCP/Native UDP 候选
+
+用户要求不要再叠加框架；本轮以实用功能接线代替仅新建底层抽象。源前HEAD `3ed3e25a3b365d74cd84e446c1c3df43812aac4d`，上次 `ff525c0` N4/Found/Lifecycle 限定 PASS。这次 **正式** `cmd/wbd-client/main_windows.go` 将 host routes 改为 `BuildCompactNetworkPlan`（server物理/32逃逸、两/1 捕获、DNS /32，CN/LAN在内存中选择）并激活已有 `UserspaceTCPDirect` gVisor物理绑定直连与 `NativeUDPDirect` 双协议分派，受限 TCP 输入满队列按 local drop 而非中断整个客户端。新增实际 userspace TCP stack 构造测试 + windows cmd compile/Actions；**提交时新 SOURCE 尚未验，不能标 PASS**。现有 control plane 仍通过原 PowerShell/.ps1 owned 脚本，禁止声称已 scriptless/全N4。之后仅保留必要的原生 lease/MTU/DNS/WFP/route 替换和最终 Actions/P6 收口；N2 OPEN、physical NOT_RUN。
+
 ## 2026-10-13 N4 最新同源收据：统一 WAL／真实 Win32 互斥锁／Wintun 句柄 generation 预留限定 PASS
 
 最新 Go SOURCE `ff525c0faaf0a719b25bbac5de132cab7975732e` 的 `N4WindowsCreatedWintunReservation.Hold` 与统一事务跨阶段 owner pin，N4 Action38364130417 Win2022/25 两端明确 RUN/PASS x3、Linux race PASS，Foundation38364130335 七个必需 job SUCCESS，Lifecycle38364130671 SUCCESS。上一 SOURCE `d88fcfca` Win32 机器范围 Global mutex 在 Win2022/25 真实 kernel object 测试和 Foundation/生命周期限定 PASS；SOURCE `1471883e` 五阶段 bounded WAL 模拟事务限定 PASS。原 `0ddcfefc` 并发 Apply N4/Foundation **FAIL** 仍留存且没有改名。以上均不是实际 Wintun driver/管理员 DNS/DHCP/MTU/route Apply，新的 Windows 阶段后端未接线。崩溃后 created-by-process 句柄失效的独立 durable recovery owner 尚缺，WFP 多 Wintun/独占防泄漏策略未实证，产品仍调用 PowerShell/.ps1、大 CIDR 补集路由。N2 C04/C05/C10/80s 遗留 OPEN，N6/physical NOT_RUN。最新 next_task 唯一看 STATUS。

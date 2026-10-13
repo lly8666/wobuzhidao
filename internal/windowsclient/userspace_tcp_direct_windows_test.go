@@ -45,3 +45,30 @@ func TestN4TCPRejectsGenerationAndUnrelatedProtocols(t *testing.T) {
     r.Close()
     _=time.Second
 }
+
+func TestN4TCPUserspaceStackConstructorAndRealMux(t *testing.T) {
+ writer:=&n4TCPDummyWriter{}
+ tcp,err:=NewUserspaceTCPDirect(17,4,1249,writer)
+ if err!=nil{t.Fatalf("userspace TCP stack constructor: %v",err)}
+ defer tcp.Close()
+ if _,err:=NewN4NativeDirect(nil,&NativeUDPDirect{});!errors.Is(err,ErrInvalidBinding){
+  t.Fatalf("nil TCP accepted: %v",err)
+ }
+ if _,err:=NewN4NativeDirect(tcp,nil);!errors.Is(err,ErrInvalidBinding){
+  t.Fatalf("nil UDP accepted: %v",err)
+ }
+ mux,err:=NewN4NativeDirect(tcp,&NativeUDPDirect{})
+ if err!=nil{t.Fatal(err)}
+ p:=make([]byte,40);p[0]=0x45;p[9]=6;p[3]=40
+ if err:=mux.ForwardDirectIPv4(p,17,3);!errors.Is(err,ErrTUNFlowScope){
+  t.Fatalf("cross-generation TCP accepted: %v",err)
+ }
+ p[9]=1
+ if err:=mux.ForwardDirectIPv4(p,17,4);!errors.Is(err,ErrN4TCPPacket){
+  t.Fatalf("unsupported L4 accepted: %v",err)
+ }
+ p[9]=6
+ if err:=mux.ForwardDirectIPv4(p,17,4);err!=nil{
+  t.Fatalf("TCP not dispatched to live userspace stack: %v",err)
+ }
+}

@@ -1,0 +1,11 @@
+# N4 official Windows compact /1 + userspace Direct TCP + native UDP wiring candidate — 2026-10-13
+
+Expected parent `3ed3e25a3b365d74cd84e446c1c3df43812aac4d` branch next/adaptive-fec-aes-tun-20261010. Prior exact code SOURCE ff525c0f N4 Action38364130417, Foundation38364130335 all mandatory, Lifecycle38364130671 scoped SUCCESS. Docs HEAD Foundation38364797111 final SUCCESS; no new tests were run locally.
+
+## Actual product-facing functionality
+Edited live `cmd/wbd-client/main_windows.go`: `BuildNetworkPlan` replaced by `BuildCompactNetworkPlan`, eliminating CN/LAN complement expansion in **host capture routes** (two /1 + configured DNS /32, and server /32 escape). Existing per-flow classifier still receives CN/LAN/direct prefixes via bypass and Direct4 as memory-only policy, not OS routes. After successful owned network Apply, instantiate `NewUserspaceTCPDirect(physicalIf,generation,MTU,TUNPacketWriter)` (gVisor/tun2socks stack with physically bound native TCP dialer), pair with preexisting `NewNativeUDPDirect` using `NewN4NativeDirect` and install into actual `ForwardOrProxy` dispatcher. Protected sends remain exactly once via owner. Treat bounded TCP queue overflow and malformed/direct unsupported local packet as drop/log, never replay to protected lane or abort independent flows. Sockets/queues closed by defer before owned network cleanup; no new flags or user parameters.
+
+Windows unit `TestN4TCPUserspaceStackConstructorAndRealMux` constructs actual userspace stack (no Wintun DLL/NIC needed), validates null direct sink errors, TCP generation fence and dispatch. N4 Win2022/25 matrix selects TestN4TCP and separately builds/tests cmd/wbd-client; Linux race unaffected. Foundation on exact SHA mandatory.
+
+## Critical boundary
+This change does NOT remove the existing **active PowerShell script** or fully qualify native WFP/MTU/lease/DNS management. The script provides present state-owned rollback and firewall/DNS guard until the concrete native Windows control plane replaces it. Actual internet/Wintun/admin on GH remains NOT_RUN; no physical tests until all N4/N6. New code Actions PENDING at time of commit, do not mark as PASS. N2 C04/C05 efficiency FAIL, C10 GE p99 + 80s S2C OPEN. N6 same-source P6 packages NOT_STARTED; no deploy/merge.
