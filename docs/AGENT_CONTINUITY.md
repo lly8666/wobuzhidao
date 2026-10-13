@@ -1,3 +1,7 @@
+## 2026-10-13 N4 五阶段 scoped PASS；下一步真实 hosted Wintun driver 能力门
+
+已核 `ccf504f1cb83e1e77973c83a7702f7d4022997ca` N4 Win2022/25 + Linux race Action38373415662 最终 SUCCESS，Foundation38373416090 七必需 SUCCESS，Lifecycle38373416166 SUCCESS；原 `5b41f685` N4 Action38372921051/Foundation38372921090 Windows 次序 FAIL 保留不改。**代码的五阶段实现不等于正式 CLI 可用**：Active `cmd/wbd-client` 仍 PowerShell/.ps1，真实管理员 Wintun、DNS 清理读回、WFP 全局 DNS/IPv6 独占和 crash 后属主恢复均未跑。用户要求功能完成再跑整体 Actions，本次只增加真实 Win2022/2025 hosted Wintun 随机专用适配器**只读**能力探测：官方 DLL 版本 0.14.1 固定 archive SHA256，对 live createdByProcess/NET_LUID/ifIndex/租约/MTU/DNS 做原生读，缺 DLL/驱动/admin 明记 UNSUPPORTED，绝不写 OS DNS/route/WFP；不把测试工作流绿色当成驱动 PASS。按新 SOURCE Actions 得证据后推进管理员正向隔离安全门、产品去脚本，再跨功能及 N6 三目标 P6；N2 遗留 OPEN、physical NOT_RUN。
+
 ## 2026-10-13 N4 路由第五阶段 Win 原顺序断言 FAIL 与定点修复
 
 `5b41f685` N4 Action38372921051 两代 Win 实际 FAIL：server /32、0/1、DNS /32、128/1、DNS /32 错误序列；新修复由 `N4BuildCompactNativeRouteKeys` 严格输出 server /32、0/1、128/1、DNS /32...，不更改 N4 两/1 内存/系统路由策略，也不绕开测试。其它崩溃和 foreign 拒删测试在同源 Win 日志 PASS，原整体 FAIL 保留。新精确 SOURCE Actions 需验。产品仍使用 PowerShell，DNS reset/真实 Wintun/admin/WFP 独占尚未验，N6/physical NOT_RUN。

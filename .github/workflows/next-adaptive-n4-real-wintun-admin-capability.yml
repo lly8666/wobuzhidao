@@ -1,0 +1,87 @@
+name: next-adaptive-n4-real-wintun-admin-capability
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-real-wintun-admin-capability.yml"
+      - "internal/windowsclient/native_admin_created_wintun_windows_test.go"
+      - "internal/windowsclient/tun_windows.go"
+      - "internal/windowsclient/native_wintun_owner_windows.go"
+      - "internal/windowsclient/native_unified_network_owner_windows.go"
+      - "internal/windowsclient/native_dns_snapshot_windows.go"
+      - "internal/windowsclient/native_ipinterface_windows.go"
+      - "internal/windowsclient/native_address_snapshot_windows.go"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-native-wintun-readonly:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify exact SOURCE and fetch pinned official Wintun DLL
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p artifacts/n4-driver-probe
+          python - <<'PY'
+          import hashlib, io, pathlib, urllib.request, zipfile
+          url="https://www.wintun.net/builds/wintun-0.14.1.zip"
+          expected="07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51"
+          with urllib.request.urlopen(url, timeout=60) as resp:
+              data=resp.read(4*1024*1024+1)
+          if hashlib.sha256(data).hexdigest()!=expected:
+              raise SystemExit("Wintun official archive hash mismatch")
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              dll=z.read("wintun/bin/amd64/wintun.dll")
+          pathlib.Path("artifacts/n4-driver-probe/wintun.dll").write_bytes(dll)
+          print("PINNED_WINTUN_ARCHIVE_SHA256="+expected)
+          print("WIN64_DLL_SHA256="+hashlib.sha256(dll).hexdigest())
+          PY
+      - name: Real isolated adapter LUID plus read-only DNS/IPv4 capability
+        shell: bash
+        env:
+          WBD_N4_ADMIN_ISOLATED: "1"
+          WBD_N4_ADMIN_PROBE_REPORT: "artifacts/n4-driver-probe/capability.json"
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly -c -o artifacts/n4-driver-probe/n4-probe.test.exe ./internal/windowsclient
+          ./artifacts/n4-driver-probe/n4-probe.test.exe -test.v -test.run '^TestN4WindowsHostedCreatedWintunReadOnlyCapability$' -test.timeout=8m
+          test -s "$WBD_N4_ADMIN_PROBE_REPORT"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("artifacts/n4-driver-probe/capability.json").read_text())
+          assert a["source_sha"] == __import__("os").environ["GITHUB_SHA"]
+          assert a["runner"]=="Windows" and a["physical"]=="NOT_RUN"
+          assert a["real_write"]=="NOT_RUN" and a["wfp_production"]=="NOT_RUN"
+          assert a["result"] in ("UNSUPPORTED","SCOPED_CREATED_WINTUN_READ_ONLY_PASS")
+          if a["result"]=="SCOPED_CREATED_WINTUN_READ_ONLY_PASS":
+              for field in ("created_adapter","native_luid","ipv4_address_read","ipv4_interface_read","native_dns_read"):
+                  assert a[field].startswith("PASS"),field
+          print("N4_REAL_WINTUN_CAPABILITY="+a["result"])
+          PY
+      - name: Publish honest limited driver evidence (no binary/DLL)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n4-created-wintun-readonly-${{ matrix.runner }}-${{ github.sha }}
+          path: artifacts/n4-driver-probe/capability.json
+          if-no-files-found: warn
+          retention-days: 30
