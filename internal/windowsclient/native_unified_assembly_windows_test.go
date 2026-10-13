@@ -36,3 +36,21 @@ func TestN4WindowsNativeWALAssemblerRequiresOwnedWintunAndPersistentGuard(t *tes
  // None of the negative checks above loads Wintun DLL, installs WFP,
  // changes NIC state or creates a journal.
 }
+
+func TestN4WindowsNativeAssemblyRejectsUnboundLegacyGUID(t *testing.T){
+ id:=n4TestConcreteNativeIdentity()
+ tun:=&TUN{name:"WBD",createdByProcess:true}
+ guard:=&n4WindowsPersistentWFPGuard{InstallationID:id.Installation,WintunLUID:id.WintunLUID,ExclusiveSingleWintun:true}
+ plan:=NetworkPlan{AdapterAlias:"WBD"}
+ if _,err:=n4AssembleWindowsNativeOwnedTxn(context.Background(),tun,plan,id,guard);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("legacy LUID/index-only journal assembled: %v",err)
+ }
+ id.WintunGUID="11111111-2222-3333-4444-555555555555"
+ if _,err:=n4AssembleWindowsNativeOwnedTxn(context.Background(),tun,plan,id,guard);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("missing alias assembled: %v",err)
+ }
+ id.AdapterAlias="not-WBD"
+ if _,err:=n4AssembleWindowsNativeOwnedTxn(context.Background(),tun,plan,id,guard);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("foreign alias assembled: %v",err)
+ }
+}

@@ -62,10 +62,17 @@ func TestN4WindowsHostedUnifiedWALRealLeaseMTUDNS(t *testing.T) {
  var install,gen [16]byte
  if _,err:=rand.Read(install[:]);err!=nil{t.Fatal(err)}
  if _,err:=rand.Read(gen[:]);err!=nil{t.Fatal(err)}
+ osGUID,err:=n4NativeInterfaceGUID(live.Index)
+ if err!=nil{t.Fatalf("native OS GUID readback: %v",err)}
  id:=N4UnifiedIdentity{Installation:install,Generation:gen,
-  WintunIndex:live.Index,WintunLUID:live.LUID}
+  WintunIndex:live.Index,WintunLUID:live.LUID,
+  WintunGUID:osGUID.String(),AdapterAlias:tun.Name()}
  owner:=N4WindowsCreatedWintunReservation{
   Tunnel:tun,Installation:install,Generation:gen,
+ }
+ wrongGUID:=id;wrongGUID.WintunGUID="11111111-2222-3333-4444-555555555555"
+ if err:=owner.Verify(ctx,wrongGUID);!errors.Is(err,ErrN4ForeignRoute){
+  t.Fatalf("wrong WAL GUID gained owner: %v",err)
  }
  fakeWFP:=&n4FakeGuard{durable:true,active:true}
  // These are ONLY test stage stand-ins. Their state must not be mistaken

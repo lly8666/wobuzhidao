@@ -57,3 +57,20 @@ func TestN4WindowsWintunReservationCancelBeforeDriver(t *testing.T){
   t.Fatalf("cancelled owner pin unexpectedly succeeded: %v %v",release!=nil,err)
  }
 }
+
+func TestN4WindowsReservationRejectsPartialJournalIdentityAndForeignAlias(t *testing.T){
+ owner,id:=n4WindowsReservationFixture()
+ owner.Tunnel.createdByProcess=true
+ id.WintunGUID="11111111-2222-3333-4444-555555555555"
+ if err:=owner.Verify(context.Background(),id);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("GUID-only journal gained owner: %v",err)
+ }
+ id.AdapterAlias="FOREIGN"
+ if err:=owner.Verify(context.Background(),id);!errors.Is(err,ErrN4ForeignRoute){
+  t.Fatalf("foreign alias gained owner: %v",err)
+ }
+ id.AdapterAlias="WBD";id.WintunGUID=""
+ if err:=owner.Verify(context.Background(),id);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("alias-only journal gained owner: %v",err)
+ }
+}

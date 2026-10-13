@@ -26,6 +26,13 @@ func (o N4WindowsCreatedWintunReservation) checkInputs(ctx context.Context,id N4
  if !id.valid() || o.Installation!=id.Installation ||
   o.Generation!=id.Generation || o.Tunnel==nil ||
   !o.Tunnel.createdByProcess {return ErrN4ForeignRoute}
+ // Half-bound WAL identity never grants native ownership. Older in-memory
+ // fixtures omit BOTH fields; production assembler requires both.
+ if (id.WintunGUID=="") != (id.AdapterAlias=="") {return ErrN4JournalConflict}
+ if id.AdapterAlias!="" {
+  if len(id.AdapterAlias)>128 || len(id.WintunGUID)>64 ||
+   o.Tunnel.Name()!=id.AdapterAlias {return ErrN4ForeignRoute}
+ }
  return nil
 }
 
@@ -37,6 +44,11 @@ func (o N4WindowsCreatedWintunReservation) Verify(ctx context.Context,id N4Unifi
  if err!=nil{return err}
  if !actual.CreatedByProcess || actual.Index!=id.WintunIndex ||
   actual.LUID!=id.WintunLUID {return ErrN4ForeignRoute}
+ if id.WintunGUID!="" {
+  guid,err:=n4NativeInterfaceGUID(actual.Index)
+  if err!=nil{return err}
+  if guid.String()!=id.WintunGUID{return ErrN4ForeignRoute}
+ }
  return nil
 }
 

@@ -23,6 +23,11 @@ func n4AssembleWindowsNativeOwnedTxn(
   plan.AdapterAlias=="" || plan.AdapterAlias!=tun.Name() {
   return nil,ErrN4ForeignRoute
  }
+ // Legacy LUID/index-only WAL cannot assemble the production native
+ // five-stage transaction, regardless of prior in-memory test fixtures.
+ if id.WintunGUID=="" || len(id.WintunGUID)>64 ||
+  id.AdapterAlias=="" || len(id.AdapterAlias)>128 ||
+  id.AdapterAlias!=plan.AdapterAlias {return nil,ErrN4JournalConflict}
  if guard==nil || !guard.Durable() ||
   guard.InstallationID!=id.Installation || guard.WintunLUID!=id.WintunLUID{
   return nil,ErrN4NativeGuard
@@ -38,6 +43,9 @@ func n4AssembleWindowsNativeOwnedTxn(
  if err!=nil{return nil,err}
  if !native.CreatedByProcess || native.Index!=id.WintunIndex ||
   native.LUID!=id.WintunLUID{return nil,ErrN4ForeignRoute}
+ observedGUID,err:=n4NativeInterfaceGUID(native.Index)
+ if err!=nil{return nil,err}
+ if observedGUID.String()!=id.WintunGUID{return nil,ErrN4ForeignRoute}
  if _,err:=N4BuildCompactNativeRouteKeys(plan,id.WintunIndex);err!=nil{return nil,err}
  lease,err:=n4StageLeaseIntent(id.WintunIndex,plan.Lease4)
  if err!=nil{return nil,err}

@@ -1,3 +1,7 @@
+## 2026-10-13 N4 real child crash adapter absent, GUID/alias owner pin candidate
+
+Previous exact SOURCE `1c2bf68ffc9fb2444dc1629fe02b94978668b52c`, real Win2022/25 Action38395038373 both jobs SUCCESS but real child TerminateProcess left NO persistent Wintun: `TestN4WindowsHostedCrossProcessCrashReadOnlyIdentity` SKIP `UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED`, NOT crash native Recover PASS. N4 matrix38395038348, Foundation38395038330 seven required, Lifecycle38395038305 SUCCESS. Candidate: native owner reservation refuses mismatched OS GUID/adapter alias, assembled five stages require full journal GUID+alias, and real Windows WAL fixture supplies OS-observed identity; new SOURCE Actions pending. WFP Arm remains hard-disabled and CLI PowerShell active; global DNS/IPv6 and two /1 host capture NOT_RUN. N2 C04/C05/C10/80s tail OPEN; N6 packages/physical NOT_RUN. Next task ONLY from STATUS.
+
 ## 2026-10-13 N4 真实 Windows 子进程强制终止、只打开 WAL 身份重新关联候选（Actions 待验）
 
 精确已验 CODE SOURCE `e919049fd275945dfa7d1985451272da959a0c05` Win2022/25 real Wintun + 本地 WAL GUID/generation/alias/LUID/index 只读匹配 Action38394154905 SUCCESS，N4 matrix38394155000、Lifecycle38394154997、Foundation38394154966 七必需 SUCCESS。本轮新加 `OpenExistingTUN` 严禁找不到旧接口时偷偷创建新别名，并在 Actions 真子进程创建驱动、fsync WAL 后 TerminateProcess，再只读重开校验原 NIC 的 GUID/代际，证明 borrowed NIC **不得取得 native Write 权限**。不等于产品 crash native Recover，不写 WFP/routes/DNS；若 adapter 不持久则如实 UNSUPPORTED。仍需 N4 WFP 安全共存及正式 CLI 去 PowerShell，N6、物理 NOT_RUN。下一项只看 STATUS。
