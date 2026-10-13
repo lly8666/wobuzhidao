@@ -1,3 +1,7 @@
+## 最新 N4 工作流 YAML 修复（2026-10-13）
+
+`decb79c` Action38358853661 和 `987ec105` Action38359000016 均为解析阶段 FAIL/零 job。第一次缺闭合测试命令，第二次远端文件仍有行125—164的重复旧 job 片段。当前仅截断至首份合法124行工作流，不动 Go 代码；必须新 SOURCE 确认 Windows2022/2025/Linux-race 真启动且显式执行两个新增测试。原 FAIL 全留。仍非 N4 Windows 真 Wintun/最终生产资格，N6/physical NOT_RUN。
+
 ## 2026-10-13 N4 专项 workflow parse FAIL 修复候选
 
 SOURCE `decb79c` N4 dedicated Action38358853661 在 GitHub workflow YAML 解析阶段失败，没有任何 job 执行。新增的显式测试选择行引号缺失；下一源码仅修此行并保留原 FAIL。需按新 SOURCE 验证两代 Windows Wintun/N4 纯软件覆盖；不冒充真实 driver。用户期望 native txn/N6/physical 仍未完成，按 STATUS。

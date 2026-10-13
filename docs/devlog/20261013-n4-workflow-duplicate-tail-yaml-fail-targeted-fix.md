@@ -1,0 +1,5 @@
+# N4 workflow duplicate tail parse failure — targeted 124-line file repair 2026-10-13
+
+Expected parent `987ec105e54aa1fcb0e49c51aa5b1ad37d5082d3`. Native owned matrix Actions38358853661 (SOURCEdecb79c) and38359000016 (SOURCE987ec105) both completed/failure with zero jobs: malformed GitHub YAML, not Go test failures. The second file was inspected byte-for-byte: the correct run command existed at line85, but after the intended first `retention-days: 30` at line124 an extraneous dangling `-count=3 -v`, repeated step and repeated receipt job appeared at lines125..164. Preserve both original failures; do not call them product regressions.
+
+Only restore the intended single workflow document by retaining through first retention-days:30, 124 lines total, with explicit selected N4 NativeTxn and WFPPartial Go tests on both Windows matrix runners x3 and existing Linux-race. All compile/unit/race still restricted to GitHub Actions on next exact SOURCE. No local Go tests, no physical or production WFP/adapter writes, no deploy or merge. N4 full native network txn/N6 still OPEN; residual N2 efficiency/GE/80s OPEN.
