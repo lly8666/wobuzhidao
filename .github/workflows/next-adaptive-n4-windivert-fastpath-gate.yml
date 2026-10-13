@@ -1,0 +1,51 @@
+name: next-adaptive-n4-windivert-fastpath-gate
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-windivert-fastpath-gate.yml"
+      - "tools/n4_windivert_fastpath_gate.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pinned-upstream-outbound-iface-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check exact SOURCE and project contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+      - name: Verify pinned WinDivert v2.2.2 ABI and emit fail-closed feasibility gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/n4_windivert_fastpath_gate.py \
+            --source "$GITHUB_SHA" \
+            --output artifacts/n4-windivert-fastpath-gate.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open("artifacts/n4-windivert-fastpath-gate.json"))
+          assert x["source_sha"] == __import__("os").environ["GITHUB_SHA"]
+          assert x["candidate_verdict"] == "NO_GO"
+          assert x["facts"]["outbound_interface_index_ignored"]
+          assert x["qualified_real_driver"] is False
+          print("N4_WINDIVERT_ONLY_PHYSICAL_EGRESS=NO_GO; no driver/net mutation")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n4-windivert-fastpath-gate-${{ github.sha }}
+          path: artifacts/n4-windivert-fastpath-gate.json
+          if-no-files-found: error
+          retention-days: 30
