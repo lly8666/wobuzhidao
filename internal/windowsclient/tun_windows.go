@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sync"
+	"strings"
 	"syscall"
 	"time"
 	"unsafe"
@@ -71,6 +72,16 @@ type TUN struct {
 }
 
 func OpenTUN(name string) (*TUN, error) {
+ return openTUN(name,true)
+}
+
+// OpenExistingTUN never creates a replacement after a crashed process.
+// Opening a borrowed Wintun alone confers NO native network write ownership.
+func OpenExistingTUN(name string) (*TUN,error) {
+ if name=="" || strings.ContainsAny(name,"\r\n"){return nil,ErrInvalidBinding}
+ return openTUN(name,false)
+}
+func openTUN(name string, allowCreate bool) (*TUN,error) {
 	if name == "" {
 		name = "WBD"
 	}
@@ -86,6 +97,7 @@ func OpenTUN(name string) (*TUN, error) {
 	adapter, _, openErr := wintunOpenAdapter.Call(uintptr(unsafe.Pointer(name16)))
 	created := false
 	if adapter == 0 {
+        if !allowCreate {return nil,wintunCallError("WintunOpenAdapter",openErr,nil)}
 		adapter, _, err = wintunCreateAdapter.Call(
 			uintptr(unsafe.Pointer(name16)),
 			uintptr(unsafe.Pointer(type16)),

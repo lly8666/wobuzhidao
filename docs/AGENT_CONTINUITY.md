@@ -1,3 +1,7 @@
+## 2026-10-13 N4 真实 Windows 子进程强制终止、只打开 WAL 身份重新关联候选（Actions 待验）
+
+精确已验 CODE SOURCE `e919049fd275945dfa7d1985451272da959a0c05` Win2022/25 real Wintun + 本地 WAL GUID/generation/alias/LUID/index 只读匹配 Action38394154905 SUCCESS，N4 matrix38394155000、Lifecycle38394154997、Foundation38394154966 七必需 SUCCESS。本轮新加 `OpenExistingTUN` 严禁找不到旧接口时偷偷创建新别名，并在 Actions 真子进程创建驱动、fsync WAL 后 TerminateProcess，再只读重开校验原 NIC 的 GUID/代际，证明 borrowed NIC **不得取得 native Write 权限**。不等于产品 crash native Recover，不写 WFP/routes/DNS；若 adapter 不持久则如实 UNSUPPORTED。仍需 N4 WFP 安全共存及正式 CLI 去 PowerShell，N6、物理 NOT_RUN。下一项只看 STATUS。
+
 ## 2026-10-13 N4 真实 Wintun + 原单 WAL GUID/generation 校验候选（Actions 待核）
 
 继精确 SOURCE `459fe064a63da41e09ac9ab8ebc330238fbb9011` Win2022/25 RequestedGUID OS 读回限定 PASS 后，本候选只扩展现有 `N4UnifiedIdentity` 本地 WAL 可选 `wintun_guid` / `adapter_alias`，并增加只读 OS live Wintun+唯一完整性哈希 WAL 四元校验；旧 WAL、错代、异 GUID、foreign alias 和篡改均拒绝。真实 Win2022/25 Actions 会执行，而不会触碰 production WFP/routes/DNS 或赋予新 adapter takeover 权。**非跨进程 crash 恢复，非真实网络恢复，非 N4 完成**。下一任务只看 STATUS，N2 残留 OPEN，P6/physical NOT_RUN。

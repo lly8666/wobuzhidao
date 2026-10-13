@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_GUID_GENERATION_CHECKSUM_WAL_REAL_WINTUN_READONLY_OWNER_GATE_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N4_REAL_CHILD_CRASH_NO_CREATE_REOPEN_READONLY_IDENTITY_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "459fe064a63da41e09ac9ab8ebc330238fbb9011",
-    "implementation": "SOURCE_459FE_REQUESTEDGUID_REAL_WINTUN_OS_NATIVE_MATCH_SCOPED_PASS;NEW_LOCAL_WAL_GUID_GENERATION_ALIAS_LUID_INDEX_READONLY_CORROBORATION_PROBE_WIN2022_WIN2025_ACTIONS_PENDING;WFP_ARM_DISABLED_COMPOSER_DRY_CROSSPROCESS_CRASH_RECOVERY_NOT_IMPLEMENTED_CLI_PS_ACTIVE",
+    "new_product_source_sha": "e919049fd275945dfa7d1985451272da959a0c05",
+    "implementation": "SOURCE_E919_REAL_WINTUN_OS_GUID_GEN_ALIAS_LUID_INDEX_CHECKSUM_WAL_READONLY_WIN2022_2025_ACTION38394154905_MATRIX38394155000_LIFECYCLE38394154997_FOUNDATION38394154966_SCOPED_PASS;NEW_REAL_CHILD_TERMINATEPROCESS_EXISTING_ONLY_REOPEN_PROBE_PENDING;WFP_ARM_DISABLED_PRODUCT_NATIVE_APPLY_CRASH_RECOVERY_CLI_OPEN",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify exact SOURCE hosted Win2022/25 read-only GUID+generation/alias/LUID/index bounded checksum WAL corroboration and foreign/legacy/corrupt negative gates by Actions; it DOES NOT grant native Apply/Recover ownership nor test process kill/restart. If scoped PASS, next validate real cross-process crash orphan and OS owner recovery with fail-closed foreign/ACL/CAS, then safe multi-Wintun WFP policy, scriptless official cmd/wbd-client native five-stage Apply/Stop/Recover, real protected /32+two /1+bounded DNS /32 isolated Actions, N5 integration, N6 P6 same-SOURCE three targets manifest/hash; physical NOT_RUN. N2 C04/C05, C10 GE and 80s S2C OPEN, no mainline/physical/deploy/qualification ref.",
-  "latest_log": "docs/devlog/20261013-n4-guid-generation-checksum-wal-readonly-candidate.md",
+  "next_task": "Verify current exact SOURCE Windows2022/25 REAL child TerminateProcess after fsynced bounded WAL and only OpenExistingTUN read-only native GUID/generation/LUID/index/alias corroboration; if OS adapter absent record UNSUPPORTED, never recreate alias. Native created-by-process owner must refuse borrowed NIC. Then implement actual cross-process crash safe native owner/CAS and coexistent persistent WFP DNS/IPv6; WFP Arm currently DISABLED and five-stage composer DRY-only. Only after gates wire official cmd/wbd-client scriptless five-stage Apply/Stop/Recover, guarded actual underlay server /32 + two /1 + limited DNS /32 in isolated capable Win Actions, N5 integrated and N6 P6 same SOURCE 3 targets manifest/hash; physical NOT_RUN. C04/C05 FAIL, C10 GE and 80s S2C OPEN; no deploy/merge/ref moves.",
+  "latest_log": "docs/devlog/20261013-n4-real-child-crash-readonly-reopen-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "459fe064a63da41e09ac9ab8ebc330238fbb9011",
-  "last_tested_scope": "SOURCE_459FE_REAL_WIN2022_2025_REQUESTEDGUID_OS_NATIVE_LUID_INDEX_GUID_SCOPED_ACTION38393086100_PASS_N4_MATRIX38393086600_LINUX_RACE_WIN2022_2025_PASS_LIFECYCLE38393086299_PASS_FOUNDATION38393086310_ALL_SEVEN_PASS;REAL_WINTUN_LEASE_MTU_DNS_WAL_SCOPED_PASS_WFP_ROUTES_FAKE;CRASH_ORPHAN_NOT_RUN_PRODUCTION_WFP_NOT_IMPLEMENTED_P6_PHYSICAL_NOT_RUN",
+  "last_tested_source_sha": "e919049fd275945dfa7d1985451272da959a0c05",
+  "last_tested_scope": "SOURCE_E919_GUID_GENERATION_LUID_INDEX_ALIAS_CHECKSUM_WAL_OS_NATIVE_READONLY_WIN2022_WIN2025_38394154905_PASS_N4MATRIX38394155000_LINUX_RACE_PASS_LIFECYCLE38394154997_PASS_FOUNDATION38394154966_7_PASS;REAL_CHILD_KILL_AND_PRODUCT_NATIVE_RECOVER_NOT_RUN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",

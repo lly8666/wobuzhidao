@@ -7,6 +7,7 @@ on:
       - "internal/windowsclient/native_admin_created_wintun_windows_test.go"
       - "internal/windowsclient/native_admin_requested_guid_windows_test.go"
       - "internal/windowsclient/native_admin_guid_journal_windows_test.go"
+      - "internal/windowsclient/native_admin_crossproc_crash_windows_test.go"
       - "internal/windowsclient/native_journal_adapter_proof_windows.go"
       - "internal/windowsclient/native_journal_adapter_proof_windows_test.go"
       - "internal/windowsclient/native_unified_network_transaction.go"
@@ -137,6 +138,29 @@ jobs:
                   assert j[field].startswith("PASS"),field
           print("N4_GUID_JOURNAL_READONLY="+j["result"])
           PY
+      - name: Real child TerminateProcess + no-create read-only WAL identity
+        shell: bash
+        env:
+          WBD_N4_ADMIN_CRASH_PROBE: "1"
+          WBD_N4_ADMIN_CRASH_PROBE_REPORT: "artifacts/n4-driver-probe/crash-readonly.json"
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          ./artifacts/n4-driver-probe/n4-probe.test.exe -test.v -test.run '^TestN4WindowsHostedCrossProcessCrashReadOnlyIdentity$' -test.timeout=3m
+          test -s "$WBD_N4_ADMIN_CRASH_PROBE_REPORT"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          x=json.loads(Path("artifacts/n4-driver-probe/crash-readonly.json").read_text())
+          assert x["source_sha"]==os.environ["GITHUB_SHA"] and x["runner"]=="Windows"
+          for k in ("physical","wfp","routes","dns","real_apply_recover"):
+              assert x[k]=="NOT_RUN"
+          assert x["result"] in ("SCOPED_CROSSPROCESS_CRASH_READONLY_IDENTITY_PASS","UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED")
+          if x["result"]=="SCOPED_CROSSPROCESS_CRASH_READONLY_IDENTITY_PASS":
+              for k in ("child_crash","no_create_reopen","journal_guid","borrowed_cannot_mutate"):
+                  assert x[k].startswith("PASS")
+          print("N4_CRASH_READONLY="+x["result"])
+          PY
       - name: Real native lease DAD, MTU and DNS Set/Clear on isolated created Wintun
         shell: bash
         env:
@@ -196,6 +220,7 @@ jobs:
             artifacts/n4-driver-probe/capability.json
             artifacts/n4-driver-probe/guid-readback.json
             artifacts/n4-driver-probe/guid-journal.json
+            artifacts/n4-driver-probe/crash-readonly.json
             artifacts/n4-driver-probe/mutation.json
             artifacts/n4-driver-probe/unified-wal.json
           if-no-files-found: warn
