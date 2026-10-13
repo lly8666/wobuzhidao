@@ -181,7 +181,13 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
      st,stageErr:=n4PersistedPreRouteStage(j.Identity,j.Records[i],fake)
      if stageErr!=nil{t.Fatalf("read-only triage stage constructor %s: %v",j.Records[i].Name,stageErr)}
      state,inspectErr:=st.Inspect(rollbackCtx,j.Identity,j.Records[i].Before)
-     t.Logf("N4_REAL_POSTCRASH_STAGE=%s WAL=%s CAS_STATE=%s READ_OK=%t",j.Records[i].Name,j.Records[i].State,state,inspectErr==nil)
+     if inspectErr!=nil {
+      // Native OS error is a code/operation only; no actual DNS/IP
+      // settings, packet content, key or account data is logged.
+      t.Logf("N4_REAL_POSTCRASH_STAGE=%s WAL=%s CAS_STATE=%s READ_OK=false ERROR=%v",j.Records[i].Name,j.Records[i].State,state,inspectErr)
+     }else{
+      t.Logf("N4_REAL_POSTCRASH_STAGE=%s WAL=%s CAS_STATE=%s READ_OK=true",j.Records[i].Name,j.Records[i].State,state)
+     }
     }
     rollbackErr:=n4RecoverPersistedPreRouteWAL(rollbackCtx,wal,j.Identity,fake)
     rollbackDone()

@@ -1,6 +1,6 @@
-## 2026-10-13 N4 实机前 Windows 原网卡 crash CAS 拒绝定位
+## 2026-10-13 N4 原网卡崩溃 CAS: lease 已回原始空基线，MTU 读回错误需新证据
 
-最新 CODE SOURCE `c77b4d85174a5f4028313b61fcd3ee1f1a02efc6`：N4Matrix38427785620 Win2022/2025+Linux race、Foundation38427785489 全7、Lifecycle38427785539 均成功，但真实 Wintun38427785549 Windows2022 job115401628530/Windows2025 job115401628450 **双端 FAIL** `ErrN4RouteAmbiguous`；旧 GUID/LUID/index 原网卡仍存活、WAL 保留，不能宣称 crash 回滚通过。新候选仅在 Win2022/25 child 原生 lease/MTU/DNS read-only Inspection 打印 stage 名+Owned/Absent/Foreign/Partial 分类，不打印 DNS/IP、凭据，不改变产品硬门；新源码 Actions 待验，定位后再定点修复。旧 8c74 真 Win 双 FAIL，b6ae 真 Win 子项 UNSUPPORTED，保留。生产 WFP Arm disabled、native assembler assemblyOnly、正式 Windows CLI PowerShell 未删除；真实 /32+两 /1、N5、N6 P6 与物理均未完成，`ACTIONS_READY_FOR_PHYSICAL` 禁标。用户只允许最终实机单项目 Wintun，不可在共享 Actions 上抢全局路由。N2 C04/C05 FAIL C10 GE ~80s S2C OPEN，next_task 仅 STATUS；不部署、合并或移动 qualification ref。
+CODE SOURCE `acd1459b305c044a6013976dfb06065a2c24ceb8` N4Matrix38428614883 Win2022/25+Linux race、Foundation38428614893 七项、Lifecycle38428615001 SUCCESS；真实Wintun38428615027 双端 **FAIL**。native TEST-ONLY ReadOnly 分支一致：WAL confirmed lease 对应实际 Windows `N4UnifiedAbsent` 且无外来地址，dns 仍 Owned，mtu Inspect READ_OK=false。原恢复器先因拒绝已精确回归的 lease baseline 终止，WAL 保留。新候选只允许 Native CAS 确认完整基线 Absent 跳过该阶段（类似既有 unified Recover），绝不容忍 Foreign/Partial、伪造旧网卡/无持久guard；测试额外打印 MTU Win32 错误码/文字，不打印 DNS/IP 数据。两端新 Actions 需验证并继续定位 MTU。真正生产 WFP Arm 仍 disabled，five-stage assemblyOnly，正式 CLI PowerShell；stage5 两/1、N5/N6 P6 物理仍 NOT_RUN，`ACTIONS_READY_FOR_PHYSICAL` 禁设。用户允许最终实机仅项目 Wintun，不替代 Actions。历史 8c74/c77/acd real Win FAIL 保留，N2 C04/C05 FAIL、C10 GE 和 ~80s OPEN。下一步唯一 STATUS，不部署、合并或移动 refs。
 
 ## 2026-10-13 N4 真实 Win2022/Win2025 TEST-NET WFP 精确清理限定 PASS；产品仍未实机 READY
 

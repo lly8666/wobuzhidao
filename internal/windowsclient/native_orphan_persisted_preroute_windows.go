@@ -117,9 +117,13 @@ func n4RecoverPersistedPreRouteWAL(ctx context.Context,path string,id N4UnifiedI
   if err!=nil{return err}
   if state==N4UnifiedForeign || state==N4UnifiedPartial{return fmt.Errorf("%w: preflight %s CAS=%s",ErrN4RouteAmbiguous,rec.Name,state)}
   if rec.State=="intent" && state!=N4UnifiedAbsent{return fmt.Errorf("%w: preflight %s unconfirmed CAS=%s",ErrN4RouteAmbiguous,rec.Name,state)}
-  if rec.State=="owned" && state==N4UnifiedAbsent && j.Phase=="applying"{
-   return fmt.Errorf("%w: preflight %s confirmed receipt but OS baseline restored",ErrN4RouteAmbiguous,rec.Name)
-  }
+  // Windows may independently reset an exact-owned address after its
+  // creator dies while retaining the original NIC. Stage.Inspect only
+  // returns Absent after comparing the entire original baseline/empty
+  // lease, so it is safe to skip this already-restored write. NEVER
+  // generalize this to Foreign/Partial, or to an unconfirmed intent that
+  // is still Owned.
+
  }
  if j.Phase!="cleaning"{
   j.Phase="cleaning"
