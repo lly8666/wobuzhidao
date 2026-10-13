@@ -1,3 +1,7 @@
+## 2026-10-13 N4 请求式 Wintun GUID 原生读回候选（新 SOURCE Actions 待核）
+
+在已验 SOURCE `11f708f8f1c2afac3ed8f139fba11d7f41011a65` 不安全全局 WFP 拒绝与五阶段 DRY 限定 PASS 后，下一原子任务只在 Win2022/25 Actions 随机创建单独 Wintun `RequestedGUID`，调用 `ConvertInterfaceLuidToGuid` 独立验证 OS 身份并留 JSON 证据。无网络路由/WFP/DNS 写入、无跨进程崩溃恢复、绝不拿 GUID 视为 ownership 或启动生产 CLI；不重新验证 N2。此项是 N4 crash-orphan 属主恢复的能力边界之一，下一项仍以 STATUS 为准；N6/physical NOT_RUN。
+
 ## 2026-10-13 N4 精确 CODE SOURCE 11f708 Scoped Actions 最终收据；生产级 Windows WFP/CLI 未完成
 
 本轮直接远端分支代码 SOURCE `11f708f8f1c2afac3ed8f139fba11d7f41011a65`；N4 matrix [38391744029](https://github.com/lly8666/wobuzhidao/actions/runs/38391744029) 最终 SUCCESS（Win2022/25 x3 + Linux race），WFP TEST-NET lab [38391744191](https://github.com/lly8666/wobuzhidao/actions/runs/38391744191) 两端 SUCCESS，真实 Win2022/25 Wintun [38391743731](https://github.com/lly8666/wobuzhidao/actions/runs/38391743731) 两端 SUCCESS，Lifecycle [38391743815](https://github.com/lly8666/wobuzhidao/actions/runs/38391743815) SUCCESS，Foundation [38391743831](https://github.com/lly8666/wobuzhidao/actions/runs/38391743831) 七项必需 SUCCESS、历史 P5/P6 extended SKIPPED。已明确跑到新的 WFP caller-bool 禁止 Arm 与五阶段 DRY 非激活测试；真实 Wintun 独立测试依旧只有 lease/MTU/DNS 真实单 WAL，WFP/routes 为 FAKE 或 DRY，绝不宣称实际生产防漏/两条 /1/外网/跨进程 crash 资格。新提交为文档收据，CODE SOURCE 归属仍是 11f708；下一任务看 STATUS，N2 遗留 OPEN，N6/physical NOT_RUN，无部署/合并。

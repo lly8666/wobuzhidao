@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/next-adaptive-n4-real-wintun-admin-capability.yml"
       - "internal/windowsclient/native_admin_created_wintun_windows_test.go"
+      - "internal/windowsclient/native_admin_requested_guid_windows_test.go"
       - "internal/windowsclient/native_admin_created_wintun_mutation_windows_test.go"
       - "internal/windowsclient/native_admin_unified_wal_windows_test.go"
       - "internal/windowsclient/native_unified_assembly_windows.go"
@@ -85,6 +86,30 @@ jobs:
                   assert a[field].startswith("PASS"),field
           print("N4_REAL_WINTUN_CAPABILITY="+a["result"])
           PY
+      - name: Isolated Wintun requested GUID corroborated by native LUID-to-GUID
+        shell: bash
+        env:
+          WBD_N4_ADMIN_GUID_PROBE: "1"
+          WBD_N4_ADMIN_GUID_PROBE_REPORT: "artifacts/n4-driver-probe/guid-readback.json"
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          ./artifacts/n4-driver-probe/n4-probe.test.exe -test.v -test.run '^TestN4WindowsHostedRequestedGUIDNativeReadback$' -test.timeout=3m
+          test -s "$WBD_N4_ADMIN_GUID_PROBE_REPORT"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          j=json.loads(Path("artifacts/n4-driver-probe/guid-readback.json").read_text())
+          assert j["source_sha"]==os.environ["GITHUB_SHA"] and j["runner"]=="Windows"
+          assert j["physical"]=="NOT_RUN" and j["wfp"]=="NOT_RUN"
+          assert j["os_route"]=="NOT_RUN" and j["cross_process_crash"]=="NOT_RUN"
+          assert j["result"] in ("SCOPED_REQUESTED_GUID_NATIVE_MATCH_PASS",
+             "UNSUPPORTED_WINTUN_DLL","UNSUPPORTED_REQUESTED_GUID_CREATE")
+          if j["result"]=="SCOPED_REQUESTED_GUID_NATIVE_MATCH_PASS":
+              assert j["requested_guid"].startswith("PASS")
+              assert j["native_luid_guid"].startswith("PASS")
+          print("N4_REQUESTED_GUID_PROBE="+j["result"])
+          PY
       - name: Real native lease DAD, MTU and DNS Set/Clear on isolated created Wintun
         shell: bash
         env:
@@ -142,6 +167,7 @@ jobs:
           name: n4-created-wintun-readonly-${{ matrix.runner }}-${{ github.sha }}
           path: |
             artifacts/n4-driver-probe/capability.json
+            artifacts/n4-driver-probe/guid-readback.json
             artifacts/n4-driver-probe/mutation.json
             artifacts/n4-driver-probe/unified-wal.json
           if-no-files-found: warn

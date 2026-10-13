@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_UNSAFE_GLOBAL_WFP_HARD_DENIAL_AND_FIVE_STAGE_DRY_NONACTIVATION_SCOPED_ACTIONS_SUCCESS_PRODUCTION_BLOCKS_OPEN",
+    "phase": "N4_REQUESTED_WINTUN_GUID_NATIVE_LUID_READBACK_ISOLATED_CAPABILITY_CANDIDATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "11f708f8f1c2afac3ed8f139fba11d7f41011a65",
-    "implementation": "SOURCE_11F708_N4_WIN2022_2025_LINUX_RACE_WFP_TESTNET_REAL_WINTUN_FOUNDATION7_LIFECYCLE_SCOPED_PASS;GLOBALLY_UNSAFE_WFP_ARM_DISABLED;FIVE_NATIVE_STAGE_ASSEMBLY_DRY_ONLY;PRODUCTION_WFP_COEXISTENCE_ORPHAN_CRASH_AND_CLI_POWERSHELL_STILL_OPEN",
+    "implementation": "SOURCE_11F708_SAFE_GLOBAL_WFP_ARM_REFUSAL_FIVE_STAGE_DRY_ONLY_ACTIONS_ALL_SCOPED_PASS;NEW_RANDOM_REQUESTED_WINTUN_GUID_TO_NATIVE_LUID_GUID_READBACK_WIN2022_2025_PROBE_PENDING;PRODUCTION_WFP_CRASH_OWNER_SCRIPTLESS_CLI_OPEN",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "N4 ONLY: implement actually safe persistent DNS/IPv6 WFP policy that coexists with independently managed Wintun (or externally and continuously enforced exclusive fail-closed), with crash-orphan created-Wintun identity/journal recovery safe from alias/stale-LUID takeover. Current unsafe global WFP Arm is intentionally DISABLED even when caller ExclusiveSingleWintun=true, and five-stage assembler is dry-only. Only then wire existing native 5-stage WAL to official cmd/wbd-client Apply/Stop/Recover, remove active PowerShell/.ps1, qualify actual protected underlay server /32 + 2 /1 + DNS /32 in isolated capable Windows Actions including failure/foreign/repeat Stop. Then N5 integration and N6 same SOURCE three targets manifest/hash and full cross-feature Actions; N2 C04/C05 FAIL, C10 GE tail and 80s S2C OPEN; physical NOT_RUN; no deploy, merge or refs.",
-  "latest_log": "docs/devlog/20261013-n4-global-wfp-failclosed-dry-assembly-final-actions.md",
+  "next_task": "First inspect exact new CODE SOURCE Win2022/25 isolated requested-Wintun-GUID native LUID->GUID readback Actions, explicitly NOT cross-process crash recovery. If supported, design bounded journal-bound GUID+generation owner proof with live host NIC/foreign CAS and separately verify actual crash orphan safe handling, without adopting foreign same-name adapters. Independently solve coexistent persistent WFP DNS/IPv6; Arm remains intentionally hard DISABLED, five-stage composition DRY-only. Then native cmd/wbd-client scriptless Apply/Stop/Recover, real server /32+two /1+DNS /32 isolated protected Actions, N5 integration and N6 full cross-feature/P6 three-target same SOURCE hash, physical NOT_RUN. Keep C04/C05, C10 GE and 80s S2C OPEN; no deploy/merge/ref moves.",
+  "latest_log": "docs/devlog/20261013-n4-requested-guid-win32-identity-probe-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "11f708f8f1c2afac3ed8f139fba11d7f41011a65",
   "last_tested_scope": "SOURCE_11F708_N4_UNSAFE_GLOBAL_WFP_ARM_REJECTED_WIN2022_2025_X3_LINUX_RACE4_FIVE_STAGE_COMPOSE_DRY_WRITE_REJECTED_REAL_WINTUN_WIN2022_2025_NATIVE_LEASE_MTU_DNS_SCOPED_PASS_FAKE_WFP_ROUTES;N4_MATRIX38391744029_WFP_TESTNET38391744191_REAL_WINTUN38391743731_LIFECYCLE38391743815_FOUNDATION38391743831_ALL_SUCCESS_NOT_PRODUCT_WFP_OR_1_ROUTES_P6_NOT_RUN",
