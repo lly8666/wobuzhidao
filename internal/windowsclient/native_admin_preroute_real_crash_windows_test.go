@@ -191,6 +191,21 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
     }
     rollbackErr:=n4RecoverPersistedPreRouteWAL(rollbackCtx,wal,j.Identity,fake)
     rollbackDone()
+    if errors.Is(rollbackErr,ErrN4OriginalIPv4RowMissing){
+     // Both Windows 2022/25 can leave the original adapter GUID/LUID/index
+     // live but drop the IPv4 GetIpInterfaceEntry row after process death.
+     // This is NOT evidence the original MTU can be restored.
+     if _,e:=os.Stat(wal);e!=nil{t.Fatalf("unrecoverable IPv4-row state lost WAL: %v",e)}
+     if !fake.active || fake.disarmCount!=0 || g.disarmCalls!=0{
+      t.Fatal("unrecoverable IPv4-row state disarmed fake persistent guard")
+     }
+     if err:=n4OriginalWintunPersistedExact(context.Background(),j.Identity);err!=nil{
+      t.Fatalf("native exact Wintun identity changed during missing-row classification: %v",err)
+     }
+     report["result"]="UNSUPPORTED_EXACT_ORIGINAL_IPV4_ROW_UNAVAILABLE"
+     report["original_retired"]="UNSUPPORTED_SAME_ORIGINAL_TRIPLE_WITHOUT_IPV4_ROW"
+     t.Skip("UNSUPPORTED: real child crash left exact original Win32 Wintun but no native IPv4 interface row; parent WAL retained, WFP FAKE remains armed")
+    }
     if rollbackErr!=nil{
      t.Fatalf("same-original Win32 CAS rollback after real child crash failed (WAL retained): %v",rollbackErr)
     }

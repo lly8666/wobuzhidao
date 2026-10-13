@@ -241,7 +241,8 @@ jobs:
           assert x["result"] in ("SCOPED_REAL_WINTUN_IP_STAGE_CRASH_FAKE_WFP_PASS",
                                   "SCOPED_REAL_PERSISTED_ORIGINAL_IP_ROLLBACK_FAKE_WFP_PASS",
                                   "UNSUPPORTED_ORIGINAL_IDENTITY_CONFLICT",
-                                  "UNSUPPORTED_NATIVE_OS_ABSENCE_UNPROVEN")
+                                  "UNSUPPORTED_NATIVE_OS_ABSENCE_UNPROVEN",
+                                  "UNSUPPORTED_EXACT_ORIGINAL_IPV4_ROW_UNAVAILABLE")
           if x["result"].startswith("UNSUPPORTED"):
               assert x["wal_recovery"]=="NOT_RUN" and x["original_retired"].startswith("UNSUPPORTED")
           if x["result"].startswith("SCOPED_REAL_"):

@@ -9,7 +9,14 @@ import (
  "fmt"
  "net/netip"
  "os"
+ "syscall"
 )
+
+// ErrN4OriginalIPv4RowMissing means Windows still lists exactly the old
+// Wintun GUID+LUID+ifIndex, but GetIpInterfaceEntry(AF_INET) returns 1168.
+// It is not an empty baseline, not proof of safe MTU restoration and not
+// permission to retire the WAL or disarm persistent WFP.
+var ErrN4OriginalIPv4RowMissing = errors.New("windowsclient: original Wintun exists but IPv4 interface row is unavailable")
 
 // n4PersistedOriginalProof does NOT open a Wintun or trust its alias. The
 // original physical OS adapter must still own the exact GUID+LUID+IPv4 index
@@ -106,6 +113,19 @@ func n4RecoverPersistedPreRouteWAL(ctx context.Context,path string,id N4UnifiedI
   ok,err:=g.Verify(ctx)
   if err!=nil{return err}
   if !ok{return ErrN4NativeGuard}
+ }
+ // Windows 2022 AND 2025 can retain an old Wintun adapter identity after
+ // TerminateProcess while removing its IPv4 IP Helper interface row. If
+ // present, MTU cannot be CAS-restored. Check BEFORE marking WAL cleaning
+ // or invoking any DNS/MTU/address setter, and keep WFP armed on failure.
+ if len(j.Records)>2 {
+  if _,rowErr:=n4GetIPv4InterfaceRow(ctx,id.WintunIndex);rowErr!=nil{
+   if errors.Is(rowErr,syscall.Errno(1168)){
+    if err:=n4OriginalWintunPersistedExact(ctx,id);err!=nil{return err}
+    return ErrN4OriginalIPv4RowMissing
+   }
+   return rowErr
+  }
  }
  // Preflight EVERY live receipt before any OS setter/deletion, including
  // untouched stages, to avoid a partial rollback across a foreign stage.
