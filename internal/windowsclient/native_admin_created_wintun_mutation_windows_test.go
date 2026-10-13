@@ -79,8 +79,18 @@ func TestN4WindowsHostedOwnedAdapterNativeIPWritesAndRestore(t *testing.T){
  target:=uint32(1249)
  if old.MTU==target{target=1250}
  mtuWriter:=n4WindowsMTUWriter{Guard:guard,Adapter:tun}
+ // Real native diagnostic only: never weaken the full-row CAS on a new
+ // driver adapter to accommodate asynchronous Windows interface changes.
+ initialRow,initialErr:=n4GetIPv4InterfaceRow(ctx,native.Index)
+ currentOwner,ownerErr:=tun.IsCurrentOwnedWintun(ctx,native.Index)
+ t.Logf("WBD_N4_MTU_BEFORE expected=%+v observed=%+v site_prefix=%d read_err=%v live_created_owner=%v owner_err=%v",
+  old,n4MTUSnapshotFromRow(initialRow),initialRow.SitePrefixLength,initialErr,currentOwner,ownerErr)
  mtur,err:=mtuWriter.Apply(ctx,old,target)
- if err!=nil{t.Fatalf("real owned Wintun SetIpInterfaceEntry: %v",err)}
+ if err!=nil{
+  lastRow,lastErr:=n4GetIPv4InterfaceRow(ctx,native.Index)
+  t.Fatalf("real owned Wintun SetIpInterfaceEntry: %v; expected=%+v observed=%+v site_prefix=%d native_read_err=%v",
+   err,old,n4MTUSnapshotFromRow(lastRow),lastRow.SitePrefixLength,lastErr)
+ }
  if err:=mtuWriter.Restore(ctx,mtur);err!=nil{t.Fatalf("real owned Wintun MTU restore: %v",err)}
  afterMTU,err:=(N4WindowsInterfaceReader{}).ReadIPv4(ctx,native.Index)
  if err!=nil || afterMTU!=old{t.Fatalf("original native MTU row not restored: %+v %+v %v",old,afterMTU,err)}

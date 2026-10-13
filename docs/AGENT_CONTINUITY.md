@@ -1,3 +1,7 @@
+## 2026-10-13 真 Wintun 隔离实写首轮：/32+DAD 到达，MTU CAS 拒绝外来变化（原 FAIL 保留）
+
+SOURCE `4d9a2da` Action38381916177 真 Win2022/25 两端均 FAIL：新 Wintun LUID/DNS/MTU 只读 PASS，IPv4 /32 Create 与 DAD Preferred 已完成，接着 native MTU `SetIpInterfaceEntry` **写前**完整行 CAS 报 ErrN4ForeignRoute；此时没有进入 DNS 实写。严格保留原 FAIL 和系统拒绝，没有放宽 CAS/删除外来状态。下个代码只增加 hosted test 的 native MTU 前后行/ SitePrefixLength/ owner 日志，需新 SOURCE Actions 定位，实际产品 PowerShell 仍在，N6/physical NOT_RUN。
+
 ## 2026-10-13 N4 真 Windows 隔离实写 test workflow 解析 FAIL 修复
 
 `eca2d0d` 新增随机 Wintun /32、DAD、MTU、DNS 原生 Set/Clear/Get 正向测试，但 Action38381597073 **FAIL 零job**：workflow 中 `-test.run` 命令被误切，upload-step 重复，不是系统原生写入失败。新候选从已运行的 d6f049 YAML 重新无替换展开，把只读与实写两条命令分开并保留原 DLL 官方固定 SHA256。必须新 SOURCE 的 Windows2022/25 job 真正运行才有资格。依然仅临时 Wintun 和 test-only FAKE WFP，global WFP/路由及产品 PowerShell→native 尚 OPEN，N6/physical NOT_RUN。
