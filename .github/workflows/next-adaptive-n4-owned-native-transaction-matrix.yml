@@ -80,6 +80,49 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           go test -mod=readonly ./internal/windowsclient -run 'Test(N4Native|N4Wintun|N4Scriptless|N4WFP|N4Windows|N4TCP|N4Compact|BuildCompact)' -count=3 -v
+          # Explicit crash-route and partial-WFP deletion gates; never infer
+          # coverage from a green workflow that did not select these tests.
+          go test -mod=readonly ./internal/windowsclient -run '^Test(N4NativeTxnPartialGuardFinalizeOnlyAfterEmptyJournal|N4WFPPartialGuardDeletePlanAfterRouteCleanup)
+      - name: Verify no shell dependency in NEW native path
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -iE 'powershell\\.exe|exec\\.Command|\\.ps1' \
+            internal/windowsclient/native_owned_transaction.go \
+            internal/windowsclient/native_route_windows.go \
+            internal/windowsclient/native_route_backend_windows.go \
+            internal/windowsclient/native_address_snapshot_windows.go \
+            internal/windowsclient/native_ipinterface_windows.go \
+            internal/windowsclient/native_lease_windows.go \
+            internal/windowsclient/native_mtu_write_windows.go \
+            internal/windowsclient/native_wintun_owner_windows.go \
+            internal/windowsclient/tun_windows.go \
+            internal/windowsclient/native_dns_capability_windows.go \
+            internal/windowsclient/native_wfp_readonly_windows.go \
+            internal/windowsclient/native_wfp_guard_plan_windows.go \
+            internal/windowsclient/native_wfp_guard_windows.go \
+            internal/windowsclient/native_dns_snapshot_windows.go \
+            internal/windowsclient/native_dns_write_windows.go \
+            internal/windowsclient/native_dns_parse.go \
+            internal/windowsclient/userspace_tcp_direct_windows.go
+  receipt:
+    needs: [owned-transaction-linux-race, owned-transaction-windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Emit scoped capability evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p artifacts
+          printf '{"schema":"wbd-n4-owned-native-transaction-test/v1","source_sha":"%s","concurrent_fail_closed_tests":"PASS","simulated_crash_partial_recovery":"PASS","windows_native_os_matrix":"PASS","production_dns_ipv6_guard":"NOT_IMPLEMENTED","native_wintun_admin_apply":"NOT_RUN","native_dns_write":"NO_MUTATION_SAFETY_TEST_ONLY","physical_qualification":"NOT_RUN"}\n' "$GITHUB_SHA" > artifacts/n4-native-owned-transaction.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: n4-native-owned-transaction-${{ github.sha }}
+          path: artifacts/n4-native-owned-transaction.json
+          retention-days: 30
+ -count=3 -v
       - name: Verify no shell dependency in NEW native path
         shell: bash
         run: |

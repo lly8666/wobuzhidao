@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_WFP_PARTIAL_DISARM_AFTER_ROUTES_CANDIDATE_ACTIONS_PENDING_FULL_NATIVE_TXN_OPEN",
+    "phase": "N4_WFP_PARTIAL_GUARD_RECOVERY_SCOPED_CODE_PASS_EXPLICIT_TEST_SELECTION_CORRECTION_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE_908A_ROUTE_GUARD_CRASH_WINDOWS_ACTIONS_SUCCESS;NEW_WFP_EXACT_OWNED_PARTIAL_FINALIZER_ONLY_EMPTY_ROUTE_JOURNAL_CANDIDATE;REAL_WINTUN_DHCP_MTU_DNS_WFP_TXN_AND_POWERSHELL_REMOVAL_INCOMPLETE",
+    "implementation": "SOURCE1EEB_WFP_PARTIAL_FINALIZER_GO_UNIT_FOUNDATION_PASS_WFP_ISOLATED_LAB_PASS_BUT_NEW_WFP_PARTIAL_TEST_NOT_SELECTED_IN_OLD_LAB_REGEX;EXPLICIT_QUALIFIER_WORKFLOW_CORRECTION_CANDIDATE;SCRIPTLESS_NATIVE_TXN_INCOMPLETE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
       "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
-      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS;SOURCE908A_GUARD_JOURNAL_CRASH_SCOPED_ACTION38357895984_FOUNDATION38357895969_LIFECYCLE38357895905_PASS",
+      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS;SOURCE908A_GUARD_JOURNAL_CRASH_SCOPED_ACTION38357895984_FOUNDATION38357895969_LIFECYCLE38357895905_PASS;SOURCE1EEB_WFP_PARTIAL_RECOVERY_FULL_FOUNDATION38358434476_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_SUCCESS_OLD_REGEX_DID_NOT_SELECT_NEW_PARTIAL_TEST",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify new exact SOURCE scoped Windows2022/2025 native WFP partial finalization + Linux race, Foundation and lifecycle final Actions. This new finalizer can remove only exact-owned leftover WFP rules AFTER durable route journal has no entries, never while routes live; no production activation. Then implement unified native Wintun/lease/DHCP/MTU/DNS/WFP/route durable Apply/Recover with generation and safe native admin Actions; remove active PowerShell/large routes only after full qualification. N2 residuals remain OPEN; N6 not started; physical NOT_RUN; no deploy/merge.",
-  "latest_log": "docs/devlog/20261013-n4-wfp-partial-owned-finalization-candidate.md",
+  "next_task": "First confirm new exact SOURCE after WFP/N4 workflow matcher correction: WFP isolated Windows2022/25 must explicitly run TestN4WFPPartialGuardDeletePlanAfterRouteCleanup, and N4 owned matrix must explicitly run both new recovery tests with Linux race; full Foundation/lifecycle too. Do not claim previous WFP lab selected missing test. Then implement complete native Windows Wintun lease/DHCP/MTU/DNS/WFP route owned Apply/Recover (no PowerShell, multi-tunnel guard or exclusive fail-closed) and real admin capability Actions, follow with N6 three-target package/hash. N2 efficiencies/GE/80s OPEN, physical NOT_RUN, no merge/deploy.",
+  "latest_log": "docs/devlog/20261013-n4-wfp-partial-disarm-qualifier-selection-correction.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "908a93026c619de0e23566a7f838429328ff3162",
-  "last_tested_scope": "908A_N4_NATIVE_GUARD_ROUTE_CRASH_WINDOW_MATRIX38357895984_SUCCESS_FOUNDATION38357895969_ALL7_SUCCESS_LIFECYCLE38357895905_SUCCESS_NO_REAL_DRIVER",
+  "last_tested_source_sha": "1eeb847f72a1a6662c11bf3b4fe75899be070bfb",
+  "last_tested_scope": "1EEB_WFP_PARTIAL_SCOPED_FOUNDATION38358434476_ALL7_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_PASS_BUT_NEW_TEST_NOT_SELECTED_BY_LAB_REGEX",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "Source1eeb WFP partial rule exact-owned finalizer after route cleanup: Foundation38358434476 SUCCESS (7 required), Lifecycle38358434353 SUCCESS, Windows WFP TEST-NET lab38358434417 SUCCESS but its old regex omitted TestN4WFPPartial...; explicit matcher correction awaiting new Actions. Never represent lab result as coverage of omitted test.",
     "Source908a guarded route-journal two crash windows FINAL scoped ACTIONS PASS (N4 38357895984, Foundation38357895969 7 jobs, Lifecycle38357895905). New WFP partial owned deletion only after routes cleared candidate awaiting separate new-source Actions.",
     "Candidate N4 route+guard crash-window recovery: full exact-owned guard installed before guard_armed marker and complete disarm before journal unlink can be reconciled only with zero route entries; missing/partial/foreign WFP or nonempty routes fail closed. 64KiB cap and impossible checksum-valid journal state rejection. Await new-source Actions; no real Wintun or product wiring.",
     "Source9d0c2e6 native DNS write current-owned Wintun Index→GUID proof: Action38355293478 final SUCCESS Windows2022/2025 Linux race+receipt; Foundation38355293359 final SUCCESS seven required, Lifecycle38355293275 SUCCESS. Native actual Wintun and SetInterfaceDnsSettings NOT_RUN. Artifact SHA256 metadata saved in final receipt.",
-    "Sourcec10a073 strict compact native route batch deterministic physical server escape first /1+DNS /32 bounded, matrix38354764587 SUCCESS, Foundation38354764412 SUCCESS, Lifecycle38354764394 SUCCESS; only software/fake route transaction, OS mutation NOT_RUN.",
-    "N4 end-to-end durable Wintun DHCP/lease/MTU/DNS/WFP/route transaction and real admin driver are NOT_IMPLEMENTED/NOT_RUN; current Windows client still invokes PowerShell and complement routes. N6 NOT_STARTED; physical NOT_RUN."
+    "Sourcec10a073 strict compact native route batch deterministic physical server escape first /1+DNS /32 bounded, matrix38354764587 SUCCESS, Foundation38354764412 SUCCESS, Lifecycle38354764394 SUCCESS; only software/fake route transaction, OS mutation NOT_RUN."
   ],
   "actions": [
     {
@@ -4556,6 +4556,33 @@
       "scope": "N4_GUARD_CRASH_LIFECYCLE",
       "status": "PASS",
       "cause": "Final SUCCESS exact code source908a; hosted Windows/Go Linux race; no native Wintun admin mutation, N6/physical not run."
+    },
+    {
+      "name": "next-adaptive-n4-wfp-persistent-isolated-lab",
+      "run_id": 38358434417,
+      "source_sha": "1eeb847f72a1a6662c11bf3b4fe75899be070bfb",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38358434417",
+      "scope": "EXISTING_TESTNET_WFP_PERSISTENCE_OLD_MATCHER",
+      "status": "PASS",
+      "cause": "SUCCESS both Windows runners. Artifacts11794207176 sha256:b6525fbcee9ddfc7575ebac7cf24ba2f8680c4e6046c543e0eec00b37be05962 and11793342287 sha256:4e4baf29593d202de8b85689519d101e7de28583ca530530ec8e3aaa90f8302a. Old regex omitted TestN4WFPPartial; do not infer new test ran."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38358434476,
+      "source_sha": "1eeb847f72a1a6662c11bf3b4fe75899be070bfb",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38358434476",
+      "scope": "SOURCE1EEB_FULL_LINUX_WINDOWS_GO_RACE",
+      "status": "PASS",
+      "cause": "SUCCESS 7 mandatory jobs, Foundation artifact11793167416 sha256:02fbb5e21057f59b3ce655e9310781144d11300566f7b3819eab9fae4fe99885, P5/P6 skipped. Full Go test includes the new tests."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38358434353,
+      "source_sha": "1eeb847f72a1a6662c11bf3b4fe75899be070bfb",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38358434353",
+      "scope": "SOURCE1EEB_LIFECYCLE",
+      "status": "PASS",
+      "cause": "SUCCESS core lifecycle; no Windows real Wintun admin."
     }
   ],
   "required_read_set": [

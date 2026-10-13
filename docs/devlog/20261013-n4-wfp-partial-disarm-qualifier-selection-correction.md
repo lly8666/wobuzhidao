@@ -1,0 +1,7 @@
+# N4 WFP partial recovery test selector correction — 2026-10-13
+
+Parent exact SOURCE `1eeb847f72a1a6662c11bf3b4fe75899be070bfb`; source1eeb generated WFP isolated lab Action38358434417 SUCCESS Windows2022+2025 and Foundation38358434476 all seven required jobs SUCCESS plus Lifecycle38358434353 SUCCESS. The WFP isolated lab's old `-run` expression `N4WFPGuard...` did **not** select new `TestN4WFPPartialGuardDeletePlanAfterRouteCleanup`; its original scoped SUCCESS is retained without widening the claim. Foundation's all-Go tests cover the new unit on Windows but do not replace requested focused selector.
+
+This workflow correction explicitly includes `N4WFPPartial` in WFP TEST-NET isolated lab Windows2022/25 matcher, and explicitly runs both `TestN4NativeTxnPartialGuardFinalizeOnlyAfterEmptyJournal` and `TestN4WFPPartialGuardDeletePlanAfterRouteCleanup` on N4 dedicated Windows2022/25 x3 each. Existing Linux-race N4NativeTxn wildcard still covers the native route journal/gated finalizer. Dedicated tests never install production broad WFP policy; isolated WFP real write remains only TEST-NET and no user NIC. No product Go code change in this selector correction. New exact SOURCE Actions necessary; at commit time PENDING.
+
+N4 full native Wintun/lease/DHCP/MTU/DNS/WFP/route transaction and production PowerShell removal remain OPEN, N2 remaining efficiency/GE tail OPEN, N6 same-source three platform P6 NOT_STARTED, physical NOT_RUN. No local tests, deployment, merge or qualification ref moves.
