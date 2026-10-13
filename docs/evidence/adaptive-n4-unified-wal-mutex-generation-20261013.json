@@ -1,0 +1,83 @@
+{
+  "schema": "wbd-adaptive-n4-unified-wal-win32-ownership-scoped-receipt/v1",
+  "working_branch": "next/adaptive-fec-aes-tun-20261010",
+  "tested_code_source_sha": "ff525c0faaf0a719b25bbac5de132cab7975732e",
+  "runs": [
+    {
+      "source": "0ddcfefcf4be6b22a69457828a4c205345368278",
+      "scope": "initial unified WAL",
+      "N4": 38362537980,
+      "foundation": 38362538029,
+      "status": "FAIL_CONCURRENT_APPLY_BEFORE_JOURNAL"
+    },
+    {
+      "source": "1471883e6052efb46d8d6fba5bfb327737c51535",
+      "scope": "unified WAL early journal conflict and 9 fake-stage tests",
+      "N4": 38362811979,
+      "foundation": 38362811941,
+      "lifecycle": 38362811985,
+      "status": "SCOPED_PASS"
+    },
+    {
+      "source": "d88fcfca1db337d2bf494ef0470580fd47a8b39b",
+      "scope": "true Windows kernel machine mutex/no NIC mutation",
+      "N4": 38363479829,
+      "foundation": 38363479720,
+      "lifecycle": 38363480051,
+      "status": "SCOPED_PASS"
+    },
+    {
+      "source": "ff525c0faaf0a719b25bbac5de132cab7975732e",
+      "scope": "current created Wintun index/LUID owner and held generation negative cases",
+      "N4": 38364130417,
+      "foundation": 38364130335,
+      "lifecycle": 38364130671,
+      "status": "SCOPED_PASS"
+    }
+  ],
+  "artifact_digests": [
+    {
+      "run": 38364130417,
+      "id": 11795689345,
+      "sha256": "92f0258f020a4d6b8c46a9ddb212fd360892ec878b793398928c4feb915c6f22"
+    },
+    {
+      "run": 38364130335,
+      "id": 11796305252,
+      "sha256": "c658c45008bd52fd07f09ddb09a99c147c51c1b7acf8ce41f10ecc3695eca7ed"
+    },
+    {
+      "run": 38363479829,
+      "id": 11796131681,
+      "sha256": "7cda7e95443d356547ea98a42aac6a372135220449c44ea5fa7153170b1c68f0"
+    },
+    {
+      "run": 38363479720,
+      "id": 11796206100,
+      "sha256": "abe3ba146c0ded534b40c57968e4acd6d18c2b47b74ed3a69fe077fed70fe33f"
+    },
+    {
+      "run": 38362811979,
+      "id": 11795965944,
+      "sha256": "7f329a75765958d9f69b435e0e77ad77d35907cf5446ba04b5c20a2d5e89058a"
+    },
+    {
+      "run": 38362811941,
+      "id": 11795319308,
+      "sha256": "dc146548b007a3ba7c7b0e268e14057b83f54ba03cbc5d2b48fadd2f8829f7c5"
+    }
+  ],
+  "digest_format": "GitHub Actions artifact ZIP SHA256 metadata",
+  "performance_sample_count": 0,
+  "seed": null,
+  "real_wintun_driver": "NOT_RUN",
+  "win_admin_network_mutation": "NOT_RUN",
+  "native_DHCP_MTU_DNS_WFP_routes_stage_adapters": "NOT_IMPLEMENTED",
+  "Windows_product_powershell_removed": false,
+  "real_direct_TCP_UDP": "NOT_RUN",
+  "original_N2_efficiency_C04_C05": "FAIL_OPEN",
+  "N2_GE_tail": "OPEN",
+  "S2C_80s": "OPEN",
+  "N6": "NOT_STARTED",
+  "physical": "NOT_RUN"
+}

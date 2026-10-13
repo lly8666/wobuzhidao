@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_REAL_WIN32_MACHINE_MUTEX_SCOPED_PASS_NEW_WINTUN_SESSION_HOLD_CANDIDATE_PENDING",
+    "phase": "N4_UNIFIED_WAL_WIN32_MACHINE_GATE_WINTUN_GENERATION_HOLD_SCOPED_ACTIONS_PASS_CONCRETE_STAGE_BACKENDS_AND_N6_OPEN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE_D88F_N4_REAL_WIN32_MACHINE_GLOBAL_MUTEX_WINDOWS2022_2025_PASS_PLUS_FOUNDATION_LIFECYCLE;NEW_CREATED_WINTUN_OWNER_GENERATION_HOLD_THROUGH_WAL_CANDIDATE_UNTESTED;NATIVE_STAGE_BACKENDS_AND_PRODUCT_WIRING_INCOMPLETE",
+    "implementation": "SOURCE1471_UNIFIED_5_STAGE_BOUNDED_WAL_SOFTWARE_SCOPED_PASS;D88F_NATIVE_WINDOWS_MACHINE_MUTEX_SCOPED_WIN2022_2025_PASS;SOURCEFF525_CURRENT_CREATED_WINTUN_LUID_GENERATION_HOLD_SCOPED_WINDOWS_LINUX_ACTIONS_PASS;CONCRETE_LEASE_DNS_MTU_WFP_ROUTES_STAGE_BACKENDS_AND_ADMIN_DRIVER_UNTESTED_OFFICIAL_CLIENT_POWERSHELL_STILL_ACTIVE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
       "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
-      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS;SOURCE908A_GUARD_JOURNAL_CRASH_SCOPED_ACTION38357895984_FOUNDATION38357895969_LIFECYCLE38357895905_PASS;SOURCE1EEB_WFP_PARTIAL_RECOVERY_FULL_FOUNDATION38358434476_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_SUCCESS_OLD_REGEX_DID_NOT_SELECT_NEW_PARTIAL_TEST;SOURCE863E_N4_LEASE_CREATED_WINTUN_OWNER_NEGATIVE_WINDOWS2022_2025_X3_ACTION38359734786_PASS_FOUNDATION38359735917_ALL7_PASS_LIFECYCLE38359735012_PASS;SOURCE_CFEAC_EXPLICIT_WFP_CRASH_MATRIX38359183134_PASS;NO_REAL_ADMIN_WINTUN",
+      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS;SOURCE908A_GUARD_JOURNAL_CRASH_SCOPED_ACTION38357895984_FOUNDATION38357895969_LIFECYCLE38357895905_PASS;SOURCE1EEB_WFP_PARTIAL_RECOVERY_FULL_FOUNDATION38358434476_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_SUCCESS_OLD_REGEX_DID_NOT_SELECT_NEW_PARTIAL_TEST;SOURCE863E_N4_LEASE_CREATED_WINTUN_OWNER_NEGATIVE_WINDOWS2022_2025_X3_ACTION38359734786_PASS_FOUNDATION38359735917_ALL7_PASS_LIFECYCLE38359735012_PASS;SOURCE_CFEAC_EXPLICIT_WFP_CRASH_MATRIX38359183134_PASS;NO_REAL_ADMIN_WINTUN;SOURCE1471_UNIFIED_5_STAGE_WAL_ACTION38362811979_FOUNDATION38362811941_PASS_AFTER_0DDC_CONCURRENT_APPLY_FAIL;D88F_WIN32_GLOBAL_MACHINE_MUTEX_ACTION38363479829_FOUNDATION38363479720_LIFECYCLE38363480051_PASS;FF525_CREATED_WINTUN_GENERATION_HANDLE_HOLD_ACTION38364130417_FOUNDATION38364130335_LIFECYCLE38364130671_PASS_HOSTED_ONLY",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify new exact-source N4 matrix Windows2022/2025 tests TestN4WindowsWintunReservation* plus TestN4NativeTxnUnifiedHoldsGenerationFromSnapshotThroughUndo on Linux race; Foundation/Lifecycle final. This patch adds optional owner Hold around the entire unified transaction and a real Windows TUN beginCall/endCall handle fence with current owned Wintun LUID/index and explicit installation/generation identity; hosted tests only negative/no driver. Then implement concrete crash-durable Windows stage adapters: static lease/DHCP/DAD, MTU CAS restore, DNS baseline/clear, WFP anti-leak and exact compact /1 routes; native admin Actions capability, then remove client PowerShell and old CIDR routes, test DirectTCP/UDP and N6 P6 packages. N2 C04/C05/C10/80s OPEN, physical NOT_RUN; no deploy/merge/ref change.",
-  "latest_log": "docs/devlog/20261013-n4-wintun-generation-hold-unified-transaction-candidate.md",
+  "next_task": "N4 next atomic development: implement bounded *concrete* Windows native stage adapters under N4NativeUnifiedTxn, starting with guard-only read/verify/owned staged WFP and native lease/MTU/DNS exact snapshots/restore/underlay + two /1 route batches; keep every CAS and journal entry before mutation, preserve foreign state and no cross-business HOL. Add real Windows administrator/Wintun driver capability test in isolated GH Actions, mark UNSUPPORTED/NOT_RUN when no DLL/driver; specifically solve crash recovery when original process-created Wintun handle and generation owner no longer exist (cannot promote borrowed alias) and prove genuinely machine-global exclusive single-Wintun or shared WFP allowlist before enabling broad policies. Never activate scriptless product, remove PowerShell or release until actual native stages and hard safety qualify; then connect userspace DirectTCP/NativeUDP and run cross-function Actions, N6 same-source three-target P6 manifest/hash. C04/C05 efficiency FAIL, C10 GE p99 and ~80s S2C remain OPEN; physical NOT_RUN, no deploy/merge/ref move.",
+  "latest_log": "docs/devlog/20261013-n4-unified-wal-mutex-wintun-generation-final-actions-receipt.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "d88fcfca1db337d2bf494ef0470580fd47a8b39b",
-  "last_tested_scope": "SOURCE_D88FCF_WIN32_GLOBAL_MUTEX_N4_ACTION38363479829_SUCCESS_WINDOWS2022_2025_EXPLICIT_TESTS_X3_LINUX_RACE_FOUNDATION38363479720_ALL7_SUCCESS_LIFECYCLE38363480051_SUCCESS",
+  "last_tested_source_sha": "ff525c0faaf0a719b25bbac5de132cab7975732e",
+  "last_tested_scope": "FF525_WIN32_NATIVE_MACHINE_GLOBAL_MUTEX_AND_UNIFIED_NETWORK_OWNER_HOLD_CURRENT_CREATED_WINTUN_LUID_GENERATION_NEGATIVES_N4_ACTION38364130417_WIN2022_WIN2025_LINUX_RACE_SUCCESS_FOUNDATION38364130335_ALL7_SUCCESS_LIFECYCLE38364130671_SUCCESS_NOT_REAL_ADMIN_DRIVER_OR_STAGE_MUTATION",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "Source d88fcfca native Windows global named mutex N4Win2022/2025 jobs Action38363479829 final SUCCESS, each TestN4WindowsMachineGate* x3; Linux race PASS, Foundation38363479720 all7 SUCCESS, lifecycle38363480051 SUCCESS. Artifact11796131681/11796206100 SHA256 metadata below. This proves OS mutex only, not real Wintun/network Apply.",
-    "New owner reservation candidate: N4NativeUnifiedTxn.withGate holds optional N4UnifiedOwnerReservation across every Snapshot/Apply/Recover phase and releases before machine gate; N4WindowsCreatedWintunReservation uses live created Wintun NativeIdentity and beginCall/endCall Close fence, checks installation/generation LUID/index. No actual Wintun driver in hosted tests. Exact new-source Actions pending.",
-    "Source1471883e unified native 5-stage ordered write-ahead orchestration exact-scoped PASS: N4 matrix38362811979 Windows2022/25, Linux race and receipt final SUCCESS; Foundation38362811941 seven mandatory final SUCCESS, artifact digests in devlog. This is FAKE-STAGE software, not native Windows/Wintun transactional activation.",
-    "Source0ddcfefc original unified WAL race concurrency FAIL preserved: N4 Action38362537980 (Linux-race and Win2022/25 failed) and Foundation38362538029 (active Go Linux/Windows failed), because second Apply inspected foreign Snapshot before journal conflict. Targeted source1471 early journal check before Snapshot fixed and verified; prior FAIL not renamed.",
-    "New N4 real Windows machine-global named mutex gate candidate needs Actions Win2022/25; uses pinned OS thread and cancellation, but must still implement true Wintun generation owner fence and all Windows stage backends before any actual network Apply."
+    "SOURCEff525c0 Wintun generation/session ownership Hold across unified network WAL: N4 Action38364130417 FINAL SUCCESS all four jobs, Windows2022/2025 TestN4WindowsWintunReservation* and TestN4NativeTxnUnifiedHoldsGenerationFromSnapshotThroughUndo each x3 PASS; Foundation38364130335 final SUCCESS seven required, Lifecycle38364130671 SUCCESS. Real driver/Wintun created session and positive OS mutations NOT_RUN.",
+    "SOURCEd88fcfc real Win32 kernel named Global machine mutex: N4 matrix38363479829 FINAL SUCCESS two Windows and Linux race, Win mutex cancellation/exclusion tests PASS x3; Foundation38363479720 all seven required SUCCESS, Lifecycle38363480051 SUCCESS. Production exclusive multi-Wintun policy not proven.",
+    "SOURCE1471883 unified bounded five-phase WAL software scaffold N4 matrix38362811979 and Foundation38362811941 PASS; original SOURCE0ddcfefc N4 matrix38362537980 and Foundation38362538029 FAIL due concurrent Apply snapshot before journal conflict; fixed without clearing original FAIL. None of these Actions proves OS-native full transaction.",
+    "Known crash recovery gap remains: if original created Wintun handle dies across process restart, a same-alias reopened Wintun cannot satisfy createdByProcess or generation; independent durable installation-owned OS identity/recovery proof and cross-process liveness contract are NOT_IMPLEMENTED. WFP exclusive single Wintun is still a boolean design gate without full external adapter enumeration/shared policy. No production network mutation or route Apply qualified.",
+    "N4 Windows CLI still PowerShell/.ps1 and CN complement routes; full native guard/DHCP-lease/DAD/MTU/DNS/route stage implementation and DirectTCP/UDP official scriptless activation OPEN, N6 P6 3-target packages NOT_STARTED, physical NOT_RUN. N2 C04/C05 efficiency/C10 GE 1.8–1.95s p99 and ~80s S2C remain OPEN."
   ],
   "actions": [
     {
@@ -4736,6 +4736,42 @@
       "scope": "N4_REAL_MUTEX_LIFECYCLE",
       "status": "PASS",
       "cause": "FINAL SUCCESS lifecycle core; no native Wintun admin."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38362811985,
+      "source_sha": "1471883e6052efb46d8d6fba5bfb327737c51535",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38362811985",
+      "scope": "N4_UNIFIED_WAL_CONCURRENT_APPLY_FIX_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS core lifecycle; code source1471, no Windows NIC."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38364130417,
+      "source_sha": "ff525c0faaf0a719b25bbac5de132cab7975732e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38364130417",
+      "scope": "N4_CREATED_WINTUN_HANDLE_GENERATION_HOLD_WIN2022_WIN2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all four jobs; Windows2022 job115185075186 and Win2025 job115185075240 show actual PASS TestN4WindowsWintunReservation* and TestN4NativeTxnUnifiedHoldsGenerationFromSnapshotThroughUndo x3. Artifact11795689345 SHA256:92f0258f020a4d6b8c46a9ddb212fd360892ec878b793398928c4feb915c6f22; no real driver."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38364130335,
+      "source_sha": "ff525c0faaf0a719b25bbac5de132cab7975732e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38364130335",
+      "scope": "N4_WINTUN_GENERATION_HOLD_FULL_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all 7 required Win/Linux Go and P2/P4, extended P5/P6 skipped. Artifact11796305252 SHA256:c658c45008bd52fd07f09ddb09a99c147c51c1b7acf8ce41f10ecc3695eca7ed."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38364130671,
+      "source_sha": "ff525c0faaf0a719b25bbac5de132cab7975732e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38364130671",
+      "scope": "N4_WINTUN_GENERATION_HOLD_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS core lifecycle; no real driver mutation."
     }
   ],
   "required_read_set": [
