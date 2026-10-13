@@ -14,6 +14,8 @@ on:
       - "internal/windowsclient/native_orphan_owned_guard_windows_test.go"
       - "internal/windowsclient/native_orphan_preroute_windows.go"
       - "internal/windowsclient/native_orphan_preroute_windows_test.go"
+      - "internal/windowsclient/native_orphan_persisted_preroute_windows.go"
+      - "internal/windowsclient/native_orphan_persisted_preroute_windows_test.go"
       - "internal/windowsclient/native_journal_adapter_proof_windows.go"
       - "internal/windowsclient/native_journal_adapter_proof_windows_test.go"
       - "internal/windowsclient/native_unified_network_transaction.go"
@@ -237,12 +239,12 @@ jobs:
           assert x["wfp"]=="FAKE_ONLY"
           assert all(x[k]=="NOT_RUN" for k in ("routes","physical","full_network_recover"))
           assert x["result"] in ("SCOPED_REAL_WINTUN_IP_STAGE_CRASH_FAKE_WFP_PASS",
-                                  "UNSUPPORTED_EXACT_ORIGINAL_ADAPTER_PERSISTED_AFTER_IP_WRITES",
+                                  "SCOPED_REAL_PERSISTED_ORIGINAL_IP_ROLLBACK_FAKE_WFP_PASS",
                                   "UNSUPPORTED_ORIGINAL_IDENTITY_CONFLICT",
                                   "UNSUPPORTED_NATIVE_OS_ABSENCE_UNPROVEN")
           if x["result"].startswith("UNSUPPORTED"):
               assert x["wal_recovery"]=="NOT_RUN" and x["original_retired"].startswith("UNSUPPORTED")
-          if x["result"]=="SCOPED_REAL_WINTUN_IP_STAGE_CRASH_FAKE_WFP_PASS":
+          if x["result"].startswith("SCOPED_REAL_"):
               for k in ("real_wintun","lease_mtu_dns","original_retired","wal_recovery"):
                   assert x[k].startswith("PASS"),k
           print("N4_REAL_PREROUTE_IP_CRASH="+x["result"])

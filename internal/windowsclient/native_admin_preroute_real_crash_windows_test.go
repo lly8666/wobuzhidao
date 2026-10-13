@@ -170,8 +170,23 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
    }
    switch{
    case checkErr==nil && state==N4UnifiedOwned:
-    report["result"]="UNSUPPORTED_EXACT_ORIGINAL_ADAPTER_PERSISTED_AFTER_IP_WRITES"
-    report["original_retired"]="UNSUPPORTED_SAME_GUID_LUID_INDEX_STILL_LIVE"
+    // This is the *same original* OS adapter (not a same-name reopening).
+    // The guard is a TEST-ONLY fake; any real post-crash native setter error
+    // is a genuine FAIL that retains WAL, not UNSUPPORTED or a mocked PASS.
+    rollbackCtx,rollbackDone:=context.WithTimeout(context.Background(),30*time.Second)
+    fake:=&n4FakeGuard{durable:true,active:true}
+    rollbackErr:=n4RecoverPersistedPreRouteWAL(rollbackCtx,wal,j.Identity,fake)
+    rollbackDone()
+    if rollbackErr!=nil{
+     t.Fatalf("same-original Win32 CAS rollback after real child crash failed (WAL retained): %v",rollbackErr)
+    }
+    if fake.active || fake.disarmCount!=1{t.Fatal("test guard not disarmed exactly once after all real IP cleanup")}
+    if _,e:=os.Stat(wal);!errors.Is(e,os.ErrNotExist){t.Fatalf("native CAS rollback did not retire WAL: %v",e)}
+    report["original_retired"]="PASS_EXACT_SAME_ORIGINAL_GUARD_CAS"
+    report["wal_recovery"]="PASS_NATIVE_LEASE_MTU_DNS_REVERSED_AFTER_CRASH"
+    report["result"]="SCOPED_REAL_PERSISTED_ORIGINAL_IP_ROLLBACK_FAKE_WFP_PASS"
+    t.Log("real destroyed child left original Wintun present; exact-GUID/LUID/index native lease/MTU/DNS rollback PASS, WFP FAKE and routes NOT_RUN")
+    return
    case errors.Is(checkErr,ErrN4ForeignRoute):
     report["result"]="UNSUPPORTED_ORIGINAL_IDENTITY_CONFLICT"
     report["original_retired"]="UNSUPPORTED_FOREIGN_OR_REUSED_IDENTITY"
