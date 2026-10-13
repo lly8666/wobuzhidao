@@ -20,7 +20,8 @@ func n4NativeRouteMatches(row n4ForwardRow,key NativeRouteKey)bool{
   n4ReadSockaddrIPv4(&row.Destination.Address)==key.Prefix.Addr() &&
   n4ReadSockaddrIPv4(&row.NextHop)==key.NextHop &&
   row.Metric==key.Metric &&
-  row.Loopback==0 && row.Publish==0
+  row.SitePrefixLength<=row.Destination.Bits && row.Protocol==3 &&
+  row.Loopback==0 && row.AutoconfigureAddress==0 && row.Publish==0
 }
 
 func (N4WindowsRouteBackend) Lookup(ctx context.Context,key NativeRouteKey)(bool,bool,error){

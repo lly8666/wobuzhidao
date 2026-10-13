@@ -85,7 +85,17 @@ func N4NativeRouteEntry(prefix netip.Prefix, index uint32, nextHop netip.Addr) (
     row.Index=index
     row.Destination=n4RoutePrefix{Address:n4NativeRouteIPv4(prefix.Addr()),Bits:uint8(prefix.Bits())}
     row.NextHop=n4NativeRouteIPv4(nextHop)
+    // Microsoft InitializeIpForwardEntry sets Loopback, AutoconfigureAddress,
+    // Publish and Immortal TRUE, and Protocol/Metric/SitePrefixLength invalid.
+    // These defaults are NOT suitable for an ordinary physical/Wintun route.
+    // See Microsoft netioapi InitializeIpForwardEntry remarks.
+    row.SitePrefixLength=uint8(prefix.Bits())
     row.Metric=5
+    row.Protocol=3 // MIB_IPPROTO_NETMGMT / RouteProtocolNetMgmt
+    row.Loopback=0
+    row.AutoconfigureAddress=0
+    row.Publish=0
+    row.Immortal=1
     return row,nil
 }
 

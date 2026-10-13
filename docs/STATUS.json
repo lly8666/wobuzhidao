@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_NATIVE_OWNED_TXN_MATRIX_PASS_WIN_ADDRESS_PRECHECK_AND_V3_TEST_REPAIR_ACTIONS_PENDING",
+    "phase": "N4_NATIVE_WIN_ROUTING_INITIALIZER_CORRECTION_AND_SCRIPTLESS_API_GATE_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_NATIVE_ROUTE_BACKEND_AND_OWNED_JOURNAL_ACTION38346361538_PASS;FOUNDATION38346361555_LINUX_V3_MULTICLIENT_RACE_ASSERTION_FAIL;GO_NATIVE_ADDRESS_READ_ONLY_PRECHECK_AND_V3_READY_WAIT_FIX_SOURCE_PENDING",
+    "implementation": "N4_OWNED_TXN_WIN2022_WIN2025_LINUX_RACE_PASS;V3_MULTI_CLIENT_20X_WINDOWS_LINUX_RACE8X_PASS;FOUNDATION_B7_WINDOWS_ROUTE_FLAGS_INITIALIZER_FAIL;SOURCE_FIX_AND_DNS_CAPABILITY_PENDING",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "SOURCE02f Actions38346361538 N4 native owned transaction matrix SUCCESS (Linux race + Windows2022/2025 + artifact) but Foundation38346361555 FINAL FAIL due TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation checking server.byTunnel before authenticated server-ready wait. Keep failure. New candidate moves existing TunnelQualified 5s wait BEFORE server policy assertion; dedicated V3 Windows/Linux 20x repeated + Linux race 8x action, and expands N4 native Windows read-only IPv4 address table + lease/DAD/foreign APIPA preflight tests. After Actions PASS continue full scriptless native DHCP, lease create/delete, crash-persistent WFP DNS/IPv6 guard and journal then wire compact /1 and gVisor TCP Direct; no product runtime switch until all safety gates pass. Remove legacy active PS only after parity. N6 NOT_STARTED, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261013-n4-address-and-v3-lifecycle-matrix-candidate.md",
+  "next_task": "Run Windows2022/2025/Ubuntu-race N4 matrix, V3 repeated regression, Foundation/lifecycle exact SOURCE after fixing SDK InitializeIpForwardEntry defaults: Loopback, AutoconfigureAddress, Publish all TRUE by default and Protocol/SitePrefixLength INVALID. Set explicitly 0/0/0, Protocol NetMgmt3, SitePrefixLength prefix bits; enforce exact match; include TestN4Windows in dedicated matrix because earlier regex omitted it. Also test native Windows10 build>=19041 DNS Set/GetInterfaceDnsSettings + persistent WFP API DLL exports and fail closed old Win versions. Preserve original SOURCEb7 Foundation38346699600 FAIL Windows native route ownership test; do not claim product scriptless, actual Win route mutations still NOT_RUN. After Actions PASS, next implement owned Windows DNS/WFP guard and address/DHCP writes, finish PowerShell removal, wire compact route/TCP. N6 NOT_STARTED/physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261013-n4-win-route-initializer-correction-and-dns-api-gate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "02f815b9c9c429ab0c51f514ef01ede7ed68f163",
-  "last_tested_scope": "N4_NATIVE_ROUTE_OWNED_JOURNAL_LINUX_RACE_WIN2022_WIN2025_ACTION38346361538_SUCCESS;LIFECYCLE38346361497_SUCCESS;FOUNDATION38346361555_FAIL_V3_CLIENT_POLICY_REGISTRATION_RACE",
+  "last_tested_source_sha": "b7e1606bda35e7628107df909cba3a9f8c6ea2b3",
+  "last_tested_scope": "N4_NATIVE_LEASE_GUARD_MATRIX_ACTION38346699554_SUCCESS;V3_THREE_CLIENT_REPEATED_RACE_ACTION38346699603_SUCCESS;N0_NEGOTIATION38346699556_SUCCESS;LIFECYCLE38346699592_SUCCESS;FOUNDATION38346699600_FAIL_NATIVE_ROUTE_FLAGS_INIT",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,10 +2694,9 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "N4 Go owned native route transaction Action38346361538 FINAL SUCCESS Linux race, Windows2022/2025, output artifact; native OS route Create/Delete NOT_RUN, DNS/IPv6 guard still abstract and not configured.",
-    "Source02f Foundation38346361555 FINAL FAIL in Linux active-go-tests TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation: server policy observed zero due premature assertion before existing waitLifecycle(TunnelQualified); V3 source candidate moves wait before read, Actions repeated 20x and -race8x pending.",
-    "New N4 Windows only read-only GetUnicastIpAddressTable snapshot and strict Wintun lease/DAD/foreign APIPA check candidate, Windows2022/2025 Actions pending. NO DHCP mutation, no address Create/Delete, no network user side effects.",
-    "Critical final Windows product STILL includes powershell.exe, active .ps1 and old complement routing until full native guard/owned lifecycle; N6/physical NOT_RUN."
+    "Source b7e1606b Actions38346699554 SUCCESS N4 Go native route transaction & leased IPv4 read-only snapshot tests on Linux race+Windows2022/2025; V3 multiclient 20 repeated Windows/Linux and race8 action38346699603 SUCCESS; N0 negotiation38346699556 SUCCESS; lifecycle38346699592 SUCCESS.",
+    "Source b7e1606b Foundation38346699600 FINAL FAIL Windows active-go-tests: TestN4WindowsRouteMatchStrictOwnedIdentity initial row mismatch. Root cause Microsoft InitializeIpForwardEntry default TRUE for Loopback/AutoconfigureAddress/Publish, invalid Protocol/SitePrefixLength; fixed candidate sets explicit fields and extends strict matching. Also dedicated N4 matrix regex had inadvertently omitted TestN4Windows; now included. Keep failed evidence.",
+    "New pure Windows API preflight checks native per-interface DNS Get/Set and WFP persistent filter DLL exports and OS floor Win10 Build19041; all real DNS/WFP Apply or admin runtime still NOT_IMPLEMENTED. Main CLI still calls PowerShell and many complement routes; no physical/driver tests, N6 NOT_STARTED."
   ],
   "actions": [
     {
@@ -4033,6 +4032,51 @@
       "scope": "V3_THREE_CLIENT_SERVER_READINESS_TIMING_FAIL",
       "status": "FAIL",
       "cause": "Linux active-go-tests job115128647338 FAIL TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation: server byTunnel policy still zero before existing wait for TunnelQualified called. Other required jobs pass; preserve final Foundation FAIL and fix test synchronization, not qualification."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38346699554,
+      "source_sha": "b7e1606bda35e7628107df909cba3a9f8c6ea2b3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38346699554",
+      "scope": "N4_NATIVE_ADDR_READONLY_AND_ROUTE_JOURNAL_MATRIX",
+      "status": "PASS",
+      "cause": "Linux race, Windows2022+2025, receipt all SUCCESS. Native route ownership TestN4Windows not yet included in dedicated regex, exposed by Foundation separately. No admin/physical."
+    },
+    {
+      "name": "next-adaptive-v3-multiclient-race-requalification",
+      "run_id": 38346699603,
+      "source_sha": "b7e1606bda35e7628107df909cba3a9f8c6ea2b3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38346699603",
+      "scope": "V3_THREE_CLIENT_TRUE_TLS_FAKE_TCP_MULTILANE_20X_AND_RACE8X",
+      "status": "PASS",
+      "cause": "Linux and Windows each repeated V3 three-client mixed-profile two-direction first business and replacement 20 times; Linux race 8 times, all SUCCESS; only in-memory carrier, not physical."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38346699592,
+      "source_sha": "b7e1606bda35e7628107df909cba3a9f8c6ea2b3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38346699592",
+      "scope": "N4_NEW_IPV4_READONLY_API_AND_V3_TEST_SOURCE_LIFECYCLE",
+      "status": "PASS",
+      "cause": "Core job final success."
+    },
+    {
+      "name": "next-adaptive-n0-negotiated",
+      "run_id": 38346699556,
+      "source_sha": "b7e1606bda35e7628107df909cba3a9f8c6ea2b3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38346699556",
+      "scope": "V3_ADMISSION_MULTICLIENT_FIRST_DOWNLINK",
+      "status": "PASS",
+      "cause": "Dedicated N0 authentic admission test completed SUCCESS."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38346699600,
+      "source_sha": "b7e1606bda35e7628107df909cba3a9f8c6ea2b3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38346699600",
+      "scope": "N4_WINDOWS_NATIVE_ROUTE_SDK_INITIALIZER_UNEXPECTED_FLAGS_FAILURE",
+      "status": "FAIL",
+      "cause": "Windows active-go-tests job115129737154 FAIL TestN4WindowsRouteMatchStrictOwnedIdentity: N4NativeRouteEntry left SDK InitializeIpForwardEntry Loopback/Autoconfigure/Publish TRUE and invalid protocol/siteprefix. Linux/FEC/P4/repo jobs successful. Must explicitly set fields, no weakening of route ownership check."
     }
   ],
   "required_read_set": [

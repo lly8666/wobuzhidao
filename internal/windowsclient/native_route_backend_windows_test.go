@@ -13,7 +13,7 @@ func TestN4WindowsRouteMatchStrictOwnedIdentity(t *testing.T){
   Interface:25,NextHop:netip.MustParseAddr("0.0.0.0"),Metric:5}
  row,err:=N4NativeRouteEntry(key.Prefix,key.Interface,key.NextHop)
  if err!=nil{t.Fatal(err)}
- if !n4NativeRouteMatches(row,key){t.Fatal("native route identity does not roundtrip")}
+ if !n4NativeRouteMatches(row,key){t.Fatalf("native route identity does not roundtrip row=%+v prefix=%v nh=%v",row,n4ReadSockaddrIPv4(&row.Destination.Address),n4ReadSockaddrIPv4(&row.NextHop))}
  cases:=[]struct{name string;change func(*n4ForwardRow)}{
   {"wrong-interface",func(r *n4ForwardRow){r.Index=26}},
   {"wrong-destination",func(r *n4ForwardRow){r.Destination.Address=n4NativeRouteIPv4(netip.MustParseAddr("0.0.0.0"))}},
@@ -22,6 +22,9 @@ func TestN4WindowsRouteMatchStrictOwnedIdentity(t *testing.T){
   {"wrong-metric",func(r *n4ForwardRow){r.Metric=6}},
   {"loopback",func(r *n4ForwardRow){r.Loopback=1}},
   {"published",func(r *n4ForwardRow){r.Publish=1}},
+  {"autoconfigured",func(r *n4ForwardRow){r.AutoconfigureAddress=1}},
+  {"wrong-protocol",func(r *n4ForwardRow){r.Protocol=19}},
+  {"illegal-site-prefix",func(r *n4ForwardRow){r.SitePrefixLength=2}},
  }
  for _,tc:=range cases{t.Run(tc.name,func(t *testing.T){
   clone:=row;tc.change(&clone)
