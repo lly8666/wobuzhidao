@@ -1,3 +1,7 @@
+## 2026-10-13 N4 guard-intent crash Actions 工作流 YAML 错误修复候选
+
+上一 CODE SOURCE `6676fe49416ddff291e2941f24c860f9e729001a` 已提交 guard-intent-only 空副作用 WAL 回收与侧路由日志否决，但真实 Wintun workflow38405814495 因新步骤错误插入 YAML 被 GitHub 在 job 调度前判 FAIL（0 jobs），绝不是实测驱动失败或通过。Lifecycle38405817392 SUCCESS，N4 matrix38405817018/Foundation38405817041 仍须查最终状态。此候选从上次有效 workflow 355bd64 重建，保证 Win2022/25 真 child fsync guard intent → 前杀拒清 → TerminateProcess 后仅 journal 清退 scoped 报告。新 SOURCE 四组 Actions 才能确证，不能继承旧绿；WFP Arm 仍禁、非空五阶段 crash、正式 CLI PowerShell、真实 /32+两/1/N6/physical 全 OPEN。N2 C04/C05/C10和80s 尾部 OPEN；next_task 唯一取 STATUS。
+
 ## 2026-10-13 N4 空 WAL crash 恢复 scoped PASS，guard-intent-only 后续候选待 Actions
 
 精确已验 CODE SOURCE `355bd64a84ccd476e4bedcef1cca7e22b2da01bc`：Win2022/25 真实 Wintun Action38401426255 SUCCESS，原 child TerminateProcess 后 NIC 消失，子测试整体 `UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED`/SKIP，但仅**空 WAL**经 GetAdaptersAddresses 完整 GUID/LUID/index 和 owned WFP 缺失只读证明安全清退两端成功。N4 matrix38401426262 Win2022/25+Linux race、Foundation38401426305 七必需、Lifecycle38401426470 FINAL SUCCESS。旧 SOURCE442201 缺 pinned Go Windows API 编译 FAIL 保留。新候选只扩展到 fsync 的**单条 guard intent (非 owned)**且 WFP/路由未实际写的 crash-before-first-write 窗口；任何 route sidecar、WFP 部分/存在、lease/MTU/DNS/route intent、异代全部拒绝清退。新 Actions Win2022/25 真 child + N4 matrix/Foundation/Lifecycle 待验。非空后续阶段 crash、持久 WFP 多 Wintun 共存、正式 CLI PowerShell 去除、实际 /32+两 /1 和 N6 都 OPEN；physical NOT_RUN，N2 C04/C05/C10与80s尾部 OPEN。实时 next_task 唯一看 STATUS。
