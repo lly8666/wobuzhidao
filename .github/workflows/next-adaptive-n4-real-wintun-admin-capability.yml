@@ -86,15 +86,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          ./artifacts/n4-driver-probe/n4-probe.test.exe -test.v -test.run '^TestN4WindowsHostedOwnedAdapterNativeIPWritesAndRestore
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: n4-created-wintun-readonly-${{ matrix.runner }}-${{ github.sha }}
-          path: artifacts/n4-driver-probe/capability.json
-          if-no-files-found: warn
-          retention-days: 30
- -test.timeout=10m
+          ./artifacts/n4-driver-probe/n4-probe.test.exe -test.v -test.run '^TestN4WindowsHostedOwnedAdapterNativeIPWritesAndRestore$' -test.timeout=10m
           test -s "$WBD_N4_ADMIN_MUTATION_REPORT"
           python - <<'PY'
           import json, os

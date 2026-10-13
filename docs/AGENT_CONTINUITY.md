@@ -1,3 +1,7 @@
+## 2026-10-13 N4 真 Windows 隔离实写 test workflow 解析 FAIL 修复
+
+`eca2d0d` 新增随机 Wintun /32、DAD、MTU、DNS 原生 Set/Clear/Get 正向测试，但 Action38381597073 **FAIL 零job**：workflow 中 `-test.run` 命令被误切，upload-step 重复，不是系统原生写入失败。新候选从已运行的 d6f049 YAML 重新无替换展开，把只读与实写两条命令分开并保留原 DLL 官方固定 SHA256。必须新 SOURCE 的 Windows2022/25 job 真正运行才有资格。依然仅临时 Wintun 和 test-only FAKE WFP，global WFP/路由及产品 PowerShell→native 尚 OPEN，N6/physical NOT_RUN。
+
 ## 2026-10-13 N4 真正 Wintun 创建/LUID 原生只读 Windows 2022/2025 PASS；下一个实写候选
 
 测试 CODE SOURCE `d6f04989ffe1a9ad14db0466c4b3a870eea18c68`：真实 Wintun 0.14.1 在 Win2022/25 两个 Actions runner 都成功创建、NET_LUID/接口索引与 generation owner Hold PASS，IPv4/MTU/DNS 三项原生只读 PASS；Action38380735721 两端明确输出 SCOPED_CREATED_WINTUN_READ_ONLY_PASS，N4 Action38380735783、Foundation38380735890 七必需、Lifecycle38380735773 最终 SUCCESS；原 fbf9252 错导出失败保留。下一新源码的 CI 隔离**实际网卡**写/恢复测试将只碰随机新建 Wintun 的 /32、MTU、DNS，不碰物理 NIC、全局 WFP 和捕获路由，所用 guard 明确 TEST_ONLY_FAKE，绝不冒称产品防漏 PASS。Windows 正式 CLI 仍旧 PowerShell；N4/N6 不完整，physical NOT_RUN。
