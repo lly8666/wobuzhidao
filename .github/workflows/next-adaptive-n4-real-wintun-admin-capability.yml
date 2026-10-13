@@ -237,7 +237,11 @@ jobs:
           assert x["wfp"]=="FAKE_ONLY"
           assert all(x[k]=="NOT_RUN" for k in ("routes","physical","full_network_recover"))
           assert x["result"] in ("SCOPED_REAL_WINTUN_IP_STAGE_CRASH_FAKE_WFP_PASS",
-                                  "UNSUPPORTED_ORIGINAL_ADAPTER_PERSISTED")
+                                  "UNSUPPORTED_EXACT_ORIGINAL_ADAPTER_PERSISTED_AFTER_IP_WRITES",
+                                  "UNSUPPORTED_ORIGINAL_IDENTITY_CONFLICT",
+                                  "UNSUPPORTED_NATIVE_OS_ABSENCE_UNPROVEN")
+          if x["result"].startswith("UNSUPPORTED"):
+              assert x["wal_recovery"]=="NOT_RUN" and x["original_retired"].startswith("UNSUPPORTED")
           if x["result"]=="SCOPED_REAL_WINTUN_IP_STAGE_CRASH_FAKE_WFP_PASS":
               for k in ("real_wintun","lease_mtu_dns","original_retired","wal_recovery"):
                   assert x[k].startswith("PASS"),k

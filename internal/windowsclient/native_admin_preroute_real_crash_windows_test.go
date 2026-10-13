@@ -139,6 +139,10 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
  report["lease_mtu_dns"]="PASS_REAL_NATIVE_WRITES_FSYNCED"
  g:=&n4OwnedOrphanFakeGuard{state:N4UnifiedOwned}
  preCtx,stop:=context.WithTimeout(context.Background(),10*time.Second)
+ if err:=n4OriginalWintunPersistedExact(preCtx,j.Identity);err!=nil{
+  stop()
+  t.Fatalf("live original GUID/LUID/ifIndex triple not independently corroborated: %v",err)
+ }
  err=n4RetirePreRouteOrphanWAL(preCtx,wal,j.Identity,g)
  stop()
  if !errors.Is(err,ErrN4ForeignRoute){t.Fatalf("still-live original Wintun incorrectly retired: %v",err)}
@@ -149,14 +153,37 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
  stopped=true
  ctx,cancel:=context.WithTimeout(context.Background(),15*time.Second)
  defer cancel()
- for{
+ for {
   err=n4OriginalWintunAbsent(ctx,j.Identity)
   if err==nil{break}
-  if !errors.Is(err,ErrN4ForeignRoute){t.Fatalf("OS absent proof ambiguous: %v",err)}
-  if ctx.Err()!=nil{
-   report["result"]="UNSUPPORTED_ORIGINAL_ADAPTER_PERSISTED"
-   t.Skip("UNSUPPORTED: Windows still reports original adapter after process kill")
+  if ctx.Err()!=nil {
+   // A timeout by itself cannot prove persistence or absence. Re-query OS
+   // with a fresh bounded context and require the WHOLE original native
+   // GUID+LUID+ifIndex, not an alias or an overlapping foreign index.
+   checkCtx,done:=context.WithTimeout(context.Background(),3*time.Second)
+   state,checkErr:=n4InspectOriginalWintun(checkCtx,j.Identity)
+   done()
+   if checkErr==nil && state==N4UnifiedAbsent{
+    ctx,cancel=context.WithTimeout(context.Background(),10*time.Second)
+    defer cancel()
+    break
+   }
+   switch{
+   case checkErr==nil && state==N4UnifiedOwned:
+    report["result"]="UNSUPPORTED_EXACT_ORIGINAL_ADAPTER_PERSISTED_AFTER_IP_WRITES"
+    report["original_retired"]="UNSUPPORTED_SAME_GUID_LUID_INDEX_STILL_LIVE"
+   case errors.Is(checkErr,ErrN4ForeignRoute):
+    report["result"]="UNSUPPORTED_ORIGINAL_IDENTITY_CONFLICT"
+    report["original_retired"]="UNSUPPORTED_FOREIGN_OR_REUSED_IDENTITY"
+   default:
+    report["result"]="UNSUPPORTED_NATIVE_OS_ABSENCE_UNPROVEN"
+    report["original_retired"]="UNSUPPORTED_OS_NATIVE_SCAN"
+   }
+   if _,e:=os.Stat(wal);e!=nil{t.Fatalf("ambiguous OS identity lost WAL: %v",e)}
+   if g.inspectCalls!=0 || g.disarmCalls!=0{t.Fatal("ambiguous adapter reached WFP deletion")}
+   t.Skipf("UNSUPPORTED: after real IP writes and TerminateProcess original adapter absent proof not met; parent WAL retained, state=%s err=%v",state,checkErr)
   }
+  if !errors.Is(err,ErrN4ForeignRoute){t.Fatalf("OS original identity scan failed unexpectedly: %v",err)}
   time.Sleep(100*time.Millisecond)
  }
  report["original_retired"]="PASS_REAL_TERMINATEPROCESS_OS_ABSENCE"

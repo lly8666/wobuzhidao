@@ -1,6 +1,6 @@
-## 2026-10-13 N4 真实 Win2022/25 子进程 lease/MTU/DNS 写入后强制崩溃验收候选
+## 2026-10-13 N4 真实 lease/MTU/DNS 写后崩溃：旧网卡 OS absence 15s 未证实，精确三键定位候选
 
-当前最后已验 CODE SOURCE `a3bcd3bc786a09d3437437bcbc9f4e588ffb7340`：N4Matrix38420306021 Win2022/25+Linux race、真实 Win38420306011、Foundation38420306239 七必需、Lifecycle38420306112 均限定 SUCCESS；仅对原 Wintun 消失、未进入 route 的 2..4 阶段 WAL 用 fake WFP+原生 Windows 只读身份验证清退。DOC-only b899 Foundation38421110798 全7 SUCCESS。**新候选**真实 Win2022/25 child 创建独立 Wintun，实际原生写入 lease/DAD、MTU、DNS，每阶段单 WAL fsync，父进程先证明活接口不能清，再 TerminateProcess，OS 原 GUID/LUID/index 消失后只清 parent WAL；WFP FAKE，绝不把它当生产真实 WFP/路线崩溃资格。最新 SOURCE Actions 必须核最终 jobs/artifact/hash。生产 Arm 仍禁、native assemblyOnly、官方 Windows CLI PowerShell 活动；N4/N5/N6 未完成且 physical NOT_RUN，单 Wintun 实机假设不替代 CI 全局防泄漏和 /1 测试；N2 C04/C05 FAIL、C10 GE、80s S2C OPEN。唯一下一步取 STATUS，禁止自动部署、主线合并、qualification ref 移动。
+真实 child SOURCE `8c74ba002bad0060736bbcdbee105e37df5a9dcf`：Win2022/25 real Wintun38422061831 两 job FAIL，原生测试确实写了随机 created Wintun 的 lease/DAD、MTU、DNS，并在 TerminateProcess 后 15s 未能证明旧 GUID/LUID/index 全不在；最终报 context deadline exceeded，**不能推断它真的不存在或真的仍存在**，也不能算该恢复 PASS。Foundation38422061821 七项和 Lifecycle38422061719 SUCCESS。新候选 `n4InspectOriginalWintun` 只读完整 Win32 GetAdaptersAddresses，精确区分旧 GUID+LUID+index 同一 OS row 存活、三键全无、索引重用/不同 row 冲突及未知；两端新 Actions 待验，不借同名 NIC，不改外来/全局 WFP。完整原网卡仍存活时的精确 owned stage 回滚、stage5 routes、生产 WFP Arm 和官方无 PowerShell CLI 仍未完成。只有用户项目一个 Wintun 的实机假设不取消 Actions 硬门。N5/N6/P6 未开始，physical NOT_RUN，N2 C04/C05 FAIL、C10 GE 和 ~80s S2C OPEN。下一步唯一看 STATUS，不部署、不合并、不移动 qualification ref。
 
 ## 2026-10-13 N4 真实 Win2022/Win2025 TEST-NET WFP 精确清理限定 PASS；产品仍未实机 READY
 
