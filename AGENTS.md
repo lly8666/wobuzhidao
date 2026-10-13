@@ -1,3 +1,7 @@
+## 2026-10-13 N4 真实 WFP TEST-NET owner Weight 11 定点修订候选
+
+当前诊断源码 `0138458023577d292576a9b02333e9f31428b5e3`：WFP Action38414263093 Win2022/2025 同样 FAIL，TEST-NET-only 持久 sublayer 除 Weight 外完全匹配：OS `have=11` 而测试声明 `want=1`，严格属主校验成功拒绝意外删除；新候选**仅修改 TEST-NET LAB 权重声明到11**，不改生产 WFP 权重65500、CAS 或安全硬门，须新 SOURCE 真 Windows Actions 复验。上一个 c3c401 WFP Action38413396711 FAIL 保留；013845 Foundation38414262925/Lifecycle38414262905 SUCCESS。实机最终按仅项目一个 Wintun 假设，但不得在共享 GitHub Windows runner 安装 host-global WFP/两/1；官方 CLI 仍 PowerShell，native assembler assemblyOnly，N6/physical NOT_RUN。真实 next_task 只看 STATUS，N2 C04/C05/C10、~80s OPEN。
+
 ## 2026-10-13 N4 真实 TEST-NET WFP 精确属主比较失败定位候选
 
 SOURCE `c3c401fa8cd2eec03fbcc3030586595284753074` real TEST-NET-only WFP Action38413396711 Win2022 job115351327626/Win2025 job115351328210 **FAIL** `ErrN4ForeignRoute`，原 WFP 持久 LAB rule 仅限 203.0.113.254:65530，不能把 FAIL 改名；新的原子候选只打印随机测试 OWNED sublayer 的 name/persistent/weight/provider 元数据比较，不读出外来防火墙配置、不放松 production CAS，待新 SOURCE 两端 Actions 定点定位。生产 `Arm` 仍 disabled，CLI 仍 PowerShell，N6/physical NOT_RUN。用户本次允许最终实机按只有一个 Wintun 处理，但共享 Actions runner 仍不允许 host-wide WFP/两 /1。准确 next_task 永远只看 STATUS，N2 C04/C05/C10 和 80s 尾部保留。

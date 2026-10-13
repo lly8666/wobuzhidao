@@ -73,7 +73,7 @@ func TestN4WindowsWFPPersistentFilterHostLab(t *testing.T) {
  // alone does not keep a persistent filter alive.
  setup,err:=wf.New(&wf.Options{Dynamic:false})
  if err!=nil{t.Fatal(err)}
- sub:=&wf.Sublayer{ID:subID,Name:"WBD N4 TEST-NET scoped temporary lab",Description:"CI-only WFP persistence/ownership experiment",Persistent:true,Weight:1}
+ sub:=&wf.Sublayer{ID:subID,Name:"WBD N4 TEST-NET scoped temporary lab",Description:"CI-only WFP persistence/ownership experiment",Persistent:true,Weight:11}
  if err:=setup.AddSublayer(sub);err!=nil{setup.Close();t.Fatal(err)}
  sublayerAdded=true
  rule:=&wf.Rule{
@@ -120,7 +120,7 @@ func TestN4WindowsWFPExactOwnedDeletePartialHostLab(t *testing.T){
  }
  sid:=wf.SublayerID(n4WFPTestGUID(t))
  rid:=wf.RuleID(n4WFPTestGUID(t))
- sub:=&wf.Sublayer{ID:sid,Name:"WBD N4 TEST-NET partial-deletion lab",Persistent:true,Weight:1}
+ sub:=&wf.Sublayer{ID:sid,Name:"WBD N4 TEST-NET partial-deletion lab",Persistent:true,Weight:11}
  rule:=&wf.Rule{
   ID:rid,Name:"WBD N4 TEST-NET partial-deletion rule",
   Layer:wf.LayerALEAuthConnectV4,Sublayer:sid,
