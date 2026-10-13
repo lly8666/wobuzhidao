@@ -25,3 +25,19 @@ func TestN4WindowsOriginalPnPProbeRejectsMissingOwnerAndCancel(t *testing.T){
   t.Fatalf("synthetic original unexpectedly authorized PnP node: %+v %v",out,err)
  }
 }
+
+func TestN4WindowsCMDevnodeStateReadOnlyIsNotDeletionPermission(t *testing.T){
+ for _,tt:=range []struct{rc uintptr;status uint32;want string;err bool}{
+  {0,0,"EXACT_DEVNODE_NO_PROBLEM",false},
+  {0,0x400,"EXACT_DEVNODE_PROBLEM",false},
+  {13,0,"EXACT_PNP_DEVNODE_GONE_13",false},
+  {13,0x400,"EXACT_PNP_DEVNODE_GONE_13",false},
+  {5,0,"",true},
+  {19,0,"",true},
+ }{
+  got,err:=n4ClassifyCMDevNode(tt.rc,tt.status)
+  if got!=tt.want || (err!=nil)!=tt.err{
+   t.Errorf("ConfigManager rc=%d status=%x classified %q err=%v; want %q err=%v",tt.rc,tt.status,got,err,tt.want,tt.err)
+  }
+ }
+}

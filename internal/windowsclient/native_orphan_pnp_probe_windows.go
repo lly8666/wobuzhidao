@@ -42,6 +42,17 @@ type n4OriginalPnPProbe struct{
  ProblemCode uint32
 }
 
+func n4ClassifyCMDevNode(rc uintptr,status uint32)(string,error){
+ // CONFIGRET 13 is CR_NO_SUCH_DEVNODE, not proof that SetupAPI,
+ // interface aliases, registry DNS settings or a WAL are safe to delete.
+ switch{
+ case rc==13:return "EXACT_PNP_DEVNODE_GONE_13",nil
+ case rc!=0:return "",ErrN4NativeGuard
+ case status&0x400!=0:return "EXACT_DEVNODE_PROBLEM",nil
+ default:return "EXACT_DEVNODE_NO_PROBLEM",nil
+ }
+}
+
 func n4ProbeOriginalWintunPnP(ctx context.Context,id N4UnifiedIdentity)(n4OriginalPnPProbe,error){
  var zero n4OriginalPnPProbe
  if err:=ctx.Err();err!=nil{return zero,err}
@@ -108,12 +119,12 @@ func n4ProbeOriginalWintunPnP(ctx context.Context,id N4UnifiedIdentity)(n4Origin
   out.InstanceSHA256=hex.EncodeToString(sum[:])
   var status,problem uint32
   rc,_,_:=n4CfgDevNodeStatus.Call(uintptr(unsafe.Pointer(&status)),uintptr(unsafe.Pointer(&problem)),uintptr(row.DevInst),0)
-  if rc!=0{return zero,fmt.Errorf("%w: CM_Get_DevNode_Status result=%d",ErrN4NativeGuard,rc)}
-  out.ProblemCode=problem
-  // DN_HAS_PROBLEM (0x400) is only diagnostic; it does not authorize
-  // deleting even an exact-matched devnode or retiring the WAL.
-  if status&0x400!=0{out.State="EXACT_DEVNODE_PROBLEM"
-  }else{out.State="EXACT_DEVNODE_NO_PROBLEM"}
+  // CR_NO_SUCH_DEVNODE is a distinct *read-only* state, not a
+  // native interface or driver removal authorization.
+  classified,e:=n4ClassifyCMDevNode(rc,status)
+  if e!=nil{return zero,fmt.Errorf("%w: CM_Get_DevNode_Status result=%d",e,rc)}
+  out.State=classified
+  if rc==0{out.ProblemCode=problem}
  }
  _=count
  return zero,ErrN4NativeGuard // bounded enumeration exhausted

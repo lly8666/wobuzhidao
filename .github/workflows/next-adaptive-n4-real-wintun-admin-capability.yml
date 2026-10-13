@@ -256,7 +256,7 @@ jobs:
               assert x["ipv6_row_after"] in ("PRESENT","MISSING_1168")
               assert len(x["pnp_instance_live_sha256"])==64
               assert x["pnp_state_live"] in ("EXACT_DEVNODE_PROBLEM","EXACT_DEVNODE_NO_PROBLEM")
-              assert x["pnp_state_after"] in ("EXACT_DEVNODE_PROBLEM","EXACT_DEVNODE_NO_PROBLEM","UNSUPPORTED_NATIVE_PNP_READBACK")
+              assert x["pnp_state_after"] in ("EXACT_DEVNODE_PROBLEM","EXACT_DEVNODE_NO_PROBLEM","EXACT_PNP_DEVNODE_GONE_13","UNSUPPORTED_NATIVE_PNP_READBACK")
               if x["pnp_state_after"]!="UNSUPPORTED_NATIVE_PNP_READBACK":
                   assert x["pnp_instance_after_sha256"]==x["pnp_instance_live_sha256"]
           if x["result"].startswith("SCOPED_REAL_"):
