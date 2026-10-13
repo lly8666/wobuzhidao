@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_OFFICIAL_WINDOWS_COMPACT_CAPTURE_USERSPACE_DIRECT_TCP_AND_NATIVE_UDP_SCOPED_ACTIONS_PASS_SCRIPTLESS_NATIVE_OS_CONFIG_REMAINS",
+    "phase": "N4_CONCRETE_WIN32_WFP_GUARD_IPV4_32_LEASE_WAL_STAGE_CANDIDATE_PENDING_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "OFFICIAL_CLIENT_CODE_SOURCE4A0467_COMPACT_TWO_HALF_CAPTURE_BOUNDED_DNS_AND_USERSPACE_TUN2SOCKS_GVISOR_TCP_PLUS_NATIVEUDP_CONNECTED;LEGACY_CIDR_EXPANSION_REMOVED_AND_RUNNER_HARD_CAP_REJECTS_LARGE_ROUTE_FILE;ALL_CODE_SOURCE_ACTIONS_SUCCESS;POWERSHELL_NETWORK_CONTROL_STILL_ACTIVE_NATIVE_FULL_APPLY_RECOVER_AND_N6_OPEN",
+    "implementation": "SOURCE4A0467_LIVE_WINDOWS_COMPACT_CIDR_AND_USERSPS_TCP_NATIVEUDP_ACTIONS_SCOPED_PASS;NATIVE_WIN32_WAL_CONCRETE_PERSISTENT_WFP_GUARD_AND_IPV4_LEASE_DAD_STAGES_NEW_SOURCE_PENDING_ACTIONS;MTU_DNS_ROUTES_STAGES_AND_PRODUCTION_SCRIPTLESS_CONTROL_INCOMPLETE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "N4 ONLY remaining product path: stop extending the generic WAL scaffolding. Implement and wire concrete native Windows network Apply/Stop/Recover using already present five-stage journal, Win32 machine gate and owned Wintun LUID/generation Hold; native WFP DNS/IPv6 guard (safe exclusive mode or multi-Wintun proof), /32 static lease + DAD, MTU CAS and restore, native DNS Set/clear/baseline, and underlay server /32 + two /1 plus configured DNS /32 route ownership. Keep cancellation, journal crash/failure and foreign protection. Test real Windows admin/Wintun capability in isolated GH Win2022/25, record UNSUPPORTED/NOT_RUN where absent. ONLY after native safety gates succeed remove active PowerShell/.ps1 product path; no CN complement routes may return. Live userspace gVisor Direct TCP+NativeUDP/compact host routing already code-wired and Actions scoped PASS: DO NOT redo them without new counterexample. Then close N4 cross-feature, N6 P6 three same-source packages/manifest SHA256 and final ACTIONS_READY_FOR_PHYSICAL (physical still NOT_RUN). N2 C04/C05 efficiency FAIL, C10 GE p99 and ~80s S2C tail OPEN; no deploy/merge/qualification ref moves.",
-  "latest_log": "docs/devlog/20261013-n4-compact-direct-client-data-plane-scoped-actions-final.md",
+  "next_task": "FIRST qualify exact new-source Windows2022/2025 N4 matrix TestN4WindowsGuardStage* and TestN4WindowsLeaseStage* (real read-only WFP capability plus guarded Create/Undo code compile/negative tests only), Linux race, Foundation seven jobs and lifecycle. Then implement the remaining three concrete N4NativeUnifiedTxn Windows stage adapters MTU CAS, native DNS Get/Set/clear/restore and validated server /32+two /1+configured DNS /32 batch; safety test journal partial failures. Require provable Wintun exclusive guard and durable crash generation recovery, isolated GH admin driver capability, then wire official cmd/wbd-client to native Apply/Stop/Recover and REMOVE PowerShell/.ps1 only on success. Do not redo already-qualified gVisor/direct TCP, UDP, compact routing, AES or GUI; no user params. N6 P6 same-source 3 targets/manifest/SHA256 not started; N2 C04/C05 efficiency and C10 GE/80s OPEN, physical NOT_RUN; no deploy/merge.",
+  "latest_log": "docs/devlog/20261013-n4-concrete-win32-guard-lease-stage-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
   "last_tested_scope": "SOURCE4A0467_LIVE_WINDOWS_COMPACT_OS_CAPTURE_2_OVER1_BOUNDED_DNS_NO_CN_COMPLEMENT_AND_GVISOR_TCP_NATIVEUDP_IN_ACTUAL_WBD_CLIENT_OWNED_SHELL_FALLBACK_BOUNDED_8;N4_MATRIX38367313926_WINDOWS2022_WINDOWS2025_LINUX_RACE_SUCCESS;WIN_ENTRY38367313937_SUCCESS;CANCEL38367313991_SUCCESS;GUI38367314055_SUCCESS;N3CONFIG38367313927_SUCCESS;FOUNDATION38367314006_ALL7_SUCCESS;LIFECYCLE38367314093_SUCCESS;REAL_WINTUN_ADMIN_NETWORK_MUTATION_NOT_RUN",
@@ -2694,10 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "NEW concrete Win32 unified transaction stages candidate: guard stage reads persistent WFP sublayer/rules with independent engine, classifies absent/full/partial/foreign and performs Arm/DisarmAfterRoutesRemoved; lease stage snapshots exclusively empty live created Wintun, writes /32 with native CreateUnicast, polls Windows DAD Preferred, uses durable owned WAL for DeleteConfirmed. Both fail closed on wrong installation/LUID/index, borrowed adapter, foreign addresses and altered journal. Tests read-only WFP + negative Win32 calls only. New-source Actions PENDING; no user network mutation.",
+    "Prior 4a0467c official live Windows compact capture + gVisor direct TCP/Native UDP scoped PASS; docs-only HEAD0129c Foundation38368123646 FINAL SUCCESS. Active legacy PowerShell control remains until last three stages and native admin guard completed.",
     "SOURCE4a0467 final scoped PASS: live official Windows CLI builds BuildCompactNetworkPlan with two /1+bounded DNS /32, in-process LAN/CN direct classification, gVisor/tun2socks physical-bound Direct TCP + native UDP via N4NativeDirect; prohibits >8 host captures, any legacy DirectRoutes or CapturePrefixFile4 large-file fallback before spawning PowerShell. N4 matrix38367313926, Windows entry38367313937, owned cancel38367313991, N3 config38367313927, GUI38367314055, Foundation38367314006 all seven required, Lifecycle38367314093 FINAL SUCCESS. Still legacy PowerShell in control plane; no real Wintun admin.",
     "SOURCEac7be19 first live data plane code also independently N4 matrix38366859081, userspace stack constructor38366859114 (actual TestN4TCPUserspaceStackConstructorAndRealMux RUN/PASS), Windows entry38366859109, owned cancel38366859085, GUI38366859138, N3config38366859155, Foundation38366859082 seven required, Lifecycle38366859121 ALL FINAL SUCCESS. GitHub artifact hashes in evidence; not real TCP physical connectivity.",
-    "N4 final control-plane gap: concrete Wintun current owner + crash restart owner verification, native static /32 lease/DHCP+DAD, MTU, DNS, WFP IPv6/DNS leak guard and compact route owned Apply/Stop; existing code primitives present but official CLI STILL CALLS PowerShell/.ps1. Need exact-source isolated GH admin driver checks, not simulated-only PASS.",
-    "N2 C04/C05 efficiency FAIL, C10 GE ~1.8–1.95s p99 and ~80s S2C pause OPEN. N6 same-source three-target P6 package/manifest/hash NOT_STARTED. physical NOT_RUN, no deploy/merge."
+    "N4 final control-plane gap: concrete Wintun current owner + crash restart owner verification, native static /32 lease/DHCP+DAD, MTU, DNS, WFP IPv6/DNS leak guard and compact route owned Apply/Stop; existing code primitives present but official CLI STILL CALLS PowerShell/.ps1. Need exact-source isolated GH admin driver checks, not simulated-only PASS."
   ],
   "actions": [
     {

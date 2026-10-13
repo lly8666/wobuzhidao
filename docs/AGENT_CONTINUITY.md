@@ -1,3 +1,7 @@
+## 2026-10-13 N4 直接收口 Win32 WFP + Lease（新 SOURCE Actions 待验）
+
+正式 Windows 数据路径 `4a0467c` 的两个 /1 + gVisor Direct TCP/NativeUDP 已在相关 Actions 限定通过，无需再动。本次不是新抽象层：把 `N4NativeUnifiedTxn` 前两个阶段接到**真实**持久 WFP 读/Arm/清理及 Win32 IPv4 /32 Create、DAD Preferred、精确 DeleteConfirmed 的具体后端。没有额外 CLI 选项。WFP guard 要求 installation/LUID 和已独立确认独占 Wintun（禁止仅靠布尔字段激活正式产品）；lease 只允许本进程 live owned Wintun、原接口无地址，所有变更依赖统一写前 WAL 和世代 Hold。Actions 只检查 read-only Windows WFP 和拒绝错误所有权，不能误称真实管理员网卡变更。后续只剩 MTU/DNS/少量 Routes 真实阶段、所有权证明与正式 CLI 去脚本、N6；physical NOT_RUN。
+
 ## 2026-10-13 N4 正式 Windows 数据路径 **限定收口**（绝非全N4）
 
 最新 Go SOURCE `4a0467c9737fb20b1248ec8793738c158d51be03` 已在正式 `cmd/wbd-client` 接入两/1系统捕获+有限DNS/32、内存LAN/CN分流、gVisor/tun2socks Direct TCP 与已有 NativeUDPDirect；旧大 CIDR 文件和 DirectRoutes 经产品入口硬拒绝。第一次 SOURCE `ac7be190` 相关8 Actions 全 PASS；最终 `4a0467c` N4 Action38367313926 Win2022/25+Linux race、Windows入口38367313937、Owned取消38367313991、GUI38367314055、N3配置38367313927、Foundation38367314006全7和Lifecycle38367314093 均 FINAL SUCCESS。**真实 Wintun 管理员网卡变更/外网 TCP 没跑；正式控制面仍调用 PowerShell 和旧 .ps1**，所以 Windows scriptless/全 N4 不合格。之后不要再叠加空的通用 WAL；唯一要补具体 Native Lease/DAD、DNS、MTU、WFP、少量 Routes 事务接线/Win隔离验证，成功后移除脚本、N6打包及统一最后物理。N2 C04/C05/C10/80s 遗留原样 OPEN，physical NOT_RUN。
