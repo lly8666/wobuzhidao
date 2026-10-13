@@ -18,6 +18,8 @@ on:
       - "internal/windowsclient/native_wfp_readonly_windows_test.go"
       - "internal/windowsclient/native_dns_snapshot_windows.go"
       - "internal/windowsclient/native_dns_snapshot_windows_test.go"
+      - "internal/windowsclient/native_dns_write_windows.go"
+      - "internal/windowsclient/native_dns_write_windows_test.go"
       - "internal/windowsclient/native_dns_parse.go"
       - "internal/windowsclient/userspace_tcp_direct_windows.go"
       - "go.mod"
@@ -77,6 +79,7 @@ jobs:
             internal/windowsclient/native_dns_capability_windows.go \
             internal/windowsclient/native_wfp_readonly_windows.go \
             internal/windowsclient/native_dns_snapshot_windows.go \
+            internal/windowsclient/native_dns_write_windows.go \
             internal/windowsclient/native_dns_parse.go \
             internal/windowsclient/userspace_tcp_direct_windows.go
   receipt:
@@ -90,7 +93,7 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           mkdir -p artifacts
-          printf '{"schema":"wbd-n4-owned-native-transaction-test/v1","source_sha":"%s","concurrent_fail_closed_tests":"PASS","simulated_crash_partial_recovery":"PASS","windows_native_os_matrix":"PASS","production_dns_ipv6_guard":"NOT_IMPLEMENTED","native_wintun_admin_apply":"NOT_RUN","physical_qualification":"NOT_RUN"}\n' "$GITHUB_SHA" > artifacts/n4-native-owned-transaction.json
+          printf '{"schema":"wbd-n4-owned-native-transaction-test/v1","source_sha":"%s","concurrent_fail_closed_tests":"PASS","simulated_crash_partial_recovery":"PASS","windows_native_os_matrix":"PASS","production_dns_ipv6_guard":"NOT_IMPLEMENTED","native_wintun_admin_apply":"NOT_RUN","native_dns_write":"NO_MUTATION_SAFETY_TEST_ONLY","physical_qualification":"NOT_RUN"}\n' "$GITHUB_SHA" > artifacts/n4-native-owned-transaction.json
       - uses: actions/upload-artifact@v4
         with:
           name: n4-native-owned-transaction-${{ github.sha }}

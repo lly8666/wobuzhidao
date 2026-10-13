@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_NATIVE_DNS_V1_BASELINE_READONLY_WIN2022_WIN2025_ACTIONS_PENDING_WFP_PERSISTENT_GUARD_NOT_IMPLEMENTED",
+    "phase": "N4_GO_NATIVE_DNS_OWNED_WRITER_FAIL_CLOSED_SAFETY_GATE_ACTIONS_PENDING_PRODUCTION_SCRIPTLESS_NOT_READY",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE243DA_WFP_READONLY_AND_WIN_ROUTE_TXN_ALL_SCOPED_ACTIONS_PASS;NEW_WIN64_DNS_INTERFACE_SETTINGS_V1_SNAPSHOT_AND_PARSER_CANDIDATE_PENDING_REAL_WIN2022_WIN2025;ACTIVE_CLI_STILL_POWERSHELL_AND_COMPLEMENT_ROUTES",
+    "implementation": "N4_NATIVE_DNS_BASELINE_WIN22_WIN25_READONLY_AND_ROUTE_TXN_ACTION38348307184_PASS;FOUNDATION38348307083_PASS;LIFECYCLE38348307211_PASS;NEW_MINIMAL_DNS_SETINTERFACE_REQUEST_AND_CRASH_GUARD_PRECONDITION_NO_MUTATION_CANDIDATE;LIVE_CLI_POWERSHELL",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Run exact-source Windows2022/2025 native DNS_INTERFACE_SETTINGS V1 GetInterfaceDnsSettings read-only + FreeInterfaceDnsSettings + interface Index->Luid->GUID conversion, 64-byte ABI and bounded UTF-16 + 8 global IPv4 nameserver parse tests in N4 owned matrix, alongside Linux race, Foundation/lifecycle. Note baseline read is only stage before crash-journaled SetInterfaceDnsSettings and WFP persistent DNS/IPv6 guard. If Windows host fails read, inspect ABI/permissions and preserve FAIL, no WFP/dns mutations or local tests. Upon scoped PASS implement native per-interface DNS owned Set/verify/revert under persistent WFP and native Wintun lease/MTU/DHCP management; remove PowerShell and connect 2 /1 plan/Direct TCP only after admin Actions; N6/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261013-n4-native-dns-baseline-readonly-matrix-candidate.md",
+  "next_task": "Run SOURCE-scoped GitHub Actions Windows2022/2025+Linux race N4 matrix and Foundation/lifecycle for native Windows DNS SetInterfaceDnsSettings minimal IPv4 NameServer-only request encoder and fail-closed guarded writer, with NO successful DNS mutation performed. Assert no static write if no durable verified CrashPersistentGuard, duplicate/invalid/IPv6/overflow DNS refused, foreign DNS baseline refused, cancellation and 64-byte V1 ABI. Correct failures and preserve original FAILs. Next implement actual WFP persistent IPv6/DNS block filters owned GUID + verifying filter after engine reopen; Wintun owned lease/MTU/physical and DNS journaled restoration; only afterward enable real Windows-admin Actions Apply/Cleanup + compact /1 + userspace TCP and eliminate PowerShell in active program and package. N2 C04/C05/C10 efficiency/tail OPEN; N6/physical NOT_RUN. Never merge/deploy.",
+  "latest_log": "docs/devlog/20261013-n4-native-dns-writer-safety-gate-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "243da7bf59dd8601f1e2e5fac879d114b2c6129e",
-  "last_tested_scope": "SOURCE243DA7_WFP_IPV4_IPV6_READONLY_NATIVE_ACTION38347526977_WIN2022_WIN2025_LINUX_RACE_RECEIPT_SUCCESS_FOUNDATION38347526964_ALL7_REQUIRED_SUCCESS_LIFECYCLE38347527006_SUCCESS;ADMIN_APPLY_WINTUN_DNS_WFP_FILTERS_PHYSICAL_NOT_RUN",
+  "last_tested_source_sha": "ef9afb815e14f4926f5485695b87c93f4052396b",
+  "last_tested_scope": "N4_WIN_NATIVE_DNS_V1_READONLY_ON_WINDOWS2022_2025_ACTION38348307184_PASS_FOUNDATION38348307083_ALL7_PASS_LIFECYCLE38348307211_PASS;DOES_NOT_SET_DNS_OR_WFP",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,9 +2694,9 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "N4 new Windows-native DNS snapshot reader candidate: GetInterfaceDnsSettings/Free, ConvertInterfaceIndexToLuid/ConvertInterfaceLuidToGuid, copied bounded V1 64-byte ABI, 1024-char cap, safe IPv4 static DNS parser; new Windows2022 and Windows2025 REAL SYSTEM READ-ONLY tests, Action pending. No DNS settings changed or journaled yet.",
-    "SOURCE243da N4 route journal/WFP IPv4/IPv6 read-only layer Actions38347526977 PASS Win22/Win25 and Ubuntu-race; Foundation38347526964 PASS; lifecycle38347527006 PASS. DOCS head d3ee Foundation38348054670 status pending at candidate creation, check final independently.",
-    "WIN PRODUCT STOP RELEASE: cmd/wbd-client still uses powershell.exe plus complement routes, persistent WFP filtering and native DNS/Wintun DHCP+lease address/MTU writes+recover not implemented. New TCP/compact routes disabled, N6/physical NOT_RUN."
+    "Recovered remote HEAD ef9afb; N4 SOURCEef9afb Windows2022+2025 native DNS V1 real host READ-ONLY snapshot, owned route journal/crash/fault tests and Linux -race Action38348307184 FINAL SUCCESS; Foundation38348307083 FINAL SUCCESS all 7; lifecycle38348307211 PASS; no native Set/DNS mutation/Wintun/physical.",
+    "New source-candidate native DNS SetInterfaceDnsSettings low-level UTF-16 IPv4 resolver-only request, strict 8-address canonical/unique validation, foreign DNS baseline rejection and mandatory durable verified guard before Set; Windows host tests are NO-MUTATION, source Actions pending.",
+    "Main Windows client STILL uses powershell.exe/active .ps1 and bulk complement routes; crash-persistent WFP IPv6+DNS filter implementation and native Wintun owned network transaction missing. N6 NOT_STARTED, physical NOT_RUN; cannot claim user scriptless requirement met."
   ],
   "actions": [
     {
@@ -4140,6 +4140,33 @@
       "scope": "N4_NATIVE_WFP_READONLY_LIFECYCLE_CORE",
       "status": "PASS",
       "cause": "Lifecycle core Actions final success exact source243da. Does not run physical Wintun/host network mutations."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38348307184,
+      "source_sha": "ef9afb815e14f4926f5485695b87c93f4052396b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38348307184",
+      "scope": "N4_WINDOWS_NATIVE_DNS_READONLY_BASELINE_V1_AND_ROUTE_TXN_STRESS",
+      "status": "PASS",
+      "cause": "All 4 matrix jobs final SUCCESS: Windows2022/2025 GetInterfaceDnsSettings readonly host snapshot, 64-byte ABI, Linux-race journal stress and receipt. Artifact11789504423 sha256:71b8bdc2bba2852267578c829405d2aa8e3b57fa778975f51dcc4d90e51181e1. No DNS Set, WFP filter installation or Wintun route mutation."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38348307083,
+      "source_sha": "ef9afb815e14f4926f5485695b87c93f4052396b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38348307083",
+      "scope": "N4_NATIVE_DNS_BASELINE_SOURCE_FULL_FOUNDATION",
+      "status": "PASS",
+      "cause": "All 7 mandatory non-skipped jobs success (repo, Win/Linux Go/race, P2, P4), P5/P6 extended SKIPPED/NOT_RUN. Artifact11789419397 sha256:f1db20a429ac4e8e45055052dfaf8855d42556144dcd1ec1f8ef246b281aaf2e."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38348307211,
+      "source_sha": "ef9afb815e14f4926f5485695b87c93f4052396b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38348307211",
+      "scope": "N4_NATIVE_DNS_BASELINE_SOURCE_LIFECYCLE",
+      "status": "PASS",
+      "cause": "Core job FINAL SUCCESS. Read-only native DNS on Windows hosted; no admin/physical."
     }
   ],
   "required_read_set": [
