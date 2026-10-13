@@ -175,6 +175,14 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
     // is a genuine FAIL that retains WAL, not UNSUPPORTED or a mocked PASS.
     rollbackCtx,rollbackDone:=context.WithTimeout(context.Background(),30*time.Second)
     fake:=&n4FakeGuard{durable:true,active:true}
+    // Read-only triage: report ONLY exact-CAS state categories, never IP,
+    // DNS, profile values or packet data. No mutation is done by Inspect.
+    for i:=1;i<len(j.Records);i++{
+     st,stageErr:=n4PersistedPreRouteStage(j.Identity,j.Records[i],fake)
+     if stageErr!=nil{t.Fatalf("read-only triage stage constructor %s: %v",j.Records[i].Name,stageErr)}
+     state,inspectErr:=st.Inspect(rollbackCtx,j.Identity,j.Records[i].Before)
+     t.Logf("N4_REAL_POSTCRASH_STAGE=%s WAL=%s CAS_STATE=%s READ_OK=%t",j.Records[i].Name,j.Records[i].State,state,inspectErr==nil)
+    }
     rollbackErr:=n4RecoverPersistedPreRouteWAL(rollbackCtx,wal,j.Identity,fake)
     rollbackDone()
     if rollbackErr!=nil{

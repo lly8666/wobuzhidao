@@ -6,6 +6,7 @@ import (
  "context"
  "encoding/json"
  "errors"
+ "fmt"
  "net/netip"
  "os"
 )
@@ -114,10 +115,10 @@ func n4RecoverPersistedPreRouteWAL(ctx context.Context,path string,id N4UnifiedI
   if err!=nil{return err}
   state,err:=stage.Inspect(ctx,id,rec.Before)
   if err!=nil{return err}
-  if state==N4UnifiedForeign || state==N4UnifiedPartial{return ErrN4RouteAmbiguous}
-  if rec.State=="intent" && state!=N4UnifiedAbsent{return ErrN4RouteAmbiguous}
+  if state==N4UnifiedForeign || state==N4UnifiedPartial{return fmt.Errorf("%w: preflight %s CAS=%s",ErrN4RouteAmbiguous,rec.Name,state)}
+  if rec.State=="intent" && state!=N4UnifiedAbsent{return fmt.Errorf("%w: preflight %s unconfirmed CAS=%s",ErrN4RouteAmbiguous,rec.Name,state)}
   if rec.State=="owned" && state==N4UnifiedAbsent && j.Phase=="applying"{
-   return ErrN4RouteAmbiguous
+   return fmt.Errorf("%w: preflight %s confirmed receipt but OS baseline restored",ErrN4RouteAmbiguous,rec.Name)
   }
  }
  if j.Phase!="cleaning"{
@@ -138,8 +139,8 @@ func n4RecoverPersistedPreRouteWAL(ctx context.Context,path string,id N4UnifiedI
   if err!=nil{return err}
   state,err:=stage.Inspect(ctx,id,rec.Before)
   if err!=nil{return err}
-  if state==N4UnifiedForeign || state==N4UnifiedPartial{return ErrN4RouteAmbiguous}
-  if rec.State=="intent" && state!=N4UnifiedAbsent{return ErrN4RouteAmbiguous}
+  if state==N4UnifiedForeign || state==N4UnifiedPartial{return fmt.Errorf("%w: rollback %s CAS=%s",ErrN4RouteAmbiguous,rec.Name,state)}
+  if rec.State=="intent" && state!=N4UnifiedAbsent{return fmt.Errorf("%w: rollback %s unconfirmed CAS=%s",ErrN4RouteAmbiguous,rec.Name,state)}
   if rec.State=="owned" && state==N4UnifiedOwned{
    if err:=stage.Undo(ctx,id,rec.Before);err!=nil{return err}
   }

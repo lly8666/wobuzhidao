@@ -1,6 +1,6 @@
-## 2026-10-13 N4 存活原 Wintun 的 Win32 lease/MTU/DNS 原生 CAS 逆序恢复候选（Actions 待验）
+## 2026-10-13 N4 实机前 Windows 原网卡 crash CAS 拒绝定位
 
-最新已验 CODE SOURCE `b6ae1049e4db393a9ab2c903d4e5869280778008` N4Matrix38423521764 Windows2022/25+Linux race、真实Wintun38423521921、Foundation38423522338 全7、Lifecycle38423522602 最终 SUCCESS；**但真实 child 已写 lease/MTU/DNS 再 TerminateProcess 的子项 BOTH SKIP UNSUPPORTED**：OS 显示原 GUID/LUID/index 三键完全一致的网卡继续存活，WAL 未清。此前 `8c74ba0` 真 Win38422061831 两端因误要求15s内消失 FAIL 保留。新候选依照原机三键全匹配+原代际 checksum WAL、持久 guard 先验、严格 stage CAS 和逆序 DNS→MTU→lease→guard 逐步 fsync 缩减，支持崩溃后原 NIC **仍存在** 的恢复，不 OpenExistingTUN/按 alias 接管。Win2022/25 Actions 真实原生 IP 写后子进程崩溃将用 **fake WFP** 正向回滚验证；产品真实持久 WFP Arm 仍禁，five-stage assembler assemblyOnly、Windows CLI 仍 PowerShell、两 /1 与 N5/N6 未验，physical NOT_RUN、不得设 READY。实机可假设只本项目 Wintun，但 CI 不允许共享主机全局网络篡改。C04/C05效率 FAIL、C10 GE 和~80s S2C 遗留 OPEN，next_task 唯一看 STATUS，无部署、主线合并或资格ref移动。
+最新 CODE SOURCE `c77b4d85174a5f4028313b61fcd3ee1f1a02efc6`：N4Matrix38427785620 Win2022/2025+Linux race、Foundation38427785489 全7、Lifecycle38427785539 均成功，但真实 Wintun38427785549 Windows2022 job115401628530/Windows2025 job115401628450 **双端 FAIL** `ErrN4RouteAmbiguous`；旧 GUID/LUID/index 原网卡仍存活、WAL 保留，不能宣称 crash 回滚通过。新候选仅在 Win2022/25 child 原生 lease/MTU/DNS read-only Inspection 打印 stage 名+Owned/Absent/Foreign/Partial 分类，不打印 DNS/IP、凭据，不改变产品硬门；新源码 Actions 待验，定位后再定点修复。旧 8c74 真 Win 双 FAIL，b6ae 真 Win 子项 UNSUPPORTED，保留。生产 WFP Arm disabled、native assembler assemblyOnly、正式 Windows CLI PowerShell 未删除；真实 /32+两 /1、N5、N6 P6 与物理均未完成，`ACTIONS_READY_FOR_PHYSICAL` 禁标。用户只允许最终实机单项目 Wintun，不可在共享 Actions 上抢全局路由。N2 C04/C05 FAIL C10 GE ~80s S2C OPEN，next_task 仅 STATUS；不部署、合并或移动 qualification ref。
 
 ## 2026-10-13 N4 真实 Win2022/Win2025 TEST-NET WFP 精确清理限定 PASS；产品仍未实机 READY
 
