@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_UNIFIED_NATIVE_WAL_CONCURRENT_APPLY_CONFLICT_ORDER_TARGETED_FIX_ACTIONS_PENDING",
+    "phase": "N4_UNIFIED_NATIVE_WAL_SOFTWARE_MATRIX_SCOPED_PASS_NATIVE_WIN32_MACHINE_EXCLUSION_CANDIDATE_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE0DDC_UNIFIED_NATIVE_WAL_N4_LINUX_RACE_JOB_FAIL_CONCURRENT_APPLY_SNAPSHOT_ORDER;NEW_EARLY_JOURNAL_CONFLICT_CHECK_AND_TEST_PENDING_ACTIONS;CONCRETE_NATIVE_BACKENDS_AND_SCRIPTLESS_PRODUCT_STILL_NOT_DONE",
+    "implementation": "SOURCE1471_UNIFIED_NATIVE_WAL_GO_SOFTWARE_GATES_SCOPED_ACTIONS_PASS;NEW_REAL_WIN32_GLOBAL_MUTEX_THREAD_AFFINITY_AND_CANCELLATION_NATIVE_GATE_TEST_CANDIDATE;FULL_WIN32_STAGE_ADAPTERS_AND_PRODUCT_NO_POWERSHELL_MIGRATION_OPEN",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify new exact SOURCE on N4 Windows2022/25 + Linux -race matrix and Foundation/Lifecycle: concurrency second Apply must return ErrN4JournalConflict before any Snapshot and keep O_EXCL as final authority. Original 0ddc N4 matrix run38362537980 Linux race FAILED TestN4NativeTxnUnifiedExclusiveCreateCollision (foreign snapshot instead of journal conflict); retain FAIL, do not pretend PASS. Then proceed to implement real cross-process owned lock and created-Wintun generation/native stage adapters for unified guarded lease/MTU/DNS/route transaction, real admin capability checks and product scriptless direct integration. N2 C04/C05/C10/80s OPEN, N6 not started, physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261013-n4-unified-apply-journal-conflict-order-failure-fix.md",
+  "next_task": "Verify new exact SOURCE Windows2022/Windows2025 native global named Win32 mutex gate TestN4WindowsMachineGate* is actually executed (cancel, cross-thread exclusive, release), N4 Linux race and Foundation Windows/Linux, maintain correct FAIL/PASS receipts. N4WindowsMachineGate is a real OS mutex but NOT alone a full native transaction: next implement current process-created live Wintun generation owner reservation across all writes and guarded concrete lease/DAD, MTU, DNS CAS/restore, WFP and compact route stage adapters under N4NativeUnifiedTxn, with crash recovery and isolated admin Windows driver Actions. Then replace active PowerShell/large CIDR client route plumbing and finish N6 3-source package/manifest/hash. N2 C04/C05/C10/80s OPEN, physical NOT_RUN, no deploy/merge/ref movement.",
+  "latest_log": "docs/devlog/20261013-n4-native-win32-machine-crossprocess-gate-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "863e5584d3d8352019256e8c16d14dab0f3d2cf9",
-  "last_tested_scope": "SOURCE_863E_NATIVE_LEASE_CREATE_DELETE_LIVE_PROCESS_CREATED_WINTUN_GUARD_N4_ACTION38359734786_WINDOWS2022_2025_X3_LINUX_RACE_SUCCESS_FOUNDATION38359735917_ALL7_SUCCESS_LIFECYCLE38359735012_SUCCESS_REAL_ADMIN_WINTUN_DNS_MTUDHCP_NOT_RUN",
+  "last_tested_source_sha": "1471883e6052efb46d8d6fba5bfb327737c51535",
+  "last_tested_scope": "SOURCE1471883E_UNIFIED_NATIVE_NETWORK_WAL_SOFTWARE_ORDERED_STAGES_BOUNDED_JOURNAL_CONCURRENT_APPLY_GUARD_CAS_RECOVERY_N4_WINDOWS2022_2025_LINUX_RACE38362811979_SUCCESS_FOUNDATION38362811941_ALL7_SUCCESS_NO_REAL_WINTUN_ADMIN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "SOURCE0ddcfefc new unified native network WAL: N4 Linux -race job in Action38362537980 FAIL in TestN4NativeTxnUnifiedExclusiveCreateCollision: 11 competing Apply calls observed ErrN4ForeignRoute because Snapshot ran before journal conflict check. Targeted new early conflict check + regression candidate, awaiting new-source Actions; original FAIL retained.",
-    "New N4NativeUnifiedTxn candidate after docs HEAD30be21: bounded checksum+O_EXCL single-network WAL with strict ordered guard→lease→mtu→dns→routes, immutable identity+generation, mandatory owner proof+exclusive external gate and reverse recover, guard-protection and intent ambiguous fail-closed. 9 fake-stage tests; Actions pending, NO real Win32 mutation.",
+    "Source1471883e unified native 5-stage ordered write-ahead orchestration exact-scoped PASS: N4 matrix38362811979 Windows2022/25, Linux race and receipt final SUCCESS; Foundation38362811941 seven mandatory final SUCCESS, artifact digests in devlog. This is FAKE-STAGE software, not native Windows/Wintun transactional activation.",
+    "Source0ddcfefc original unified WAL race concurrency FAIL preserved: N4 Action38362537980 (Linux-race and Win2022/25 failed) and Foundation38362538029 (active Go Linux/Windows failed), because second Apply inspected foreign Snapshot before journal conflict. Targeted source1471 early journal check before Snapshot fixed and verified; prior FAIL not renamed.",
+    "New N4 real Windows machine-global named mutex gate candidate needs Actions Win2022/25; uses pinned OS thread and cancellation, but must still implement true Wintun generation owner fence and all Windows stage backends before any actual network Apply.",
     "Latest CODE SOURCE863e5584: native static IPv4 /32 lease Create/Delete requires current owned Wintun identity; N4 Action38359734786 FINAL SUCCESS Win2022/2025 each TestN4NativeLeaseWriterRequiresLiveProcessCreatedWintun PASS x3, Linux race + receipt success; Foundation38359735917 FINAL SUCCESS all seven mandatory; Lifecycle38359735012 FINAL SUCCESS. Only negative/no-OS-mutation scope.",
-    "SOURCEcfeacdb and decb79c: explicit N4 route+WFP finalizer test selectors PASS via matrix38359183134 and WFP TEST-NET lab38358854944; both exact test names observed in logs x3 on each Windows N4 runner. Earlier malformed-workflow Actions38358853661 and38359000016 remain FAIL with no jobs, corrected in sourcecfeac.",
-    "SOURCES908a and1eeb: guard/journal pre-arm and post-disarm crash window reconciliation, bounded 64KiB journal, and exact-owned partial WFP cleanup ONLY after empty owned-route journal scoped software Actions PASS. Real Windows administrator/driver native Wintun/lease/DNS/MTU/WFP production behavior not exercised."
+    "SOURCEcfeacdb and decb79c: explicit N4 route+WFP finalizer test selectors PASS via matrix38359183134 and WFP TEST-NET lab38358854944; both exact test names observed in logs x3 on each Windows N4 runner. Earlier malformed-workflow Actions38358853661 and38359000016 remain FAIL with no jobs, corrected in sourcecfeac."
   ],
   "actions": [
     {
@@ -4673,6 +4673,42 @@
       "scope": "UNIFIED_WAL_GO_LINUX_RACE_CONCURRENT_APPLY",
       "status": "FAIL",
       "cause": "Owned-transaction Linux race job failed TestN4NativeTxnUnifiedExclusiveCreateCollision four repetitions: expected ErrN4JournalConflict, observed foreign-stage Snapshot before checking journal. Windows jobs/final run conclusion must be checked independently; no status relabel."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38362537980,
+      "source_sha": "0ddcfefcf4be6b22a69457828a4c205345368278",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38362537980",
+      "scope": "UNIFIED_WAL_CONCURRENT_APPLY_LINUX_RACE_AND_WINDOWS_2022_2025",
+      "status": "FAIL",
+      "cause": "FINAL FAIL all 3 native matrix platform jobs in concurrent Apply test; ErrN4ForeignRoute vs expected ErrN4JournalConflict. No artifact."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38362538029,
+      "source_sha": "0ddcfefcf4be6b22a69457828a4c205345368278",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38362538029",
+      "scope": "UNIFIED_WAL_FULL_GO_CONCURRENT_APPLY",
+      "status": "FAIL",
+      "cause": "FINAL FAIL active-go-tests Linux and Windows, other foundation jobs success; foundation artifact11795227400 GitHub digest df43c3ad47b98f2d54e95862ff3e37b002baecbbbfc19c0831b954115b7a2d11."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38362811979,
+      "source_sha": "1471883e6052efb46d8d6fba5bfb327737c51535",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38362811979",
+      "scope": "UNIFIED_WAL_ORDERED_STAGES_WIN2022_WIN2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all 4 jobs; artifact11795965944 SHA256 7f329a75765958d9f69b435e0e77ad77d35907cf5446ba04b5c20a2d5e89058a. No native actual NIC stage."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38362811941,
+      "source_sha": "1471883e6052efb46d8d6fba5bfb327737c51535",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38362811941",
+      "scope": "UNIFIED_WAL_ALL7_REQUIRED_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all 7 mandatory Windows/Linux/P2/P4/repository jobs, extended P5/P6 skipped. Foundation artifact11795319308 sha256 dc146548b007a3ba7c7b0e268e14057b83f54ba03cbc5d2b48fadd2f8829f7c5."
     }
   ],
   "required_read_set": [

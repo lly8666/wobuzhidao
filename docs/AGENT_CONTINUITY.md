@@ -1,3 +1,7 @@
+## 2026-10-13 N4 新真实 Win32 互斥锁候选（Actions 待新源验证）
+
+`0ddcfefc` 统一 WAL 首次 Actions38362537980/38362538029 **FAIL**（并发重复 Apply 先 snapshot 导致 Foreign），修复 SOURCE `1471883e` 的 N4 38362811979（Win2022/25 + Linux race）与 Foundation38362811941（七必需）最终 SUCCESS，但**仍是软件模拟事务**。下一 SOURCE 增加真正 Windows 全局命名 Win32 mutex 作为 `N4UnifiedExclusion`：Go goroutine 锁 OS 线程，限制机器内 WBD 实例同一时刻修改，50ms 等待可取消且释放必须在同一 goroutine；绝不根据这个 mutex 冒称 Wintun adapter owned。新 Windows Actions 待验，后续须补 generation owner reservation 与 native 五阶段后端/CLI 接线。N6/physical NOT_RUN、N2 遗留 OPEN。
+
 ## 2026-10-13 N4 新修复候选：统一 WAL 第二次 Apply 预检顺序
 
 新 `0ddcfef` 原子提交 N4 Linux race Action38362537980 已暴露确定 FAIL：第二个竞争 Apply 在检查旧 journal 前先做 Stage.Snapshot，故返回 Foreign 而非 JournalConflict；同一源码其余阶段回归在 Linux 日志 PASS，不能记该来源全 PASS。新小修在获得排他 Gate/Owner proof 后、读取任何基线前检查已有 journal，仍保留最末 O_EXCL 防并发；新增无快照访问测试，需严格核新 SHA Actions。产品实际 Win32 原生全事务接线仍缺，N6/physical 不变；原 FAIL 必留。

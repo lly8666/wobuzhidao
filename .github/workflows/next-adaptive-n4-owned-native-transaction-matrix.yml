@@ -8,6 +8,8 @@ on:
       - "internal/windowsclient/native_owned_transaction_test.go"
       - "internal/windowsclient/native_unified_network_transaction.go"
       - "internal/windowsclient/native_unified_network_transaction_test.go"
+      - "internal/windowsclient/native_unified_network_gate_windows.go"
+      - "internal/windowsclient/native_unified_network_gate_windows_test.go"
       - "internal/windowsclient/compact_plan.go"
       - "internal/windowsclient/native_route_windows.go"
       - "internal/windowsclient/native_route_backend_windows.go"
@@ -92,6 +94,7 @@ jobs:
           ! grep -iE 'powershell\\.exe|exec\\.Command|\\.ps1' \
             internal/windowsclient/native_owned_transaction.go \
             internal/windowsclient/native_unified_network_transaction.go \
+            internal/windowsclient/native_unified_network_gate_windows.go \
             internal/windowsclient/native_route_windows.go \
             internal/windowsclient/native_route_backend_windows.go \
             internal/windowsclient/native_address_snapshot_windows.go \
