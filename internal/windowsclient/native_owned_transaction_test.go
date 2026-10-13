@@ -216,7 +216,9 @@ func TestN4CompactNativeRouteKeysPhysicalEscapeBeforeCapture(t *testing.T){
  plan,err:=BuildCompactNetworkPlan(cfg);if err!=nil{t.Fatal(err)}
  keys,err:=N4BuildCompactNativeRouteKeys(plan,21);if err!=nil{t.Fatal(err)}
  if len(keys)!=5 || keys[0].Prefix!=netip.MustParsePrefix("198.51.100.10/32") ||
-  keys[0].Interface!=12 || keys[0].NextHop!=netip.MustParseAddr("192.0.2.1"){
+  keys[0].Interface!=12 || keys[0].NextHop!=netip.MustParseAddr("192.0.2.1") ||
+  keys[1].Prefix!=netip.MustParsePrefix("0.0.0.0/1") ||
+  keys[2].Prefix!=netip.MustParsePrefix("128.0.0.0/1"){
   t.Fatalf("physical underlay escape missing/late: %+v",keys)
  }
  expected:=map[netip.Prefix]bool{

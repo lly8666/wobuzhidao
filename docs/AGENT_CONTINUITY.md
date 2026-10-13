@@ -1,3 +1,7 @@
+## 2026-10-13 N4 路由第五阶段 Win 原顺序断言 FAIL 与定点修复
+
+`5b41f685` N4 Action38372921051 两代 Win 实际 FAIL：server /32、0/1、DNS /32、128/1、DNS /32 错误序列；新修复由 `N4BuildCompactNativeRouteKeys` 严格输出 server /32、0/1、128/1、DNS /32...，不更改 N4 两/1 内存/系统路由策略，也不绕开测试。其它崩溃和 foreign 拒删测试在同源 Win 日志 PASS，原整体 FAIL 保留。新精确 SOURCE Actions 需验。产品仍使用 PowerShell，DNS reset/真实 Wintun/admin/WFP 独占尚未验，N6/physical NOT_RUN。
+
 ## 2026-10-13 N4 第五个原生后端候选：直接收口 compact routes（新 SOURCE Actions 待验）
 
 已有 CODE SOURCE `192c0c18bd0d486564afc7b062a05d273dc068ae` 的 WFP Guard、/32 Lease/DAD、MTU Set/Restore、DNS NameServer Set/Clear+读回四阶段，Win2022/25 + Linux race + Foundation/Lifecycle 均限定 PASS，但实际 Windows Wintun/管理员写入和 DNS 清理没有正向测通。本次只增加第五个 `routes` 具体阶段：物理 server /32 先走，Wintun 仅两 /1 + 有界 DNS /32；复用既有 N4OwnedRoutes 逐条 durable journal，不重复装卸 WFP Guard。上层统一 WAL 只在路由阶段允许根据精确子收据恢复未确认 Apply 和部分 Stop，其他阶段的模糊写入依旧拒绝。新增 Windows mock route 故障、外来状态、重新进入 Stop 测试。正式 GUI/CLI 网络配置 **仍 PowerShell 活动**；未实证跨进程 Wintun 驱动与独占 WFP 安全前禁止激活/打包，N2遗留 OPEN，physical NOT_RUN。

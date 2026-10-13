@@ -120,10 +120,16 @@ func N4BuildCompactNativeRouteKeys(plan NetworkPlan, wintunIndex uint32) ([]Nati
  if err!=nil{return nil,err}
  if wintunIndex==0 || wintunIndex==plan.Physical.InterfaceIndex{return nil,ErrNetworkPlan}
  keys:=append([]NativeRouteKey(nil),underlay...)
- for _,r:=range plan.CaptureRoutes {
-  keys=append(keys,NativeRouteKey{
-   Prefix:r.Prefix,Interface:wintunIndex,NextHop:netip.IPv4Unspecified(),Metric:5,
-  })
+ // Exactly two /1 halves must immediately follow the physical server
+ // escape. Keep DNS /32 exceptions after capture halves; BuildNetworkPlan
+ // may interleave them and its ordering is not a native write contract.
+ halves:=[]netip.Prefix{netip.MustParsePrefix("0.0.0.0/1"),netip.MustParsePrefix("128.0.0.0/1")}
+ for _,p:=range halves {
+  keys=append(keys,NativeRouteKey{Prefix:p,Interface:wintunIndex,NextHop:netip.IPv4Unspecified(),Metric:5})
+ }
+ for _,r:=range plan.CaptureRoutes{
+  if r.Prefix==halves[0] || r.Prefix==halves[1]{continue}
+  keys=append(keys,NativeRouteKey{Prefix:r.Prefix,Interface:wintunIndex,NextHop:netip.IPv4Unspecified(),Metric:5})
  }
  if err:=n4ValidateRouteBatch(keys);err!=nil{return nil,err}
  return keys,nil

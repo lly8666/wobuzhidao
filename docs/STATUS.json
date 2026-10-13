@@ -9,7 +9,7 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_FIVE_CONCRETE_NATIVE_WIN32_WAL_STAGE_CODE_CANDIDATE_PENDING_GITHUB_ACTIONS_AND_REAL_ADMIN_PROOF",
+    "phase": "N4_NATIVE_ROUTES_CAPTURE_ORDER_SCOPED_WIN_ACTION_FAIL_TARGETED_SOURCE_FIX",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "FIRST verify exact new SHA N4 windows2022/25 TestN4WindowsCompactRouteStage* and parent WAL partial-intent route reclaim, Linux race, Foundation all seven required/lifecycle, retain failure and artifact hashes. Five native backend stage code paths then exist but MUST NOT claim N4 fully scriptless until real Win admin created Wintun/IPv4 /32 DAD, SetIPInterfaceEntry, DNS Set/Clear true readback and WFP persistent DNS+IPv6 guard validated, independent exclusive Wintun proof (or fail-closed UNSUPPORTED), and cross-process crash-orphan recovery proven with foreign ownership protection. Verify native route+parent double WAL cleanup under restart; product CLI still uses PowerShell. ONLY once gates pass wire existing NativeUnifiedTxn/Native stage backends into official CLI and remove .ps1 PowerShell; N6 same-source P6 three targets/manifest hashes afterward. N2 C04/C05 efficiency FAIL, C10 GE/80s OPEN, physical NOT_RUN, no deploy/merge/ref changes. No more generic framework extensions.",
-  "latest_log": "docs/devlog/20261013-n4-concrete-native-compact-owned-routes-five-stage-code-candidate.md",
+  "next_task": "Verify new exact SOURCE that native route batch is ordered server physical /32 then two /1 halves then only configured DNS /32; N4 Windows2022/25 rerun TestN4WindowsCompactRouteStageOwnsOnlySmallBatchAndRetainsParentGuard, Linux race and Foundation/lifecycle final, preserving source5b41 Win2022+2025 Action38372921051 FAIL (actual NetworkPlan capture order interleaved DNS /32 between halves). Remaining N4 product gates real created admin Wintun, WFP exclusive/multi-tunnel safety, DNS reset readback, crash-owner process restart and official scriptless CLI wiring. N6 P6 same-source three-target manifests/hashes pending; N2 efficiency/GE/80s OPEN; physical NOT_RUN, no deploy/merge.",
+  "latest_log": "docs/devlog/20261013-n4-native-compact-routes-capture-order-failed-test-fix.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "192c0c18bd0d486564afc7b062a05d273dc068ae",
   "last_tested_scope": "SOURCE192C_NATIVE_DNS_NAME_SERVER_SET_CLEAR_REQUEST_WITH_READBACK_CAS_WIN2022_WIN2025_N4ACTION38372046016_SUCCESS_FOUNDATION38372044417_ALL7_SUCCESS_LIFECYCLE38372044394_SUCCESS_NO_ADMIN_DNS_RESET_POSITIVE",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "SOURCE5b41f6 native compact route stage Action38372921051 FINAL FAIL Windows2022 and Windows2025 TestN4WindowsCompactRouteStageOwnsOnlySmallBatchAndRetainsParentGuard: original BuildNetworkPlan interleaves DNS /32 between two /1 captures. Other partial write/ambiguous/partial Stop tests PASS. Targeted next-source N4BuildCompactNativeRouteKeys now serializes /32 escape, both /1, then DNS exceptions; no test weakened, Actions pending.",
     "SOURCE192c0c native DNS stage N4 Action38372046016 Windows2022/2025 + Linux race PASS, Foundation38372044417 all seven PASS, Lifecycle38372044394 PASS; artifact11799381590/11799167905 digests recorded. DNS native static reset actual admin Wintun positive NOT_RUN.",
     "NEW fifth Win32 compact route stage uses exact server physical /32 escape, Wintun two /1 and only configured DNS /32 with existing N4OwnedRoutes per-route journal under shared persistent WFP guard (NO nested WFP Disarm). Existing unified WAL recovery now explicitly delegates ONLY route-intent reconciliation to that per-route journal; other unconfirmed lease/MTU/DNS remain fail-closed. Windows mock-backend crash/partial/retry/foreign tests, new-source Actions pending.",
     "WFP persistent guard, static IPv4 /32+DAD, MTU and DNS native stage code exists but official cmd/wbd-client still uses PowerShell control; no driver/admin mutation, independent exclusive-Wintun guarantee or cross-process crash old-handle recovery shown. Do not connect to product yet.",
-    "SOURCEefc4b6d concrete persistent WFP guard and IPv4/32 lease+DAD stage N4 Action38370726570, Foundation38370726613 all7, Lifecycle38370726484 PASS; actual WFP write/lease Create/Delete NOT_RUN.",
-    "Prior 4a0467c official live Windows compact capture + gVisor direct TCP/Native UDP scoped PASS; docs-only HEAD0129c Foundation38368123646 FINAL SUCCESS. Active legacy PowerShell control remains until last three stages and native admin guard completed."
+    "SOURCEefc4b6d concrete persistent WFP guard and IPv4/32 lease+DAD stage N4 Action38370726570, Foundation38370726613 all7, Lifecycle38370726484 PASS; actual WFP write/lease Create/Delete NOT_RUN."
   ],
   "actions": [
     {
@@ -4988,6 +4988,15 @@
       "scope": "N4_NATIVE_DNS_CAS_STAGE_LIFECYCLE",
       "status": "PASS",
       "cause": "FINAL SUCCESS core."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38372921051,
+      "source_sha": "5b41f68551d5d40ab949d28a421e52b9e07d6ef9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38372921051",
+      "scope": "N4_NATIVE_COMPACT_ROUTE_ORDER_WIN2022_WIN2025",
+      "status": "FAIL",
+      "cause": "Both Windows matrix jobs failed exact expected native route sequence: old BuildNetworkPlan interleaves DNS /32 after 0/1 before 128/1. Linux race passed; other Win route failure/partial recovery tests passed. Preserve FAIL."
     }
   ],
   "required_read_set": [
