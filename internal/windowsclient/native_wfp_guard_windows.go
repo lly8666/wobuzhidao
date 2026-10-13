@@ -5,7 +5,6 @@ package windowsclient
 import (
  "context"
  "errors"
- "fmt"
  "reflect"
 
  "github.com/tailscale/wf"
@@ -17,6 +16,7 @@ import (
 // DNS restore, and the network transaction are collectively qualified.
 // Do not enable multiple guards with differing WintunLUID: each rule blocks
 // IPv6/physical DNS on OTHER interfaces, including another Wintun adapter.
+// Durable checks persistent metadata; it is not permission to install WFP.
 type n4WindowsPersistentWFPGuard struct {
  InstallationID [16]byte
  WintunLUID uint64
@@ -84,29 +84,12 @@ func (g *n4WindowsPersistentWFPGuard) Verify(ctx context.Context)(bool,error){
  for _,want:=range plan.Rules{if !ids[want.ID]{return false,nil}}
  return true,nil
 }
-// Arm is not used from cmd/wbd-client while scriptless Wintun/DNS lifecycle
-// is incomplete. It is intentionally idempotent for same-installation
-// partial-Arm crash repair, and refuses any mismatched/foreign WFP rule.
+// Arm refuses an unsafe host-global LUID-not-equal WFP guard.
+// A caller boolean cannot prove absence of independently managed Wintun
+// adapters now or in future. Refuse BEFORE opening the WFP engine.
 func (g *n4WindowsPersistentWFPGuard) Arm(ctx context.Context)error{
  if err:=ctx.Err();err!=nil{return err}
- plan,err:=g.plan();if err!=nil{return err}
- s,err:=wf.New(&wf.Options{Dynamic:false});if err!=nil{return err}
- defer s.Close()
- sub,existing,err:=n4WFPReadOwned(s,plan)
- if err!=nil{return err}
- if !sub {
-  if err:=s.AddSublayer(plan.Sublayer);err!=nil{return fmt.Errorf("native WFP owned sublayer: %w",err)}
- }
- for _,r:=range plan.Rules {
-  if err:=ctx.Err();err!=nil{return err}
-  if existing[r.ID]{continue}
-  if err:=s.AddRule(r);err!=nil{return fmt.Errorf("native WFP owned guard rule: %w",err)}
- }
- if err:=s.Close();err!=nil{return err}
- ok,err:=g.Verify(ctx)
- if err!=nil{return err}
- if !ok{return ErrN4NativeGuard}
- return nil
+ return ErrN4NativeGuard
 }
 // Disarm only removes exact owned persistent objects; if any rule is foreign
 // or the guard is unexpectedly incomplete, fail closed and keep host policy.

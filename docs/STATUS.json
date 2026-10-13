@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_REAL_WINTUN_SINGLE_WAL_AND_ALL_FIVE_NATIVE_STAGE_ASSEMBLY_SCOPED_ACTIONS_SUCCESS_PRODUCTION_WFP_ORPHAN_CRASH_SCRIPTLESS_OPEN",
+    "phase": "N4_FAIL_CLOSED_UNSAFE_GLOBAL_WFP_AND_DRY_ONLY_ASSEMBLER_PENDING_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE_FF7DF05_REAL_WIN2022_2025_WINTUN_SINGLE_WAL_NATIVE_LEASE_MTU_DNS_APPLY_RECOVER_AND_FIVE_STAGE_DRY_ASSEMBLY_PASS;N4_MATRIX_LINUX_RACE_PASS;FOUNDATION_ALL7_PASS;PRODUCTION_WFP_OTHER_WINTUN_CRASH_OWNER_AND_CLI_POWERSHELL_REMOVAL_OPEN",
+    "implementation": "FF7DF05_REAL_WINTUN_SINGLE_WAL_LEASE_MTU_DNS_WIN2022_2025_SCOPED_PASS;NEW_N4_WFP_GLOBAL_ARM_FAIL_CLOSED_FIVE_STAGE_COMPOSER_DRY_ONLY_CANDIDATE_PENDING_ACTIONS;PRODUCTION_WFP_ORPHAN_CRASH_OWNER_CLI_POWERSHELL_STILL_OPEN",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "N4 remaining PRODUCTION implementation gates only: existing all FIVE concrete Win32 stages now privately assembled and real Wintun native lease/MTU/DNS in ONE WAL successfully passed Win2022/25. DO NOT reimplement/retest standalone API or GUI/AES/direct TCP/UDP. Solve safe persistent WFP DNS/IPv6 policy for coexistence with other independently managed Wintun adapters (or verified exclusive fail-closed) WITHOUT a caller boolean as proof; solve process-crash orphan created-Wintun identity and journal recovery without alias takeover. Then wire existing N4NativeUnifiedTxn five stages into official cmd/wbd-client Apply/Stop/Recover and REMOVE live PowerShell/.ps1. Test actual protected server physical /32+two /1+bounded DNS /32 only in isolated capable Windows environment; verify abort, partial/failure, foreign preservation, repeated Stop, no global leak. ONLY after this N4 production qualification run full cross-feature GitHub Actions and N6 same CODE SOURCE three-target P6 package/manifest/hash. N2 C04/C05 efficiency FAIL, C10 GE p99 and 80s S2C tail OPEN; physical NOT_RUN, no deploy/merge/qualification ref moves.",
-  "latest_log": "docs/devlog/20261013-n4-real-wal-and-five-stage-assembly-final-actions.md",
+  "next_task": "Verify current N4 unsafe-global-WFP Arm rejection and dry-only five-stage assembled Apply/Recover candidate by exact SOURCE Actions. Then implement safely coexistent WFP DNS/IPv6 protection or independently enforced OS-exclusive host policy, solve cross-process crash-orphan Wintun identity/journal recovery, wire existing five native stages into official cmd/wbd-client and remove PowerShell/.ps1. Qualify real isolated Windows protected /32+two /1+bounded DNS /32 and abort/foreign/Stop; then full cross-feature Actions and N6 same-SOURCE P6 three targets/manifest/hash. N2 C04/C05 FAIL, C10 GE p99 and 80s S2C OPEN; physical NOT_RUN; no deploy, merge or refs.",
+  "latest_log": "docs/devlog/20261013-n4-global-wfp-failclosed-and-dry-only-assembly-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "ff7df05a8901ff39beeec3d9089c4feae0d8f692",
   "last_tested_scope": "FF7DF05_WIN2022_2025_REAL_WINTUN_CREATED_UNIFIED_WAL_NATIVE_LEASE_DAD_MTU_DNS_APPLY_RECOVER_TWO_STOPS_FIVE_CONCRETE_NATIVE_STAGE_DRY_ASSEMBLY_N4REAL_ACTION38389180573_PASS_N4MATRIX38389180499_WIN2022_WIN2025_LINUX_RACE_PASS_FOUNDATION38389180583_SEVEN_REQUIRED_PASS_LIFECYCLE38389180582_PASS_NO_GLOBAL_WFP_OR_PRODUCTION_TWO_OVER_ONE",

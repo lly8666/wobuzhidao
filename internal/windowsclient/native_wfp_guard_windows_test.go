@@ -15,7 +15,10 @@ func TestN4WFPGuardRequiresVerifiedExclusiveAdapter(t *testing.T){
  if guard.Durable(){t.Fatal("multi-tunnel unsafe guard marked durable")}
  if _,err:=guard.Verify(context.Background());!errors.Is(err,ErrN4NativeGuard){t.Fatalf("missing exclusive NIC not refused: %v",err)}
  guard.ExclusiveSingleWintun=true
- if !guard.Durable(){t.Fatal("valid exclusive guard rejected")}
+ if !guard.Durable(){t.Fatal("structurally persistent guard unexpectedly rejected")}
+ if err:=guard.Arm(context.Background());!errors.Is(err,ErrN4NativeGuard){
+  t.Fatalf("caller boolean allowed unsafe global WFP Arm: %v",err)
+ }
  ctx,cancel:=context.WithCancel(context.Background());cancel()
  if err:=guard.Arm(ctx);!errors.Is(err,context.Canceled){t.Fatalf("cancel must halt before installing WFP rules: %v",err)}
  if err:=guard.Disarm(ctx);!errors.Is(err,context.Canceled){t.Fatalf("cancel must halt before WFP deletion: %v",err)}

@@ -7,6 +7,7 @@ import (
  "crypto/rand"
  "encoding/hex"
  "encoding/json"
+ "errors"
  "net/netip"
  "os"
  "path/filepath"
@@ -171,7 +172,10 @@ func TestN4WindowsHostedUnifiedWALRealLeaseMTUDNS(t *testing.T) {
    t.Fatalf("missing actual concrete stage at %d: %v",i,stage)
   }
  }
- receipt["stage_assembly"]="PASS_NO_HOST_WFP_OR_CAPTURE_ROUTE_WRITE"
+ if err:=composed.Apply(ctx);!errors.Is(err,ErrN4NativeGuard){t.Fatalf("unsafe composed Apply: %v",err)}
+ if err:=composed.Recover(ctx);!errors.Is(err,ErrN4NativeGuard){t.Fatalf("unsafe composed Recover: %v",err)}
+ if _,err:=os.Stat(composed.Path);!os.IsNotExist(err){t.Fatalf("dry assembly wrote WAL: %v",err)}
+ receipt["stage_assembly"]="PASS_DRY_ASSEMBLY_WRITE_FORBIDDEN"
  cleanupRequired=false
  receipt["lease"]="PASS_WAL_DAD_AND_OWNED_DELETE"
  receipt["mtu"]="PASS_WAL_CAS_AND_EXACT_RESTORE"

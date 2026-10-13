@@ -95,6 +95,8 @@ type N4NativeUnifiedTxn struct {
  Gate N4UnifiedExclusion
  Owner N4UnifiedOwner
  Stages [5]N4UnifiedStage
+ // Unqualified five-stage assembly may never mutate OS or create a WAL.
+ assemblyOnly bool
 }
 
 func (n *N4NativeUnifiedTxn) preflight()error{
@@ -190,6 +192,7 @@ func(n *N4NativeUnifiedTxn) withGate(ctx context.Context)(func(),error){
  return gateRelease,nil
 }
 func(n *N4NativeUnifiedTxn) Apply(ctx context.Context)error{
+ if n==nil || n.assemblyOnly{return ErrN4NativeGuard}
  n.mu.Lock();defer n.mu.Unlock()
  release,err:=n.withGate(ctx);if err!=nil{return err}
  defer release()
@@ -225,6 +228,7 @@ func(n *N4NativeUnifiedTxn) Apply(ctx context.Context)error{
  return n4UnifiedWrite(n.Path,j,false)
 }
 func(n *N4NativeUnifiedTxn) Recover(ctx context.Context)error{
+ if n==nil || n.assemblyOnly{return ErrN4NativeGuard}
  n.mu.Lock();defer n.mu.Unlock()
  release,err:=n.withGate(ctx);if err!=nil{return err}
  defer release()

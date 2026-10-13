@@ -270,3 +270,12 @@ func TestN4NativeTxnUnifiedHoldsGenerationFromSnapshotThroughUndo(t *testing.T){
   t.Fatalf("owner pin leaked across Recover %+v",owner)
  }
 }
+
+func TestN4NativeTxnDryAssemblyNeverCreatesJournalOrMutates(t *testing.T){
+ tx,_,trace,owner:=n4UnifiedTestTxn(t)
+ tx.assemblyOnly=true
+ if err:=tx.Apply(context.Background());!errors.Is(err,ErrN4NativeGuard){t.Fatalf("dry Apply: %v",err)}
+ if err:=tx.Recover(context.Background());!errors.Is(err,ErrN4NativeGuard){t.Fatalf("dry Recover: %v",err)}
+ if len(*trace)!=0 || owner.count!=0{t.Fatalf("dry stage called: %v %d",*trace,owner.count)}
+ if _,err:=os.Stat(tx.Path);!errors.Is(err,os.ErrNotExist){t.Fatalf("dry WAL created: %v",err)}
+}

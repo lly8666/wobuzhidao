@@ -1,3 +1,7 @@
+## 2026-10-13 N4 新候选待新 SOURCE Actions：全局 WFP 误激活拒绝 + 真实五阶段 DRY-only
+
+接手精确 HEAD `ad837c68131d758f8822a59ab7aab58bb1eb394b`；上一个已验 SOURCE `ff7df05a8901ff39beeec3d9089c4feae0d8f692`。当前仅安全收紧：`ExclusiveSingleWintun=true` 不是 OS 独占证据，禁止安装可能阻断其他 Wintun 的全局 DNS/IPv6 WFP；已装配五阶段仅 DRY、不可 Apply/Recover。真 Wintun lease/MTU/DNS 单 WAL 既有限定 PASS 不变；生产 WFP、crash orphan、CLI 去 PowerShell、真实两 /1、N6 依旧 OPEN；物理 NOT_RUN。新 Actions 结果以精确 SOURCE 为准，下一项只看 STATUS。
+
 ## 2026-10-13 五个真实 Win32 阶段已装配／单 WAL 真 Wintun 限定验收最终 PASS
 
 CODE SOURCE ff7df05a：Win2022/25 real created Wintun N4 Action38389180573 两端均真 /32-DAD、MTU、DNS 单个 WAL Apply/Recover/Stop 两次 PASS，并在新建 Wintun 上检查所有五个真实 Win32 阶段 DRY 装配。N4 matrix38389180499 Win2022/25 + Linux race、Foundation38389180583 七必需、Lifecycle38389180582 全 SUCCESS。WFP Guard 和两 /1 在真机实验中**没有执行生产写入**；真实三阶段的 WFP/routes 是 TEST FAKE，五阶段只是 dry assembly。不能把这些当作真正完整受保护 N4。

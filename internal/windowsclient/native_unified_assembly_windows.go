@@ -48,6 +48,7 @@ func n4AssembleWindowsNativeOwnedTxn(
  walPath:=plan.StatePath+".n4-owned-wal"
  n:=&N4NativeUnifiedTxn{
   Path:walPath,Identity:id,Owner:owner,Gate:N4WindowsMachineGate{},
+  assemblyOnly:true,
   Stages:[5]N4UnifiedStage{
    n4WindowsGuardStage{Guard:guard},
    n4WindowsLeaseStage{Lease:lease,Writer:N4WindowsLeaseWriter{
