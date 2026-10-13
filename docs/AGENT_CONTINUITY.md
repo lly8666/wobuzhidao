@@ -1,3 +1,7 @@
+## 2026-10-13 N4 最小原子增量候选：严格紧凑路由键（Actions 待验）
+
+在远端父HEAD `dfd00b82`（当前 Foundation38353589710 SUCCESS）之上新增 `N4BuildCompactNativeRouteKeys`，从已验证 `NetworkPlan` 将唯一物理服务器 /32 逃逸路由放在首位，随后仅生成两条 /1 和配置的 DNS /32，并对物理/Wintun 相同 ifIndex、CN 大网段、重复/错序、错误网关提前拒绝。 `N4OwnedRoutes.ApplyRoutes` 增加严格 batch preflight，拒绝时不创建 journal、不开 guard、不碰 OS。完整 SOURCE 与 Actions 最终状态必须再查 `docs/STATUS.json`，提交时仅是待验候选，不写 PASS。此改动不证明 Wintun 创建归属、不替代 DHCP/DNS/MTU/WFP 的持久事务，正式 `cmd/wbd-client` 仍有 PowerShell/旧路由。N2/N6 和 physical 原有限制完全保持。
+
 # 新agent十分钟接手摘要
 
 ## 2026-10-13 最新 N4 接手摘要：Wintun handle 所有权再加一道闸门

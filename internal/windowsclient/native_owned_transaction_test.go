@@ -203,3 +203,71 @@ func TestN4CompactOwnedValidatorToleratesCNInMemoryOnly(t *testing.T){
  })
  if _,err=validateN4CompactOwned(plan);!errors.Is(err,ErrNetworkPlan){t.Fatal("CN route leaked into host route policy")}
 }
+
+
+func TestN4CompactNativeRouteKeysPhysicalEscapeBeforeCapture(t *testing.T){
+ cfg:=Config{
+  AdapterAlias:"WBD",TunnelMTU:1249,Lease4:netip.MustParsePrefix("10.66.0.7/32"),
+  Server4:netip.MustParseAddr("198.51.100.10"),
+  Physical:PhysicalPath{InterfaceIndex:12,NextHop4:netip.MustParseAddr("192.0.2.1")},
+  StatePath:"test-native-state.json",
+  DNSServers4:[]netip.Addr{netip.MustParseAddr("1.1.1.1"),netip.MustParseAddr("8.8.8.8")},
+ }
+ plan,err:=BuildCompactNetworkPlan(cfg);if err!=nil{t.Fatal(err)}
+ keys,err:=N4BuildCompactNativeRouteKeys(plan,21);if err!=nil{t.Fatal(err)}
+ if len(keys)!=5 || keys[0].Prefix!=netip.MustParsePrefix("198.51.100.10/32") ||
+  keys[0].Interface!=12 || keys[0].NextHop!=netip.MustParseAddr("192.0.2.1"){
+  t.Fatalf("physical underlay escape missing/late: %+v",keys)
+ }
+ expected:=map[netip.Prefix]bool{
+  netip.MustParsePrefix("0.0.0.0/1"):false,
+  netip.MustParsePrefix("128.0.0.0/1"):false,
+  netip.MustParsePrefix("1.1.1.1/32"):false,
+  netip.MustParsePrefix("8.8.8.8/32"):false,
+ }
+ for _,k:=range keys[1:] {
+  if _,ok:=expected[k.Prefix];!ok || k.Interface!=21 ||
+   k.NextHop!=netip.IPv4Unspecified() || k.Metric!=5 {
+   t.Fatalf("noncompact or unbound capture: %+v",k)
+  }
+  expected[k.Prefix]=true
+ }
+ for p,ok:=range expected{if !ok{t.Fatalf("capture missing: %v",p)}}
+ if err:=n4ValidateRouteBatch(keys);err!=nil{t.Fatal(err)}
+ if _,err:=N4BuildCompactNativeRouteKeys(plan,12);!errors.Is(err,ErrNetworkPlan) {
+  t.Fatalf("physical/Wintun loopback accepted: %v",err)
+ }
+ if _,err:=N4BuildCompactNativeRouteKeys(plan,0);!errors.Is(err,ErrNetworkPlan) {
+  t.Fatalf("missing Wintun interface accepted: %v",err)
+ }
+ plan.CaptureRoutes=append(plan.CaptureRoutes,OwnedRoute{
+  Kind:"capture",Prefix:netip.MustParsePrefix("203.0.113.0/24"),AdapterAlias:"WBD",
+ })
+ if _,err:=N4BuildCompactNativeRouteKeys(plan,21);!errors.Is(err,ErrNetworkPlan) {
+  t.Fatalf("CIDR expansion escaped plan preflight: %v",err)
+ }
+}
+func TestN4NativeTxnRejectsNoncompactRouteBatchBeforeGuard(t *testing.T){
+ good:=n4TestKeys()
+ tests:=[]struct{name string; mutate func([]NativeRouteKey)[]NativeRouteKey}{
+  {"missing-high-half",func(x []NativeRouteKey)[]NativeRouteKey{return x[:2]}},
+  {"wrong-escape-order",func(x []NativeRouteKey)[]NativeRouteKey{x[0],x[1]=x[1],x[0];return x}},
+  {"duplicate-half",func(x []NativeRouteKey)[]NativeRouteKey{x[2]=x[1];return x}},
+  {"default-route",func(x []NativeRouteKey)[]NativeRouteKey{x[1].Prefix=netip.MustParsePrefix("0.0.0.0/0");return x}},
+  {"CN-route",func(x []NativeRouteKey)[]NativeRouteKey{return append(x,NativeRouteKey{Prefix:netip.MustParsePrefix("203.0.113.0/24"),Interface:21,NextHop:netip.IPv4Unspecified(),Metric:5})}},
+  {"capture-gateway",func(x []NativeRouteKey)[]NativeRouteKey{x[1].NextHop=netip.MustParseAddr("192.0.2.1");return x}},
+  {"capture-on-physical",func(x []NativeRouteKey)[]NativeRouteKey{x[1].Interface=15;return x}},
+  {"split-capture-interface",func(x []NativeRouteKey)[]NativeRouteKey{x[2].Interface=22;return x}},
+  {"bad-metric",func(x []NativeRouteKey)[]NativeRouteKey{x[2].Metric=6;return x}},
+  {"second-escape",func(x []NativeRouteKey)[]NativeRouteKey{return append(x,NativeRouteKey{Prefix:netip.MustParsePrefix("203.0.113.4/32"),Interface:15,NextHop:netip.MustParseAddr("192.0.2.1"),Metric:5})}},
+ }
+ for _,tt:=range tests {t.Run(tt.name,func(t *testing.T){
+  n,r,g:=n4TestManager(t)
+  keys:=tt.mutate(append([]NativeRouteKey(nil),good...))
+  if err:=n.ApplyRoutes(context.Background(),keys);!errors.Is(err,ErrNetworkPlan){
+   t.Fatalf("invalid route batch accepted: %v",err)
+  }
+  if g.armCount!=0 || r.created!=0 {t.Fatal("OS state touched before strict route preflight")}
+  if _,err:=os.Stat(n.Path);!errors.Is(err,os.ErrNotExist) {t.Fatalf("journal unexpectedly created: %v",err)}
+ })}
+}

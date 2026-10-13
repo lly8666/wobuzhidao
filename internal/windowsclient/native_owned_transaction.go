@@ -65,15 +65,18 @@ type N4OwnedRoutes struct {
 }
 
 func validateN4CompactOwned(plan NetworkPlan) ([]NativeRouteKey,error) {
- if plan.StatePath=="" || plan.Physical.InterfaceIndex==0 || !plan.Physical.NextHop4.Is4() ||
+ if plan.StatePath=="" || plan.AdapterAlias=="" || plan.Physical.InterfaceIndex==0 ||
+ !plan.Physical.NextHop4.Is4() || plan.Physical.NextHop4==netip.IPv4Unspecified() ||
  !plan.Server4.Is4() || !plan.Lease4.IsValid() || !plan.Lease4.Addr().Is4() ||
- len(plan.DirectRoutes)!=0 || len(plan.CaptureRoutes)<2 || len(plan.CaptureRoutes)>n4MaxNativeCaptureRoutes {
+ plan.Lease4.Bits()!=32 || len(plan.DirectRoutes)!=0 ||
+ len(plan.CaptureRoutes)<2 || len(plan.CaptureRoutes)>n4MaxNativeCaptureRoutes {
   return nil,ErrNetworkPlan
  }
  full:=map[string]bool{"0.0.0.0/1":false,"128.0.0.0/1":false}
  used:=map[string]bool{}
  keys:=[]NativeRouteKey{}
- if plan.UnderlayRoute.InterfaceIndex!=plan.Physical.InterfaceIndex ||
+ if plan.UnderlayRoute.Kind!="underlay" ||
+  plan.UnderlayRoute.InterfaceIndex!=plan.Physical.InterfaceIndex ||
   plan.UnderlayRoute.Prefix!=netip.PrefixFrom(plan.Server4,32) ||
   plan.UnderlayRoute.NextHop!=plan.Physical.NextHop4 {return nil,ErrNetworkPlan}
  keys=append(keys,NativeRouteKey{Prefix:plan.UnderlayRoute.Prefix,Interface:plan.Physical.InterfaceIndex,NextHop:plan.Physical.NextHop4,Metric:5})
@@ -90,6 +93,61 @@ func validateN4CompactOwned(plan NetworkPlan) ([]NativeRouteKey,error) {
  for _,ok:=range full{if !ok{return nil,ErrNetworkPlan}}
  return keys,nil
 }
+
+ // N4BuildCompactNativeRouteKeys creates a bounded, deterministic native route
+ // batch. The physical server /32 escape MUST precede all Wintun captures.
+ // The caller MUST independently establish current created-Wintun ownership,
+ // crash-persistent WFP/DNS protection and a durable lease/MTU/DNS journal.
+ // This helper does not grant ownership and is not connected to the CLI.
+func N4BuildCompactNativeRouteKeys(plan NetworkPlan, wintunIndex uint32) ([]NativeRouteKey,error) {
+ underlay,err:=validateN4CompactOwned(plan)
+ if err!=nil{return nil,err}
+ if wintunIndex==0 || wintunIndex==plan.Physical.InterfaceIndex{return nil,ErrNetworkPlan}
+ keys:=append([]NativeRouteKey(nil),underlay...)
+ for _,r:=range plan.CaptureRoutes {
+  keys=append(keys,NativeRouteKey{
+   Prefix:r.Prefix,Interface:wintunIndex,NextHop:netip.IPv4Unspecified(),Metric:5,
+  })
+ }
+ if err:=n4ValidateRouteBatch(keys);err!=nil{return nil,err}
+ return keys,nil
+}
+
+// n4ValidateRouteBatch is the final no-host-CIDR preflight before any OS
+// write. Position zero is the server escape; all remaining entries are
+// exactly the /1 pair and at most six /32 captures (DNS exceptions). Caller
+// must first use the plan validator to prove those /32s are configured DNS.
+func n4ValidateRouteBatch(keys []NativeRouteKey) error {
+ if len(keys)<3 || len(keys)>n4MaxNativeCaptureRoutes+1{return ErrNetworkPlan}
+ zero:=netip.IPv4Unspecified()
+ low:=netip.MustParsePrefix("0.0.0.0/1")
+ high:=netip.MustParsePrefix("128.0.0.0/1")
+ seen:=make(map[netip.Prefix]bool,len(keys))
+ var captureIf uint32
+ lowSeen,highSeen:=false,false
+ for i,k:=range keys {
+  if k.Interface==0 || k.Metric!=5 || !k.Prefix.IsValid() ||
+   !k.Prefix.Addr().Is4() || k.Prefix!=k.Prefix.Masked() ||
+   !k.NextHop.Is4() || seen[k.Prefix] {return ErrNetworkPlan}
+  seen[k.Prefix]=true
+  if i==0 {
+   if k.Prefix.Bits()!=32 || k.NextHop==zero {return ErrNetworkPlan}
+   continue
+  }
+  if k.NextHop!=zero || k.Interface==keys[0].Interface{return ErrNetworkPlan}
+  if captureIf==0{captureIf=k.Interface}
+  if captureIf!=k.Interface{return ErrNetworkPlan}
+  switch k.Prefix {
+  case low:lowSeen=true
+  case high:highSeen=true
+  default:
+   if k.Prefix.Bits()!=32{return ErrNetworkPlan}
+  }
+ }
+ if !lowSeen || !highSeen || captureIf==0{return ErrNetworkPlan}
+ return nil
+}
+
 func n4Encode(j n4Journal)([]byte,error){
  j.Schema=n4JournalSchema
  data,err:=json.Marshal(j);if err!=nil{return nil,err}
@@ -145,11 +203,7 @@ func(n *N4OwnedRoutes) preflight()error{
 func(n *N4OwnedRoutes) ApplyRoutes(ctx context.Context,keys []NativeRouteKey)error{
  n.mu.Lock();defer n.mu.Unlock()
  if err:=n.preflight();err!=nil{return err}
- if len(keys)==0 || len(keys)>n4MaxNativeCaptureRoutes+1{return ErrNetworkPlan}
- for _,k:=range keys {
-  if k.Interface==0 || !k.Prefix.IsValid() || !k.Prefix.Addr().Is4() ||
-  k.Prefix!=k.Prefix.Masked() || !k.NextHop.Is4() || k.Metric==0{return ErrNetworkPlan}
- }
+ if err:=n4ValidateRouteBatch(keys);err!=nil{return err}
  if err:=ctx.Err();err!=nil{return err}
  j:=n4Journal{Phase:"applying",GuardArmed:false}
  // Journal MUST exist before touching a persistent external guard, otherwise

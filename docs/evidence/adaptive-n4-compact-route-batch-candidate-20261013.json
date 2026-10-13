@@ -1,0 +1,30 @@
+{
+  "schema": "adaptive-n4-compact-route-batch-candidate/v1",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "parent_head": "dfd00b82d35e66531c6cfa1a947f614b6aefee91",
+  "candidate_source_sha": "RESOLVE_FROM_GITHUB_ACTIONS_HEAD_SHA_AFTER_PUSH",
+  "status": "ACTIONS_PENDING",
+  "changed_code": [
+    "internal/windowsclient/native_owned_transaction.go",
+    "internal/windowsclient/native_owned_transaction_test.go"
+  ],
+  "target_workflows": [
+    "next-adaptive-n4-owned-native-transaction-matrix",
+    "next-foundation"
+  ],
+  "source_scope": "pure Go exact route set and preflight, no host mutation",
+  "sample_count": 0,
+  "seed": null,
+  "configuration": "fixed /1 pair and configured DNS /32 exceptions; metric=5",
+  "unsupported": [
+    "Windows native Wintun admin Apply/Stop/Crash",
+    "persistent DNS/WFP production full guard",
+    "actual direct TCP/UDP user traffic",
+    "physical machine"
+  ],
+  "prior_source_actions": [
+    38353235782,
+    38353235766,
+    38353589710
+  ]
+}

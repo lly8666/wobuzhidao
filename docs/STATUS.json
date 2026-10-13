@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_NATIVE_WINTUN_LUID_OWNER_EXPLICIT_WINDOWS2022_WINDOWS2025_MATRIX_PASS_SCRIPTLESS_RUNTIME_AND_N6_INCOMPLETE",
+    "phase": "N4_COMPACT_NATIVE_ROUTE_BATCH_HARD_PREFLIGHT_CANDIDATE_ACTIONS_PENDING_NATIVE_NETWORK_LIFECYCLE_AND_N6_OPEN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_GUARDED_LEASE_MTU_DNS_WFP_NATIVE_LOWLEVEL_AND_WINTUN_CREATED_OWNER_LUID_SCOPED_ACTIONS_PASS;PRODUCTION_CMD_POWERSHELL_AND_MASSIVE_ROUTES_STILL_ACTIVE;REAL_ADMIN_WINTUN_AND_CRASH_DURABLE_NETWORK_TXN_NOT_DONE",
+    "implementation": "N4_NATIVE_OWNER_LUID_GUARDED_LOWLEVEL_ACTIONS_SCOPED_PASS;COMPACT_ROUTE_BATCH_NEW_CODE_CANDIDATE_UNTESTED;PRODUCTION_POWERSHELL_MASS_ROUTES_ACTIVE;ADMIN_WINTUN_DNS_WFP_OWNED_TRANSACTION_NOT_DONE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Continue implementing N4 native single-process Windows network Apply/Stop/Recover that NEVER invokes PowerShell, after GH Actions source B650 explicit TestN4Wintun x3 on Windows2022/25, Linux-race and Foundation all success. Critical actual work: crash-durable owned Wintun creation/lease/DHCP/MTU address + native DNS Set/Get reversible journal + persistent WFP DNS/IPv6 anti-leak policy with correct MULTI-WINTUN shared allowlist or explicitly exclusive supported-mode failure; verify startup recovery and foreign adapter / route / DNS unchanged. In isolated GH Windows admin runner verify real Wintun driver capabilities and route Apply/Cancel/Stop/Repeat/Crash where supported, never falsely claim missing driver physical PASS. Only then connect two /1 captures + bounded server/DNS exceptions, in-TUN CN classifier + userspace Direct TCP/UDP, and remove active cmd/wbd-client PowerShell/.ps1 and package references. N2 efficiencies/GE longtail/80s OPEN; N6 not started; physical NOT_RUN; no local tests, no deploy/merge/ref moves.",
-  "latest_log": "docs/devlog/20261013-n4-wintun-luid-owner-explicit-matrix-final-receipt.md",
+  "next_task": "FIRST inspect automatic branch Actions for new compact native route-batch SOURCE: dedicated next-adaptive-n4-owned-native-transaction-matrix on Windows2022/25+Linux race and next-foundation. Fix real failures against new exact SOURCE. New helper builds physical server /32 escape first, then precisely two /1 captures plus bounded DNS /32 and ApplyRoutes now refuses noncompact plans before journal/guard; NOT a native Apply/Stop implementation or ownership proof. Following scoped PASS, continue durable native lease/DHCP/MTU/DNS/WFP transaction/recovery and isolated admin Wintun capability check without assuming installed driver; only then connect scriptless small-route userspace TCP/UDP. N2 efficiency/GE/80s OPEN, N6 pending, physical NOT_RUN.",
+  "latest_log": "docs/devlog/20261013-n4-compact-route-batch-hard-preflight-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "b650aa2077bbcf76650ed2510a158e1e606a8e45",
   "last_tested_scope": "B650_EXPLICIT_TESTN4WINTUN_X3_WIN2022_X3_WIN2025_ACTION38353235782_SUCCESS_ALL4;FOUNDATION38353235766_SUCCESS_ALL7;NO_REAL_WINTUN_DRIVE_OR_ADMIN_NET_WRITE",
@@ -2694,6 +2694,7 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "Candidate code after dfd00b82: strict compact native route batch constructed only from validated NetworkPlan; physical server /32 escape first; ApplyRoutes rejects wrong /1, CN /24, duplicate, bad capture interface or metric BEFORE guard/journal. Unit tests new; awaiting precise new-SOURCE Actions; no physical, CLI path unchanged.",
     "SOURCE b650aa: explicit Windows N4 Wintun-owner negative matrix TestN4WintunHandleOwnershipNeverBasedOnAlias + TestN4WintunAdapterClaimDoesNotSurviveClosedSession each 3 repetitions on BOTH Windows2022/2025, dedicated Action38353235782 FINAL SUCCESS 4 jobs Linux race+receipt; artifact11791975522. Confirmed job logs 6 passing test lines per Windows runner. Foundation38353235766 FINAL SUCCESS all 7 required, artifact11791443266.",
     "Product N4 small route/DirectTCP still DISABLED; Wintun owner proof requires actual created live adapter handle and fresh LUID. Native IPv4 /32 lease/MTU and DNS setters are low-level unconnected guarded primitives; persistent WFP isolated TEST-NET only, no real admin Wintun/DNS/IPv6 no-leak end-to-end. Existing Windows cmd/wbd-client still runs PowerShell plus complement host CIDRs, violating user's final no PowerShell requirement.",
     "N2 C04/C05/C10/GE efficiency and 80s longtail residuals OPEN; N6 three platform same-source packaging NOT_STARTED; physical NOT_RUN. No deploy/merge/mainline refs."

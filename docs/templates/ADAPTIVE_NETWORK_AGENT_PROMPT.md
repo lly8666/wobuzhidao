@@ -1,3 +1,7 @@
+## 最新补充：2026-10-13 N4 紧凑 native route keys 候选
+
+先查远端 HEAD、`docs/STATUS.json` 和 Actions；基于 `dfd00b82` 的增量只实现纯软件 route-batch 校验和顺序生成，必须等精确新 SOURCE Windows/Linux Actions 最终状态，不能提前记作 Windows 实机路由 PASS。先完成真实 crash durable Wintun lease/DNS/MTU/WFP owner 事务，再接正式无 PowerShell 两 /1 分流和 N6；禁止物理部署/合并。此补充一旦 STATUS 更新，应以 STATUS 为准。
+
 # 全新agent长期接手提示词
 
 ## 2026-10-13 即时续作最新指令——原生 Wintun 句柄所有权
