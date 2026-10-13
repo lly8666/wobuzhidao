@@ -1,0 +1,70 @@
+{
+  "schema": "wbd-n4-real-single-wal-five-native-stage-assembly-final/v1",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "tested_code_source": "ff7df05a8901ff39beeec3d9089c4feae0d8f692",
+  "runs": [
+    {
+      "id": 38389180573,
+      "scope": "REAL_WIN2022_WIN2025_NATIVE_3_STAGES_PLUS_5_STAGE_DRY",
+      "status": "PASS"
+    },
+    {
+      "id": 38389180499,
+      "scope": "N4_WINDOWS_2022_2025_LINUX_RACE",
+      "status": "PASS"
+    },
+    {
+      "id": 38389180583,
+      "scope": "FOUNDATION_ALL_7_REQUIRED",
+      "status": "PASS"
+    },
+    {
+      "id": 38389180582,
+      "scope": "LIFECYCLE",
+      "status": "PASS"
+    }
+  ],
+  "archives": [
+    {
+      "run": 38389180573,
+      "id": 11806989970,
+      "runner": "windows-2022",
+      "digest": "sha256:d62d1bf68bc03ea3985e2388a7a113c5ceee1e07160370553308e14fcec97f2c"
+    },
+    {
+      "run": 38389180573,
+      "id": 11808245659,
+      "runner": "windows-2025",
+      "digest": "sha256:f2a1e7ca274363d5219457c3505c8e6c92478a41294133f7415ed3556accf47f"
+    },
+    {
+      "run": 38389180499,
+      "id": 11807454849,
+      "digest": "sha256:5bbeb4d8ec95e3da8ba46f112724fdb832e38c30d2f02493f93a02d56aa8b5b7"
+    },
+    {
+      "run": 38389180583,
+      "id": 11807139613,
+      "digest": "sha256:e27eb54e45a1d05c6eb8cc45fdab46811cd2b3c3f545dae6e4044a816df078f2"
+    }
+  ],
+  "real": {
+    "windows_native_lease_dad": "PASS",
+    "mtu_restore": "PASS",
+    "dns_set_clear_get": "PASS",
+    "single_unified_wal": "PASS",
+    "win32_global_mutex": "PASS",
+    "owned_generation_hold": "PASS",
+    "five_concrete_native_stage_assembly": "PASS_DRY_ONLY",
+    "production_WFP": "NOT_RUN",
+    "production_routes_two_over_one": "NOT_RUN",
+    "cross_process_crash_recovery": "NOT_RUN",
+    "physical": "NOT_RUN",
+    "official_cli_scriptless": false
+  },
+  "N6": "NOT_STARTED",
+  "N2_efficiency_C04_C05": "FAIL_OPEN",
+  "N2_C10_GE_and_80s_tail": "OPEN",
+  "performance_samples": 0,
+  "digest_type": "GitHub Actions metadata SHA256 of ZIP"
+}

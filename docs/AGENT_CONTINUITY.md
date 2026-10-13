@@ -1,3 +1,8 @@
+## 2026-10-13 五个真实 Win32 阶段已装配／单 WAL 真 Wintun 限定验收最终 PASS
+
+CODE SOURCE ff7df05a：Win2022/25 real created Wintun N4 Action38389180573 两端均真 /32-DAD、MTU、DNS 单个 WAL Apply/Recover/Stop 两次 PASS，并在新建 Wintun 上检查所有五个真实 Win32 阶段 DRY 装配。N4 matrix38389180499 Win2022/25 + Linux race、Foundation38389180583 七必需、Lifecycle38389180582 全 SUCCESS。WFP Guard 和两 /1 在真机实验中**没有执行生产写入**；真实三阶段的 WFP/routes 是 TEST FAKE，五阶段只是 dry assembly。不能把这些当作真正完整受保护 N4。
+
+剩余最小硬门：WFP 不阻断其他独立 Wintun/证明唯一模式、进程崩溃时不冒用旧 Wintun 身份，最后正式 cmd/wbd-client 原生 Apply/Stop/Recover 去掉 PowerShell/.ps1，并在隔离 Win runner 验真实 server /32+两 /1 路由及全 Guard。然后完整跨功能 Actions 与 N6 同源码三平台 P6；N2 效率/GE长尾 OPEN，physical NOT_RUN。唯一下一个任务看 STATUS。
 ## 2026-10-13 N4 同源真实 Wintun 单 WAL PASS，五真实阶段最小装配候选
 
 CODE SOURCE d84963f1 的 Win2022/25 Action38388128847 实际创建 Wintun，统一 N4NativeUnifiedTxn 配合 Win32 mutex+LUID/generation Handle Hold 真实 Apply /32 DAD、MTU、DNS Set/Clear，逆序 Recover+重复 Stop 两端 PASS。Foundation38388128846 七必需、Lifecycle38388128794 SUCCESS。WFP Guard 和路由当时仅为测试替身，未碰全局 WFP 或生产两/1。
