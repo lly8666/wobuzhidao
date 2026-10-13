@@ -16,6 +16,10 @@
 - 4096是可放弃shadow备份而非fresh窗口。有限预算/期限repair，缺失旧wire就结束；同Seq重发同wire，不重新seal，不让对端等放弃的洞。
 - FEC lane-local，已有SIMD/长度分类、partial min(k,R)、32ms、3s、bounded heavy/compact和late first-arrival保留。新自动档只Normal，只影响新block，Game固定档。统一MTU预算、peer MSS、LINK单次分片，不隐藏截断。
 
+## Windows N4 小路由与无 PowerShell 硬要求（用户 2026-10-13 明确授权）
+
+Windows 正式产品不得依赖 powershell.exe 或活动 .ps1 脚本；需用 Go 调用 Windows 原生 API 来完成受限路由、租约/DHCP、DNS、IPv6/泄漏防护与 journal-owned 清理。国内外 IP/CN 表只在用户态内存分流，不得重新批量写入系统路由。允许旧项目 tun2socks/gVisor 的本地 TCP 双段物理接口绑定直连方案（区别于远端 WBD 代理），但所有真实路由/防泄漏/回退完整 Actions 验证前不得正式接线。原始旧脚本需在最终产品活动目录与打包中删除，归档 old/ 保存历史证据。
+
 ## 生命周期与平台
 
 Account→Installation→Tunnel→Lane，租约绑定Tunnel，同账号多个installation地址隔离，服务端校验source lease。自动随机IPv4只内存7天，不要求持久化。

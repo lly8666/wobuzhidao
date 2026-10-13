@@ -1,9 +1,12 @@
 # WBD：新agent唯一开发入口
 
-## 当前接手边界：N4 WinDivert 快速试验 NO-GO（2026-10-13）
+## 当前接手边界：N4 用户态 Direct + 无 PowerShell 产品（2026-10-13）
 
-按 `docs/STATUS.json`：WinDivert-only 出站以 `WinDivertSend(IfIdx=物理网卡)` 绕开 Wintun 的方案已被官方 v2.2.2 API 合约否决，Action 38341416320 **门槛执行成功、候选方案 NO-GO**，不是 N4 PASS。Foundation 38341416272 成功，其他架构尚未测试。根据用户指令，**暂停 TCP/路由新实现，先与用户探讨下一架构**，不得自动改用 Npcap/WFP/普通 TCP 代理、加载驱动或要求临时物理试验。来源见最新 devlog。
+用户已明确变更 N4 目标：**Windows 路由表不导入数千条国内 IP 网段**，允许沿用旧项目的 tun2socks/gVisor 用户态 TCP 直连（二段 TCP，直接走物理网卡），并要求**最终 Windows 产品不依赖 PowerShell，也不保留活动 .ps1 网络脚本**。无需再等待用户选择 WinDivert/WFP；WinDivert-only IfIdx 不可选结论在历史 devlog 保留。
 
+精确截至 SOURCE `f70e6ec0`：`d29d8ab` 引入 Windows userspace TCP Direct（新单进程，依赖 tun2socks v2.6.0 MIT）、按源/接口 generation 的有界队列和两条 /1 精简 host 路由规划，专项 Actions38343552100、Foundation38343552096、lifecycle38343552106 限定 PASS；`50172e` 首次 Win32 IP Helper ABI 错误导致 Actions38343998563/38343998549 Windows 编译 FAIL；`f70e6ec` 自定义 SDK SOCKADDR_INET 修复、专项 Actions38344213692 与生命周期38344213683 PASS（Foundation38344213720 以 STATUS 最新收据为准）。
+
+**切勿误判最终产品已无 PowerShell**：新候选 Go 组件尚未接线，正式 `cmd/wbd-client/main_windows.go` 仍使用 `powershell.exe` 和脚本配置信息以及旧补集路由，必须等原生 Wintun 地址/DHCP、DNS、IPv6/WFP 防泄漏、路由 owned journal/取消/崩溃清理都完成后，才拆除旧脚本与接通小路由。绝不直接删除保护措施，也不把 ABI/read-only 视作实机测试。所有构建测试只在 Actions；无中途物理测试/部署/合并。
 
 当前工作分支 `next/adaptive-fec-aes-tun-20261010`，从 FEC SIMD 分支最新文档头 a8913e3b 建立，继承产品 SOURCE 7fb98fab。规范主线仍 next/tlslike-dataplane，STATUS.branch 保持仓库契约，STATUS.working_branch 是实际工作线。不要改旧分支、移动qualification ref、合并主线或自动部署现有试用机器。
 

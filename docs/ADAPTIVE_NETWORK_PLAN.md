@@ -1,9 +1,12 @@
 # Normal 自动 FEC、可选 AES、TUN 分流与线路质量显示
 
-## 2026-10-13 N4 快速架构门槛——唯一最新判定
+## 2026-10-13 N4 最新产品方向：TUN 内存分流 + Go 原生 Windows 网络配置
 
-WinDivert v2.2.2 固定官方源码文档 Git blob `85a870a9c501ea3e22fb0715903d667f14044353` 已在 SOURCE `086a9bd` 的专项 Action `38341416320` 验证：**`WinDivertSend` 出站忽略 `IfIdx/SubIfIdx`**；`NETWORK_FORWARD` 不直接覆盖本机应用生成的原生 TCP。故“WinDivert-only + 指定物理 IfIdx 发送”的**快捷方案 NO-GO**；这不否定 Npcap 二层发包/WFP 内核 callout 等其他架构（尚未测试）。Foundation `38341416272` PASS。按用户条件立即暂停 N4 TCP 编码，讨论替代路径后再做新的可证伪门槛；原 N4 UDP 软件限定 PASS 不变，真实驱动、N6、物理试验均未完成。
+**目标转向已获用户明确许可：** 不为中国/外国 IPv4 区段批量写 Windows 系统路由；采用固定两条 /1 公网捕获、必要服务器物理 underlay /32 和有限 DNS 例外，LAN/CN/Other 前缀排序合并于 Go 分类器内。用户接受历史 `old/internal/tunsplit/direct_windows.go` 的 tun2socks/gVisor 两段本地 TCP 直连，经 `InterfaceIndex` 绑定真实物理接口，而非 WinDivert/WFP 内核 redirect；禁止最终 Windows 程序依赖 PowerShell 或携带活动 .ps1 网络脚本。历史 WinDivert-only IfIdx 方案 Action38341416320 NO-GO 保留，现已不阻塞这条新架构。
 
+SOURCE `d29d8ab` 已引入可编译的用户态 Direct TCP（generation/iface fence、1024 非阻塞队列、UDP 复用方案）、`BuildCompactNetworkPlan`（8192 CN prefix 输入仍 2 × /1 + DNS；未接线），专项 Windows Actions38343552100 PASS、Foundation38343552096 PASS。SOURCE `50172e` Win32 ABI 初稿因 pinned x/sys v0.33.0 RawSockaddrInet 不存在而编译 FAIL，非路由系统级失败；SOURCE `f70e6ec` 使用本地 ABI union 修正，专门 Windows Action38344213692 PASS、Lifecycle38344213683 PASS；最终 Foundation38344213720 以 STATUS 收据为准。
+
+当前真正产品仍 **INCOMPLETE / NOT_READY**：CMD 主入口使用旧的 PowerShell Apply/Cleanup 和上万补集路由；必须先独立实现并在 Actions 验证**原生 Go Windows API** 的 owned 网络事务（DNS 原生接口版本支持/安全降级、IPv6 和物理 DNS WFP 动态 guard、Wintun DHCP/地址前置检验、路由批量最多 8、持久状态 journal、幂等/崩溃回滚、退网/Stop），然后一次性切换运行时并从新打包中彻底去除活动 .ps1。不得为了脚本缺失就忽略 DNS/IPv6 或把直连流量误导向 WBD。完整物理 Win11/Npcap/真实外网验证只在 N6 同源三个目标 artifacts/hashes 全成后进行。
 
 状态快照（2026-10-13）：**N0/N1/Normal自动FEC已实现；N2当前Go并发/race及真实1%双向混合TCP/UDP单场景限定PASS，效率与GE长尾仍OPEN。N3 AES128/256已认证接线，各100s真实无损限定PASS；N5 GUI自动档/质量面板/三套件原生273项检查PASS。N4分类/flow-fragment缓存/分派边界、物理接口绑定UDP socket与反向IPv4格式已实现；SOURCE 49adb/Action38337768067将UDP Direct/单次保护流发送接上Windows正式Wintun入口，SOURCE 67b7/Action38338092331完成PowerShell Apply取消与有界owned回滚模拟，SOURCE ab2d/Action38338808653完成外国IPv4防删除/DHCP journal的hosted模拟限定PASS（725d失败保留）。TCP WFP内核重定向、少量路由及真实Wintun/管理员Apply仍OPEN；N6最终包未开始。** 下一项推进N4，不重新开发AES/GUI或盲重跑已完成N2。精确SOURCE、限制、下一原子任务以 **docs/STATUS.json** 为准；文末日期追加是历史来源。
 

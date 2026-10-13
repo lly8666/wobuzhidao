@@ -1,9 +1,10 @@
 # 全新agent长期接手提示词
 
-## 2026-10-13 即时停工闸门：N4 WinDivert-only NO-GO
+## 2026-10-13 最新用户任务更新——解除 WinDivert 等待；Windows 产品无 PowerShell
 
-对 `WinDivertSend` 出站设置物理 `IfIdx` 的 N4 快捷设计在固定官方 v2.2.2 接口文档与 Action `38341416320` 核验下**NO-GO**（实际脚本成功运行，只证明已证伪）。同源 Foundation `38341416272` 成功。**当前 next_task 是等待与用户讨论替代架构，不准自动开工 TCP redirect 或少量路由**。未测试的 Npcap Ethernet send / signed WFP forward callout 不是已判死，也不是已通过；普通 WFP 本地代理违反原架构硬门，除非用户明确修改要求。完整记录见最新 `docs/STATUS.json` 与 `docs/devlog/20261013-n4-windivert-fastpath-no-go-actions-receipt.md`。
+用户已批准 N4 改为历史 `old/internal/tunsplit` 的 in-TUN CN/LAN/Other 分类（中国 IP 列表仅在用户态内存），Windows host 只需两条 /1 捕获 + 必要 DNS/underlay 小路由；允许 tun2socks v2.6.0/gVisor 在本机做 Direct TCP 用户态会话与物理 ifIndex 绑定外联。用户要求**开发成最终不含活动 PowerShell 网络脚本、不运行 powershell.exe**，兼容无 PowerShell 的 Windows 版本（按 API 版本实际能力 fail closed，不伪称旧系统已支持）。原 WinDivert-only NO-GO 是历史结论，当前路线不依赖那项假设。
 
+SOURCE `d29d8ab` Direct TCP 和紧凑路线 Go 组件限定 Windows/基础 Actions PASS；`50172e` native IP Helper ABO RawSockaddrInet Windows FAIL 原样保留；`f70e6ec` SDK ABI 本地定义并有 native Windows Actions PASS。**仍未切换 Windows CLI**，主入口继续采用遗留 .ps1/大路由；必须完成 Go native owned DHCP/lease、Win32路由、DNS、IPv6/WFP 和持久 rollback 后才移除非 archive PowerShell/把 DirectTCP 真接线。不能把已编译的隔离 backend 当成真实外部 TCP/Wintun 资格。N2 效率/GE/80s 尾问题仍 OPEN，N6 未开始；严禁中途物理机部署/试用或合并。
 
 接手 GitHub `lly8666/wobuzhidao` 的 `next/adaptive-fec-aes-tun-20261010` 分支，连续开发并通过 GitHub Actions 验收，直到本轮 N0..N6 完成或有必须如实交代的外部阻塞。先核当前精确远端 HEAD、工作区和 SOURCE，不能覆盖别人的修改；当前进度只看 `docs/STATUS.json` 的 active_work / next_task / latest_log，不按本文首次编写时的阶段假设开工。
 

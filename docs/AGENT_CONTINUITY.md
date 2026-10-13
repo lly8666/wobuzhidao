@@ -1,9 +1,12 @@
 # 新agent十分钟接手摘要
 
-## 最新接手令：N4 WinDivert-only 快捷路径被拒绝
+## 最新接手令：N4 小路由、用户态 Direct TCP、无 PowerShell 版本迁移
 
-2026-10-13 独立 feasibility SOURCE `086a9bd27f9a275d0d3d40163cc0d0c5868c7e67` 的 Action `38341416320` 在官方 WinDivert `v2.2.2` 固定源码前提下准确报告 `NO_GO`：向外发送忽略 `IfIdx`，无法单靠 WinDivert 选择物理出口绕开 Wintun 路由。**Action SUCCESS 是门槛执行成功，不是方案通过**；Foundation `38341416272` SUCCESS；收据及 artifact 哈希在 `docs/devlog/20261013-n4-windivert-fastpath-no-go-actions-receipt.md`。用户明确要求方案不通过则再讨论，故下一动作是提出 Npcap 物理二层+有界 NAT、专用签名 WFP forward callout 或变更禁用 TCP 代理约束供用户选，绝不未经授权继续代码。其他路径 NOT_EVALUATED，实体网卡/驱动/物理 NOT_RUN。
+用户已授权旧 `old/internal/tunsplit` 的设计方向：Wintun 一律先捕获公网上行，两条 /1（以及有限 DNS/underlay 例外），进程内按 LAN/CN/Other IP 前缀分类，国内 TCP 走 tun2socks v2.6.0/gVisor + 物理 InterfaceIndex 绑定的新 Windows socket；国内 UDP 保留 NativeUDPDirect。与上一版要求不同，允许双 TCP leg 的本地直连，但不允许大规模系统路由和**产品运行时 PowerShell/.ps1**。
 
+SOURCE `d29d8ab` 原生 Direct TCP 代码和精简路由静态方案已有 Windows Action38343552100 PASS、Foundation38343552096 PASS、lifecycle38343552106 PASS；**只是软件编译/队列/分类测试**。SOURCE `50172e` Win IP Helper ABI 初稿因 pinned x/sys v0.33.0 不存在 RawSockaddrInet 而 Windows FAIL（Actions38343998563,38343998549，Foundation Windows）。SOURCE `f70e6ec` 已将 28-byte SOCKADDR_INET 和 104-byte MIB_IPFORWARD_ROW2 原生 ABI 固定在 Go 代码，专门 Windows 门槛38344213692和生命周期38344213683 PASS。最新 Foundation38344213720 请看 STATUS。保留所有 FAIL。
+
+**运行时切换尚未做！** 现有 PowerShell `scripts/windows_client_network.ps1` 和 `cmd/wbd-client` 调用仍是遗留活路径。不能把它误当无脚本；下一任务需 Go native 网络状态引擎（静态 lease/DHCP ownership、全局 IPv6 WFP、防 DNS 泄漏、两条 /1 + underlay、保存先于修改的 owned journal、Stop/崩溃回滚、最低 Win API 版本和 fail closed），最后再删活动脚本及打包依赖。此阶段未进行 admin/真实 Wintun/物理连通；N6 未开始。
 
 本轮任务只看STATUS；具体实现与验收见ADAPTIVE_NETWORK_PLAN。父分支完整状态与原方案在history/20261010-adaptive-network-parent/，是证据不是执行清单。
 
