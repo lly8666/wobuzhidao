@@ -14,6 +14,8 @@ on:
       - "internal/windowsclient/native_address_snapshot_windows_test.go"
       - "internal/windowsclient/native_dns_capability_windows.go"
       - "internal/windowsclient/native_dns_capability_windows_test.go"
+      - "internal/windowsclient/native_wfp_readonly_windows.go"
+      - "internal/windowsclient/native_wfp_readonly_windows_test.go"
       - "internal/windowsclient/userspace_tcp_direct_windows.go"
       - "go.mod"
       - "go.sum"
@@ -59,7 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          go test -mod=readonly ./internal/windowsclient -run 'Test(N4Native|N4Scriptless|N4Windows|N4TCP|N4Compact|BuildCompact)' -count=3 -v
+          go test -mod=readonly ./internal/windowsclient -run 'Test(N4Native|N4Scriptless|N4WFP|N4Windows|N4TCP|N4Compact|BuildCompact)' -count=3 -v
       - name: Verify no shell dependency in NEW native path
         shell: bash
         run: |
@@ -70,6 +72,7 @@ jobs:
             internal/windowsclient/native_route_backend_windows.go \
             internal/windowsclient/native_address_snapshot_windows.go \
             internal/windowsclient/native_dns_capability_windows.go \
+            internal/windowsclient/native_wfp_readonly_windows.go \
             internal/windowsclient/userspace_tcp_direct_windows.go
   receipt:
     needs: [owned-transaction-linux-race, owned-transaction-windows]

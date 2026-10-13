@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_NATIVE_WIN_ROUTING_INITIALIZER_CORRECTION_AND_SCRIPTLESS_API_GATE_ACTIONS_PENDING",
+    "phase": "N4_GO_NATIVE_ROUTE_AND_TXN_ALL_HOSTED_SCOPED_PASS_WFP_READONLY_NEXT_SCRIPTLESS_RUNTIME_NOT_WIRED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_OWNED_TXN_WIN2022_WIN2025_LINUX_RACE_PASS;V3_MULTI_CLIENT_20X_WINDOWS_LINUX_RACE8X_PASS;FOUNDATION_B7_WINDOWS_ROUTE_FLAGS_INITIALIZER_FAIL;SOURCE_FIX_AND_DNS_CAPABILITY_PENDING",
+    "implementation": "N4_ROUTE_SDK_INIT_FIXED_WINDOWS_FOUNDATION_A455_PASS;2022_2025_AND_LINUX_RACE_NATIVE_TXN_PASS;CLIENT_STILL_POWERHELL;WFP_LAYER_READONLY_PROBE_SOURCE_PENDING",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Run Windows2022/2025/Ubuntu-race N4 matrix, V3 repeated regression, Foundation/lifecycle exact SOURCE after fixing SDK InitializeIpForwardEntry defaults: Loopback, AutoconfigureAddress, Publish all TRUE by default and Protocol/SitePrefixLength INVALID. Set explicitly 0/0/0, Protocol NetMgmt3, SitePrefixLength prefix bits; enforce exact match; include TestN4Windows in dedicated matrix because earlier regex omitted it. Also test native Windows10 build>=19041 DNS Set/GetInterfaceDnsSettings + persistent WFP API DLL exports and fail closed old Win versions. Preserve original SOURCEb7 Foundation38346699600 FAIL Windows native route ownership test; do not claim product scriptless, actual Win route mutations still NOT_RUN. After Actions PASS, next implement owned Windows DNS/WFP guard and address/DHCP writes, finish PowerShell removal, wire compact route/TCP. N6 NOT_STARTED/physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261013-n4-win-route-initializer-correction-and-dns-api-gate.md",
+  "next_task": "Run same-source Windows2022/2025 native WFP read-only engine/layer gate to prove ALE_AUTH_CONNECT_V4/V6 and ALE_AUTH_RECV_ACCEPT_V6 accessible via Go Win32 API. No filter changes. Next produce crash-persistent owned WFP DNS+IPv6 block filters (not dynamic WFP sessions), native DNS interface settings with version check, Wintun lease DHCP/MTU/route atomic state journaling and end-to-end Windows hosted Apply/Cleanup; then remove legacy powershell.exe/.ps1 from final active program and wire compact 2x/1 routes+userspace Direct TCP. No real user machine until N6 three-target artifacts. Historical failures 132e,4fd,50172,b7 preserved. N2 efficiency/GE tail OPEN.",
+  "latest_log": "docs/devlog/20261013-n4-native-wfp-readonly-layer-gate-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "b7e1606bda35e7628107df909cba3a9f8c6ea2b3",
-  "last_tested_scope": "N4_NATIVE_LEASE_GUARD_MATRIX_ACTION38346699554_SUCCESS;V3_THREE_CLIENT_REPEATED_RACE_ACTION38346699603_SUCCESS;N0_NEGOTIATION38346699556_SUCCESS;LIFECYCLE38346699592_SUCCESS;FOUNDATION38346699600_FAIL_NATIVE_ROUTE_FLAGS_INIT",
+  "last_tested_source_sha": "a4558ce9a6d4cc25c3b76606bacfbe22b00ba195",
+  "last_tested_scope": "N4_NATIVE_TRANSACTION_ACTION38347146604_PASS_WIN22_WIN25_LINUXRACE;N4_TCP_GO_ABI38347146607_PASS;FOUNDATION38347146586_PASS_7_REQUIRED;LIFECYCLE38347146511_PASS_NO_REAL_ADMIN_ROUTE_WINTUN_OR_PHYSICAL",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,9 +2694,9 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "Source b7e1606b Actions38346699554 SUCCESS N4 Go native route transaction & leased IPv4 read-only snapshot tests on Linux race+Windows2022/2025; V3 multiclient 20 repeated Windows/Linux and race8 action38346699603 SUCCESS; N0 negotiation38346699556 SUCCESS; lifecycle38346699592 SUCCESS.",
-    "Source b7e1606b Foundation38346699600 FINAL FAIL Windows active-go-tests: TestN4WindowsRouteMatchStrictOwnedIdentity initial row mismatch. Root cause Microsoft InitializeIpForwardEntry default TRUE for Loopback/AutoconfigureAddress/Publish, invalid Protocol/SitePrefixLength; fixed candidate sets explicit fields and extends strict matching. Also dedicated N4 matrix regex had inadvertently omitted TestN4Windows; now included. Keep failed evidence.",
-    "New pure Windows API preflight checks native per-interface DNS Get/Set and WFP persistent filter DLL exports and OS floor Win10 Build19041; all real DNS/WFP Apply or admin runtime still NOT_IMPLEMENTED. Main CLI still calls PowerShell and many complement routes; no physical/driver tests, N6 NOT_STARTED."
+    "Latest SOURCEa455 Actions38347146604 PASS N4 Linux race+Windows2022/2025 full route owned test matrix incl fixed native MIB_IPFORWARD_ROW2 SDK defaults, artifact11789203022 SHA256497491...; Action38347146607 PASS Go bounded userspace TCP/ABI, artifact11789081916; Foundation38347146586 SUCCESS all seven required jobs, artifact11789546119; Lifecycle38347146511 SUCCESS.",
+    "Next Windows-only Go WFP read-only engine access/layer native probe; no add/remove, no admin machine mutation; candidate Actions PENDING.",
+    "CRITICAL product scriptless full implementation NOT_READY: real native WFP persistent DNS/IPv6 guard/lease DHCP+address setter/journal incomplete, cmd/wbd-client still runs powershell.exe and complement routes, new DirectTCP disabled. N6/physical NOT_RUN; N2 efficiency/tails OPEN."
   ],
   "actions": [
     {
@@ -4077,6 +4077,42 @@
       "scope": "N4_WINDOWS_NATIVE_ROUTE_SDK_INITIALIZER_UNEXPECTED_FLAGS_FAILURE",
       "status": "FAIL",
       "cause": "Windows active-go-tests job115129737154 FAIL TestN4WindowsRouteMatchStrictOwnedIdentity: N4NativeRouteEntry left SDK InitializeIpForwardEntry Loopback/Autoconfigure/Publish TRUE and invalid protocol/siteprefix. Linux/FEC/P4/repo jobs successful. Must explicitly set fields, no weakening of route ownership check."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38347146604,
+      "source_sha": "a4558ce9a6d4cc25c3b76606bacfbe22b00ba195",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38347146604",
+      "scope": "N4_ROUTE_MIB_INITIALIZER_FIXED_AND_NATIVE_DNS_API_WIN2022_WIN2025_LINUXRACE",
+      "status": "PASS",
+      "cause": "All four jobs success Linux race/Windows2022/2025/receipt; includes N4Windows strict route identity, platform Win10 build floor, DNS Set/Get and WFP export probes, 1024 queue + crash/foreign/cancel matrix. Artifact11789203022 sha256:497491152359e7d08ad9fedc75b4199b73cec78f2a24d9a55410e92f5a385266. No WFP filters/real NIC mutation."
+    },
+    {
+      "name": "next-adaptive-n4-userspace-no-powershell-feasibility",
+      "run_id": 38347146607,
+      "source_sha": "a4558ce9a6d4cc25c3b76606bacfbe22b00ba195",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38347146607",
+      "scope": "N4_USERSPACE_TCP_AND_NATIVE_DLL_EXPORT_ABI",
+      "status": "PASS",
+      "cause": "Single Windows Go job success, artifact11789081916 sha256:c05edb0356b298ec24e4e00ae6a4615c5c221a601b035b9fc2e3d7fdfcf1ecb8. No real Wintun/client connection."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38347146586,
+      "source_sha": "a4558ce9a6d4cc25c3b76606bacfbe22b00ba195",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38347146586",
+      "scope": "N4_GO_NATIVE_ROUTE_FIX_FULL_FOUNDATION",
+      "status": "PASS",
+      "cause": "All seven non-skipped mandatory jobs success (repo, Linux/Windows Go, P2, P4); P5/P6 skipped. Artifact11789546119 sha256:779eea90dcc79109bb0fbe885073208541201bcd9de926b9e5628d2a4a621eb9."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38347146511,
+      "source_sha": "a4558ce9a6d4cc25c3b76606bacfbe22b00ba195",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38347146511",
+      "scope": "N4_GO_NATIVE_ROUTE_FIX_LIFECYCLE",
+      "status": "PASS",
+      "cause": "Lifecycle core job final SUCCESS. Doesn't prove physical Windows network state."
     }
   ],
   "required_read_set": [
