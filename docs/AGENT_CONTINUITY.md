@@ -1,3 +1,7 @@
+## 2026-10-13 N4 SDK 真 Windows 最小能力完成：IP、DNS、MTU、TEST-NET 路由均限定 PASS
+
+最新代码 SOURCE `5b96405b362edbba0f96665270aa8a609da81df7` 的 [真实新建 Wintun Action38385692671](https://github.com/lly8666/wobuzhidao/actions/runs/38385692671) 两代 Win2022/25 最终 SUCCESS：临时本进程 Wintun 创建与 LUID/ifIndex、/32地址/DAD Preferred、MTU修改与原始65535 Restore、DNS静态Set/Clear/Get动态回滚、TEST-NET保留网段孤立 /32 native Route Create/Get/Owned Delete、/32地址删除都实际执行；Win2022 artifact11805477071、Win2025 artifact11805561978。Foundation38385692793七必需及Lifecycle38385692652均 SUCCESS。**仍未安装真正保护全局的 WFP 或真实两 /1 捕获（生产网络路由=NOT_RUN）**。当前 N4 的核心阻塞是全局/多Wintun WFP防泄漏安全与崩溃跨进程 adapter 归属，才能将这些原生 API 装配到正式客户端并删除活动 PowerShell/.ps1；N6 三目标同源 P6、物理 NOT_RUN。N2 C04/C05/C10及80秒遗留 OPEN。不要重复上述已 PASS 的单独功能，只推进最后这几个生产硬门。
+
 ## 2026-10-13 原生 Wintun /32+MTU+DNS 真实复原 Win2022/25 PASS；接下来安全局部路由 ABI
 
 CODE SOURCE `f871b9863d54a6e4e38006df82e96135d0b2ccc7` 的真实新建 Wintun Win2022/25 [Actions38384929682](https://github.com/lly8666/wobuzhidao/actions/runs/38384929682) 两端 **SUCCESS**：/32地址创建/DAD Preferred、65535原MTU Set/Restore、静态DNS Set/Clear/Get、/32 Delete 都实测；N4 matrix38384929435、Foundation38384929389七必需、Lifecycle38384929476 全 PASS。已通过的不是完整 N4：全局持久 WFP 和两/1 捕获未写、产品依旧 PowerShell。下一个小增量仅在隔离 Wintun 写一条安全 TEST-NET /32 路由，原生 Create/Get/Owned Delete 与失败清理，测试报告 `route_probe` 单列；`routes=NOT_RUN` 仍代表正式两/1+WFP 不合格。之后处理跨Wintun独占/崩溃原始所有权和正式无脚本接线，N6/physical NOT_RUN。

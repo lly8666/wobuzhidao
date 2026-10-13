@@ -1,0 +1,68 @@
+{
+  "schema": "wbd-n4-real-wintun-native-basic-mutation-scoped-pass/v1",
+  "working_branch": "next/adaptive-fec-aes-tun-20261010",
+  "tested_code_source_sha": "5b96405b362edbba0f96665270aa8a609da81df7",
+  "source_status": "SCOPED_PASS_NOT_PRODUCTION_N4",
+  "actions": [
+    {
+      "run": 38385692671,
+      "scope": "two real created Wintun Windows2022/2025 native lease MTU DNS isolated testnet route",
+      "conclusion": "success",
+      "windows_jobs": [
+        115256797442,
+        115256797606
+      ]
+    },
+    {
+      "run": 38385692793,
+      "scope": "Foundation seven required",
+      "conclusion": "success",
+      "extended_p6": "skipped"
+    },
+    {
+      "run": 38385692652,
+      "scope": "Lifecycle",
+      "conclusion": "success"
+    }
+  ],
+  "artifacts": [
+    {
+      "run": 38385692671,
+      "id": 11805477071,
+      "runner": "windows-2022",
+      "sha256": "29b7383ec475359fa4555485d34f806e7b7405cc0e1e67cd75c6b5a8016529a6"
+    },
+    {
+      "run": 38385692671,
+      "id": 11805561978,
+      "runner": "windows-2025",
+      "sha256": "bf0f754a9f086614a52ba8bf9ab711a001cebbf2840f2396026fb5656dd75f99"
+    },
+    {
+      "run": 38385692793,
+      "id": 11805795988,
+      "runner": "foundation",
+      "sha256": "3f6c529f57e0175cc597bb942915da68bcbb9720f5df83791456c88f1040aa31"
+    }
+  ],
+  "digest_format": "GitHub artifact ZIP metadata SHA256",
+  "real_native_drivers": {
+    "created_wintun": "PASS",
+    "IPv4_static_32_DAD_restore": "PASS",
+    "MTU_original_65535_restore": "PASS",
+    "DNS_Set_Clear_Get": "PASS",
+    "isolated_testnet_32_route_Get_Create_Delete": "PASS",
+    "production_global_WFP_guard": "NOT_RUN",
+    "production_two_1_capture_routes": "NOT_RUN",
+    "crash_restart_adapter_owner": "NOT_RUN"
+  },
+  "active_windows_powershell": true,
+  "N4_overall": "INCOMPLETE",
+  "N6_three_target_P6": "NOT_STARTED",
+  "N2_C04_C05_efficiency": "FAIL_OPEN",
+  "N2_C10_GE_and_80s_S2C": "OPEN",
+  "performance_samples": 0,
+  "physical": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "merge": "NOT_RUN"
+}
