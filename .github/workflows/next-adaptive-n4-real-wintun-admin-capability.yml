@@ -99,10 +99,11 @@ jobs:
           assert j["source_sha"]==os.environ["GITHUB_SHA"]
           assert j["physical"]=="NOT_RUN" and j["routes"]=="NOT_RUN"
           assert j["guard"]=="TEST_ONLY_FAKE_NOT_PRODUCTION_WFP"
+          assert j["route_probe"] in ("NOT_RUN","PASS_ISOLATED_TESTNET_32_CREATE_GET_DELETE")
           assert j["result"] in ("SCOPED_ISOLATED_NATIVE_IP_WRITE_RESTORE_PASS",
              "UNSUPPORTED_DRIVER_OR_ADMIN","UNSUPPORTED_FRESH_DNS_BASELINE"),j["result"]
           if j["result"]=="SCOPED_ISOLATED_NATIVE_IP_WRITE_RESTORE_PASS":
-              for k in ("adapter","lease","mtu","dns"):
+              for k in ("adapter","lease","mtu","dns","route_probe"):
                   assert j[k].startswith("PASS"),k
           print("N4_REAL_WINTUN_MUTATION="+j["result"])
           PY

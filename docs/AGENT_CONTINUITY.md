@@ -1,3 +1,7 @@
+## 2026-10-13 原生 Wintun /32+MTU+DNS 真实复原 Win2022/25 PASS；接下来安全局部路由 ABI
+
+CODE SOURCE `f871b9863d54a6e4e38006df82e96135d0b2ccc7` 的真实新建 Wintun Win2022/25 [Actions38384929682](https://github.com/lly8666/wobuzhidao/actions/runs/38384929682) 两端 **SUCCESS**：/32地址创建/DAD Preferred、65535原MTU Set/Restore、静态DNS Set/Clear/Get、/32 Delete 都实测；N4 matrix38384929435、Foundation38384929389七必需、Lifecycle38384929476 全 PASS。已通过的不是完整 N4：全局持久 WFP 和两/1 捕获未写、产品依旧 PowerShell。下一个小增量仅在隔离 Wintun 写一条安全 TEST-NET /32 路由，原生 Create/Get/Owned Delete 与失败清理，测试报告 `route_probe` 单列；`routes=NOT_RUN` 仍代表正式两/1+WFP 不合格。之后处理跨Wintun独占/崩溃原始所有权和正式无脚本接线，N6/physical NOT_RUN。
+
 ## 2026-10-13 真 Win2025 正向 native 全 IP/DNS Restore PASS，Win2022 清 DNS 空指针 Winerr87 修复候选
 
 CODE `0a49036c70324176423fa569cfea1dac4fad5485` Actions38384371196 两台真实临时 Wintun：**Win2025 真正执行完整 /32 创建DAD→MTU写回原厂65535→DNS Set/Clear/Get 恢复→/32精确删完，job SUCCESS**；Win2022 同 SOURCE 除 DNS Clear 外已全部走通，但其 `SetInterfaceDnsSettings` 在 `Flags=DNS_SETTING_NAMESERVER`、NameServer=nil 时 ERROR_INVALID_PARAMETER=87，整 run FAIL。新补丁只针对这个明确 Win32 参数错误，将空 NameServer 改用合法一字符零结尾 UTF16 `L""` 再重试一次；非87不重试，并靠独立 Get 读回证实确实清除，不能只看返回码。新源码必须再跑 Win2022/25；当前正式 CLI PowerShell 与 WFP 全局独占/跨进程恢复尚未解决，N4/N6 不能算完，physical NOT_RUN。

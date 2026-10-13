@@ -29,7 +29,7 @@ func TestN4WindowsHostedOwnedAdapterNativeIPWritesAndRestore(t *testing.T){
   "result":"FAIL_UNFINISHED",
   "adapter":"NOT_RUN","lease":"NOT_RUN","mtu":"NOT_RUN",
   "dns":"NOT_RUN","guard":"TEST_ONLY_FAKE_NOT_PRODUCTION_WFP",
-  "routes":"NOT_RUN","physical":"NOT_RUN",
+  "routes":"NOT_RUN","route_probe":"NOT_RUN","physical":"NOT_RUN",
  }
  defer func(){
   target:=os.Getenv("WBD_N4_ADMIN_MUTATION_REPORT")
@@ -123,6 +123,41 @@ func TestN4WindowsHostedOwnedAdapterNativeIPWritesAndRestore(t *testing.T){
   t.Fatalf("real dynamic DNS baseline not restored: %+v %v",restored,err)
  }
  receipt["dns"]="PASS_SET_CLEAR_GET_EXACT_BASELINE"
+ // Only one isolated BENCHMARK/TEST network host /32. Never install
+ // production /1 capture or a real server/underlay route on the runner.
+ // It checks the actual Win32 Create/Get/Delete ABI and exact key CAS.
+ routeKey:=NativeRouteKey{
+  Prefix:netip.MustParsePrefix("198.18.0.78/32"),
+  Interface:native.Index,NextHop:netip.MustParseAddr("0.0.0.0"),Metric:5,
+ }
+ backend:=N4WindowsRouteBackend{}
+ found,_,err:=backend.Lookup(ctx,routeKey)
+ if err!=nil{t.Fatalf("native TEST-NET route absent baseline: %v",err)}
+ if found{t.Fatal("test-only route existed before our ownership")}
+ if err:=backend.CreateIfAbsent(ctx,routeKey);err!=nil{
+  t.Fatalf("real native TEST-NET /32 CreateIpForwardEntry2: %v",err)
+ }
+ // A test failure after creation must still attempt bounded owned cleanup.
+ routeOwned:=true
+ defer func(){
+  if !routeOwned{return}
+  cleanupCtx,done:=context.WithTimeout(context.Background(),10*time.Second)
+  defer done()
+  if err:=backend.RemoveOwned(cleanupCtx,routeKey);err!=nil{
+   t.Errorf("native TEST-NET route failsafe cleanup: %v",err)
+  }
+ }()
+ found,exact,err:=backend.Lookup(ctx,routeKey)
+ if err!=nil || !found || !exact{
+  t.Fatalf("real native TEST-NET /32 route not exact-owned: found=%v exact=%v err=%v",found,exact,err)
+ }
+ if err:=backend.RemoveOwned(ctx,routeKey);err!=nil{
+  t.Fatalf("real native TEST-NET /32 DeleteIpForwardEntry2: %v",err)
+ }
+ routeOwned=false
+ found,_,err=backend.Lookup(ctx,routeKey)
+ if err!=nil || found{t.Fatalf("native TEST-NET /32 not removed: found=%v err=%v",found,err)}
+ receipt["route_probe"]="PASS_ISOLATED_TESTNET_32_CREATE_GET_DELETE"
  if err:=writer.DeleteConfirmed(ctx,token);err!=nil{t.Fatalf("real native owned address Delete: %v",err)}
  rows,err:=(N4WindowsAddressSnapshot{}).IPv4(ctx,native.Index)
  if err!=nil || len(rows)!=0{t.Fatalf("native address cleanup failed rows=%d err=%v",len(rows),err)}

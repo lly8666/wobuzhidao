@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_REAL_WINDOWS2025_NATIVE_IP_RESTORE_PASS_WINDOWS2022_DNS_CLEAR_87_FALLBACK_ACTIONS_PENDING",
+    "phase": "N4_TRUE_WIN2022_2025_NATIVE_LEASE_MTU_DNS_RESTORE_SCOPED_PASS_SAFE_ROUTE_ABI_PROBE_CANDIDATE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE0A4903_REAL_WINDOWS2025_ISOLATED_CREATED_WINTUN_LEASE_DAD_MTU_APPLY_RESTORE_DNS_SET_CLEAR_GET_EXACT_DELETE_PASS_WINDOWS2022_DNS_STATIC_CLEAR_NULL_PTR_ERROR_INVALID_PARAMETER;NEW_EMPTY_UTF16_RETRY_87_ONLY_CANDIDATE",
+    "implementation": "SOURCEF871B_REAL_WIN2022_WIN2025_CREATED_WINTUN_LEASE_DAD_MTU_SET_RESTORE_DNS_SET_CLEAR_GET_LEASE_DELETE_POSITIVE_ACTIONS_PASS;NEW_ISOLATED_TESTNET_32_ROUTE_CREATE_LOOKUP_DELETE_REAL_WIN32_NO_GLOBAL_CAPTURE_CANDIDATE;PRODUCT_SCRIPTLESS_AND_GLOBAL_WFP_NOT_IMPLEMENTED",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify new SOURCE isolated Win2022/2025 real created Wintun actions: native /32+DAD, MTU Set/restore original65535, DNS Set and static readback, Win2022 ClearIPv4 nil NameServer ERROR_INVALID_PARAMETER (87) retry once with one-NUL UTF16 NameServer pointer; Get must prove exact original baseline; DeleteConfirmed /32. Win2025 source0a4903 Action38384371196 real scoped PASS; Win2022 source0a4903 same action FAIL at nil Clear error 87, preserve original failure. On fallback failure preserve FAIL and narrow fix, not skip. Product still missing true WFP DNS/IPv6 persistent anti-leak exclusive/multi-Wintun safety and orphan Wintun cross-process recovery, native route Apply/Stop integration and no-PowerShell official CLI; run overall GH Actions+N6 P6 same-source only once these features complete, not yet. N2 C04/C05 efficiency, C10 GE and ~80s OPEN; physical NOT_RUN; no deploy/merge/ref.",
-  "latest_log": "docs/devlog/20261013-n4-real-win2022-dns-clear-87-fallback-candidate.md",
+  "next_task": "Verify new SOURCE real native Windows2022/25 created Wintun TEST-NET isolated route /32 CreateIpForwardEntry2/GetIpForwardEntry2 exact CAS/DeleteIpForwardEntry2, always clean up, no global /1/production WFP, distinguish ABI FAIL from UNSUPPORTED; previous f871b real lease/MTU/DNS native read/set/clear/restore positive both Win runners. If route fails make narrow ABI fix and rerun. Then finish N4 feature with persistent WFP DNS/IPv6 guarded safety on multi-Wintun or demonstrable exclusive mode, crash/restart original Wintun owner recovery and full single-WAL 5 stage product Apply/Stop/Recover; remove active PowerShell/.ps1. Only after real native control and cross-feature Actions PASS execute N6 SAME-SOURCE 3-target P6 build/manifest/hashes; no early claim N4 production done. N2 C04/C05 efficiency FAIL C10 GE tail and 80s S2C OPEN; physical NOT_RUN, no deploy/merge/qualification ref.",
+  "latest_log": "docs/devlog/20261013-n4-real-wintun-testnet-native-route-abi-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "0a49036c70324176423fa569cfea1dac4fad5485",
-  "last_tested_scope": "SOURCE0A4903_REAL_WIN2025_NATIVE_MUTATION_ACTION38384371196_PASS_WINDOWS2022_SAME_RUN_FAIL_AT_CLEAR_NULLPTR_WINERR87_N4_FOUNDATION_RUNS_SCOPED",
+  "last_tested_source_sha": "f871b9863d54a6e4e38006df82e96135d0b2ccc7",
+  "last_tested_scope": "SOURCEF871B_ISOLATED_REAL_WIN2022_2025_NATIVE_WINTUN_LEASE_DAD_MTU_RESTORE_DNS_SET_CLEAR_GET_AND_LEASE_DELETE_ACTION38384929682_SUCCESS;N4_MATRIX38384929435_SUCCESS_FOUNDATION38384929389_7_SUCCESS_LIFECYCLE38384929476_SUCCESS_PRODUCTION_WFP_AND_ROUTE_CAPTURE_NOT_RUN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "SOURCEf871b Windows2022/2025 exact real Wintun read+write action38384929682 FINAL SUCCESS; each job115254246656/115254246266 explicitly logs TestN4WindowsHostedOwnedAdapterNativeIPWritesAndRestore PASS, receipts SCOPED_ISOLATED_NATIVE_IP_WRITE_RESTORE_PASS. Creation/LUID, /32 DAD preferred and Delete, MTU Set/Restore factory65535, DNS Set/Clear/Get full baseline. N4 Action38384929435 4 jobs PASS, Foundation38384929389 7 required PASS, Lifecycle38384929476 PASS. Artifacts/digests recorded below, production WFP or /1 routes not run.",
+    "New real isolated route probe candidate on newly created Wintun: only one benchmarking 198.18.0.78/32 host route with native Create/Get/strict owned/Delete, failsafe cleanup on test error, never /1 capture or physical DNS/underlay change. Evidence route_probe separate from production routes=NOT_RUN, new SOURCE Actions pending.",
     "SOURCE0a49036 Windows2025 hosted real Wintun Action38384371196 native /32 create+DAD+delete exact, original65535 MTU Set/Restore, DNS Set/Clear/Get baseline ALL SCOPED PASS; Windows2022 same SOURCE real test FAIL at ClearIPv4: SetInterfaceDnsSettings nil NameServer returned ERROR_INVALID_PARAMETER 87 after static Set/readback PASS. New code retries NameServer empty UTF16 string only on wrapped native Win32 errno 87, still requires native Get exact baseline; no change to other DNS fields. New SOURCE Actions pending.",
     "SOURCEa5222 Real Windows test Action38383677149 FINAL FAIL Win2022/Win2025 after true Wintun /32 Create+DAD and native MTU Set+RESTORE success. SetInterfaceDnsSettings static returned success and GetInterfaceDnsSettings reported RawNameServer 1.1.1.1,8.8.8.8 but Flags=0; old reader parsed addresses only when Flags&NAMESERVER, so NameServers remained empty and classifier wrongly failed. New source parses any nonempty native DNS NameServer list, maintains WAL exact-target and other DNS fields CAS; Actions pending.",
-    "SOURCE30426a Win2022/25 true disposable Wintun native Action38383227355 FINAL FAIL after /32 DAD and *successful* native SetIpInterfaceEntry MTU1249: Restore incorrectly used Wintun ORIGINAL MTU65535 as a fresh target max9000 and rejected ErrNetworkPlan, before DNS test. New source only fixes Restore preflight target to confirmed applied MTU1249; exact before-row restoration CAS still protects 65535 original.",
-    "SOURCE 3f8d26 MTU native SET INPUT normalization SitePrefixLength=0 after full owned CAS; existing N4 matrix38382873245 and Foundation38382873272 Action pending, Lifecycle38382873265 success. Isolated real driver workflow was not triggered by MTU source path, so next commit updates workflow push paths for MTU/lease/DNS native modules to force exact new-source Windows2022/25 true write+restore. No admin result yet.",
-    "SOURCE1b75 Action38382355741 FINAL FAIL real Windows 2022/2025: isolated new Wintun IPv4 /32+DAD Preferred PASS, before vs native observed IPv4 MTU snapshot identical (MTU65535, Metric5, Connected true, automatic metric true), live created Wintun owner true; only GetIpInterfaceEntry SitePrefixLength=64; MTU writer incorrectly rejects nonzero SitePrefixLength rather than setting input SitePrefixLength=0 as Windows requires. Minimal new-source setter ABI normalization Apply+Restore, no CAS loosening, new regression and real Actions pending."
+    "SOURCE30426a Win2022/25 true disposable Wintun native Action38383227355 FINAL FAIL after /32 DAD and *successful* native SetIpInterfaceEntry MTU1249: Restore incorrectly used Wintun ORIGINAL MTU65535 as a fresh target max9000 and rejected ErrNetworkPlan, before DNS test. New source only fixes Restore preflight target to confirmed applied MTU1249; exact before-row restoration CAS still protects 65535 original."
   ],
   "actions": [
     {
@@ -5141,6 +5141,42 @@
       "scope": "REAL_ISOLATED_NATIVE_WINTUN_MUTATION_WIN2022_WIN2025",
       "status": "FAIL",
       "cause": "Windows2025 real created driver/lease DAD+delete, MTU Set+Restore, DNS Set/Clear/Get fully PASS; Windows2022 real same stages passed until static DNS Clear nil NameServer returned Windows ERROR_INVALID_PARAMETER (87). Original workflow overall FAIL, must preserve."
+    },
+    {
+      "name": "next-adaptive-n4-real-wintun-admin-capability",
+      "run_id": 38384929682,
+      "source_sha": "f871b9863d54a6e4e38006df82e96135d0b2ccc7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38384929682",
+      "scope": "REAL_WIN2022_WIN2025_CREATED_WINTUN_NATIVE_DNS_MTU_LEASE_WRITE_RESTORE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS 2 Windows jobs, true driver LUID, /32 DAD and Delete, MTU Set and factory 65535 Restore, DNS Set/Clear/Get exact. Artifacts11804229909 sha256:1d314320dc3a8531273f1d18e050092c98021f9f79ea327efd2324aa2f1068a1 (Win2022),11804957022 sha256:53889e1ab94539e09f89a2894dabece611bbd2460421b7a80310bdbea4c45506 (Win2025). Global WFP, real /1 routes NOT_RUN."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38384929435,
+      "source_sha": "f871b9863d54a6e4e38006df82e96135d0b2ccc7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38384929435",
+      "scope": "N4_SCOPED_STAGED_WINDOWS2022_2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS 4 jobs; artifact11805630258 sha256:f2f6216baf4888052f3b4347dc871af2fbb3b6668214a1c06ffc546d2e55574c."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38384929389,
+      "source_sha": "f871b9863d54a6e4e38006df82e96135d0b2ccc7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38384929389",
+      "scope": "N4_REAL_DNS_CLEAR_COMPAT_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all 7 mandatory Windows/Linux P2/P4; artifact11804304464 sha256:5d639cfa614cca6db61a763719f470c5c4ec608bccda2aefb1bd025425b76419, extended P5/P6 skipped."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38384929476,
+      "source_sha": "f871b9863d54a6e4e38006df82e96135d0b2ccc7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38384929476",
+      "scope": "N4_REAL_DNS_CLEAR_COMPAT_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS core, no physical."
     }
   ],
   "required_read_set": [
