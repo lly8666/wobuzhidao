@@ -1,0 +1,40 @@
+{
+  "schema": "wbd-n4-dns-owner-proof-actions-final/v1",
+  "source_sha": "9d0c2e6c40fd302aed6581366df0c788b1211fd9",
+  "actions": {
+    "N4": {
+      "run": 38355293478,
+      "conclusion": "success",
+      "artifact": 11792063029,
+      "sha256": "c1566b431a2e22710b82f254fc26f0cff56248e6fffc3cbe9507243d6effb4dc"
+    },
+    "foundation": {
+      "run": 38355293359,
+      "conclusion": "success",
+      "required_jobs_success": 7,
+      "artifact": 11792032967,
+      "sha256": "413b38571e237f86d1b5c51b9d7b14333261cbd5c0154ff82e7d7ea72c25df5d",
+      "p5_p6": "SKIPPED"
+    },
+    "lifecycle": {
+      "run": 38355293275,
+      "conclusion": "success"
+    }
+  },
+  "prior": {
+    "source_sha": "c10a0732569af95a2cdabcad2402b457f620496f",
+    "runs": [
+      38354764587,
+      38354764412,
+      38354764394
+    ]
+  },
+  "scope": "Windows2022/2025 and Linux race native DNS owner negative tests; no successful OS setter or real Wintun driver",
+  "status": "SCOPED_PASS",
+  "native_admin_driver": "NOT_RUN",
+  "physical": "NOT_RUN",
+  "n6": "NOT_STARTED",
+  "artifact_sha_type": "GitHub metadata zip digest",
+  "performance_samples": 0,
+  "seed": null
+}

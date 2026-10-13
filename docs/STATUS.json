@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_ROUTE_COMPACT_BATCH_SCOPED_ACTIONS_PASS_DNS_WRITE_OWNER_PROOF_CANDIDATE_PENDING_PRODUCTION_TRANSACTION_AND_N6_OPEN",
+    "phase": "N4_COMPACT_ROUTE_DNS_OWNERSHIP_SCOPED_PASS_DURABLE_NATIVE_NETWORK_TXN_AND_N6_OPEN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_NATIVE_COMPACT_ROUTE_BUILDER_AND_APPLY_PREFLIGHT_SCOPED_WIN_LINUX_ACTIONS_PASS_SOURCE_C10A;NATIVE_DNS_GUID_INTERFACE_OWNER_FENCE_CANDIDATE_NOT_TESTED;PRODUCT_CMD_POWERSHELL_MASS_ROUTES_STILL_ACTIVE;ADMIN_WINTUN_DNS_WFP_TXN_NOT_DONE",
+    "implementation": "SOURCE_C10A_COMPACT_ROUTE_BATCH_HARD_PREFLIGHT_AND_9D0C_DNS_LIVE_OWNER_IFINDEX_GUID_FENCE_SCOPED_ACTIONS_PASS;PRODUCTION_WINDOWS_POWERSHELL_AND_MASS_CIDRS_ACTIVE;DURABLE_LEASE_MTU_DNS_WFP_ROUTE_TXN_NOT_IMPLEMENTED",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
       "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
-      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;NEW_DNS_OWNER_GUARD_PENDING",
+      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify newly pushed N4 native DNS setter proof candidate with next-adaptive-n4-owned-native-transaction-matrix Windows2022/2025 + Linux race and next-foundation. The old arbitrary-GUID DNS SetIPv4 primitive now requires live process-created Wintun ownership proof for index and read-only GUID=index match; still no durable DNS intent/restore or production connection. Once scoped Actions pass, implement owned native Wintun lease/DHCP/MTU/DNS/WFP crash-durable Apply/Stop/Recover and isolated admin real driver capability checks, then native compact route + in-TUN userspace TCP/UDP and remove product PowerShell. N2 residuals/N6/physical unchanged. Never deploy/merge.",
-  "latest_log": "docs/devlog/20261013-n4-dns-native-owner-proof-gate-candidate.md",
+  "next_task": "N4 next atomic task: implement crash-durable single native Windows network Apply/Stop/Recover transaction with write-ahead journal and independently verified live created Wintun identity/LUID+generation, exclusive DHCP/static /32 lease and DAD, MTU CAS and restore, native DNS Get/Set/rollback, persistent WFP DNS/IPv6 anti-leak protected against multi-Wintun collisions (or fail-closed documented exclusive mode), and exact /32 physical escape + two /1 + only configured DNS /32. Verify cancellation, partial failure, repeated Stop, crash recovery, foreign state preservation on Actions Win2022/25 Linux race; real admin Wintun driver capabilities only when available and mark unsupported otherwise. Only then connect official CLI userspace DirectTCP+NativeUDP without PowerShell/.ps1 and large complement CIDRs. N2 C04/C05/C10/80s residuals remain OPEN; N6 same-source three-target P6 not started; physical NOT_RUN; no deploy/merge/qualification ref movement.",
+  "latest_log": "docs/devlog/20261013-n4-dns-owner-proof-actions-final-receipt.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "c10a0732569af95a2cdabcad2402b457f620496f",
-  "last_tested_scope": "C10A_NATIVE_COMPACT_ROUTE_BATCH_OWNED_MATRIX_WIN2022_2025_LINUX_RACE_ACTION38354764587_SUCCESS_FOUNDATION38354764412_ALL7_SUCCESS_LIFECYCLE38354764394_SUCCESS_NO_ADMIN_WINTUN",
+  "last_tested_source_sha": "9d0c2e6c40fd302aed6581366df0c788b1211fd9",
+  "last_tested_scope": "SOURCE_9D0C_N4_NATIVE_DNS_WINTUN_OWNER_GUID_GATE_SCOPED_WIN2022_WIN2025_LINUX_RACE_ACTION38355293478_SUCCESS_FOUNDATION38355293359_ALL7_SUCCESS_LIFECYCLE38355293275_SUCCESS_NO_REAL_WINTUN_ADMIN_DNS_SET",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,10 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "N4 Windows-native DNS SetIPv4 owner-proof gate new candidate awaiting Actions: must prove current owned Wintun index and read-only GUID mapping, not just persistent guard. Unconnected until crash-durable DNS intent and generation lock; no OS setter invoked in test.",
-    "SOURCE c10a073 route batch N4 Windows2022/2025+Linux race Action38354764587 FINAL SUCCESS, Foundation38354764412 FINAL SUCCESS seven mandatory, Lifecycle38354764394 FINAL SUCCESS. No native admin Wintun or physical; c10a evidence preserved.",
-    "Candidate code after dfd00b82: strict compact native route batch constructed only from validated NetworkPlan; physical server /32 escape first; ApplyRoutes rejects wrong /1, CN /24, duplicate, bad capture interface or metric BEFORE guard/journal. Unit tests new; awaiting precise new-SOURCE Actions; no physical, CLI path unchanged.",
-    "SOURCE b650aa: explicit Windows N4 Wintun-owner negative matrix TestN4WintunHandleOwnershipNeverBasedOnAlias + TestN4WintunAdapterClaimDoesNotSurviveClosedSession each 3 repetitions on BOTH Windows2022/2025, dedicated Action38353235782 FINAL SUCCESS 4 jobs Linux race+receipt; artifact11791975522. Confirmed job logs 6 passing test lines per Windows runner. Foundation38353235766 FINAL SUCCESS all 7 required, artifact11791443266.",
-    "Product N4 small route/DirectTCP still DISABLED; Wintun owner proof requires actual created live adapter handle and fresh LUID. Native IPv4 /32 lease/MTU and DNS setters are low-level unconnected guarded primitives; persistent WFP isolated TEST-NET only, no real admin Wintun/DNS/IPv6 no-leak end-to-end. Existing Windows cmd/wbd-client still runs PowerShell plus complement host CIDRs, violating user's final no PowerShell requirement."
+    "Source9d0c2e6 native DNS write current-owned Wintun Index→GUID proof: Action38355293478 final SUCCESS Windows2022/2025 Linux race+receipt; Foundation38355293359 final SUCCESS seven required, Lifecycle38355293275 SUCCESS. Native actual Wintun and SetInterfaceDnsSettings NOT_RUN. Artifact SHA256 metadata saved in final receipt.",
+    "Sourcec10a073 strict compact native route batch deterministic physical server escape first /1+DNS /32 bounded, matrix38354764587 SUCCESS, Foundation38354764412 SUCCESS, Lifecycle38354764394 SUCCESS; only software/fake route transaction, OS mutation NOT_RUN.",
+    "N4 end-to-end durable Wintun DHCP/lease/MTU/DNS/WFP/route transaction and real admin driver are NOT_IMPLEMENTED/NOT_RUN; current Windows client still invokes PowerShell and complement routes. N6 NOT_STARTED; physical NOT_RUN.",
+    "N2 C04/C05 efficiency and C10 GE p99 + ~80s S2C continue OPEN, no qualification inheritance from scoped N4 PASS."
   ],
   "actions": [
     {
@@ -4502,6 +4501,33 @@
       "scope": "CORE_LIFECYCLE",
       "status": "PASS",
       "cause": "FINAL SUCCESS at exact SOURCE c10a; hosted Go and route fake backend only. Driver mutation / native product activation NOT_RUN. P5/P6 extra SKIPPED."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38355293478,
+      "source_sha": "9d0c2e6c40fd302aed6581366df0c788b1211fd9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38355293478",
+      "scope": "N4_DNS_LIVE_OWNER_GUID_NEGATIVE_WIN2022_2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS; artifact 11792063029 GitHub SHA256 c1566b431a2e22710b82f254fc26f0cff56248e6fffc3cbe9507243d6effb4dc; no driver or setter mutation."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38355293359,
+      "source_sha": "9d0c2e6c40fd302aed6581366df0c788b1211fd9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38355293359",
+      "scope": "N4_DNS_OWNER_SAME_SOURCE_FULL_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all 7 required; extended P5/P6 skipped; foundation artifact 11792032967 GitHub SHA256 413b38571e237f86d1b5c51b9d7b14333261cbd5c0154ff82e7d7ea72c25df5d."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38355293275,
+      "source_sha": "9d0c2e6c40fd302aed6581366df0c788b1211fd9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38355293275",
+      "scope": "N4_DNS_OWNER_SAME_SOURCE_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS core; not real Windows driver."
     }
   ],
   "required_read_set": [

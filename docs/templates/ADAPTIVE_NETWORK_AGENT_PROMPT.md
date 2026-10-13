@@ -1,3 +1,6 @@
+## N4 最新限定 Actions 收据（2026-10-13）
+最新已测试产品 SOURCE `9d0c2e6c40fd302aed6581366df0c788b1211fd9`：原生 DNS Set 写入口增加 process-created live Wintun 所有权与 ifIndex→GUID 一致性检查，N4 Action38355293478（Win2022/Win2025/Linux-race）、Foundation38355293359（七个必需job）、Lifecycle38355293275 最终 SUCCESS；上一个 SOURCE `c10a073` 的 compact /1 路由构造和 preflight Action38354764587/Foundation38354764412/Lifecycle38354764394 均 SUCCESS。都只有 hosted Go/模拟安全边界；真实 Wintun 管理员 DNS/route mutation NOT_RUN。现行 Windows CLI 仍用 PowerShell 和海量补集路由；未形成持久 Lease/DHCP/MTU/DNS/WFP 全事务，不能激活。N2 C04/C05/C10/80s 残余 OPEN，N6 3 目标包 NOT_STARTED，physical NOT_RUN。**真正 next_task 以 docs/STATUS.json 为准。**
+
 ## 接手新进度（2026-10-13 最新代码）
 
 严格紧凑 N4 native route batch SOURCE `c10a073` 的 Windows2022/2025 + Linux race Action38354764587 / Foundation38354764412 / Lifecycle38354764394 最终 SUCCESS（仅软件/模拟路由，非实网）。其后 Windows native DNS setter Wintun owner+GUID proof 是**待新 SOURCE Actions**的候选。仍不能调用正式网络 Apply，CLI 仍有旧 PowerShell、N6 未做、physical NOT_RUN。按 STATUS 活跃下一步，不重跑已 PASS。
