@@ -11,6 +11,10 @@ on:
       - "internal/windowsclient/native_unified_network_owner_windows.go"
       - "internal/windowsclient/native_dns_snapshot_windows.go"
       - "internal/windowsclient/native_ipinterface_windows.go"
+      - "internal/windowsclient/native_mtu_write_windows.go"
+      - "internal/windowsclient/native_lease_windows.go"
+      - "internal/windowsclient/native_dns_write_windows.go"
+      - "internal/windowsclient/native_unified_stage_dns_windows.go"
       - "internal/windowsclient/native_address_snapshot_windows.go"
   workflow_dispatch:
 permissions:

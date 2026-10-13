@@ -1,0 +1,7 @@
+# Force exact-source isolated real-Wintun mutation after MTU SitePrefix input fix
+
+The prior CODE SOURCE `3f8d26c98d2967fb186ce7bc0bae6934c4ae3642` changed real Windows MTU setter input only: after strict native row ownership and state CAS, SetIpInterfaceEntry receives SitePrefixLength 0 for IPv4 as required, both Apply and Restore; the observed GetIpInterfaceEntry SitePrefixLength 64 is not a mutation of other tracked fields. Real Win2022/25 previous Actions38382355741 failed (genuine failure, not driver absence), while Foundation and Lifecycle passed. N4 SOURCE3f8d matrix38382873245, Foundation38382873272 still running at preparation time; lifecycle38382873265 success.
+
+The existing real created-Wintun capability workflow did not list `native_mtu_write_windows.go` under push paths. This atomic workflow update adds native MTU/lease/DNS backend source file paths and DNS stage so exact new-source isolated Win2022 and Win2025 real mutation test actually runs, rather than falsely claiming code compile/mock success. Strict own random CI Wintun only, /32 lease+DAD+Delete, MTU native Set/Restore, DNS static Set/Clear/Get readback; test-only FAKE guard (no production firewall), no host/default routes/physical NIC. Preserve original failures, record raw platform evidence and receipt hashes, no overall P6 until product truly scriptless native.
+
+N2 C04/C05 efficiency FAIL, C10 GE tail and ~80s S2C OPEN; N4 production guard+crash ownership+official Windows scriptless, N6 packaging OPEN; physical NOT_RUN, no deploy/merge.

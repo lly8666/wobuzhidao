@@ -1,3 +1,7 @@
+## 2026-10-13 MTU API 真实修正后补全 Actions 触发路径
+
+SOURCE `3f8d26c` 为微软 IPv4 `SetIpInterfaceEntry` 传入结构将 `SitePrefixLength` 设0，保留所有其他原行 CAS 和 generation/owner 校验。现有 N4/Found 行为在跑；原工作流只监控测试文件，漏掉真正 `native_mtu_write_windows.go` 修改。下一提交把 MTU/lease/DNS native 实现都加入 Win2022/25 **实写**能力工作流触发路径，确保真实创建 Wintun 的 /32 DAD + MTU Set/Restore + DNS Set/Clear/Get 同源可观察。不冒充生产 WFP 守卫，正式 CLI PowerShell/最终N4/N6仍未完成；physical NOT_RUN。
+
 ## 2026-10-13 真 Wintun MTU 失败已精确定位，修正 Win32 传参而不放松外来状态 CAS
 
 `1b75cdfa` 真实 Windows2022/25 Action38382355741 两端原生日志：真实新建 Wintun /32 地址 DAD Preferred，完整 MTU 基线字段与即时读回均一致、当前句柄归属 true，但 AF_INET `GetIpInterfaceEntry` 的 `SitePrefixLength=64`。源码误把读取值非零判为 foreign；微软要求传给 `SetIpInterfaceEntry` 的 IPv4 行将 SitePrefixLength 设为0。这次代码仅在**准备原生 SET 输入**时规范化该字段，原有 Metric/MTU/Connected/WeakHost/AutomaticMetric 等严格 CAS 保持不变，Apply 与 Restore 均受同一修正规则。新 SOURCE Win2022/25 真实写入/回滚 Actions 待验。历史两个 FAIL 和文档收据留存，不提前宣称 DNS Set/Clear PASS，正式客户端仍 PowerShell，N4/N6/physical 未完成。
