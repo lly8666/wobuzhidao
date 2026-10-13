@@ -38,13 +38,17 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           go test -mod=readonly ./internal/windowsclient \
-            -run '^Test(N4WindowsWFPPersistentFilterHostLab|N4WFPGuardPlan|N4WFPGuard|N4WFPPartial)' -count=1 -timeout=8m -v
+            -run '^Test(N4WindowsWFPPersistentFilterHostLab|N4WindowsWFPExactOwnedDeletePartialHostLab)$' -count=1 -timeout=8m -v | tee artifacts-n4-wfp-test.log
+          grep -F -- '--- PASS: TestN4WindowsWFPPersistentFilterHostLab' artifacts-n4-wfp-test.log
+          grep -F -- '--- PASS: TestN4WindowsWFPExactOwnedDeletePartialHostLab' artifacts-n4-wfp-test.log
+          go test -mod=readonly ./internal/windowsclient \
+            -run '^Test(N4WFPGuardPlan|N4WFPGuard|N4WFPPartial)' -count=1 -timeout=8m -v
       - name: Record WFP persistence scope (never production guard)
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          printf '{"schema":"wbd-n4-wfp-isolated-persistence/v1","source_sha":"%s","runner":"%s","persisted_testnet_only":"PASS","wfp_filter_owned_cleanup":"PASS","effective_production_dns_ipv6_guard":"NOT_IMPLEMENTED","real_user_nic":"NOT_RUN","physical_qualification":"NOT_RUN"}\n' "$GITHUB_SHA" "$RUNNER_OS" > artifacts/n4-wfp-testnet-lab.json
+          printf '{"schema":"wbd-n4-wfp-isolated-persistence/v1","source_sha":"%s","runner":"%s","persisted_testnet_only":"PASS","wfp_filter_owned_cleanup":"SCOPED_REAL_OS_TESTNET_CAS_PARTIAL_RETRY_PASS","effective_production_dns_ipv6_guard":"NOT_RUN","real_user_nic":"NOT_RUN","physical_qualification":"NOT_RUN"}\n' "$GITHUB_SHA" "$RUNNER_OS" > artifacts/n4-wfp-testnet-lab.json
       - uses: actions/upload-artifact@v4
         if: success()
         with:

@@ -114,19 +114,45 @@ func n4WFPDeletionIDs(p n4WFPRulePlan, sub bool, matching map[wf.RuleID]bool, pa
 func (g *n4WindowsPersistentWFPGuard) disarm(ctx context.Context,partialOK bool)error{
  if err:=ctx.Err();err!=nil{return err}
  plan,err:=g.plan();if err!=nil{return err}
- s,err:=wf.New(&wf.Options{Dynamic:false});if err!=nil{return err}
- defer s.Close()
- // n4WFPReadOwned rejects foreign/altered objects before ANY deletion.
- sub,matching,err:=n4WFPReadOwned(s,plan);if err!=nil{return err}
- ids,err:=n4WFPDeletionIDs(plan,sub,matching,partialOK);if err!=nil{return err}
- if !sub{return nil}
- for _,id:=range ids{
-  if err:=ctx.Err();err!=nil{return err}
-  if err:=s.DeleteRule(id);err!=nil{return err}
- }
+ return n4WFPDisarmExactPlan(ctx,plan,partialOK)
+}
+
+// n4WFPDisarmExactPlan is the same native WFP deletion path used by the
+// product guard and the TEST-NET-only Actions lab. Callers may NOT use the
+// lab to infer production-wide filter qualification. The independently
+// reopened engine after deletion catches a failed or partial host mutation.
+func n4WFPDisarmExactPlan(ctx context.Context,plan n4WFPRulePlan,partialOK bool)error{
  if err:=ctx.Err();err!=nil{return err}
- if err:=s.DeleteSublayer(plan.Sublayer.ID);err!=nil{return err}
- return nil
+ if plan.Sublayer==nil || len(plan.Rules)==0{return ErrN4NativeGuard}
+ for _,r:=range plan.Rules{
+  if r==nil || r.ID==(wf.RuleID{}) || r.Sublayer!=plan.Sublayer.ID{
+   return ErrN4NativeGuard
+  }
+ }
+ s,err:=wf.New(&wf.Options{Dynamic:false});if err!=nil{return err}
+ // Exact read-before-write CAS rejects unknown rules, altered conditions,
+ // foreign sublayers and moved rule IDs prior to ANY deletion.
+ sub,matching,err:=n4WFPReadOwned(s,plan)
+ if err!=nil{s.Close();return err}
+ ids,err:=n4WFPDeletionIDs(plan,sub,matching,partialOK)
+ if err!=nil{s.Close();return err}
+ if sub{
+  for _,id:=range ids{
+   if err:=ctx.Err();err!=nil{s.Close();return err}
+   if err:=s.DeleteRule(id);err!=nil{s.Close();return err}
+  }
+  if err:=ctx.Err();err!=nil{s.Close();return err}
+  if err:=s.DeleteSublayer(plan.Sublayer.ID);err!=nil{s.Close();return err}
+ }
+ if err:=s.Close();err!=nil{return err}
+ if err:=ctx.Err();err!=nil{return err}
+ // WFP persistence is OS-owned, not session-owned. Reopen independently,
+ // reject an unexpectedly surviving object, retain WAL on uncertainty.
+ check,err:=wf.New(&wf.Options{Dynamic:false});if err!=nil{return err}
+ defer check.Close()
+ present,remaining,err:=n4WFPReadOwned(check,plan);if err!=nil{return err}
+ if present || len(remaining)!=0{return ErrN4NativeGuard}
+ return ctx.Err()
 }
 
 // Disarm refuses partial filtering state. This is appropriate if captured

@@ -1,8 +1,6 @@
-## 2026-10-13 N4 guard:owned-only crash orphan WFP CAS scoped Actions PASS / production WFP external capability blocked
+## 2026-10-13 最新 N4 TEST-NET 限定真实 WFP 精确清理候选（Actions 待验）
 
-**最新 docs 合约收口（2026-10-13）：** DOC-only `50cf8479` Foundation38409758181 **FAIL**（未新增 devlog，保留原 FAIL）；修复 DOC-only `f99a72c884599e41e6d83375a3b6908f57e1c30f` Foundation38410201482 七项必需最终 SUCCESS。已验 Go 源码仍仅 `c2c70ee0a3f9e22f356c833fcc3b0232e72517dd` 的 scoped 四套件，fake WFP 不等于真系统持久 WFP 删除。真实多 Wintun 共存 WFP/隔离 Windows Actions 是 N4 下一外部能力门，完整产品和 P6 仍 OPEN；physical NOT_RUN。详见唯一 STATUS 和新 devlog。
-
-精确 CODE SOURCE `c2c70ee0a3f9e22f356c833fcc3b0232e72517dd`：N4 Matrix38408895055 Win2022/2025 + Linux race（新增 guard owned/partial/absent、foreign/error 负测两端 x3 明确 PASS）、真实 Win2022/25 Wintun38408895379、Foundation38408894698 七必需、Lifecycle38408895455 均最终 SUCCESS；只证明 Go WAL/CAS 状态机及原生**只读**接口缺失门，WFP 删除使用 fake backend，**真实持久全局 WFP 删除 NOT_RUN**，不继承 mock 为实际 Windows 过滤器资格。原系统规则 `IPLocalInterface != WintunLUID` 会误伤其他独立 Wintun，Arm 继续 hard-disabled；无隔离 Windows Actions 环境不能启用全局 WFP 或两 /1 抢占路由。确认 lease/MTU/DNS/routes 崩溃恢复、正式无 PowerShell CLI、N4 全量、跨功能 N5、N6 三目标 P6 同源包/hash 均 OPEN；physical NOT_RUN，N2 C04/C05 FAIL、C10 GE p99 和 ~80s S2C 仍 OPEN。下一任务以唯一 `docs/STATUS.json` 为准；不部署、不合并、不动 qualification ref。
+用户允许最终实机在**只有项目自身一个 Wintun**的前提下验收，不再把多 Wintun 共存作为该物理环境的阻塞；但 Actions 中仍不得对共享 runner 安装全局 WFP 或真实两 /1 默认捕获，也不能在 N4 未完成时标实机 READY。当前正式 Windows CLI 仍走 PowerShell，五阶段 native assembler 仍 assemblyOnly、WFP Arm 禁用。新原子候选复用生产 `n4WFPDisarmExactPlan` 做 Win2022/25 真实 TEST-NET:65530 狭窄持久 WFP 规则 CAS 删除/部分恢复/独立重新打开引擎核查；不是实际 host-wide DNS/IPv6 资格。已验 CODE SOURCE `c2c70ee0` N4 matrix38408895055、真实 Win Wintun38408895379、Foundation38408894698 和 Lifecycle38408895455 均有限 PASS，DOC HEAD `673f904` Foundation38410911731 SUCCESS。须等新 SOURCE Actions 修复任何失败；下一任务唯一看 STATUS，N6/physical NOT_RUN，N2 C04/C05/C10/约80秒遗留不修改。
 
 ## 2026-10-13 N4 guard-intent-only 真 child crash scoped PASS；生产 WFP/无脚本/隔离 Actions 阻塞
 

@@ -3,6 +3,7 @@
 package windowsclient
 
 import (
+ "context"
  "crypto/rand"
  "encoding/binary"
  "errors"
@@ -98,14 +99,82 @@ func TestN4WindowsWFPPersistentFilterHostLab(t *testing.T) {
  if err!=nil{reopened.Close();t.Fatal(err)}
  if !found{reopened.Close();t.Fatal("CI scoped persistent rule vanished across WFP engine reopen")}
  if err:=reopened.Close();err!=nil{t.Fatal(err)}
- // Only successful owned rule lookup permits deletion. Cleanup always
- // takes place through a new session, i.e. no dynamic policy dependency.
- cleanup,err:=wf.New(&wf.Options{Dynamic:false})
+ // Use exactly the same independent engine/CAS/readback deletion routine
+ // as the product guard, but only on THIS TEST-NET+port scoped lab filter.
+ plan:=n4WFPRulePlan{Sublayer:sub,Rules:[]*wf.Rule{rule}}
+ if err:=n4WFPDisarmExactPlan(context.Background(),plan,false);err!=nil{
+  t.Fatalf("real WFP exact-owned cleanup failed: %v",err)
+ }
+ ruleAdded, sublayerAdded=false,false
+ if err:=n4WFPDisarmExactPlan(context.Background(),plan,false);err!=nil{
+  t.Fatalf("repeated real WFP cleanup not idempotent: %v",err)
+ }
+ t.Log("Real WFP persisted scoped TEST-NET filter, then production-shared exact CAS deletion and independent reopened readback PASS; not host-wide DNS/IPv6")
+}
+
+
+func TestN4WindowsWFPExactOwnedDeletePartialHostLab(t *testing.T){
+ if os.Getenv("WBD_N4_WFP_ISOLATED_LAB")!="1"{
+  t.Skip("real TEST-NET WFP mutation only on explicitly gated Actions lab")
+ }
+ sid:=wf.SublayerID(n4WFPTestGUID(t))
+ rid:=wf.RuleID(n4WFPTestGUID(t))
+ sub:=&wf.Sublayer{ID:sid,Name:"WBD N4 TEST-NET partial-deletion lab",Persistent:true,Weight:1}
+ rule:=&wf.Rule{
+  ID:rid,Name:"WBD N4 TEST-NET partial-deletion rule",
+  Layer:wf.LayerALEAuthConnectV4,Sublayer:sid,
+  Persistent:true,Weight:1,Action:wf.ActionBlock,
+  Conditions:[]*wf.Match{
+   {Field:wf.FieldIPRemoteAddress,Op:wf.MatchTypeEqual,Value:netip.MustParseAddr("203.0.113.254")},
+   {Field:wf.FieldIPRemotePort,Op:wf.MatchTypeEqual,Value:uint16(65530)},
+  },
+ }
+ s,err:=wf.New(&wf.Options{Dynamic:false})
  if err!=nil{t.Fatal(err)}
- if err:=cleanup.DeleteRule(ruleID);err!=nil{cleanup.Close();t.Fatal(err)}
+ ruleAdded,subAdded:=false,false
+ t.Cleanup(func(){
+  cleanup,e:=wf.New(&wf.Options{Dynamic:false})
+  if e!=nil{t.Errorf("cannot reopen scoped WFP lab cleanup: %v",e);return}
+  defer cleanup.Close()
+  if ruleAdded {if e=cleanup.DeleteRule(rid);e!=nil{t.Errorf("WFP scoped rule leftover: %v",e)}}
+  if subAdded {if e=cleanup.DeleteSublayer(sid);e!=nil{t.Errorf("WFP scoped sublayer leftover: %v",e)}}
+ })
+ if err=s.AddSublayer(sub);err!=nil{s.Close();t.Fatal(err)}
+ subAdded=true
+ if err=s.AddRule(rule);err!=nil{s.Close();t.Fatal(err)}
+ ruleAdded=true
+ if err=s.Close();err!=nil{t.Fatal(err)}
+ plan:=n4WFPRulePlan{Sublayer:sub,Rules:[]*wf.Rule{rule}}
+ foreign:=*rule
+ foreign.Conditions=[]*wf.Match{
+  {Field:wf.FieldIPRemoteAddress,Op:wf.MatchTypeEqual,Value:netip.MustParseAddr("203.0.113.254")},
+  {Field:wf.FieldIPRemotePort,Op:wf.MatchTypeEqual,Value:uint16(65529)},
+ }
+ if e:=n4WFPDisarmExactPlan(context.Background(),
+  n4WFPRulePlan{Sublayer:sub,Rules:[]*wf.Rule{&foreign}},false);!errors.Is(e,ErrN4ForeignRoute){
+  t.Fatalf("foreign plan unexpectedly deleted OS rule: %v",e)
+ }
+ verify,e:=wf.New(&wf.Options{Dynamic:false})
+ if e!=nil{t.Fatal(e)}
+ exists,e:=n4LabRulePresent(verify,rule)
+ verify.Close()
+ if e!=nil || !exists{t.Fatalf("foreign-plan call mutated real scoped WFP rule: %v %v",exists,e)}
+ // Simulate an interrupted exact-owned rule deletion. A strict disarm
+ // refuses the partial state; the separately gated after-routes cleanup
+ // is permitted to remove ONLY the known empty owned sublayer.
+ s,err=wf.New(&wf.Options{Dynamic:false});if err!=nil{t.Fatal(err)}
+ if err=s.DeleteRule(rid);err!=nil{s.Close();t.Fatal(err)}
  ruleAdded=false
- if err:=cleanup.DeleteSublayer(subID);err!=nil{cleanup.Close();t.Fatal(err)}
- sublayerAdded=false
- if err:=cleanup.Close();err!=nil{t.Fatal(err)}
- t.Log("Persistent TEST-NET scoped filter survived WFP session close/reopen and was removed by GUID; not a production leak guard")
+ if err=s.Close();err!=nil{t.Fatal(err)}
+ if e:=n4WFPDisarmExactPlan(context.Background(),plan,false);!errors.Is(e,ErrN4NativeGuard){
+  t.Fatalf("strict disarm accepted interrupted WFP rule state: %v",e)
+ }
+ if e:=n4WFPDisarmExactPlan(context.Background(),plan,true);e!=nil{
+  t.Fatalf("exact owned partial WFP cleanup did not finish: %v",e)
+ }
+ subAdded=false
+ if e:=n4WFPDisarmExactPlan(context.Background(),plan,true);e!=nil{
+  t.Fatalf("partial WFP cleanup retry failed: %v",e)
+ }
+ t.Log("real TEST-NET WFP foreign-rule CAS, partial failure, and exact-owned idempotent delete PASS; no host-wide filter")
 }
