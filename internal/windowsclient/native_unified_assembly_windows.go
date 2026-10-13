@@ -19,6 +19,9 @@ func n4AssembleWindowsNativeOwnedTxn(
  guard *n4WindowsPersistentWFPGuard,
 )(*N4NativeUnifiedTxn,error){
  if err:=ctx.Err();err!=nil{return nil,err}
+ if id.PnPInstanceSHA256!="" && !n4ValidPinnedPnPHash(id.PnPInstanceSHA256){
+  return nil,ErrN4JournalConflict
+ }
  if !id.valid() || tun==nil || !tun.createdByProcess ||
   plan.AdapterAlias=="" || plan.AdapterAlias!=tun.Name() {
   return nil,ErrN4ForeignRoute

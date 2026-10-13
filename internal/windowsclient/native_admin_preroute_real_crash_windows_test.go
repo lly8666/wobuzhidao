@@ -34,6 +34,13 @@ func n4HostedPreRouteRealChild(t *testing.T){
  if _,err:=rand.Read(id.Installation[:]);err!=nil{t.Fatal(err)}
  if _,err:=rand.Read(id.Generation[:]);err!=nil{t.Fatal(err)}
  if !id.valid(){t.Fatal("invalid installation/generation")}
+ // Seal original SWD\\Wintun PnP identity with installation+generation
+ // BEFORE the first WAL fsync or ANY native lease/MTU/DNS write.
+ pinned,err:=n4ProbeOriginalWintunPnP(ctx,id)
+ if err!=nil{t.Fatalf("cannot pin child-created original PnP: %v",err)}
+ if !n4ValidPinnedPnPHash(pinned.InstanceSHA256){t.Fatal("invalid original PnP digest")}
+ id.PnPInstanceSHA256=pinned.InstanceSHA256
+ if err:=n4RequireOriginalPnPBinding(id,pinned);err!=nil{t.Fatal(err)}
  // This LAB ONLY uses a fake WFP guard. It validates the real native
  // IP/MTU/DNS side effects, not any production host-global leak defense.
  g:=&n4FakeGuard{durable:true,active:true}
@@ -135,12 +142,15 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
  }
  j,err:=n4UnifiedRead(wal)
  if err!=nil || len(j.Records)!=4 || j.Records[3].State!="owned"{t.Fatalf("real child WAL not fully committed: %+v %v",j,err)}
+ if !n4ValidPinnedPnPHash(j.Identity.PnPInstanceSHA256){t.Fatal("first fsynced WAL missing child PnP instance binding")}
+ report["pnp_wal_binding"]="PASS_DURABLE_ORIGINAL_INSTANCE_PIN"
+ report["pnp_wal_instance_sha256"]=j.Identity.PnPInstanceSHA256
  liveProbe,probeErr:=n4ProbeOriginalIPRows(context.Background(),j.Identity)
  if probeErr!=nil{t.Fatalf("real live Wintun native family probe failed: %v",probeErr)}
  if liveProbe.IPv4!="PRESENT"{t.Fatalf("new live Wintun without IPv4 row: %s",liveProbe.IPv4)}
  report["ipv4_row_live"]=liveProbe.IPv4
  report["ipv6_row_live"]=liveProbe.IPv6
- livePnP,pnpErr:=n4ProbeOriginalWintunPnP(context.Background(),j.Identity)
+ livePnP,pnpErr:=n4ProbePinnedOriginalWintunPnP(context.Background(),j.Identity)
  if pnpErr!=nil{t.Fatalf("original live Win32 Wintun PnP GUID-to-devnode evidence unavailable: %v",pnpErr)}
  report["pnp_state_live"]=livePnP.State
  report["pnp_instance_live_sha256"]=livePnP.InstanceSHA256
@@ -220,7 +230,7 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
      }
      report["ipv4_row_after"]=ghostProbe.IPv4
      report["ipv6_row_after"]=ghostProbe.IPv6
-     ghostPnP,pnpErr:=n4ProbeOriginalWintunPnP(context.Background(),j.Identity)
+     ghostPnP,pnpErr:=n4ProbePinnedOriginalWintunPnP(context.Background(),j.Identity)
      if pnpErr!=nil {
       if errors.Is(pnpErr,ErrN4ForeignRoute){t.Fatalf("foreign original PnP identity after crash; WAL retained: %v",pnpErr)}
       if _,e:=os.Stat(wal);e!=nil{t.Fatalf("unproven original PnP lost parent WAL: %v",e)}
