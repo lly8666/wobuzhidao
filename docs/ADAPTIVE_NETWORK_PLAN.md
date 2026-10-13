@@ -1,5 +1,7 @@
 ## 2026-10-13 N4 guard:owned-only crash orphan WFP CAS scoped Actions PASS / production WFP external capability blocked
 
+**接续修复（2026-10-13）：** Docs-only SOURCE `50cf8479cdbabc10754c26c52ea256424d39da1b` 的 Foundation38409758181 **FAIL**，原因是本提交只修改了旧 devlog，没有新增 `docs/devlog/*.md`，触发 `tools/check_repository.py` 合约；该 FAIL 不是产品测试失败，必须保留。新 docs-only 提交新增 `docs/devlog/20261013-n4-guard-owned-final-receipt-contract-fix.md` 并更新唯一 STATUS 后再跑 Foundation；已验 Go SOURCE `c2c70ee0` 四套件限定 SUCCESS 不迁移至新文档 SHA。真实 WFP 删除仍 NOT_RUN。
+
 精确 CODE SOURCE `c2c70ee0a3f9e22f356c833fcc3b0232e72517dd`：N4 Matrix38408895055 Win2022/2025 + Linux race（新增 guard owned/partial/absent、foreign/error 负测两端 x3 明确 PASS）、真实 Win2022/25 Wintun38408895379、Foundation38408894698 七必需、Lifecycle38408895455 均最终 SUCCESS；只证明 Go WAL/CAS 状态机及原生**只读**接口缺失门，WFP 删除使用 fake backend，**真实持久全局 WFP 删除 NOT_RUN**，不继承 mock 为实际 Windows 过滤器资格。原系统规则 `IPLocalInterface != WintunLUID` 会误伤其他独立 Wintun，Arm 继续 hard-disabled；无隔离 Windows Actions 环境不能启用全局 WFP 或两 /1 抢占路由。确认 lease/MTU/DNS/routes 崩溃恢复、正式无 PowerShell CLI、N4 全量、跨功能 N5、N6 三目标 P6 同源包/hash 均 OPEN；physical NOT_RUN，N2 C04/C05 FAIL、C10 GE p99 和 ~80s S2C 仍 OPEN。下一任务以唯一 `docs/STATUS.json` 为准；不部署、不合并、不动 qualification ref。
 
 ## 2026-10-13 N4 guard-intent-only 真 child crash scoped PASS；生产 WFP/无脚本/隔离 Actions 阻塞
