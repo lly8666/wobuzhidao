@@ -32,6 +32,12 @@ func n4AssembleWindowsNativeOwnedTxn(
   guard.InstallationID!=id.Installation || guard.WintunLUID!=id.WintunLUID{
   return nil,ErrN4NativeGuard
  }
+ // New production generations MUST have a PnP device-instance pin
+ // obtained while the ORIGINAL created Wintun is live, not reconstructed
+ // from an alias after a crash. Legacy WALs lack this proof and cannot
+ // activate a native five-stage network transaction.
+ if !n4ValidPinnedPnPHash(id.PnPInstanceSHA256){return nil,ErrN4JournalConflict}
+ if _,err:=n4ProbePinnedOriginalWintunPnP(ctx,id);err!=nil{return nil,err}
  if plan.StatePath=="" || plan.Schema!=StateSchema {
   return nil,ErrNetworkPlan
  }

@@ -58,4 +58,12 @@ func TestN4WindowsNativeAssemblyRejectsUnboundLegacyGUID(t *testing.T){
  if _,err:=n4AssembleWindowsNativeOwnedTxn(context.Background(),tun,plan,id,guard);!errors.Is(err,ErrN4JournalConflict){
   t.Fatalf("foreign alias assembled: %v",err)
  }
+ id.AdapterAlias="WBD"
+ if _,err:=n4AssembleWindowsNativeOwnedTxn(context.Background(),tun,plan,id,guard);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("same-owner alias without durable PnP instance pin assembled: %v",err)
+ }
+ id.PnPInstanceSHA256="BAD"
+ if _,err:=n4AssembleWindowsNativeOwnedTxn(context.Background(),tun,plan,id,guard);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("invalid PnP pin accepted for production native assembly: %v",err)
+ }
 }

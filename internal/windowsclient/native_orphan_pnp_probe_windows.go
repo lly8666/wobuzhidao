@@ -53,6 +53,36 @@ func n4ClassifyCMDevNode(rc uintptr,status uint32)(string,error){
  }
 }
 
+// n4RequireOriginalPnPBinding requires the SHA256 sealed in the SAME
+// installation/generation WAL to match a fresh Win32 SetupAPI observation.
+// Neither a matching digest nor CR_NO_SUCH_DEVNODE authorizes removing the
+// device, DNS registry, a route, or a persistent WFP guard.
+func n4RequireOriginalPnPBinding(id N4UnifiedIdentity, observed n4OriginalPnPProbe)error{
+ if !id.valid() || !n4ValidPinnedPnPHash(id.PnPInstanceSHA256){
+  return ErrN4JournalConflict
+ }
+ if !n4ValidPinnedPnPHash(observed.InstanceSHA256){
+  return ErrN4NativeGuard
+ }
+ if id.PnPInstanceSHA256!=observed.InstanceSHA256 {
+  return ErrN4ForeignRoute
+ }
+ switch observed.State {
+ case "EXACT_DEVNODE_NO_PROBLEM","EXACT_DEVNODE_PROBLEM","EXACT_PNP_DEVNODE_GONE_13":
+  return nil // read-only identity correlation, NOT cleanup authority
+ default:return ErrN4NativeGuard
+ }
+}
+
+func n4ProbePinnedOriginalWintunPnP(ctx context.Context,id N4UnifiedIdentity)(n4OriginalPnPProbe,error){
+ var zero n4OriginalPnPProbe
+ if !n4ValidPinnedPnPHash(id.PnPInstanceSHA256){return zero,ErrN4JournalConflict}
+ probe,err:=n4ProbeOriginalWintunPnP(ctx,id)
+ if err!=nil{return zero,err}
+ if err:=n4RequireOriginalPnPBinding(id,probe);err!=nil{return zero,err}
+ return probe,nil
+}
+
 func n4ProbeOriginalWintunPnP(ctx context.Context,id N4UnifiedIdentity)(n4OriginalPnPProbe,error){
  var zero n4OriginalPnPProbe
  if err:=ctx.Err();err!=nil{return zero,err}
@@ -117,6 +147,11 @@ func n4ProbeOriginalWintunPnP(ctx context.Context,id N4UnifiedIdentity)(n4Origin
   if raw==""{return zero,ErrN4NativeGuard}
   sum:=sha256.Sum256([]byte(raw))
   out.InstanceSHA256=hex.EncodeToString(sum[:])
+  // Bind every new pinned generation to this exact original device ID.
+  // A different PnP instance with the same interface index/alias is foreign.
+  if id.PnPInstanceSHA256!="" && id.PnPInstanceSHA256!=out.InstanceSHA256{
+   return zero,ErrN4ForeignRoute
+  }
   var status,problem uint32
   rc,_,_:=n4CfgDevNodeStatus.Call(uintptr(unsafe.Pointer(&status)),uintptr(unsafe.Pointer(&problem)),uintptr(row.DevInst),0)
   // CR_NO_SUCH_DEVNODE is a distinct *read-only* state, not a

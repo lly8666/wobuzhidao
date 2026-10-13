@@ -242,6 +242,9 @@ jobs:
           assert x["source_sha"]==os.environ["GITHUB_SHA"] and x["runner"]=="Windows"
           assert x["wfp"]=="FAKE_ONLY"
           assert all(x[k]=="NOT_RUN" for k in ("routes","physical","full_network_recover"))
+          assert x["pnp_wal_binding"]=="PASS_DURABLE_ORIGINAL_INSTANCE_PIN"
+          assert len(x["pnp_instance_live_sha256"])==64
+          assert x["pnp_instance_live_sha256"]==x["pnp_wal_instance_sha256"]
           assert x["result"] in ("SCOPED_REAL_WINTUN_IP_STAGE_CRASH_FAKE_WFP_PASS",
                                   "SCOPED_REAL_PERSISTED_ORIGINAL_IP_ROLLBACK_FAKE_WFP_PASS",
                                   "UNSUPPORTED_ORIGINAL_IDENTITY_CONFLICT",

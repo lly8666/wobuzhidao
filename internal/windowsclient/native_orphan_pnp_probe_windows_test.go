@@ -41,3 +41,17 @@ func TestN4WindowsCMDevnodeStateReadOnlyIsNotDeletionPermission(t *testing.T){
   }
  }
 }
+
+func TestN4WindowsProductionPersistedOriginalRollbackNeedsPnPPin(t *testing.T){
+ id:=n4GuardOwnedOrphanID()
+ // Production must refuse a legacy pre-PnP journal BEFORE reading any
+ // OS interface, installing WFP, or mutating the network.
+ path:=filepath.Join(t.TempDir(),"legacy-parent.json")
+ if err:=N4WindowsRecoverPersistedPreRouteWAL(context.Background(),path,id);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("unpinned old-generation journal entered production rollback: %v",err)
+ }
+ id.PnPInstanceSHA256="UPPERCASE"+strings.Repeat("a",55)
+ if err:=N4WindowsRecoverPersistedPreRouteWAL(context.Background(),path,id);!errors.Is(err,ErrN4JournalConflict){
+  t.Fatalf("malformed PnP identity accepted for production rollback: %v",err)
+ }
+}

@@ -27,10 +27,23 @@ type N4UnifiedIdentity struct {
  // explicitly require BOTH; legacy journals never become owner proof.
  WintunGUID string `json:"wintun_guid,omitempty"`
  AdapterAlias string `json:"adapter_alias,omitempty"`
+ // SHA256 of the ORIGINAL SWD\\Wintun PnP device instance ID, captured
+ // BEFORE any native network mutation. It is sealed inside the existing
+ // installation+generation-specific checksum WAL, not a raw device ID.
+ // Legacy journals may lack the pin and NEVER gain PnP orphan authority.
+ PnPInstanceSHA256 string `json:"pnp_instance_sha256,omitempty"`
+}
+func n4ValidPinnedPnPHash(digest string) bool {
+ if len(digest)!=64{return false}
+ for _,ch:=range digest {
+  if (ch<'0'||ch>'9') && (ch<'a'||ch>'f'){return false}
+ }
+ return true
 }
 func (v N4UnifiedIdentity) valid() bool {
  return v.Installation!=([16]byte{}) && v.Generation!=([16]byte{}) &&
-  v.WintunLUID!=0 && v.WintunIndex!=0
+  v.WintunLUID!=0 && v.WintunIndex!=0 &&
+  (v.PnPInstanceSHA256=="" || n4ValidPinnedPnPHash(v.PnPInstanceSHA256))
 }
 type N4UnifiedExclusion interface {
  // Must hold a process-external lock for the ENTIRE Apply/Recover call.

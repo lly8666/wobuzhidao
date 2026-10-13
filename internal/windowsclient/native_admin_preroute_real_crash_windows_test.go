@@ -222,6 +222,7 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
      report["ipv6_row_after"]=ghostProbe.IPv6
      ghostPnP,pnpErr:=n4ProbeOriginalWintunPnP(context.Background(),j.Identity)
      if pnpErr!=nil {
+      if errors.Is(pnpErr,ErrN4ForeignRoute){t.Fatalf("foreign original PnP identity after crash; WAL retained: %v",pnpErr)}
       if _,e:=os.Stat(wal);e!=nil{t.Fatalf("unproven original PnP lost parent WAL: %v",e)}
       if !fake.active || fake.disarmCount!=0{t.Fatal("unproven PnP disarmed guard")}
       report["pnp_state_after"]="UNSUPPORTED_NATIVE_PNP_READBACK"

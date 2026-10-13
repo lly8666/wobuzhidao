@@ -36,6 +36,9 @@ func (p n4PersistedOriginalProof) IsCurrentOwnedWintun(ctx context.Context,index
 // WFP rule is installed here. The persistent WFP must ALREADY be armed.
 // Production activation is still disabled elsewhere.
 func N4WindowsRecoverPersistedPreRouteWAL(ctx context.Context,path string,id N4UnifiedIdentity)error{
+ // Real recovery cannot promote a pre-PnP legacy journal into authority
+ // over an original driver or its DNS registry after process termination.
+ if !n4ValidPinnedPnPHash(id.PnPInstanceSHA256){return ErrN4JournalConflict}
  guard:=&n4WindowsPersistentWFPGuard{
   InstallationID:id.Installation,WintunLUID:id.WintunLUID,
   ExclusiveSingleWintun:true, // selects exact legacy plan; never permits Arm
@@ -107,6 +110,12 @@ func n4RecoverPersistedPreRouteWAL(ctx context.Context,path string,id N4UnifiedI
  if _,err:=os.Lstat(path+".routes");err==nil{return ErrN4JournalConflict
  }else if !errors.Is(err,os.ErrNotExist){return err}
  if err:=n4OriginalWintunPersistedExact(ctx,id);err!=nil{return err}
+ checkPinned:=func()error{
+  if id.PnPInstanceSHA256==""{return nil} // isolated legacy fixtures only
+  _,e:=n4ProbePinnedOriginalWintunPnP(ctx,id)
+  return e
+ }
+ if err:=checkPinned();err!=nil{return err}
  // The verified full persistent protection must stay armed until all
  // interface-local stage writes have been undone and independently read.
  if len(j.Records)>1{
@@ -156,6 +165,7 @@ func n4RecoverPersistedPreRouteWAL(ctx context.Context,path string,id N4UnifiedI
   i:=len(j.Records)-1
   rec:=j.Records[i]
   if err:=n4OriginalWintunPersistedExact(ctx,id);err!=nil{return err}
+  if err:=checkPinned();err!=nil{return err}
   verified,err:=g.Verify(ctx)
   if err!=nil{return err}
   if !verified{return ErrN4NativeGuard}
@@ -177,10 +187,12 @@ func n4RecoverPersistedPreRouteWAL(ctx context.Context,path string,id N4UnifiedI
  // The confirmed original remains present. No route was ever started;
  // ONLY now can the independent, exact-ID WFP backend be disarmed.
  if err:=n4OriginalWintunPersistedExact(ctx,id);err!=nil{return err}
+ if err:=checkPinned();err!=nil{return err}
  if err:=n4FinishGuardAfterRoutes(ctx,g);err!=nil{return err}
  if ok,err:=g.Verify(ctx);err!=nil{return err
  }else if ok{return ErrN4NativeGuard}
  if err:=n4OriginalWintunPersistedExact(ctx,id);err!=nil{return err}
+ if err:=checkPinned();err!=nil{return err}
  if _,err:=os.Lstat(path+".routes");err==nil{return ErrN4JournalConflict
  }else if !errors.Is(err,os.ErrNotExist){return err}
  return os.Remove(path)
