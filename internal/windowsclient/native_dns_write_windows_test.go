@@ -81,5 +81,4 @@ func TestN4NativeDNSSetterDeniedBeforeDLLSideEffects(t *testing.T){
   t.Fatalf("durable but unarmed guard permitted DNS write: %v",err)
  }
  // No successful SetInterfaceDnsSettings call is made in this test.
- _=strings.TrimSpace
 }
