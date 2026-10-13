@@ -9,12 +9,12 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_WINTUN_UNOWNED_IPV4_DHCP_TRANSACTION_GUARD_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N4_OWNED_DHCP_HOSTED_MOCK_FIX_PENDING_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
+    "new_product_source_sha": "725d487942e8a33a91179a75c782dd0575f44249",
     "implementation": "N4_UDP_NATIVE_WINTUN_ENTRY_WIRED_SCOPED_HOSTED_ACTIONS_PASS;CANCELLABLE_OWNED_APPLY_CLEANUP_CANDIDATE_ACTIONS_PENDING;TCP_DIRECT_DRIVER_AND_FEW_ROUTES_OPEN",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
       "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
-      "N4_windows_tun": "WIN_ENTRY_49ADB_AND_CANCELLABLE_APPLY_67B7_ACTION38338092331_SCOPE_PASS_WITH_FOUNDATION_GUI_AES_LIFECYCLE;NOW_OWNED_UNOWNED_IPV4_DHCP_GUARD_CANDIDATE_ACTIONS_NOT_RUN;REAL_TCP_DIRECT_AND_FEW_ROUTES_NOT_DONE",
+      "N4_windows_tun": "WIN_ENTRY_49ADB_PASS_CANCELLABLE_APPLY_67B7_PASS;OWNED_FOREIGN_IPV4_DHCP_SOURCE_725D_ACTION38338521944_FAIL_MOCK_DHCP_PROPERTY_AND_FOUNDATION_WIN_GO_FAIL_PRESERVED;FIX_NATIVE_MOCK_STATE_AND_ACTIVE_STORE_CANDIDATE_ACTIONS_NOT_RUN;TCP_DRIVER_FEW_ROUTES_OPEN",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2668,11 +2668,11 @@
       "execution_rule": "Do not endlessly retest the same scenario or reopen completed AES/GUI. Advance N4; changed modules/new reproducible hard-gate failures require immediate scoped repair. Before final qualification explicitly resolve or report every residual, never turn OPEN into PASS."
     }
   },
-  "next_task": "Verify new N4 ownership guard exact SOURCE unit/race and Windows PowerShell Render Actions; fix any failure on changed SOURCE. Runtime/elevated Windows native Wintun actual route/owned cleanup UNSUPPORTED/NOT_RUN in hosted Actions; no physical interim trial. Then advance missing real Windows TCP transparent redirect WFP signed/loaded driver/capability and few capture routes after UDP/TCP truly work. N6 final packages NOT_STARTED; no deployment/mainline.",
-  "latest_log": "docs/devlog/20261013-n4-wintun-foreign-ipv4-and-dhcp-owned-guard.md",
+  "next_task": "Verify fixed mock's explicit DHCP Enabled/Disabled transitions and production DHCP -PolicyStore ActiveStore on new exact SOURCE in Actions; original 725d Windows FAIL must be preserved, not relabeled. Check five simulation scenarios success/route-failure/dns-failure/dns-off/alias-failure. Continue N4 WFP signed TCP kernel capability and few routes after owned mock passes; no real driver/admin Apply or physical interim tests.",
+  "latest_log": "docs/devlog/20261013-n4-owned-dhcp-mock-fail-and-targeted-fix.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "67b7a4b670eb0a320b4fb0cad2e3c92ffce28e64",
-  "last_tested_scope": "N4_APPLY_CANCEL_REAL_WINDOWS_POWERSHELL_CHILD_PLUS_MOCK_OWNED_ROLLBACK_SCOPED_PASS_ACTION38338092331_SOURCE_67B7;WIN_ENTRY_FOUNDATION_GUI_AES_PASS_NO_ADMIN_APPLY",
+  "last_tested_source_sha": "725d487942e8a33a91179a75c782dd0575f44249",
+  "last_tested_scope": "N4_OWNED_DHCP_GUARD_HOSTED_WINDOWS_APPLY_SIMULATION_FAIL_MISSING_MOCK_DHCP_PROPERTY_ACTION38338521944;FOUNDATION_WIN_JOB_FAIL_115104056733;LINUX_AND_LIFECYCLE_SCOPED_PASS",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification."
@@ -3806,6 +3806,35 @@
       "scope": "N4_OWNED_CANCEL_SOURCE_GUI_REGRESSION",
       "status": "PASS",
       "cause": "job115102670057 success, artifact11785970641 sha256:80beb3ffa28f930ddb2fc8d78cbe934aec99655ebdc0cb93a94c23c49e650d2b."
+    },
+    {
+      "name": "next-adaptive-n4-owned-address-guard",
+      "run_id": 38338521944,
+      "source_sha": "725d487942e8a33a91179a75c782dd0575f44249",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338521944",
+      "scope": "N4_OWNED_DHCP_PRECHECK_LINUX_PASS_WINDOWS_APPLY_SIMULATION_FAIL",
+      "status": "FAIL",
+      "job_id": 115104009991,
+      "cause": "Native Windows go test ./internal/windowsclient failed existing five-scenario PowerShell mock Get-NetIPInterface fixture lacks DHCP property under StrictMode: PropertyNotFoundStrict script line347; Linux owned-script-contract PASS job115104010221. Production journal guard kept, fixture to be corrected."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38338521920,
+      "source_sha": "725d487942e8a33a91179a75c782dd0575f44249",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338521920",
+      "scope": "N4_OWNED_DHCP_SOURCE_FOUNDATION_WIN_GO_FAIL",
+      "status": "FAIL",
+      "job_id": 115104056733,
+      "cause": "Foundation Windows active-go-tests FAIL same native PowerShell splitroute mock missing Dhcp; Linux Go/privileged P2/P4/repo-contract PASS. P5/P6 skipped NOT_RUN."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38338521868,
+      "source_sha": "725d487942e8a33a91179a75c782dd0575f44249",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338521868",
+      "scope": "N4_OWNED_DHCP_SOURCE_LIFECYCLE_ONLY",
+      "status": "PASS",
+      "cause": "core job passed; not override Windows ownership test FAIL."
     }
   ],
   "required_read_set": [

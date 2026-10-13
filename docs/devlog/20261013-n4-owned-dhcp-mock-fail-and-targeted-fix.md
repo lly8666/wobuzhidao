@@ -1,0 +1,10 @@
+# N4 owned DHCP journal: failed Windows simulation and targeted mock fix (2026-10-13)
+
+## Exact failure receipt — immutable
+Production candidate SOURCE 725d487942e8a33a91179a75c782dd0575f44249, native owned-address Action38338521944 FINAL failure Windows job115104009991 (Linux job115104010221 SUCCESS). Raw Windows error in TestWindowsSplitApplyCleanupAndRollbackOwnership: PowerShell PropertyNotFoundStrict 'The property Dhcp cannot be found on this object' at Apply line347, while mock tools/test_windows_splitroute.ps1 Get-NetIPInterface fabricated InterfaceAlias/InterfaceIndex/NlMtu without Dhcp. Foundation Action38338521920 final failure: active-go-tests(windows-2022) job115104056733, same mock; all Linux/privileged jobs success. Lifecycle38338521868 success. These original FAIL are preserved as source-scoped evidence, no claim of fixed until new Actions.
+
+## Atomic repair, no unsafe weakening
+Update tools/test_windows_splitroute.ps1 mock to return explicit Dhcp state, initialize Enabled, verify a persisted state.DHCPState Previous=Enabled Applied=Disabled BEFORE simulated Set-NetIPInterface mutation, update mock state on Set and assert restoration to Enabled for all five scenarios including Apply failure. Production Windows PowerShell Apply's Set-NetIPInterface -Dhcp Disabled is now explicitly limited to -PolicyStore ActiveStore, consistent with owned DHCP restoration and mock enforcement. Keep fail closed if actual source Dhcp missing: do NOT remove production check to appease mock.
+
+## Test plan and boundaries
+New exact SOURCE will run native Windows Apply/Cleanup simulation with success/route-failure/dns-failure/dns-off/alias-failure, Linux script/race and Windows Render plus foundation/lifecycle. Still not elevated real Wintun/physical test; mock contract is not driver qualification. No performance measurement, no credentials or raw pcap. N4 WFP TCP redirect signed/loaded driver and small capture routes unresolved, no deployment/mainline. Original N2 C04/C05/C10 and 80s S2C deferred unchanged.

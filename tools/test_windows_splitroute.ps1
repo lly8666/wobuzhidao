@@ -47,11 +47,21 @@ try {
     function Get-NetIPInterface {
         param($InterfaceIndex,$AddressFamily,$PolicyStore,$ErrorAction)
         if($InterfaceIndex -ne 77 -or $AddressFamily -ne 'IPv4' -or $PolicyStore -ne 'ActiveStore'){throw 'MTU lookup touched foreign interface/store'}
-        [pscustomobject]@{InterfaceAlias='WBD';InterfaceIndex=77;NlMtu=$script:tunnelMtu}
+        [pscustomobject]@{InterfaceAlias='WBD';InterfaceIndex=77;NlMtu=$script:tunnelMtu;Dhcp=$script:dhcp}
     }
     function Set-NetIPInterface {
         param($InterfaceIndex,$AddressFamily,$Dhcp,$NlMtuBytes,$PolicyStore,$ErrorAction)
         if($InterfaceIndex -ne 77 -or $AddressFamily -ne 'IPv4'){throw 'MTU mutation touched foreign interface'}
+        if ($PSBoundParameters.ContainsKey('Dhcp')) {
+            if ($PolicyStore -ne 'ActiveStore') { throw 'DHCP changed outside owned ActiveStore' }
+            if ($Dhcp -eq 'Disabled' -and $script:dhcp -ne 'Disabled') {
+                $intent=Get-Content -LiteralPath $script:mtuJournal -Raw | ConvertFrom-Json
+                if ($intent.DHCPState.Previous -ne $script:dhcp -or $intent.DHCPState.Applied -ne 'Disabled') {
+                    throw 'DHCP disabled before original state was journaled'
+                }
+            }
+            $script:dhcp=$Dhcp
+        }
         if($NlMtuBytes){
             if($PolicyStore -ne 'ActiveStore'){throw 'MTU mutation persisted outside ActiveStore'}
             if($NlMtuBytes -eq $DerivedTunnelMTU){
@@ -100,7 +110,7 @@ try {
             [pscustomobject]@{DestinationPrefix='198.18.0.2/32';InterfaceIndex=77;NextHop='192.0.2.254'}
         )
         $state=Join-Path $taskDir "state-$scenario.json"
-        $script:tunnelMtu=65535;$script:mtuJournal=$state
+        $script:tunnelMtu=65535;$script:dhcp='Enabled';$script:mtuJournal=$state
         $taskArgs=@{TunnelMTU=$DerivedTunnelMTU;AdapterAlias='WBD';TunnelAddress4='10.66.0.2/32';Underlay4='203.0.113.10';PhysicalInterfaceIndex=12;PhysicalNextHop4='192.0.2.1';DNSServer='1.1.1.1,8.8.8.8';CapturePrefixFile4=$captureFile;StatePath=$state}
         if(-not $script:guardRequired){$taskArgs.DNSServer=''}
         $failed=$false
@@ -114,12 +124,14 @@ try {
             $expectedFirewall=if($script:guardRequired){6}else{4}
             if ($saved.NRPTRuleName -ne $expectedRule -or @($script:firewall).Count -ne $expectedFirewall) { throw 'DNS/IPv6 policies not applied' }
             if($script:tunnelMtu -ne $DerivedTunnelMTU -or $saved.TunnelMTUState.Previous -ne 65535 -or $saved.TunnelMTUState.Applied -ne $DerivedTunnelMTU){throw 'Supported inner MTU not applied or original value lost'}
+            if($script:dhcp -ne 'Disabled' -or $saved.DHCPState.Previous -ne 'Enabled' -or $saved.DHCPState.Applied -ne 'Disabled'){throw 'DHCP not journaled before mutation'}
             if (@($script:routes).Count -ne 1504) { throw 'large Apply count wrong' }
             # GUI crash recovery has only the owned state path, not old profile args.
             & $block -Action Cleanup -StatePath $state | Out-Null
         }
         if (Test-Path -LiteralPath $state) { throw 'state not cleaned after cleanup/rollback' }
         if($script:tunnelMtu -ne 65535){throw 'Cleanup/rollback did not restore prior inner MTU'}
+        if($script:dhcp -ne 'Enabled'){throw 'Cleanup/rollback did not restore owned previous DHCP'}
         if (@($script:routes).Count -ne 2 -or -not ($script:routes | Where-Object { $_.NextHop -eq '192.0.2.254' })) { throw 'foreign/pre-existing routes lost or owned leaked' }
         if (@($script:firewall).Count -ne 2 -or @($script:firewall | Where-Object Description -ne 'foreign-owned').Count -ne 0 -or @($script:nrpt).Count -ne 1 -or $script:nrpt[0].Name -ne 'foreign-rule') { throw 'DNS/firewall cleanup leaked or removed foreign state' }
         # One additional constant journal write protects the MTU intent, not a

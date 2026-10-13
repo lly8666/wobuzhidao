@@ -351,7 +351,8 @@ try {
             Previous=[string]$beforeMTU[0].Dhcp; Applied='Disabled'
         }
         Save-State $state
-        Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -Dhcp Disabled -ErrorAction Stop
+        Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -Dhcp Disabled `
+            -PolicyStore ActiveStore -ErrorAction Stop
     }
     if ([uint32]$beforeMTU[0].NlMtu -ne $TunnelMTU) {
         $state.TunnelMTUState = [ordered]@{
