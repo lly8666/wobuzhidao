@@ -1,3 +1,7 @@
+## 2026-10-13 N4 原生控制面真实写操作第三阶段 MTU 候选
+
+已测 CODE SOURCE `efc4b6d185bdf091e0e2232d50beac6bd66ff17b` 的 WFP/IPv4 /32 Lease 模块 N4 Action38370726570 Win2022/25+Linux race、Foundation38370726613 七必需、Lifecycle38370726484 全 SUCCESS，限制为只读和负向无网卡变更。下一小补丁利用现成 `n4WindowsMTUWriter`，为统一 WAL 的 `mtu` 阶段提供原始整行接口快照+目标 MTU，SetIpInterfaceEntry 只改 MTU、CAS 精确核对、Stop 恢复原始 MTU，拒绝 borrowed Wintun/foreign 状态；测试无实际管理员写。未接产品。还剩 native DNS 清除恢复及 server /32+两/1 + DNS /32 Routes 安全写入，以及真实 Wintun/独占证明、正式 CLI 去 PowerShell，才可 N6。N2 遗留 OPEN，physical NOT_RUN。
+
 ## 2026-10-13 N4 直接收口 Win32 WFP + Lease（新 SOURCE Actions 待验）
 
 正式 Windows 数据路径 `4a0467c` 的两个 /1 + gVisor Direct TCP/NativeUDP 已在相关 Actions 限定通过，无需再动。本次不是新抽象层：把 `N4NativeUnifiedTxn` 前两个阶段接到**真实**持久 WFP 读/Arm/清理及 Win32 IPv4 /32 Create、DAD Preferred、精确 DeleteConfirmed 的具体后端。没有额外 CLI 选项。WFP guard 要求 installation/LUID 和已独立确认独占 Wintun（禁止仅靠布尔字段激活正式产品）；lease 只允许本进程 live owned Wintun、原接口无地址，所有变更依赖统一写前 WAL 和世代 Hold。Actions 只检查 read-only Windows WFP 和拒绝错误所有权，不能误称真实管理员网卡变更。后续只剩 MTU/DNS/少量 Routes 真实阶段、所有权证明与正式 CLI 去脚本、N6；physical NOT_RUN。
