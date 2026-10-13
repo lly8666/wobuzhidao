@@ -44,7 +44,8 @@ func TestN4WindowsHostedCrossProcessCrashReadOnlyIdentity(t *testing.T){
  report:=map[string]string{
   "schema":"wbd-n4-crash-readonly/v1","source_sha":os.Getenv("GITHUB_SHA"),"runner":os.Getenv("RUNNER_OS"),
   "result":"FAIL_UNFINISHED","child_crash":"NOT_RUN","no_create_reopen":"NOT_RUN","journal_guid":"NOT_RUN",
-  "borrowed_cannot_mutate":"NOT_RUN","real_apply_recover":"NOT_RUN","wfp":"NOT_RUN",
+  "borrowed_cannot_mutate":"NOT_RUN","empty_wal_recovery":"NOT_RUN",
+  "real_apply_recover":"NOT_RUN","wfp":"NOT_RUN",
   "routes":"NOT_RUN","dns":"NOT_RUN","physical":"NOT_RUN",
  }
  defer func(){
@@ -86,8 +87,26 @@ func TestN4WindowsHostedCrossProcessCrashReadOnlyIdentity(t *testing.T){
   tunnel,err=OpenExistingTUN(alias)
   if err==nil{break}
   if time.Now().After(limit){
+   // With the Wintun gone, the native WAL still has NO stage intent.
+   // Prove the old GUID, LUID and index are all absent and WFP has no
+   // install-scoped objects before retiring this journal-only crash gap.
+   // This does NOT authorize cleanup of any real route/lease/DNS/WFP.
+   j,readErr:=n4UnifiedRead(wal)
+   if readErr!=nil{t.Fatal(readErr)}
+   cleanupCtx,stop:=context.WithTimeout(context.Background(),15*time.Second)
+   cleanupErr:=N4WindowsRetireEmptyOrphanWAL(cleanupCtx,wal,j.Identity)
+   stop()
+   if cleanupErr!=nil{
+    report["empty_wal_recovery"]="UNSUPPORTED_OS_ABSENCE_UNPROVEN"
+    report["result"]="UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED"
+    t.Skipf("UNSUPPORTED: original adapter did not persist; empty WAL safe cleanup unproven: %v",cleanupErr)
+   }
+   if _,statErr:=os.Stat(wal);!errors.Is(statErr,os.ErrNotExist){
+    t.Fatalf("empty orphan WAL not retired after verified native absence: %v",statErr)
+   }
+   report["empty_wal_recovery"]="PASS_EMPTY_WAL_ONLY_NATIVE_ABSENCE_AND_WFP_READONLY"
    report["result"]="UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED"
-   t.Skipf("UNSUPPORTED: crash removed Windows interface, no replacement created: %v",err)
+   t.Skipf("UNSUPPORTED: original Wintun gone; only empty journal safely retired (no OS network writes): %v",err)
   }
   time.Sleep(100*time.Millisecond)
  }

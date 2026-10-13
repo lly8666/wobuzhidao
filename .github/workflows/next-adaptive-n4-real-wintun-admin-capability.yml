@@ -8,6 +8,8 @@ on:
       - "internal/windowsclient/native_admin_requested_guid_windows_test.go"
       - "internal/windowsclient/native_admin_guid_journal_windows_test.go"
       - "internal/windowsclient/native_admin_crossproc_crash_windows_test.go"
+      - "internal/windowsclient/native_orphan_empty_wal_windows.go"
+      - "internal/windowsclient/native_orphan_empty_wal_windows_test.go"
       - "internal/windowsclient/native_journal_adapter_proof_windows.go"
       - "internal/windowsclient/native_journal_adapter_proof_windows_test.go"
       - "internal/windowsclient/native_unified_network_transaction.go"
@@ -156,6 +158,8 @@ jobs:
           for k in ("physical","wfp","routes","dns","real_apply_recover"):
               assert x[k]=="NOT_RUN"
           assert x["result"] in ("SCOPED_CROSSPROCESS_CRASH_READONLY_IDENTITY_PASS","UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED")
+          if x["result"]=="UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED":
+              assert x["empty_wal_recovery"] in ("PASS_EMPTY_WAL_ONLY_NATIVE_ABSENCE_AND_WFP_READONLY","UNSUPPORTED_OS_ABSENCE_UNPROVEN")
           if x["result"]=="SCOPED_CROSSPROCESS_CRASH_READONLY_IDENTITY_PASS":
               for k in ("child_crash","no_create_reopen","journal_guid","borrowed_cannot_mutate"):
                   assert x[k].startswith("PASS")

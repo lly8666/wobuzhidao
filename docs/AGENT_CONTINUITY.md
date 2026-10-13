@@ -1,3 +1,7 @@
+## 2026-10-13 N4 新 crash-before-first-write 空 WAL 清理候选（Actions 待验）
+
+上一精确产品 SOURCE `16caa8fa7a8937f968ea1ff9f02d92818c1a07d3` 的 N4 matrix38398552750、真实 Win2022/25 Wintun38398552831、Foundation38398552794 全7、Lifecycle38398552739 均限定 PASS；旧 cdc611 FAIL 保留。下一原子候选针对真实 child crash 后 Wintun 已被 OS 删除且原单 WAL **无任何 stage intent**：原生 Windows GUID/LUID/index 三项不存在 + 完整 WAL checksum/代际 + 真实机器 mutex + 只读 WFP-owned-absent 后只清空 journal；任何 OS 身份不明/外来/非空 WAL 全拒绝。需 Win2022/25 真进程被杀与矩阵、Foundation 新 SOURCE Actions。不得把仅空 WAL 的清理冒称非空五阶段 Recover，不创建同名网卡、不碰真实 WFP/路由。原 WFP Arm 仍禁、产品 PowerShell 未去除、N6/physical NOT_RUN；N2 C04/C05/C10与80s尾部 OPEN。实时任务只看 STATUS。
+
 ## 2026-10-13 N4 OS GUID/alias owner 与真实 Wintun 单 WAL scoped PASS；orphan/WFP/无脚本仍 OPEN
 
 精确已验代码 SOURCE `16caa8fa7a8937f968ea1ff9f02d92818c1a07d3`：N4 matrix38398552750 Win2022/25 + Linux race PASS，真实 Wintun38398552831 Win2022/25 PASS，Foundation38398552794 七必需 PASS，Lifecycle38398552739 PASS。上一 SOURCE cdc611 N4 matrix38397968999/Foundation38397968939 因旧 fixture 未满足新的 GUID 身份前置门而 FAIL，已保留原结果并仅修测试。新代码使 created owner 与五阶段 DRY 装配绑定真实 Win32 GUID+alias+generation/LUID/index；不是 WFP/真实两/1/产品 Apply PASS。SOURCE 1c2bf68 的真实 child crash Win2022/25 都删除了 Wintun，`UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED`，不能同名创建假冒恢复。WFP Arm 仍硬拒绝，正式 CLI PowerShell 仍在；N6/physical NOT_RUN，N2 C04/C05/C10及80秒尾部 OPEN。最新工作仅看 STATUS。

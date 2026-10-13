@@ -1,0 +1,12 @@
+# N4 recover only an empty WAL after Windows auto-deletes the original Wintun — candidate, 2026-10-13
+
+Repo `lly8666/wobuzhidao` next/adaptive-fec-aes-tun-20261010. Tested parent CODE SOURCE `16caa8fa7a8937f968ea1ff9f02d92818c1a07d3` has FINAL N4 matrix38398552750 Win2022/Win2025/Linux race, real Wintun38398552831 both platforms, Foundation38398552794 all seven, Lifecycle38398552739 SUCCESS. Exact hashes/jobs in devlog 20261013-n4-guid-owner-pin-final-scoped-actions.md. This new candidate is **not** tested until its own SOURCE Actions finish.
+
+Source 1c2bf68 real child TerminateProcess test proved the original driver adapter no longer persisted on Win2022/25 (`UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED`, not crash Recover PASS). The five-stage native WAL currently uses a pinned process-created owner and cannot safely Recover an absent original adapter.
+
+New small native recovery window:
+- `n4OriginalWintunAbsent` uses Windows IP Helper `ConvertInterfaceGuidToLuid`, `ConvertInterfaceLuidToIndex` and `ConvertInterfaceIndexToLuid` READ ONLY. All original GUID, LUID and ifIndex must be absent (specific not-found codes), otherwise FAIL CLOSED. A reused ifIndex, any still-live GUID or ambiguous error blocks retirement; malformed GUID/alias, unknown generations rejected.
+- `N4WindowsRetireEmptyOrphanWAL` uses the existing Win32 machine mutex, exact checksum-valid unified WAL matching installation+generation+native GUID/alias+LUID/index, phase `applying` and ZERO records; performs separate read-only WFP query confirming no installation-owned sublayer/rule remains, then removes ONLY the empty journal. No WFP Arm/Disarm, adapter create/reopen, DNS, MTU, lease, route or physical NIC operation.
+- Tests: new Windows negatives ensure nonempty intent/foreign generation/unbound or cancelled attempts keep WAL; hosted child test now probes empty-WAL retirement after actual driver removal, reports `PASS_EMPTY_WAL_ONLY...` or `UNSUPPORTED_OS_ABSENCE_UNPROVEN` independently of its full crash Recover `UNSUPPORTED_ORPHAN_ADAPTER_NOT_PERSISTED`. Existing real driver workflow + N4 matrix triggers updated to include new sources.
+
+This does **not** recover a WAL containing ANY stage intent, nor remove crash-orphan physical server escape route or WFP filter, nor implement WFP safe shared policy. Production WFP Arm disabled, client PowerShell/.ps1 active, actual two /1 routes and N6 not tested, physical NOT_RUN; N2 C04/C05 efficiency FAIL, C10 GE/80s S2C OPEN. No deployment, merge, or qualification ref motion.
