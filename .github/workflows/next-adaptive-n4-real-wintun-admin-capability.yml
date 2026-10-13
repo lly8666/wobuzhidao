@@ -7,6 +7,8 @@ on:
       - "internal/windowsclient/native_admin_created_wintun_windows_test.go"
       - "internal/windowsclient/native_admin_created_wintun_mutation_windows_test.go"
       - "internal/windowsclient/native_admin_unified_wal_windows_test.go"
+      - "internal/windowsclient/native_unified_assembly_windows.go"
+      - "internal/windowsclient/native_unified_assembly_windows_test.go"
       - "internal/windowsclient/tun_windows.go"
       - "internal/windowsclient/native_wintun_owner_windows.go"
       - "internal/windowsclient/native_unified_network_owner_windows.go"
@@ -129,7 +131,7 @@ jobs:
           assert r["result"] in ("SCOPED_REAL_WINTUN_NATIVE_WAL_APPLY_RECOVER_PASS",
             "UNSUPPORTED_DRIVER_OR_ADMIN","UNSUPPORTED_FRESH_DNS_BASELINE")
           if r["result"]=="SCOPED_REAL_WINTUN_NATIVE_WAL_APPLY_RECOVER_PASS":
-              for key in ("adapter","lease","mtu","dns"):
+              for key in ("adapter","lease","mtu","dns","stage_assembly"):
                   assert r[key].startswith("PASS"),key
           print("N4_HOSTED_REAL_WAL="+r["result"])
           PY

@@ -1,3 +1,8 @@
+## 2026-10-13 N4 同源真实 Wintun 单 WAL PASS，五真实阶段最小装配候选
+
+CODE SOURCE d84963f1 的 Win2022/25 Action38388128847 实际创建 Wintun，统一 N4NativeUnifiedTxn 配合 Win32 mutex+LUID/generation Handle Hold 真实 Apply /32 DAD、MTU、DNS Set/Clear，逆序 Recover+重复 Stop 两端 PASS。Foundation38388128846 七必需、Lifecycle38388128794 SUCCESS。WFP Guard 和路由当时仅为测试替身，未碰全局 WFP 或生产两/1。
+
+本候选只将原有五个 Win32 真阶段装配到同一原生 WAL（未额外发明第二套框架），强制 live created Wintun、installation+generation、Guard LUID、紧凑路由、旧 PowerShell journal 冲突检查；Actions 将在真实 Wintun 上 DRY RUN 装配，禁止执行全局 WFP 或两/1。**WFP 对其他 Wintun 的影响、进程崩溃旧 handle 归属仍为不可跳过的产品硬门**。正式 CLI 还没去脚本，不运行 P6 最终整体验收；physical NOT_RUN。
 ## 2026-10-13 N4 单一 WAL 真 Wintun 集成测试候选（不动系统默认路由/WFP）
 
 前一代码 `5b96405` 真 Wintun /32+DAD、MTU、DNS、TEST-NET /32 独立操作已 Win2022/25 scoped PASS；文档 HEAD `318d31e13d5b42935bce8f3982eab57267f17e21` Foundation38386382673 SUCCESS。新候选在临时随机 Wintun 上用真实 Win32 全局互斥和创建句柄 LUID/generation Hold，使单个五阶段 N4NativeUnifiedTxn 真正顺序运行 native lease、native MTU、native DNS 并以同一 WAL 逆序 Get/Restore/Stop 两次。**WFP和 routes 在本试验仍是假阶段，绝不触及共享 runner 的全局 IPv6/DNS 或两条 /1 生产捕获路由**，不能宣称 N4 产品已通过。等新 SOURCE 两代 Win Actions 返回，再解决安全 WFP 多Wintun/崩溃旧句柄归属，然后正式 Windows 客户端去 PowerShell 与 N6 全量验收。N2 遗留 OPEN；physical NOT_RUN。

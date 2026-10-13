@@ -26,7 +26,7 @@ func TestN4WindowsHostedUnifiedWALRealLeaseMTUDNS(t *testing.T) {
   "schema":"wbd-n4-hosted-real-wintun-unified-wal/v1",
   "source_sha":os.Getenv("GITHUB_SHA"),"runner":os.Getenv("RUNNER_OS"),
   "result":"FAIL_UNFINISHED","adapter":"NOT_RUN",
-  "lease":"NOT_RUN","mtu":"NOT_RUN","dns":"NOT_RUN",
+  "lease":"NOT_RUN","mtu":"NOT_RUN","dns":"NOT_RUN","stage_assembly":"NOT_RUN",
   "guard":"TEST_ONLY_FAKE_NOT_PRODUCTION_WFP",
   "routes":"TEST_ONLY_FAKE_NO_CAPTURE_ROUTES","physical":"NOT_RUN",
   "cross_process_crash":"NOT_RUN",
@@ -149,6 +149,29 @@ func TestN4WindowsHostedUnifiedWALRealLeaseMTUDNS(t *testing.T) {
  if guardStage.state!=N4UnifiedAbsent || routesStage.state!=N4UnifiedAbsent{
   t.Fatal("test-only staged guard or routes not reversed")
  }
+ // Dry-run the actual product five-stage composition without EVER
+ // arming the host-global WFP filter or writing two /1 capture routes.
+ // The exclusive flag here is a TEST-ONLY placeholder, not proof that a
+ // production machine has no other independently managed Wintun.
+ plan,err:=BuildCompactNetworkPlan(Config{
+  AdapterAlias:tun.Name(),Lease4:lease.Prefix,
+  Server4:netip.MustParseAddr("198.51.100.9"),
+  Physical:PhysicalPath{InterfaceIndex:12,NextHop4:netip.MustParseAddr("192.0.2.1")},
+  TunnelMTU:targetMTU,DNSServers4:servers,
+  StatePath:filepath.Join(t.TempDir(),"unused-product-legacy-state.json"),
+ })
+ if err!=nil{t.Fatalf("compact native composition plan: %v",err)}
+ inactiveWFP:=&n4WindowsPersistentWFPGuard{
+  InstallationID:install,WintunLUID:live.LUID,ExclusiveSingleWintun:true,
+ }
+ composed,err:=n4AssembleWindowsNativeOwnedTxn(ctx,tun,plan,id,inactiveWFP)
+ if err!=nil{t.Fatalf("actual native stage wiring preflight: %v",err)}
+ for i,stage:=range composed.Stages{
+  if stage==nil || stage.Name()!=n4UnifiedOrder[i]{
+   t.Fatalf("missing actual concrete stage at %d: %v",i,stage)
+  }
+ }
+ receipt["stage_assembly"]="PASS_NO_HOST_WFP_OR_CAPTURE_ROUTE_WRITE"
  cleanupRequired=false
  receipt["lease"]="PASS_WAL_DAD_AND_OWNED_DELETE"
  receipt["mtu"]="PASS_WAL_CAS_AND_EXACT_RESTORE"

@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_REAL_CREATED_WINTUN_SINGLE_WAL_WITH_NATIVE_LEASE_MTU_DNS_TEST_CANDIDATE_ACTIONS_PENDING_PRODUCTION_WFP_SCRIPTLESS_STILL_OPEN",
+    "phase": "N4_REAL_WINTUN_SINGLE_WAL_NATIVE_LEASE_MTU_DNS_SCOPED_PASS_FIVE_STAGE_ASSEMBLY_CANDIDATE_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE5B96405_REAL_CREATED_WINTUN_INDIVIDUAL_NATIVE_LEASE_DAD_MTU_DNS_TESTNET_ROUTE_PASS;NEW_REAL_WIN2022_2025_SINGLE_WAL_NATIVE_LEASE_MTU_DNS_APPLY_RECOVER_FAKE_WFP_ROUTES_CANDIDATE;PRODUCT_POWERSHELL_AND_GLOBAL_WFP_AND_CRASH_ORPHAN_REMAIN_OPEN",
+    "implementation": "CODE_D84963_REAL_WIN2022_WIN2025_SINGLE_WAL_NATIVE_LEASE_MTU_DNS_APPLY_RECOVER_SUCCESS;NEW_PRIVATE_FIVE_REAL_NATIVE_STAGE_ASSEMBLY_DRYRUN_CANDIDATE_WFP_EXCLUSIVITY_CRASH_ORPHAN_UNRESOLVED",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "FIRST inspect NEW exact SOURCE isolated Windows2022/25 real created-Wintun full N4NativeUnifiedTxn test (actual native lease /32 DAD, SetIpInterfaceEntry MTU, native DNS Set/Clear readback under ONE WAL and real machine mutex+generation owner Hold; TEST-ONLY fake WFP and fake routes), verify report JSON PASS or true UNSUPPORTED, source-specific Foundation/Lifecycle, preserve any FAIL then fix only actual defects. Prior individual SOURCE5b96405 real adapter N4 Action38385692671/Foundation38385692793/Lifecycle38385692652 SCOPED PASS; docs HEAD318d Foundation38386382673 success. Still forbid production route /1 and persistent WFP on shared GH. After same-WAL real integration PASS, address production WFP effect on other Wintun/host adapters (cannot trust boolean ExclusiveSingleWintun) and crash-orphan created-handle journal recovery; then wire production native five stages in official Windows CLI WITHOUT PowerShell/.ps1 and run full cross-feature Actions, finally N6 P6 three-target same SOURCE package SHA256. N2 C04/C05 efficiency FAIL/C10 GE and ~80s S2C OPEN; physical NOT_RUN, no deploy/merge.",
-  "latest_log": "docs/devlog/20261013-n4-real-wintun-single-wal-integration-test-candidate.md",
+  "next_task": "Verify new exact-source N4 real Win2022/2025 five-native-stage DRY assembly (with no global WFP or /1 writes), matrix and Foundation/Lifecycle. Prior d84963 SOURCE real native single WAL N4 Action38388128847 Win2022/25 SUCCESS; Foundation38388128846 seven required SUCCESS; Lifecycle38388128794 SUCCESS. Before activation finish globally safe WFP DNS/IPv6 policy for independently managed Wintun adapters or genuinely proved fail-closed exclusive mode; resolve orphan created-handle crash recovery without alias takeover; then connect official client to native five-stage Apply/Stop/Recover and REMOVE PowerShell/.ps1, qualify actual protected /1 in isolated environment and full cross-feature Actions. Only after N4 complete do N6 same-SOURCE P6 3-target packages/manifests/hashes; N2 C04/C05 efficiency FAIL, C10 GE ~1.8-1.95s p99/80s tail OPEN; physical NOT_RUN; no deploy/merge/ref movement.",
+  "latest_log": "docs/devlog/20261013-n4-five-real-stages-assembly-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "5b96405b362edbba0f96665270aa8a609da81df7",
-  "last_tested_scope": "SOURCE5B96405B_NATIVE_ADMIN_WINTUN_WINDOWS2022_2025_TRUE_CREATED_ADAPTER_LEASE_DAD_MTU_DNS_TESTNET_ROUTE_EXACT_NATIVE_WRITES_PASS_ACTION38385692671;FOUNDATION38385692793_ALL7_SUCCESS_LIFECYCLE38385692652_SUCCESS;PRODUCTION_GLOBAL_WFP_AND_TWO_1_CAPTURE_NOT_RUN_POWERSHELL_NOT_REMOVED",
+  "last_tested_source_sha": "d84963f1d5d9d7a384733f7c4dc4a9042d438dd5",
+  "last_tested_scope": "D84963_REAL_WIN2022_WIN2025_CREATED_WINTUN_SINGLE_WAL_MACHINE_MUTEX_LUID_HOLD_NATIVE_LEASE_DAD_MTU_DNS_APPLY_RECOVER_TWO_STOP_SUCCESS_N4ACTION38388128847_FOUNDATION38388128846_ALL7_LIFECYCLE38388128794_WFP_ROUTES_TEST_FAKE",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "CODE d84963 source real isolated Windows2022/2025 N4 Action38388128847 SUCCESS: actual new Wintun single persistent unified WAL applies /32 lease/DAD, MTU Set/CAS, DNS Set/Clear and recovers twice via real Win32 mutex and LUID generation Handle Hold; GUARD+ROUTES were TEST_ONLY_FAKE. Foundation38388128846 7 required and Lifecycle38388128794 SUCCESS. See devlog for exact archive digests.",
+    "NEW private stage wiring code candidate: five actual Win32 stages assembled under one WAL, live created adapter LUID/index, installation/generation, legacy journal conflict and compact route plan preflight. Real Win2022/25 DRY assembly and negative guard/borrowed tests; NO actual WFP or /1. Actions PENDING.",
     "New hosted integration candidate: TRUE created random Wintun on Windows2022/25 with global Win32 mutex and live LUID/generation Hold, real /32 lease+DAD Preferred + MTU CAS + DNS Set/Clear native under one existing N4NativeUnifiedTxn write-ahead journal; confirms fresh-controller Recover and idempotent Stop. WFP and routes deliberately FAKE in test to avoid shared host global DNS/IPv6 and /1 changes. New exact SOURCE Actions pending; no product scriptless qualification.",
     "Earlier source5b96405 Win2022/25 Action38385692671 SCOPED REAL native /32, DAD, MTU, DNS, TEST-NET /32 individual ABI successes; Foundation38385692793 seven mandatory SUCCESS, Lifecycle38385692652 SUCCESS; docs-only HEAD318d Foundation38386382673 SUCCESS.",
-    "SOURCE5b96405b real Wintun isolated TEST-NET route native API N4 capability38385692671 BOTH Windows2022 and Windows2025 FINAL SUCCESS. Test uses random newly-created Wintun, strict 198.18.0.78/32 CreateIpForwardEntry2/Lookup match/RemoveOwned/recheck absent and failsafe cleanup, plus real /32 DAD/Create/Delete, MTU Set/Restore65535, native DNS Set/Clear/Get baseline. Artifact11805477071 Win2022 sha256:29b7383ec475359fa4555485d34f806e7b7405cc0e1e67cd75c6b5a8016529a6 and11805561978 Win2025 sha256:bf0f754a9f086614a52ba8bf9ab711a001cebbf2840f2396026fb5656dd75f99. Distinct route_probe=PASS, production routes=NOT_RUN.",
-    "SOURCE5b96405b Foundation38385692793 FINAL SUCCESS seven mandatory Linux/Win Go, P2/P4; artifact11805795988 sha256:3f6c529f57e0175cc597bb942915da68bcbb9720f5df83791456c88f1040aa31; Lifecycle38385692652 FINAL SUCCESS. No P6 extended packages or whole N4 production qualification.",
-    "Unfinished hard gate: production persistent WFP DNS/IPv6 broad non-Wintun deny can interfere with other Wintun/physical traffic; no global policy activations performed in GH. Crash orphan ownership after original Wintun createdByProcess handle gone remains unproven, cannot silently treat same name as owned. Official Windows client still uses Powershell/script for network Apply/Stop; N4 final feature and N6 3 target packaging not done."
+    "SOURCE5b96405b real Wintun isolated TEST-NET route native API N4 capability38385692671 BOTH Windows2022 and Windows2025 FINAL SUCCESS. Test uses random newly-created Wintun, strict 198.18.0.78/32 CreateIpForwardEntry2/Lookup match/RemoveOwned/recheck absent and failsafe cleanup, plus real /32 DAD/Create/Delete, MTU Set/Restore65535, native DNS Set/Clear/Get baseline. Artifact11805477071 Win2022 sha256:29b7383ec475359fa4555485d34f806e7b7405cc0e1e67cd75c6b5a8016529a6 and11805561978 Win2025 sha256:bf0f754a9f086614a52ba8bf9ab711a001cebbf2840f2396026fb5656dd75f99. Distinct route_probe=PASS, production routes=NOT_RUN."
   ],
   "actions": [
     {
@@ -5204,6 +5204,33 @@
       "scope": "REAL_ROUTE_TESTNET_NATIVE_LIFECYCLE",
       "status": "PASS",
       "cause": "FINAL SUCCESS core."
+    },
+    {
+      "name": "next-adaptive-n4-real-wintun-admin-capability",
+      "run_id": 38388128847,
+      "source_sha": "d84963f1d5d9d7a384733f7c4dc4a9042d438dd5",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38388128847",
+      "scope": "REAL_CREATED_WINTUN_SINGLE_WAL_WIN2022_WIN2025",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS both Windows jobs, explicit real WAL Apply/Recover/repeated Stop PASS. Win2022 artifact11807403326 sha256:8dea40921ebf5d29bca661399758574c0eaf47a9eb2eb27f6d88fb0fa2f41a25; Win2025 artifact11806684213 sha256:bfa51f8d9ebe9278830bc7857db54182406464b6018652028ffb62d011d13d4f. Guard and routes TEST ONLY FAKE."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38388128846,
+      "source_sha": "d84963f1d5d9d7a384733f7c4dc4a9042d438dd5",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38388128846",
+      "scope": "REAL_SINGLE_WAL_GITHUB_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS seven mandatory jobs, artifact11806873016 sha256:f65b3ba659474ba87a11238ef71a2a827169b05c552e758a6a64f9fb8ae3203b; P5/P6 extended skipped."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38388128794,
+      "source_sha": "d84963f1d5d9d7a384733f7c4dc4a9042d438dd5",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38388128794",
+      "scope": "REAL_SINGLE_WAL_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS lifecycle."
     }
   ],
   "required_read_set": [
