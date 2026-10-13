@@ -46,6 +46,19 @@ type CrashPersistentGuard interface {
  Verify(context.Context) (bool,error)
  Disarm(context.Context) error
 }
+// An optional, strictly narrower recovery capability: the route journal
+// MUST prove that all routes were removed before this is invoked. It lets a
+// native WFP backend finish an interrupted partial deletion of only its own
+// exact-matching filters. Never use it while any route intent remains.
+type n4PostRouteGuardFinalizer interface {
+ DisarmAfterRoutesRemoved(context.Context) error
+}
+func n4FinishGuardAfterRoutes(ctx context.Context,g CrashPersistentGuard)error{
+ if f,ok:=g.(n4PostRouteGuardFinalizer);ok{
+  return f.DisarmAfterRoutesRemoved(ctx)
+ }
+ return g.Disarm(ctx)
+}
 type n4Entry struct {
  Key NativeRouteKey `json:"key"`
  State string `json:"state"` // intent, owned
@@ -287,7 +300,7 @@ func(n *N4OwnedRoutes) Recover(ctx context.Context)error{
   // to complete ONLY when every route was already journaled as removed.
   // The guard backend's idempotent Disarm must reject partial/foreign state.
   if j.Phase!="cleaning" || len(j.Entries)!=0{return ErrN4NativeGuard}
-  if err:=n.Guard.Disarm(ctx);err!=nil{return err}
+  if err:=n4FinishGuardAfterRoutes(ctx,n.Guard);err!=nil{return err}
   return os.Remove(n.Path)
  }
  j.Phase="cleaning"
@@ -303,6 +316,6 @@ func(n *N4OwnedRoutes) Recover(ctx context.Context)error{
   j.Entries=append(j.Entries[:i],j.Entries[i+1:]...)
   if err:=n4WriteJournal(n.Path,j);err!=nil{return err}
  }
- if err:=n.Guard.Disarm(ctx);err!=nil{return err}
+ if err:=n4FinishGuardAfterRoutes(ctx,n.Guard);err!=nil{return err}
  return os.Remove(n.Path)
 }

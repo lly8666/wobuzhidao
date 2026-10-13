@@ -1,3 +1,6 @@
+## 2026-10-13 N4 最新开发候选
+SOURCE `908a93026c619de0e23566a7f838429328ff3162` guard/journal 两个崩溃窗口恢复已 N4 Action38357895984、Foundation38357895969、Lifecycle38357895905 最终 SUCCESS。当前新候选仅在 owned 路由 journal 已全空时启用 WFP exact-owned 余留 rule 删除，拒绝 foreign/altered，捕获 routes 未清空不得容忍缺失 WFP 规则。新 SOURCE Actions 待核。正式 PowerShell 与大路由仍活动、完整 native lifecycle/N6/physical 未完成；最新以 STATUS 为准。
+
 ## 2026-10-13 新 N4 候选（先查 HEAD/STATUS/Actions）：guard+route 日志两个断电窗口
 
 基于 HEAD `6c4a70992a0ac1accd9da815ebf5c00478473bf4` 的 scoped PASS（上轮代码 SOURCE 9d0c，文档 Foundation38355862459 SUCCESS），仅修改 `N4OwnedRoutes.Recover` 两个已知 crash gap：Guard 成功 Arm 但 marker 未写、以及全 routes 删除+Disarm 成功但日志未删除。仅有 exact-owned Guard Verify、空 entries/phase 才能安全恢复；仍对 partial/foreign Guard fail-closed。增加 64KiB journal 限制和内容状态校验及单元回归。这是待新 SOURCE Actions 验证的**候选，不是 Windows real Wintun/全 native txn PASS**。CLI PowerShell 和大路由仍活动，N6/physical 未做。

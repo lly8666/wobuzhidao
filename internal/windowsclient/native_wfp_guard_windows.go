@@ -111,25 +111,50 @@ func (g *n4WindowsPersistentWFPGuard) Arm(ctx context.Context)error{
 // Disarm only removes exact owned persistent objects; if any rule is foreign
 // or the guard is unexpectedly incomplete, fail closed and keep host policy.
 // Idempotent removal of an already absent owned installation is permitted.
-func (g *n4WindowsPersistentWFPGuard) Disarm(ctx context.Context)error{
+func n4WFPDeletionIDs(p n4WFPRulePlan, sub bool, matching map[wf.RuleID]bool, partialOK bool)([]wf.RuleID,error){
+ if !sub{
+  if len(matching)!=0{return nil,ErrN4ForeignRoute}
+  return nil,nil
+ }
+ out:=make([]wf.RuleID,0,len(p.Rules))
+ for i:=len(p.Rules)-1;i>=0;i--{
+  r:=p.Rules[i]
+  if !matching[r.ID] {
+   if !partialOK{return nil,errors.Join(ErrN4NativeGuard,errors.New("owned WFP rule missing during guarded disarm"))}
+   continue
+  }
+  out=append(out,r.ID)
+ }
+ return out,nil
+}
+
+func (g *n4WindowsPersistentWFPGuard) disarm(ctx context.Context,partialOK bool)error{
  if err:=ctx.Err();err!=nil{return err}
  plan,err:=g.plan();if err!=nil{return err}
  s,err:=wf.New(&wf.Options{Dynamic:false});if err!=nil{return err}
  defer s.Close()
+ // n4WFPReadOwned rejects foreign/altered objects before ANY deletion.
  sub,matching,err:=n4WFPReadOwned(s,plan);if err!=nil{return err}
- if !sub {
-  if len(matching)>0{return ErrN4ForeignRoute}
-  return nil
- }
- // If a filter unexpectedly vanished while routes still existed, a caller
- // must treat this as lost protection and refuse regular network activation.
- for _,r:=range plan.Rules{
-  if !matching[r.ID]{return errors.Join(ErrN4NativeGuard,errors.New("owned WFP rule missing during guard disarm"))}
- }
- for i:=len(plan.Rules)-1;i>=0;i-- {
+ ids,err:=n4WFPDeletionIDs(plan,sub,matching,partialOK);if err!=nil{return err}
+ if !sub{return nil}
+ for _,id:=range ids{
   if err:=ctx.Err();err!=nil{return err}
-  if err:=s.DeleteRule(plan.Rules[i].ID);err!=nil{return err}
+  if err:=s.DeleteRule(id);err!=nil{return err}
  }
+ if err:=ctx.Err();err!=nil{return err}
  if err:=s.DeleteSublayer(plan.Sublayer.ID);err!=nil{return err}
  return nil
+}
+
+// Disarm refuses partial filtering state. This is appropriate if captured
+// routes may still exist: any missing protective filter means a leak risk.
+func (g *n4WindowsPersistentWFPGuard) Disarm(ctx context.Context)error{
+ return g.disarm(ctx,false)
+}
+// DisarmAfterRoutesRemoved may ONLY be called after an owned durable journal
+// has recorded complete removal of EVERY capture and underlay route. It
+// removes remaining exact-owned filter IDs from an interrupted deletion and
+// never accepts foreign objects; it is not a generic WFP reset operation.
+func (g *n4WindowsPersistentWFPGuard) DisarmAfterRoutesRemoved(ctx context.Context)error{
+ return g.disarm(ctx,true)
 }

@@ -46,3 +46,22 @@ func TestN4WFPGuardMissingRulesReadOnly(t *testing.T){
  if err!=nil{t.Fatal(err)}
  if ok{t.Fatal("unknown installation unexpectedly already has production WFP guard")}
 }
+
+func TestN4WFPPartialGuardDeletePlanAfterRouteCleanup(t *testing.T){
+ var inst [16]byte;inst[0]=92
+ p,err:=n4PlanWFPGuard(inst,1234);if err!=nil{t.Fatal(err)}
+ matched:=map[wf.RuleID]bool{p.Rules[0].ID:true,p.Rules[2].ID:true}
+ if _,err:=n4WFPDeletionIDs(p,true,matched,false);!errors.Is(err,ErrN4NativeGuard){
+  t.Fatalf("strict cleanup tolerated incomplete guard: %v",err)
+ }
+ ids,err:=n4WFPDeletionIDs(p,true,matched,true);if err!=nil{t.Fatal(err)}
+ if len(ids)!=2 || ids[0]!=p.Rules[2].ID || ids[1]!=p.Rules[0].ID {
+  t.Fatalf("partial cleanup not exact reverse owned order: %v",ids)
+ }
+ ids,err=n4WFPDeletionIDs(p,true,nil,true)
+ if err!=nil || len(ids)!=0{t.Fatalf("empty owned sublayer not cleanable: %v %v",ids,err)}
+ if _,err=n4WFPDeletionIDs(p,false,matched,true);!errors.Is(err,ErrN4ForeignRoute){
+  t.Fatalf("dangling rules with absent sublayer accepted: %v",err)
+ }
+ if _,err=n4WFPDeletionIDs(p,false,nil,true);err!=nil{t.Fatalf("already absent guard should be idempotent: %v",err)}
+}

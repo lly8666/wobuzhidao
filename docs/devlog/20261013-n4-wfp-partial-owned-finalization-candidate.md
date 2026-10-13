@@ -1,0 +1,7 @@
+# N4 partial persistent WFP deletion only after routes removed — candidate 2026-10-13
+
+Parent exact SOURCE `908a93026c619de0e23566a7f838429328ff3162`, branch next/adaptive-fec-aes-tun-20261010, N4 Action38357895984/ Foundation38357895969/Lifecycle38357895905 final SUCCESS for guard-route crash windows. Their results do not qualify this candidate.
+
+New `n4PostRouteGuardFinalizer` is called by `N4OwnedRoutes.Recover` only when the journal's route entries have been confirmed and durably removed, or when restarting an empty cleaning journal. It is never called when routes remain, or during pre-arm marker crash (which still needs a FULL guard). `n4WindowsPersistentWFPGuard.Disarm` stays strict; specialized `DisarmAfterRoutesRemoved` enumerates exact-owned WFP objects, rejects foreign/altered object via existing n4WFPReadOwned and deletes remaining rules in reverse order after an interrupted cleanup; missing rules are allowed ONLY after route retirement. Foreign sublayer state is never claimed. Includes pure Windows removal ordering/strictness tests and pure-Go route-gated fake finalizer test.
+
+Tests/build/race must run only in GitHub Actions on this new exact commit: N4 windows2022/2025 and Linux race, Foundation, lifecycle. No actual WFP broad firewall mutations in test, no admin Wintun. Full native DNS/DHCP/lease/MTU/WFP/route crash-durable Apply/Stop and CLI scriptless wiring remain OPEN. N2 efficiency/GE/80s OPEN, N6 package NOT_STARTED, physical NOT_RUN. No local tests or deployment/merge.

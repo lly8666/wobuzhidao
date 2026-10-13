@@ -332,3 +332,28 @@ func TestN4NativeTxnJournalSizeAndImpossibleStateRejected(t *testing.T){
  }
  if r.removed!=0 || g.disarmCount!=0{t.Fatal("invalid journal caused side effects")}
 }
+
+type n4RecoveredPartialGuard struct{
+ n4FakeGuard
+ finalizations int
+}
+func(g *n4RecoveredPartialGuard) DisarmAfterRoutesRemoved(context.Context)error{
+ g.finalizations++
+ g.active=false
+ return nil
+}
+func TestN4NativeTxnPartialGuardFinalizeOnlyAfterEmptyJournal(t *testing.T){
+ n,r,_:=n4TestManager(t)
+ guard:=&n4RecoveredPartialGuard{n4FakeGuard:n4FakeGuard{durable:true}}
+ n.Guard=guard
+ if err:=n.ApplyRoutes(context.Background(),n4TestKeys());err!=nil{t.Fatal(err)}
+ // A guard lost some filters during a crash while routes still exist.
+ guard.active=false
+ if err:=n.Recover(context.Background());!errors.Is(err,ErrN4NativeGuard){t.Fatalf("guard loss while routes live must halt: %v",err)}
+ if guard.finalizations!=0 || len(r.existing)!=3{t.Fatal("partial cleanup ran before routes cleared")}
+ for _,key:=range n4TestKeys(){delete(r.existing,key)}
+ if err:=n4WriteJournal(n.Path,n4Journal{Phase:"cleaning",GuardArmed:true});err!=nil{t.Fatal(err)}
+ if err:=n.Recover(context.Background());err!=nil{t.Fatal(err)}
+ if guard.finalizations!=1 || r.removed!=0{t.Fatal("final cleanup omitted or altered OS routes")}
+ if _,err:=os.Stat(n.Path);!errors.Is(err,os.ErrNotExist){t.Fatal(err)}
+}
