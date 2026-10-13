@@ -4,7 +4,7 @@
 
 先读 `AGENTS.md`、`PROJECT_CHARTER.md`、`docs/STATUS.json`、`docs/ADAPTIVE_NETWORK_PLAN.md`、`docs/AGENT_CONTINUITY.md`。按需读 WIRE_SPEC、MODULE_MAP、PARAMETERS、ACCEPTANCE 和 REALPATH_TEST_FIXTURE_GUIDE。完整方案已经确定，不另做多种架构/密码/FEC算法比赛。旧计划/完整状态已归档到 `docs/history/20261010-adaptive-network-parent/`；它们和 old 的提示词都是历史来源，禁止执行旧“下一步”。
 
-**接手防重复规则（2026-10-13修复）**：先核Actions最终状态和精确SOURCE。N0/N1/Normal自动FEC、AES128/256、GUI三套件及auto配置均已有实现与限定验收；不要按下方完整功能清单从零开发。当前N2混合TCP/UDP Action38326649686已完成限定PASS，不能再按旧“运行中”记录重dispatch。N4分类/缓存/分派边界和Windows物理接口绑定UDP socket核已有实现，后者SOURCE 1b3e923/Action38333124333 hosted同机UDP echo及反向IPv4/UDP格式限定PASS；TCP内核redirect、真实Wintun回注、少量系统路由/owned取消和正式入口接线尚未完成；当前next_task优先推进这一缺口，随后N5必要集成/N6包。若新HEAD已推进，以新STATUS和实码为准，不执行本快照的历史待办。
+**接手防重复规则（2026-10-13修复）**：先核Actions最终状态和精确SOURCE。N0/N1/Normal自动FEC、AES128/256、GUI三套件及auto配置均已有实现与限定验收；不要按下方完整功能清单从零开发。当前N2混合TCP/UDP Action38326649686已完成限定PASS，不能再按旧“运行中”记录重dispatch。N4分类/缓存/分派边界和Windows物理绑定UDP socket核已实现；UDP在SOURCE 1b3e923/Action38333124333 hosted同机echo PASS，Windows正式入口已在49adb/Action38337768067软件接线PASS，Apply可取消与模拟rollback在67b7/Action38338092331 PASS，外来IPv4/DHCP journal在ab2d/Action38338808653限定PASS（725d原FAIL保留）。TCP WFP驱动重定向、少量路由与真实Wintun/管理员owned清理仍未完成；当前next_task优先推进这一缺口，随后N5必要集成/N6包。若新HEAD已推进，以新STATUS和实码为准，不执行本快照的历史待办。
 
 `docs/ADAPTIVE_FEC_CURVE_ACCEPTANCE.md`仍是N2验收契约：独立参考与允许带已有部分Actions验证，不是全部未实现，也不是N2全PASS。C04/C05档位效率FAIL、C10 GE约1.8–1.95s单向p99、普通diag-OFF成本与其余工况资格仍OPEN；列入有限遗留，不追单seed或为清空所有旧失败停住N4。修订统计软参数必须有新证据，硬门不变；真实partial/突发/未知不套完整k20 IID，不把UNKNOWN当0。当前或新增测试出现完整性、隔离、fresh门控/跨业务HOL、无界状态、MTU/清理硬门失败，立即定点修复，不以阶段推进跳过。
 

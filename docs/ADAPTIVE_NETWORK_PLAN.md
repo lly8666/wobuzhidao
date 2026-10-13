@@ -1,6 +1,6 @@
 # Normal 自动 FEC、可选 AES、TUN 分流与线路质量显示
 
-状态快照（2026-10-13）：**N0/N1/Normal自动FEC已实现；N2当前Go并发/race及真实1%双向混合TCP/UDP单场景限定PASS，效率与GE长尾仍OPEN。N3 AES128/256已认证接线，各100s真实无损限定PASS；N5 GUI自动档/质量面板/三套件原生273项检查PASS。N4分类/flow-fragment缓存/分派边界已实现，Windows UDP物理接口绑定socket与反向IPv4/UDP核通过SOURCE 1b3e923的同机hosted Action38333124333限定PASS；正式Wintun入口未接线，TCP kernel redirect、少量路由/owned取消清理未完成；N6最终包未开始。** 下一项推进N4，不重新开发AES/GUI或盲重跑已完成N2。精确SOURCE、限制、下一原子任务以 **docs/STATUS.json** 为准；文末日期追加是历史来源。
+状态快照（2026-10-13）：**N0/N1/Normal自动FEC已实现；N2当前Go并发/race及真实1%双向混合TCP/UDP单场景限定PASS，效率与GE长尾仍OPEN。N3 AES128/256已认证接线，各100s真实无损限定PASS；N5 GUI自动档/质量面板/三套件原生273项检查PASS。N4分类/flow-fragment缓存/分派边界、物理接口绑定UDP socket与反向IPv4格式已实现；SOURCE 49adb/Action38337768067将UDP Direct/单次保护流发送接上Windows正式Wintun入口，SOURCE 67b7/Action38338092331完成PowerShell Apply取消与有界owned回滚模拟，SOURCE ab2d/Action38338808653完成外国IPv4防删除/DHCP journal的hosted模拟限定PASS（725d失败保留）。TCP WFP内核重定向、少量路由及真实Wintun/管理员Apply仍OPEN；N6最终包未开始。** 下一项推进N4，不重新开发AES/GUI或盲重跑已完成N2。精确SOURCE、限制、下一原子任务以 **docs/STATUS.json** 为准；文末日期追加是历史来源。
 
 **N2验收权威补充**：[ADAPTIVE_FEC_CURVE_ACCEPTANCE.md](ADAPTIVE_FEC_CURVE_ACCEPTANCE.md)。先规划真实工况与独立理论/可实现曲线，再冻结有余量的时间与档位范围；已有部分模型及实网验证，不能称整体PASS，也不能把它们写成全部未实现。C04恢复5%下行78.3%、C05下行10%档位70%效率FAIL、C10 GE尾延迟以及普通diag-OFF CPU资格继续记录；不把历史OPEN自动转成无期限当前阻断。用户允许依据新证据修订软参数，永久运输/认证/资源硬门不变。
 
@@ -25,7 +25,7 @@
 
 ## 2. 建分支时的历史基线（不是当前源码状态）
 
-以下段落保留原开发起点。现有实现已包括V3策略、质量反馈、Normal自动和AES；接手不要根据“尚无/固定ChaCha”重做。当前N4正式入口尚未接入新dispatcher，现有UDP核的hosted同机socket回包写入模拟PacketWriter，不能冒充真实Wintun或外网Direct；TCP后端仍缺。具体证据看STATUS和相应devlog。
+以下段落保留原开发起点。现有实现已包括V3策略、质量反馈、Normal自动和AES；接手不要根据“尚无/固定ChaCha”重做。当前N4代码入口已接入新dispatcher与真实TUN PacketWriter，但hosted Actions无法装载Wintun驱动验证外网Direct，不能冒充真实设备资格；TCP WFP透明重定向和少量系统route仍缺。具体证据看STATUS和相应devlog。
 
 现有接入：`internal/realityfront/admission.go` 的 WBAD/WBAL 受 TLS 保护，已携带身份、lane、TunnelID、lease 和 record limits；尚无 FEC 模式或密码选择。
 

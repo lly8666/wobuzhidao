@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_OWNED_DHCP_HOSTED_MOCK_FIX_PENDING_ACTIONS",
+    "phase": "N4_WFP_SIGNED_TCP_REDIRECT_EXTERNAL_DEPENDENCY_BLOCKED_AFTER_UDP_AND_OWNED_ACTIONS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
-    "new_product_source_sha": "725d487942e8a33a91179a75c782dd0575f44249",
-    "implementation": "N4_UDP_NATIVE_WINTUN_ENTRY_WIRED_SCOPED_HOSTED_ACTIONS_PASS;CANCELLABLE_OWNED_APPLY_CLEANUP_CANDIDATE_ACTIONS_PENDING;TCP_DIRECT_DRIVER_AND_FEW_ROUTES_OPEN",
+    "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
+    "implementation": "V3_AUTO_AES_GUI_SCOPED_PASS_N4_NATIVE_UDP_REAL_ENTRY_49ADB_AND_OWNED_CANCEL_67B7_AND_OWNED_IPV4_DHCP_AB2D_ACTIONS_SCOPED_PASS_TCP_WFP_DRIVER_MISSING",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
       "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
-      "N4_windows_tun": "WIN_ENTRY_49ADB_PASS_CANCELLABLE_APPLY_67B7_PASS;OWNED_FOREIGN_IPV4_DHCP_SOURCE_725D_ACTION38338521944_FAIL_MOCK_DHCP_PROPERTY_AND_FOUNDATION_WIN_GO_FAIL_PRESERVED;FIX_NATIVE_MOCK_STATE_AND_ACTIVE_STORE_CANDIDATE_ACTIONS_NOT_RUN;TCP_DRIVER_FEW_ROUTES_OPEN",
+      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2668,18 +2668,19 @@
       "execution_rule": "Do not endlessly retest the same scenario or reopen completed AES/GUI. Advance N4; changed modules/new reproducible hard-gate failures require immediate scoped repair. Before final qualification explicitly resolve or report every residual, never turn OPEN into PASS."
     }
   },
-  "next_task": "Verify fixed mock's explicit DHCP Enabled/Disabled transitions and production DHCP -PolicyStore ActiveStore on new exact SOURCE in Actions; original 725d Windows FAIL must be preserved, not relabeled. Check five simulation scenarios success/route-failure/dns-failure/dns-off/alias-failure. Continue N4 WFP signed TCP kernel capability and few routes after owned mock passes; no real driver/admin Apply or physical interim tests.",
-  "latest_log": "docs/devlog/20261013-n4-owned-dhcp-mock-fail-and-targeted-fix.md",
+  "next_task": "EXTERNAL_DEPENDENCY_BLOCK: design+integrate a vetted signed Windows WFP ALE TCP connection-redirect callout driver (or appropriately licensed signed transparent redirection provider) with strict per-flow original 5-tuple/underlay binding, reverse path, generation, no loop, owned driver lifecycle, IPv4 fragments/DF/ICMP documented limits. No such signed/loaded driver is in current repo; Go net.Dial on a raw TUN SYN is forbidden and current UDP success does not solve TCP. Once actual kernel capability is available, complete few system capture routes and bounded non-HOL native Direct TCP/UDP, validate in GitHub Actions; hosted Actions without Wintun must remain UNSUPPORTED/NOT_RUN, no interim physical testing. Then cross-function N5/N6 same-source 3-target package manifest/hashes. Preserve original N2 C04/C05/C10 and 80s/late OPEN; no deploy/merge.",
+  "latest_log": "docs/devlog/20261013-n4-entry-owned-actions-receipt-and-wfp-dependency.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "725d487942e8a33a91179a75c782dd0575f44249",
-  "last_tested_scope": "N4_OWNED_DHCP_GUARD_HOSTED_WINDOWS_APPLY_SIMULATION_FAIL_MISSING_MOCK_DHCP_PROPERTY_ACTION38338521944;FOUNDATION_WIN_JOB_FAIL_115104056733;LINUX_AND_LIFECYCLE_SCOPED_PASS",
+  "last_tested_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
+  "last_tested_scope": "N4_WINDOWS_UDP_ENTRY_NATIVE_HOSTED_PLUS_OWNED_ROUTE_APPLY_CANCEL_AND_UNKNOWN_IPV4_DHCP_MOCK_SCOPED_PASS_EXACT_SOURCES_49ADB_67B7_AB2D;NO_ADMIN_OR_DRIVER_OR_PHYSICAL_QUALIFICATION",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
-    "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification."
+    "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
+    "2026-10-13: N4 Windows UDP entry native Go software wiring PASS on 49adb, owned Apply cancellation scoped PASS 67b7, foreign IPv4/DHCP owned-hosted script mock PASS ab2d; full N4 not finished due WFP driver/capture routes; hardware NOT_RUN."
   ],
   "in_progress": [
-    "N4 Windows UDP entry scoped PASS; cancellable Apply/rollback hosted Actions scoped PASS, foreign IPv4/DHCP journal safety candidate awaiting Actions",
-    "N4 actual Windows native Wintun/elevated Apply and real TCP WFP redirect/few capture routes NOT_RUN; N6 NOT_STARTED"
+    "N4 Windows UDP physical-interface-bound entry and owned cancellation/DHCP mock scoped Actions PASS; true WFP-signed TCP transparent redirect integration EXTERNAL_DEPENDENCY_BLOCK, small capture route and native hardware/owned full qualification remain OPEN",
+    "N2 bounded C04/C05/C10 residual OPEN, N6 final three-target package NOT_STARTED; physical NOT_RUN"
   ],
   "actions": [
     {
@@ -3835,6 +3836,24 @@
       "scope": "N4_OWNED_DHCP_SOURCE_LIFECYCLE_ONLY",
       "status": "PASS",
       "cause": "core job passed; not override Windows ownership test FAIL."
+    },
+    {
+      "run_id": 38338808653,
+      "name": "next-adaptive-n4-owned-address-guard",
+      "source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338808653",
+      "scope": "N4_DHCP_MOCK_CORRECTED_WINDOWS_APPLY_CLEANUP_SIM_AND_LINUX_CONTRACT_RACE",
+      "status": "PASS",
+      "cause": "Linux job115104925632 and Windows job115104925621 completed success on exact ab2d. Five native Windows scripted owned success/error scenarios run by go test internal/windowsclient; PowerShell Render without network mutation; actual admin driver NOT_RUN."
+    },
+    {
+      "run_id": 38338808694,
+      "name": "next-foundation",
+      "source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38338808694",
+      "scope": "N4_DHCP_MOCK_CORRECTED_FOUNDATION",
+      "status": "PASS",
+      "cause": "All seven required non-skipped jobs success; Linux+Windows active Go, P2 and P4 privileged, repo contract. P5/P6 explicitly skipped. Foundation artifact11786370688 sha256:552ab3af791426fdeba6e9f677712037277593907c8611a83438acce7e2d8e31."
     }
   ],
   "required_read_set": [
@@ -3925,7 +3944,7 @@
     "N0/N1 protected policy/feedback implemented; N2 auto and real1pct mixed TCP/UDP scoped PASS but C04/C05 efficiency, C10 GE tail and remaining current-source guards OPEN",
     "N3 AES128/256 authenticated record/admission and separate100s real lossless PASS; damaged network/ordinary CPU/native hardware not fully qualified",
     "N5 native GUI273 three-suite/FEC config scoped PASS, real physical quality stream and drivers not verified",
-    "N4 classifier/cache/dispatcher scoped PASS; Windows UDP physically interface-bound native kernel socket same-host echo and reverse IPv4/UDP test PacketWriter scoped PASS SOURCE 1b3e923; actual Wintun entry/physical external route and TCP kernel redirect, small route owned cleanup OPEN",
+    "N4 classifier/UDP physical-bound hosted socket/actual Go Wintun entry wiring/owned cancellation and DHCP journal mock have limited Actions success on 49adb/67b7/ab2d; true signed Windows WFP TCP redirect driver, few routes, actual admin/Wintun/physical external path and complete owned clean teardown OPEN/NOT_RUN. Original 725d Windows mock FAIL retained.",
     "N6 final current-source three-target bundles and integrated Actions qualification not complete; physical NOT_RUN",
     "Historical paired RTT/native/Q2 failures, MTU/PMTU/native capability gaps and approximately80s S2C interruption retained; no source inherits full qualification"
   ],
