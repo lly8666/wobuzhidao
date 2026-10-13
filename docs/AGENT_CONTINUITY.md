@@ -1,3 +1,7 @@
+## 2026-10-13 N4 Win2022/25 RequestedGUID 原生 LUID/Index/GUID 一致性限定 PASS；跨进程恢复 OPEN
+
+精确已验代码 SOURCE `459fe064a63da41e09ac9ab8ebc330238fbb9011`：真实临时 Win2022/25 Wintun RequestedGUID→LUID→Index→OS GUID 一致性 [Action38393086100](https://github.com/lly8666/wobuzhidao/actions/runs/38393086100) SUCCESS，N4 matrix [38393086600](https://github.com/lly8666/wobuzhidao/actions/runs/38393086600) SUCCESS，Lifecycle [38393086299](https://github.com/lly8666/wobuzhidao/actions/runs/38393086299) SUCCESS，Foundation [38393086310](https://github.com/lly8666/wobuzhidao/actions/runs/38393086310) 七必需 SUCCESS。**初始源码 `c6d7d74f` 重复 native 函数导致四项工作流 FAIL**（见新 devlog），已定点修复并在新 SOURCE 复验；历史 FAIL 绝不抹除。当前 GUID 一致不等于 crash owner proof，WFP 仍禁 Arm、正式 CLI 仍 PowerShell、真实 /1 WFP 保护与 P6 未跑，物理 NOT_RUN。STATUS 是唯一下一步，不能部署、合并或动资格 ref。
+
 ## 2026-10-13 N4 GUID 读回候选第一次 Actions 编译失败，定点复用既有原生读回（新 SOURCE 待验）
 
 `c6d7d74f26ac3cd38b9697dd619ba64a9d543a05` Lifecycle [38392840772](https://github.com/lly8666/wobuzhidao/actions/runs/38392840772) 的 Windows 交叉编译确切 FAIL：`native_wintun_owner_windows.go:71` 的新增 `n4NativeInterfaceGUID` 与已存在 `native_dns_snapshot_windows.go:75` 同名。新候选**删除多余的实现，复用原有 index→LUID→GUID Win32 reader**，真实 Win2022/25 仍需显式验证 RequestedGUID 一致。原 Action 永久按 FAIL 保留，不继承前一 scoped PASS，也不触碰生产 WFP、CLI、物理、N6。下一任务唯一看 STATUS。
