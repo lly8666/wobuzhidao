@@ -12,6 +12,8 @@ on:
       - "internal/windowsclient/native_orphan_empty_wal_windows_test.go"
       - "internal/windowsclient/native_orphan_owned_guard_windows.go"
       - "internal/windowsclient/native_orphan_owned_guard_windows_test.go"
+      - "internal/windowsclient/native_orphan_preroute_windows.go"
+      - "internal/windowsclient/native_orphan_preroute_windows_test.go"
       - "internal/windowsclient/native_journal_adapter_proof_windows.go"
       - "internal/windowsclient/native_journal_adapter_proof_windows_test.go"
       - "internal/windowsclient/native_unified_network_transaction.go"

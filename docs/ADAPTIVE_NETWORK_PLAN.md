@@ -1,3 +1,7 @@
+## 2026-10-13 N4 原 Wintun 销毁后、进入 route 前 lease/MTU/DNS WAL 安全清退候选
+
+最新 CODE SOURCE 的原生 N4 `N4WindowsRetirePreRouteOrphanWAL` 新候选：WAL 严格只有 guard:owned + lease/MTU/DNS 2..4 顺序记录且 applying、全部基线绑定原 GUID/LUID/ifIndex，绝对未开始 routes、没有任何 `.routes` sidecar；真实 Windows 全接口枚举证明旧网卡三项身份消失，owned WFP 精确清理核销后才**仅**删除 parent WAL，无法证明就拒绝。候选 Actions Win2022/25、Linux race、Foundation、Lifecycle、真实 Wintun 回归未验；测试使用 fake WFP，**真实生产 WFP Arm 仍 disabled、native assembler assemblyOnly、官方 Windows CLI 仍 PowerShell**。用户许可最终实机假设仅一个 Wintun，但共享 Actions 不能 host-global WFP/two /1；完整带路由崩溃恢复/N5/N6及物理 NOT_RUN。唯一 next_task 见 STATUS，N2 C04/C05 FAIL、C10 GE、约80s S2C 保留 OPEN，不自动部署合并。
+
 ## 2026-10-13 N4 真实 Win2022/Win2025 TEST-NET WFP 精确清理限定 PASS；产品仍未实机 READY
 
 本轮最新确切 CODE SOURCE `950b793006d2b030e1e33df02da2222af8b1aa3d`：真实 scoped WFP LAB Action38414964356 Win2022/25 双端 PASS，随机独立 TEST-NET 203.0.113.254:65530 的持久规则，经生产共用精确 CAS 反向清理、外来条件拒绝、部分删除和独立 WFP 引擎重开核对、重复Stop 均实际通过；Foundation38414964315 七必需 SUCCESS，Lifecycle38414964347 SUCCESS。共用生产 WFP helper 的 N4 Matrix38413397226 在上一个 c3c401 SOURCE PASS；不可合并不同 SHA 为同源验收。历史 c3c401 WFP38413396711、013845 WFP38414263093 均 FAIL 留痕，原因 TEST-NET LAB 请求 Weight1 而 Windows 读回11，改 LAB Weight11 未放松真实安全校验。物理机本轮允许只考虑一个 Wintun，但**正式 Windows CLI 仍 PowerShell、native assembler 仍 assemblyOnly、production WFP Arm 仍禁、完整 /32+两 /1 和非空后续 stage crash 恢复无隔离 Windows Actions 实测**；N4/N5/N6 均不完整，`ACTIONS_READY_FOR_PHYSICAL` 未标，physical NOT_RUN。旧 N2 C04/C05 FAIL、C10 GE 和约80秒长尾 OPEN；唯一 next_task 看 STATUS，禁止部署或合并。
