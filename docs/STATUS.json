@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_USERSPACE_TUN2SOCKS_DIRECT_TCP_AND_NATIVE_WINDOWS_NETWORK_API_FEASIBILITY_ACTIONS_PENDING",
+    "phase": "N4_USERSPACE_TCP_CORE_AND_COMPACT_ROUTE_PLAN_ACTIONS_PENDING_NATIVE_NETWORK_LIFECYCLE_BLOCKED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "USER_AUTHORIZED_IN_TUN_CLASSIFICATION_WITH_OLD_TUN2SOCKS_DIRECT_AND_GO_NATIVE_NO_POWERSHELL_RUNTIME_REQUIRED; GATE_PENDING",
+    "implementation": "N4_USERSPACE_TCP_CORE_SOURCE_CANDIDATE_NO_POWERSHELL_NEW_CODE;COMPACT_WIN_ROUTE_PLANNER_IN_MEMORY_ONLY;LIVE_RUNTIME_STILL_USES_LEGACY_POWERSHELL_AND_COMPLEMENT_ROUTES_NOT_ACCEPTABLE_FOR_RELEASE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,8 +2682,8 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Run dedicated SOURCE-scoped Windows Actions gate for old tun2socks v2.6.0 Direct TCP/UDP + route-plan tests and Windows native iphlpapi/fwpuclnt DLL exports. If PASS, integrate userspace TCP Direct in single-process Go; replace PowerShell-based Apply/Cleanup/DNS/IPv6 firewall and state journal with owned fail-closed native Windows API before enabling compact 2x/1 capture routes. User explicitly forbids PowerShell scripts in resulting product; do NOT introduce new PS scripts or invoke powershell.exe from runtime. Keep old archived history untouched. If gate FAIL, record exactly and stop technical approach for discussion, no fake PASS. All builds/tests Actions only; N6 after complete N4; no physical before final package.",
-  "latest_log": "docs/devlog/20261013-n4-userspace-native-api-gate-candidate.md",
+  "next_task": "Run new SOURCE Actions for active Go userspace TCP/direct queue and compact route planner; first gate SOURCE96375 Actions38343129203 PASS but Foundation38343129100 FAIL repository-contract because workflow tried to activate archived old runtime; preserve failure. Corrected workflow exclusively tests active files, no old code execution, Go/native API test only. If Actions PASS then replace Windows runtime PowerShell Apply/Cleanup/NRPT/IPv6 guard and old complement routes with Go native IP Helper + Windows Filtering Platform owned API, journal and crash recovery. Do NOT enable compact routes before native owned DNS/IPv6 path passes. Windows final product must not spawn powershell.exe or require .ps1; archive old/ remains provenance read-only. All tests Actions only, no physical until N6.",
+  "latest_log": "docs/devlog/20261013-n4-tcp-userspace-singleprocess-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
   "last_tested_source_sha": "086a9bd27f9a275d0d3d40163cc0d0c5868c7e67",
   "last_tested_scope": "N4_WIN_DIVERT_V2_2_2_PINNED_ABI_PREFLIGHT_ACTION38341416320_GATE_EXEC_SUCCESS_CANDIDATE_VERDICT_NO_GO;FOUNDATION38341416272_PASS;NO_DRIVER_LOAD_OR_TCP_HARDWARE",
@@ -2694,8 +2694,8 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "N4 new user-approved option: in-TUN LAN/CN/foreign policy from old/old tunsplit; v2.6.0 gVisor/tun2socks 2-TCP-leg userspace direct, physical-interface-bound socket; new product must contain ZERO powershell runtime invocation or scripts; ACTIONS gate NOT_RUN until triggered",
-    "Legacy WinDivert-only shortcut NO_GO preserved; Windows native owned DNS/IPv6/net APIs not yet coded; N6 NOT_STARTED; physical NOT_RUN"
+    "N4 newly copied single-process userspace TCP Direct (gVisor/tun2socks v2.6.0) generation/iface scoped + bounded queue + 2-route planner are IMPLEMENTED AS DISABLED CANDIDATES, not wired to runtime; current powershell.exe route CLI not yet removed",
+    "New SOURCE Actions pending; original SOURCE96375 Foundation FAIL due workflow old runtime reactivation policy (not product failure), dedicated old module test PASS; old No-Go WinDivert preserved; N6 NOT_STARTED; physical NOT_RUN"
   ],
   "actions": [
     {
@@ -3887,6 +3887,24 @@
       "scope": "N4_WIN_DIVERT_ONLY_GATE_SOURCE_NO_PRODUCT_CHANGE_FOUNDATION",
       "status": "PASS",
       "cause": "All seven required non-skipped jobs successful: repo, Linux/Win Go/race, P2 and P4. P5/P6 skipped NOT_RUN. Foundation artifact11787525173 sha256:3e5d333cbcf9f2a0bcc7e8fb711f0b8f2837c464a280dc30aec00177312f208e; does not change feasibility verdict NO_GO."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38343129100,
+      "source_sha": "96375cefea5b3254e8bd54c52f574871a9965b0b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38343129100",
+      "scope": "N4_INITIAL_OLD_ARCHIVE_FEASIBILITY_WORKFLOW_REJECTED_CONTRACT",
+      "status": "FAIL",
+      "cause": "repository-contract job115118365996 rejects workflow reactivating old runtime via working-directory: old. Downstream skipped; must not claim Foundation PASS. New workflow stops running archived Go modules."
+    },
+    {
+      "name": "next-adaptive-n4-userspace-no-powershell-feasibility",
+      "run_id": 38343129203,
+      "source_sha": "96375cefea5b3254e8bd54c52f574871a9965b0b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38343129203",
+      "scope": "N4_WINDOWS_NATIVE_DLL_API_AND_ARCHIVED_TUN2SOCKS_COMPILE_INITIAL_GATE_ONLY",
+      "status": "PASS",
+      "cause": "Single Windows hosted job115118366065 completed success, legacy archive test and Windows native DLL API symbol lookup. Does NOT establish active module port, actual routes, Wintun, physical TCP, or scriptless product."
     }
   ],
   "required_read_set": [

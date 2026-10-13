@@ -5,11 +5,16 @@ on:
     paths:
       - ".github/workflows/next-adaptive-n4-userspace-no-powershell-feasibility.yml"
       - "internal/windowsclient/n4_native_api_gate_windows_test.go"
+      - "internal/windowsclient/userspace_tcp_direct_windows.go"
+      - "internal/windowsclient/userspace_tcp_direct_windows_test.go"
+      - "internal/windowsclient/compact_plan.go"
+      - "go.mod"
+      - "go.sum"
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  legacy-tun2socks-and-native-api-gate:
+  userspace-direct-and-native-api-gate:
     runs-on: windows-2022
     timeout-minutes: 22
     steps:
@@ -26,21 +31,18 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           go test -mod=readonly ./internal/windowsclient -run '^TestN4NativeNetworkDLLExportsAvailable$' -count=1 -v
-      - name: Compile and verify historical direct TCP UDP stack and routing invariants
+      - name: Compile and test active userspace TCP Direct scope and bounded queues
         shell: bash
-        working-directory: old
-        env:
-          GOWORK: "off"
         run: |
           set -euo pipefail
-          go test -mod=readonly ./internal/tunsplit ./internal/windowsruntime \
-            -run 'Test(DirectInterfaceIndex|BridgeDirectsOnlyTCPAndUDP|BridgeHonorsProxyDecision|RoutingPolicyMatrixUsesOneHostRouteShape|BuildPlanExplicitRoutingPolicyMovesDecisionIntoTun|RouteRebindNeverReceivesSplitPolicyPrefixes)' -count=1 -v
+          go test -mod=readonly ./internal/windowsclient \
+            -run 'TestN4TCP' -count=1 -v
       - name: Record limited feasibility scope
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          printf '{"schema":"wbd-n4-userspace-nops-feasibility/v1","source_sha":"%s","outcome":"SCOPED_SOURCE_API_AND_LEGACY_GO_TEST_PASS","driver_loaded":false,"admin_network_mutation":false,"real_wintun":false,"physical_tcp":false,"no_powershell_used_in_test":true,"native_dns_firewall_lifecycle":"NOT_IMPLEMENTED","native_route_lifecycle":"NOT_IMPLEMENTED"}\n' "$GITHUB_SHA" > artifacts/n4-userspace-nops-gate.json
+          printf '{"schema":"wbd-n4-userspace-nops-feasibility/v1","source_sha":"%s","outcome":"SCOPED_NATIVE_EXPORTS_AND_TCP_QUEUE_BUILD_PASS","driver_loaded":false,"admin_network_mutation":false,"real_wintun":false,"physical_tcp":false,"no_powershell_used_in_test":true,"native_dns_firewall_lifecycle":"NOT_IMPLEMENTED","native_route_lifecycle":"NOT_IMPLEMENTED"}\n' "$GITHUB_SHA" > artifacts/n4-userspace-nops-gate.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
