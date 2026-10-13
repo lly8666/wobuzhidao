@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_WINTUN_HANDLE_LUID_OWNER_CLAIM_SCOPED_FOUNDATION_PASS_EXPLICIT_DEDICATED_WINTUN_TEST_GATE_PENDING",
+    "phase": "N4_NATIVE_WINTUN_LUID_OWNER_EXPLICIT_WINDOWS2022_WINDOWS2025_MATRIX_PASS_SCRIPTLESS_RUNTIME_AND_N6_INCOMPLETE",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_WINTUN_CREATED_BY_PROCESS_LUID_IFINDEX_LIVE_HANDLE_OWNER_FENCE_153E_FOUNDATION_PASS;DEDICATED_N4_REGEX_FIX_REQUIRED_TO_INCLUDE_N4WINTUN_TEST;NATIVE_LOWLEVEL_LEASE_MTU_UNWIRED_POWERSHELL_RUNTIME_UNCHANGED",
+    "implementation": "N4_GUARDED_LEASE_MTU_DNS_WFP_NATIVE_LOWLEVEL_AND_WINTUN_CREATED_OWNER_LUID_SCOPED_ACTIONS_PASS;PRODUCTION_CMD_POWERSHELL_AND_MASSIVE_ROUTES_STILL_ACTIVE;REAL_ADMIN_WINTUN_AND_CRASH_DURABLE_NETWORK_TXN_NOT_DONE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Fix dedicated N4 Windows2022/2025 matrix regex to explicitly include TestN4Wintun* (source153e matrix Action38352792622 had all jobs SUCCESS but dedicated -run regex accidentally omitted new Wintun tests; full Foundation38352792644 Windows Go did run them). Re-run explicit matrix both Windows editions, Linux race and Foundation/lifecycle exact SOURCE with docs synced. Then implement crash-durable Wintun owner generation/journal and fully native guarded DHCP/static /32 lease, MTU, DNS, route Apply/Stop/Recovery with correct persistent WFP DNS+IPv6 policy (exclusive single Wintun only until shared allowlist verified), isolated Windows admin Actions real native Wintun network mutation, then replace Powershell/complement capture with compact 2x/1 and userspace DirectTCP+UDP. No physical before N6 3-target source artifacts; N2 residual open, no deploy/merge.",
-  "latest_log": "docs/devlog/20261013-n4-wintun-luid-owner-actions-final-and-explicit-matrix-gate.md",
+  "next_task": "Continue implementing N4 native single-process Windows network Apply/Stop/Recover that NEVER invokes PowerShell, after GH Actions source B650 explicit TestN4Wintun x3 on Windows2022/25, Linux-race and Foundation all success. Critical actual work: crash-durable owned Wintun creation/lease/DHCP/MTU address + native DNS Set/Get reversible journal + persistent WFP DNS/IPv6 anti-leak policy with correct MULTI-WINTUN shared allowlist or explicitly exclusive supported-mode failure; verify startup recovery and foreign adapter / route / DNS unchanged. In isolated GH Windows admin runner verify real Wintun driver capabilities and route Apply/Cancel/Stop/Repeat/Crash where supported, never falsely claim missing driver physical PASS. Only then connect two /1 captures + bounded server/DNS exceptions, in-TUN CN classifier + userspace Direct TCP/UDP, and remove active cmd/wbd-client PowerShell/.ps1 and package references. N2 efficiencies/GE longtail/80s OPEN; N6 not started; physical NOT_RUN; no local tests, no deploy/merge/ref moves.",
+  "latest_log": "docs/devlog/20261013-n4-wintun-luid-owner-explicit-matrix-final-receipt.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "153e33e089e52fcf6b781b897f986cc9ab4d32f9",
-  "last_tested_scope": "SOURCE153E WINTUN_OWNER_FULL_WINDOWS_GO_FOUNDATION38352792644_ALL7_PASS_LIFECYCLE38352792631_PASS_N4_MATRIX38352792622_PASS_BUT_DEDICATED_REGEX_EXCLUDED_TESTN4WINTUN;FIX_NEXT_SOURCE",
+  "last_tested_source_sha": "b650aa2077bbcf76650ed2510a158e1e606a8e45",
+  "last_tested_scope": "B650_EXPLICIT_TESTN4WINTUN_X3_WIN2022_X3_WIN2025_ACTION38353235782_SUCCESS_ALL4;FOUNDATION38353235766_SUCCESS_ALL7;NO_REAL_WINTUN_DRIVE_OR_ADMIN_NET_WRITE",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,9 +2694,9 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "SOURCE153e Wintun owner handle source candidate, N4 dedicated matrix Action38352792622 final SUCCESS Win2022/Win2025/Ubuntu race; artifact11791965009 sha256:2378cf20e9d876256dfa5c54810660c6583cb14451595c0407701d903c568a34. Dedicated -run regex accidentally excluded new TestN4Wintun tests; these are still included by same-source Foundation full Windows go test; explicit dedicated fix pending.",
-    "SOURCE153e Foundation38352792644 SUCCESS all seven required Windows/Linux Go/race P2/P4 and repo, artifact11790614647 sha256:2800c2526ce83e9de632b267be1da1a57cfd51e9203e31fb57ef42960c520f40. Lifecycle38352792631 SUCCESS. No driver/physical route mutation was tested.",
-    "Blocking: real native Win32 Wintun owner persistent journal, durable WFP DNS+IPv6 leak prevention in product, DHCP/IPv4 lease/MTU/DNS owned restart restore, hosted isolated admin driver tests, runtime PowerShell removal and two /1 activation not done. N6 NOT_STARTED, physical NOT_RUN, N2 efficiency/GE/80s open."
+    "SOURCE b650aa: explicit Windows N4 Wintun-owner negative matrix TestN4WintunHandleOwnershipNeverBasedOnAlias + TestN4WintunAdapterClaimDoesNotSurviveClosedSession each 3 repetitions on BOTH Windows2022/2025, dedicated Action38353235782 FINAL SUCCESS 4 jobs Linux race+receipt; artifact11791975522. Confirmed job logs 6 passing test lines per Windows runner. Foundation38353235766 FINAL SUCCESS all 7 required, artifact11791443266.",
+    "Product N4 small route/DirectTCP still DISABLED; Wintun owner proof requires actual created live adapter handle and fresh LUID. Native IPv4 /32 lease/MTU and DNS setters are low-level unconnected guarded primitives; persistent WFP isolated TEST-NET only, no real admin Wintun/DNS/IPv6 no-leak end-to-end. Existing Windows cmd/wbd-client still runs PowerShell plus complement host CIDRs, violating user's final no PowerShell requirement.",
+    "N2 C04/C05/C10/GE efficiency and 80s longtail residuals OPEN; N6 three platform same-source packaging NOT_STARTED; physical NOT_RUN. No deploy/merge/mainline refs."
   ],
   "actions": [
     {
@@ -4455,6 +4455,24 @@
       "scope": "N4_WINTUN_HANDLE_OWNER_CLAIM_SOURCE_LIFECYCLE",
       "status": "PASS",
       "cause": "Core lifecycle job FINAL SUCCESS. No real Wintun driver loaded in new owner tests."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38353235782,
+      "source_sha": "b650aa2077bbcf76650ed2510a158e1e606a8e45",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38353235782",
+      "scope": "N4_EXPLICIT_TUN_CREATED_VS_OPENED_OWNER_TESTS_WIN2022_WIN2025_3X_EACH_LINUXRACE",
+      "status": "PASS",
+      "cause": "Final SUCCESS all four jobs: Windows2022/2025 each logged TestN4WintunHandleOwnershipNeverBasedOnAlias and TestN4WintunAdapterClaimDoesNotSurviveClosedSession PASS x3 each; Ubuntu race+receipt success. Artifact11791975522 sha256:3d95baebb796cca35aadc4f7d9b902df2117957a33d49cf6e34b72fd628ee652. No driver loaded or actual native Wintun LUID read on test runner, thus only negative ownership scope."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38353235766,
+      "source_sha": "b650aa2077bbcf76650ed2510a158e1e606a8e45",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38353235766",
+      "scope": "N4_EXPLICIT_WIN_OWNER_MATRIX_SOURCE_FULL_FOUNDATION",
+      "status": "PASS",
+      "cause": "All seven mandatory non-skipped jobs FINAL SUCCESS Windows/Linux active Go/race, P2/P4 and repo contract; P5/P6 extended SKIPPED NOT_RUN. Artifact11791443266 sha256:aaaf902a0c6c726369549f44ac97be80595d7ddcd9e9884540b1b1eb89d15414. No production native Apply/Stop."
     }
   ],
   "required_read_set": [
