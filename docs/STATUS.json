@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_NATIVE_LEASE_CURRENT_CREATED_WINTUN_OWNER_FENCE_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N4_CRASH_ROUTE_GUARD_WFP_PARTIAL_AND_NATIVE_LEASE_CREATED_WINTUN_OWNER_SCOPED_ACTIONS_PASS_FULL_SCRIPTLESS_NETWORK_TXN_N6_OPEN",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE1EEB_WFP_PARTIAL_FINALIZER_AND_CF_EAC_WORKFLOW_EXPLICIT_TESTS_SCOPED_PASS_DURABLE_NETWORK_TXN_INCOMPLETE;NEW_LEASE_CREATE_DELETE_NATIVE_WINTUN_LIVE_OWNER_FENCE_CANDIDATE;PRODUCTION_POWERSHELL_ACTIVE",
+    "implementation": "SOURCE908A_GUARD_ROUTE_TWO_CRASH_WINDOWS_1EEB_WFP_PARTIAL_AFTER_EMPTY_JOURNAL_863E_LEASE_LIVE_OWNER_GATES_SCOPED_GITHUB_ACTIONS_PASS;OFFICIAL_WINDOWS_POWERSHELL_AND_MASSIVE_CIDR_ROUTES_STILL_ACTIVE;FULL_WINTUN_DHCP_MTU_DNS_WFP_NATIVE_TXN_AND_P6_NOT_DONE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
       "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
-      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS;SOURCE908A_GUARD_JOURNAL_CRASH_SCOPED_ACTION38357895984_FOUNDATION38357895969_LIFECYCLE38357895905_PASS;SOURCE1EEB_WFP_PARTIAL_RECOVERY_FULL_FOUNDATION38358434476_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_SUCCESS_OLD_REGEX_DID_NOT_SELECT_NEW_PARTIAL_TEST",
+      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS;SOURCE908A_GUARD_JOURNAL_CRASH_SCOPED_ACTION38357895984_FOUNDATION38357895969_LIFECYCLE38357895905_PASS;SOURCE1EEB_WFP_PARTIAL_RECOVERY_FULL_FOUNDATION38358434476_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_SUCCESS_OLD_REGEX_DID_NOT_SELECT_NEW_PARTIAL_TEST;SOURCE863E_N4_LEASE_CREATED_WINTUN_OWNER_NEGATIVE_WINDOWS2022_2025_X3_ACTION38359734786_PASS_FOUNDATION38359735917_ALL7_PASS_LIFECYCLE38359735012_PASS;SOURCE_CFEAC_EXPLICIT_WFP_CRASH_MATRIX38359183134_PASS;NO_REAL_ADMIN_WINTUN",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify new exact SOURCE Windows2022/2025 N4 owned native transaction matrix (TestN4NativeLeaseWriterRequiresLiveProcessCreatedWintun explicit via TestN4Native wildcard), Linux race, Foundation, lifecycle. Lease Create/Delete now requires current process-created Wintun handle index proof as DNS/MTU do; no actual unicast mutation or durable parent journal. Then implement unified crash-durable Wintun/DHCP/lease/DAD/MTU/DNS/WFP compact route transaction and scriptless CLI/direct functional Actions; N2 residual C04/C05/C10/80s OPEN; N6 packages NOT_STARTED; physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261013-n4-native-lease-created-wintun-ownership-gate-candidate.md",
+  "next_task": "N4 next actual atomic development: build the SINGLE crash-durable scriptless Windows network Apply/Stop/Recover transaction that coordinates current created-Wintun handle LUID+generation, DHCP/native static /32 lease creation/DAD and unowned address protection, original MTU row CAS restore, native DNS Get/Set/clear reversible journal, persistent WFP DNS+IPv6 guard safe for multi-Wintun or provable exclusive-only fail-closed, underlay server /32 escape before exactly two /1 capture plus limited DNS /32, and owned route journal. Refuse to activate when any prerequisite/driver unsupported; test admin native Wintun/route/DNS capabilities in isolated GH Win2022/25 and explicitly UNSUPPORTED/NOT_RUN where missing. Once its Actions regressions are complete, replace active cmd/wbd-client PowerShell/.ps1 and CN complement route plumbing, wire userspace DirectTCP+NativeUDP, run Windows functional and cross-feature Actions then N6 same-SOURCE P6 three targets manifest/hash. N2 C04/C05 efficiency FAIL, C10 GE p99 and ~80s S2C remain OPEN; physical NOT_RUN, no deployment/mainline merge/ref movement.",
+  "latest_log": "docs/devlog/20261013-n4-crash-route-wfp-lease-owner-final-scoped-receipt.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "1eeb847f72a1a6662c11bf3b4fe75899be070bfb",
-  "last_tested_scope": "1EEB_WFP_PARTIAL_SCOPED_FOUNDATION38358434476_ALL7_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_PASS_BUT_NEW_TEST_NOT_SELECTED_BY_LAB_REGEX",
+  "last_tested_source_sha": "863e5584d3d8352019256e8c16d14dab0f3d2cf9",
+  "last_tested_scope": "SOURCE_863E_NATIVE_LEASE_CREATE_DELETE_LIVE_PROCESS_CREATED_WINTUN_GUARD_N4_ACTION38359734786_WINDOWS2022_2025_X3_LINUX_RACE_SUCCESS_FOUNDATION38359735917_ALL7_SUCCESS_LIFECYCLE38359735012_SUCCESS_REAL_ADMIN_WINTUN_DNS_MTUDHCP_NOT_RUN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "New candidate native lease Create/Delete validates n4OwnedInterfaceProof current created Wintun index before any unicast API; negative test covers borrowed, missing, stale, canceled and guard off. No successful Windows address mutation, no native product connection; new SOURCE Actions pending.",
-    "SOURCE 987ec105 N4 workflow38359000016 still FAIL at parse, no jobs: duplicate tail lines125..164 remained after first truncated line fix. Third targeted correction truncates workflow to exact first 124 lines including explicit tests; new Actions pending.",
-    "SOURCE decb79 workflow run38358853661 FAIL before job creation because new N4 go test line lost closing quote / YAML invalid; no product test performed in that run. Targeted workflow repair candidate, new exact SOURCE test pending; do not relabel original failure.",
-    "Source1eeb WFP partial rule exact-owned finalizer after route cleanup: Foundation38358434476 SUCCESS (7 required), Lifecycle38358434353 SUCCESS, Windows WFP TEST-NET lab38358434417 SUCCESS but its old regex omitted TestN4WFPPartial...; explicit matcher correction awaiting new Actions. Never represent lab result as coverage of omitted test.",
-    "Source908a guarded route-journal two crash windows FINAL scoped ACTIONS PASS (N4 38357895984, Foundation38357895969 7 jobs, Lifecycle38357895905). New WFP partial owned deletion only after routes cleared candidate awaiting separate new-source Actions."
+    "Latest CODE SOURCE863e5584: native static IPv4 /32 lease Create/Delete requires current owned Wintun identity; N4 Action38359734786 FINAL SUCCESS Win2022/2025 each TestN4NativeLeaseWriterRequiresLiveProcessCreatedWintun PASS x3, Linux race + receipt success; Foundation38359735917 FINAL SUCCESS all seven mandatory; Lifecycle38359735012 FINAL SUCCESS. Only negative/no-OS-mutation scope.",
+    "SOURCEcfeacdb and decb79c: explicit N4 route+WFP finalizer test selectors PASS via matrix38359183134 and WFP TEST-NET lab38358854944; both exact test names observed in logs x3 on each Windows N4 runner. Earlier malformed-workflow Actions38358853661 and38359000016 remain FAIL with no jobs, corrected in sourcecfeac.",
+    "SOURCES908a and1eeb: guard/journal pre-arm and post-disarm crash window reconciliation, bounded 64KiB journal, and exact-owned partial WFP cleanup ONLY after empty owned-route journal scoped software Actions PASS. Real Windows administrator/driver native Wintun/lease/DNS/MTU/WFP production behavior not exercised.",
+    "N4 official Windows CLI still invokes PowerShell and CN complement routes. Unified crash-durable Wintun DHCP/lease/MTU/DNS/WFP Apply/Stop/Recover and actual Windows Direct TCP/UDP product qualification OPEN. N6 P6/manifest/hash NOT_STARTED, physical NOT_RUN; no deploy/merge.",
+    "N2 C04/C05 efficiency FAIL and C10 GE ~1.8–1.95s one-way p99 plus ~80s S2C interruption remain OPEN; preserve prior evidence, no re-run by default."
   ],
   "actions": [
     {
@@ -4601,6 +4601,69 @@
       "scope": "N4_WORKFLOW_YAML_PARSE_DUPLICATE_TAIL",
       "status": "FAIL",
       "cause": "Workflow YAML invalid, duplicate trailing run/step/job content lines125-164; no job executed. Original FAIL retained; code Go not retested."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38358853661,
+      "source_sha": "decb79c68d69f7b155899cedc4dde931edf66b3e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38358853661",
+      "scope": "CI_WORKFLOW_PARSE_MISSING_QUOTE",
+      "status": "FAIL",
+      "cause": "FAIL no jobs. Original invalid YAML preserved."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38359000016,
+      "source_sha": "987ec105e54aa1fcb0e49c51aa5b1ad37d5082d3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38359000016",
+      "scope": "CI_WORKFLOW_PARSE_DUPLICATED_TRAILING_JOB",
+      "status": "FAIL",
+      "cause": "FAIL no jobs. Original YAML duplicate tail preserved."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38359183134,
+      "source_sha": "cfeacdbed8ce392fa21c0493e1ef122cb4169cf1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38359183134",
+      "scope": "EXPLICIT_N4_NATIVE_TXN_WFP_PARTIAL_WINDOWS2022_2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS four jobs. Windows2022 job115169056796 and Win2025 job115169056804 explicitly both new tests PASS x3. Artifact11793709325 GitHub SHA256:9427a4cb81f25edd73bc7497c0aebcb3c7515274e33d40d90172b07994561d79."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38359183166,
+      "source_sha": "cfeacdbed8ce392fa21c0493e1ef122cb4169cf1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38359183166",
+      "scope": "EXPLICIT_N4_MATRIX_FINAL_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all 7 mandatory, p5/p6 extended skipped. Artifact11794058916 sha256:04ee33ea7af7c7a9855bd04dd65a1fd069efef5adaa9b1803499018c546cad71."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38359734786,
+      "source_sha": "863e5584d3d8352019256e8c16d14dab0f3d2cf9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38359734786",
+      "scope": "N4_NATIVE_LEASE_CURRENT_WINTUN_OWNER_WIN2022_2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS four jobs, Win2022 job115170835112 and Win2025 job115170834930 both new lease test PASS x3. Artifact11794143167 sha256:6322121c795467923e2f87aeea0546d2d1cf3cc52d249266141308f03f843584."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38359735917,
+      "source_sha": "863e5584d3d8352019256e8c16d14dab0f3d2cf9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38359735917",
+      "scope": "N4_NATIVE_LEASE_OWNER_FULL_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all seven required; p5/p6 extended skipped. Foundation artifact11794515389 sha256:aca6de3933d0c1c62a9966409a3de0c1e332dd3e437a363cd086aaa42f68b807."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38359735012,
+      "source_sha": "863e5584d3d8352019256e8c16d14dab0f3d2cf9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38359735012",
+      "scope": "N4_NATIVE_LEASE_OWNER_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS core; no Windows driver or route/DNS writer positive mutation."
     }
   ],
   "required_read_set": [

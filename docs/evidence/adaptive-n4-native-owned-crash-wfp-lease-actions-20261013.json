@@ -1,0 +1,95 @@
+{
+  "schema": "wbd-adaptive-n4-native-owned-guard-lease-scoped-actions-final/v1",
+  "branch": "next/adaptive-fec-aes-tun-20261010",
+  "latest_tested_source_sha": "863e5584d3d8352019256e8c16d14dab0f3d2cf9",
+  "source_outcomes": [
+    {
+      "source_sha": "908a93026c619de0e23566a7f838429328ff3162",
+      "scope": "mock route journal two crash windows and bounded decode",
+      "matrix": 38357895984,
+      "foundation": 38357895969,
+      "lifecycle": 38357895905,
+      "status": "SCOPED_PASS"
+    },
+    {
+      "source_sha": "1eeb847f72a1a6662c11bf3b4fe75899be070bfb",
+      "scope": "pure-Go and Windows WFP exact-owned partial post-route finalizer",
+      "wfp_lab": 38358434417,
+      "foundation": 38358434476,
+      "lifecycle": 38358434353,
+      "status": "SCOPED_PASS_OLD_WFP_MATCHER_OMITTED_NEW_TEST"
+    },
+    {
+      "source_sha": "decb79c68d69f7b155899cedc4dde931edf66b3e",
+      "wfp_lab": 38358854944,
+      "status": "SCOPED_PASS_NEW_WFP_PARTIAL_TEST_EXPLICIT_WIN2022_WIN2025"
+    },
+    {
+      "source_sha": "decb79c68d69f7b155899cedc4dde931edf66b3e",
+      "matrix": 38358853661,
+      "status": "FAIL_WORKFLOW_PARSE_NO_JOBS"
+    },
+    {
+      "source_sha": "987ec105e54aa1fcb0e49c51aa5b1ad37d5082d3",
+      "matrix": 38359000016,
+      "status": "FAIL_WORKFLOW_PARSE_NO_JOBS"
+    },
+    {
+      "source_sha": "cfeacdbed8ce392fa21c0493e1ef122cb4169cf1",
+      "matrix": 38359183134,
+      "foundation": 38359183166,
+      "status": "SCOPED_PASS_EXPLICIT_TEST_NAMES_WIN2022_2025_X3_LINUX_RACE"
+    },
+    {
+      "source_sha": "863e5584d3d8352019256e8c16d14dab0f3d2cf9",
+      "matrix": 38359734786,
+      "foundation": 38359735917,
+      "lifecycle": 38359735012,
+      "status": "SCOPED_PASS_NATIVE_LEASE_PROCESS_OWNER_NEGATIVES_WIN2022_2025_X3_LINUX_RACE"
+    }
+  ],
+  "latest_artifacts": [
+    {
+      "run": 38359734786,
+      "id": 11794143167,
+      "github_digest_sha256": "6322121c795467923e2f87aeea0546d2d1cf3cc52d249266141308f03f843584"
+    },
+    {
+      "run": 38359735917,
+      "id": 11794515389,
+      "github_digest_sha256": "aca6de3933d0c1c62a9966409a3de0c1e332dd3e437a363cd086aaa42f68b807"
+    },
+    {
+      "run": 38359183134,
+      "id": 11793709325,
+      "github_digest_sha256": "9427a4cb81f25edd73bc7497c0aebcb3c7515274e33d40d90172b07994561d79"
+    },
+    {
+      "run": 38359183166,
+      "id": 11794058916,
+      "github_digest_sha256": "04ee33ea7af7c7a9855bd04dd65a1fd069efef5adaa9b1803499018c546cad71"
+    },
+    {
+      "run": 38358854944,
+      "id": 11793469067,
+      "github_digest_sha256": "adb00a64a978d43943f033f4d08bd8c42b548acbe26eb0097452685abcda6db8"
+    },
+    {
+      "run": 38358854944,
+      "id": 11794252776,
+      "github_digest_sha256": "3b156251d35a24fadcb6ccaec4033258d7d770059f05014a158e2306fb6ff7f5"
+    }
+  ],
+  "performance_samples": 0,
+  "seed": null,
+  "config": "N4 native safety gates only, no configuration changes",
+  "unsupported": [
+    "real Wintun created admin driver and underlay egress",
+    "live Windows DNS/MTU/DHCP/lease changes",
+    "real IPv6/DNS WFP product policy",
+    "actual direct userspace TCP/UDP"
+  ],
+  "physical": "NOT_RUN",
+  "release_N6": "NOT_STARTED",
+  "digest_note": "SHA256 are GitHub Actions artifact ZIP digest metadata, not independent plaintext hash"
+}

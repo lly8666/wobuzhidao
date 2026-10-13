@@ -1,3 +1,9 @@
+## 当前交接 HEAD 最新 N4（2026-10-13）：软件安全门限定 PASS，真实 Windows native 网络事务未完成
+
+最新 CODE SOURCE `863e5584d3d8352019256e8c16d14dab0f3d2cf9`：`N4WindowsLeaseWriter` Create/DeleteConfirmed 强制当前 process-created live Wintun owner proof，Win2022/2025 专项 Actions38359734786 每端 TestN4NativeLeaseWriterRequiresLiveProcessCreatedWintun 三次 PASS，Foundation38359735917 全7项必需 PASS，Lifecycle38359735012 PASS。前一组 `908a930` guard+journal 两个崩溃窗口、`1eeb847` WFP 部分 owned 规则只允许全 routes 清后删除的软件增量已经限定 PASS。修复测试选择后，`cfeacdb` N4 Action38359183134 两代 Windows 实际显式 x3 PASS 且 Linux race PASS，`decb79c` WFP TEST-NET Action38358854944 两端显式 WFPPartial 测试 PASS。**原 CI YAML 解析失败** 38358853661、38359000016（都零job）保持 FAIL 记录；修复结果不擦除失败。
+
+以上都不等于实际 Windows Wintun driver/管理员地址/DNS/MTU/公网路由修改；原生子组件**未接正式客户端**，正式 `cmd/wbd-client` 仍 PowerShell + 大量 CN CIDR 补集路由。唯一当前 next_task 按 `docs/STATUS.json`：完成统一 durable-owned native Windows Apply/Stop/Recover（lease/DHCP/DAD/MTU/DNS/WFP/route/generation），isolated GitHub native capability 检测后才去脚本/接用户态 Direct TCP/UDP；N6 三目标同源 P6 包未开始、physical NOT_RUN。N2 C04/C05 效率、C10 GE 尾延迟与约80秒S2C 遗留仍 OPEN，无本轮部署/合并/资格ref变更。
+
 ## 2026-10-13 N4 新 lease owner gate 候选
 
 上一源码 `1eeb847f` 的 WFP partial Disarm scoped Foundation/WFP TEST-NET PASS；原工作流 YAML 两次解析 FAIL 均记录，`cfeacdb` 的专项 Action38359183134 三平台（Win2022/25、Linux race）确认全 PASS、显式两个新测试 each x3，Foundation38359183166 最终状态以 STATUS/实时 Actions 为准。当前新增 `N4WindowsLeaseWriter` 受当前进程创建的 live Wintun 句柄索引归属保护，和 DNS/MTU 一致；候选提交后仍须新 SOURCE Actions。尚未完成 crash-durable DHCP/lease/MTU/DNS/WFP 总事务、PowerShell 去除或 N6，physical NOT_RUN。
