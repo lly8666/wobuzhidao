@@ -1,0 +1,14 @@
+{
+  "schema": "wbd-n4-compact-route-scoped-receipt/v1",
+  "source_sha": "c10a0732569af95a2cdabcad2402b457f620496f",
+  "route_matrix_run": 38354764587,
+  "foundation_run": 38354764412,
+  "lifecycle_run": 38354764394,
+  "scope": "two-Windows hosted unit+Linux race, strict compact native batch; no kernel driver or actual network mutation",
+  "status": "SCOPED_PASS",
+  "foundation_required_jobs": 7,
+  "p5_p6": "SKIPPED",
+  "physical": "NOT_RUN",
+  "performance": "NOT_RUN",
+  "artifact_hash": "NOT_YET_FETCHED_REPORTED_SEPARATELY"
+}

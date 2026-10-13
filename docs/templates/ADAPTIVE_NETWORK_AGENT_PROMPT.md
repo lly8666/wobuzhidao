@@ -1,3 +1,7 @@
+## 接手新进度（2026-10-13 最新代码）
+
+严格紧凑 N4 native route batch SOURCE `c10a073` 的 Windows2022/2025 + Linux race Action38354764587 / Foundation38354764412 / Lifecycle38354764394 最终 SUCCESS（仅软件/模拟路由，非实网）。其后 Windows native DNS setter Wintun owner+GUID proof 是**待新 SOURCE Actions**的候选。仍不能调用正式网络 Apply，CLI 仍有旧 PowerShell、N6 未做、physical NOT_RUN。按 STATUS 活跃下一步，不重跑已 PASS。
+
 ## 最新补充：2026-10-13 N4 紧凑 native route keys 候选
 
 先查远端 HEAD、`docs/STATUS.json` 和 Actions；基于 `dfd00b82` 的增量只实现纯软件 route-batch 校验和顺序生成，必须等精确新 SOURCE Windows/Linux Actions 最终状态，不能提前记作 Windows 实机路由 PASS。先完成真实 crash durable Wintun lease/DNS/MTU/WFP owner 事务，再接正式无 PowerShell 两 /1 分流和 N6；禁止物理部署/合并。此补充一旦 STATUS 更新，应以 STATUS 为准。

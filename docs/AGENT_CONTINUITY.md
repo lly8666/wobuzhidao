@@ -1,3 +1,7 @@
+## 2026-10-13 N4 新进度：紧凑路由软件门最终 PASS；DNS setter 归属门候选待 Actions
+
+SOURCE `c10a0732569af95a2cdabcad2402b457f620496f` 的严格 /1 + DNS /32 路由键构造及原生 owned route batch preflight，Action38354764587（Win2022/2025 + Linux race）SUCCESS，Foundation38354764412 7/7 必需 job SUCCESS，Lifecycle38354764394 SUCCESS；无管理员真实 Wintun/网络改写。下一 SOURCE 候选给原生 DNS setter 增加 Wintun 当前创建句柄接口归属 proof + index→GUID 原生只读一致性核对，测试不调用实际 Set，必须核确切 Actions 后才可记 PASS。更大 N4 Wintun DHCP/租约/MTU/DNS/WFP 持久事务、Crash/Stop、正式 CLI PowerShell 去除及 N6 未完成，物理 NOT_RUN。最新任务仍看 STATUS。
+
 ## 2026-10-13 N4 最小原子增量候选：严格紧凑路由键（Actions 待验）
 
 在远端父HEAD `dfd00b82`（当前 Foundation38353589710 SUCCESS）之上新增 `N4BuildCompactNativeRouteKeys`，从已验证 `NetworkPlan` 将唯一物理服务器 /32 逃逸路由放在首位，随后仅生成两条 /1 和配置的 DNS /32，并对物理/Wintun 相同 ifIndex、CN 大网段、重复/错序、错误网关提前拒绝。 `N4OwnedRoutes.ApplyRoutes` 增加严格 batch preflight，拒绝时不创建 journal、不开 guard、不碰 OS。完整 SOURCE 与 Actions 最终状态必须再查 `docs/STATUS.json`，提交时仅是待验候选，不写 PASS。此改动不证明 Wintun 创建归属、不替代 DHCP/DNS/MTU/WFP 的持久事务，正式 `cmd/wbd-client` 仍有 PowerShell/旧路由。N2/N6 和 physical 原有限制完全保持。

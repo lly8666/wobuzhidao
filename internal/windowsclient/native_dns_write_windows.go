@@ -20,7 +20,7 @@ var n4SetInterfaceDNS = n4Iphlpapi.NewProc("SetInterfaceDnsSettings")
 // prove that the target adapter is WBD-owned and that a crash-persistent WFP
 // DNS/IPv6 protection guard is armed. The old runtime is left untouched until
 // those independently qualified preconditions exist.
-type n4OwnedDNSWrite struct{}
+type n4OwnedDNSWrite struct { Adapter n4OwnedInterfaceProof }
 
 const n4DNSOwnedStaticMask = n4DNSSettingNameServer
 
@@ -68,16 +68,28 @@ func n4ReadOwnedDNSBaseline(b N4DNSBaseline)error {
 // SetIPv4 is a low-level primitive only. Never expose it through the CLI
 // until an owned Wintun lease and persistent WFP guard implement a journaled
 // DNS Apply/Recover transaction that survives power loss.
-func (n4OwnedDNSWrite) SetIPv4(ctx context.Context, guard CrashPersistentGuard, iface windows.GUID, addrs []netip.Addr) error {
+func (w n4OwnedDNSWrite) SetIPv4(ctx context.Context, guard CrashPersistentGuard, iface windows.GUID, index uint32, addrs []netip.Addr) error {
  if err:=ctx.Err();err!=nil{return err}
  if guard==nil || !guard.Durable() {return ErrN4NativeGuard}
  ok,err:=guard.Verify(ctx)
  if err!=nil || !ok {return fmt.Errorf("%w: guard not verified: %v",ErrN4NativeGuard,err)}
- if iface==(windows.GUID{}) {return ErrNetworkPlan}
- version:=windows.RtlGetVersion()
- if err:=n4RequireNativeDNSBuild(version.MajorVersion,version.BuildNumber);err!=nil{return err}
+ if iface==(windows.GUID{}) || index==0 {return ErrNetworkPlan}
  req,storage,err:=n4StaticDNSRequest(addrs)
  if err!=nil{return err}
+ // A GUID supplied by a caller is NOT adapter ownership. Require a live
+ // process-created Wintun handle and resolve the index back to this GUID
+ // before invoking any native DNS mutation. A future parent transaction
+ // must additionally hold the Wintun generation lock and durable DNS intent.
+ if w.Adapter==nil{return ErrN4NativeGuard}
+ owned,err:=w.Adapter.IsCurrentOwnedWintun(ctx,index)
+ if err!=nil{return err}
+ if !owned{return ErrN4ForeignRoute}
+ actual,err:=n4NativeInterfaceGUID(index)
+ if err!=nil{return err}
+ if actual!=iface{return ErrN4ForeignRoute}
+ if err:=ctx.Err();err!=nil{return err}
+ version:=windows.RtlGetVersion()
+ if err:=n4RequireNativeDNSBuild(version.MajorVersion,version.BuildNumber);err!=nil{return err}
  if err:=n4SetInterfaceDNS.Find();err!=nil{return err}
  // GUID is 16 bytes by-value in the SDK signature and is passed by address
  // by the Windows x64 ABI; Settings is a pointer to the V1 64-byte request.

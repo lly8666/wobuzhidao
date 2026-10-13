@@ -1,0 +1,18 @@
+{
+  "schema": "wbd-n4-native-dns-owner-proof-candidate/v1",
+  "parent_source_sha": "c10a0732569af95a2cdabcad2402b457f620496f",
+  "candidate_source_sha": "RESOLVE_FROM_NEXT_COMMIT_HEAD",
+  "status": "ACTIONS_PENDING",
+  "native_dns_write": "NO_REAL_OS_MUTATION",
+  "real_wintun": "NOT_RUN",
+  "code_paths": [
+    "internal/windowsclient/native_dns_write_windows.go",
+    "internal/windowsclient/native_dns_write_windows_test.go"
+  ],
+  "planned_workflows": [
+    "next-adaptive-n4-owned-native-transaction-matrix",
+    "next-foundation"
+  ],
+  "performance_sample_count": 0,
+  "physical": "NOT_RUN"
+}

@@ -59,26 +59,59 @@ func TestN4NativeDNSPreexistingForeignBaselineFailsClosed(t *testing.T){
   })
  }
 }
+type n4DNSFakeInterfaceOwner struct{ owned bool; called int; ownerErr error }
+func(f *n4DNSFakeInterfaceOwner) IsCurrentOwnedWintun(_ context.Context, index uint32)(bool,error){
+ f.called++
+ if index==0{return false,ErrNetworkPlan}
+ return f.owned,f.ownerErr
+}
 func TestN4NativeDNSSetterDeniedBeforeDLLSideEffects(t *testing.T){
  g:=windows.GUID{Data1:7}
  ctx,cancel:=context.WithCancel(context.Background())
  cancel()
- if err:=(n4OwnedDNSWrite{}).SetIPv4(ctx,nil,g,[]netip.Addr{netip.MustParseAddr("1.1.1.1")});!errors.Is(err,context.Canceled){
+ if err:=(n4OwnedDNSWrite{}).SetIPv4(ctx,nil,g,7,[]netip.Addr{netip.MustParseAddr("1.1.1.1")});!errors.Is(err,context.Canceled){
   t.Fatalf("cancel not enforced before DLL: %v",err)
  }
- if err:=(n4OwnedDNSWrite{}).SetIPv4(context.Background(),&n4FakeGuard{durable:true,active:true},windows.GUID{},nil);!errors.Is(err,ErrNetworkPlan){
+ if err:=(n4OwnedDNSWrite{}).SetIPv4(context.Background(),&n4FakeGuard{durable:true,active:true},windows.GUID{},7,nil);!errors.Is(err,ErrNetworkPlan){
   t.Fatalf("invalid Wintun GUID accepted: %v",err)
  }
- if err:=(n4OwnedDNSWrite{}).SetIPv4(context.Background(),&n4FakeGuard{durable:true,active:true},g,nil);!errors.Is(err,ErrNetworkPlan){
+ if err:=(n4OwnedDNSWrite{}).SetIPv4(context.Background(),&n4FakeGuard{durable:true,active:true},g,7,nil);!errors.Is(err,ErrNetworkPlan){
   t.Fatalf("empty DNS list accepted: %v",err)
  }
  guard:=&n4FakeGuard{durable:false}
- if err:=(n4OwnedDNSWrite{}).SetIPv4(context.Background(),guard,g,[]netip.Addr{netip.MustParseAddr("1.1.1.1")});!errors.Is(err,ErrN4NativeGuard){
+ if err:=(n4OwnedDNSWrite{}).SetIPv4(context.Background(),guard,g,7,[]netip.Addr{netip.MustParseAddr("1.1.1.1")});!errors.Is(err,ErrN4NativeGuard){
   t.Fatalf("volatile guard permitted DNS write: %v",err)
  }
  guard.durable=true
- if err:=(n4OwnedDNSWrite{}).SetIPv4(context.Background(),guard,g,[]netip.Addr{netip.MustParseAddr("1.1.1.1")});!errors.Is(err,ErrN4NativeGuard){
+ if err:=(n4OwnedDNSWrite{}).SetIPv4(context.Background(),guard,g,7,[]netip.Addr{netip.MustParseAddr("1.1.1.1")});!errors.Is(err,ErrN4NativeGuard){
   t.Fatalf("durable but unarmed guard permitted DNS write: %v",err)
  }
  // No successful SetInterfaceDnsSettings call is made in this test.
+}
+
+func TestN4NativeDNSWriterRequiresOwnedLiveAdapterBeforeOSRead(t *testing.T){
+ iface:=windows.GUID{Data1:77}
+ addr:=[]netip.Addr{netip.MustParseAddr("1.1.1.1")}
+ guard:=&n4FakeGuard{durable:true,active:true}
+ empty:=n4OwnedDNSWrite{}
+ if err:=empty.SetIPv4(context.Background(),guard,iface,77,addr);!errors.Is(err,ErrN4NativeGuard){
+  t.Fatalf("no current Wintun owner unexpectedly permitted DNS write: %v",err)
+ }
+ owner:=&n4DNSFakeInterfaceOwner{owned:false}
+ w:=n4OwnedDNSWrite{Adapter:owner}
+ if err:=w.SetIPv4(context.Background(),guard,iface,77,addr);!errors.Is(err,ErrN4ForeignRoute){
+  t.Fatalf("borrowed adapter permitted DNS write: %v",err)
+ }
+ if owner.called!=1{t.Fatalf("ownership not checked before native interface query: %d",owner.called)}
+ if err:=w.SetIPv4(context.Background(),guard,iface,0,addr);!errors.Is(err,ErrNetworkPlan){
+  t.Fatalf("zero index passed guard: %v",err)
+ }
+ if owner.called!=1{t.Fatal("zero index must be rejected before owner query")}
+ sentinel:=errors.New("owner generation invalidated")
+ owner.ownerErr=sentinel
+ if err:=w.SetIPv4(context.Background(),guard,iface,77,addr);!errors.Is(err,sentinel){
+  t.Fatalf("stale Wintun session must stop native DNS: %v",err)
+ }
+ if owner.called!=2{t.Fatal("owner error not checked")}
+ // No real adapter interface GUID is fetched and no DNS setter is called.
 }
