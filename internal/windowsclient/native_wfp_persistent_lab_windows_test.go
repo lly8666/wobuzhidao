@@ -102,6 +102,7 @@ func TestN4WindowsWFPPersistentFilterHostLab(t *testing.T) {
  // Use exactly the same independent engine/CAS/readback deletion routine
  // as the product guard, but only on THIS TEST-NET+port scoped lab filter.
  plan:=n4WFPRulePlan{Sublayer:sub,Rules:[]*wf.Rule{rule}}
+ n4LogExactLabSubDiff(t,sub)
  if err:=n4WFPDisarmExactPlan(context.Background(),plan,false);err!=nil{
   t.Fatalf("real WFP exact-owned cleanup failed: %v",err)
  }
@@ -145,6 +146,7 @@ func TestN4WindowsWFPExactOwnedDeletePartialHostLab(t *testing.T){
  ruleAdded=true
  if err=s.Close();err!=nil{t.Fatal(err)}
  plan:=n4WFPRulePlan{Sublayer:sub,Rules:[]*wf.Rule{rule}}
+ n4LogExactLabSubDiff(t,sub)
  foreign:=*rule
  foreign.Conditions=[]*wf.Match{
   {Field:wf.FieldIPRemoteAddress,Op:wf.MatchTypeEqual,Value:netip.MustParseAddr("203.0.113.254")},
@@ -177,4 +179,23 @@ func TestN4WindowsWFPExactOwnedDeletePartialHostLab(t *testing.T){
   t.Fatalf("partial WFP cleanup retry failed: %v",e)
  }
  t.Log("real TEST-NET WFP foreign-rule CAS, partial failure, and exact-owned idempotent delete PASS; no host-wide filter")
+}
+
+func n4LogExactLabSubDiff(t *testing.T,want *wf.Sublayer) {
+ t.Helper()
+ s,err:=wf.New(&wf.Options{Dynamic:false})
+ if err!=nil{t.Fatalf("TEST-NET-only WFP diagnostic engine: %v",err)}
+ defer s.Close()
+ all,err:=s.Sublayers()
+ if err!=nil{t.Fatalf("TEST-NET-only WFP diagnostic read: %v",err)}
+ found:=false
+ for _,have:=range all {
+  if have.ID!=want.ID{continue}
+  found=true
+  t.Logf("OWN_SCOPED_WFP_SUB_DIFF name_eq=%t persistent_have=%t persistent_want=%t weight_have=%d weight_want=%d provider_zero=%t provider_data_len=%d exact=%t",
+   have.Name==want.Name,have.Persistent,want.Persistent,have.Weight,want.Weight,
+   have.Provider==(wf.ProviderID{}),len(have.ProviderData),
+   n4WFPSublayerEqual(have,want))
+ }
+ if !found{t.Log("OWN_SCOPED_WFP_SUB_DIFF owned randomized lab sublayer absent")}
 }
