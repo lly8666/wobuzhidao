@@ -99,3 +99,17 @@ func TestN4WindowsDNSResetRequestIsNameserverOnly(t *testing.T){
  // The actual reset's success must be qualified with readback on a real
  // admin/Wintun host; a request layout test never counts as live recovery.
 }
+
+func TestN4WindowsDNSEmptyClearFallbackOnlyTouchesNameServerField(t *testing.T){
+ req,storage:=n4DNSEmptyStringClearRequest()
+ if req.Version!=n4DNSSettingsVersion1 ||
+  req.Flags!=n4DNSSettingNameServer || req.NameServer==nil ||
+  len(storage)!=1 || storage[0]!=0 || *req.NameServer!=0 ||
+  req.Domain!=nil || req.SearchList!=nil ||
+  req.ProfileNameServer!=nil ||
+  req.RegistrationEnabled!=0 || req.EnableLLMNR!=0 {
+  t.Fatalf("invalid Win2022 DNS static-clear fallback partial request: %+v",req)
+ }
+ // The real admin GH Windows2022 test must still observe exact
+ // post-clear native Get baseline and reject a no-op as a failure.
+}

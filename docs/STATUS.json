@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_REAL_WINTUN_DNS_ZERO_READ_FLAGS_CORRECTIVE_SOURCE_PENDING_NEW_ACTIONS",
+    "phase": "N4_REAL_WINDOWS2025_NATIVE_IP_RESTORE_PASS_WINDOWS2022_DNS_CLEAR_87_FALLBACK_ACTIONS_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCEA5222_TRUE_WIN2022_WIN2025_REAL_CREATED_WINTUN_LEASE_DAD_MTU_APPLY_RESTORE_PASS_STATIC_DNS_SET_WIN_READ_FLAGS_ZERO_CAUSED_MISCLASSIFICATION;MINIMAL_NATIVE_DNS_READBACK_PARSE_RAW_WITHOUT_FLAGS_PENDING",
+    "implementation": "SOURCE0A4903_REAL_WINDOWS2025_ISOLATED_CREATED_WINTUN_LEASE_DAD_MTU_APPLY_RESTORE_DNS_SET_CLEAR_GET_EXACT_DELETE_PASS_WINDOWS2022_DNS_STATIC_CLEAR_NULL_PTR_ERROR_INVALID_PARAMETER;NEW_EMPTY_UTF16_RETRY_87_ONLY_CANDIDATE",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "FIRST verify corrected native DNS reader exact new SOURCE on hosted Windows2022/25 isolated actual Wintun: real /32+DAD, MTU Set/Restore, SetInterfaceDnsSettings static, GetInterfaceDnsSettings Flags=0 but RawNameServer correctly parsed, native ClearIPv4 followed by exact Get baseline, exact /32 Delete; record failures/UNSUPPORTED honestly. Source a5222 real Action38383677149 both Windows FAIL at DNS static readback; actual MTU Restore now PASS. Keep original FAIL. Production WFP DNS/IPv6 safety across multiple Wintun, crash orphan identity, native owner five-stage full transaction with real compact routes, official CLI removing PowerShell still OPEN, so no full N6/P6 as final until functions done. N2 C04/C05 efficiency/C10 GE/80s residual OPEN, physical NOT_RUN; no deployment or merge.",
-  "latest_log": "docs/devlog/20261013-n4-real-win32-dns-get-flags-zero-readback-fix.md",
+  "next_task": "Verify new SOURCE isolated Win2022/2025 real created Wintun actions: native /32+DAD, MTU Set/restore original65535, DNS Set and static readback, Win2022 ClearIPv4 nil NameServer ERROR_INVALID_PARAMETER (87) retry once with one-NUL UTF16 NameServer pointer; Get must prove exact original baseline; DeleteConfirmed /32. Win2025 source0a4903 Action38384371196 real scoped PASS; Win2022 source0a4903 same action FAIL at nil Clear error 87, preserve original failure. On fallback failure preserve FAIL and narrow fix, not skip. Product still missing true WFP DNS/IPv6 persistent anti-leak exclusive/multi-Wintun safety and orphan Wintun cross-process recovery, native route Apply/Stop integration and no-PowerShell official CLI; run overall GH Actions+N6 P6 same-source only once these features complete, not yet. N2 C04/C05 efficiency, C10 GE and ~80s OPEN; physical NOT_RUN; no deploy/merge/ref.",
+  "latest_log": "docs/devlog/20261013-n4-real-win2022-dns-clear-87-fallback-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "a5222dc521cc95771e4f4bf0d7c1409bd0f676a7",
-  "last_tested_scope": "SOURCEA5222_REAL_ACTION38383677149_FINAL_FAIL_WINDOWS2022_2025_AFTER_NATIVE_CREATED_WINTUN_LEASE_DAD_MTU_APPLY_RESTORE_SUCCESS_DNS_STATIC_SET_WIN_READBACK_FLAGS_ZERO_MISCLASSIFIED;FOUNDATION_AND_N4_MATRIX_SEPARATE",
+  "last_tested_source_sha": "0a49036c70324176423fa569cfea1dac4fad5485",
+  "last_tested_scope": "SOURCE0A4903_REAL_WIN2025_NATIVE_MUTATION_ACTION38384371196_PASS_WINDOWS2022_SAME_RUN_FAIL_AT_CLEAR_NULLPTR_WINERR87_N4_FOUNDATION_RUNS_SCOPED",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
+    "SOURCE0a49036 Windows2025 hosted real Wintun Action38384371196 native /32 create+DAD+delete exact, original65535 MTU Set/Restore, DNS Set/Clear/Get baseline ALL SCOPED PASS; Windows2022 same SOURCE real test FAIL at ClearIPv4: SetInterfaceDnsSettings nil NameServer returned ERROR_INVALID_PARAMETER 87 after static Set/readback PASS. New code retries NameServer empty UTF16 string only on wrapped native Win32 errno 87, still requires native Get exact baseline; no change to other DNS fields. New SOURCE Actions pending.",
     "SOURCEa5222 Real Windows test Action38383677149 FINAL FAIL Win2022/Win2025 after true Wintun /32 Create+DAD and native MTU Set+RESTORE success. SetInterfaceDnsSettings static returned success and GetInterfaceDnsSettings reported RawNameServer 1.1.1.1,8.8.8.8 but Flags=0; old reader parsed addresses only when Flags&NAMESERVER, so NameServers remained empty and classifier wrongly failed. New source parses any nonempty native DNS NameServer list, maintains WAL exact-target and other DNS fields CAS; Actions pending.",
     "SOURCE30426a Win2022/25 true disposable Wintun native Action38383227355 FINAL FAIL after /32 DAD and *successful* native SetIpInterfaceEntry MTU1249: Restore incorrectly used Wintun ORIGINAL MTU65535 as a fresh target max9000 and rejected ErrNetworkPlan, before DNS test. New source only fixes Restore preflight target to confirmed applied MTU1249; exact before-row restoration CAS still protects 65535 original.",
     "SOURCE 3f8d26 MTU native SET INPUT normalization SitePrefixLength=0 after full owned CAS; existing N4 matrix38382873245 and Foundation38382873272 Action pending, Lifecycle38382873265 success. Isolated real driver workflow was not triggered by MTU source path, so next commit updates workflow push paths for MTU/lease/DNS native modules to force exact new-source Windows2022/25 true write+restore. No admin result yet.",
-    "SOURCE1b75 Action38382355741 FINAL FAIL real Windows 2022/2025: isolated new Wintun IPv4 /32+DAD Preferred PASS, before vs native observed IPv4 MTU snapshot identical (MTU65535, Metric5, Connected true, automatic metric true), live created Wintun owner true; only GetIpInterfaceEntry SitePrefixLength=64; MTU writer incorrectly rejects nonzero SitePrefixLength rather than setting input SitePrefixLength=0 as Windows requires. Minimal new-source setter ABI normalization Apply+Restore, no CAS loosening, new regression and real Actions pending.",
-    "SOURCE4d9a real isolated Windows admin Action38381916177 FINAL FAIL: both Windows2022 job115244182685 and Win2025 job115244182370 passed real fresh Wintun read-only, created /32 and waited DAD Preferred, then n4WindowsMTUWriter.Apply refused ErrN4ForeignRoute before SetIPInterface. Native DNS untested due stop, no production WFP/route mutation. New-source instrumentation logs expected snapshot, live native observed row, SitePrefixLength, exact created handle owner before/after CAS; Actions PENDING, never loosen CAS."
+    "SOURCE1b75 Action38382355741 FINAL FAIL real Windows 2022/2025: isolated new Wintun IPv4 /32+DAD Preferred PASS, before vs native observed IPv4 MTU snapshot identical (MTU65535, Metric5, Connected true, automatic metric true), live created Wintun owner true; only GetIpInterfaceEntry SitePrefixLength=64; MTU writer incorrectly rejects nonzero SitePrefixLength rather than setting input SitePrefixLength=0 as Windows requires. Minimal new-source setter ABI normalization Apply+Restore, no CAS loosening, new regression and real Actions pending."
   ],
   "actions": [
     {
@@ -5132,6 +5132,15 @@
       "scope": "TRUE_CREATED_WINTUN_NATIVE_MTU_RESTORE_AND_DNS_READBACK_WIN2022_WIN2025",
       "status": "FAIL",
       "cause": "Both Win hosted real adapter Create/DAD and MTU Set/Restore succeeded; DNS Set returned success and native read RawNameServer correctly, but Get Flags=0 caused Go parser not to populate NameServers and stage false failure; DNS Clear/Get/Delete not reached."
+    },
+    {
+      "name": "next-adaptive-n4-real-wintun-admin-capability",
+      "run_id": 38384371196,
+      "source_sha": "0a49036c70324176423fa569cfea1dac4fad5485",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38384371196",
+      "scope": "REAL_ISOLATED_NATIVE_WINTUN_MUTATION_WIN2022_WIN2025",
+      "status": "FAIL",
+      "cause": "Windows2025 real created driver/lease DAD+delete, MTU Set+Restore, DNS Set/Clear/Get fully PASS; Windows2022 real same stages passed until static DNS Clear nil NameServer returned Windows ERROR_INVALID_PARAMETER (87). Original workflow overall FAIL, must preserve."
     }
   ],
   "required_read_set": [

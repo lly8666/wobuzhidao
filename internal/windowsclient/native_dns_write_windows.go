@@ -4,6 +4,7 @@ package windowsclient
 
 import (
  "context"
+ "errors"
  "fmt"
  "net/netip"
  "runtime"
@@ -80,10 +81,25 @@ func (w n4OwnedDNSWrite) SetIPv4(ctx context.Context, guard CrashPersistentGuard
 // original empty/static-free baseline before retiring any WAL receipt.
 // This Windows behavior needs a real driver/admin positive capability check;
 // do not activate the official product until that test is available.
+func n4DNSEmptyStringClearRequest()(n4DNSInterfaceSettingsV1,[]uint16){
+ empty:=[]uint16{0} // one terminated WCHAR, not a nil pointer
+ return n4DNSInterfaceSettingsV1{
+  Version:n4DNSSettingsVersion1,Flags:n4DNSOwnedStaticMask,NameServer:&empty[0],
+ },empty
+}
 func (w n4OwnedDNSWrite) ClearIPv4(ctx context.Context,guard CrashPersistentGuard,iface windows.GUID,index uint32)error{
  if err:=ctx.Err();err!=nil{return err}
  req:=n4DNSInterfaceSettingsV1{Version:n4DNSSettingsVersion1,Flags:n4DNSOwnedStaticMask}
- return w.writeSetting(ctx,guard,iface,index,req,nil)
+ err:=w.writeSetting(ctx,guard,iface,index,req,nil)
+ if !errors.Is(err,syscall.Errno(87)){return err}
+ // Windows Server 2022 returns ERROR_INVALID_PARAMETER for a nil
+ // NameServer pointer even though Windows Server 2025 accepts it. On
+ // ONLY that explicit error, retry the same one-field partial update
+ // with an empty *valid* NUL-terminated UTF-16 string. Caller MUST
+ // subsequently Get and compare the entire owned baseline exactly;
+ // a successful Set call alone never proves DNS was cleared.
+ fallback,buf:=n4DNSEmptyStringClearRequest()
+ return w.writeSetting(ctx,guard,iface,index,fallback,buf)
 }
 func (w n4OwnedDNSWrite) writeSetting(ctx context.Context, guard CrashPersistentGuard, iface windows.GUID, index uint32, req n4DNSInterfaceSettingsV1,storage []uint16)error{
  if err:=ctx.Err();err!=nil{return err}

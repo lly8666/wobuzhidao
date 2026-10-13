@@ -1,3 +1,7 @@
+## 2026-10-13 真 Win2025 正向 native 全 IP/DNS Restore PASS，Win2022 清 DNS 空指针 Winerr87 修复候选
+
+CODE `0a49036c70324176423fa569cfea1dac4fad5485` Actions38384371196 两台真实临时 Wintun：**Win2025 真正执行完整 /32 创建DAD→MTU写回原厂65535→DNS Set/Clear/Get 恢复→/32精确删完，job SUCCESS**；Win2022 同 SOURCE 除 DNS Clear 外已全部走通，但其 `SetInterfaceDnsSettings` 在 `Flags=DNS_SETTING_NAMESERVER`、NameServer=nil 时 ERROR_INVALID_PARAMETER=87，整 run FAIL。新补丁只针对这个明确 Win32 参数错误，将空 NameServer 改用合法一字符零结尾 UTF16 `L""` 再重试一次；非87不重试，并靠独立 Get 读回证实确实清除，不能只看返回码。新源码必须再跑 Win2022/25；当前正式 CLI PowerShell 与 WFP 全局独占/跨进程恢复尚未解决，N4/N6 不能算完，physical NOT_RUN。
+
 ## 2026-10-13 Windows 真实 DNS 读回 Flags=0 的定点修复（新源码 Actions 待验）
 
 `a5222dc` Real Windows Action38383677149 双 Win 结果 FAIL，但原生 Wintun 创建、/32+DAD、MTU Set/Restore 已实际成功，真实 `SetInterfaceDnsSettings` 返回成功，`GetInterfaceDnsSettings` 的 RawNameServer 明确返回 `1.1.1.1,8.8.8.8` 而 Flags=0。过去 Go 只按 Flags 的 NameServer 位解析，以致未填 NameServers、误报静态写失败。新补丁根据实际返回的非空 NameServer 字符串解析，仅完整匹配 WAL 中配置的服务器才视为 owned；不修改外来 DNS 搜索域/Profile/LLMNR 等 CAS，也不放松创建 Wintun 归属校验。原 FAIL 留存，真实 DNS Clear/Get/Delete 尚未执行，正式 PowerShell/WFP crash 未收口，N6/physical NOT_RUN。
