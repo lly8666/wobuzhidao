@@ -16,6 +16,8 @@ on:
       - "internal/windowsclient/native_unified_stage_guard_lease_windows_test.go"
       - "internal/windowsclient/native_unified_stage_mtu_windows.go"
       - "internal/windowsclient/native_unified_stage_mtu_windows_test.go"
+      - "internal/windowsclient/native_unified_stage_dns_windows.go"
+      - "internal/windowsclient/native_unified_stage_dns_windows_test.go"
       - "internal/windowsclient/compact_plan.go"
       - "internal/windowsclient/native_route_windows.go"
       - "internal/windowsclient/native_route_backend_windows.go"
@@ -107,6 +109,7 @@ jobs:
             internal/windowsclient/native_unified_network_owner_windows.go \
             internal/windowsclient/native_unified_stage_guard_lease_windows.go \
             internal/windowsclient/native_unified_stage_mtu_windows.go \
+            internal/windowsclient/native_unified_stage_dns_windows.go \
             internal/windowsclient/native_route_windows.go \
             internal/windowsclient/native_route_backend_windows.go \
             internal/windowsclient/native_address_snapshot_windows.go \

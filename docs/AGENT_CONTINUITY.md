@@ -1,3 +1,7 @@
+## 2026-10-13 N4 最小功能收口：DNS 是已有 WAL 的第四个 Win32 具体阶段（Actions 待验）
+
+之前 WFP、/32 Lease/DAD、MTU 都已软件+Win2022/25/Linux Actions 限定 PASS，最后已测 CODE SOURCE `535da7f03508e8f208aae491ebb5f5cbbd5e0ee2` 的 MTU N4 Action38371271535、Foundation38371271598、Lifecycle38371271589 全 SUCCESS。本新候选使用 Win32 DNS_INTERFACE_SETTINGS V1，仅配置 IPv4 NameServer，恢复时以 NameServer=NULL、Flags=DNS_SETTING_NAMESERVER 发出清除请求，必须再原生读回与原始动态 DNS 状态完全吻合才能注销 journal。微小额外副作用、借用网卡、异代或者无 Guard 都拒绝。**该 Windows 清除行为尚未做真实管理员 Wintun 正向验收**，绝不能把请求 ABI/负面测试当成可用的 DNS Restore。最后仍需受控两条 /1 的实际 Routes 阶段和排他 Wintun 能力，正式 CLI 仍 Powershell，不合格的前提下不部署/N6；physical NOT_RUN。
+
 ## 2026-10-13 N4 原生控制面真实写操作第三阶段 MTU 候选
 
 已测 CODE SOURCE `efc4b6d185bdf091e0e2232d50beac6bd66ff17b` 的 WFP/IPv4 /32 Lease 模块 N4 Action38370726570 Win2022/25+Linux race、Foundation38370726613 七必需、Lifecycle38370726484 全 SUCCESS，限制为只读和负向无网卡变更。下一小补丁利用现成 `n4WindowsMTUWriter`，为统一 WAL 的 `mtu` 阶段提供原始整行接口快照+目标 MTU，SetIpInterfaceEntry 只改 MTU、CAS 精确核对、Stop 恢复原始 MTU，拒绝 borrowed Wintun/foreign 状态；测试无实际管理员写。未接产品。还剩 native DNS 清除恢复及 server /32+两/1 + DNS /32 Routes 安全写入，以及真实 Wintun/独占证明、正式 CLI 去 PowerShell，才可 N6。N2 遗留 OPEN，physical NOT_RUN。

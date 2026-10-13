@@ -65,21 +65,36 @@ func n4ReadOwnedDNSBaseline(b N4DNSBaseline)error {
  return nil
 }
 
-// SetIPv4 is a low-level primitive only. Never expose it through the CLI
-// until an owned Wintun lease and persistent WFP guard implement a journaled
-// DNS Apply/Recover transaction that survives power loss.
+// SetIPv4 installs only the IPv4 static NameServer field. Its caller must
+// already have persisted a WAL intent and armed an owned persistent WFP guard.
 func (w n4OwnedDNSWrite) SetIPv4(ctx context.Context, guard CrashPersistentGuard, iface windows.GUID, index uint32, addrs []netip.Addr) error {
  if err:=ctx.Err();err!=nil{return err}
- if guard==nil || !guard.Durable() {return ErrN4NativeGuard}
- ok,err:=guard.Verify(ctx)
- if err!=nil || !ok {return fmt.Errorf("%w: guard not verified: %v",ErrN4NativeGuard,err)}
- if iface==(windows.GUID{}) || index==0 {return ErrNetworkPlan}
  req,storage,err:=n4StaticDNSRequest(addrs)
  if err!=nil{return err}
- // A GUID supplied by a caller is NOT adapter ownership. Require a live
- // process-created Wintun handle and resolve the index back to this GUID
- // before invoking any native DNS mutation. A future parent transaction
- // must additionally hold the Wintun generation lock and durable DNS intent.
+ return w.writeSetting(ctx,guard,iface,index,req,storage)
+}
+
+// ClearIPv4 requests removal of the static IPv4 NameServer override only:
+// DNS_SETTING_NAMESERVER with a nil NameServer leaves every OTHER DNS field
+// unspecified. The caller must independently read back and compare with the
+// original empty/static-free baseline before retiring any WAL receipt.
+// This Windows behavior needs a real driver/admin positive capability check;
+// do not activate the official product until that test is available.
+func (w n4OwnedDNSWrite) ClearIPv4(ctx context.Context,guard CrashPersistentGuard,iface windows.GUID,index uint32)error{
+ if err:=ctx.Err();err!=nil{return err}
+ req:=n4DNSInterfaceSettingsV1{Version:n4DNSSettingsVersion1,Flags:n4DNSOwnedStaticMask}
+ return w.writeSetting(ctx,guard,iface,index,req,nil)
+}
+func (w n4OwnedDNSWrite) writeSetting(ctx context.Context, guard CrashPersistentGuard, iface windows.GUID, index uint32, req n4DNSInterfaceSettingsV1,storage []uint16)error{
+ if err:=ctx.Err();err!=nil{return err}
+ if guard==nil || !guard.Durable(){return ErrN4NativeGuard}
+ ok,err:=guard.Verify(ctx)
+ if err!=nil || !ok{return fmt.Errorf("%w: guard not verified: %v",ErrN4NativeGuard,err)}
+ if iface==(windows.GUID{}) || index==0{return ErrNetworkPlan}
+ if req.Version!=n4DNSSettingsVersion1 || req.Flags!=n4DNSOwnedStaticMask{
+  return ErrNetworkPlan
+ }
+ // A GUID supplied by a caller is NOT adapter ownership.
  if w.Adapter==nil{return ErrN4NativeGuard}
  owned,err:=w.Adapter.IsCurrentOwnedWintun(ctx,index)
  if err!=nil{return err}
@@ -91,8 +106,7 @@ func (w n4OwnedDNSWrite) SetIPv4(ctx context.Context, guard CrashPersistentGuard
  version:=windows.RtlGetVersion()
  if err:=n4RequireNativeDNSBuild(version.MajorVersion,version.BuildNumber);err!=nil{return err}
  if err:=n4SetInterfaceDNS.Find();err!=nil{return err}
- // GUID is 16 bytes by-value in the SDK signature and is passed by address
- // by the Windows x64 ABI; Settings is a pointer to the V1 64-byte request.
+ // Win64 ABI: GUID passed by reference, Settings points to 64-byte V1.
  ret,_,_:=n4SetInterfaceDNS.Call(uintptr(unsafe.Pointer(&iface)),uintptr(unsafe.Pointer(&req)))
  runtime.KeepAlive(storage)
  runtime.KeepAlive(iface)

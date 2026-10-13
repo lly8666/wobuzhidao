@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_CONCRETE_NATIVE_GUARD_LEASE_STAGE_ACTIONS_PASS_MTU_CAS_RESTORE_CANDIDATE_PENDING",
+    "phase": "N4_CONCRETE_NATIVE_WFP_LEASE_MTU_SCOPED_PASS_DNS_STATIC_NAME_SERVER_RESTORE_STAGE_CANDIDATE_PENDING",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCE_EFC4_REAL_WIN32_WFP_GUARD_AND_STATIC_IPV4_32_DAD_LEASE_STAGE_WINDOWS2022_2025_LINUX_RACE_FOUNDATION_LIFECYCLE_PASS;NEW_MTU_NATIVE_INTERFACE_SET_CAS_WAL_ROLLBACK_STAGE_CANDIDATE_NO_REAL_NIC_MUTATION;DNS_ROUTES_STAGE_PRODUCT_SCRIPTLESS_STILL_OPEN",
+    "implementation": "EFC4_NATIVE_WFP_GUARD_LEASE_STAGE_PASS_535D_NATIVE_MTU_CAS_STAGE_PASS;NEW_NATIVE_DNS_SET_STATIC_AND_CLEAR_RESET_WITH_CAS_READBACK_STAGE_CANDIDATE;ROUTE_STAGE_AND_ACTUAL_SCRIPTLESS_PRODUCT_WIRING_OPEN",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify new exact SHA Windows2022/25 N4 TestN4WindowsMTUStage* (strict baseline CAS, no real SetIpInterfaceEntry in hosted tests) plus prior WFP/lease, Linux race, Foundation/Lifecycle final. Prior efc4 native guard+lease N4 Action38370726570 / Foundation38370726613 / Lifecycle38370726484 all SUCCESS. Then add only two remaining concrete native stages: reversible DNS Get/Set/clear guarded CAS and compact server /32+two /1+limited DNS /32 routes with per-route crash safety; prove WFP multi-Wintun exclusivity or reject unsupported, admin Wintun capability with isolated GH Actions. Wire official cmd/wbd-client and remove active PowerShell/.ps1 only when full native Apply/Stop/Recover passes. N6 same-source three-target P6 packages/manifest, N2 C04/C05/C10/80s OPEN, physical NOT_RUN, no deploy/merge/ref moves.",
-  "latest_log": "docs/devlog/20261013-n4-concrete-native-mtu-cas-restore-stage-candidate.md",
+  "next_task": "FIRST verify exact new SOURCE N4 Windows2022/2025 tests TestN4WindowsDNSStage* and TestN4WindowsDNSClearIPv4* plus Windows DNS original regressions, Linux race, Foundation seven mandatory, lifecycle final. The DNS ClearIPv4 NameServer=nil with DNS_SETTING_NAMESERVER is still UNSUPPORTED for actual adapter restoration until administrator created-Wintun readback successfully proves reset; never claim it works on physical/host from request-layout tests. Then ONLY add concrete guarded compact underlay server /32 + two /1 + limited configured DNS /32 route WAL stage with crash partial recovery, prove exclusive single Wintun WFP and across-process recovery and isolated real-admin Wintun capability; wire and remove official PowerShell/.ps1 only after actual qualification. Live Direct TCP/Native UDP, compact capture, GUI/AES already scoped PASS, don't redo. N6 P6 same-source three-target manifest/hash later; N2 C04/C05/C10/80s OPEN, physical NOT_RUN; no deploy/merge/ref movement.",
+  "latest_log": "docs/devlog/20261013-n4-concrete-native-dns-wal-clear-stage-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "efc4b6d185bdf091e0e2232d50beac6bd66ff17b",
-  "last_tested_scope": "SOURCE_EFC4_WFP_STATE_NATIVE_READ_AND_IPV4_32_DAD_LEASE_STAGE_N4_ACTION38370726570_WIN2022_WIN2025_LINUX_RACE_SUCCESS_FOUNDATION38370726613_ALL7_SUCCESS_LIFECYCLE38370726484_SUCCESS_NO_REAL_ADMIN_WINTUN",
+  "last_tested_source_sha": "535da7f03508e8f208aae491ebb5f5cbbd5e0ee2",
+  "last_tested_scope": "SOURCE535D_WIN32_NATIVE_MTU_STAGED_FULL_CAS_RESTORE_N4_ACTION38371271535_WIN2022_WIN2025_LINUX_RACE_PASS_FOUNDATION38371271598_ALL7_PASS_LIFECYCLE38371271589_PASS_HOSTED_NO_REAL_WIN_ADMIN_NIC_MUTATION",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,11 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "SOURCEefc4b6 native WFP persistent guard and static /32 DAD lease N4 Action38370726570 final SUCCESS Windows2022/25+Linux race and receipt, Foundation38370726613 seven required SUCCESS, Lifecycle38370726484 SUCCESS. Only WFP read-only plus negative IPv4 address/owner tests; no real Create/Delete/admin NIC mutation. Artifact11799295480 and Foundation11797814534 recorded.",
-    "NEW candidate actual Windows MTU SetIpInterfaceEntry stage: reads entire IPv4 interface baseline, stores receipt in unified WAL, applies only NlMtu after current created Wintun+durable guard proof, CAS-checks no foreign interface attributes, restores original only if full after-value still exact. Negative hosted tests, no OS write. SOURCE Actions PENDING.",
+    "NEW native DNS control stage candidate: unchanged original native DNS interface baseline (no static NameServer/profile/domain/suffix), exclusive current Wintun and durable guard proof; WAL intent before native SetInterfaceDnsSettings static IPv4 only, exact inspect of other fields, exact-owned reset via DNS_SETTING_NAMESERVER with nil NameServer followed by readback to prove dynamic state restored. NO actual admin Wintun Clear positive yet; Actions negative/read-only only. New exact SOURCE PENDING.",
+    "SOURCE535da7f MTU CAS exact-original-row native SetIpInterfaceEntry stage N4 Action38371271535 Win2022/25+Linux race PASS, Foundation38371271598 all7 PASS, Lifecycle38371271589 PASS, artifact11798474605/11799535295 SHA256 below. No actual administrator OS mutation.",
+    "SOURCEefc4b6d concrete persistent WFP guard and IPv4/32 lease+DAD stage N4 Action38370726570, Foundation38370726613 all7, Lifecycle38370726484 PASS; actual WFP write/lease Create/Delete NOT_RUN.",
     "Prior 4a0467c official live Windows compact capture + gVisor direct TCP/Native UDP scoped PASS; docs-only HEAD0129c Foundation38368123646 FINAL SUCCESS. Active legacy PowerShell control remains until last three stages and native admin guard completed.",
-    "SOURCE4a0467 final scoped PASS: live official Windows CLI builds BuildCompactNetworkPlan with two /1+bounded DNS /32, in-process LAN/CN direct classification, gVisor/tun2socks physical-bound Direct TCP + native UDP via N4NativeDirect; prohibits >8 host captures, any legacy DirectRoutes or CapturePrefixFile4 large-file fallback before spawning PowerShell. N4 matrix38367313926, Windows entry38367313937, owned cancel38367313991, N3 config38367313927, GUI38367314055, Foundation38367314006 all seven required, Lifecycle38367314093 FINAL SUCCESS. Still legacy PowerShell in control plane; no real Wintun admin.",
-    "SOURCEac7be19 first live data plane code also independently N4 matrix38366859081, userspace stack constructor38366859114 (actual TestN4TCPUserspaceStackConstructorAndRealMux RUN/PASS), Windows entry38366859109, owned cancel38366859085, GUI38366859138, N3config38366859155, Foundation38366859082 seven required, Lifecycle38366859121 ALL FINAL SUCCESS. GitHub artifact hashes in evidence; not real TCP physical connectivity."
+    "SOURCE4a0467 final scoped PASS: live official Windows CLI builds BuildCompactNetworkPlan with two /1+bounded DNS /32, in-process LAN/CN direct classification, gVisor/tun2socks physical-bound Direct TCP + native UDP via N4NativeDirect; prohibits >8 host captures, any legacy DirectRoutes or CapturePrefixFile4 large-file fallback before spawning PowerShell. N4 matrix38367313926, Windows entry38367313937, owned cancel38367313991, N3 config38367313927, GUI38367314055, Foundation38367314006 all seven required, Lifecycle38367314093 FINAL SUCCESS. Still legacy PowerShell in control plane; no real Wintun admin."
   ],
   "actions": [
     {
@@ -4934,6 +4934,33 @@
       "scope": "N4_REAL_GUARD_LEASE_LIFECYCLE",
       "status": "PASS",
       "cause": "FINAL SUCCESS, no driver mutation."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38371271535,
+      "source_sha": "535da7f03508e8f208aae491ebb5f5cbbd5e0ee2",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38371271535",
+      "scope": "N4_REAL_NATIVE_MTU_CAS_STAGE_WIN2022_WIN2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS four jobs, artifact11798474605 GitHub ZIP sha256:25e55611746882bdc14538c3f0aa204237f6c755b13efa41a6e042a1f8bd1b69."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38371271598,
+      "source_sha": "535da7f03508e8f208aae491ebb5f5cbbd5e0ee2",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38371271598",
+      "scope": "N4_REAL_NATIVE_MTU_STAGE_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS seven mandatory jobs, foundation artifact11799535295 SHA256:c51c9e144e61047f2b5eba8b7aee4a9745dd85c3977431008c0c5138a73cfaa0; extended P5/P6 skipped."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38371271589,
+      "source_sha": "535da7f03508e8f208aae491ebb5f5cbbd5e0ee2",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38371271589",
+      "scope": "N4_REAL_NATIVE_MTU_STAGE_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS core, real admin network NOT_RUN."
     }
   ],
   "required_read_set": [
