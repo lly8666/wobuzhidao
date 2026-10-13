@@ -1,3 +1,7 @@
+## 2026-10-13 N4 GUID 读回候选第一次 Actions 编译失败，定点复用既有原生读回（新 SOURCE 待验）
+
+`c6d7d74f26ac3cd38b9697dd619ba64a9d543a05` Lifecycle [38392840772](https://github.com/lly8666/wobuzhidao/actions/runs/38392840772) 的 Windows 交叉编译确切 FAIL：`native_wintun_owner_windows.go:71` 的新增 `n4NativeInterfaceGUID` 与已存在 `native_dns_snapshot_windows.go:75` 同名。新候选**删除多余的实现，复用原有 index→LUID→GUID Win32 reader**，真实 Win2022/25 仍需显式验证 RequestedGUID 一致。原 Action 永久按 FAIL 保留，不继承前一 scoped PASS，也不触碰生产 WFP、CLI、物理、N6。下一任务唯一看 STATUS。
+
 ## 2026-10-13 N4 请求式 Wintun GUID 原生读回候选（新 SOURCE Actions 待核）
 
 在已验 SOURCE `11f708f8f1c2afac3ed8f139fba11d7f41011a65` 不安全全局 WFP 拒绝与五阶段 DRY 限定 PASS 后，下一原子任务只在 Win2022/25 Actions 随机创建单独 Wintun `RequestedGUID`，调用 `ConvertInterfaceLuidToGuid` 独立验证 OS 身份并留 JSON 证据。无网络路由/WFP/DNS 写入、无跨进程崩溃恢复、绝不拿 GUID 视为 ownership 或启动生产 CLI；不重新验证 N2。此项是 N4 crash-orphan 属主恢复的能力边界之一，下一项仍以 STATUS 为准；N6/physical NOT_RUN。

@@ -5,9 +5,6 @@ package windowsclient
 import (
  "context"
  "fmt"
- "errors"
-
- "golang.org/x/sys/windows"
  "syscall"
  "unsafe"
 )
@@ -15,7 +12,6 @@ import (
 var (
  n4WintunGetAdapterLuid=wintunDLL.NewProc("WintunGetAdapterLUID")
  n4ConvertInterfaceLuidIndex=n4Iphlpapi.NewProc("ConvertInterfaceLuidToIndex")
- n4ConvertInterfaceLuidGUID=n4Iphlpapi.NewProc("ConvertInterfaceLuidToGuid")
 )
 
 // WintunNativeIdentity pins an interface index to the actual live adapter
@@ -62,20 +58,4 @@ func(t *TUN) IsCurrentOwnedWintun(ctx context.Context,index uint32)(bool,error){
  id,err:=t.NativeIdentity(ctx)
  if err!=nil{return false,err}
  return id.CreatedByProcess && id.Index==index && id.LUID!=0,nil
-}
-
-// n4NativeInterfaceGUID is read-only. A GUID observed via an OS interface
-// LUID is a necessary identity corroboration for later crash recovery, NOT
-// independent proof of ownership, an unforgeable ticket or permission to
-// borrow an old same-name adapter. The product remains fail-closed.
-func n4NativeInterfaceGUID(ctx context.Context,luid uint64)(windows.GUID,error){
- if err:=ctx.Err();err!=nil{return windows.GUID{},err}
- if luid==0{return windows.GUID{},ErrInvalidBinding}
- if err:=n4ConvertInterfaceLuidGUID.Find();err!=nil{return windows.GUID{},err}
- var guid windows.GUID
- rc,_,_:=n4ConvertInterfaceLuidGUID.Call(
-  uintptr(unsafe.Pointer(&luid)),uintptr(unsafe.Pointer(&guid)))
- if rc!=0{return windows.GUID{},fmt.Errorf("ConvertInterfaceLuidToGuid: %w",syscall.Errno(rc))}
- if guid==(windows.GUID{}){return windows.GUID{},errors.Join(ErrInvalidBinding,errors.New("zero native interface GUID"))}
- return guid,nil
 }

@@ -1,0 +1,7 @@
+# N4 requested GUID probe precise compile failure and minimal repair, 2026-10-13
+
+Parent CODE SOURCE `c6d7d74f26ac3cd38b9697dd619ba64a9d543a05`, branch `next/adaptive-fec-aes-tun-20261010`. Source Action38392840772 **FAIL** in Lifecycle job115280620234 step `Compile official entries`, GOOS=windows: `native_wintun_owner_windows.go:71:6: n4NativeInterfaceGUID redeclared`; previous existing Windows DNS reader at `native_dns_snapshot_windows.go:75`. This is a real compiler FAIL, not a Windows capability unsupported outcome. Initial c6d source results must not be overwritten with PASS.
+
+Targeted fix only: revert duplicate `native_wintun_owner_windows.go` addition and use preexisting `n4NativeInterfaceGUID(index)` after native `ConvertInterfaceLuidToIndex` in isolated GUID readback test. No new API, no route/DNS/WFP changes or prod GUID adoption. Remove incidental unused context/time/net test imports. Test now asserts native live Wintun LUID→index then independent OS index→LUID→GUID exact match with random RequestedGUID. Missing DLL remains UNSUPPORTED; mismatch remains FAIL; cross-process crash NOT_RUN. New exact CODE SOURCE needs Win2022/25 real Wintun and Foundation/Lifecycle/matrix Actions; no local Go tests, physical, deployment, merge or qualification ref moves.
+
+Previous `11f708f8f1c2afac3ed8f139fba11d7f41011a65` native safety gate's Actions38391744029/38391744191/38391743731/38391743815/38391743831 all scoped SUCCESS remain valid only for that previous code source; N4 production and N6 NOT_DONE, N2 C04/C05/C10/80s OPEN.

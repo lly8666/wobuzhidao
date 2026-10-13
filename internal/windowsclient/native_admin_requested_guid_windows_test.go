@@ -3,17 +3,14 @@
 package windowsclient
 
 import (
- "context"
  "crypto/rand"
  "encoding/binary"
  "encoding/hex"
  "encoding/json"
- "net"
  "os"
  "path/filepath"
  "syscall"
  "testing"
- "time"
  "unsafe"
 
  "golang.org/x/sys/windows"
@@ -72,14 +69,18 @@ func TestN4WindowsHostedRequestedGUIDNativeReadback(t *testing.T){
  }
  defer wintunCloseAdapter.Call(adapter)
  receipt["requested_guid"]="PASS_CREATED_FRESH_ADAPTER"
- ctx,cancel:=context.WithTimeout(context.Background(),20*time.Second)
- defer cancel()
  if err:=n4WintunGetAdapterLuid.Find();err!=nil{t.Fatal(err)}
  var luid uint64
  n4WintunGetAdapterLuid.Call(adapter,uintptr(unsafe.Pointer(&luid)))
  if luid==0{t.Fatal("created Wintun returned zero LUID")}
- observed,err:=n4NativeInterfaceGUID(ctx,luid)
- if err!=nil{t.Fatalf("native LUID to GUID: %v",err)}
+ // Reuse the existing Windows DNS interface reader's OS-backed
+ // index -> LUID -> GUID conversion, avoiding duplicate ABI declarations.
+ if err:=n4ConvertInterfaceLuidIndex.Find();err!=nil{t.Fatal(err)}
+ var index uint32
+ rc,_,_:=n4ConvertInterfaceLuidIndex.Call(uintptr(unsafe.Pointer(&luid)),uintptr(unsafe.Pointer(&index)))
+ if rc!=0 || index==0{t.Fatalf("ConvertInterfaceLuidToIndex: status=%d index=%d",rc,index)}
+ observed,err:=n4NativeInterfaceGUID(index)
+ if err!=nil{t.Fatalf("existing native interface GUID lookup: %v",err)}
  if observed!=guid{
   t.Fatalf("requested/OS interface GUID differ; no crash-owner entitlement: requested=%v read=%v",guid,observed)
  }
@@ -87,5 +88,5 @@ func TestN4WindowsHostedRequestedGUIDNativeReadback(t *testing.T){
  // generation; this test proves ONLY the native GUID readback on a live handle.
  receipt["native_luid_guid"]="PASS_MATCHES_REQUESTED_GUID"
  receipt["result"]="SCOPED_REQUESTED_GUID_NATIVE_MATCH_PASS"
- t.Logf("SCOPED requested GUID matched native LUID readback for a disposable adapter, no crash recovery; windows networking untouched; iftype=%d",net.FlagUp)
+ t.Log("SCOPED requested GUID matched native LUID readback for disposable adapter; no crash recovery or network writes")
 }
