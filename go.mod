@@ -8,6 +8,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.3.0
 	github.com/klauspost/reedsolomon v1.12.6
 	github.com/refraction-networking/utls v1.6.5
+	github.com/tailscale/wf v0.0.0-20240214030419-6fbb0a674ee6
 	github.com/xjasonlyu/tun2socks/v2 v2.6.0
 	golang.org/x/crypto v0.38.0
 	golang.org/x/net v0.40.0
@@ -20,6 +21,7 @@ require (
 	github.com/klauspost/compress v1.17.4 // indirect
 	golang.org/x/text v0.25.0 // indirect
 	github.com/ajg/form v1.5.1 // indirect
+	go4.org/netipx v0.0.0-20220725152314-7e7bdc8411bf // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/go-chi/chi/v5 v5.2.1 // indirect
 	github.com/go-chi/cors v1.2.1 // indirect

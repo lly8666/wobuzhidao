@@ -1,0 +1,49 @@
+name: next-adaptive-n4-wfp-persistent-isolated-lab
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-wfp-persistent-isolated-lab.yml"
+      - "internal/windowsclient/native_wfp_persistent_lab_windows_test.go"
+      - "go.mod"
+      - "go.sum"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-wfp-isolated-persistence:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: SOURCE-scoped persistent WFP rule only for TEST-NET 203.0.113.254:65530
+        shell: bash
+        env:
+          WBD_N4_WFP_ISOLATED_LAB: "1"
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly ./internal/windowsclient \
+            -run '^TestN4WindowsWFPPersistentFilterHostLab$' -count=1 -timeout=8m -v
+      - name: Record WFP persistence scope (never production guard)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          printf '{"schema":"wbd-n4-wfp-isolated-persistence/v1","source_sha":"%s","runner":"%s","persisted_testnet_only":"PASS","wfp_filter_owned_cleanup":"PASS","effective_production_dns_ipv6_guard":"NOT_IMPLEMENTED","real_user_nic":"NOT_RUN","physical_qualification":"NOT_RUN"}\n' "$GITHUB_SHA" "$RUNNER_OS" > artifacts/n4-wfp-testnet-lab.json
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: n4-wfp-testnet-lab-${{ matrix.runner }}-${{ github.sha }}
+          path: artifacts/n4-wfp-testnet-lab.json
+          retention-days: 30
