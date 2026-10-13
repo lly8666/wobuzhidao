@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_USERSPACE_TCP_CORE_AND_COMPACT_ROUTE_PLAN_ACTIONS_PENDING_NATIVE_NETWORK_LIFECYCLE_BLOCKED",
+    "phase": "N4_NATIVE_GO_IPHELPER_ROUTE_API_AND_USERSPACE_TCP_SCOPED_ACTIONS_PENDING_NO_POWERSHELL_RUNTIME_NOT_YET_REPLACED",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "N4_USERSPACE_TCP_CORE_SOURCE_CANDIDATE_NO_POWERSHELL_NEW_CODE;COMPACT_WIN_ROUTE_PLANNER_IN_MEMORY_ONLY;LIVE_RUNTIME_STILL_USES_LEGACY_POWERSHELL_AND_COMPLEMENT_ROUTES_NOT_ACCEPTABLE_FOR_RELEASE",
+    "implementation": "N4_USERSPACE_TCP_CANDIDATE_AND_COMPACT_ROUTE_PLANNER_D29D_ACTIONS_PASS;GO_NATIVE_WIN_ROUTE_API_ABI_WRAPPER_CANDIDATE_PENDING;ACTIVE_MAIN_STILL_POWERSHELL",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Run new SOURCE Actions for active Go userspace TCP/direct queue and compact route planner; first gate SOURCE96375 Actions38343129203 PASS but Foundation38343129100 FAIL repository-contract because workflow tried to activate archived old runtime; preserve failure. Corrected workflow exclusively tests active files, no old code execution, Go/native API test only. If Actions PASS then replace Windows runtime PowerShell Apply/Cleanup/NRPT/IPv6 guard and old complement routes with Go native IP Helper + Windows Filtering Platform owned API, journal and crash recovery. Do NOT enable compact routes before native owned DNS/IPv6 path passes. Windows final product must not spawn powershell.exe or require .ps1; archive old/ remains provenance read-only. All tests Actions only, no physical until N6.",
-  "latest_log": "docs/devlog/20261013-n4-tcp-userspace-singleprocess-candidate.md",
+  "next_task": "Exact SOURCE test the Windows Go native IP Helper route ABI/lookup/Create/Delete (DO NOT execute Create/Delete until rollback+DNS/IPv6 guard are proven), active userspace TCP stack and bounded nonblocking queue, compact /1 route plan and Foundation. After PASS build fail-closed native owned journal for ALL network side effects: Wintun leased address/DHCP preflight, route Add/Remove only owned, physical underlay route, DNS native API or safe fallback for older Windows, IPv6 and underlay DNS WFP guards, dynamic rollback on crash/cancel. Only then remove old PowerShell flags/scripts from non-archived product and enable compact routing and TCP Direct in cmd/wbd-client. N4 physical/Wintun live not qualified; N6 not started. Tests Actions only, no physical/merge/deploy.",
+  "latest_log": "docs/devlog/20261013-n4-native-route-abi-candidate.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "086a9bd27f9a275d0d3d40163cc0d0c5868c7e67",
-  "last_tested_scope": "N4_WIN_DIVERT_V2_2_2_PINNED_ABI_PREFLIGHT_ACTION38341416320_GATE_EXEC_SUCCESS_CANDIDATE_VERDICT_NO_GO;FOUNDATION38341416272_PASS;NO_DRIVER_LOAD_OR_TCP_HARDWARE",
+  "last_tested_source_sha": "d29d8ab668690158020f90367e824a9627451570",
+  "last_tested_scope": "USERSpace TCP CORE_AND_2X_SLASH1_COMPACT_ROUTING_STATIC_WINDOWS_ACTION38343552100_PASS_FOUNDATION38343552096_PASS_LIFECYCLE38343552106_PASS;NO_REAL_TUN_DRIVER_NO_ADMIN_NET_MUTATION",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,8 +2694,8 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "N4 newly copied single-process userspace TCP Direct (gVisor/tun2socks v2.6.0) generation/iface scoped + bounded queue + 2-route planner are IMPLEMENTED AS DISABLED CANDIDATES, not wired to runtime; current powershell.exe route CLI not yet removed",
-    "New SOURCE Actions pending; original SOURCE96375 Foundation FAIL due workflow old runtime reactivation policy (not product failure), dedicated old module test PASS; old No-Go WinDivert preserved; N6 NOT_STARTED; physical NOT_RUN"
+    "Actions SOURCEd29d userspace Windows gate 38343552100 PASS; Foundation38343552096 PASS; lifecycle38343552106 PASS. Direct TCP and compact plan still DISABLED in live CLI; no real TUN/physical.",
+    "Go native Win IP Helper row ABI/reading/route operations CANDIDATE under Windows-only file and hosted ABI/read-only tests; no production invocation/journal/DNS/IPv6 guard; no scripts added or invoked by new code."
   ],
   "actions": [
     {
@@ -3905,6 +3905,33 @@
       "scope": "N4_WINDOWS_NATIVE_DLL_API_AND_ARCHIVED_TUN2SOCKS_COMPILE_INITIAL_GATE_ONLY",
       "status": "PASS",
       "cause": "Single Windows hosted job115118366065 completed success, legacy archive test and Windows native DLL API symbol lookup. Does NOT establish active module port, actual routes, Wintun, physical TCP, or scriptless product."
+    },
+    {
+      "name": "next-adaptive-n4-userspace-no-powershell-feasibility",
+      "run_id": 38343552100,
+      "source_sha": "d29d8ab668690158020f90367e824a9627451570",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38343552100",
+      "scope": "N4_GO_TUN2SOCKS_TCP_IMPORT_BOUNDED_QUEUE_AND_NATIVE_EXPORTS_SOFTWARE",
+      "status": "PASS",
+      "cause": "Windows job115119706207 completed success: N4TCPBoundedQueueOwnershipAndClose, N4TCPRejectsGenerationAndUnrelatedProtocols, Native DLL export probe PASS; active source v2.6.0 build; source d29d. Artifact11788310436 sha256:3776e6168546f9b0e7da576c09ee3f6f0c0de58a32a5bdc57b6a2ef676e46db4. No Wintun, admin, network mutation, external connection."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38343552096,
+      "source_sha": "d29d8ab668690158020f90367e824a9627451570",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38343552096",
+      "scope": "N4_ACTIVE_GO_MODULE_AND_WIN_LINUX_FOUNDATION",
+      "status": "PASS",
+      "cause": "All seven required jobs finished successful (repo contract, active Windows/Linux Go/race, P2 and P4 privileged; P5/P6 skip). Not product runtime qualification."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38343552106,
+      "source_sha": "d29d8ab668690158020f90367e824a9627451570",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38343552106",
+      "scope": "N4_ACTIVE_GO_USERSpace_LIFECYCLE_REGRESSION",
+      "status": "PASS",
+      "cause": "Core job completed success on exact source; no physical Wintun."
     }
   ],
   "required_read_set": [
