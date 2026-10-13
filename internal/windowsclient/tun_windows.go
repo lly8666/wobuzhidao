@@ -58,6 +58,7 @@ func wintunLibraryPath() string {
 
 type TUN struct {
 	adapter  uintptr
+	createdByProcess bool
 	session  uintptr
 	readEvt  uintptr
 	closeEvt uintptr
@@ -83,6 +84,7 @@ func OpenTUN(name string) (*TUN, error) {
 	}
 
 	adapter, _, openErr := wintunOpenAdapter.Call(uintptr(unsafe.Pointer(name16)))
+	created := false
 	if adapter == 0 {
 		adapter, _, err = wintunCreateAdapter.Call(
 			uintptr(unsafe.Pointer(name16)),
@@ -92,6 +94,7 @@ func OpenTUN(name string) (*TUN, error) {
 		if adapter == 0 {
 			return nil, wintunCallError("WintunCreateAdapter", err, openErr)
 		}
+		created = true
 	}
 	session, _, callErr := wintunStartSession.Call(adapter, wintunRingCapacity)
 	if session == 0 {
@@ -110,7 +113,7 @@ func OpenTUN(name string) (*TUN, error) {
 		wintunCloseAdapter.Call(adapter)
 		return nil, wintunCallError("CreateEventW", callErr, nil)
 	}
-	return &TUN{adapter: adapter, session: session, readEvt: readEvt, closeEvt: closeEvt, name: name}, nil
+	return &TUN{adapter: adapter, session: session, readEvt: readEvt, closeEvt: closeEvt, name: name, createdByProcess: created}, nil
 }
 
 func (t *TUN) Name() string {
