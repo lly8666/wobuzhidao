@@ -1,6 +1,6 @@
-## 2026-10-13 N4 原 Wintun 销毁后 pre-route WAL 恢复限定 Actions PASS，正式产品仍未 READY
+## 2026-10-13 N4 真实 Win2022/25 子进程 lease/MTU/DNS 写入后强制崩溃验收候选
 
-代码 SOURCE `a3bcd3bc786a09d3437437bcbc9f4e588ffb7340`：N4Matrix38420306021 Windows2022/2025 + Linux race、真实 Wintun38420306011 双版本、Foundation38420306239 全7、Lifecycle38420306112 均最终 SUCCESS。新增 `N4WindowsRetirePreRouteOrphanWAL` 仅当 WAL 2..4 条记录、原 GUID/LUID/index 已从 Windows 全接口表消失、没有 route 阶段与任何 sidecar、lease/MTU/DNS 原始基线严格匹配且 owned WFP 安全清理后仅删除 parent WAL；单元测试为 fake WFP+真实 Win32 只读枚举，不冒称真实持久生产 WFP 或真实 staged IP 写后崩溃 PASS。官方 Windows CLI 仍 PowerShell、native assembler assemblyOnly、production WFP Arm hard-disabled，服务器 /32 + 两 /1 缺隔离 Windows Actions 实测。**N4/N5/N6 未完成，不得标 `ACTIONS_READY_FOR_PHYSICAL`；physical NOT_RUN**。用户允许最终实机仅项目一个 Wintun，但仍不对共享 CI 主机安装全局 WFP。N2 C04/C05 FAIL、C10 GE、约80s S2C 留 OPEN；唯一接手 next_task 看 STATUS，不部署/合并/移动 qualification ref。
+当前最后已验 CODE SOURCE `a3bcd3bc786a09d3437437bcbc9f4e588ffb7340`：N4Matrix38420306021 Win2022/25+Linux race、真实 Win38420306011、Foundation38420306239 七必需、Lifecycle38420306112 均限定 SUCCESS；仅对原 Wintun 消失、未进入 route 的 2..4 阶段 WAL 用 fake WFP+原生 Windows 只读身份验证清退。DOC-only b899 Foundation38421110798 全7 SUCCESS。**新候选**真实 Win2022/25 child 创建独立 Wintun，实际原生写入 lease/DAD、MTU、DNS，每阶段单 WAL fsync，父进程先证明活接口不能清，再 TerminateProcess，OS 原 GUID/LUID/index 消失后只清 parent WAL；WFP FAKE，绝不把它当生产真实 WFP/路线崩溃资格。最新 SOURCE Actions 必须核最终 jobs/artifact/hash。生产 Arm 仍禁、native assemblyOnly、官方 Windows CLI PowerShell 活动；N4/N5/N6 未完成且 physical NOT_RUN，单 Wintun 实机假设不替代 CI 全局防泄漏和 /1 测试；N2 C04/C05 FAIL、C10 GE、80s S2C OPEN。唯一下一步取 STATUS，禁止自动部署、主线合并、qualification ref 移动。
 
 ## 2026-10-13 N4 真实 Win2022/Win2025 TEST-NET WFP 精确清理限定 PASS；产品仍未实机 READY
 

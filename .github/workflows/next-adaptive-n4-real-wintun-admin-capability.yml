@@ -18,6 +18,7 @@ on:
       - "internal/windowsclient/native_journal_adapter_proof_windows_test.go"
       - "internal/windowsclient/native_unified_network_transaction.go"
       - "internal/windowsclient/native_admin_created_wintun_mutation_windows_test.go"
+      - "internal/windowsclient/native_admin_preroute_real_crash_windows_test.go"
       - "internal/windowsclient/native_admin_unified_wal_windows_test.go"
       - "internal/windowsclient/native_unified_assembly_windows.go"
       - "internal/windowsclient/native_unified_assembly_windows_test.go"
@@ -218,6 +219,30 @@ jobs:
                   assert j[k].startswith("PASS"),k
           print("N4_REAL_WINTUN_MUTATION="+j["result"])
           PY
+      - name: Real child leased Wintun MTU DNS writes then abrupt crash (fake WFP only)
+        shell: bash
+        env:
+          WBD_N4_ADMIN_PREROUTE_CRASH_PROBE: "1"
+          WBD_N4_ADMIN_PREROUTE_CRASH_REPORT: "artifacts/n4-driver-probe/preroute-ip-crash.json"
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          ./artifacts/n4-driver-probe/n4-probe.test.exe -test.v -test.run '^TestN4WindowsHostedRealPreRouteIPCrashWAL$' -test.timeout=3m
+          test -s "$WBD_N4_ADMIN_PREROUTE_CRASH_REPORT"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          x=json.loads(Path("artifacts/n4-driver-probe/preroute-ip-crash.json").read_text())
+          assert x["source_sha"]==os.environ["GITHUB_SHA"] and x["runner"]=="Windows"
+          assert x["wfp"]=="FAKE_ONLY"
+          assert all(x[k]=="NOT_RUN" for k in ("routes","physical","full_network_recover"))
+          assert x["result"] in ("SCOPED_REAL_WINTUN_IP_STAGE_CRASH_FAKE_WFP_PASS",
+                                  "UNSUPPORTED_ORIGINAL_ADAPTER_PERSISTED")
+          if x["result"]=="SCOPED_REAL_WINTUN_IP_STAGE_CRASH_FAKE_WFP_PASS":
+              for k in ("real_wintun","lease_mtu_dns","original_retired","wal_recovery"):
+                  assert x[k].startswith("PASS"),k
+          print("N4_REAL_PREROUTE_IP_CRASH="+x["result"])
+          PY
       - name: Real Wintun unified WAL Apply/Recover (fake WFP and routes)
         shell: bash
         env:
@@ -254,6 +279,7 @@ jobs:
             artifacts/n4-driver-probe/guid-journal.json
             artifacts/n4-driver-probe/crash-readonly.json
             artifacts/n4-driver-probe/crash-guard-intent.json
+            artifacts/n4-driver-probe/preroute-ip-crash.json
             artifacts/n4-driver-probe/mutation.json
             artifacts/n4-driver-probe/unified-wal.json
           if-no-files-found: warn
