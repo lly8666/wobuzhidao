@@ -1,0 +1,50 @@
+name: next-adaptive-n4-userspace-no-powershell-feasibility
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-userspace-no-powershell-feasibility.yml"
+      - "internal/windowsclient/n4_native_api_gate_windows_test.go"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  legacy-tun2socks-and-native-api-gate:
+    runs-on: windows-2022
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Check SOURCE and Windows API exports without PowerShell
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly ./internal/windowsclient -run '^TestN4NativeNetworkDLLExportsAvailable$' -count=1 -v
+      - name: Compile and verify historical direct TCP UDP stack and routing invariants
+        shell: bash
+        working-directory: old
+        env:
+          GOWORK: "off"
+        run: |
+          set -euo pipefail
+          go test -mod=readonly ./internal/tunsplit ./internal/windowsruntime \
+            -run 'Test(DirectInterfaceIndex|BridgeDirectsOnlyTCPAndUDP|BridgeHonorsProxyDecision|RoutingPolicyMatrixUsesOneHostRouteShape|BuildPlanExplicitRoutingPolicyMovesDecisionIntoTun|RouteRebindNeverReceivesSplitPolicyPrefixes)' -count=1 -v
+      - name: Record limited feasibility scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          printf '{"schema":"wbd-n4-userspace-nops-feasibility/v1","source_sha":"%s","outcome":"SCOPED_SOURCE_API_AND_LEGACY_GO_TEST_PASS","driver_loaded":false,"admin_network_mutation":false,"real_wintun":false,"physical_tcp":false,"no_powershell_used_in_test":true,"native_dns_firewall_lifecycle":"NOT_IMPLEMENTED","native_route_lifecycle":"NOT_IMPLEMENTED"}\n' "$GITHUB_SHA" > artifacts/n4-userspace-nops-gate.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n4-userspace-nops-gate-${{ github.sha }}
+          path: artifacts/n4-userspace-nops-gate.json
+          if-no-files-found: warn
+          retention-days: 30
