@@ -1,0 +1,34 @@
+name: next-adaptive-n4-owned-network-cancel
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n4-owned-network-cancel.yml"
+      - "cmd/wbd-client/main_windows.go"
+      - "cmd/wbd-client/n4_network_cancel_windows_test.go"
+permissions:
+  contents: read
+jobs:
+  native-windows-owned-cancel-no-driver:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Actual Windows PowerShell child cancellation and owned transaction tests
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) { throw "source mismatch" }
+          go test -count=1 -v ./cmd/wbd-client -run '^TestN4(Owned|PowerShell)'
+          if ($LASTEXITCODE -ne 0) { throw "N4 owned transaction tests failed" }
+          go test -count=1 ./internal/windowsclient ./cmd/wbd-client
+          if ($LASTEXITCODE -ne 0) { throw "Windows TUN entry regression failed" }
+          go build ./cmd/wbd-client
+          if ($LASTEXITCODE -ne 0) { throw "Windows CLI build failed" }
+          Write-Output "N4_OWNED_CANCEL_HOSTED_SOURCE=$env:GITHUB_SHA ADMIN_APPLY=NOT_RUN REAL_WINTUN=NOT_RUN"

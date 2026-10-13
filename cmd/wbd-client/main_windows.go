@@ -416,15 +416,19 @@ func runWindows() error {
 	if err != nil {
 		return err
 	}
-	if err := runNetworkAction(networkPlan, "Apply", *scriptPath); err != nil {
+	// Register owned rollback even when Apply fails or GUI Stop cancels a
+	// long-running PowerShell route mutation. Cleanup receives an independent
+	// bounded context so an already-cancelled parent cannot skip it.
+	cleanupNetwork, err := applyOwnedNetwork(ctx, networkPlan, *scriptPath)
+	if err != nil {
 		return err
 	}
-	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d capture_prefixes=%d source=%s", *routeMode, len(bypass), len(networkPlan.CaptureRoutes), chinaListSource(*chinaIPFile))
 	defer func() {
-		if err := runNetworkAction(networkPlan, "Cleanup", *scriptPath); err != nil {
-			log.Printf("Windows cleanup: %v", err)
+		if err := cleanupNetwork(); err != nil {
+			log.Printf("Windows owned cleanup incomplete (journal retained): %v", err)
 		}
 	}()
+	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d capture_prefixes=%d source=%s", *routeMode, len(bypass), len(networkPlan.CaptureRoutes), chinaListSource(*chinaIPFile))
 	// A TUN session is one owner generation, independent of rotating FakeTCP
 	// lane incarnations. One physical-interface-bound UDP sink lives for this
 	// session; Close is registered after network Cleanup so sockets close first.
@@ -574,7 +578,38 @@ func runWindows() error {
 	return runErr
 }
 
-func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) error {
+// applyOwnedNetwork uses an independent cleanup context after any Apply error,
+// including GUI stop, while preserving the existing state-owned journal scope.
+func applyOwnedNetwork(ctx context.Context, plan windowsclient.NetworkPlan, script string) (func() error, error) {
+	return applyOwnedNetworkWith(ctx, plan, script, runNetworkActionContext)
+}
+
+// The runner argument is test-only injection; production always passes the
+// actual PowerShell command with an OS-process cancellation handle.
+func applyOwnedNetworkWith(ctx context.Context, plan windowsclient.NetworkPlan, script string,
+	run func(context.Context, windowsclient.NetworkPlan, string, string) error) (func() error, error) {
+	if ctx == nil || run == nil {
+		return nil, windowsclient.ErrNetworkPlan
+	}
+	cleanup := sync.OnceValue(func() error {
+		// Bounded even if an abandoned script/kernel call never exits. The
+		// state file remains available for a later owned recovery on failure.
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+		defer cancel()
+		return run(cleanupCtx, plan, "Cleanup", script)
+	})
+	if err := run(ctx, plan, "Apply", script); err != nil {
+		if cleanupErr := cleanup(); cleanupErr != nil {
+			return nil, errors.Join(err, fmt.Errorf("partial Apply owned rollback: %w", cleanupErr))
+		}
+		return nil, err
+	}
+	return cleanup, nil
+}
+
+func runNetworkActionContext(ctx context.Context, plan windowsclient.NetworkPlan, action, script string) error {
+	if ctx == nil { return windowsclient.ErrNetworkPlan }
+	if err := ctx.Err(); err != nil { return err }
 	if len(plan.CaptureRoutes) > 8 {
 		if err := os.MkdirAll(filepath.Dir(plan.StatePath), 0700); err != nil {
 			return err
@@ -601,7 +636,7 @@ func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) err
 	if err != nil {
 		return err
 	}
-	out, err := networkCommand(args).CombinedOutput()
+	out, err := networkCommandContext(ctx, args).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("powershell %s: %w: %s", action, err, strings.TrimSpace(string(out)))
 	}
@@ -620,8 +655,8 @@ func watchGUIControl(input *os.File, cancel context.CancelFunc) {
 	}
 }
 
-func networkCommand(args []string) *exec.Cmd {
-	cmd := exec.Command("powershell.exe", args...)
+func networkCommandContext(ctx context.Context, args []string) *exec.Cmd {
+	cmd := exec.CommandContext(ctx, "powershell.exe", args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	return cmd
 }
