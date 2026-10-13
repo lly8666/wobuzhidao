@@ -1,0 +1,82 @@
+{
+  "schema": "wbd-n4-live-compact-tcp-udp-routecap-scoped-final/v1",
+  "working_branch": "next/adaptive-fec-aes-tun-20261010",
+  "code_source_final": "4a0467c9737fb20b1248ec8793738c158d51be03",
+  "code_source_first": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+  "runs_first": [
+    38366859081,
+    38366859114,
+    38366859109,
+    38366859085,
+    38366859138,
+    38366859155,
+    38366859082,
+    38366859121
+  ],
+  "runs_final": [
+    38367313926,
+    38367313937,
+    38367313991,
+    38367314055,
+    38367313927,
+    38367314006,
+    38367314093
+  ],
+  "all_final_conclusion": "SUCCESS",
+  "first_artifacts": [
+    {
+      "id": 11796939429,
+      "run": 38366859081,
+      "sha256": "44b0c9cc76d0c668ef60d00aeab033fcc271ad3064dc1b3f86dc07c30577786c"
+    },
+    {
+      "id": 11796714893,
+      "run": 38366859114,
+      "sha256": "b3fa34689793ab71b45a59941d8c920efaa6635b89a6ec9bc66248f5a33d6630"
+    },
+    {
+      "id": 11797392113,
+      "run": 38366859082,
+      "sha256": "45c3d0c5dc6e249b3dbbd77ee8f4a2fda67cc6dfb94ca412ad72c3b473499593"
+    }
+  ],
+  "final_artifacts": [
+    {
+      "id": 11797453038,
+      "run": 38367313926,
+      "sha256": "78291f85a9c859b7c80e3fff137e0233204740a0c4ae79e3550fa6bdbe707e03"
+    },
+    {
+      "id": 11797700319,
+      "run": 38367314006,
+      "sha256": "a89c6729c999f5c4a80f1b10fd2c825396675b1d7599332f6c29561c3c94414b"
+    }
+  ],
+  "limits": {
+    "two_capture_routes": [
+      "0.0.0.0/1",
+      "128.0.0.0/1"
+    ],
+    "underlay_escape": "physical server /32",
+    "exceptions": "configured DNS /32 at most 6",
+    "capture_file_supported": false,
+    "host_CN_complement_routes": false,
+    "direct_TCP": "live CLI userspace tun2socks/gVisor physically bound new TCP",
+    "direct_UDP": "live CLI native UDP",
+    "generation": "one Wintun session"
+  },
+  "qualifications": {
+    "hosted_go_actions": "SCOPED_PASS",
+    "real_admin_wintun": "NOT_RUN",
+    "physical_tcp_egress": "NOT_RUN",
+    "no_powershell_runtime": false,
+    "fully_native_windows_network_txn": "NOT_IMPLEMENTED",
+    "N6_P6": "NOT_STARTED",
+    "physical": "NOT_RUN"
+  },
+  "performance_samples": 0,
+  "original_N2_C04_C05": "FAIL_OPEN",
+  "original_N2_C10_GE": "OPEN",
+  "original_80s_S2C": "OPEN",
+  "artifact_hash_type": "GitHub Actions ZIP archive metadata SHA256"
+}

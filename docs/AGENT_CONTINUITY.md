@@ -1,3 +1,7 @@
+## 2026-10-13 N4 正式 Windows 数据路径 **限定收口**（绝非全N4）
+
+最新 Go SOURCE `4a0467c9737fb20b1248ec8793738c158d51be03` 已在正式 `cmd/wbd-client` 接入两/1系统捕获+有限DNS/32、内存LAN/CN分流、gVisor/tun2socks Direct TCP 与已有 NativeUDPDirect；旧大 CIDR 文件和 DirectRoutes 经产品入口硬拒绝。第一次 SOURCE `ac7be190` 相关8 Actions 全 PASS；最终 `4a0467c` N4 Action38367313926 Win2022/25+Linux race、Windows入口38367313937、Owned取消38367313991、GUI38367314055、N3配置38367313927、Foundation38367314006全7和Lifecycle38367314093 均 FINAL SUCCESS。**真实 Wintun 管理员网卡变更/外网 TCP 没跑；正式控制面仍调用 PowerShell 和旧 .ps1**，所以 Windows scriptless/全 N4 不合格。之后不要再叠加空的通用 WAL；唯一要补具体 Native Lease/DAD、DNS、MTU、WFP、少量 Routes 事务接线/Win隔离验证，成功后移除脚本、N6打包及统一最后物理。N2 C04/C05/C10/80s 遗留原样 OPEN，physical NOT_RUN。
+
 ## 2026-10-13 N4 当前小范围收口：正式 CLI 两 /1 + 双 direct 路径后再拒绝历史巨大路由文件（Actions 待新源验）
 
 Source `ac7be190b3fcbbfa5828eee1b4e11497bc7b4156` 已接 live Direct TCP+UDP 并简化捕获路由，首批 N4/Userspace/Lifecycle SUCCESS。本补丁只改 legacy shell 子进程启动前上限：超过8条/有 DirectRoutes/传大 capture file 全部拒绝，不再产生 huge CIDR 文件；新的 CLI AST/Win 测试必须通过。仍 PowerShell 控制面，native scriptless 未完，N6/physical NOT_RUN。唯一 next_task 见 STATUS。

@@ -9,13 +9,13 @@
   "authority_notice": "Only active_work/next_task/latest_log are current. Parent full STATUS and old plans archived with original source-scoped failures intact. User new scope permits Normal auto FEC/AES/TUN classification; hard gates remain.",
   "active_work": {
     "name": "ADAPTIVE_FEC_AES_TUN",
-    "phase": "N4_LIVE_COMPACT_TCP_UDP_AND_LEGACY_SCRIPT_ROUTE_CAP_HARDENING_CANDIDATE_ACTIONS_PENDING",
+    "phase": "N4_OFFICIAL_WINDOWS_COMPACT_CAPTURE_USERSPACE_DIRECT_TCP_AND_NATIVE_UDP_SCOPED_ACTIONS_PASS_SCRIPTLESS_NATIVE_OS_CONFIG_REMAINS",
     "plan": "docs/ADAPTIVE_NETWORK_PLAN.md",
     "prompt": "docs/templates/ADAPTIVE_NETWORK_AGENT_PROMPT.md",
     "branch_parent_sha": "a8913e3b651413b6d37c3a7732a0baa375009da0",
     "inherited_product_source_sha": "7fb98fab79834a351a1dbe04eebb207f66bea28b",
     "new_product_source_sha": "ab2d22377f06d72da0bf5fd2730c9bfb7fc69177",
-    "implementation": "SOURCEAC7B_LIVE_WINDOWS_CLIENT_COMPACT_TWO_HALF_AND_GVISOR_TCP_NATIVEUDP_ACTIONS_IN_PROGRESS;NEW_RUNNER_HARD_CAP_REMOVES_LEGACY_MASSIVE_CAPTURE_FILE_FALLBACK_AND_AST_CLI_GUARD;NATIVE_NO_POWERSHELL_CONTROL_NOT_YET_IMPLEMENTED",
+    "implementation": "OFFICIAL_CLIENT_CODE_SOURCE4A0467_COMPACT_TWO_HALF_CAPTURE_BOUNDED_DNS_AND_USERSPACE_TUN2SOCKS_GVISOR_TCP_PLUS_NATIVEUDP_CONNECTED;LEGACY_CIDR_EXPANSION_REMOVED_AND_RUNNER_HARD_CAP_REJECTS_LARGE_ROUTE_FILE;ALL_CODE_SOURCE_ACTIONS_SUCCESS;POWERSHELL_NETWORK_CONTROL_STILL_ACTIVE_NATIVE_FULL_APPLY_RECOVER_AND_N6_OPEN",
     "core": "NORMAL_DIRECTIONAL_AUTO_IMPLEMENTED_WITH_SCOPED_MIXED_NOHOL_PASS_EFFICIENCY_AND_GE_TAIL_RESIDUALS_OPEN",
     "ordinary_performance": "N1_SCOPED_120S_NORMAL_OFF_AUTO_MTU_FLAT5_BOTH_SOURCES_LEGACY_PASS_SCREEN_OFF_V2_MEASURED_NOT_QUALIFIED_NOT_FULL_PERFORMANCE_QUALIFICATION",
     "physical": "NOT_RUN_NEW_SOURCE",
@@ -24,7 +24,7 @@
       "N1_quality": "SCOPED_COMPLETE_AUTH_9_104_128_HEALTH_PLUS_BOUNDED_PN_3S_MATURITY_RETURNED_ESTIMATE_NATIVE_5PCT_AUTO_MTU_A_B_HARD_GATES_PASS_BOTH_OFF_V2_MEASURED_NOT_QUALIFIED_TRUE_FIRST_ATTEMPT_LINE_LOSS_UNKNOWN",
       "N2_normal_auto": "IMPLEMENTED_SCOPED_GO_RACE_AND_REAL_1PCT_MIXED_TCP_UDP_10MS_PASS_ACTION38326649686_FULL_N2_OPEN_C04_C05_EFFICIENCY_AND_C10_GE_P99",
       "N3_aes": "SCOPED_COMPLETE_AES128_ACTION38273052020_AES256_ACTION38281815825_REAL_LOSSLESS_100S_PASS_GUI_THREE_CHOICES_PASS_DAMAGE_CPU_NATIVE_SCOPE_OPEN",
-      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS;SOURCE908A_GUARD_JOURNAL_CRASH_SCOPED_ACTION38357895984_FOUNDATION38357895969_LIFECYCLE38357895905_PASS;SOURCE1EEB_WFP_PARTIAL_RECOVERY_FULL_FOUNDATION38358434476_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_SUCCESS_OLD_REGEX_DID_NOT_SELECT_NEW_PARTIAL_TEST;SOURCE863E_N4_LEASE_CREATED_WINTUN_OWNER_NEGATIVE_WINDOWS2022_2025_X3_ACTION38359734786_PASS_FOUNDATION38359735917_ALL7_PASS_LIFECYCLE38359735012_PASS;SOURCE_CFEAC_EXPLICIT_WFP_CRASH_MATRIX38359183134_PASS;NO_REAL_ADMIN_WINTUN;SOURCE1471_UNIFIED_5_STAGE_WAL_ACTION38362811979_FOUNDATION38362811941_PASS_AFTER_0DDC_CONCURRENT_APPLY_FAIL;D88F_WIN32_GLOBAL_MACHINE_MUTEX_ACTION38363479829_FOUNDATION38363479720_LIFECYCLE38363480051_PASS;FF525_CREATED_WINTUN_GENERATION_HANDLE_HOLD_ACTION38364130417_FOUNDATION38364130335_LIFECYCLE38364130671_PASS_HOSTED_ONLY",
+      "N4_windows_tun": "PARTIAL_WINDOWS_UDP_NATIVE_SOCKET_ENTRY_WIRED_49ADB_ACTION38337768067_LINUX_RACE_WIN_GO_PASS;APPLY_CONTEXT_CANCEL_ROLLBACK_67B7_ACTION38338092331_WIN_REAL_OS_CHILD_AND_SIM_PASS;OWNED_UNKNOWN_IPV4_DHCP_JOURNAL_AB2D_ACTION38338808653_WIN_MOCK_LINUX_RACE_PASS_FOUNDATION38338808694_PASS;725D_FAIL_UNALTERED;TCP_WFP_KERNEL_DRIVER_FEW_ROUTE_EXTERNAL_UNRESOLVED_REAL_WINTUN_NOT_RUN;C10A_COMPACT_NATIVE_ROUTE_BATCH_PURE_GO_ACTION38354764587_PASS_FOUNDATION38354764412_PASS_LIFECYCLE38354764394_PASS;9D0C_DNS_OWNER_GUID_GUARD_ACTION38355293478_FOUNDATION38355293359_LIFECYCLE38355293275_SCOPED_PASS;SOURCE908A_GUARD_JOURNAL_CRASH_SCOPED_ACTION38357895984_FOUNDATION38357895969_LIFECYCLE38357895905_PASS;SOURCE1EEB_WFP_PARTIAL_RECOVERY_FULL_FOUNDATION38358434476_SUCCESS_LIFECYCLE38358434353_SUCCESS_WFP_LAB38358434417_SUCCESS_OLD_REGEX_DID_NOT_SELECT_NEW_PARTIAL_TEST;SOURCE863E_N4_LEASE_CREATED_WINTUN_OWNER_NEGATIVE_WINDOWS2022_2025_X3_ACTION38359734786_PASS_FOUNDATION38359735917_ALL7_PASS_LIFECYCLE38359735012_PASS;SOURCE_CFEAC_EXPLICIT_WFP_CRASH_MATRIX38359183134_PASS;NO_REAL_ADMIN_WINTUN;SOURCE1471_UNIFIED_5_STAGE_WAL_ACTION38362811979_FOUNDATION38362811941_PASS_AFTER_0DDC_CONCURRENT_APPLY_FAIL;D88F_WIN32_GLOBAL_MACHINE_MUTEX_ACTION38363479829_FOUNDATION38363479720_LIFECYCLE38363480051_PASS;FF525_CREATED_WINTUN_GENERATION_HANDLE_HOLD_ACTION38364130417_FOUNDATION38364130335_LIFECYCLE38364130671_PASS_HOSTED_ONLY;SOURCE_AC7B_LIVE_COMPACT_CAPTURE_DIRECT_TCP_GVISOR_AND_NATIVEUDP_N4_MATRIX38366859081_FOUNDATION38366859082_WINDOWS_ENTRY38366859109_CANCEL38366859085_USERSPS38366859114_GUI38366859138_N3CONFIG38366859155_LIFECYCLE38366859121_PASS;SOURCE4A0467_BLOCK_LEGACY_MASSIVE_CAPTURE_FILE_AND_CLI_AST_ACTION38367313926_38367313937_38367313991_38367314006_38367314055_38367313927_38367314093_PASS;REAL_DRIVER_NOT_RUN_CONTROL_PS_ACTIVE",
       "N5_gui_catalog": "SCOPED_COMPLETE_NATIVE_WINFORMS273_ACTION38283111076_AUTO_FEC_THREE_CIPHERS_QUALITY_UNKNOWN_CONFIG_PASS_REAL_DRIVER_QUALITY_UNQUALIFIED",
       "N6_actions_packages": "NOT_STARTED"
     },
@@ -2682,11 +2682,11 @@
       "all_other_architectures": "NOT_EVALUATED"
     }
   },
-  "next_task": "Verify new SOURCE Windows N4 entry AST confirms official BuildCompactNetworkPlan + NewUserspaceTCPDirect + NewN4NativeDirect, N4LegacyNetworkRunnerNeverExpandsCaptureCIDRs, actual gVisor constructor TestN4TCPUserspaceStackConstructorAndRealMux, Windows2022/25 native owned matrix, Linux race, Foundation/lifecycle, and all overlapping GUI/N3/cancel Actions. Then finish native scriptless Windows control plane, no further framework embellishment: connect owned Wintun lease/DAD, MTU, DNS, WFP and routes with rollback, validate admin capability or UNSUPPORTED in GH; remove active PowerShell and .ps1 in product, close N4 Actions, then N6 P6 same-source 3 targets/manifests; N2 C04/C05/C10/80s OPEN, physical NOT_RUN; no deploy/merge/ref.",
-  "latest_log": "docs/devlog/20261013-n4-compact-client-route-cap-no-large-cidrs-finalize-candidate.md",
+  "next_task": "N4 ONLY remaining product path: stop extending the generic WAL scaffolding. Implement and wire concrete native Windows network Apply/Stop/Recover using already present five-stage journal, Win32 machine gate and owned Wintun LUID/generation Hold; native WFP DNS/IPv6 guard (safe exclusive mode or multi-Wintun proof), /32 static lease + DAD, MTU CAS and restore, native DNS Set/clear/baseline, and underlay server /32 + two /1 plus configured DNS /32 route ownership. Keep cancellation, journal crash/failure and foreign protection. Test real Windows admin/Wintun capability in isolated GH Win2022/25, record UNSUPPORTED/NOT_RUN where absent. ONLY after native safety gates succeed remove active PowerShell/.ps1 product path; no CN complement routes may return. Live userspace gVisor Direct TCP+NativeUDP/compact host routing already code-wired and Actions scoped PASS: DO NOT redo them without new counterexample. Then close N4 cross-feature, N6 P6 three same-source packages/manifest SHA256 and final ACTIONS_READY_FOR_PHYSICAL (physical still NOT_RUN). N2 C04/C05 efficiency FAIL, C10 GE p99 and ~80s S2C tail OPEN; no deploy/merge/qualification ref moves.",
+  "latest_log": "docs/devlog/20261013-n4-compact-direct-client-data-plane-scoped-actions-final.md",
   "qualification_scope": "SOURCE_SCOPED_ACTIONS_ONLY_N0_N1_N2_MIXED_N3_AES_LOSSLESS_N5_GUI_N4_LOGIC_NO_FULL_PRODUCT_OR_PHYSICAL_PASS",
-  "last_tested_source_sha": "ff525c0faaf0a719b25bbac5de132cab7975732e",
-  "last_tested_scope": "FF525_WIN32_NATIVE_MACHINE_GLOBAL_MUTEX_AND_UNIFIED_NETWORK_OWNER_HOLD_CURRENT_CREATED_WINTUN_LUID_GENERATION_NEGATIVES_N4_ACTION38364130417_WIN2022_WIN2025_LINUX_RACE_SUCCESS_FOUNDATION38364130335_ALL7_SUCCESS_LIFECYCLE38364130671_SUCCESS_NOT_REAL_ADMIN_DRIVER_OR_STAGE_MUTATION",
+  "last_tested_source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
+  "last_tested_scope": "SOURCE4A0467_LIVE_WINDOWS_COMPACT_OS_CAPTURE_2_OVER1_BOUNDED_DNS_NO_CN_COMPLEMENT_AND_GVISOR_TCP_NATIVEUDP_IN_ACTUAL_WBD_CLIENT_OWNED_SHELL_FALLBACK_BOUNDED_8;N4_MATRIX38367313926_WINDOWS2022_WINDOWS2025_LINUX_RACE_SUCCESS;WIN_ENTRY38367313937_SUCCESS;CANCEL38367313991_SUCCESS;GUI38367314055_SUCCESS;N3CONFIG38367313927_SUCCESS;FOUNDATION38367314006_ALL7_SUCCESS;LIFECYCLE38367314093_SUCCESS;REAL_WINTUN_ADMIN_NETWORK_MUTATION_NOT_RUN",
   "physical_status": "NOT_RUN_NEW_SOURCE",
   "completed": [
     "2026-10-13: AES128/256 real lossless scoped PASS, GUI three suites native273 PASS, mixed TCP/UDP real1pct scoped PASS; no full product/physical qualification.",
@@ -2694,11 +2694,10 @@
     "2026-10-13: pinned WinDivert v2.2.2 API gate Actions successfully determined WinDivertSend outbound IfIdx physical shortcut NO_GO; user discussion required before alternative implementation, no driver/product changes."
   ],
   "in_progress": [
-    "Product Windows live data-path SOURCE ac7be190: BuildCompactNetworkPlan with two /1 plus bounded DNS exceptions; gVisor tun2socks userspace Direct TCP and physical native UDP connected to live ingress. N4 native matrix38366859081 and userspace gate38366859114 and lifecycle38366859121 FINAL SUCCESS, other overlapping Actions must check final. Still uses legacy PowerShell control.",
-    "New minimal hardening candidate refuses legacy shell route explosions (>8 captures/direct host routes/old CapturePrefixFile4), replaces silent huge capture file generation with fail-closed pre-spawn error; AST test pins actual CLI compact + TCP + UDP call names. New SOURCE Actions pending.",
-    "NEW candidate official cmd/wbd-client Windows wiring: BuildCompactNetworkPlan replaces huge CN complement OS routes with exactly two /1+bounded DNS /32; classifier still handles LAN/CN/Other in memory. NewUserspaceTCPDirect gVisor physical interface TCP leg and existing NativeUDPDirect combined with N4NativeDirect on actual ForwardOrProxy path. Added bounded TCP queue drop handling and Windows constructor/dispatcher test, new SOURCE Actions PENDING. IMPORTANT control plane still uses PowerShell/.ps1; not qualified scriptless.",
-    "SOURCEff525c0 Wintun generation/session ownership Hold across unified network WAL: N4 Action38364130417 FINAL SUCCESS all four jobs, Windows2022/2025 TestN4WindowsWintunReservation* and TestN4NativeTxnUnifiedHoldsGenerationFromSnapshotThroughUndo each x3 PASS; Foundation38364130335 final SUCCESS seven required, Lifecycle38364130671 SUCCESS. Real driver/Wintun created session and positive OS mutations NOT_RUN.",
-    "SOURCEd88fcfc real Win32 kernel named Global machine mutex: N4 matrix38363479829 FINAL SUCCESS two Windows and Linux race, Win mutex cancellation/exclusion tests PASS x3; Foundation38363479720 all seven required SUCCESS, Lifecycle38363480051 SUCCESS. Production exclusive multi-Wintun policy not proven."
+    "SOURCE4a0467 final scoped PASS: live official Windows CLI builds BuildCompactNetworkPlan with two /1+bounded DNS /32, in-process LAN/CN direct classification, gVisor/tun2socks physical-bound Direct TCP + native UDP via N4NativeDirect; prohibits >8 host captures, any legacy DirectRoutes or CapturePrefixFile4 large-file fallback before spawning PowerShell. N4 matrix38367313926, Windows entry38367313937, owned cancel38367313991, N3 config38367313927, GUI38367314055, Foundation38367314006 all seven required, Lifecycle38367314093 FINAL SUCCESS. Still legacy PowerShell in control plane; no real Wintun admin.",
+    "SOURCEac7be19 first live data plane code also independently N4 matrix38366859081, userspace stack constructor38366859114 (actual TestN4TCPUserspaceStackConstructorAndRealMux RUN/PASS), Windows entry38366859109, owned cancel38366859085, GUI38366859138, N3config38366859155, Foundation38366859082 seven required, Lifecycle38366859121 ALL FINAL SUCCESS. GitHub artifact hashes in evidence; not real TCP physical connectivity.",
+    "N4 final control-plane gap: concrete Wintun current owner + crash restart owner verification, native static /32 lease/DHCP+DAD, MTU, DNS, WFP IPv6/DNS leak guard and compact route owned Apply/Stop; existing code primitives present but official CLI STILL CALLS PowerShell/.ps1. Need exact-source isolated GH admin driver checks, not simulated-only PASS.",
+    "N2 C04/C05 efficiency FAIL, C10 GE ~1.8–1.95s p99 and ~80s S2C pause OPEN. N6 same-source three-target P6 package/manifest/hash NOT_STARTED. physical NOT_RUN, no deploy/merge."
   ],
   "actions": [
     {
@@ -4772,6 +4771,141 @@
       "scope": "N4_WINTUN_GENERATION_HOLD_LIFECYCLE",
       "status": "PASS",
       "cause": "FINAL SUCCESS core lifecycle; no real driver mutation."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38366859081,
+      "source_sha": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38366859081",
+      "scope": "LIVE_COMPACT_USERSPS_NATIVE_MATRIX_WIN2022_WIN2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS all four jobs, N4 artifact11796939429 GitHub ZIP sha256:44b0c9cc76d0c668ef60d00aeab033fcc271ad3064dc1b3f86dc07c30577786c."
+    },
+    {
+      "name": "next-adaptive-n4-userspace-no-powershell-feasibility",
+      "run_id": 38366859114,
+      "source_sha": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38366859114",
+      "scope": "LIVE_USERSPACE_GVISOR_STACK_CONSTRUCTOR_TEST",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS Windows2022, log TestN4TCPUserspaceStackConstructorAndRealMux RUN/PASS. Artifact11796714893 sha256:b3fa34689793ab71b45a59941d8c920efaa6635b89a6ec9bc66248f5a33d6630. No physical TCP or scriptless product claim."
+    },
+    {
+      "name": "next-adaptive-n4-windows-entry",
+      "run_id": 38366859109,
+      "source_sha": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38366859109",
+      "scope": "WINDOWS_CLI_NATIVE_NO_DRIVER_AND_LINUX_INGRESS",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS Win2022 cmd build and Windows routing test, Linux dispatch race; real Wintun not run."
+    },
+    {
+      "name": "next-adaptive-n4-owned-network-cancel",
+      "run_id": 38366859085,
+      "source_sha": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38366859085",
+      "scope": "LEGACY_POWERSHELL_OWNED_ROLLBACK_HOSTED",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS Windows PowerShell owned cancel, no real admin Apply."
+    },
+    {
+      "name": "next-adaptive-n2-windows-gui-config-native",
+      "run_id": 38366859138,
+      "source_sha": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38366859138",
+      "scope": "GUI_NATIVE_NO_DRIVER_REGRESSION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS hosted Windows GUI, artifact11796324396 sha256:5366cbdb850e9bd1d8490846d1732b8a8e37a67579d472ca3fcac82ad98c75c1."
+    },
+    {
+      "name": "next-adaptive-n3-explicit-record-cipher-config",
+      "run_id": 38366859155,
+      "source_sha": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38366859155",
+      "scope": "N3_AES_CONFIG_REGRESSION_ONLY",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS config only, artifact11796513740 sha256:a61c823ed3a969c97fbcd7dc93969d29f8366dad1c7851a077a923d9fe40d520."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38366859082,
+      "source_sha": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38366859082",
+      "scope": "OFFICIAL_CLIENT_LIVE_COMPACT_TCP_UDP_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS seven mandatory jobs, foundation artifact11797392113 sha256:45c3d0c5dc6e249b3dbbd77ee8f4a2fda67cc6dfb94ca412ad72c3b473499593; P5/P6 skipped."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38366859121,
+      "source_sha": "ac7be190b3fcbbfa5828eee1b4e11497bc7b4156",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38366859121",
+      "scope": "LIVE_DIRECT_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS core."
+    },
+    {
+      "name": "next-adaptive-n4-owned-native-transaction-matrix",
+      "run_id": 38367313926,
+      "source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38367313926",
+      "scope": "LIVE_COMPACT_ROUTE_CAP_WIN2022_WIN2025_LINUX_RACE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS four jobs; artifact11797453038 sha256:78291f85a9c859b7c80e3fff137e0233204740a0c4ae79e3550fa6bdbe707e03."
+    },
+    {
+      "name": "next-adaptive-n4-windows-entry",
+      "run_id": 38367313937,
+      "source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38367313937",
+      "scope": "CLI_COMPACT_DIRECT_TCP_UDP_AST_AND_BUILD_WIN2022_LINUX",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS Windows entry job115195435134 including TestN4WindowsLegacyNetworkRunnerNeverExpandsCaptureCIDRs and AST, Linux race job115195435628 success. No external physical driver."
+    },
+    {
+      "name": "next-adaptive-n4-owned-network-cancel",
+      "run_id": 38367313991,
+      "source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38367313991",
+      "scope": "CLI_OWNED_PARTIAL_ROLLBACK_WIN2022",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS Win2022 job115195434915, no real admin network changes."
+    },
+    {
+      "name": "next-adaptive-n2-windows-gui-config-native",
+      "run_id": 38367314055,
+      "source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38367314055",
+      "scope": "GUI_REGRESSION_WIN2022",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS; artifact11796574300 sha256:8cc0d260e0cd2d0e3b833fdd30ce4e5e0c0b6554fec289b189447b7f2ea97ab2."
+    },
+    {
+      "name": "next-adaptive-n3-explicit-record-cipher-config",
+      "run_id": 38367313927,
+      "source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38367313927",
+      "scope": "N3_CONFIG_REGRESSION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS, artifact11796324962 sha256:6f8f8bf97e96537b365d2f2aa70af9223f7d7111bbc2da81453b9fcab7f092a6."
+    },
+    {
+      "name": "next-foundation",
+      "run_id": 38367314006,
+      "source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38367314006",
+      "scope": "N4_LIVE_COMPACT_ROUTE_CAP_FOUNDATION",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS seven required jobs, Foundation artifact11797700319 sha256:a89c6729c999f5c4a80f1b10fd2c825396675b1d7599332f6c29561c3c94414b; P5/P6 skipped."
+    },
+    {
+      "name": "next-lifecycle",
+      "run_id": 38367314093,
+      "source_sha": "4a0467c9737fb20b1248ec8793738c158d51be03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/38367314093",
+      "scope": "N4_LIVE_COMPACT_ROUTE_CAP_LIFECYCLE",
+      "status": "PASS",
+      "cause": "FINAL SUCCESS lifecycle core."
     }
   ],
   "required_read_set": [
