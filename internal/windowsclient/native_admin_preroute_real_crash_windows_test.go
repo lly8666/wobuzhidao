@@ -109,6 +109,7 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
   "lease_mtu_dns":"NOT_RUN","original_retired":"NOT_RUN",
   "wal_recovery":"NOT_RUN","wfp":"FAKE_ONLY",
   "routes":"NOT_RUN","physical":"NOT_RUN","full_network_recover":"NOT_RUN",
+  "ghost_lease_audit":"NOT_RUN",
  }
  defer func(){
   p:=os.Getenv("WBD_N4_ADMIN_PREROUTE_CRASH_REPORT")
@@ -266,6 +267,28 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
       }
       report["ghost_dns_partial"]="PASS_EXACT_PINNED_NATIVE_DNS_CLEARED_REMAINING_WAL_RETAINED"
       t.Log("N4_GHOST_DNS_PARTIAL=PASS_EXACT_PINNED_NATIVE_DNS_CAS; MTU/LEASE/WFP STILL OPEN")
+      auditCtx,stopAudit:=context.WithTimeout(context.Background(),12*time.Second)
+      audit,auditErr:=n4AuditPinnedGhostLease(auditCtx,wal,j.Identity,fake)
+      stopAudit()
+      switch {
+      case auditErr==nil:
+       if audit.MTU!="UNRECOVERABLE_MIB_1168_NO_SET" ||
+        audit.Guard!="KEPT_ARMED" || audit.WAL!="UNCHANGED_GUARD_LEASE_MTU"{
+        t.Fatalf("read-only ghost lease audit overstated recovery: %+v",audit)
+       }
+       report["ghost_lease_audit"]="PASS_NATIVE_FULL_TABLE_AND_EXACT_TUPLE_ABSENT_WAL_RETAINED"
+      case errors.Is(auditErr,ErrN4RouteAmbiguous):
+       report["ghost_lease_audit"]="UNSUPPORTED_ORIGINAL_UNICAST_ADDRESS_STILL_VISIBLE"
+      default:
+       t.Fatalf("pinned ghost read-only lease audit failed: %v",auditErr)
+      }
+      same,readErr:=n4UnifiedRead(wal)
+      if readErr!=nil || same.Phase!="cleaning" ||
+       len(same.Records)!=3 || same.Records[1].Name!="lease" ||
+       same.Records[2].Name!="mtu" || !fake.active || fake.disarmCount!=0{
+       t.Fatalf("read-only ghost lease audit altered WAL or guard: %+v %v",same,readErr)
+      }
+      t.Logf("N4_GHOST_LEASE_AUDIT=%s; MTU_AND_GUARD_STILL_OPEN",report["ghost_lease_audit"])
      }
      t.Logf("N4_POSTCRASH_NATIVE_ROWS original=EXACT_TRIPLE ipv4=%s ipv6=%s guard=FAKE_ARMED wal=RETAINED",ghostProbe.IPv4,ghostProbe.IPv6)
      report["result"]="UNSUPPORTED_EXACT_ORIGINAL_IPV4_ROW_UNAVAILABLE"

@@ -18,6 +18,8 @@ on:
       - "internal/windowsclient/native_orphan_persisted_preroute_windows_test.go"
       - "internal/windowsclient/native_orphan_ghost_dns_windows.go"
       - "internal/windowsclient/native_orphan_ghost_dns_windows_test.go"
+      - "internal/windowsclient/native_orphan_ghost_lease_audit_windows.go"
+      - "internal/windowsclient/native_orphan_ghost_lease_audit_windows_test.go"
       - "internal/windowsclient/native_orphan_iprow_probe_windows.go"
       - "internal/windowsclient/native_orphan_iprow_probe_windows_test.go"
       - "internal/windowsclient/native_orphan_pnp_probe_windows.go"
@@ -266,6 +268,9 @@ jobs:
                   assert x["pnp_instance_after_sha256"]==x["pnp_instance_live_sha256"]
               if x["pnp_state_after"]=="EXACT_PNP_DEVNODE_GONE_13" and x["ipv6_row_after"]=="MISSING_1168":
                   assert x["ghost_dns_partial"]=="PASS_EXACT_PINNED_NATIVE_DNS_CLEARED_REMAINING_WAL_RETAINED"
+                  assert x["ghost_lease_audit"] in (
+                      "PASS_NATIVE_FULL_TABLE_AND_EXACT_TUPLE_ABSENT_WAL_RETAINED",
+                      "UNSUPPORTED_ORIGINAL_UNICAST_ADDRESS_STILL_VISIBLE")
           if x["result"].startswith("SCOPED_REAL_"):
               for k in ("real_wintun","lease_mtu_dns","original_retired","wal_recovery"):
                   assert x[k].startswith("PASS"),k
