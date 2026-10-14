@@ -264,6 +264,8 @@ jobs:
               assert x["pnp_state_after"] in ("EXACT_DEVNODE_PROBLEM","EXACT_DEVNODE_NO_PROBLEM","EXACT_PNP_DEVNODE_GONE_13","UNSUPPORTED_NATIVE_PNP_READBACK")
               if x["pnp_state_after"]!="UNSUPPORTED_NATIVE_PNP_READBACK":
                   assert x["pnp_instance_after_sha256"]==x["pnp_instance_live_sha256"]
+              if x["pnp_state_after"]=="EXACT_PNP_DEVNODE_GONE_13" and x["ipv6_row_after"]=="MISSING_1168":
+                  assert x["ghost_dns_partial"]=="PASS_EXACT_PINNED_NATIVE_DNS_CLEARED_REMAINING_WAL_RETAINED"
           if x["result"].startswith("SCOPED_REAL_"):
               for k in ("real_wintun","lease_mtu_dns","original_retired","wal_recovery"):
                   assert x[k].startswith("PASS"),k
