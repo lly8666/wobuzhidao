@@ -118,3 +118,18 @@ func TestN4WindowsPinnedPnPBindingDurableInOriginalWAL(t *testing.T){
   if modified.valid(){t.Fatalf("malformed original PnP fingerprint accepted: %s",bad)}
  }
 }
+
+func TestN4WindowsUnkeyedGhostSkipOnlyOnUnboundCMNoSuchDevnode(t *testing.T){
+ for _,tt:=range []struct{rc uintptr;pinned bool;skip bool}{
+  {13,false,true},
+  {13,true,false},
+  {0,false,false},
+  {0,true,false},
+  {19,false,false},
+  {5,false,false},
+  {259,false,false},
+ }{
+  got:=n4MaySkipUnkeyedGhost(tt.rc,tt.pinned)
+  if got!=tt.skip{t.Fatalf("unkeyed ghost rc=%d pinned=%t skip=%t; want %t",tt.rc,tt.pinned,got,tt.skip)}
+ }
+}

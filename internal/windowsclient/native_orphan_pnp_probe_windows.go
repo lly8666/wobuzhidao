@@ -42,6 +42,13 @@ type n4OriginalPnPProbe struct{
  ProblemCode uint32
 }
 
+// n4MaySkipUnkeyedGhost is permitted only while pinning an UNBOUND,
+ // independently observed live created Wintun. A WAL-pinned postcrash
+ // lookup must NEVER discard an unreadable device instance.
+func n4MaySkipUnkeyedGhost(configRet uintptr,alreadyPinned bool)bool{
+ return configRet==13 && !alreadyPinned
+}
+
 func n4ClassifyCMDevNode(rc uintptr,status uint32)(string,error){
  // CONFIGRET 13 is CR_NO_SUCH_DEVNODE, not proof that SetupAPI,
  // interface aliases, registry DNS settings or a WAL are safe to delete.
@@ -122,7 +129,21 @@ func n4ProbeOriginalWintunPnP(ctx context.Context,id N4UnifiedIdentity)(n4Origin
   count++
   key,_,keyErr:=n4SetupOpenDriverKey.Call(handle,uintptr(unsafe.Pointer(&row)),1,0,2,uintptr(windows.KEY_QUERY_VALUE))
   if key==^uintptr(0){
-   return zero,fmt.Errorf("%w: Wintun driver registry key: %v",ErrN4NativeGuard,keyErr)
+   // Windows can retain an enumerated SWD\\Wintun ghost after an
+   // abruptly terminated prior *test* process. A stale devnode with no
+   // driver registry key is not the new LIVE adapter we are pinning.
+   // Skip it ONLY if ConfigManager proves CR_NO_SUCH_DEVNODE=13 and the
+   // current admission has no pre-existing pinned PnP identity. With an
+   // existing WAL pin this is NEVER a skip: postcrash ownership remains
+   // fail-closed, even for the same alias or a matching GAA triple.
+   var devStatus,devProblem uint32
+   devRC,_,_:=n4CfgDevNodeStatus.Call(uintptr(unsafe.Pointer(&devStatus)),
+    uintptr(unsafe.Pointer(&devProblem)),uintptr(row.DevInst),0)
+   if n4MaySkipUnkeyedGhost(devRC,id.PnPInstanceSHA256!=""){
+    continue
+   }
+   return zero,fmt.Errorf("%w: Wintun driver registry key unavailable (CM status %d): %v",
+    ErrN4NativeGuard,devRC,keyErr)
   }
   value,_,valueErr:=registry.Key(key).GetStringValue("NetCfgInstanceId")
   closeErr:=registry.Key(key).Close()
