@@ -1,0 +1,109 @@
+name: next-adaptive-n5-scoped-integration
+on:
+  push:
+    branches: ["next/adaptive-fec-aes-tun-20261010"]
+    paths:
+      - ".github/workflows/next-adaptive-n5-scoped-integration.yml"
+      - "internal/runtimeentry/**"
+      - "internal/datapath/**"
+      - "internal/adaptivefec/**"
+      - "internal/windowsclient/**"
+      - "internal/splitroute/**"
+      - "go.mod"
+      - "go.sum"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux-functional:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE, repository contract and non-performance integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/check_repository.py
+          go test -mod=readonly ./internal/runtimeentry -run '^TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation$' -count=3 -timeout=8m
+          go test -mod=readonly ./internal/datapath -run '^TestN3' -count=1 -timeout=8m
+          go test -mod=readonly ./internal/adaptivefec ./internal/splitroute -count=1 -timeout=8m
+  linux-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Real multiclient admission and AES lane race, no performance measurement
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly -race ./internal/runtimeentry -run '^TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation$' -count=3 -timeout=12m
+          go test -mod=readonly -race ./internal/datapath -run '^TestN3' -count=1 -timeout=8m
+  windows-functional:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: false
+      - name: Exact SOURCE three-client and native Windows fail-closed unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          go test -mod=readonly ./internal/runtimeentry -run '^TestV3ThreeClientsIndependentFirstBothDirectionsAndRotation$' -count=3 -timeout=10m
+          go test -mod=readonly ./internal/datapath -run '^TestN3' -count=1 -timeout=8m
+          go test -mod=readonly ./internal/windowsclient -run '^TestN4Windows(PreRouteOrphan|OwnedGuardOrphan|PersistedOriginalPreRoute)' -count=1 -timeout=8m
+  receipt:
+    needs: [linux-functional, linux-race, windows-functional]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Do not relabel unsupported Windows system network capabilities
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          LINUX_FUNCTIONAL: ${{ needs.linux-functional.result }}
+          LINUX_RACE: ${{ needs.linux-race.result }}
+          WINDOWS_FUNCTIONAL: ${{ needs.windows-functional.result }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,pathlib
+          j={"schema":"wbd-n5-scoped-integration/v1",
+             "source_sha":os.environ["SOURCE_SHA"],
+             "run_id":os.environ["RUN_ID"],
+             "jobs":{k:os.environ[k] for k in ("LINUX_FUNCTIONAL","LINUX_RACE","WINDOWS_FUNCTIONAL")},
+             "scope":"V3 multi-client both directions + N3 AES + adaptive FEC + Windows native unit-only",
+             "performance":"NOT_RUN","windows_wfp_production":"NOT_RUN",
+             "windows_full_route_capture":"NOT_RUN","windows_real_crash_recover":"NOT_RUN",
+             "direct_tcp_udp_real_underlay":"NOT_RUN","physical":"NOT_RUN",
+             "N4_full":"OPEN","N5_full":"OPEN","N6_p6":"NOT_RUN"}
+          pathlib.Path("n5-scoped-receipt.json").write_text(json.dumps(j,indent=2,sort_keys=True)+"\n")
+          assert all(x=="success" for x in j["jobs"].values()),j["jobs"]
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: n5-scoped-integration-receipt
+          path: n5-scoped-receipt.json
+          if-no-files-found: warn
