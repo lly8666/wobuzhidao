@@ -67,6 +67,18 @@ func TestN4WindowsHostedUnifiedWALRealLeaseMTUDNS(t *testing.T) {
  id:=N4UnifiedIdentity{Installation:install,Generation:gen,
   WintunIndex:live.Index,WintunLUID:live.LUID,
   WintunGUID:osGUID.String(),AdapterAlias:tun.Name()}
+ // The product assembler now REQUIRES the same PnP instance pinned by
+ // real admission BEFORE first durable WAL/network write. Exercise that
+ // contract here too; do not weaken assembler checks for a test fixture.
+ originalPnP,err:=n4ProbeOriginalWintunPnP(ctx,id)
+ if err!=nil{t.Fatalf("created original PnP pin readback: %v",err)}
+ if !n4ValidPinnedPnPHash(originalPnP.InstanceSHA256){
+  t.Fatal("created original PnP instance hash invalid")
+ }
+ id.PnPInstanceSHA256=originalPnP.InstanceSHA256
+ if err:=n4RequireOriginalPnPBinding(id,originalPnP);err!=nil{
+  t.Fatalf("created original PnP WAL binding: %v",err)
+ }
  owner:=N4WindowsCreatedWintunReservation{
   Tunnel:tun,Installation:install,Generation:gen,
  }
