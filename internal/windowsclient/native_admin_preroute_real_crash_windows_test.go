@@ -245,6 +245,28 @@ func TestN4WindowsHostedRealPreRouteIPCrashWAL(t *testing.T){
       }
       t.Logf("N4_POSTCRASH_PNP_READONLY state=%s instance=EXACT_SAME guard=FAKE_ARMED wal=RETAINED",ghostPnP.State)
      }
+     // This is NOT MTU/lease/full native Recover. After pinned PnP
+     // proves the exact original devnode is gone, try only native DNS
+     // static-setting CAS Clear while preserving guard and the other three
+     // WAL stages. A real OS failure is a real test failure, not fake PASS.
+     if pnpErr==nil && ghostPnP.State=="EXACT_PNP_DEVNODE_GONE_13" {
+      partialCtx,donePartial:=context.WithTimeout(context.Background(),12*time.Second)
+      partialErr:=n4RestoreGhostDNSOnly(partialCtx,wal,j.Identity,fake)
+      donePartial()
+      if !errors.Is(partialErr,ErrN4GhostDNSPartialOnly){
+       t.Fatalf("original pinned ghost DNS-only native CAS failed (WAL retained): %v",partialErr)
+      }
+      remainder,readErr:=n4UnifiedRead(wal)
+      if readErr!=nil || remainder.Phase!="cleaning" ||
+       len(remainder.Records)!=3 || remainder.Records[2].Name!="mtu"{
+       t.Fatalf("ghost DNS-only partial cleanup destroyed remainder: %+v %v",remainder,readErr)
+      }
+      if !fake.active || fake.disarmCount!=0 {
+       t.Fatal("ghost DNS-only cleanup disarmed remaining WFP guard")
+      }
+      report["ghost_dns_partial"]="PASS_EXACT_PINNED_NATIVE_DNS_CLEARED_REMAINING_WAL_RETAINED"
+      t.Log("N4_GHOST_DNS_PARTIAL=PASS_EXACT_PINNED_NATIVE_DNS_CAS; MTU/LEASE/WFP STILL OPEN")
+     }
      t.Logf("N4_POSTCRASH_NATIVE_ROWS original=EXACT_TRIPLE ipv4=%s ipv6=%s guard=FAKE_ARMED wal=RETAINED",ghostProbe.IPv4,ghostProbe.IPv6)
      report["result"]="UNSUPPORTED_EXACT_ORIGINAL_IPV4_ROW_UNAVAILABLE"
      report["original_retired"]="UNSUPPORTED_SAME_ORIGINAL_TRIPLE_WITHOUT_IPV4_ROW"

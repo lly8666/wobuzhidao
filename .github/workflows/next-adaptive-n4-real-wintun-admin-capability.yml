@@ -16,6 +16,8 @@ on:
       - "internal/windowsclient/native_orphan_preroute_windows_test.go"
       - "internal/windowsclient/native_orphan_persisted_preroute_windows.go"
       - "internal/windowsclient/native_orphan_persisted_preroute_windows_test.go"
+      - "internal/windowsclient/native_orphan_ghost_dns_windows.go"
+      - "internal/windowsclient/native_orphan_ghost_dns_windows_test.go"
       - "internal/windowsclient/native_orphan_iprow_probe_windows.go"
       - "internal/windowsclient/native_orphan_iprow_probe_windows_test.go"
       - "internal/windowsclient/native_orphan_pnp_probe_windows.go"
